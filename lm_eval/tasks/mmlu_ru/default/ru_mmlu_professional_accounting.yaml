@@ -1,6 +1,6 @@
 "dataset_name": "professional_accounting"
-"description": "The following are multiple choice questions (with answers) about professional\
-  \ accounting.\n\n"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему профессиональный учет.\n\n"
 "group": "mmlu_ru_other"
 "group_alias": "other"
 "include": "_default_template_yaml"

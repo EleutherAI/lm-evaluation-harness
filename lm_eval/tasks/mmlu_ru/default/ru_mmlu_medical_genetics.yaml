@@ -1,6 +1,6 @@
 "dataset_name": "medical_genetics"
-"description": "The following are multiple choice questions (with answers) about medical\
-  \ genetics.\n\n"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему медицинская генетика.\n\n"
 "group": "mmlu_ru_other"
 "group_alias": "other"
 "include": "_default_template_yaml"

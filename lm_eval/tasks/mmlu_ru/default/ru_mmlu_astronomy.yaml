@@ -1,6 +1,6 @@
 "dataset_name": "astronomy"
-"description": "The following are multiple choice questions (with answers) about astronomy.\n\
-  \n"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему астрономия.\n\n"
 "group": "mmlu_ru_stem"
 "group_alias": "stem"
 "include": "_default_template_yaml"

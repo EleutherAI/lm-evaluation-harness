@@ -1,6 +1,6 @@
 "dataset_name": "high_school_government_and_politics"
-"description": "The following are multiple choice questions (with answers) about high\
-  \ school government and politics.\n\n"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему школьное государственное управление и политика.\n\n"
 "group": "mmlu_ru_social_sciences"
 "group_alias": "social sciences"
 "include": "_default_template_yaml"

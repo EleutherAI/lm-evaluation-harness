@@ -1,6 +1,7 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
+
 import argparse
 import os
 
@@ -10,63 +11,63 @@ from tqdm import tqdm
 
 
 SUBJECTS = {
-    "abstract_algebra": "stem",
-    "anatomy": "stem",
-    "astronomy": "stem",
-    "business_ethics": "other",
-    "clinical_knowledge": "other",
-    "college_biology": "stem",
-    "college_chemistry": "stem",
-    "college_computer_science": "stem",
-    "college_mathematics": "stem",
-    "college_medicine": "other",
-    "college_physics": "stem",
-    "computer_security": "stem",
-    "conceptual_physics": "stem",
-    "econometrics": "social_sciences",
-    "electrical_engineering": "stem",
-    "elementary_mathematics": "stem",
-    "formal_logic": "humanities",
-    "global_facts": "other",
-    "high_school_biology": "stem",
-    "high_school_chemistry": "stem",
-    "high_school_computer_science": "stem",
-    "high_school_european_history": "humanities",
-    "high_school_geography": "social_sciences",
-    "high_school_government_and_politics": "social_sciences",
-    "high_school_macroeconomics": "social_sciences",
-    "high_school_mathematics": "stem",
-    "high_school_microeconomics": "social_sciences",
-    "high_school_physics": "stem",
-    "high_school_psychology": "social_sciences",
-    "high_school_statistics": "stem",
-    "high_school_us_history": "humanities",
-    "high_school_world_history": "humanities",
-    "human_aging": "other",
-    "human_sexuality": "social_sciences",
-    "international_law": "humanities",
-    "jurisprudence": "humanities",
-    "logical_fallacies": "humanities",
-    "machine_learning": "stem",
-    "management": "other",
-    "marketing": "other",
-    "medical_genetics": "other",
-    "miscellaneous": "other",
-    "moral_disputes": "humanities",
-    "moral_scenarios": "humanities",
-    "nutrition": "other",
-    "philosophy": "humanities",
-    "prehistory": "humanities",
-    "professional_accounting": "other",
-    "professional_law": "humanities",
-    "professional_medicine": "other",
-    "professional_psychology": "social_sciences",
-    "public_relations": "social_sciences",
-    "security_studies": "social_sciences",
-    "sociology": "social_sciences",
-    "us_foreign_policy": "social_sciences",
-    "virology": "other",
-    "world_religions": "humanities",
+    "abstract_algebra": ("stem", "абстрактная_алгебра"),
+    "anatomy": ("stem", "анатомия"),
+    "astronomy": ("stem", "астрономия"),
+    "business_ethics": ("other", "этика_бизнеса"),
+    "clinical_knowledge": ("other", "клинические_знания"),
+    "college_biology": ("stem", "вузовская_биология"),
+    "college_chemistry": ("stem", "вузовская_химия"),
+    "college_computer_science": ("stem", "вузовская_информатика"),
+    "college_mathematics": ("stem", "вузовская_математика"),
+    "college_medicine": ("other", "вузовская_медицина"),
+    "college_physics": ("stem", "вузовская_физика"),
+    "computer_security": ("stem", "компьютерная_безопасность"),
+    "conceptual_physics": ("stem", "концептуальная_физика"),
+    "econometrics": ("social_sciences", "эконометрика"),
+    "electrical_engineering": ("stem", "электротехника"),
+    "elementary_mathematics": ("stem", "элементарная_математика"),
+    "formal_logic": ("humanities", "формальная_логика"),
+    "global_facts": ("other", "глобальные_факты"),
+    "high_school_biology": ("stem", "школьная_биология"),
+    "high_school_chemistry": ("stem", "школьная_химия"),
+    "high_school_computer_science": ("stem", "школьная_информатика"),
+    "high_school_european_history": ("humanities", "школьная_европейская_история"),
+    "high_school_geography": ("social_sciences", "школьная_география"),
+    "high_school_government_and_politics": ("social_sciences", "школьное_государственное_управление_и_политика"),
+    "high_school_macroeconomics": ("social_sciences", "школьная_макроэкономика"),
+    "high_school_mathematics": ("stem", "школьная_математика"),
+    "high_school_microeconomics": ("social_sciences", "школьная_микроэкономика"),
+    "high_school_physics": ("stem", "школьная_физика"),
+    "high_school_psychology": ("social_sciences", "школьная_психология"),
+    "high_school_statistics": ("stem", "школьная_статистика"),
+    "high_school_us_history": ("humanities", "школьная_история_США"),
+    "high_school_world_history": ("humanities", "школьная_всемирная_история"),
+    "human_aging": ("other", "старение_человека"),
+    "human_sexuality": ("social_sciences", "человеческая_сексуальность"),
+    "international_law": ("humanities", "международное_право"),
+    "jurisprudence": ("humanities", "юриспруденция"),
+    "logical_fallacies": ("humanities", "логические_ошибки"),
+    "machine_learning": ("stem", "машинное_обучение"),
+    "management": ("other", "менеджмент"),
+    "marketing": ("other", "маркетинг"),
+    "medical_genetics": ("other", "медицинская_генетика"),
+    "miscellaneous": ("other", "разное"),
+    "moral_disputes": ("humanities", "моральные_спор"),
+    "moral_scenarios": ("humanities", "моральные_сценарии"),
+    "nutrition": ("other", "питание"),
+    "philosophy": ("humanities", "философия"),
+    "prehistory": ("humanities", "доисторический_период"),
+    "professional_accounting": ("other", "профессиональный_учет"),
+    "professional_law": ("humanities", "профессиональное_право"),
+    "professional_medicine": ("other", "профессиональная_медицина"),
+    "professional_psychology": ("social_sciences", "профессиональная_психология"),
+    "public_relations": ("social_sciences", "связи_с_общественностью"),
+    "security_studies": ("social_sciences", "исследования_в_области_безопасности"),
+    "sociology": ("social_sciences", "социология"),
+    "us_foreign_policy": ("social_sciences", "внешняя_политика_США"),
+    "virology": ("other", "вирусология"),
+    "world_religions": ("humanities", "мировые_религии"),
 }
 
 
@@ -95,24 +96,20 @@ if __name__ == "__main__":
             cot_file = json.load(f)
 
     ALL_CATEGORIES = []
-    for subject, category in tqdm(SUBJECTS.items()):
+    for subject, (category, subject_ru) in tqdm(SUBJECTS.items()):
         if category not in ALL_CATEGORIES:
             ALL_CATEGORIES.append(category)
 
         if args.cot_prompt_path is not None:
             description = cot_file[subject]
         else:
-            description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
+            description = f"Ниже приведены вопросы с несколькими вариантами ответов и одним правильным на тему {subject_ru.replace('_', ' ')}.\n\n"
 
         yaml_dict = {
             "include": base_yaml_name,
-            "group": f"mmlu_{args.task_prefix}_{category}"
-            if args.task_prefix != ""
-            else f"mmlu_{category}",
+            "group": f"mmlu_{args.task_prefix}_{category}" if args.task_prefix != "" else f"mmlu_{category}",
             "group_alias": category.replace("_", " "),
-            "task": f"mmlu_{args.task_prefix}_{subject}"
-            if args.task_prefix != ""
-            else f"mmlu_{subject}",
+            "task": f"mmlu_{args.task_prefix}_{subject}" if args.task_prefix != "" else f"mmlu_{subject}",
             "task_alias": subject.replace("_", " "),
             "dataset_name": subject,
             "description": description,
@@ -130,9 +127,7 @@ if __name__ == "__main__":
             )
 
     if args.task_prefix != "":
-        mmlu_subcategories = [
-            f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES
-        ]
+        mmlu_subcategories = [f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES]
     else:
         mmlu_subcategories = [f"mmlu_{category}" for category in ALL_CATEGORIES]
 
@@ -145,12 +140,11 @@ if __name__ == "__main__":
     with open(file_save_path, "w") as yaml_file:
         yaml.dump(
             {
-                "group": f"mmlu_{args.task_prefix}"
-                if args.task_prefix != ""
-                else "mmlu",
+                "group": f"mmlu_{args.task_prefix}" if args.task_prefix != "" else "mmlu",
                 "task": mmlu_subcategories,
             },
             yaml_file,
             indent=4,
             default_flow_style=False,
+            width=1000
         )
