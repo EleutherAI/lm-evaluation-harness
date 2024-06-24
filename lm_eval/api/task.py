@@ -368,16 +368,15 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit=None,
-        rank=None,
-        world_size=None,
-        cache_requests=False,
-        rewrite_requests_cache=False,
-        system_instruction=None,
-        apply_chat_template=False,
-        fewshot_as_multiturn=False,
-        # chat_template is callable
-        chat_template=None,
+        limit: int = None,
+        rank: int = None,
+        world_size: int = None,
+        cache_requests: bool = False,
+        rewrite_requests_cache: bool = False,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -1016,7 +1015,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template=None,
+        chat_template: Optional[Callable] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
