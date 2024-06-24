@@ -401,7 +401,9 @@ def evaluate(
             chat_template=getattr(lm, "apply_chat_template")
             if apply_chat_template
             else None,
-            tokenizer_name=getattr(lm, "tokenizer_name", ""),
+            tokenizer_name=getattr(lm, "tokenizer_name", "")
+            if apply_chat_template
+            else "",
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
