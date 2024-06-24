@@ -5,6 +5,7 @@ import itertools
 import time
 from functools import wraps
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -22,6 +23,10 @@ import torch
 import transformers
 
 from lm_eval.utils import eval_logger
+
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizerBase
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -620,7 +625,9 @@ class Collator:
             yield arr
 
 
-def handle_pad_token(tokenizer, model_config=None):
+def handle_pad_token(
+    tokenizer: "PreTrainedTokenizerBase", model_config: Optional[dict] = None
+) -> "PreTrainedTokenizerBase":
     """
     This function handles the padding token for a given tokenizer.
     It checks if the tokenizer has a padding token and sets it if not present.
