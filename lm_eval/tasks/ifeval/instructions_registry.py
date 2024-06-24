@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Registry of all instructions."""
+
 from lm_eval.tasks.ifeval import instructions
 
 

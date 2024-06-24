@@ -1,0 +1,6 @@
+"dataset_name": "Middle Natural Science"
+"group": "arabicmmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_middle_natural_science"
+"task_alias": "Middle Natural Science"

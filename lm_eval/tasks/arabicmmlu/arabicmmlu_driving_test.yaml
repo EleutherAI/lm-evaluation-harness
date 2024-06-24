@@ -1,0 +1,6 @@
+"dataset_name": "Driving Test"
+"group": "arabicmmlu_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_driving_test"
+"task_alias": "Driving Test"
