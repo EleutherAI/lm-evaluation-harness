@@ -2,19 +2,17 @@
 import datasets
 # import huggingface
 
-LABEL_MAPPING = {
-    "true": 'A',
-    "mostly-true": 'B',
-    "half-true": 'C',
-    "mostly-false": 'D',
-    "false": 'E',
-    "pants-fire": 'F'
-}
+# LABEL_MAPPING = {
+#     "true": 'A',
+#     "mostly-true": 'B',
+#     "half-true": 'C',
+#     "mostly-false": 'D',
+#     "false": 'E',
+# }
 
 def process_docs(dataset: datasets.Dataset):
     def _helper(doc):
-        doc["choices"] = ['A', 'B', 'C', 'D', 'E', 'F']
-        doc["gold"] = LABEL_MAPPING[doc["label"]]
+        doc["choices"] = ['true', 'mostly-true', 'half-true', 'mostly-false', 'false']
         return doc
 
     return dataset.map(_helper)
@@ -22,5 +20,5 @@ def process_docs(dataset: datasets.Dataset):
 def get_choices(doc):
     return doc["choices"]
 
-def get_target(doc):
-    return doc["gold"]
+# def get_target(doc):
+#     return doc["gold"]

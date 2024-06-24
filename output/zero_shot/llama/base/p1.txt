@@ -1,0 +1,61 @@
+2024-06-23:14:24:45,052 INFO     [__main__.py:272] Verbosity set to INFO
+2024-06-23:14:24:51,275 INFO     [__main__.py:363] Selected Tasks: ['halftruthdetection']
+2024-06-23:14:24:51,277 INFO     [evaluator.py:152] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234
+2024-06-23:14:24:51,277 INFO     [evaluator.py:189] Initializing hf model, with arguments: {'pretrained': 'meta-llama/Meta-Llama-3-8B-Instruct'}
+2024-06-23:14:24:51,823 WARNING  [other.py:349] Detected kernel version 5.4.0, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
+2024-06-23:14:24:51,823 INFO     [huggingface.py:169] Using device 'cuda:1'
+/opt/conda/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Special tokens have been added in the vocabulary, make suDownloading shards:   0%|          | 0/3 [03:31<?, ?it/s]
+Traceback (most recent call last):
+  File "/opt/conda/bin/lmDownloading shards:   0%|          | 0/4 [00:06<?, ?it/s]
+Traceback (most recent call last):
+  File "/opt/conda/bin/lm_eval", line 8, in <module>
+    sys.exit(cli_evaluate())
+  File "/usr/src/app/lm_eval/__main__.py", line 369, in cli_evaluate
+    results = evaluator.simple_evaluate(
+  File "/usr/src/app/lm_eval/utils.py", line 395, in _wrapper
+    return fn(*args, **kwargs)
+  File "/usr/src/app/lm_eval/evaluator.py", line 192, in simple_evaluate
+    lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+  File "/usr/src/app/lm_eval/api/model.py", line 148, in create_from_arg_string
+    return cls(**args, **args2)
+  File "/usr/src/app/lm_eval/models/huggingface.py", line 217, in __init__
+    self._create_model(
+  File "/usr/src/app/lm_eval/models/huggingface.py", line 562, in _create_model
+    self._model = self.AUTO_MODEL_CLASS.from_pretrained(
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py", line 563, in from_pretrained
+    return model_class.from_pretrained(
+  File "/opt/conda/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3511, in from_pretrained
+    resolved_archive_file, sharded_metadata = get_checkpoint_shard_files(
+  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 1040, in get_checkpoint_shard_files
+    cached_filename = cached_file(
+  File "/opt/conda/lib/python3.10/site-packages/transformers/utils/hub.py", line 399, in cached_file
+    resolved_file = hf_hub_download(
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1221, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1367, in _hf_hub_download_to_cache_dir
+    _download_to_tmp_and_move(
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1884, in _download_to_tmp_and_move
+    http_get(
+  File "/opt/conda/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 539, in http_get
+    for chunk in r.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
+  File "/opt/conda/lib/python3.10/site-packages/requests/models.py", line 820, in generate
+    yield from self.raw.stream(chunk_size, decode_content=True)
+  File "/opt/conda/lib/python3.10/site-packages/urllib3/response.py", line 628, in stream
+    data = self.read(amt=amt, decode_content=decode_content)
+  File "/opt/conda/lib/python3.10/site-packages/urllib3/response.py", line 567, in read
+    data = self._fp_read(amt) if not fp_closed else b""
+  File "/opt/conda/lib/python3.10/site-packages/urllib3/response.py", line 533, in _fp_read
+    return self._fp.read(amt) if amt is not None else self._fp.read()
+  File "/opt/conda/lib/python3.10/http/client.py", line 465, in read
+    s = self.fp.read(amt)
+  File "/opt/conda/lib/python3.10/socket.py", line 705, in readinto
+    return self._sock.recv_into(b)
+  File "/opt/conda/lib/python3.10/ssl.py", line 1274, in recv_into
+    return self.read(nbytes, buffer)
+  File "/opt/conda/lib/python3.10/ssl.py", line 1130, in read
+    return self._sslobj.read(len, buffer)
+KeyboardInterrupt

@@ -1,0 +1,67 @@
+2024-06-24:11:33:31,285 INFO     [__main__.py:272] Verbosity set to INFO
+2024-06-24:11:33:37,505 INFO     [__main__.py:363] Selected Tasks: ['halftruthdetection']
+2024-06-24:11:33:37,507 INFO     [evaluator.py:152] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234
+2024-06-24:11:33:37,507 INFO     [evaluator.py:189] Initializing hf model, with arguments: {'pretrained': 'google/gemma-7b-it'}
+2024-06-24:11:33:37,699 WARNING  [other.py:349] Detected kernel version 5.4.0, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
+2024-06-24:11:33:37,699 INFO     [huggingface.py:169] Using device 'cuda:7'
+/opt/conda/lib/python3.10/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+Downloading shards:   0%|          | 0/4 [00:00<?, ?it/s]Downloading shards:  25%|██▌       | 1/4 [07:00<21:02, 420.84s/it]Downloading shards:  50%|█████     | 2/4 [14:03<14:03, 421.76s/it]Downloading shards:  75%|███████▌  | 3/4 [21:19<07:08, 428.35s/it]Downloading shards: 100%|██████████| 4/4 [24:18<00:00, 330.03s/it]Downloading shards: 100%|██████████| 4/4 [24:18<00:00, 364.69s/it]
+`config.hidden_act` is ignored, you should use `config.hidden_activation` instead.
+Gemma's activation function will be set to `gelu_pytorch_tanh`. Please, use
+`config.hidden_activation` if you want to override this behaviour.
+See https://github.com/huggingface/transformers/pull/29402 for more details.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:04,  1.52s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.33s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1.30s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.04it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.11s/it]
+2024-06-24:11:58:07,571 INFO     [huggingface.py:283] Model type is 'gemma', a BOS token will be used as Gemma underperforms without it.
+2024-06-24:11:58:07,603 WARNING  [task.py:790] [Task: halftruthdetection] metric f1 is defined, but aggregation is not. using default aggregation=f1
+2024-06-24:11:58:08,267 INFO     [evaluator.py:261] Setting fewshot random generator seed to 1234
+2024-06-24:11:58:08,269 INFO     [task.py:410] Building contexts for halftruthdetection on rank 0...
+  0%|          | 0/1055 [00:00<?, ?it/s]  2%|▏         | 23/1055 [00:00<00:04, 221.04it/s]  4%|▍         | 47/1055 [00:00<00:04, 226.71it/s]  7%|▋         | 70/1055 [00:00<00:04, 227.88it/s]  9%|▉         | 94/1055 [00:00<00:04, 229.36it/s] 11%|█         | 118/1055 [00:00<00:04, 230.55it/s] 13%|█▎        | 142/1055 [00:00<00:03, 231.73it/s] 16%|█▌        | 166/1055 [00:00<00:03, 232.39it/s] 18%|█▊        | 190/1055 [00:00<00:03, 232.90it/s] 20%|██        | 214/1055 [00:00<00:03, 233.40it/s] 23%|██▎       | 238/1055 [00:01<00:03, 233.89it/s] 25%|██▍       | 262/1055 [00:01<00:03, 233.56it/s] 27%|██▋       | 286/1055 [00:01<00:03, 233.49it/s] 29%|██▉       | 310/1055 [00:01<00:03, 233.31it/s] 32%|███▏      | 334/1055 [00:01<00:03, 233.16it/s] 34%|███▍      | 358/1055 [00:01<00:02, 233.29it/s] 36%|███▌      | 382/1055 [00:01<00:02, 233.35it/s] 38%|███▊      | 406/1055 [00:01<00:02, 233.44it/s] 41%|████      | 430/1055 [00:01<00:02, 233.02it/s] 43%|████▎     | 454/1055 [00:01<00:02, 232.83it/s] 45%|████▌     | 478/1055 [00:02<00:02, 231.75it/s] 48%|████▊     | 502/1055 [00:02<00:02, 232.05it/s] 50%|████▉     | 526/1055 [00:02<00:02, 232.64it/s] 52%|█████▏    | 550/1055 [00:02<00:02, 232.98it/s] 54%|█████▍    | 574/1055 [00:02<00:02, 233.52it/s] 57%|█████▋    | 598/1055 [00:02<00:01, 233.90it/s] 59%|█████▉    | 622/1055 [00:02<00:01, 234.01it/s] 61%|██████    | 646/1055 [00:02<00:01, 233.88it/s] 64%|██████▎   | 670/1055 [00:02<00:01, 233.96it/s] 66%|██████▌   | 694/1055 [00:02<00:01, 234.14it/s] 68%|██████▊   | 718/1055 [00:03<00:01, 234.03it/s] 70%|███████   | 742/1055 [00:03<00:01, 234.16it/s] 73%|███████▎  | 766/1055 [00:03<00:01, 234.20it/s] 75%|███████▍  | 790/1055 [00:03<00:01, 232.89it/s] 77%|███████▋  | 814/1055 [00:03<00:01, 233.28it/s] 79%|███████▉  | 838/1055 [00:03<00:00, 233.66it/s] 82%|████████▏ | 862/1055 [00:03<00:00, 233.87it/s] 84%|████████▍ | 886/1055 [00:03<00:00, 234.05it/s] 86%|████████▋ | 910/1055 [00:03<00:00, 234.09it/s] 89%|████████▊ | 934/1055 [00:04<00:00, 234.06it/s] 91%|█████████ | 958/1055 [00:04<00:00, 231.94it/s] 93%|█████████▎| 982/1055 [00:04<00:00, 232.39it/s] 95%|█████████▌| 1006/1055 [00:04<00:00, 232.99it/s] 98%|█████████▊| 1030/1055 [00:04<00:00, 233.30it/s]100%|█████████▉| 1054/1055 [00:04<00:00, 233.45it/s]100%|██████████| 1055/1055 [00:04<00:00, 232.95it/s]
+2024-06-24:11:58:12,864 INFO     [evaluator.py:431] Running loglikelihood requests
+Running loglikelihood requests:   0%|          | 0/5275 [00:00<?, ?it/s]Traceback (most recent call last):
+  File "/opt/conda/bin/lm_eval", line 8, in <module>
+    sys.exit(cli_evaluate())
+  File "/usr/src/app/lm_eval/__main__.py", line 369, in cli_evaluate
+    results = evaluator.simple_evaluate(
+  File "/usr/src/app/lm_eval/utils.py", line 395, in _wrapper
+    return fn(*args, **kwargs)
+  File "/usr/src/app/lm_eval/evaluator.py", line 276, in simple_evaluate
+    results = evaluate(
+  File "/usr/src/app/lm_eval/utils.py", line 395, in _wrapper
+    return fn(*args, **kwargs)
+  File "/usr/src/app/lm_eval/evaluator.py", line 442, in evaluate
+    resps = getattr(lm, reqtype)(cloned_reqs)
+  File "/usr/src/app/lm_eval/api/model.py", line 370, in loglikelihood
+    return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)
+  File "/usr/src/app/lm_eval/models/huggingface.py", line 1107, in _loglikelihood_tokens
+    self._model_call(batched_inps, **call_kwargs), dim=-1
+  File "/usr/src/app/lm_eval/models/huggingface.py", line 822, in _model_call
+    return self.model(inps).logits
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/gemma/modeling_gemma.py", line 1098, in forward
+    outputs = self.model(
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/gemma/modeling_gemma.py", line 902, in forward
+    layer_outputs = decoder_layer(
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/gemma/modeling_gemma.py", line 638, in forward
+    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/conda/lib/python3.10/site-packages/transformers/models/gemma/modeling_gemma.py", line 281, in forward
+    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
+  File "/opt/conda/lib/python3.10/site-packages/torch/nn/functional.py", line 1858, in softmax
+    ret = input.softmax(dim, dtype=dtype)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 6.34 GiB. GPU 7 has a total capacty of 79.15 GiB of which 4.80 GiB is free. Process 57766 has 22.99 GiB memory in use. Process 1615216 has 36.70 GiB memory in use. Process 1755725 has 14.64 GiB memory in use. Of the allocated memory 29.44 GiB is allocated by PyTorch, and 6.76 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+Running loglikelihood requests:   0%|          | 0/5275 [00:01<?, ?it/s]

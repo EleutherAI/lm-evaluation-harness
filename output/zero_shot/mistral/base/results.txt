@@ -1,0 +1,34 @@
+P1
+|      Tasks       |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
+|------------------|------:|------|-----:|--------|---|-----:|---|-----:|
+|halftruthdetection|      0|none  |     0|acc     |↑  |0.1270|±  |0.0103|
+|                  |       |none  |     0|acc_norm|↑  |0.1270|±  |0.0103|
+|                  |       |none  |     0|f1      |↑  |0.0578|±  |0.0082|
+
+P2
+|      Tasks       |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
+|------------------|------:|------|-----:|--------|---|-----:|---|-----:|
+|halftruthdetection|      0|none  |     0|acc     |↑  |0.1346|±  |0.0105|
+|                  |       |none  |     0|acc_norm|↑  |0.1346|±  |0.0105|
+|                  |       |none  |     0|f1      |↑  |0.0723|±  |0.0092|
+
+P3
+|      Tasks       |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
+|------------------|------:|------|-----:|--------|---|-----:|---|-----:|
+|halftruthdetection|      0|none  |     0|acc     |↑  |0.1270|±  |0.0103|
+|                  |       |none  |     0|acc_norm|↑  |0.1270|±  |0.0103|
+|                  |       |none  |     0|f1      |↑  |0.0611|±  |0.0083|
+
+P4
+|      Tasks       |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
+|------------------|------:|------|-----:|--------|---|-----:|---|-----:|
+|halftruthdetection|      0|none  |     0|acc     |↑  |0.1289|±  |0.0103|
+|                  |       |none  |     0|acc_norm|↑  |0.1289|±  |0.0103|
+|                  |       |none  |     0|f1      |↑  |0.0645|±  |0.0086|
+
+P5
+|      Tasks       |Version|Filter|n-shot| Metric |   |Value |   |Stderr|
+|------------------|------:|------|-----:|--------|---|-----:|---|-----:|
+|halftruthdetection|      0|none  |     0|acc     |↑  |0.1194|±  |0.0100|
+|                  |       |none  |     0|acc_norm|↑  |0.1194|±  |0.0100|
+|                  |       |none  |     0|f1      |↑  |0.0341|±  |0.0057|
