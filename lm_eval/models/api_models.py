@@ -144,7 +144,12 @@ class TemplateAPI(TemplateLM):
 
     @abc.abstractmethod
     def _create_payload(
-        self, messages, *, generate=True, gen_kwargs: dict = None, **kwargs
+        self,
+        messages: Union[List[List[int]], List[dict], List[str], str],
+        *,
+        generate=True,
+        gen_kwargs: dict = None,
+        **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
         raise NotImplementedError

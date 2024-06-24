@@ -313,7 +313,7 @@ class AnthropicChat(LocalCompletionsAPI):
         if system:
             messages = messages[1:]
         gen_kwargs.pop("do_sample", False)
-        max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
+        max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = gen_kwargs.pop("until", ["\n\nHuman:"])
         if not isinstance(stop, list):

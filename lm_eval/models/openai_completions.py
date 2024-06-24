@@ -19,11 +19,15 @@ class LocalCompletionsAPI(TemplateAPI):
         )
 
     def _create_payload(
-        self, messages: List, generate=False, gen_kwargs: dict = None, **kwargs
+        self,
+        messages: Union[List[List[int]], List[dict], List[str], str],
+        generate=False,
+        gen_kwargs: dict = None,
+        **kwargs,
     ) -> dict:
         if generate:
             gen_kwargs.pop("do_sample", False)
-            max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
+            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
             stop = gen_kwargs.pop("until", ["<|endoftext|>"])
             return {
@@ -108,7 +112,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
     ) -> dict:
         gen_kwargs.pop("do_sample", False)
-        max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
+        max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = gen_kwargs.pop("until", ["<|endoftext|>"])
         if not isinstance(stop, (list, tuple)):
