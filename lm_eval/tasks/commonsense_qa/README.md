@@ -7,7 +7,7 @@ Commonsense Knowledge`
 
 Abstract: https://arxiv.org/pdf/1811.00937.pdf
 
-CommonsenseQA is a multiple-choice question answering dataset that requires different types of commonsense knowledge to predict the correct answers. 
+CommonsenseQA is a multiple-choice question answering dataset that requires different types of commonsense knowledge to predict the correct answers.
 It contains 12,102 questions with one correct answer and four distractor answers.
 
 Homepage: https://www.tau-nlp.org/commonsenseqa
@@ -44,7 +44,7 @@ Homepage: https://www.tau-nlp.org/commonsenseqa
 
 #### Tasks
 
-* `default`: Represents the "random" split from the paper.
+* `commonsense_qa`: Represents the "random" split from the paper. Uses an MMLU-style prompt, as (presumably) used by Llama evaluations.
 
 ### Checklist
 

@@ -26,6 +26,7 @@
 | [ceval](ceval/README.md) | Tasks that evaluate language understanding and reasoning in an educational context. | Chinese |
 | [cmmlu](cmmlu/README.md) | Multi-subject multiple choice question tasks for comprehensive academic assessment. | Chinese |
 | code_x_glue | Tasks that involve understanding and generating code across multiple programming languages. | Go, Java, JS, PHP, Python, Ruby |
+| [commonsense_qa](commmonsense_qa/README.md) | CommonsenseQA, a multiple-choice QA dataset for measuring commonsense knowledge. | English |
 | [copal_id](copal_id/README.md) | Indonesian causal commonsense reasoning dataset that captures local nuances. | Indonesian |
 | [coqa](coqa/README.md) | Conversational question answering tasks to test dialog understanding. | English |
 | [crows_pairs](crows_pairs/README.md) | Tasks designed to test model biases in various sociodemographic groups. | English, French |
