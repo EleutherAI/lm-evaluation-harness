@@ -7,7 +7,12 @@ from pathlib import Path
 import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
 
-from lm_eval.utils import eval_logger
+from lm_eval.utils import (
+    eval_logger,
+    get_latest_filename,
+    get_results_filenames,
+    get_sample_results_filenames,
+)
 
 
 def parse_args():
@@ -45,13 +50,15 @@ def main():
 
     assert len(models) > 0, "No model directories found in the data_path."
 
+    # Get the tasks from the latest results file of the first model.
     tasks = set(tasks_for_model(models[0], args.data_path))
 
-    for model in models:  # Make sure that all models have the same tasks.
+    # Get tasks names from the latest results file for each model
+    # Get intersection of tasks for all models
+    for model in models:
         old_tasks = tasks.copy()
         task_count = len(tasks)
-
-        model_tasks = tasks_for_model(model, args.data_path)
+        model_tasks = set(tasks_for_model(model, args.data_path))
         tasks.intersection(set(model_tasks))
 
         if task_count != len(tasks):
@@ -66,22 +73,36 @@ def main():
     for task in tasks:
         # Upload data for all models
         for model_index, model in enumerate(models):
+            # Get latest results and sample results for a model
+            model_dir = Path(args.data_path, model)
+            model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
+            model_results_filenames = get_results_filenames(model_files)
+            model_sample_filenames = get_sample_results_filenames(model_files)
+            latest_results = get_latest_filename(
+                [Path(f).name for f in model_results_filenames]
+            )
+            latest_sample_results = get_latest_filename(
+                [Path(f).name for f in model_sample_filenames if task in f]
+            )
             model_args = re.sub(
                 r"[\"<>:/\|\\?\*\[\]]+",
                 "__",
                 json.load(
-                    open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
                 )["config"]["model_args"],
             )
+            print(model_args)
+            data = []
             with open(
-                Path(args.data_path, model, f"{model_args}_{task}.jsonl"),
+                Path(args.data_path, model, latest_sample_results),
                 "r",
                 encoding="utf-8",
             ) as file:
-                data = json.loads(file.read())
+                for line in file:
+                    data.append(json.loads(line.strip()))
 
             configs = json.load(
-                open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+                open(Path(args.data_path, model, latest_results), encoding="utf-8")
             )["configs"]
             config = configs[task]
 
@@ -125,10 +146,12 @@ def tasks_for_model(model: str, data_path: str):
     Returns:
         list: A list of tasks for the model.
     """
-    dir_path = Path(data_path, model)
-    config = (
-        json.load(open(Path(dir_path, "results.json"), encoding="utf-8"))["configs"],
-    )
+    # get latest model results for a given name
+    model_dir = Path(data_path, model)
+    model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
+    model_results_filenames = get_results_filenames(model_files)
+    latest_results = get_latest_filename(model_results_filenames)
+    config = (json.load(open(latest_results, encoding="utf-8"))["configs"],)
     return list(config[0].keys())
 
 

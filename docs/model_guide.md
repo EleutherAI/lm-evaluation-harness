@@ -6,7 +6,7 @@ In order to properly evaluate a given LM, we require implementation of a wrapper
 
 ## Setup
 
-To get started contributing, go ahead and fork the main repo, clone it, create a branch with the name of your task, and install the project requirements in your environment:
+To get started contributing, go ahead and fork the main repo, clone it, create a branch with the name of your model, and install the project requirements in your environment:
 
 ```sh
 # After forking...
@@ -106,6 +106,53 @@ Using this decorator results in the class being added to an accounting of the us
 ## Testing
 
 We also recommend that new model contributions be accompanied by short tests of their 3 core functionalities, at minimum. To see an example of such tests, look at https://github.com/EleutherAI/lm-evaluation-harness/blob/35bdecd379c0cefad6897e67db892f4a6026a128/tests/test_ggml.py .
+
+## Chat Templating
+
+Many models are fine-tuned with a [Chat Template](https://huggingface.co/docs/transformers/main/en/chat_templating) in order to enable back-and-forth interaction between a "User"'s queries and the model (often called "Assistant")'s responses. It can be desirable to evaluate fine-tuned models on evaluation tasks while wrapped in the conversational format they expect.
+
+In order to make your model optionally compatible with a chat format, three additional methods must be implemented:
+
+```python
+class MyCustomLM(LM):
+    #...
+    @property
+    def tokenizer_name(self) -> str:
+        # should return a string denoting the name of the model's tokenizer and/or the accompanying chat template.
+
+    @property
+    def chat_template(self) -> str:
+        # should return a chat template formatting string that is used to build prompt from a user/assistant chat history.
+        # this will be saved in the evaluation results for reproducibility.
+
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+        # responsible for taking as input a chat history that would be fed into the model, and
+        # rendering it as a string that can be then tokenized and input into the model.
+    #...
+```
+
+- `apply_chat_template`
+  - This method performs the bulk of the work required for chat-formatting.
+  - As input, a `chat_history: List[Dict[str, str]]` is passed in. This is a transcript of a conversation of a form similar to
+      ```
+      [
+        {"system": <user-provided system message such as "You are a helpful math-focused chatbot">},
+        {"user": <task example - a few-shot example 'input'>}
+        {"assistant": <correct response to the above example>},
+        # ... more few-shot examples, potentially
+        {"user": <test set query--response on which we will evaluate>},
+      ]
+      ```
+      which can then be converted into a string input.
+  - The output is a string representing this conversation that can be fed into the model.
+  - For example, this consists of simply calling `tokenizer.apply_chat_template` for HFLM--see the implementation there for reference.
+- `tokenizer_name`
+  - LM Eval Harness supports [caching requests](https://github.com/EleutherAI/lm-evaluation-harness/blob/4902aaaf1f374682f95ac25fe2e13b23faddc91a/lm_eval/__main__.py#L140) that are sent to a model, for faster setup when repeating an already-performed evaluation.
+  - However, we don't want to use the cache of chat transcripts rendered using one chat template or system prompt to send to a model with a different template! So, we use this `lm.tokenizer_name` string to distinguish caches for a given model (and chat template) from one another.
+- `chat_template`
+  - Chat templates are typically provided as a Jinja template string or a string formatted with str.format to include user and assistant messages in a single prompt. This template string is saved in the evaluation results to ensure reproducibility.
+
+If not implemented for a given model type, the flags `--apply_chat_template` , `--fewshot_as_multiturn`, and `--system_instruction` cannot be used.
 
 ## Other
 

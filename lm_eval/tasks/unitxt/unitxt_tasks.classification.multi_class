@@ -1,0 +1,24 @@
+group:
+- unitxt
+dataset_path: unitxt/data
+output_type: generate_until
+training_split: train
+validation_split: test
+doc_to_text: '{{source}}'
+doc_to_target: target
+process_results: !function 'unitxt_wrapper.process_results'
+generation_kwargs:
+  until:
+  - </s>
+metric_list:
+- metric: unitxt_f1_micro
+  aggregation: unitxt
+  higher_is_better: true
+- metric: unitxt_accuracy
+  aggregation: unitxt
+  higher_is_better: true
+- metric: unitxt_f1_macro
+  aggregation: unitxt
+  higher_is_better: true
+metadata:
+  verison: 1.0

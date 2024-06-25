@@ -1,0 +1,3 @@
+include: unitxt_tasks.classification.multi_class
+task: financial_tweets
+dataset_name: card=cards.financial_tweets,template=templates.classification.multi_class.title

@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 import torch
 
-import lm_eval.tasks as tasks
+from lm_eval import tasks
 from lm_eval.api.instance import Instance
 from lm_eval.models.huggingface import HFLM
 
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
+
+TEST_STRING = "foo bar"
 
 
 class Test_HFLM:
@@ -23,6 +27,7 @@ class Test_HFLM:
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
     generate_until_task = task_list["gsm8k"]  # type: ignore
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
+    generate_until_task.set_fewshot_seed(1234)  # fewshot random generator seed
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until: list[Instance] = generate_until_task.instances
     rolling_task = task_list["wikitext"]  # type: ignore
@@ -106,7 +111,7 @@ class Test_HFLM:
 
         file_path = dir_path / f"outputs_log_{self.version_minor}.txt"
         file_path = file_path.resolve()
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write("\n".join(str(x) for x in _res))
         assert np.allclose(_res, _RES, atol=1e-2)
         # check indices for Multiple Choice
@@ -125,19 +130,19 @@ class Test_HFLM:
         assert np.allclose(res, self.ROLLING_RES, atol=1e-1)
 
     def test_toc_encode(self) -> None:
-        res = self.LM.tok_encode("foo bar")
+        res = self.LM.tok_encode(TEST_STRING)
         assert res == [12110, 2534]
 
     def test_toc_decode(self) -> None:
         res = self.LM.tok_decode([12110, 2534])
-        assert res == "foo bar"
+        assert res == TEST_STRING
 
     def test_batch_encode(self) -> None:
-        res = self.LM.tok_batch_encode(["foo bar", "bar foo"])[0].tolist()
+        res = self.LM.tok_batch_encode([TEST_STRING, "bar foo"])[0].tolist()
         assert res == [[12110, 2534], [2009, 17374]]
 
     def test_model_generate(self) -> None:
-        context = self.LM.tok_batch_encode(["foo bar"])[0]
+        context = self.LM.tok_batch_encode([TEST_STRING])[0]
         res = self.LM._model_generate(context, max_length=10, stop=["\n\n"])
         res = self.LM.tok_decode(res[0])
         assert res == "foo bar\n<bazhang>!info bar"

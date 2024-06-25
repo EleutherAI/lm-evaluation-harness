@@ -2,34 +2,20 @@ import argparse
 import json
 import logging
 import os
-import re
 import sys
 from functools import partial
-from pathlib import Path
 from typing import Union
-
-import numpy as np
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.logging_utils import WandbLogger
+from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import make_table, simple_parse_args_string
+from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
 
-DEFAULT_RESULTS_FILE = "results.json"
-
-
-def _handle_non_serializable(o):
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
-        return int(o)
-    elif isinstance(o, set):
-        return list(o)
-    else:
-        return str(o)
-
-
-def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
+def _int_or_none_list_arg_type(
+    min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","
+):
     def parse_value(item):
         item = item.strip().lower()
         if item == "none":
@@ -45,10 +31,19 @@ def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
     if num_items == 1:
         # Makes downstream handling the same for single and multiple values
         items = items * max_len
-    elif num_items != max_len:
+    elif num_items < min_len or num_items > max_len:
         raise argparse.ArgumentTypeError(
             f"Argument requires {max_len} integers or None, separated by '{split_char}'"
         )
+    elif num_items != max_len:
+        logging.warning(
+            f"Argument requires {max_len} integers or None, separated by '{split_char}'. "
+            "Missing values will be filled with defaults."
+        )
+        default_items = [parse_value(v) for v in defaults.split(split_char)]
+        items.extend(
+            default_items[num_items:]
+        )  # extend items list with missing defaults
 
     return items
 
@@ -168,6 +163,24 @@ def setup_parser() -> argparse.ArgumentParser:
         help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
     )
     parser.add_argument(
+        "--system_instruction",
+        type=str,
+        default=None,
+        help="System instruction to be used in the prompt",
+    )
+    parser.add_argument(
+        "--apply_chat_template",
+        action="store_true",
+        default=False,
+        help="If True, applies the chat template to the prompt",
+    )
+    parser.add_argument(
+        "--fewshot_as_multiturn",
+        action="store_true",
+        default=False,
+        help="If True, uses the fewshot as a multi-turn conversation",
+    )
+    parser.add_argument(
         "--show_config",
         action="store_true",
         default=False,
@@ -204,23 +217,32 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
     )
     parser.add_argument(
+        "--hf_hub_log_args",
+        type=str,
+        default="",
+        help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
+    )
+    parser.add_argument(
         "--predict_only",
         "-x",
         action="store_true",
         default=False,
         help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
     )
+    default_seed_string = "0,1234,1234,1234"
     parser.add_argument(
         "--seed",
-        type=partial(_int_or_none_list_arg_type, 3),
-        default="0,1234,1234",  # for backward compatibility
+        type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
+        default=default_seed_string,  # for backward compatibility
         help=(
-            "Set seed for python's random, numpy and torch.\n"
-            "Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, "
-            "or a single integer to set the same seed for all three.\n"
-            "The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).\n"
-            "E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.\n"
-            "E.g, `--seed 42` sets all three seeds to 42."
+            "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
+            "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
+            "respectively, or a single integer to set the same seed for all four.\n"
+            f"The values are either an integer or 'None' to not set the seed. Default is `{default_seed_string}` "
+            "(for backward compatibility).\n"
+            "E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot sampling seed to 52. "
+            "Here numpy's seed is not set since the second value is `None`.\n"
+            "E.g, `--seed 42` sets all four seeds to 42."
         ),
     )
     parser.add_argument(
@@ -228,7 +250,6 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
-
     return parser
 
 
@@ -251,6 +272,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+    # update the evaluation tracker args with the output path and the HF token
+    if args.output_path:
+        args.hf_hub_log_args += f",output_path={args.output_path}"
+    if os.environ.get("HF_TOKEN", None):
+        args.hf_hub_log_args += f",token={os.environ.get('HF_TOKEN')}"
+    evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
+    evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
+
     if args.predict_only:
         args.log_samples = True
     if (args.log_samples or args.predict_only) and not args.output_path:
@@ -258,9 +287,26 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "Specify --output_path if providing --log_samples or --predict_only"
         )
 
+    if args.fewshot_as_multiturn and args.apply_chat_template is False:
+        raise ValueError(
+            "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
+        )
+
+    if (
+        args.num_fewshot is None or args.num_fewshot == 0
+    ) and args.fewshot_as_multiturn:
+        raise ValueError(
+            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
+        )
+
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+
+    if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
+        eval_logger.warning(
+            "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
+        )
 
     if args.limit:
         eval_logger.warning(
@@ -306,31 +352,19 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
-    if args.output_path:
-        path = Path(args.output_path)
-        # check if file or 'dir/results.json' exists
-        if path.is_file():
-            raise FileExistsError(f"File already exists at {path}")
-        output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
-        if output_path_file.is_file():
-            eval_logger.warning(
-                f"File {output_path_file} already exists. Results will be overwritten."
-            )
-        # if path json then get parent dir
-        elif path.suffix in (".json", ".jsonl"):
-            output_path_file = path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path = path.parent
-        else:
-            path.mkdir(parents=True, exist_ok=True)
-
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
-        os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
-        args.model_args = (
-            args.model_args
-            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
+        eval_logger.info(
+            "Passed `--trust_remote_code`, setting environment variable `HF_DATASETS_TRUST_REMOTE_CODE=true`"
         )
+        # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
+        # because it's already been determined based on the prior env var before launching our
+        # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
+        import datasets
+
+        datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+
+        args.model_args = args.model_args + ",trust_remote_code=True"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 
@@ -351,6 +385,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
+        evaluation_tracker=evaluation_tracker,
+        system_instruction=args.system_instruction,
+        apply_chat_template=args.apply_chat_template,
+        fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         verbosity=args.verbosity,
@@ -358,6 +396,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
+        fewshot_random_seed=args.seed[3],
         **request_caching_args,
     )
 
@@ -365,7 +404,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         if args.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(
-            results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+            results, indent=2, default=handle_non_serializable, ensure_ascii=False
         )
         if args.show_config:
             print(dumped)
@@ -382,23 +421,21 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             except Exception as e:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
 
-        if args.output_path:
-            output_path_file.open("w", encoding="utf-8").write(dumped)
+        evaluation_tracker.save_results_aggregated(
+            results=results, samples=samples if args.log_samples else None
+        )
 
-            if args.log_samples:
-                for task_name, config in results["configs"].items():
-                    output_name = "{}_{}".format(
-                        re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", args.model_args),
-                        task_name,
-                    )
-                    filename = path.joinpath(f"{output_name}.jsonl")
-                    samples_dumped = json.dumps(
-                        samples[task_name],
-                        indent=2,
-                        default=_handle_non_serializable,
-                        ensure_ascii=False,
-                    )
-                    filename.write_text(samples_dumped, encoding="utf-8")
+        if args.log_samples:
+            for task_name, config in results["configs"].items():
+                evaluation_tracker.save_results_samples(
+                    task_name=task_name, samples=samples[task_name]
+                )
+
+        if (
+            evaluation_tracker.push_results_to_hub
+            or evaluation_tracker.push_samples_to_hub
+        ):
+            evaluation_tracker.recreate_metadata_card()
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "

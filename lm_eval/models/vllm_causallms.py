@@ -21,9 +21,11 @@ from lm_eval.utils import (
 try:
     import ray
     from vllm import LLM, SamplingParams
+    from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass
+
 
 eval_logger = eval_logger
 
@@ -34,7 +36,7 @@ class VLLM(TemplateLM):
 
     def __init__(
         self,
-        pretrained="gpt2",
+        pretrained: str,
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
         revision: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
@@ -55,6 +57,7 @@ class VLLM(TemplateLM):
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
+        lora_local_path: str = None,
         **kwargs,
     ):
         super().__init__()
@@ -97,9 +100,6 @@ class VLLM(TemplateLM):
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
-            assert parse_version(version("vllm")) < parse_version(
-                "0.3.3"
-            ), "data_parallel is only compatible with vllm < v0.3.3."
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
@@ -119,6 +119,12 @@ class VLLM(TemplateLM):
             tokenizer_revision=tokenizer_revision,
         )
         self.add_bos_token = add_bos_token
+        if "gemma" in pretrained.lower():
+            self.add_bos_token = True
+            eval_logger.info(
+                "Found 'gemma' in model name, a BOS token will be used as Gemma underperforms without it."
+            )
+
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
             eval_logger.info(
@@ -126,6 +132,14 @@ class VLLM(TemplateLM):
             )
 
         self._max_gen_toks = max_gen_toks
+
+        if lora_local_path is not None:
+            assert parse_version(version("vllm")) > parse_version(
+                "0.3.0"
+            ), "lora adapters only compatible with vllm > v0.3.0."
+            self.lora_request = LoRARequest("finetuned", 1, lora_local_path)
+        else:
+            self.lora_request = None
 
     @property
     def eot_token_id(self):
@@ -223,11 +237,19 @@ class VLLM(TemplateLM):
             # flatten results
             return undistribute(results)
 
-        outputs = self.model.generate(
-            prompt_token_ids=requests,
-            sampling_params=sampling_params,
-            use_tqdm=True if self.batch_size == "auto" else False,
-        )
+        if self.lora_request is not None:
+            outputs = self.model.generate(
+                prompt_token_ids=requests,
+                sampling_params=sampling_params,
+                use_tqdm=True if self.batch_size == "auto" else False,
+                lora_request=self.lora_request,
+            )
+        else:
+            outputs = self.model.generate(
+                prompt_token_ids=requests,
+                sampling_params=sampling_params,
+                use_tqdm=True if self.batch_size == "auto" else False,
+            )
         return outputs
 
     def loglikelihood_rolling(
@@ -477,7 +499,10 @@ class VLLM(TemplateLM):
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
         do_sample = kwargs.pop("do_sample", None)
-        if do_sample is False or "temperature" not in kwargs:
+        if do_sample is False and "temperature" not in kwargs:
+            eval_logger.debug(
+                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
+            )
             kwargs["temperature"] = 0.0
         # hf defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)

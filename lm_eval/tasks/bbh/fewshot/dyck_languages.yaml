@@ -1,5 +1,23 @@
-"dataset_name": "dyck_languages"
-"description": "Correctly close a Dyck-n word.\n\n"
-"doc_to_text": "Q: Complete the rest of the sequence, making sure that the parentheses are closed properly. Input: [ { [\nA: ] } ]\n\nQ: Complete the rest of the sequence, making sure that the parentheses are closed properly. Input: < > ( ( [ [ ( { } ) [ < > ] ]\nA: ] ) )\n\nQ: Complete the rest of the sequence, making sure that the parentheses are closed properly. Input: < [ < [ { < [ ] < { } > > } ] > { { ( ) } { < [ < > ] > }\nA: } ] >\n\nQ: {{input}}\nA:"
-"include": "_fewshot_template_yaml"
-"task": "bbh_fewshot_dyck_languages"
+dataset_name: dyck_languages
+description: 'Correctly close a Dyck-n word.
+
+
+  '
+doc_to_text: 'Q: {{input}}
+
+  A:'
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input: 'Complete the rest of the sequence, making sure that the parentheses are
+      closed properly. Input: [ { ['
+    target: '] } ]'
+  - input: 'Complete the rest of the sequence, making sure that the parentheses are
+      closed properly. Input: < > ( ( [ [ ( { } ) [ < > ] ]'
+    target: '] ) )'
+  - input: 'Complete the rest of the sequence, making sure that the parentheses are
+      closed properly. Input: < [ < [ { < [ ] < { } > > } ] > { { ( ) } { < [ < >
+      ] > }'
+    target: '} ] >'
+include: _fewshot_template_yaml
+task: bbh_fewshot_dyck_languages
