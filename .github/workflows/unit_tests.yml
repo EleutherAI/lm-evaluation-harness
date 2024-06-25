@@ -55,13 +55,14 @@ jobs:
         cache-dependency-path: pyproject.toml
     - name: Install dependencies
       run: |
+        export HF_DATASETS_TRUST_REMOTE_CODE=1
         python -m pip install --upgrade pip
         pip install -e '.[dev,anthropic,sentencepiece]' --extra-index-url https://download.pytorch.org/whl/cpu
 #         Install optional git dependencies
 #                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
 #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
-      run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore tests/models/test_openvino.py
+      run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py
     - name: Archive artifacts
       uses: actions/upload-artifact@v3
       with:
