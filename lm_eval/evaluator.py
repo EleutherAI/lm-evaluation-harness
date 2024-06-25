@@ -616,16 +616,16 @@ def evaluate(
                             )
 
                         if (group_config is None) or (
-                            group_config["aggregate_metric"] is None
+                            group_config["aggregate_metric_list"] is None
                         ):
                             results[group_or_task][" "] = " "
                             continue
 
-                        if "aggregate_metric" in group_config:
-                            agg_metric_list = group_config["aggregate_metric"]
+                        if "aggregate_metric_list" in group_config:
+                            agg_metric_list = group_config["aggregate_metric_list"]
 
                         show_group_table = show_group_table | bool(
-                            group_config["aggregate_metric"]
+                            group_config["aggregate_metric_list"]
                         )
 
                         task_list = _task_aggregation_list[group_or_task]
@@ -660,9 +660,9 @@ def evaluate(
                             ]
 
                             for metric_config in agg_metric_list:
-                                for filter in metric_config["filter_list"]:
+                                for filter_name in metric_config["filter_list"]:
                                     if metric != ",".join(
-                                        [metric_config["metric"], filter]
+                                        [metric_config["metric"], filter_name]
                                     ):
                                         continue
 
@@ -670,25 +670,25 @@ def evaluate(
                                     if metric_config["aggregation"] == "mean":
                                         aggregate_fn = lm_eval.api.metrics.aggregate_subtask_metrics
                                     else:
-                                        aggregate_fn = metric_config["aggregation"]
+                                        raise ValueError(
+                                            f"Currently, only 'mean' is supported for automatically aggregating scores across groups' subtasks. Got '{metric_config['aggregation']}' for group '{group_or_task}'"
+                                        )
 
                                     results[group_or_task][metric] = aggregate_fn(
                                         metrics,
                                         sizes,
                                         metric_config["weight_by_size"],
                                     )
-                                    # TODO: calculate grouped metric using aggregation fn
+                                    # TODO: calculate groups' metrics using arbitrary agg fns
                                     if "N/A" in stderrs:
                                         results[group_or_task][stderr] = "N/A"
                                     else:
+                                        # TODO: put in a warning, if we are using non-micro avg mean or another aggregation fn
                                         results[group_or_task][
                                             stderr
                                         ] = lm_eval.api.metrics.pooled_sample_stderr(
                                             stderrs, sizes
                                         )
-                                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
-                                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
-                                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                             results[group_or_task]["samples"] = sum(sizes)
                             group_metadata = group_config.get("metadata", None)

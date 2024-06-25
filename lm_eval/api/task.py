@@ -54,13 +54,18 @@ eval_logger = logging.getLogger("lm-eval")
 
 @dataclass
 class AggMetricConfig(dict):
-    metric: Optional[str] = "acc"
-    metric_alias: Optional[str] = None
+    metric: Optional[str] = None
     aggregation: Optional[str] = "mean"
     weight_by_size: Optional[str] = False
+    # list of filter names which should be incorporated into the aggregated metric.
     filter_list: Optional[Union[str, list]] = "none"
 
     def __post_init__(self):
+        if self.aggregation != "mean":
+            raise ValueError(
+                f"Currently, only 'mean' is supported for automatically aggregating scores across groups' subtasks. Got '{self.aggregation}'."
+            )
+
         if isinstance(self.filter_list, str):
             self.filter_list = [self.filter_list]
 
@@ -70,8 +75,7 @@ class GroupConfig(dict):
     group: Optional[str] = None
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
-    tag_to_task: Optional[str] = False
-    aggregate_metric: Optional[
+    aggregate_metric_list: Optional[
         Union[List[AggMetricConfig], AggMetricConfig, dict]
     ] = None
     metadata: Optional[
@@ -85,13 +89,13 @@ class GroupConfig(dict):
         return setattr(self, item, value)
 
     def __post_init__(self):
-        if self.aggregate_metric is not None:
-            if isinstance(self.aggregate_metric, dict):
-                self.aggregate_metric = [self.aggregate_metric]
+        if self.aggregate_metric_list is not None:
+            if isinstance(self.aggregate_metric_list, dict):
+                self.aggregate_metric_list = [self.aggregate_metric_list]
 
-            self.aggregate_metric = [
+            self.aggregate_metric_list = [
                 AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in self.aggregate_metric
+                for item in self.aggregate_metric_list
             ]
 
     def to_dict(self, keep_callable: bool = False) -> dict:
@@ -213,6 +217,18 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
+        if self.group is not None:
+            eval_logger.warning(
+                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            )
+
+            if self.tag is None:
+                self.tag = self.group
+            else:
+                raise ValueError(
+                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
+                )
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
