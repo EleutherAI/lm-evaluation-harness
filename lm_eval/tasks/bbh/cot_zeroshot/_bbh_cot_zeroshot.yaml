@@ -27,7 +27,7 @@ task:
   - bbh_cot_zeroshot_tracking_shuffled_objects_three_objects
   - bbh_cot_zeroshot_web_of_lies
   - bbh_cot_zeroshot_word_sorting
-aggregate_metric:
+aggregate_metric_list:
   - metric: exact_match
     aggregation: mean
     weight_by_size: true

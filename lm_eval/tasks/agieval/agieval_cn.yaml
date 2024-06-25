@@ -11,7 +11,7 @@ task:
   - agieval_jec_qa_ca
   - agieval_jec_qa_kd
   - agieval_logiqa_zh
-aggregate_metric:
+aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true

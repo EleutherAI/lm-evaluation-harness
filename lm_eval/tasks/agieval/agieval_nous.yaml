@@ -8,7 +8,7 @@ task:
   - agieval_sat_en_without_passage
   - agieval_sat_en
   - agieval_sat_math
-aggregate_metric:
+aggregate_metric_list:
   - metric: acc_norm
     aggregation: mean
     weight_by_size: true

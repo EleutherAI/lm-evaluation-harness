@@ -1,6 +1,3 @@
-group:
-  - agieval
-  - agieval_cn
 task: agieval_gaokao_mathcloze
 dataset_path: hails/agieval-gaokao-mathcloze
 dataset_name: null
