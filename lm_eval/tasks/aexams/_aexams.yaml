@@ -5,7 +5,7 @@ task:
   - aexams_Physics
   - aexams_Science
   - aexams_Social
-aggregate_metric:
+aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true

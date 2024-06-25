@@ -15,7 +15,7 @@ task:
   - aclue_polysemy_resolution
   - aclue_reading_comprehension
   - aclue_sentence_segmentation
-aggregate_metric:
+aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true
