@@ -1,0 +1,13 @@
+task: rt-gsm8k-gaia
+dataset_path: innodatalabs/rt-gsm8k-gaia
+output_type: generate_until
+training_split: train
+test_split: test
+doc_to_text: !function utils.doc_to_text
+doc_to_target: expected
+process_results: !function utils.process_results
+
+metric_list:
+  - metric: best-of-pem-rouge
+    aggregation: mean
+    higher_is_better: true
