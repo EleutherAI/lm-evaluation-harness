@@ -331,7 +331,10 @@ task:
       - cb
       - anli_r1
       - rte
-    aggregate_metric: true
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        higher_is_better: true
   - task: mmlu
     num_fewshot: 2
 ```
@@ -340,6 +343,8 @@ It's also important to note how you can basically insert a group config as a tas
 ### Duplicate Tasks in Group Configs
 
 There might be cases where you might want to evaluate prompts and how models perform over prompt variations. You can list an existing task (In the example below, `anli_r1`) which varying `doc_to_text` implementation. To differentiate from each variation, we can utilize `task_alias`. LM-Eval will recognize that there are multiple variations of the same tasks and differentiate them.
+
+
 ```yaml
 group: flan_held_in
 group_alias: Flan (Held-In)
