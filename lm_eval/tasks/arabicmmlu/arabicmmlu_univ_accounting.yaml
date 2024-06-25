@@ -1,0 +1,6 @@
+"dataset_name": "Univ Accounting"
+"group": "arabicmmlu_social_science"
+"group_alias": "social science"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_univ_accounting"
+"task_alias": "Univ Accounting"

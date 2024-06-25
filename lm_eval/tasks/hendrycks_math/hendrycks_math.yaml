@@ -1,0 +1,9 @@
+group: hendrycks_math
+task:
+  - hendrycks_math_algebra
+  - hendrycks_math_counting_and_prob
+  - hendrycks_math_geometry
+  - hendrycks_math_intermediate_algebra
+  - hendrycks_math_num_theory
+  - hendrycks_math_prealgebra
+  - hendrycks_math_precalc

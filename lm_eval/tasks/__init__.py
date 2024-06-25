@@ -14,27 +14,43 @@ class TaskManager:
 
     """
 
-    def __init__(self, verbosity="INFO", include_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        verbosity="INFO",
+        include_path: Optional[Union[str, List]] = None,
+        include_defaults: bool = True,
+    ) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
-        self._task_index = self.initialize_tasks(include_path=include_path)
+        self._task_index = self.initialize_tasks(
+            include_path=include_path, include_defaults=include_defaults
+        )
         self._all_tasks = sorted(list(self._task_index.keys()))
 
         self.task_group_map = collections.defaultdict(list)
 
-    def initialize_tasks(self, include_path: Optional[str] = None):
+    def initialize_tasks(
+        self,
+        include_path: Optional[Union[str, List]] = None,
+        include_defaults: bool = True,
+    ):
         """Creates a dictionary of tasks index.
 
-        :param include_path: str = None
-            An additional path to be searched for tasks
-
+        :param include_path: Union[str, List] = None
+            An additional path to be searched for tasks recursively.
+            Can provide more than one such path as a list.
+        :param include_defaults: bool = True
+            If set to false, default tasks (those in lm_eval/tasks/) are not indexed.
         :return
             Dictionary of task names as key and task metadata
         """
-        all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        if include_defaults:
+            all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        else:
+            all_paths = []
         if include_path is not None:
             if isinstance(include_path, str):
                 include_path = [include_path]
@@ -136,13 +152,14 @@ class TaskManager:
             if "include" in config:
                 if yaml_path is None:
                     raise ValueError
-                config.update(
-                    utils.load_yaml_config(
+                config = {
+                    **utils.load_yaml_config(
                         yaml_path,
                         yaml_config={"include": config.pop("include")},
                         mode="full",
-                    )
-                )
+                    ),
+                    **config,
+                }
             if self._config_is_python_task(config):
                 task_object = config["class"]()
             else:
@@ -295,8 +312,13 @@ class TaskManager:
         :return
             Dictionary of task names as key and task metadata
         """
+        ignore_dirs = [
+            "__pycache__",
+            ".ipynb_checkpoints",
+        ]
         tasks_and_groups = collections.defaultdict()
-        for root, _, file_list in os.walk(task_dir):
+        for root, dirs, file_list in os.walk(task_dir):
+            dirs[:] = [d for d in dirs if d not in ignore_dirs]
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
@@ -356,28 +378,6 @@ class TaskManager:
         return tasks_and_groups
 
 
-def include_path(task_dir):
-    logger = utils.eval_logger
-    logger.setLevel(getattr(logging, "INFO"))
-    logger.info(
-        "To still use tasks loaded from args.include_path,"
-        "see an example of the new TaskManager API in "
-        "https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
-    )
-    return 0
-
-
-def initialize_tasks(verbosity="INFO"):
-    logger = utils.eval_logger
-    logger.setLevel(getattr(logging, f"{verbosity}"))
-    logger.info(
-        "lm_eval.tasks.initialize_tasks() is deprecated and no longer necessary. "
-        "It will be removed in v0.4.2 release. "
-        "TaskManager will instead be used."
-    )
-    return 0
-
-
 def get_task_name_from_config(task_config: Dict[str, str]) -> str:
     if "task" in task_config:
         return task_config["task"]
@@ -401,7 +401,7 @@ def get_task_name_from_object(task_object):
 
 
 def get_task_dict(
-    task_name_list: List[Union[str, Dict, Task]],
+    task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
@@ -423,9 +423,20 @@ def get_task_dict(
 
     if isinstance(task_name_list, str):
         task_name_list = [task_name_list]
+    elif isinstance(task_name_list, list):
+        if not all([isinstance(task, (str, dict, Task)) for task in task_name_list]):
+            raise TypeError(
+                "Expected all list items to be of types 'str', 'dict', or 'Task', but at least one entry did not match."
+            )
+    else:
+        raise TypeError(
+            f"Expected a 'str' or 'list' but received {type(task_name_list)}."
+        )
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
-    others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
+    others_task_name_list = [
+        task for task in task_name_list if not isinstance(task, str)
+    ]
     if len(string_task_name_list) > 0:
         if task_manager is None:
             task_manager = TaskManager()

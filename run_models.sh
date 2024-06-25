@@ -10,10 +10,14 @@ model_args_list=(
 output_dir="output_tables"
 mkdir -p $output_dir
 
+# tasks="mmlu,mmlu_continuation,mmlu_generative,mmlu_full_choice"
+tasks="winogrande,arc_challenge,hellaswag,mmlu,gsm8k,truthfulqa_mc2"
+
+
 # Iterate over the list and run the command
-for model_args_value in "${model_args_list[@]}"; do
-  command="accelerate launch -m lm_eval --model hf --tasks winogrande_ru,arc_challenge_ru,hellaswag_ru,mmlu_ru,gsm8k_ru,truthfulqa_mc2_ru --batch_size 4 --model_args $model_args_value"
-  output_file="$output_dir/output_${model_args_value//\//_}.txt"  # Replace "/" with "_"
+for model_name in "${model_names[@]}"; do
+  command="accelerate launch -m lm_eval --model hf --tasks $tasks --batch_size auto --model_args pretrained=$model_name"
+  output_file="$output_dir/output_${model_name//\//_}.txt"  # Replace "/" with "_"
   echo "Running command: $command"
   $command > $output_file  # Redirect output to file
 done

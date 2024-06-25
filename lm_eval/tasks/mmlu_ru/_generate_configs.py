@@ -34,7 +34,10 @@ SUBJECTS = {
     "high_school_computer_science": ("stem", "школьная_информатика"),
     "high_school_european_history": ("humanities", "школьная_европейская_история"),
     "high_school_geography": ("social_sciences", "школьная_география"),
-    "high_school_government_and_politics": ("social_sciences", "школьное_государственное_управление_и_политика"),
+    "high_school_government_and_politics": (
+        "social_sciences",
+        "школьное_государственное_управление_и_политика",
+    ),
     "high_school_macroeconomics": ("social_sciences", "школьная_макроэкономика"),
     "high_school_mathematics": ("stem", "школьная_математика"),
     "high_school_microeconomics": ("social_sciences", "школьная_микроэкономика"),
@@ -107,9 +110,13 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "group": f"mmlu_{args.task_prefix}_{category}" if args.task_prefix != "" else f"mmlu_{category}",
+            "group": f"mmlu_{args.task_prefix}_{category}"
+            if args.task_prefix != ""
+            else f"mmlu_{category}",
             "group_alias": category.replace("_", " "),
-            "task": f"mmlu_{args.task_prefix}_{subject}" if args.task_prefix != "" else f"mmlu_{subject}",
+            "task": f"mmlu_{args.task_prefix}_{subject}"
+            if args.task_prefix != ""
+            else f"mmlu_{subject}",
             "task_alias": subject.replace("_", " "),
             "dataset_name": subject,
             "description": description,
@@ -127,7 +134,9 @@ if __name__ == "__main__":
             )
 
     if args.task_prefix != "":
-        mmlu_subcategories = [f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES]
+        mmlu_subcategories = [
+            f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES
+        ]
     else:
         mmlu_subcategories = [f"mmlu_{category}" for category in ALL_CATEGORIES]
 
@@ -140,11 +149,13 @@ if __name__ == "__main__":
     with open(file_save_path, "w") as yaml_file:
         yaml.dump(
             {
-                "group": f"mmlu_{args.task_prefix}" if args.task_prefix != "" else "mmlu",
+                "group": f"mmlu_{args.task_prefix}"
+                if args.task_prefix != ""
+                else "mmlu",
                 "task": mmlu_subcategories,
             },
             yaml_file,
             indent=4,
             default_flow_style=False,
-            width=1000
+            width=1000,
         )

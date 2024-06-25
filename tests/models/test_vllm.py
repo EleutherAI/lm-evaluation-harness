@@ -3,7 +3,7 @@ from typing import List
 import pytest
 import torch
 
-import lm_eval.tasks as tasks
+from lm_eval import tasks
 from lm_eval.api.instance import Instance
 
 
@@ -25,8 +25,8 @@ class TEST_VLLM:
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: List[Instance] = multiple_choice_task.instances
     generate_until_task = task_list["gsm8k"]  # type: ignore
-    generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
+    generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until: List[Instance] = generate_until_task.instances
     rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)

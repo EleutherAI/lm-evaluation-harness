@@ -288,7 +288,7 @@ class NEURON_HF(TemplateLM):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.add_bos_token = self.add_bos_token
+        self.add_bos_token = add_bos_token
 
         self._max_length = max_length
 
@@ -304,6 +304,11 @@ class NEURON_HF(TemplateLM):
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
+
+    @property
+    def prefix_token_id(self):
+        # it is used as prefix for loglikelihood
+        return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
 
     @property
     def max_length(self):
@@ -447,18 +452,20 @@ class NEURON_HF(TemplateLM):
 
         return logits
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         loglikelihoods = []
 
         adaptive_batch_size = None
 
-        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
+        for (string,) in tqdm(
+            [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
+        ):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
+                        prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
@@ -616,7 +623,7 @@ class NEURON_HF(TemplateLM):
 
         return re_ord.get_original(res)
 
-    def generate_until(self, requests):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         res = defaultdict(list)
         re_ords = {}
 
@@ -638,7 +645,7 @@ class NEURON_HF(TemplateLM):
             # within each set of reqs for given kwargs, we reorder by token length, descending.
             re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
@@ -657,7 +664,7 @@ class NEURON_HF(TemplateLM):
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
-                            until = [kwargs]
+                            until = [until]
                         elif not isinstance(until, list):
                             raise ValueError(
                                 f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"

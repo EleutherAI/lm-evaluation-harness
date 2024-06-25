@@ -1,13 +1,16 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
+
 import argparse
+import logging
 import os
 
 import yaml
 from tqdm import tqdm
 
-from lm_eval.logger import eval_logger
+
+eval_logger = logging.getLogger("lm-eval")
 
 
 SUBJECTS = {
