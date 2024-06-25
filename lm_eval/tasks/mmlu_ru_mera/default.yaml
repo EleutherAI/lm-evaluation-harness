@@ -1,0 +1,16 @@
+task: mmlu_ru_mera
+dataset_path: ai-forever/MERA
+dataset_name: rummlu
+test_split: public_test
+num_fewshot: 0
+output_type: multiple_choice
+process_docs: !function utils.process_docs
+doc_to_text: "{{query}}"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: "{{label}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
