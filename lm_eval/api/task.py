@@ -1394,10 +1394,6 @@ class ConfigurableTask(Task):
                 if gold == -100:
                     gold_index_error = True
             
-            # takes ground truth and makes them into one hot encoding
-            gold_one_hot = [0] * completion_len
-            gold_one_hot[gold] = 1
-
             if gold_index_error:
                 eval_logger.warning(
                     f"Label index was not in within range of available choices,"
