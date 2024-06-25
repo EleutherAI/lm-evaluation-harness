@@ -1,0 +1,6 @@
+group: mmlu_ru_continuation
+task:
+- mmlu_ru_continuation_stem
+- mmlu_ru_continuation_other
+- mmlu_ru_continuation_social_sciences
+- mmlu_ru_continuation_humanities

@@ -1,0 +1,8 @@
+"dataset_name": "formal_logic"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему формальная логика.\n\n"
+"group": "mmlu_ru_continuation_humanities"
+"group_alias": "humanities"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_formal_logic"
+"task_alias": "formal logic"

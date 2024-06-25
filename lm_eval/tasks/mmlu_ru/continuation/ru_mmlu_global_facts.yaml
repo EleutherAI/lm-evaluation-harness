@@ -1,0 +1,8 @@
+"dataset_name": "global_facts"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему глобальные факты.\n\n"
+"group": "mmlu_ru_continuation_other"
+"group_alias": "other"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_global_facts"
+"task_alias": "global facts"

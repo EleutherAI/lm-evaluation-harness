@@ -1,0 +1,11 @@
+dataset_path: deepvk/mmlu-ru
+output_type: multiple_choice
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+doc_to_text: "Вопрос: {{question.strip()}}\nОтвет:"
+doc_to_choice: "{{choices}}"
+doc_to_target: "{{answer}}"
+metadata:
+  version: 0.0

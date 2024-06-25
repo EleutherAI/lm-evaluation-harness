@@ -1,0 +1,8 @@
+"dataset_name": "college_biology"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему вузовская биология.\n\n"
+"group": "mmlu_ru_continuation_stem"
+"group_alias": "stem"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_college_biology"
+"task_alias": "college biology"

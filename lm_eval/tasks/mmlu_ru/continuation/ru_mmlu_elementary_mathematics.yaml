@@ -1,0 +1,8 @@
+"dataset_name": "elementary_mathematics"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему элементарная математика.\n\n"
+"group": "mmlu_ru_continuation_stem"
+"group_alias": "stem"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_elementary_mathematics"
+"task_alias": "elementary mathematics"

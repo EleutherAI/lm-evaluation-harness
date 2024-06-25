@@ -1,0 +1,8 @@
+"dataset_name": "high_school_statistics"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему школьная статистика.\n\n"
+"group": "mmlu_ru_continuation_stem"
+"group_alias": "stem"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_high_school_statistics"
+"task_alias": "high school statistics"

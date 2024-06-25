@@ -1,0 +1,8 @@
+"dataset_name": "jurisprudence"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему юриспруденция.\n\n"
+"group": "mmlu_ru_continuation_humanities"
+"group_alias": "humanities"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_jurisprudence"
+"task_alias": "jurisprudence"

@@ -1,0 +1,8 @@
+"dataset_name": "machine_learning"
+"description": "Ниже приведены вопросы с несколькими вариантами ответов и одним правильным\
+  \ на тему машинное обучение.\n\n"
+"group": "mmlu_ru_continuation_stem"
+"group_alias": "stem"
+"include": "_continuation_template_yaml"
+"task": "mmlu_ru_continuation_machine_learning"
+"task_alias": "machine learning"
