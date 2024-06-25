@@ -1,6 +1,7 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
+
 import argparse
 import logging
 import os
@@ -76,7 +77,6 @@ if __name__ == "__main__":
         if category not in ALL_CATEGORIES:
             ALL_CATEGORIES.append(category)
 
-        
         # description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
 
         yaml_dict = {
@@ -89,7 +89,10 @@ if __name__ == "__main__":
             # "description": description,
         }
 
-        file_save_path = args.save_prefix_path + f"_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}.yaml"
+        file_save_path = (
+            args.save_prefix_path
+            + f"_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}.yaml"
+        )
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
