@@ -22,7 +22,7 @@ from lm_eval.evaluator_utils import (
     run_task_tests,
 )
 from lm_eval.loggers import EvaluationTracker
-from lm_eval.loggers.utils import add_env_info, get_git_commit_hash
+from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
@@ -326,6 +326,7 @@ def simple_evaluate(
         results["git_hash"] = get_git_commit_hash()
         results["date"] = start_date
         add_env_info(results)  # additional environment info to results
+        add_tokenizer_info(results, lm)  # additional info about tokenizer
         return results
     else:
         return None
@@ -398,7 +399,12 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=apply_chat_template,
             fewshot_as_multiturn=fewshot_as_multiturn,
-            lm=lm,
+            chat_template=getattr(lm, "apply_chat_template")
+            if apply_chat_template
+            else None,
+            tokenizer_name=getattr(lm, "tokenizer_name", "")
+            if apply_chat_template
+            else "",
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
