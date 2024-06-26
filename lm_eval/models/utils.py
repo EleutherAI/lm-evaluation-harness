@@ -27,6 +27,7 @@ from lm_eval.utils import eval_logger
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
+    from transformers.configuration_utils import PretrainedConfig
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -626,12 +627,12 @@ class Collator:
 
 
 def handle_pad_token(
-    tokenizer: "PreTrainedTokenizerBase", model_config: Optional[dict] = None
+    tokenizer: "PreTrainedTokenizerBase",
+    model_config: Optional["PretrainedConfig"] = None,
 ) -> "PreTrainedTokenizerBase":
     """
-    This function handles the padding token for a given tokenizer.
-    It checks if the tokenizer has a padding token and sets it if not present.
-    The function also handles special cases for certain types of tokenizers.
+    This function checks if the tokenizer has a padding token and sets it if not present.
+    Some tokenizers require special handling.
 
     Args:
         tokenizer: The tokenizer for which the padding token is to be handled.
