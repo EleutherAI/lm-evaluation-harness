@@ -237,8 +237,8 @@ class TemplateAPI(TemplateLM):
             return self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
-        elif self.tokenizer_backend == "tiktoken":
-            # bit of a hack. We'll re-encode back before sending to the API
+        else:
+            # bit of a hack. We'll load back before sending to the API
             return JsonChatStr(json.dumps(chat_history))
 
     @cached_property
