@@ -67,9 +67,9 @@ class TaskConfig(dict):
     training_split: Optional[str] = None
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
-    fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
-    )
+    fewshot_split: Optional[
+        str
+    ] = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
@@ -92,9 +92,9 @@ class TaskConfig(dict):
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
-    metadata: Optional[dict] = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
+    metadata: Optional[
+        dict
+    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
@@ -229,9 +229,9 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[random.Random] = (
-            None  # purposely induce errors in case of improper usage
-        )
+        self.fewshot_rnd: Optional[
+            random.Random
+        ] = None  # purposely induce errors in case of improper usage
 
     def download(
         self,
@@ -368,16 +368,15 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit: Union[int, None] = None,
-        rank: int = 0,
-        world_size: int = 1,
-        cache_requests: bool = False,
-        rewrite_requests_cache: bool = False,
-        system_instruction: Optional[str] = None,
-        apply_chat_template: bool = False,
-        fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
-        tokenizer_name: str = "",
+        limit=None,
+        rank=None,
+        world_size=None,
+        cache_requests=False,
+        rewrite_requests_cache=False,
+        system_instruction=None,
+        apply_chat_template=False,
+        fewshot_as_multiturn=False,
+        lm=None,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -392,7 +391,7 @@ class Task(abc.ABC):
             if system_instruction is not None
             else ""
         )
-        cache_key += f"-tokenizer{tokenizer_name}"
+        cache_key += f"-tokenizer{lm.tokenizer_name}" if apply_chat_template else ""
 
         cached_instances = load_from_cache(file_name=cache_key)
 
@@ -437,7 +436,7 @@ class Task(abc.ABC):
                 system_instruction,
                 apply_chat_template,
                 fewshot_as_multiturn,
-                chat_template,
+                lm,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -445,6 +444,7 @@ class Task(abc.ABC):
                 doc=doc,
                 ctx=fewshot_ctx,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
+                apply_chat_template=apply_chat_template
             )
 
             if not isinstance(inst, list):
@@ -1004,6 +1004,28 @@ class ConfigurableTask(Task):
             else:
                 labeled_examples[-1]["content"] += question
         else:
+            return self.sampler.fewshot_delimiter + "".join(
+                f"{s['role']}: {s['content']}" + self.sampler.fewshot_delimiter
+                for s in chat_history
+            )
+    @staticmethod
+    def append_target_question(
+        labeled_examples: List[Dict[str, str]],
+        question: str,
+        fewshot_as_multiturn: bool = False,
+    ) -> None:
+        """Adds a target question to the labeled examples list.
+        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
+        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
+        """
+        if not fewshot_as_multiturn:
+            # if no messages or last message is system, append as new user entry
+            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
+                labeled_examples.append({"role": "user", "content": question})
+            # if last message is user, append to it to avoid two user messages in a row
+            else:
+                labeled_examples[-1]["content"] += question
+        else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
             labeled_examples.append({"role": "user", "content": question})
 
@@ -1015,7 +1037,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
+        lm=None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1028,10 +1050,12 @@ class ConfigurableTask(Task):
             System instruction to be applied to the prompt.
         :param apply_chat_template: bool
             Whether to apply the chat template to the fewshot context.
+        :param tokenizer:
+            The tokenizer to use for applying the chat template.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param chat_template: Callable
-            Chat template to be applied to the fewshot context.
+        :param lm:
+            Language model with definition of the tokenizer/function to use for applying the chat template.
         :returns: str
             The fewshot context.
         """
@@ -1078,7 +1102,7 @@ class ConfigurableTask(Task):
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
-                return chat_template(labeled_examples)
+                return lm.apply_chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
                     labeled_examples, example, fewshot_as_multiturn
@@ -1090,7 +1114,7 @@ class ConfigurableTask(Task):
                 for ex in example:
                     chat = deepcopy(labeled_examples)
                     self.append_target_question(chat, ex, fewshot_as_multiturn)
-                    labeled_examples_list.append(chat_template(chat))
+                    labeled_examples_list.append(lm.apply_chat_template(chat))
                 return labeled_examples_list
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
@@ -1104,7 +1128,7 @@ class ConfigurableTask(Task):
                         labeled_examples, str(example), fewshot_as_multiturn
                     )
                 # return lm.apply_chat_template(labeled_examples)
-            return chat_template(labeled_examples)
+            return lm.apply_chat_template(labeled_examples)
         else:
             if self.multiple_input:
                 return labeled_examples
@@ -1271,6 +1295,8 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
+            if kwargs.get("apply_chat_template", False) is True:
+                target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
@@ -1280,6 +1306,7 @@ class ConfigurableTask(Task):
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
+            kwargs.pop("apply_chat_template")
 
             request_list = [
                 Instance(
@@ -1316,6 +1343,7 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
+        kwargs.pop("apply_chat_template")
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
         )
