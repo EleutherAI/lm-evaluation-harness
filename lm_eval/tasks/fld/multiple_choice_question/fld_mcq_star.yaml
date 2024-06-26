@@ -1,0 +1,3 @@
+include: fld_mcq_default.yaml
+task: fld_mcq_star
+dataset_name: star
