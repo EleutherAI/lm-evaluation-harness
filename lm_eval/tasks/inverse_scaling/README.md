@@ -39,7 +39,6 @@ Homepage: https://github.com/inverse-scaling/prize
 - `inverse_scaling_pattern_matching_suppression`
 - `inverse_scaling_repetitive_algebra`
 - `inverse_scaling_sig_figs`
-- `inverse_scaling_prompt_injection`
 
 
 ### Checklist
