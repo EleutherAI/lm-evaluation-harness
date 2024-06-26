@@ -1,4 +1,5 @@
 import os
+from functools import cached_property
 from typing import Any, Dict, List, Tuple, Union
 
 from lm_eval.api.registry import register_model
@@ -166,6 +167,22 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
 
+    @cached_property
+    def api_key(self):
+        """Override this property to return the API key for the API request."""
+        key = os.environ.get("OPENAI_API_KEY", None)
+        if key is None:
+            raise ValueError(
+                "API key not found. Please set the OPENAI_API_KEY environment variable."
+            )
+        return key
+
+    def _loglikelihood_tokens(self, requests, **kwargs):
+        assert (
+            self.model != "gpt-3.5-turbo"
+        ), "Loglikelihood is not supported for gpt-3.5-turbo"
+        return super()._loglikelihood_tokens(requests, **kwargs)
+
 
 @register_model("openai-chatcompletions")
 class OpenAIChatCompletion(LocalChatCompletion):
@@ -182,3 +199,13 @@ class OpenAIChatCompletion(LocalChatCompletion):
             tokenized_requests=tokenized_requests,
             **kwargs,
         )
+
+    @cached_property
+    def api_key(self):
+        """Override this property to return the API key for the API request."""
+        key = os.environ.get("OPENAI_API_KEY", None)
+        if key is None:
+            raise ValueError(
+                "API key not found. Please set the OPENAI_API_KEY environment variable."
+            )
+        return key

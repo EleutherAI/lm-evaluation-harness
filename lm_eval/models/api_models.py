@@ -77,6 +77,7 @@ class TemplateAPI(TemplateLM):
         custom_prefix_token_id=None,
         # send the requests as tokens or strings
         tokenized_requests=True,
+        **kwargs,
     ) -> None:
         super().__init__()
         missing_packages = [
@@ -236,7 +237,7 @@ class TemplateAPI(TemplateLM):
             return self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
-        else:
+        elif self.tokenizer_backend == "tiktoken":
             # bit of a hack. We'll re-encode back before sending to the API
             return JsonChatStr(json.dumps(chat_history))
 
@@ -304,11 +305,11 @@ class TemplateAPI(TemplateLM):
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        reraise=True,
-    )
+    # @retry(
+    #     stop=stop_after_attempt(3),
+    #     wait=wait_exponential(multiplier=1, min=2, max=10),
+    #     reraise=True,
+    # )
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],

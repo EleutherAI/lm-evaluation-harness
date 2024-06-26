@@ -295,7 +295,13 @@ class AnthropicChat(LocalCompletionsAPI):
 
     @cached_property
     def api_key(self):
-        return os.environ["ANTHROPIC_API_KEY"]
+        """Override this property to return the API key for the API request."""
+        key = os.environ.get("ANTHROPIC_API_KEY", None)
+        if key is None:
+            raise ValueError(
+                "API key not found. Please set the ANTHROPIC_API_KEY environment variable."
+            )
+        return key
 
     @cached_property
     def header(self):
