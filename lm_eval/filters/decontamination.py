@@ -4,6 +4,7 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("decontaminate")
 class DecontaminationFilter(Filter):
+
     """
     A filter which evaluates
     """

@@ -2,7 +2,6 @@
 Usage:
    python make_table_tasks.py --output <markdown_filename>
 """
-
 import argparse
 import logging
 

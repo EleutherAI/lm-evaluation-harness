@@ -70,11 +70,6 @@ def main():
             if docs is not None:
                 iters.append(docs)
 
-        if len(iters) == 0:
-            raise ValueError(
-                f"Passed --sets '{args.sets}' but this task has no splits which match. Please specify a different --sets value."
-            )
-
         docs = join_iters(iters)
 
         with open(

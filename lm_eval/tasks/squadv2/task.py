@@ -13,7 +13,6 @@ also determine when no answer is supported by the paragraph and abstain from ans
 
 Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
-
 from functools import partial
 from math import exp
 
