@@ -48,6 +48,7 @@ class GeneralConfigTracker:
     model_name_sanitized: str = None
     system_instruction: str = None
     system_instruction_sha: str = None
+    fewshot_as_multiturn: bool = None
     chat_template: str = None
     chat_template_sha: str = None
     start_time: float = None
@@ -80,6 +81,7 @@ class GeneralConfigTracker:
         model_args: str,
         system_instruction: str,
         chat_template: str,
+        fewshot_as_multiturn: bool,
     ) -> None:
         """Logs model parameters and job ID."""
         self.model_source = model_source
@@ -91,6 +93,7 @@ class GeneralConfigTracker:
         )
         self.chat_template = chat_template
         self.chat_template_sha = hash_string(chat_template) if chat_template else None
+        self.fewshot_as_multiturn = fewshot_as_multiturn
 
     def log_end_time(self) -> None:
         """Logs the end time of the evaluation and calculates the total evaluation time."""

@@ -1,4 +1,4 @@
-include: paloma.yaml
+include: _paloma_template
 task: paloma_ptb
-task_alias: Penn Treebank
+task_alias: PTB
 dataset_name: ptb
