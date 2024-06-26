@@ -55,7 +55,6 @@ jobs:
         cache-dependency-path: pyproject.toml
     - name: Install dependencies
       run: |
-        export HF_DATASETS_TRUST_REMOTE_CODE=1
         python -m pip install --upgrade pip
         pip install -e '.[dev,anthropic,sentencepiece]' --extra-index-url https://download.pytorch.org/whl/cpu
 #         Install optional git dependencies
