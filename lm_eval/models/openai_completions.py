@@ -182,8 +182,3 @@ class OpenAIChatCompletion(LocalChatCompletion):
             tokenized_requests=tokenized_requests,
             **kwargs,
         )
-
-    def _loglikelihood_tokens(self, requests, **kwargs):
-        raise NotImplementedError(
-            "Loglikelihood is not supported for chat completions."
-        )

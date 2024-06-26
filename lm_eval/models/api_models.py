@@ -159,15 +159,17 @@ class TemplateAPI(TemplateLM):
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
         generate=False,
     ) -> Union[List[List[int]], List[dict], List[str], str]:
-        """Helper method to transform the prompt into the expected API input format."""
+        """Helper method to transform the prompt into the expected API input format. messages consist of batched requests"""
         if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
             assert (
                 self._batch_size == 1
             ), "non-tokenized chat requests are only supported with batch_size=1"
+            # list[dict["role":..., "content":...],...]
             return json.loads(messages[0].prompt)
 
         if not self.tokenized_requests:
+            # if messages are tokenized:
             if isinstance(messages[0][0], int):
                 # assuming decoding is lossless. However, this is only for logliklehood requests
                 # as we need to compute the context length. For generations, we don't need to tokenize.
@@ -178,6 +180,7 @@ class TemplateAPI(TemplateLM):
             else:
                 # list[str,...]
                 return messages
+
         # list[list[int], ...]
         return messages
 

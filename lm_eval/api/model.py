@@ -55,7 +55,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> List[Tuple[float]]:
+    def loglikelihood_rolling(self, requests) -> List[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -333,7 +333,9 @@ class TemplateLM(LM):
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         pass
 
-    def _encode_pair(self, context: str, continuation: str) -> Tuple[List[int], List[int]]:
+    def _encode_pair(
+        self, context: str, continuation: str
+    ) -> Tuple[List[int], List[int]]:
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -374,7 +376,7 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+    ) -> List[float]:
         pass
 
     @abc.abstractmethod
