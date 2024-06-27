@@ -18,7 +18,7 @@ def process_task(
 ):
     command = f"zstd {bucket_file_path}"
     logger.info(command)
-    subprocess.call(command, shell=True)
+    subprocess.call(command, shell=False)
 
     compressed_file = bucket_file_path + ".zst"
     if output_directory:
