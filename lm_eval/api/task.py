@@ -67,9 +67,9 @@ class TaskConfig(dict):
     training_split: Optional[str] = None
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
-    fewshot_split: Optional[
-        str
-    ] = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+    fewshot_split: Optional[str] = (
+        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+    )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
@@ -92,9 +92,9 @@ class TaskConfig(dict):
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
-    metadata: Optional[
-        dict
-    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    metadata: Optional[dict] = (
+        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    )
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
@@ -229,9 +229,9 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[
-            random.Random
-        ] = None  # purposely induce errors in case of improper usage
+        self.fewshot_rnd: Optional[random.Random] = (
+            None  # purposely induce errors in case of improper usage
+        )
 
     def download(
         self,
@@ -368,14 +368,14 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit=None,
-        rank=None,
-        world_size=None,
-        cache_requests=False,
-        rewrite_requests_cache=False,
-        system_instruction=None,
-        apply_chat_template=False,
-        fewshot_as_multiturn=False,
+        limit: Union[int, None] = None,
+        rank: int = None,
+        world_size: int = None,
+        cache_requests: bool = False,
+        rewrite_requests_cache: bool = False,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
         lm=None,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -1050,8 +1050,6 @@ class ConfigurableTask(Task):
             System instruction to be applied to the prompt.
         :param apply_chat_template: bool
             Whether to apply the chat template to the fewshot context.
-        :param tokenizer:
-            The tokenizer to use for applying the chat template.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param lm:
