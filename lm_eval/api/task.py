@@ -1421,7 +1421,8 @@ class ConfigurableTask(Task):
                 **({"brier_score": (gold, prob_norm)} if "brier_score" in use_metric else {}),
                 **({"brier_score_binary": (gold, prob_norm)} if "brier_score_binary" in use_metric else {}),
                 **({"rmsce": (gold, prob_norm)} if "rmsce" in use_metric else {}),
-                **({"rmsce_temp_tuned": (gold, lls)} if "rmsce_temp_tuned" in use_metric else {})
+                **({"rmsce_temp_tuned": (gold, lls)} if "rmsce_temp_tuned" in use_metric else {}),
+                **({"brier_temp_tuned": (gold, lls)} if "brier_temp_tuned" in use_metric else {})
             }
 
             if "acc_mutual_info" in use_metric:

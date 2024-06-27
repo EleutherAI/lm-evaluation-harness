@@ -1,20 +1,20 @@
 group: calibration
 task:
   # - task: adv_mnli
-  - task: adv_glue
-    metric_list:
-      - metric: brier_score
-        aggregation: brier_score
-        higher_is_better: false
-      - metric: brier_score_binary
-        aggregation: brier_score_binary
-        higher_is_better: false
-      - metric: rmsce
-        aggregation: rmsce
-        higher_is_better: false
-      - metric: rmsce_temp_tuned
-        aggregation: rmsce_temp_tuned
-        higher_is_better: false
+  #- task: adv_glue
+  #  metric_list:
+  #    - metric: brier_score
+  #      aggregation: brier_score
+  #      higher_is_better: false
+  #    - metric: brier_score_binary
+  #      aggregation: brier_score_binary
+  #      higher_is_better: false
+  #    - metric: rmsce
+  #      aggregation: rmsce
+  #      higher_is_better: false
+  #    - metric: rmsce_temp_tuned
+  #      aggregation: rmsce_temp_tuned
+  #      higher_is_better: false
   # - task: advanced_ai_risk
   #   metric_list:
   #     - metric: brier_score
@@ -220,8 +220,8 @@ task:
       - metric: brier_score
         aggregation: brier_score
         higher_is_better: false
-      - metric: brier_score_binary
-        aggregation: brier_score_binary
+      - metric: brier_temp_tuned
+        aggregation: brier_temp_tuned
         higher_is_better: false
       - metric: rmsce
         aggregation: rmsce

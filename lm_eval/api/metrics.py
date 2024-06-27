@@ -214,6 +214,27 @@ def rmsce_temp_tuned(items):
     return rmsce
 
 
+@register_aggregation("brier_temp_tuned")
+def brier_temp_tuned(items): 
+    # Unpack true and predicted probabilities
+    gold, lls = zip(*items)
+
+    lls = np.array(lls)
+    # Tune temperature
+    temp = _tune_temp(lls, gold)
+    scaled_logits = lls / temp
+
+    # Compute probabilities with the tuned temperature
+    predictions = F.softmax(torch.tensor(scaled_logits), dim=1).numpy()
+    bs, num_class = np.array(predictions).shape
+
+    gold = list(gold)
+    gold_one_hot = np.eye(num_class)[gold]
+    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+
+
 @register_metric(
     metric="brier_score",
     higher_is_better=False,
@@ -249,6 +270,17 @@ def rmsce_fn(items): # Passthrough function
 )
 def rmsce_fn(items): # Passthrough function
     return items
+
+@register_metric(
+    metric="brier_temp_tuned",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="brier_temp_tuned",
+)
+def brier_fn(items): # Passthrough function
+    return items
+
+
 
 @register_metric(
     metric="acc",
