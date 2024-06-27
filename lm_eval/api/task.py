@@ -1158,8 +1158,10 @@ class ConfigurableTask(Task):
         """
         return doc
 
-    def doc_to_text(self, doc):
-        if self.prompt is not None:
+    def doc_to_text(self, doc: Mapping, doc_to_text: Any = None):
+        if doc_to_text is not None:
+            doc_to_text = doc_to_text
+        elif self.prompt is not None:
             doc_to_text = self.prompt
         else:
             doc_to_text = self.config.doc_to_text
@@ -1192,8 +1194,10 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
-        if self.prompt is not None:
+    def doc_to_target(self, doc: Mapping, doc_to_target: Any = None) -> Union[int, str, list]:
+        if doc_to_target is not None:
+            doc_to_target = doc_to_target
+        elif self.prompt is not None:
             doc_to_target = self.prompt
         else:
             doc_to_target = self.config.doc_to_target
@@ -1236,8 +1240,10 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc: Any) -> List[str]:
-        if self.prompt is not None:
+    def doc_to_choice(self, doc: Any, doc_to_choice: Any = None) -> List[str]:
+        if doc_to_choice is not None:
+            doc_to_choice = doc_to_choice
+        elif self.prompt is not None:
             doc_to_choice = self.prompt
         elif self.config.doc_to_choice is None:
             eval_logger.error("doc_to_choice was called but not set in config")
