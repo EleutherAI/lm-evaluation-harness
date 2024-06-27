@@ -16,7 +16,8 @@ def format_cot_example(example, including_answer=True):
     if including_answer:
         cot_content = example["cot_content"].replace("A: Let's think step by step.",
                                                      "Answer: Let's think step by step.")
-        prompt += cot_content + "\n\n"
+        cot_content = re.sub(r'''answer is \(?([ABCDEFGHIJ])\)?.''', "answer is", cot_content)
+        prompt += cot_content # + "\n\n"
     else:
         prompt += "Answer: Let's think step by step."
     return prompt
@@ -59,38 +60,3 @@ process_psychology = partial(process_docs, subject="psychology")
 #     prompt += format_cot_example(curr, including_answer=False)
 #     return prompt
 
-class CustomRegexFilter(Filter):
-    """ """
-
-    def __init__(
-        self,
-        regex_pattern: list = [r"answer is \(?([ABCDEFGHIJ])\)?", r".*[aA]nswer:\s*([A-J])"],
-        group_select=0,
-        fallback: str = "[invalid]",
-    ) -> None:
-        """
-        pass a string `regex` to run `re.compile(r"regex")` on.
-        `fallback` defines the output returned if no matches for the regex are located.
-        """
-        self.regex_pattern = regex_pattern
-        self.regex = [re.compile(pattern) for pattern in regex_pattern]
-        self.group_select = group_select
-        self.fallback = fallback
-
-    def apply(self, resps, docs):
-        # here, we assume we have a list, in which each element is
-        # a list of model responses for some particular input/target pair.
-        # so we process each of these (same input/target response sets)
-        # independently (and keep them a list.)
-        filtered_resps = []
-        for resp in resps:
-            for pattern in self.regex:
-                match = pattern.search(resp)
-                if match:
-                    filtered_resps.append(match.group(1))
-                    break
-        
-        if len(filtered_resps) == 0:
-            filtered_resps = [None]
-
-        return filtered_resps

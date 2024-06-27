@@ -6,17 +6,18 @@ fewshot_config:
   doc_to_text: !function utils.fewshot_to_text
 output_type: generate_until
 doc_to_text: !function utils.doc_to_text
-doc_to_target: answer
-# filter_list:
-#   - name: "custom-extract"
-#     filter:
-#       - function: !function utils.CustomRegexFilter
-#       - function: "take_first"
+doc_to_target: "({{answer}})"
+filter_list:
+  - name: "custom-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "answer is \\(?([ABCDEFGHIJ])\\)?."
+        # regex_pattern: '''.*[aA]nswer:\s*([A-J])'''
+        # regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
 generation_kwargs:
   until:
-    - "</s>"
-    - "Q:"
-    - "<|im_end|>"
+    - "\n\n"
   do_sample: false
   temperature: 0.0
 num_fewshot: 5
