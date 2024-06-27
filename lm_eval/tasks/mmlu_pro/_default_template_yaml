@@ -12,8 +12,6 @@ filter_list:
     filter:
       - function: "regex"
         regex_pattern: "answer is \\(?([ABCDEFGHIJ])\\)?."
-        # regex_pattern: '''.*[aA]nswer:\s*([A-J])'''
-        # regex_pattern: "(\\([A-Z]\\))"
       - function: "take_first"
 generation_kwargs:
   until:

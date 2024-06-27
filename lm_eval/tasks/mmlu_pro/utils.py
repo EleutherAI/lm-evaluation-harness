@@ -44,19 +44,3 @@ process_other = partial(process_docs, subject="other")
 process_philosophy = partial(process_docs, subject="philosophy")
 process_physics = partial(process_docs, subject="physics")
 process_psychology = partial(process_docs, subject="psychology")
-
-
-# def generate_cot_prompt(val_df, curr, k):
-#     prompt = ""
-#     with open(f"cot_prompt_lib/initial_prompt.txt", "r") as fi:
-#         for line in fi.readlines():
-#             prompt += line
-#     subject = curr["category"]
-#     val_df = select_by_category(val_df, subject)
-#     val_df = val_df[: k]
-#     prompt = prompt.replace("{$}", subject) + "\n"
-#     for example in val_df:
-#         prompt += format_cot_example(example, including_answer=True)
-#     prompt += format_cot_example(curr, including_answer=False)
-#     return prompt
-
