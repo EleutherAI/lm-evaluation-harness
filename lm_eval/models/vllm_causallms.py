@@ -119,6 +119,12 @@ class VLLM(TemplateLM):
             tokenizer_revision=tokenizer_revision,
         )
         self.add_bos_token = add_bos_token
+        if "gemma" in pretrained.lower():
+            self.add_bos_token = True
+            eval_logger.info(
+                "Found 'gemma' in model name, a BOS token will be used as Gemma underperforms without it."
+            )
+
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
             eval_logger.info(
@@ -493,7 +499,10 @@ class VLLM(TemplateLM):
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
         do_sample = kwargs.pop("do_sample", None)
-        if do_sample is False or "temperature" not in kwargs:
+        if do_sample is False and "temperature" not in kwargs:
+            eval_logger.debug(
+                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
+            )
             kwargs["temperature"] = 0.0
         # hf defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)

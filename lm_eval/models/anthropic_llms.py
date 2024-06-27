@@ -307,7 +307,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         # defaults to os.environ.get("ANTHROPIC_API_KEY")
         self.client = anthropic.Anthropic()
         self.temperature = temperature
-        self.max_token = max_tokens
+        self.max_tokens = max_tokens
         self.tokenizer = self.client.get_tokenizer()
         self.kwargs = kwargs
 
