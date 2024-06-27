@@ -31,19 +31,24 @@ Homepage (preprocessed): https://huggingface.co/datasets/sjyuxyz/MMLU-Pro-with-s
 #### Groups
 
 * `mmlu_pro`: 'All 14 subjects of the mmlu_pro dataset, evaluated following the methodology in mmlu's original implementation'
-* `mmlu_pro_flan_cot_fewshot`: 'mmlu_pro_flan_cot_fewshot includes 5-shot of exemplars for chain-of-thought approach'
-* `mmlu_pro_flan_cot_zeroshot`: 'mmlu_pro_flan_cot_zeroshot evaluates using zero-shot chain-of-thought approach'
-* `mmlu_pro_generative`:  'mmlu_pro_generative solves questions of mmlu_pro using direct (generative) approach'
-* `mmlu_pro_continuation`: 'mmlu_pro_continuation evaluates the ability to continue and complete a given text'
 
 #### Tasks
 
 The following tasks evaluate subjects in the mmlu_pro dataset
-- `mmlu_pro_{subject_english}`
-- `mmlu_pro_flan_cot_fewshot_{subject_english}`
-- `mmlu_pro_flan_cot_zeroshot_{subject_english}`
-- `mmlu_pro_generative_{subject_english}`
-- `mmlu_pro_continuation_{subject_english}`
+- `mmlu_pro_biology`
+- `mmlu_pro_business`
+- `mmlu_pro_chemistry`
+- `mmlu_pro_computer_science`
+- `mmlu_pro_economics`
+- `mmlu_pro_engineering`
+- `mmlu_pro_health`
+- `mmlu_pro_history`
+- `mmlu_pro_law`
+- `mmlu_pro_math`
+- `mmlu_pro_other`
+- `mmlu_pro_philosophy`
+- `mmlu_pro_physics`
+- `mmlu_pro_psychology`
 
 ### Checklist
 
