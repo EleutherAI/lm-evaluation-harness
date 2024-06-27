@@ -128,13 +128,19 @@ class TaskOutput:
         )
 
 
-def get_task_list(task_dict: dict) -> List[TaskOutput]:
+def get_task_list(task_dict: dict, task_root=None) -> List[TaskOutput]:
     outputs = []
     for task_name, task_obj in task_dict.items():
+        if isinstance(task_name, str):
+            prefix_name = task_name
+        else:
+            prefix_name = task_name.task_id
+
         if isinstance(task_obj, dict):
-            _outputs = get_task_list(task_obj)
+            _outputs = get_task_list(task_obj, task_root=prefix_name)
             outputs.extend(_outputs)
         else:
+            task_obj.task_id = f"{task_root}:{task_obj.task_id}"
             task_output = TaskOutput.from_taskdict(task_name, task_obj)
             outputs.append(task_output)
 
