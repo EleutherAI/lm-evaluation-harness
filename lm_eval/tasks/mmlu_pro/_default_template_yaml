@@ -4,9 +4,10 @@ fewshot_split: validation
 fewshot_config:
   sampler: first_n
   doc_to_text: !function utils.fewshot_to_text
+  doc_to_target: "({{answer}})."
 output_type: generate_until
 doc_to_text: !function utils.doc_to_text
-doc_to_target: "({{answer}})"
+doc_to_target: answer
 filter_list:
   - name: "custom-extract"
     filter:
