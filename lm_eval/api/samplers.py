@@ -15,7 +15,11 @@ class ContextSampler:
         self.target_delimiter = self.config.target_delimiter
         self.fewshot_delimiter = self.config.fewshot_delimiter
 
-        self.doc_to_text = self.task.doc_to_text
+        if self.config.fewshot_config is not None and self.config.fewshot_config.get("doc_to_text", None) is not None:
+            self.doc_to_text = self.config.fewshot_config.get("doc_to_text", None)
+        else:
+            self.doc_to_text = self.task.doc_to_text
+
         self.doc_to_target = self.task.doc_to_target
         self.doc_to_choice = self.task.doc_to_choice
 
