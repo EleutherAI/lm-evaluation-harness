@@ -19,9 +19,15 @@ from huggingface_hub import (
 
 from lm_eval.utils import (
     eval_logger,
+    get_file_datetime,
+    get_file_task_name,
+    get_results_filenames,
+    get_sample_results_filenames,
     handle_non_serializable,
     hash_string,
     sanitize_list,
+    sanitize_model_name,
+    sanitize_task_name,
 )
 
 
@@ -44,6 +50,7 @@ class GeneralConfigTracker:
     model_name_sanitized: str = None
     system_instruction: str = None
     system_instruction_sha: str = None
+    fewshot_as_multiturn: bool = None
     chat_template: str = None
     chat_template_sha: str = None
     start_time: float = None
@@ -76,24 +83,19 @@ class GeneralConfigTracker:
         model_args: str,
         system_instruction: str,
         chat_template: str,
+        fewshot_as_multiturn: bool,
     ) -> None:
         """Logs model parameters and job ID."""
         self.model_source = model_source
         self.model_name = GeneralConfigTracker._get_model_name(model_args)
-        self.model_name_sanitized = re.sub(
-            r"[\"<>:/\|\\?\*\[\]]+", "__", self.model_name
-        )
+        self.model_name_sanitized = sanitize_model_name(self.model_name)
         self.system_instruction = system_instruction
         self.system_instruction_sha = (
             hash_string(system_instruction) if system_instruction else None
         )
         self.chat_template = chat_template
-        self.chat_template_sha = None
-        if chat_template:
-            if not isinstance(chat_template, str):
-                self.chat_template_sha = hash_string(str(chat_template))
-            else:
-                self.chat_template_sha = hash_string(chat_template)
+        self.chat_template_sha = hash_string(chat_template) if chat_template else None
+        self.fewshot_as_multiturn = fewshot_as_multiturn
 
     def log_end_time(self) -> None:
         """Logs the end time of the evaluation and calculates the total evaluation time."""
@@ -258,7 +260,7 @@ class EvaluationTracker:
                 path.mkdir(parents=True, exist_ok=True)
 
                 file_results_samples = path.joinpath(
-                    f"samples_{task_name}_{self.date_id}.json"
+                    f"samples_{task_name}_{self.date_id}.jsonl"
                 )
 
                 for sample in samples:
@@ -330,23 +332,14 @@ class EvaluationTracker:
         Creates a metadata card for the evaluation results dataset and pushes it to the Hugging Face hub.
         """
 
-        def get_file_task_name(filename: str) -> str:
-            return filename[filename.find("_") + 1 : filename.rfind("_")]
-
-        def get_file_datetime(filename: str) -> str:
-            return filename[filename.rfind("_") + 1 :].replace(".json", "")
-
-        def sanitize_task_name(task_name: str) -> str:
-            return re.sub(r"\W", "_", task_name)
-
         eval_logger.info("Recreating metadata card")
         repo_id = (
             self.hub_results_repo if self.public_repo else self.hub_results_repo_private
         )
 
         files_in_repo = self.api.list_repo_files(repo_id=repo_id, repo_type="dataset")
-        results_files = [f for f in files_in_repo if "/results_" in f and ".json" in f]
-        sample_files = [f for f in files_in_repo if "/samples_" in f and ".json" in f]
+        results_files = get_results_filenames(files_in_repo)
+        sample_files = get_sample_results_filenames(files_in_repo)
 
         # Build a dictionary to store the latest evaluation datetime for:
         # - Each tested model and its aggregated results
@@ -421,7 +414,6 @@ class EvaluationTracker:
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
             )
             if eval_date_sanitized == sanitized_last_eval_date_results:
-                print(f"adding {config_name} for {eval_date_sanitized}")
                 # Ensure that all sample results files are listed in the metadata card
                 current_details_for_task = card_metadata.get(
                     config_name, {"data_files": []}
@@ -434,51 +426,6 @@ class EvaluationTracker:
                 card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [str(results_filename)]}
                 )
-
-                # Special case for MMLU with a single split covering it all
-                # We add another config with all MMLU splits results together for easy inspection
-                SPECIAL_TASKS = ["leaderboard_gpqa", "leaderboard_math", "leaderboard_bbh", "leaderboard_musr"]
-                for special_task in SPECIAL_TASKS:
-                    if special_task in config_name:
-                        special_task = f"{model_name}__{special_task}"
-                        former_entry = card_metadata.get(special_task, {"data_files": []})
-
-                        former_split = [
-                            (i, entry)
-                            for i, entry in enumerate(former_entry["data_files"])
-                            if entry.get("split", None) == eval_date_sanitized
-                        ]
-
-                        if len(former_split) == 0:
-                            former_entry["data_files"].append(
-                                {
-                                    "split": eval_date_sanitized,
-                                    "path": [str(results_filename)],
-                                }
-                            )
-                        else:
-                            split_index, _ = former_split[0]
-                            former_entry["data_files"][split_index]["path"].append(
-                                str(results_filename)
-                            )
-
-                        if eval_date_sanitized == sanitized_last_eval_date_results:
-                            latest_split = [
-                                (i, entry)
-                                for i, entry in enumerate(former_entry["data_files"])
-                                if entry.get("split", None) == "latest"
-                            ]
-                            if len(latest_split) == 0:
-                                former_entry["data_files"].append(
-                                    {"split": "latest", "path": [str(results_filename)]}
-                                )
-                            else:
-                                latest_index, _ = latest_split[0]
-                                former_entry["data_files"][latest_index]["path"].append(
-                                    str(results_filename)
-                                )
-
-                        card_metadata[special_task] = former_entry
 
         # Get latest results and extract info to update metadata card examples
         latest_datetime = max(latest_task_results_datetime.values())
