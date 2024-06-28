@@ -1194,7 +1194,9 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target: Any = None) -> Union[int, str, list]:
+    def doc_to_target(
+        self, doc: Mapping, doc_to_target: Any = None
+    ) -> Union[int, str, list]:
         if doc_to_target is not None:
             doc_to_target = doc_to_target
         elif self.prompt is not None:
