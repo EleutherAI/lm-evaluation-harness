@@ -3,7 +3,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
-import jinja2
 
 import torch
 import torch.nn.functional as F
@@ -697,52 +696,39 @@ class HFLM(TemplateLM):
             )
         return None
 
-    def _detect_batch_size(self, requests=None, pos: int = 0) -> int:
-        if len(requests[0]) == 3: # logprob evals
+    def _detect_batch_size(self, requests=None, pos: int = 0):
+        if requests:
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
                 (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
             )
             max_context_enc = len(context_enc[-(self.max_length + 1) :])
             max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
-            security_margin_factor = 4 # batch sizes for log prob evals sometimes generate OOMs
-        elif len(requests[0]) == 2: # generative evals
-            # using rolling window with maximum context
-            longest_context = max([len(self.tok_encode(request[0])) + request[1].get("max_gen_toks", self.max_length) for request in requests[pos:]])
-            if longest_context > self.max_length:
-                eval_logger.warning(
-                    f"Longest context length of {longest_context} exceeds max_length of {self.max_length}. Truncating to max_length."
-                )
-                longest_context = self.max_length
-            max_length = longest_context
+        else:
+            max_length = self.max_length
             max_context_enc = max_length
             max_cont_enc = max_length
-            security_margin_factor = 4
-
 
         # if OOM, then halves batch_size and tries again
         @find_executable_batch_size(starting_batch_size=self.max_batch_size)
         def forward_batch(batch_size):
-            security_margin = int(0.05 * security_margin_factor * batch_size)
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                 length = max(max_context_enc, max_cont_enc)
                 batched_conts = torch.ones(
-                    (batch_size + security_margin, length), device=self.device
+                    (batch_size, length), device=self.device
                 ).long()
-                test_batch = torch.ones((batch_size + security_margin, length), device=self.device).long()
+                test_batch = torch.ones((batch_size, length), device=self.device).long()
                 call_kwargs = {
                     "attn_mask": test_batch,
                     "labels": batched_conts,
                 }
             else:
                 call_kwargs = {}
-                test_batch = torch.rand(
-                    (batch_size + security_margin, max_length), device=self.device
+                test_batch = torch.ones(
+                    (batch_size, max_length), device=self.device
                 ).long()
-
-            for _ in range(5*security_margin_factor):
-                logits = self._model_call(inps=test_batch, **call_kwargs).float()
-                scores = F.log_softmax(logits, dim=-1)  # noqa: F841
+            for _ in range(5):
+                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1)  # noqa: F841
 
             return batch_size
 
@@ -977,10 +963,6 @@ class HFLM(TemplateLM):
         print(f"Determined largest batch size: {self.batch_sizes[sched]}")
         return self.batch_sizes[sched]
 
-    def _reset_batch_scheduler(self):
-        """When we change group in generative evaluations, we reset the batch size"""
-        self.batch_sizes = {}
-
     def _loglikelihood_tokens(
         self,
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
@@ -1140,7 +1122,7 @@ class HFLM(TemplateLM):
                 }
 
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1, dtype=torch.float16
+                self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
@@ -1218,14 +1200,24 @@ class HFLM(TemplateLM):
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
+        adaptive_batch_size = None
+        if self.batch_size == "auto":
+            # using rolling window with maximum context
+            print("Passed argument batch_size = auto. Detecting largest batch size")
+            batch_size = self._detect_batch_size()
+            print(f"Determined Largest batch size: {batch_size}")
+            adaptive_batch_size = batch_size
+        # for each different set of kwargs, we execute all requests, by batch.
         batch_size = (
             self.batch_size
             if self.batch_size != "auto"
+            else adaptive_batch_size
+            if adaptive_batch_size is not None
             else 0
         )
         batch_fn = (
             self._batch_scheduler
-            if self.batch_size == "auto"
+            if self.batch_size == "auto" and not adaptive_batch_size
             else None
         )
 
@@ -1239,7 +1231,7 @@ class HFLM(TemplateLM):
             group_by="gen_kwargs",
             group_fn=lambda x: x[1],
         )
-        chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn, reset_batch_fn=self._reset_batch_scheduler)
+        chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)
             # we assume all gen kwargs in the batch are the same
@@ -1267,23 +1259,15 @@ class HFLM(TemplateLM):
                 until = [eos]
             else:
                 until.append(eos)
-
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
-                if max_gen_toks > self.max_length: # some model have low max length limit
-                    max_gen_toks = self.max_gen_toks
             else:
                 max_gen_toks = self.max_gen_toks
 
             # set the max length in tokens of inputs ("context_enc")
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
                 # max len for inputs = max length, minus room to generate the max new tokens
-                # if the max new tokens is too large, halve it until it fits as we cannot change
-                # the max model length
                 max_ctx_len = self.max_length - max_gen_toks
-                while max_ctx_len <= 0:
-                    max_gen_toks = max_gen_toks // 2
-                    max_ctx_len = self.max_length - max_gen_toks
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                 # max len for inputs = encoder's whole max_length
                 max_ctx_len = self.max_length
@@ -1338,21 +1322,9 @@ class HFLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        try:
-            chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-        except jinja2.exceptions.TemplateError:
-            eval_logger.warning(
-                "Failed to apply chat template. removing the system role in chat history."
-            )
-            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
-            chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-            
-
-        return chat_templated
+        return self.tokenizer.apply_chat_template(
+            chat_history, tokenize=False, add_generation_prompt=True
+        )
 
     def get_model_info(self) -> dict:
         """
