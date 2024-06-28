@@ -389,7 +389,7 @@ class Collator:
             self._arr_with_indices, fn=self._group_fn, group_by="contexts"
         )
 
-    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None, reset_batch_fn: Optional[Callable] = None, accelerator=None) -> Iterator:
+    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None, reset_batch_fn: Optional[Callable] = None) -> Iterator:
         """
         Generates and yields batches from the reordered array. The method of grouping and batching
         depends on the parameter `group_by`.
