@@ -201,7 +201,7 @@ class VLLM(TemplateLM):
         self,
         string: Union[str, List[str]],
         left_truncate_len: int = None,
-        add_special_tokens: bool = None,
+        add_special_tokens: bool = False,
         truncation: bool = False,
     ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
