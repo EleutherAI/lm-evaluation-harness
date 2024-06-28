@@ -1,0 +1,6 @@
+"dataset_name": "Univ Computer Science"
+"group": "arabicmmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_univ_computer_science"
+"task_alias": "Univ Computer Science"

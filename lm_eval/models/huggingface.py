@@ -2,7 +2,7 @@ import copy
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -30,8 +30,8 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
     clear_torch_cache,
+    configure_pad_token,
     get_dtype,
-    handle_pad_token,
     pad_and_concat,
     stop_sequences_criteria,
 )
@@ -254,7 +254,7 @@ class HFLM(TemplateLM):
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
-        self.tokenizer = handle_pad_token(self.tokenizer, self.config)
+        self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
@@ -982,9 +982,7 @@ class HFLM(TemplateLM):
             else None
         )
 
-        chunks: Iterator[
-            Tuple[Tuple[str, str], List[int], List[int]]
-        ] = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
+        chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
         pbar = tqdm(
             total=len(requests),
             disable=(disable_tqdm or (self.rank != 0)),

@@ -1,7 +1,7 @@
 import copy
 from importlib.metadata import version
 from importlib.util import find_spec
-from typing import List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 from more_itertools import distribute
 from packaging.version import parse as parse_version
@@ -10,7 +10,7 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, handle_pad_token, undistribute
+from lm_eval.models.utils import Collator, configure_pad_token, undistribute
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -26,6 +26,8 @@ try:
 except ModuleNotFoundError:
     pass
 
+if TYPE_CHECKING:
+    pass
 
 eval_logger = eval_logger
 
@@ -118,7 +120,7 @@ class VLLM(TemplateLM):
             trust_remote_code=trust_remote_code,
             tokenizer_revision=tokenizer_revision,
         )
-        self.tokenizer = handle_pad_token(self.tokenizer)
+        self.tokenizer = configure_pad_token(self.tokenizer)
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
@@ -177,25 +179,48 @@ class VLLM(TemplateLM):
     def max_gen_toks(self):
         return self._max_gen_toks
 
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        return self.tokenizer.apply_chat_template(
+            chat_history, tokenize=False, add_generation_prompt=True
+        )
+
+    @property
+    def chat_template(self) -> str:
+        if self.tokenizer.chat_template is not None:
+            return self.tokenizer.chat_template
+        return self.tokenizer.default_chat_template
+
+    @property
+    def tokenizer_name(self) -> str:
+        return self.tokenizer.name_or_path.replace("/", "__")
+
     def tok_encode(
         self,
-        string: List[str],
-        left_truncate_len: Optional[int] = None,
-        add_special_tokens: Optional[bool] = None,
+        string: Union[str, List[str]],
+        left_truncate_len: int = None,
+        add_special_tokens: bool = False,
         truncation: bool = False,
-    ):
-        """ """
+    ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding = self.tokenizer(
-            string, add_special_tokens=add_special_tokens, truncation=truncation
-        )
+        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+            string,
+            add_special_tokens=add_special_tokens,
+            truncation=truncation,
+            return_attention_mask=False,
+        ).input_ids
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
-            encoding = encoding[-left_truncate_len:]
+            if not isinstance(string, str):
+                encoding = [enc[-left_truncate_len:] for enc in encoding]
+            else:
+                encoding = encoding[-left_truncate_len:]
 
-        return encoding.input_ids
+        return encoding
 
     def _model_generate(
         self,
@@ -291,7 +316,9 @@ class VLLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding = self.tok_encode(context)
+        context_encoding: List[List[int]] = self.tok_encode(
+            context, add_special_tokens=self.add_bos_token
+        )
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
@@ -445,7 +472,7 @@ class VLLM(TemplateLM):
             Length of context (so we can slice them away and only keep the predictions)
         :return:
             continuation_logprobs: float
-                Log probabilities of continuation tokens of len(continuations)
+                Log probabilities of continuation tokens
             is_greedy: bool
                 Whether argmax matches given continuation exactly
         """

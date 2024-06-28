@@ -1,0 +1,6 @@
+"dataset_name": "Middle Arabic Language"
+"group": "arabicmmlu_language"
+"group_alias": "language"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_middle_arabic_language"
+"task_alias": "Middle Arabic Language"

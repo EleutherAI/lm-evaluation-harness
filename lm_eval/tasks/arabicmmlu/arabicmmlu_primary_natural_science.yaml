@@ -1,0 +1,6 @@
+"dataset_name": "Primary Natural Science"
+"group": "arabicmmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_primary_natural_science"
+"task_alias": "Primary Natural Science"

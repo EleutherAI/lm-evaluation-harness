@@ -1,0 +1,6 @@
+"dataset_name": "Univ Economics"
+"group": "arabicmmlu_social_science"
+"group_alias": "social science"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_univ_economics"
+"task_alias": "Univ Economics"
