@@ -1,0 +1,8 @@
+"dataset_name": "question_and_answer_miscellaneous"
+"description": "The following are multiple choice questions (with answers) about miscellaneous.\n\
+  \n"
+"group": "question_and_answer_other"
+"group_alias": "other"
+"include": "mmlusr_qna_yml"
+"task": "question_and_answer_miscellaneous"
+"task_alias": "miscellaneous"

@@ -1,0 +1,8 @@
+"dataset_name": "question_only_conceptual_physics"
+"description": "The following are multiple choice questions (with answers) about conceptual\
+  \ physics.\n\n"
+"group": "question_only_stem"
+"group_alias": "stem"
+"include": "mmlusr_q_yml"
+"task": "question_only_conceptual_physics"
+"task_alias": "conceptual physics"

@@ -1,0 +1,8 @@
+"dataset_name": "question_only_marketing"
+"description": "The following are multiple choice questions (with answers) about marketing.\n\
+  \n"
+"group": "question_only_other"
+"group_alias": "other"
+"include": "mmlusr_q_yml"
+"task": "question_only_marketing"
+"task_alias": "marketing"
