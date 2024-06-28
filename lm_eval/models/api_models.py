@@ -47,7 +47,7 @@ from importlib.util import find_spec
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM, eval_logger
-from lm_eval.models.utils import Collator, chunks, handle_pad_token
+from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
 JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
@@ -126,7 +126,7 @@ class TemplateAPI(TemplateLM):
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                     self.tokenizer if self.tokenizer else self.model
                 )
-                self.tokenizer = handle_pad_token(self.tokenizer)
+                self.tokenizer = configure_pad_token(self.tokenizer)
             elif self.tokenizer_backend == "tiktoken":
                 try:
                     import tiktoken
