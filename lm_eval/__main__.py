@@ -5,7 +5,6 @@ import os
 import sys
 from functools import partial
 from typing import Union
-from accelerate import Accelerator
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
@@ -293,6 +292,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
         )
 
+    if (
+        args.num_fewshot is None or args.num_fewshot == 0
+    ) and args.fewshot_as_multiturn:
+        raise ValueError(
+            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
+        )
+
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
@@ -394,9 +400,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         **request_caching_args,
     )
 
-    accelerator = Accelerator()
-
-    if results is not None and accelerator.is_main_process:
+    if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(
