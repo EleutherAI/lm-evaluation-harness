@@ -93,7 +93,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
         base_url=None,
-        tokenizer_backend="huggingface",
+        tokenizer_backend=None,
         tokenized_requests=False,
         **kwargs,
     ):

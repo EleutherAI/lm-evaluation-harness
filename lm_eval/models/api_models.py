@@ -46,11 +46,13 @@ from importlib.util import find_spec
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.model import TemplateLM, eval_logger
+from lm_eval.api.model import TemplateLM
 from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
 JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
+
+eval_logger = utils.eval_logger
 
 
 class TemplateAPI(TemplateLM):
@@ -233,7 +235,7 @@ class TemplateAPI(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        if self.tokenizer_backend == "huggingface":
+        if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
             return self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
@@ -310,11 +312,11 @@ class TemplateAPI(TemplateLM):
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
 
-    # @retry(
-    #     stop=stop_after_attempt(3),
-    #     wait=wait_exponential(multiplier=1, min=2, max=10),
-    #     reraise=True,
-    # )
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True,
+    )
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
@@ -330,6 +332,8 @@ class TemplateAPI(TemplateLM):
                 ),
                 headers=self.header,
             )
+            if not response.ok:
+                eval_logger.info(f"API request failed with error message: {response.text}")
             response.raise_for_status()
             return response.json()
         except RetryError:
@@ -359,6 +363,9 @@ class TemplateAPI(TemplateLM):
                 json=payload,
                 headers=self.header,
             ) as response:
+                if not response.ok:
+                    error_text = await response.text()
+                    eval_logger.info(f"API request failed with error message: {error_text}")
                 response.raise_for_status()
                 outputs = await response.json()
                 if generate:
