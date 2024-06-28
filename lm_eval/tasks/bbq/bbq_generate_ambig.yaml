@@ -1,0 +1,3 @@
+include: bbq_generate.yaml
+task: bbq_generate_ambig
+process_docs: !function utils.process_docs_ambig
