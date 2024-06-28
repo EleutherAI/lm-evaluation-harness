@@ -399,7 +399,12 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=apply_chat_template,
             fewshot_as_multiturn=fewshot_as_multiturn,
-            lm=lm,
+            chat_template=getattr(lm, "apply_chat_template")
+            if apply_chat_template
+            else None,
+            tokenizer_name=getattr(lm, "tokenizer_name", "")
+            if apply_chat_template
+            else "",
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
@@ -609,16 +614,16 @@ def evaluate(
                     ]
 
                     # compute group's pooled metric and stderr
-                    results[group][
-                        metric
-                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    results[group][metric] = (
+                        lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    )
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
                         results[group][stderr] = "N/A"
                     else:
-                        results[group][
-                            stderr
-                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        results[group][stderr] = (
+                            lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        )
                         # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
                         # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
                         # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
