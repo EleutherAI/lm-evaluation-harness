@@ -1346,7 +1346,6 @@ class ConfigurableTask(Task):
                     deepcopy(self.config.generation_kwargs),
                     self.doc_to_visual,
                     doc,
-                    self.config.task,
                 )
             elif self.INPUT_TYPE == "text":
                 arguments = (ctx, deepcopy(self.config.generation_kwargs))

@@ -1,13 +1,13 @@
+import copy
 from typing import List, Optional, Tuple, Union
 
 import transformers
 from tqdm import tqdm
-from transformers import AutoModelForVision2Seq
 
-from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
+from lm_eval.models.utils import Collator, stop_sequences_criteria
 
 
 DEFAULT_IMAGE_TOKEN = "<image>"
@@ -19,11 +19,11 @@ class HFMultimodalLM(HFLM):
     An abstracted Hugging Face model class for multimodal LMs like Llava and Idefics.
     """
 
-    AUTO_MODEL_CLASS = AutoModelForVision2Seq
+    AUTO_MODEL_CLASS = transformers.AutoModelForVision2Seq
 
-    @property
-    def max_length(self):
-        raise NotImplementedError
+    # @property
+    # def max_length(self):
+    #     raise NotImplementedError
 
     @property
     def tokenizer_name(self) -> str:
@@ -194,6 +194,37 @@ class HFMultimodalLM(HFLM):
     # def tok_decode(self, tokens, skip_special_tokens=True):
     #     return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
+    def _model_generate(self, inputs, stop, **gen_kwargs):
+        # TODO: handle max_length
+        # gen_kwargs["image_sizes"] = [visuals[idx].size for idx in range(len(visuals))]
+        if "max_new_tokens" not in gen_kwargs:
+            gen_kwargs["max_new_tokens"] = 1024
+        if "temperature" not in gen_kwargs:
+            gen_kwargs["temperature"] = 0
+        # if "top_p" not in gen_kwargs:
+        #     gen_kwargs["top_p"] = None
+        # if "num_beams" not in gen_kwargs:
+        #     gen_kwargs["num_beams"] = 1
+
+        stopping_criteria = stop_sequences_criteria(
+            self.tokenizer,
+            stop,
+            inputs["input_ids"].shape[1],
+            inputs["input_ids"].shape[0],
+        )
+        return self.model.generate(
+            **inputs,
+            # max_length=max_length,
+            stopping_criteria=stopping_criteria,
+            do_sample=True if gen_kwargs["temperature"] > 0 else False,
+            temperature=gen_kwargs["temperature"],
+            top_p=gen_kwargs["top_p"],
+            num_beams=gen_kwargs["num_beams"],
+            max_new_tokens=gen_kwargs["max_new_tokens"],
+            use_cache=True,
+            pad_token_id=self.tokenizer.eos_token_id,
+        )
+
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
             "model type `hf-multimodal` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks"
@@ -204,14 +235,9 @@ class HFMultimodalLM(HFLM):
             "model type `hf-multimodal` does not support loglikelihood or multiple choice. Use 'hf' model type for text-only loglikelihood tasks"
         )
 
-    def flatten(self, input):
-        new_list = []
-        for i in input:
-            for j in i:
-                new_list.append(j)
-        return new_list
-
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         res = []
 
         def _collate(x):
@@ -224,47 +250,70 @@ class HFMultimodalLM(HFLM):
             toks = self.tok_encode(x[0])
             return -len(toks), x[0]
 
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running generate_until requests with text+image input",
+        )
+        # TODO: port auto-batch sizing into this.
+
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = utils.Collator(
-            [reg.args for reg in requests], _collate, grouping=True
+        re_ords = Collator(
+            [reg.args for reg in requests],
+            _collate,
+            group_by="gen_kwargs",
+            group_fn=lambda x: x[1],
         )
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
-        num_iters = (
-            len(requests) // self.batch_size
-            if len(requests) % self.batch_size == 0
-            else len(requests) // self.batch_size + 1
-        )
-        pbar = tqdm(total=num_iters, disable=(self.rank != 0), desc="Model Responding")
+
+        ### Up to here: was identical to non-multimodal HFLM generate_until ###
+
         for chunk in chunks:
-            contexts, all_gen_kwargs, doc_to_visual, doc, task = zip(
+            contexts, all_gen_kwargs, doc_to_visual, doc = zip(
                 *chunk
-            )  # TODO: understand what is going on here. can we cut down on number of distinct things we pass around?
-            task = task[0]
-            # split = split[0]
-            visuals = [vis(d) for vis, d in zip(doc_to_visual, doc)]
-            # visuals = self.flatten(visuals)
+            )  # TODO: can we cut down further on number of distinct things we pass around?
+
+            visuals = [
+                vis(d) for vis, d in zip(doc_to_visual, doc)
+            ]  # TODO: I think *fully* flattening is just wrong for bs>1 ?
+
+            ### this part onward: same as HFLM ###
+
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
+            # unpack our keyword arguments.
+            until = None
+            if isinstance(gen_kwargs, dict):
+                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                if "until" in kwargs.keys():
+                    until = kwargs.pop("until")
+                    if isinstance(until, str):
+                        until = [until]
+                    elif not isinstance(until, list):
+                        raise ValueError(
+                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+                        )
+            else:
+                raise ValueError(
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+                )
+            # add EOS token to stop sequences
+            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
+            if not until:
+                until = [eos]
+            else:
+                until.append(eos)
+            if "max_gen_toks" in kwargs.keys():
+                max_gen_toks = kwargs.pop("max_gen_toks")
+            else:
+                max_gen_toks = self.max_gen_toks
 
-            # Set default values for until and max_new_tokens
-            until = [self.tok_decode(self.eot_token_id)]
+            ### end stuff that's entirely copied verbatim from HFLM ###
 
-            # Update values from gen_kwargs if present
-            if "until" in gen_kwargs:
-                until = gen_kwargs.pop("until")
-                if isinstance(until, str):
-                    until = [until]
-                elif not isinstance(until, list):
-                    raise ValueError(
-                        f"Expected `gen_kwargs['until']` to be of type Union[str,list] but got {type(until)}"
-                    )
-            assert (
-                self.batch_size_per_gpu == 1
-            ), "Do not support batch_size_per_gpu > 1 for now"
-            context = contexts[0]
+            max_ctx_len = self.max_length - max_gen_toks  # noqa: F841 # TODO: this assumes we are using a causal LM. is that always valid? shouldn't be
 
             # if self.accelerator.is_main_process and doc_id[0] % 100 == 0:
             print(f"Prompt:\n\n{contexts}\n")
@@ -272,37 +321,24 @@ class HFMultimodalLM(HFLM):
             self.tokenizer.padding_side = "left"
             inputs = self.processor(
                 images=visuals, text=contexts, return_tensors="pt", padding=True
-            ).to(self._device, self.model.dtype)  # TODO:
+            ).to(
+                self._device, self.model.dtype
+            )  # TODO: factor out into a tok_batch_encode bit ; truncate from left using max_ctx_len
 
-            # gen_kwargs["image_sizes"] = [visuals[idx].size for idx in range(len(visuals))]
-            if "max_new_tokens" not in gen_kwargs:
-                gen_kwargs["max_new_tokens"] = 1024
-            if "temperature" not in gen_kwargs:
-                gen_kwargs["temperature"] = 0
-            if "top_p" not in gen_kwargs:
-                gen_kwargs["top_p"] = None
-            if "num_beams" not in gen_kwargs:
-                gen_kwargs["num_beams"] = 1
-            try:
-                cont = self.model.generate(
-                    **inputs,
-                    do_sample=True if gen_kwargs["temperature"] > 0 else False,
-                    temperature=gen_kwargs["temperature"],
-                    top_p=gen_kwargs["top_p"],
-                    num_beams=gen_kwargs["num_beams"],
-                    max_new_tokens=gen_kwargs["max_new_tokens"],
-                    use_cache=True,
-                    pad_token_id=self.tokenizer.eos_token_id,
-                )
-            except Exception as e:
-                print(f"Error {e} in generating")
-                cont = ""
+            context_enc = inputs["input_ids"]
+
+            if "max_length" not in kwargs:
+                kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
+
+            cont = self._model_generate(inputs, stop=until, **gen_kwargs)
+
+            ### essentially same as HFLM beyond this line!
 
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts):
                 # discard context + left-padding toks if using causal decoder-only LM
                 # if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM: # TODO: ensure this holds for VLMs
-                cont_toks = cont_toks[inputs["input_ids"].shape[1] :]
+                cont_toks = cont_toks[context_enc.shape[1] :]
 
                 s = self.tok_decode(cont_toks)
 
@@ -313,22 +349,12 @@ class HFMultimodalLM(HFLM):
                         # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
                         s = s.split(term)[0]
 
-                if "1.5" in self.pretrained:
-                    text_outputs = s.split("ASSISTANT:")[-1].strip()
-                elif "mistral" in self.pretrained:
-                    text_outputs = s.split("[/INST]")[-1].strip()
-                else:
-                    text_outputs = s.split("ASSISTANT:")[-1].strip()
-
                 # if self.accelerator.is_main_process and doc_id[0] % 100 == 0:
-                print("hi hi")
-                print(f"Generated text:\n\n{text_outputs}\n")
+                print(f"Generated text:\n\n{s}\n")
 
-                res.append(text_outputs)
-            self.cache_hook.add_partial(
-                "generate_until", (context, gen_kwargs), text_outputs
-            )
-            pbar.update(1)
+                res.append(s)
+                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
+                pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
 
