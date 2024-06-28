@@ -1,7 +1,7 @@
 import copy
 from importlib.metadata import version
 from importlib.util import find_spec
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 from more_itertools import distribute
 from packaging.version import parse as parse_version
@@ -26,6 +26,8 @@ try:
 except ModuleNotFoundError:
     pass
 
+if TYPE_CHECKING:
+    pass
 
 eval_logger = eval_logger
 
@@ -197,23 +199,28 @@ class VLLM(TemplateLM):
 
     def tok_encode(
         self,
-        string: str,
-        left_truncate_len=None,
-        add_special_tokens=None,
-        truncation=False,
-    ):
-        """ """
+        string: Union[str, List[str]],
+        left_truncate_len: int = None,
+        add_special_tokens: bool = None,
+        truncation: bool = False,
+    ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding = self.tokenizer.encode(
-            string, add_special_tokens=add_special_tokens, truncation=truncation
-        )
+        encoding: List[List[int]] = self.tokenizer(
+            string,
+            add_special_tokens=add_special_tokens,
+            truncation=truncation,
+            return_attention_mask=False,
+        ).input_ids
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
-            encoding = encoding[-left_truncate_len:]
+            encoding = [enc[-left_truncate_len:] for enc in encoding]
 
-        return encoding
+        if isinstance(string, str):
+            return encoding[0]
+        else:
+            return encoding
 
     def _model_generate(
         self,
@@ -309,7 +316,9 @@ class VLLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding = self.tokenizer(context, add_special_tokens=False).input_ids
+        context_encoding: List[List[int]] = self.tok_encode(
+            context, add_special_tokens=self.add_bos_token
+        )
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
