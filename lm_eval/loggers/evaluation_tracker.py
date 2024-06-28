@@ -113,7 +113,8 @@ class EvaluationTracker:
         self,
         output_path: str = None,
         hub_results_org: str = "",
-        hub_repo_name: str = "",
+        details_repo_name: str = "",
+        results_repo_name: str = "",
         push_results_to_hub: bool = False,
         push_samples_to_hub: bool = False,
         public_repo: bool = False,
@@ -127,7 +128,8 @@ class EvaluationTracker:
         Args:
             output_path (str): Path to save the results. If not provided, the results won't be saved.
             hub_results_org (str): The Hugging Face organization to push the results to. If not provided, the results will be pushed to the owner of the Hugging Face token.
-            hub_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will be pushed to `lm-eval-results`.
+            details_repo_name (str): The name of the Hugging Face repository to push the details to. If not provided, the results will be pushed to `lm-eval-results`.
+            result_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will not be pushed and will be found in the details_hub_repo.
             push_results_to_hub (bool): Whether to push the results to the Hugging Face hub.
             push_samples_to_hub (bool): Whether to push the samples to the Hugging Face hub.
             public_repo (bool): Whether to push the results to a public or private repository.
@@ -161,9 +163,12 @@ class EvaluationTracker:
                 f"hub_results_org was not specified. Results will be pushed to '{hub_results_org}'."
             )
 
-        hub_repo_name = hub_repo_name if hub_repo_name else "lm-eval-results"
-        self.hub_results_repo = f"{hub_results_org}/{hub_repo_name}"
-        self.hub_results_repo_private = f"{hub_results_org}/{hub_repo_name}-private"
+        details_repo_name = details_repo_name if details_repo_name != "" else "lm-eval-results"
+        results_repo_name = results_repo_name if results_repo_name != "" else details_repo_name
+        self.details_repo = f"{hub_results_org}/{details_repo_name}"
+        self.details_repo_private = f"{hub_results_org}/{details_repo_name}-private"
+        self.results_repo = f"{hub_results_org}/{results_repo_name}"
+        self.results_repo_private = f"{hub_results_org}/{results_repo_name}-private"
 
     def save_results_aggregated(
         self,
@@ -212,15 +217,14 @@ class EvaluationTracker:
                 file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
                 if self.api and self.push_results_to_hub:
-                    repo_id = "open-llm-leaderboard/results_v2"
                     self.api.create_repo(
-                        repo_id=repo_id,
+                        repo_id=self.results_repo if self.public_repo else self.results_repo_private,
                         repo_type="dataset",
                         private=not self.public_repo,
                         exist_ok=True,
                     )
                     self.api.upload_file(
-                        repo_id=repo_id,
+                        repo_id=self.results_repo if self.public_repo else self.results_repo_private,
                         path_or_fileobj=str(path.joinpath(f"results_{self.date_id}.json")),
                         path_in_repo=os.path.join(self.general_config_tracker.model_name, f"results_{self.date_id}.json"),
                         repo_type="dataset",
@@ -292,9 +296,9 @@ class EvaluationTracker:
 
                 if self.api and self.push_samples_to_hub:
                     repo_id = (
-                        self.hub_results_repo
+                        self.details_repo
                         if self.public_repo
-                        else self.hub_results_repo_private
+                        else self.details_repo_private
                     )
                     self.api.create_repo(
                         repo_id=repo_id,
@@ -334,7 +338,7 @@ class EvaluationTracker:
 
         eval_logger.info("Recreating metadata card")
         repo_id = (
-            self.hub_results_repo if self.public_repo else self.hub_results_repo_private
+            self.details_repo if self.public_repo else self.details_repo_private
         )
 
         files_in_repo = self.api.list_repo_files(repo_id=repo_id, repo_type="dataset")
@@ -485,3 +489,4 @@ class EvaluationTracker:
             pretty_name=card_data.pretty_name,
         )
         card.push_to_hub(repo_id, repo_type="dataset")
+
