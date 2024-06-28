@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-hrv_Latn-lvs_Latn"
+"dataset_name": "hrv_Latn-lvs_Latn"
+"doc_to_text": "Croatian phrase: {{sentence_hrv_Latn}}\nStandard Latvian phrase:"
+"doc_to_decontamination_query": "{{sentence_hrv_Latn}}"
+"doc_to_target": "{{sentence_lvs_Latn}}"

@@ -124,7 +124,7 @@ LANGS = [
     # "lug_Latn",
     # "luo_Latn",
     # "lus_Latn",
-    # "lvs_Latn",
+    "lvs_Latn",
     # "mag_Deva",
     # "mai_Deva",
     # "mal_Mlym",
