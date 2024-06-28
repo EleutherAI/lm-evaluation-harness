@@ -10,7 +10,7 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, undistribute
+from lm_eval.models.utils import Collator, configure_pad_token, undistribute
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -118,6 +118,7 @@ class VLLM(TemplateLM):
             trust_remote_code=trust_remote_code,
             tokenizer_revision=tokenizer_revision,
         )
+        self.tokenizer = configure_pad_token(self.tokenizer)
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
