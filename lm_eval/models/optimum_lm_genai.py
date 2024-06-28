@@ -159,6 +159,6 @@ class OptimumLM_2(HFLM):
             llm_bench_args["use_case"] =  use_case
             llm_bench_args["trust_remote_code"] = self.trust_remote_code
             llm_bench_args["model_type"] =  model_type
-            self._model, self.tokenizer, _, _ = create_text_gen_model(pretrained, self.openvino_device, **llm_bench_args)
+            self._model, self.tokenizer, _, _, _ = create_text_gen_model(pretrained, self.openvino_device, **llm_bench_args)
         else:
             assert False, f"ERROR model type not defined formodel: {model_name}"
