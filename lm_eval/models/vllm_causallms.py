@@ -235,7 +235,7 @@ class VLLM(TemplateLM):
             sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
             sampling_params = SamplingParams(
-                temperature=0, prompt_logprobs=1, max_tokens=1
+                temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
         if self.data_parallel_size > 1:
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
