@@ -268,8 +268,9 @@ class TemplateAPI(TemplateLM):
     def tok_encode(
         self,
         string: str,
-        left_truncate_len=None,
-        add_special_tokens=None,
+        left_truncate_len: int = None,
+        add_special_tokens: bool = False,
+        truncation: bool = False,
         **kwargs,
     ) -> Union[List[int], str]:
         if self.tokenizer_backend is None:
@@ -277,19 +278,21 @@ class TemplateAPI(TemplateLM):
         elif self.tokenizer_backend == "huggingface":
             eval_logger.info(f"using tokenizer {self.tokenizer_backend}")
             # by default for CausalLM - false or self.add_bos_token is set
-            if add_special_tokens is None:
+            if not add_special_tokens:
                 add_special_tokens = False or self.add_bos_token
-            # otherwise the method explicitly defines the value
-            else:
-                add_special_tokens = add_special_tokens
-
-            encoding = self.tokenizer.encode(
-                string, add_special_tokens=add_special_tokens, **kwargs
-            )
+            encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+                string,
+                add_special_tokens=add_special_tokens,
+                truncation=truncation,
+                return_attention_mask=False,
+            ).input_ids
 
             # left-truncate the encoded context to be at most `left_truncate_len` tokens long
             if left_truncate_len:
-                encoding = encoding[-left_truncate_len:]
+                if not isinstance(string, str):
+                    encoding = [enc[-left_truncate_len:] for enc in encoding]
+                else:
+                    encoding = encoding[-left_truncate_len:]
 
             return encoding
 
@@ -500,7 +503,7 @@ class TemplateAPI(TemplateLM):
         # Let the API deal with tokenization
         requests, all_gen_kwargs = zip(*(req.args for req in requests))
         if self.tokenized_requests:
-            encodings_list = self.tok_encode(requests)
+            encodings_list = self.tok_encode(requests, add_special_tokens=self.add_bos_token)
         else:
             encodings_list = [None] * len(requests)
         requests = [
