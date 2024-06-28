@@ -439,7 +439,14 @@ class HFLM(TemplateLM):
         Helper method during initialization.
         Determines the backend ("causal" (decoder-only) or "seq2seq" (encoder-decoder))
         model type to be used.
+        sets `self.AUTO_MODEL_CLASS` appropriately if not already set.
         """
+        # escape hatch: if we're using a subclass that shouldn't follow
+        # the default _get_backend logic,
+        # then skip over the method.
+        if self.AUTO_MODEL_CLASS is not None:
+            return
+
         assert backend in ["default", "causal", "seq2seq"]
 
         if backend != "default":

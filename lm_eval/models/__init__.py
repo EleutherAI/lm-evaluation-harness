@@ -2,6 +2,7 @@ from . import (
     anthropic_llms,
     dummy,
     gguf,
+    hf_vlms,
     huggingface,
     llava,
     mamba_lm,
