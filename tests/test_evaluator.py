@@ -33,6 +33,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
             10000,
         ),
     ],
+    ids=lambda x: f"{",".join(x[0])}",
 )
 def test_evaluator(
     task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
@@ -107,6 +108,7 @@ def test_evaluator(
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
         ),
     ],
+    ids=lambda x: f"{",".join(x[0])}",
 )
 def test_printed_results(task_name: List[str], limit: int, model: str, model_args: str):
     results = evaluator.simple_evaluate(
