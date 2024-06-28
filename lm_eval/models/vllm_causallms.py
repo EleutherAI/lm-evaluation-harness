@@ -206,7 +206,7 @@ class VLLM(TemplateLM):
     ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding: List[List[int]] = self.tokenizer(
+        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
             string,
             add_special_tokens=add_special_tokens,
             truncation=truncation,
@@ -215,12 +215,12 @@ class VLLM(TemplateLM):
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
-            encoding = [enc[-left_truncate_len:] for enc in encoding]
+            if not isinstance(string, str):
+                encoding = [enc[-left_truncate_len:] for enc in encoding]
+            else:
+                encoding = encoding[-left_truncate_len:]
 
-        if isinstance(string, str):
-            return encoding[0]
-        else:
-            return encoding
+        return encoding
 
     def _model_generate(
         self,
