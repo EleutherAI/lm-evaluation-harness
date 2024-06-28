@@ -254,7 +254,7 @@ class HFLM(TemplateLM):
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
-        self.tokenizer = configure_pad_token(self.tokenizer)
+        self.tokenizer = configure_pad_token(self.tokenizer, self.config)
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
