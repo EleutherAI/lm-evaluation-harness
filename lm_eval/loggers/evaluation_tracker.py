@@ -121,6 +121,7 @@ class EvaluationTracker:
         token: str = "",
         leaderboard_url: str = "",
         point_of_contact: str = "",
+        gated_repo: bool = False,
     ) -> None:
         """
         Creates all the necessary loggers for evaluation tracking.
@@ -136,6 +137,7 @@ class EvaluationTracker:
             token (str): Token to use when pushing to the Hugging Face hub. This token should have write access to `hub_results_org`.
             leaderboard_url (str): URL to the leaderboard on the Hugging Face hub on the dataset card.
             point_of_contact (str): Contact information on the Hugging Face hub dataset card.
+            gated_repo (bool): Whether to gate the repository.
         """
         self.general_config_tracker = GeneralConfigTracker()
 
@@ -146,6 +148,7 @@ class EvaluationTracker:
         self.leaderboard_url = leaderboard_url
         self.point_of_contact = point_of_contact
         self.api = HfApi(token=token) if token else None
+        self.gated_repo = gated_repo
 
         if not self.api and (push_results_to_hub or push_samples_to_hub):
             raise ValueError(
@@ -306,13 +309,14 @@ class EvaluationTracker:
                         private=not self.public_repo,
                         exist_ok=True,
                     )
-                    headers = build_hf_headers()
-                    r = get_session().put(
-                        url=f"https://huggingface.co/api/datasets/{repo_id}/settings",
-                        headers=headers,
-                        json={"gated": "auto"},
-                    )
-                    hf_raise_for_status(r)
+                    if self.gated_repo:
+                        headers = build_hf_headers()
+                        r = get_session().put(
+                            url=f"https://huggingface.co/api/datasets/{repo_id}/settings",
+                            headers=headers,
+                            json={"gated": "auto"},
+                        )
+                        hf_raise_for_status(r)
                     self.api.upload_folder(
                         repo_id=repo_id,
                         folder_path=str(path),
