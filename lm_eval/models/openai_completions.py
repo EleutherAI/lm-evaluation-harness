@@ -94,7 +94,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         self,
         base_url=None,
         tokenizer_backend="huggingface",
-        tokenized_requests=False,
+        tokenized_requests=True,
         **kwargs,
     ):
         super().__init__(

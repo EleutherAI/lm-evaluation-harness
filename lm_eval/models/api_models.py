@@ -275,6 +275,7 @@ class TemplateAPI(TemplateLM):
         if self.tokenizer_backend is None:
             return string
         elif self.tokenizer_backend == "huggingface":
+            eval_logger.info(f"using tokenizer {self.tokenizer_backend}")
             # by default for CausalLM - false or self.add_bos_token is set
             if add_special_tokens is None:
                 add_special_tokens = False or self.add_bos_token
@@ -293,6 +294,7 @@ class TemplateAPI(TemplateLM):
             return encoding
 
         else:
+            eval_logger.info(f"using tokenizer {self.tokenizer_backend}")
             try:
                 encoding = self.tokenizer.encode(string)
             except Exception:
