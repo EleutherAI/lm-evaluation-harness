@@ -1,0 +1,6 @@
+"dataset_name": "High Computer Science"
+"group": "arabicmmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_high_computer_science"
+"task_alias": "High Computer Science"

@@ -1,0 +1,4 @@
+include: _paloma_template
+task: paloma_dolma_100_subreddits
+task_alias: 100 Subreddits
+dataset_name: dolma_100_subreddits

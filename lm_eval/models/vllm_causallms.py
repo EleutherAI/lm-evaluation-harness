@@ -21,9 +21,7 @@ from lm_eval.utils import (
 try:
     import ray
     from vllm import LLM, SamplingParams
-
-    if parse_version(version("vllm")) > parse_version("0.3.0"):
-        from vllm.lora.request import LoRARequest
+    from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass
@@ -102,9 +100,6 @@ class VLLM(TemplateLM):
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
-            assert parse_version(version("vllm")) < parse_version(
-                "0.3.3"
-            ), "data_parallel is only compatible with vllm < v0.3.3."
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
@@ -124,6 +119,12 @@ class VLLM(TemplateLM):
             tokenizer_revision=tokenizer_revision,
         )
         self.add_bos_token = add_bos_token
+        if "gemma" in pretrained.lower():
+            self.add_bos_token = True
+            eval_logger.info(
+                "Found 'gemma' in model name, a BOS token will be used as Gemma underperforms without it."
+            )
+
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
             eval_logger.info(
@@ -498,7 +499,10 @@ class VLLM(TemplateLM):
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
         do_sample = kwargs.pop("do_sample", None)
-        if do_sample is False or "temperature" not in kwargs:
+        if do_sample is False and "temperature" not in kwargs:
+            eval_logger.debug(
+                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
+            )
             kwargs["temperature"] = 0.0
         # hf defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
