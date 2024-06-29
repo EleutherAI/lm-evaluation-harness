@@ -358,6 +358,3 @@ class AnthropicChat(LocalCompletionsAPI):
 
     def _loglikelihood_tokens(self, requests, **kwargs):
         raise NotImplementedError("Loglikelihood is not supported for chat completions")
-
-    def parse_logprobs(self, **kwargs):
-        raise NotImplementedError("Loglikelihood is not supported for chat completions")
