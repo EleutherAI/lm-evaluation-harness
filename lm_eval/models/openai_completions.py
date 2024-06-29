@@ -48,8 +48,8 @@ class LocalCompletionsAPI(TemplateAPI):
                 "echo": True,
             }
 
+    @staticmethod
     def parse_logprobs(
-        self,
         outputs: Union[Dict, List[Dict]],
         tokens: List[List[int]] = None,
         ctxlens: List[int] = None,
@@ -72,9 +72,8 @@ class LocalCompletionsAPI(TemplateAPI):
                 res.append((logprobs, is_greedy))
         return res
 
-    def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], **kwargs
-    ) -> List[str]:
+    @staticmethod
+    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -127,9 +126,8 @@ class LocalChatCompletion(LocalCompletionsAPI):
             **gen_kwargs,
         }
 
-    def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], **kwargs
-    ) -> List[str]:
+    @staticmethod
+    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]

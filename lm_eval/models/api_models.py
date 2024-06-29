@@ -7,6 +7,8 @@ from collections import namedtuple
 from functools import cached_property
 from typing import (
     Any,
+    Awaitable,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -24,22 +26,7 @@ try:
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
 except ModuleNotFoundError:
-    # hack to deal with retry decorator
-    def retry(stop=None, wait=None, reraise=False):
-        def decorator(func):
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            return wrapper
-
-        return decorator
-
-    # Dummy functions for stop_after_attempt and wait_exponential
-    def stop_after_attempt(attempts):
-        return attempts
-
-    def wait_exponential(multiplier=1, min=2, max=10):
-        return (multiplier, min, max)
+    pass
 
 
 from importlib.util import find_spec
@@ -70,7 +57,8 @@ class TemplateAPI(TemplateLM):
         ] = "huggingface",
         truncate: bool = False,
         # concurrent requests. More useful if not batching
-        concurrent=1,
+        concurrent: int = 1,
+        max_retries: int = 3,
         max_gen_toks: int = 256,
         batch_size: Union[str, int] = 1,
         seed: int = 1234,
@@ -105,18 +93,19 @@ class TemplateAPI(TemplateLM):
             )
         self._batch_size = int(batch_size) if batch_size != "auto" else 1
         self._truncate = truncate
-        self._max_gen_toks = max_gen_toks
-        self._seed = seed
+        self._max_gen_toks = int(max_gen_toks)
+        self._seed = int(seed)
         self.max_length = max_length
-        if concurrent <= 1:
+        if int(concurrent) <= 1:
             eval_logger.info(
                 "Concurrent requests are disabled. To enable concurrent requests, set `concurrent > 1`."
             )
-        self._concurrent = concurrent
+        self._concurrent = int(concurrent)
         self.tokenizer_backend = tokenizer_backend
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
+        self.max_retries = int(max_retries)
 
         if self.tokenizer_backend is None:
             self.tokenizer = None
@@ -150,7 +139,7 @@ class TemplateAPI(TemplateLM):
         self,
         messages: Union[List[List[int]], List[dict], List[str], str],
         *,
-        generate=True,
+        generate: bool = True,
         gen_kwargs: dict = None,
         **kwargs,
     ) -> dict:
@@ -187,9 +176,9 @@ class TemplateAPI(TemplateLM):
         # list[list[int], ...]
         return messages
 
+    @staticmethod
     @abc.abstractmethod
     def parse_logprobs(
-        self,
         outputs: Union[Any, List[Any]],
         tokens: List[List[int]] = None,
         ctxlen: List[int] = None,
@@ -198,8 +187,9 @@ class TemplateAPI(TemplateLM):
         """Method used to parse the logprobs from the (batched) API response. This method should return a list of tuples"""
         raise NotImplementedError
 
+    @staticmethod
     @abc.abstractmethod
-    def parse_generations(self, outputs: Union[Any, List[Any]], **kwargs) -> List[str]:
+    def parse_generations(outputs: Union[Any, List[Any]], **kwargs) -> List[str]:
         """Method used to parse the generations from the (batched) API response. This method should return a list of str"""
         raise NotImplementedError
 
@@ -312,11 +302,6 @@ class TemplateAPI(TemplateLM):
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        reraise=True,
-    )
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
@@ -333,23 +318,20 @@ class TemplateAPI(TemplateLM):
                 headers=self.header,
             )
             if not response.ok:
-                eval_logger.info(f"API request failed with error message: {response.text}")
+                eval_logger.info(
+                    f"API request failed with error message: {response.text}"
+                )
             response.raise_for_status()
             return response.json()
         except RetryError:
             return None
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        reraise=True,
-    )
     async def amodel_call(
         self,
         session: ClientSession,
         messages: List[Union[List[int], str]],
         *,
-        cache_keys=None,
+        cache_keys: list = None,
         ctxlens: Optional[List[int]] = None,
         generate: bool = True,
         **kwargs,
@@ -365,7 +347,9 @@ class TemplateAPI(TemplateLM):
             ) as response:
                 if not response.ok:
                     error_text = await response.text()
-                    eval_logger.info(f"API request failed with error message: {error_text}")
+                    eval_logger.info(
+                        f"API request failed with error message: {error_text}"
+                    )
                 response.raise_for_status()
                 outputs = await response.json()
                 if generate:
@@ -412,20 +396,25 @@ class TemplateAPI(TemplateLM):
 
     async def get_batched_requests(
         self,
-        requests: List,
-        cache_keys,
+        requests: list,
+        cache_keys: list,
         *,
         generate: bool = True,
-        ctxlens=None,
+        ctxlens: List[int] = None,
         **kwargs,
     ):
         conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(connector=conn) as session:
+            retry_: Callable[..., Awaitable[Any]] = retry(
+                stop=stop_after_attempt(self.max_retries),
+                wait=wait_exponential(multiplier=0.5, min=1, max=10),
+                reraise=True,
+            )(self.amodel_call)
             tasks = [
                 asyncio.create_task(
-                    self.amodel_call(
-                        session,
-                        message,
+                    retry_(
+                        session=session,
+                        messages=message,
                         cache_keys=cache_keys,
                         generate=generate,
                         ctxlens=ctxlens,
@@ -467,9 +456,12 @@ class TemplateAPI(TemplateLM):
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 inputs, ctxlens, cache_keys = self.batch_logliklehood_requests([chunk])
-                outputs = self.model_call(
-                    messages=self.create_message(inputs), generate=False
-                )
+
+                outputs = retry(
+                    stop=stop_after_attempt(self.max_retries),
+                    wait=wait_exponential(multiplier=0.5, min=1, max=10),
+                    reraise=True,
+                )(self.model_call)(messages=self.create_message(inputs), generate=False)
                 if isinstance(outputs, dict):
                     outputs = [outputs]
                 for answer_, cache_key in zip(
@@ -510,7 +502,9 @@ class TemplateAPI(TemplateLM):
         # Let the API deal with tokenization
         requests, all_gen_kwargs = zip(*(req.args for req in requests))
         if self.tokenized_requests:
-            encodings_list = self.tok_encode(requests, add_special_tokens=self.add_bos_token)
+            encodings_list = self.tok_encode(
+                requests, add_special_tokens=self.add_bos_token
+            )
         else:
             encodings_list = [None] * len(requests)
         requests = [
@@ -533,7 +527,11 @@ class TemplateAPI(TemplateLM):
                     req = encodings_list
                 else:
                     req = contexts
-                outputs = self.model_call(
+                outputs = retry(
+                    stop=stop_after_attempt(self.max_retries),
+                    wait=wait_exponential(multiplier=0.5, min=1, max=10),
+                    reraise=True,
+                )(self.model_call)(
                     messages=req,
                     generate=True,
                     gen_kwargs=all_gen_kwargs[0],
