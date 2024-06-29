@@ -23,7 +23,7 @@ Homepage: https://github.com/inverse-scaling/prize
 
 #### Groups
 
-* `inverse_scaling_mc`: `all tasks of Inverse Scaling Prize`
+* `inverse_scaling_mc`: all tasks of Inverse Scaling Prize (currently aside from Prompt Injection), matching their implementations on OPT.
 
 
 #### Tasks
