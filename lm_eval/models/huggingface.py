@@ -30,6 +30,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
     clear_torch_cache,
+    configure_pad_token,
     get_dtype,
     pad_and_concat,
     stop_sequences_criteria,
@@ -253,28 +254,7 @@ class HFLM(TemplateLM):
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
-        if self.tokenizer.pad_token:
-            pass
-        elif self.tokenizer.unk_token:
-            self.tokenizer.pad_token_id = self.tokenizer.unk_token_id
-        elif self.tokenizer.eos_token:
-            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        else:
-            if getattr(self.config, "model_type", None) == "qwen":
-                # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
-                self.tokenizer.pad_token = "<|endoftext|>"
-            elif (
-                self.tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
-                or self.tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
-            ):
-                # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
-                # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
-                # ---
-                # Note that the world tokenizer class name, might change in the future for the final huggingface merge
-                # https://github.com/huggingface/transformers/pull/26963
-                assert self.tokenizer.pad_token_id == 0
-            else:
-                self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+        self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
