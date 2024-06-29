@@ -1,0 +1,6 @@
+dataset_name: icd10cm_hard
+group: icd10cm
+group_alias: icd10cm
+include: _default_template_yaml
+task: med_concepts_qa_icd10cm_hard
+task_alias: icd10cm_hard

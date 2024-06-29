@@ -1,0 +1,7 @@
+group: med_concepts_qa
+task:
+  - icd9cm
+  - icd10cm
+  - icd9proc
+  - icd10proc
+  - atc
