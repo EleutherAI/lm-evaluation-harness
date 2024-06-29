@@ -29,8 +29,8 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
     if category_name == "promptsource":
         try:
             from promptsource.templates import DatasetTemplates
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "Tried to load a Promptsource template, but promptsource is not installed ",
                 "please install promptsource via pip install lm-eval[promptsource] or pip install -e .[promptsource]",
             )
