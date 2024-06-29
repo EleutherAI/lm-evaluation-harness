@@ -37,7 +37,7 @@ def sort_13_gram_buckets(working_directory):
         sorted_file_path = bucket_file_path + ".sorted"
         command = f"sort {bucket_file_path} > {sorted_file_path}"
         logger.info(command)
-        subprocess.call(command, shell=True)
+        subprocess.call(command, shell=False)
 
         if terminate:
             return

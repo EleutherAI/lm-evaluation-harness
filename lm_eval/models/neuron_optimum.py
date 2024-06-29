@@ -37,7 +37,7 @@ def get_nc_count() -> Union[int, None]:
     """Returns the number of neuron cores on the current instance."""
     try:
         cmd = "neuron-ls --json-output"
-        result = subprocess.run(cmd, shell=True, capture_output=True)
+        result = subprocess.run(cmd, shell=False, capture_output=True)
         print(f"inferring nc_count from `neuron-ls` {result.stdout}")
         json_output = json.loads(result.stdout)
         count = sum([x["nc_count"] for x in json_output])
