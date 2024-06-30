@@ -331,13 +331,13 @@ class TemplateAPI(TemplateLM):
     async def amodel_call(
         self,
         session: ClientSession,
-        messages: List[Union[List[int], str]],
+        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
         *,
         generate: bool = True,
         cache_keys: list = None,
         ctxlens: Optional[List[int]] = None,
         **kwargs,
-    ) -> Optional[List[Union[str, Tuple[float, bool]]]]:
+    ) -> Union[List[str], List[Tuple[float, bool]], None]:
         payload = self._create_payload(
             self.create_message(messages), generate=generate, **kwargs
         )
@@ -352,6 +352,7 @@ class TemplateAPI(TemplateLM):
                     eval_logger.error(
                         f"API request failed with error message: {error_text}"
                     )
+                # raising exception will retry the request
                 response.raise_for_status()
                 outputs = await response.json()
                 answers = (
@@ -370,6 +371,7 @@ class TemplateAPI(TemplateLM):
                     for res, cache in zip(answers, cache_keys):
                         self.cache_hook.add_partial(cache_method, cache, res)
                 return answers
+        # If the retries also fail
         except RetryError:
             return None
 
@@ -399,7 +401,7 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         ctxlens: List[int] = None,
         **kwargs,
-    ) -> List[List[Union[str, Tuple[float, bool]]]]:
+    ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(connector=conn) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
@@ -422,7 +424,7 @@ class TemplateAPI(TemplateLM):
             ]
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
-    def _loglikelihood_tokens(self, requests, **kwargs):
+    def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         assert (
             self.tokenizer is not None
         ), "Tokenizer is required for loglikelihood tasks to compute context lengths"
