@@ -224,9 +224,7 @@ class TemplateAPI(TemplateLM):
     def apply_chat_template(
         self, chat_history: List[Dict[str, str]]
     ) -> Union[str, JsonChatStr]:
-        """
-        Method to apply a chat template to a list of chat history between user and model.
-        """
+        """Applies a chat template to a list of chat history between user and model."""
         if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
             return self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
@@ -520,10 +518,7 @@ class TemplateAPI(TemplateLM):
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
-                if self.tokenized_requests:
-                    req = encodings_list
-                else:
-                    req = contexts
+                req = encodings_list if self.tokenized_requests else contexts
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
                     wait=wait_exponential(multiplier=0.5, min=1, max=10),
@@ -554,10 +549,7 @@ class TemplateAPI(TemplateLM):
         else:
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
-                if self.tokenized_requests:
-                    req = encodings_list
-                else:
-                    req = contexts
+                req = encodings_list if self.tokenized_requests else contexts
                 res = itertools.chain.from_iterable(
                     asyncio.run(
                         self.get_batched_requests(
