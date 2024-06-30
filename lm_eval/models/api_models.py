@@ -15,6 +15,7 @@ from typing import (
     Literal,
     Optional,
     Tuple,
+    TypeAlias,
     Union,
 )
 
@@ -37,6 +38,7 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
+LogLikelihoodInputs: TypeAlias = Tuple[Tuple[str, str], List[int], List[int]]
 JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
 
 eval_logger = utils.eval_logger
@@ -194,12 +196,12 @@ class TemplateAPI(TemplateLM):
         raise NotImplementedError
 
     @cached_property
-    def api_key(self):
+    def api_key(self) -> str:
         """Override this property to return the API key for the API request."""
         return ""
 
     @cached_property
-    def header(self):
+    def header(self) -> dict:
         """Override this property to return the headers for the API request."""
         return {"Authorization": f"Bearer {self.api_key}"}
 
@@ -264,9 +266,9 @@ class TemplateAPI(TemplateLM):
         add_special_tokens: bool = False,
         truncation: bool = False,
         **kwargs,
-    ) -> Union[List[int], str]:
+    ) -> Union[List[List[int]], List[int], List[str]]:
         if self.tokenizer_backend is None:
-            return string
+            return [string]
         elif self.tokenizer_backend == "huggingface":
             eval_logger.info(f"using tokenizer {self.tokenizer_backend}")
             # by default for CausalLM - false or self.add_bos_token is set
@@ -331,9 +333,9 @@ class TemplateAPI(TemplateLM):
         session: ClientSession,
         messages: List[Union[List[int], str]],
         *,
+        generate: bool = True,
         cache_keys: list = None,
         ctxlens: Optional[List[int]] = None,
-        generate: bool = True,
         **kwargs,
     ) -> Optional[List[Union[str, Tuple[float, bool]]]]:
         payload = self._create_payload(
@@ -347,37 +349,32 @@ class TemplateAPI(TemplateLM):
             ) as response:
                 if not response.ok:
                     error_text = await response.text()
-                    eval_logger.info(
+                    eval_logger.error(
                         f"API request failed with error message: {error_text}"
                     )
                 response.raise_for_status()
                 outputs = await response.json()
-                if generate:
-                    answers = self.parse_generations(
+                answers = (
+                    self.parse_generations(
                         outputs=outputs,
                     )
-                    for res, cache in zip(answers, cache_keys):
-                        self.cache_hook.add_partial(
-                            "generate_until",
-                            cache,
-                            res,
-                        )
-                    return answers
-                else:
-                    answers = self.parse_logprobs(
+                    if generate
+                    else self.parse_logprobs(
                         outputs=outputs,
                         tokens=messages,
                         ctxlens=ctxlens,
                     )
+                )
+                if cache_keys:
+                    cache_method = "generate_until" if generate else "loglikelihood"
                     for res, cache in zip(answers, cache_keys):
-                        self.cache_hook.add_partial("loglikelihood", cache, res)
-
-                    return answers
+                        self.cache_hook.add_partial(cache_method, cache, res)
+                return answers
         except RetryError:
             return None
 
     def batch_logliklehood_requests(
-        self, chunks: Iterable[List[Tuple[Tuple[str, str], List[int], List[int]]]]
+        self, chunks: Iterable[List[LogLikelihoodInputs]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
         inputs = []
         ctxlens = []
@@ -402,7 +399,7 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         ctxlens: List[int] = None,
         **kwargs,
-    ):
+    ) -> List[List[Union[str, Tuple[float, bool]]]]:
         conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(connector=conn) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
@@ -430,11 +427,8 @@ class TemplateAPI(TemplateLM):
             self.tokenizer is not None
         ), "Tokenizer is required for loglikelihood tasks to compute context lengths"
         res = []
-        assert (
-            self.tokenizer is not None
-        ), "Tokenizer is required for loglikelihood tasks"
 
-        def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
+        def _collate(req: LogLikelihoodInputs):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
@@ -451,6 +445,7 @@ class TemplateAPI(TemplateLM):
             sort_fn=_collate,
             group_by=None,
         )
+        # if concurrent then we'll batch in the async context
         chunked = re_ord.get_batched(n=self._batch_size if self._concurrent <= 1 else 0)
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
@@ -534,7 +529,7 @@ class TemplateAPI(TemplateLM):
                 )(self.model_call)(
                     messages=req,
                     generate=True,
-                    gen_kwargs=all_gen_kwargs[0],
+                    gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
                 )
                 for generated_text, context in zip(
                     self.parse_generations(
@@ -565,11 +560,8 @@ class TemplateAPI(TemplateLM):
                     asyncio.run(
                         self.get_batched_requests(
                             req,
+                            cache_keys=[(ctx, all_gen_kwargs[0]) for ctx in contexts],
                             generate=True,
-                            cache_keys=[
-                                (ctx, gen_k)
-                                for ctx, gen_k in zip(contexts, all_gen_kwargs)
-                            ],
                             gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
                         )
                     )
