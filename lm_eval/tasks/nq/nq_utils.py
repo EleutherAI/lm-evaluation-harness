@@ -1,5 +1,6 @@
 
 from typing import Dict, List
+from jinja2 import Template
 # from lm_eval.api.registry import register_metric
 
 #Normalization from SQuAD evaluation script https://worksheets.codalab.org/rest/bundles/0x6b567e1cf2e041ec80d7098f031c5c9e/contents/blob/
@@ -46,6 +47,15 @@ def nq_exact_match(references,predictions):
     assert isinstance(predictions, list) and len(predictions)==1
     return nq_exact_match_fn(predictions[0], references[0])
 
+
+
+def doc_to_preamble(doc):
+    template = "{% for ctx in ctxs | reverse %}\nTitle: {{ ctx.title }}\n{{ ctx.text }}\n{% endfor %}\n\n"
+    ctxs= []
+    for ctx in doc["ctxs"]:
+        title,text = ctx.split("\n",1)
+        ctxs.append(dict(title=title,text=text))
+    return Template(template).render(ctxs=ctxs)
 
 
 def doc_to_target(doc: Dict) -> List[str]:
