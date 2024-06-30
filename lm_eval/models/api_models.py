@@ -550,7 +550,7 @@ class TemplateAPI(TemplateLM):
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
                 req = encodings_list if self.tokenized_requests else contexts
-                res = itertools.chain.from_iterable(
+                results = itertools.chain.from_iterable(
                     asyncio.run(
                         self.get_batched_requests(
                             req,
@@ -560,6 +560,7 @@ class TemplateAPI(TemplateLM):
                         )
                     )
                 )
+                res.extend(results)
 
         return re_ord.get_original(res)
 
