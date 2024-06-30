@@ -1,7 +1,9 @@
 # This file will be included in the generated language-specific task configs.
-# It doesn't have a yaml file extension as it is not meant to be imported directly
-# by the harness.
-group: afrimgsm_direct
+# It doesn't have a yaml file extension as it is not meant to be imported directly by the harness.
+group:
+    - mgsm
+    - afrimgsm
+    - afrimgsm_en_cot
 dataset_path: masakhane/afrimgsm
 dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until

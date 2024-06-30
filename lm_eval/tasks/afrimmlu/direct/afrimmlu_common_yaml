@@ -1,6 +1,7 @@
 group:
   - mmlu
   - afrimmlu
+  - afrimmlu_direct
 task: null
 dataset_path: masakhane/afrimmlu
 dataset_name: null

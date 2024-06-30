@@ -1,26 +1,26 @@
-# XNLIeu
+# IrokoBench
 
 ### Paper
 
-Title: XNLIeu: a dataset for cross-lingual NLI in Basque
+IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models
+https://arxiv.org/pdf/2406.03368
 
-Abstract: https://arxiv.org/abs/2404.06996
-
-XNLI is a popular Natural Language Inference (NLI) benchmark widely used to evaluate cross-lingual Natural Language Understanding (NLU) capabilities across languages. In this paper, we expand XNLI to include Basque, a low-resource language that can greatly benefit from transfer-learning approaches. The new dataset, dubbed XNLIeu, has been developed by first machine-translating the English XNLI corpus into Basque, followed by a manual post-edition step. We have conducted a series of experiments using mono- and multilingual LLMs to assess a) the effect of professional post-edition on the MT system; b) the best cross-lingual strategy for NLI in Basque; and c) whether the choice of the best cross-lingual strategy is influenced by the fact that the dataset is built by translation. The results show that post-edition is necessary and that the translate-train cross-lingual strategy obtains better results overall, although the gain is lower when tested in a dataset that has been built natively from scratch. Our code and datasets are publicly available under open licenses at https://github.com/hitz-zentroa/xnli-eu.
-
-Homepage: https://github.com/hitz-zentroa/xnli-eu
+IrokoBench is a human-translated benchmark dataset for 16 typologically diverse 
+low-resource African languages covering three tasks: natural language inference (AfriXNLI), 
+mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU).
 
 
 ### Citation
 
-```bibtex
-@misc{heredia2024xnlieu,
-    title={XNLIeu: a dataset for cross-lingual NLI in Basque},
-    author={Maite Heredia and Julen Etxaniz and Muitze Zulaika and Xabier Saralegi and Jeremy Barnes and Aitor Soroa},
-    year={2024},
-    eprint={2404.06996},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL}
+```
+@misc{adelani2024irokobenchnewbenchmarkafrican,
+      title={IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models}, 
+      author={David Ifeoluwa Adelani and Jessica Ojo and Israel Abebe Azime and Jian Yun Zhuang and Jesujoba O. Alabi and Xuanli He and Millicent Ochieng and Sara Hooker and Andiswa Bukula and En-Shiun Annie Lee and Chiamaka Chukwuneke and Happy Buzaaba and Blessing Sibanda and Godson Kalipe and Jonathan Mukiibi and Salomon Kabongo and Foutse Yuehgoh and Mmasibidi Setaka and Lolwethu Ndolela and Nkiruka Odu and Rooweither Mabuya and Shamsuddeen Hassan Muhammad and Salomey Osei and Sokhar Samb and Tadesse Kebede Guge and Pontus Stenetorp},
+      year={2024},
+      eprint={2406.03368},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2406.03368}, 
 }
 ```
 
@@ -28,23 +28,30 @@ Homepage: https://github.com/hitz-zentroa/xnli-eu
 
 #### Groups
 
-* `xnli_eu_mt_native`: Includes MT and Native variants of the XNLIeu dataset.
+* `afrixnli`: All afrixnli tasks
+* `afrixnli_en_direct`: afrixnli_en_direct evaluates models performance using the anli prompt on the curated dataset
+* `afrixnli_native_direct`: afrixnli_native_direct evaluates models performance using the anli prompt translated to the 
+respective languages on the curated dataset
+* `afrixnli_translate`: afrixnli_translate evaluates models using the anli prompt in translate-test setting
+* `afrixnli_manual_direct`: afrixnli_manual_direct evaluates models performance using Lai's prompt on the curated dataset
+* `afrixnli_manual_translate`: afrixnli_manual_translate evaluates models using Lai's prompt in translate-test setting
 
 #### Tasks
-
-* `xnli_eu`: XNLI in Basque postedited from MT.
-* `xnli_eu_mt`: XNLI in Basque machine translated from English.
-* `xnli_eu_native`: XNLI in Basque natively created.
+* `afrixnli_en_direct_{language_code}`: each task evaluates for one language
+* `afrixnli_native_direct_{language_code}`: each task evaluates for one language
+* `afrixnli_translate_{language_code}`: each task evaluates for one language
+* `afrixnli_manual_direct_{language_code}`: each task evaluates for one language
+* `afrixnli_manual_translate_{language_code}`: each task evaluates for one language
 
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-
+  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 If other tasks on this dataset are already supported:
-* [ ] Is the "Main" variant of this task clearly denoted?
-* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+* [x] Is the "Main" variant of this task clearly denoted?
+* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
+  * [x] Checked for equivalence with v0.3.0 LM Evaluation Harness

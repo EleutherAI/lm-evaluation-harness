@@ -4,19 +4,18 @@
 group:
     - mgsm
     - afrimgsm
-    - afrimgsm_direct
-dataset_path: masakhane/afrimgsm
+    - afrimgsm_translate
+dataset_path: masakhane/afrimgsm-translate-test
 dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until
-# training_split: train
 test_split: test
-target_delimiter: ""
 generation_kwargs:
   until:
     - "\n\n"
     - "\n"
   do_sample: false
   temperature: 0.0
+target_delimiter: " "
 filter_list:
   - name: remove_whitespace
     filter:

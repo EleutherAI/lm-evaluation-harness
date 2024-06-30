@@ -2,26 +2,25 @@
 
 ### Paper
 
-MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms
-https://arxiv.org/pdf/1905.13319.pdf
+IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models
+https://arxiv.org/pdf/2406.03368
 
-MathQA is a large-scale dataset of 37k English multiple-choice math word problems
-covering multiple math domain categories by modeling operation programs corresponding
-to word problems in the AQuA dataset (Ling et al., 2017).
-
-Homepage: https://math-qa.github.io/math-QA/
+IrokoBench is a human-translated benchmark dataset for 16 typologically diverse 
+low-resource African languages covering three tasks: natural language inference (AfriXNLI), 
+mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU).
 
 
 ### Citation
 
 ```
-@misc{amini2019mathqa,
-    title={MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms},
-    author={Aida Amini and Saadia Gabriel and Peter Lin and Rik Koncel-Kedziorski and Yejin Choi and Hannaneh Hajishirzi},
-    year={2019},
-    eprint={1905.13319},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL}
+@misc{adelani2024irokobenchnewbenchmarkafrican,
+      title={IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models}, 
+      author={David Ifeoluwa Adelani and Jessica Ojo and Israel Abebe Azime and Jian Yun Zhuang and Jesujoba O. Alabi and Xuanli He and Millicent Ochieng and Sara Hooker and Andiswa Bukula and En-Shiun Annie Lee and Chiamaka Chukwuneke and Happy Buzaaba and Blessing Sibanda and Godson Kalipe and Jonathan Mukiibi and Salomon Kabongo and Foutse Yuehgoh and Mmasibidi Setaka and Lolwethu Ndolela and Nkiruka Odu and Rooweither Mabuya and Shamsuddeen Hassan Muhammad and Salomey Osei and Sokhar Samb and Tadesse Kebede Guge and Pontus Stenetorp},
+      year={2024},
+      eprint={2406.03368},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2406.03368}, 
 }
 ```
 
@@ -29,11 +28,13 @@ Homepage: https://math-qa.github.io/math-QA/
 
 #### Groups
 
-* `math_word_problems`
+* `afrimmlu`: All afrimmlu tasks
+* `afrimmlu_direct`: afrimmlu_direct evaluates models performance on the curated dataset
+* `afrimmlu_translate`: afrimmlu_translate evaluates models in translate-test setting
 
 #### Tasks
-
-* `mathqa`: The MathQA dataset, as a multiple choice dataset where the answer choices are not in context.
+* `afrimmlu_direct_{language_code}`: each task evaluates for one language
+* `afrimmlu_translate_{language_code}`: each task evaluates for one language
 
 ### Checklist
 
@@ -41,7 +42,6 @@ For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-    * The MathQA dataset predates transformer-based prompted LLMs. We should, however, return to this task to ensure equivalence to the non-CoT version of mathQA used in the Chain-of-Thought paper.
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
