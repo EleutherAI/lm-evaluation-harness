@@ -1316,11 +1316,18 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
+        multimodal_arg = {}
         if self.doc_to_visual:
+            multimodal_arg = {
+                **multimodal_arg,
+                **{"visual": self.doc_to_visual(doc)},
+            }
+
+        if bool(multimodal_arg):
             if isinstance(arguments, list):
-                arguments = [arg + (self.doc_to_visual(doc),) for arg in arguments]
+                arguments = [arg + (multimodal_arg,) for arg in arguments]
             else:
-                arguments = arguments + (self.doc_to_visual(doc),)
+                arguments = arguments + (multimodal_arg,)
 
         if isinstance(arguments, type):
             if aux_arguments is not None:
