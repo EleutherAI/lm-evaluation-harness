@@ -1340,17 +1340,20 @@ class ConfigurableTask(Task):
                 all_arg_list = [arguments, aux_arguments]
             else:
                 all_arg_list = [arguments]
+            request_list = []
             for arg_list in all_arg_list:
-                request_list = [
-                    Instance(
-                        request_type="loglikelihood",
-                        doc=doc,
-                        arguments=arg,
-                        idx=i,
-                        **kwargs,
-                    )
-                    for i, arg in enumerate(arg_list)
-                ]
+                request_list.extend(
+                    [
+                        Instance(
+                            request_type="loglikelihood",
+                            doc=doc,
+                            arguments=arg,
+                            idx=i,
+                            **kwargs,
+                        )
+                        for i, arg in enumerate(arg_list)
+                    ]
+                )
 
             return request_list
 
