@@ -55,7 +55,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> List[Tuple[float]]:
+    def loglikelihood_rolling(self, requests) -> List[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -101,14 +101,13 @@ class LM(abc.ABC):
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
-            A list of Instance objects with property `args` which returns a tuple (context, until).
+            A list of Instance objects with property `args` which returns a tuple (context, gen_kwargs).
             context: str
                 Context string
-            until: [str]
-                The string sequences to generate until. These string sequences
-                may each span across multiple tokens, or may be part of one token.
+            gen_kwargs: dict
+                A dictionary of keyword arguments to pass to the generation function e.g. top_k, until, etc.
         :return: list[str]
-            A list of strings continuation
+            A list of model generated continuations.
             continuation: str
                 The generated continuation.
         """
@@ -325,14 +324,19 @@ class TemplateLM(LM):
         return self.eot_token_id
 
     @abc.abstractmethod
-    def tok_encode(self, string: str, **kwargs):
+    def tok_encode(self, string: str, **kwargs) -> List[int]:
+        """
+        Tokenize a string using the model's tokenizer and return a list of token IDs.
+        """
         pass
 
     @abc.abstractmethod
-    def _loglikelihood_tokens(self, requests, **kwargs):
+    def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         pass
 
-    def _encode_pair(self, context, continuation):
+    def _encode_pair(
+        self, context: str, continuation: str
+    ) -> Tuple[List[int], List[int]]:
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -373,7 +377,7 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+    ) -> List[float]:
         pass
 
     @abc.abstractmethod
