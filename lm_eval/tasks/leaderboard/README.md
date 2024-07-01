@@ -1,13 +1,14 @@
 # Leaderboard evaluations
-Our goal with this group is to create an unchanging through time version of evaluations that will power the Open LLM Leaderboard on HuggingFace.
+Our goal with this group is to create an unchanging through time version of
+evaluations that will power the Open LLM Leaderboard on HuggingFace.
 
 As we want to evaluate models across capabilities, the list currently contains:
-- BBH (0-shot, multichoice)
+- BBH (3-shots, multichoice)
 - GPQA (0-shot, multichoice)
-- mmlu-pro (0-shot, multichoice)
+- mmlu-pro (5-shots, multichoice)
 - Musr (0-shot, multichoice)
 - ifeval (0-shot, generative)
-- Math-lvl-5 (0-shot, generative, minerva version)
+- Math-lvl-5 (4-shots, generative, minerva version)
 
 
 ## BigBenchHard (BBH)
@@ -28,7 +29,9 @@ Homepage: https://github.com/suzgunmirac/BIG-Bench-Hard
 ```
 @article{suzgun2022challenging,
   title={Challenging BIG-Bench Tasks and Whether Chain-of-Thought Can Solve Them},
-  author={Suzgun, Mirac and Scales, Nathan and Sch{\"a}rli, Nathanael and Gehrmann, Sebastian and Tay, Yi and Chung, Hyung Won and Chowdhery, Aakanksha and Le, Quoc V and Chi, Ed H and Zhou, Denny and and Wei, Jason},
+  author={Suzgun, Mirac and Scales, Nathan and Sch{\"a}rli, Nathanael and
+  Gehrmann, Sebastian and Tay, Yi and Chung, Hyung Won and Chowdhery, Aakanksha
+  and Le, Quoc V and Chi, Ed H and Zhou, Denny and and Wei, Jason},
   journal={arXiv preprint arXiv:2210.09261},
   year={2022}
 }
@@ -101,7 +104,9 @@ Homepage: https://github.com/idavidrein/gpqa/tree/main
 ```
 @misc{rein2023gpqa,
       title={GPQA: A Graduate-Level Google-Proof Q&A Benchmark},
-      author={David Rein and Betty Li Hou and Asa Cooper Stickland and Jackson Petty and Richard Yuanzhe Pang and Julien Dirani and Julian Michael and Samuel R. Bowman},
+      author={David Rein and Betty Li Hou and Asa Cooper Stickland and Jackson
+      Petty and Richard Yuanzhe Pang and Julien Dirani and Julian Michael and
+      Samuel R. Bowman},
       year={2023},
       eprint={2311.12022},
       archivePrefix={arXiv},
@@ -147,7 +152,8 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 ```
 @article{zhou2023instructionfollowing,
   title={Instruction-Following Evaluation for Large Language Models},
-  author={Jeffrey Zhou and Tianjian Lu and Swaroop Mishra and Siddhartha Brahma and Sujoy Basu and Yi Luan and Denny Zhou and Le Hou},
+  author={Jeffrey Zhou and Tianjian Lu and Swaroop Mishra and Siddhartha Brahma
+  and Sujoy Basu and Yi Luan and Denny Zhou and Le Hou},
   journal={arXiv preprint arXiv:2311.07911},
   year={2023},
 }
@@ -185,12 +191,16 @@ Homepage: https://github.com/hendrycks/math
 ```
 @article{hendrycksmath2021,
   title={Measuring Mathematical Problem Solving With the MATH Dataset},
-  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
+  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and
+  Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
   journal={NeurIPS},
   year={2021}
 }
 @misc{2206.14858,
-Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
+Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer
+and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and
+Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy
+Gur-Ari and Vedant Misra},
 Title = {Solving Quantitative Reasoning Problems with Language Models},
 Year = {2022},
 Eprint = {arXiv:2206.14858},
@@ -247,8 +257,12 @@ https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 
 ```
 @misc{wang2024mmluprorobustchallengingmultitask,
-      title={MMLU-Pro: A More Robust and Challenging Multi-Task Language Understanding Benchmark}, 
-      author={Yubo Wang and Xueguang Ma and Ge Zhang and Yuansheng Ni and Abhranil Chandra and Shiguang Guo and Weiming Ren and Aaran Arulraj and Xuan He and Ziyan Jiang and Tianle Li and Max Ku and Kai Wang and Alex Zhuang and Rongqi Fan and Xiang Yue and Wenhu Chen},
+      title={MMLU-Pro: A More Robust and Challenging Multi-Task Language
+      Understanding Benchmark}, 
+      author={Yubo Wang and Xueguang Ma and Ge Zhang and Yuansheng Ni and
+      Abhranil Chandra and Shiguang Guo and Weiming Ren and Aaran Arulraj and
+      Xuan He and Ziyan Jiang and Tianle Li and Max Ku and Kai Wang and Alex
+      Zhuang and Rongqi Fan and Xiang Yue and Wenhu Chen},
       year={2024},
       eprint={2406.01574},
       archivePrefix={arXiv},
@@ -261,7 +275,8 @@ https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 
 ### Paper
 
-Title: MuSR: Testing the Limits of Chain-of-thought with Multistep Soft Reasoning  
+Title: MuSR: Testing the Limits of Chain-of-thought with Multistep Soft
+Reasoning  
 https://arxiv.org/abs/2310.16049
 
 While large language models (LLMs) equipped with techniques like
@@ -289,8 +304,10 @@ Homepage: https://zayne-sprague.github.io/MuSR/
 
 ```
 @misc{sprague2024musrtestinglimitschainofthought,
-      title={MuSR: Testing the Limits of Chain-of-thought with Multistep Soft Reasoning}, 
-      author={Zayne Sprague and Xi Ye and Kaj Bostrom and Swarat Chaudhuri and Greg Durrett},
+      title={MuSR: Testing the Limits of Chain-of-thought with Multistep Soft
+      Reasoning}, 
+      author={Zayne Sprague and Xi Ye and Kaj Bostrom and Swarat Chaudhuri and
+      Greg Durrett},
       year={2024},
       eprint={2310.16049},
       archivePrefix={arXiv},
