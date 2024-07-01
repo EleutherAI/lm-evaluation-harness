@@ -26,7 +26,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import InputType, Instance, OutputType
+from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
@@ -47,7 +47,6 @@ ALL_OUTPUT_TYPES = [
     "loglikelihood_rolling",
     "generate_until",
 ]
-
 
 eval_logger = logging.getLogger("lm-eval")
 
