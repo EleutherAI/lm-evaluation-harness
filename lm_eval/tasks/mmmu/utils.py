@@ -476,8 +476,10 @@ def get_multi_choice_info(options):
 
     return index2ans, all_choices
 
-def process_multiple_choice(dataset):
-    return dataset.filter(lambda example: example["question_type"] == "multiple-choice")
 
-def process_open_choice(dataset):
-    return dataset.filter(lambda example: example["question_type"] == "open")
+# def process_multiple_choice(dataset):
+#     return dataset.filter(lambda example: example["question_type"] == "multiple-choice")
+
+
+# def process_open_choice(dataset):
+#     return dataset.filter(lambda example: example["question_type"] == "open")

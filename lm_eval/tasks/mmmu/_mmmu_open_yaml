@@ -1,3 +1,0 @@
-include: _template_yaml
-process_docs: !utils.process_open_choice
-dataset_name: Electronics

@@ -1,5 +1,4 @@
 dataset_path: MMMU/MMMU
-task: "mmmu_val"
 validation_split: validation
 output_type: generate_until
 doc_to_visual: !function utils.mmmu_doc_to_visual

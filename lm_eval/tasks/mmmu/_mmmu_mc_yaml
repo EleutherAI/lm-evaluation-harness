@@ -1,2 +1,0 @@
-include: _template_yaml
-process_docs: !function utils.process_multiple_choice
