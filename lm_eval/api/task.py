@@ -1297,6 +1297,8 @@ class ConfigurableTask(Task):
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
+        aux_arguments = None
+
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
@@ -1323,8 +1325,6 @@ class ConfigurableTask(Task):
                 # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
                 aux_arguments = [("", f"{choice}") for choice in choices]
-            else:
-                aux_arguments = None
 
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
@@ -1337,7 +1337,7 @@ class ConfigurableTask(Task):
 
         if isinstance(arguments, type):
             if aux_arguments is not None:
-                all_arg_list = [arguments, arg_list]
+                all_arg_list = [arguments, aux_arguments]
             else:
                 all_arg_list = [arguments]
             for arg_list in all_arg_list:
