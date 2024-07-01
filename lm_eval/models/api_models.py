@@ -15,7 +15,6 @@ from typing import (
     Literal,
     Optional,
     Tuple,
-    TypeAlias,
     Union,
 )
 
@@ -38,7 +37,7 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
-LogLikelihoodInputs: TypeAlias = Tuple[Tuple[str, str], List[int], List[int]]
+LogLikelihoodInputs = Tuple[Tuple[str, str], List[int], List[int]]
 JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
 
 eval_logger = utils.eval_logger
