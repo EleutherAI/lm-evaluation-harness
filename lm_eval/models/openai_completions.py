@@ -1,9 +1,13 @@
 import copy
+import json
 import os
+import shutil
 from collections import defaultdict
 from importlib.util import find_spec
+from pathlib import Path
 from typing import List, Literal, Optional, Tuple
 
+import requests
 from tqdm import tqdm
 
 import lm_eval.models.utils
@@ -81,7 +85,7 @@ class OpenaiCompletionsLM(TemplateLM):
         model: str,
         base_url: str = None,
         tokenizer: Optional[str] = None,
-        tokenizer_backend: Literal["tiktoken", "huggingface"] = "tiktoken",
+        tokenizer_backend: Literal["tiktoken", "huggingface", "vllm"] = "tiktoken",
         truncate: bool = False,
         max_gen_toks: int = 256,
         batch_size: int = 1,
@@ -112,6 +116,10 @@ class OpenaiCompletionsLM(TemplateLM):
         self._batch_size = int(batch_size)
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
+        # Path to current file folder
+        self.tokenizer_ephimeral_path = (
+            Path(__file__).resolve().parent / "tokenizer_ephimeral"
+        )
 
         # if we have a local model, use HF tokenizer over tiktoken
         if self.tokenizer_backend == "huggingface":
@@ -122,6 +130,38 @@ class OpenaiCompletionsLM(TemplateLM):
             )
             self.vocab_size = self.tokenizer.vocab
             self.end_of_text_token_id = self.tokenizer.eos_token
+        if self.tokenizer_backend == "vllm":
+            import transformers  # noqa: E401
+
+            response = requests.get(base_url + "/get_tokenizer")
+            tokenizer_objects = json.loads(response.content)
+            # save into files
+            for key, value in tokenizer_objects.items():
+                # create folder if not exists
+                if not os.path.exists(self.tokenizer_ephimeral_path):
+                    os.mkdir(self.tokenizer_ephimeral_path)
+                with open(
+                    os.path.join(self.tokenizer_ephimeral_path, key + ".json"), "w"
+                ) as f:
+                    json.dump(value, f)
+                    f.close()
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                self.tokenizer_ephimeral_path
+            )
+            self.vocab_size = self.tokenizer.vocab
+            self.end_of_text_token_id = self.tokenizer.eos_token
+            try:
+                shutil.rmtree(self.tokenizer_ephimeral_path)
+                eval_logger.debug(
+                    f"Ephimeral '{self.tokenizer_ephimeral_path.name}' directory removed successfully."
+                )
+                eval_logger.debug(
+                    f"Tokenizer objects availables: {str(tokenizer_objects.keys())}"
+                )
+            except OSError as e:
+                raise RuntimeError(
+                    f"Error removing '{self.tokenizer_ephimeral_path.name}' directory: {e}"
+                )
         elif self.tokenizer_backend == "tiktoken":
             if self.base_url:
                 eval_logger.warning(
@@ -212,7 +252,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 prompt=inps,
                 max_tokens=0,
                 temperature=0.0,
-                logprobs=10,
+                logprobs=5,
                 seed=self.seed,
             )
 
