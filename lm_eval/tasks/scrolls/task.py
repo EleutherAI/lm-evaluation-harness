@@ -132,7 +132,7 @@ class _SCROLLSTask(ConfigurableTask):
 
     def training_docs(self):
         processed_docs = list(map(self._process_doc, self.dataset["train"]))
-        
+
         # Flatten the list of lists since _process_doc returns a list of one element.
         processed_docs = [item for sublist in processed_docs for item in sublist]
         processed_dict = {
@@ -143,13 +143,13 @@ class _SCROLLSTask(ConfigurableTask):
 
     def validation_docs(self):
         processed_docs = list(map(self._process_doc, self.dataset["validation"]))
-        
+
         # Flatten the list of lists since _process_doc returns a list of one element.
         processed_docs = [item for sublist in processed_docs for item in sublist]
         processed_dict = {
             key: [d[key] for d in processed_docs] for key in processed_docs[0]
         }
-        
+
         return Dataset.from_dict(processed_dict)
 
     def should_decontaminate(self):
