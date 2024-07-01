@@ -11,27 +11,31 @@ As we want to evaluate models across capabilities, the list currently contains:
 - Math-lvl-5 (4-shots, generative, minerva version)
 
 
+Details on the choice of those evals can be found [here](https://huggingface.co/spaces/open-llm-leaderboard/blog) !
+
 ## BigBenchHard (BBH)
-
-### Paper
-
-Title: Challenging BIG-Bench Tasks and Whether Chain-of-Thought Can Solve Them
-Abstract: https://arxiv.org/abs/2210.09261
 
 A suite of 23 challenging BIG-Bench tasks which we call BIG-Bench Hard (BBH).
 These are the task for which prior language model evaluations did not
 outperform the average human-rater.
 
-Homepage: https://github.com/suzgunmirac/BIG-Bench-Hard
+### Paper
+
+Title: Challenging BIG-Bench Tasks and Whether Chain-of-Thought Can Solve Them
+
+BIG-Bench (Srivastava et al., 2022) is a diverse evaluation suite that focuses on tasks believed to be beyond the capabilities of current language models. Language models have already made good progress on this benchmark, with the best model in the BIG-Bench paper outperforming average reported human-rater results on 65% of the BIG-Bench tasks via few-shot prompting. But on what tasks do language models fall short of average human-rater performance, and are those tasks actually unsolvable by current language models?
+In this work, we focus on a suite of 23 challenging BIG-Bench tasks which we call BIG-Bench Hard (BBH). These are the task for which prior language model evaluations did not outperform the average human-rater. We find that applying chain-of-thought (CoT) prompting to BBH tasks enables PaLM to surpass the average human-rater performance on 10 of the 23 tasks, and Codex (code-davinci-002) to surpass the average human-rater performance on 17 of the 23 tasks. Since many tasks in BBH require multi-step reasoning, few-shot prompting without CoT, as done in the BIG-Bench evaluations (Srivastava et al., 2022), substantially underestimates the best performance and capabilities of language models, which is better captured via CoT prompting. As further analysis, we explore the interaction between CoT and model scale on BBH, finding that CoT enables emergent task performance on several BBH tasks with otherwise flat scaling curves.
+
+
+- paper: https://huggingface.co/papers/2210.09261
+- Homepage: https://github.com/suzgunmirac/BIG-Bench-Hard
 
 ### Citation
 
 ```
 @article{suzgun2022challenging,
   title={Challenging BIG-Bench Tasks and Whether Chain-of-Thought Can Solve Them},
-  author={Suzgun, Mirac and Scales, Nathan and Sch{\"a}rli, Nathanael and
-  Gehrmann, Sebastian and Tay, Yi and Chung, Hyung Won and Chowdhery, Aakanksha
-  and Le, Quoc V and Chi, Ed H and Zhou, Denny and and Wei, Jason},
+  author={Suzgun, Mirac and Scales, Nathan and Sch{\"a}rli, Nathanael and Gehrmann, Sebastian and Tay, Yi and Chung, Hyung Won and Chowdhery, Aakanksha and Le, Quoc V and Chi, Ed H and Zhou, Denny and and Wei, Jason},
   journal={arXiv preprint arXiv:2210.09261},
   year={2022}
 }
@@ -77,8 +81,6 @@ Homepage: https://github.com/suzgunmirac/BIG-Bench-Hard
 
 Title: GPQA: A Graduate-Level Google-Proof Q&A Benchmark
 
-Abstract: https://arxiv.org/abs/2311.12022
-
 We present GPQA, a challenging dataset of 448 multiple-choice questions written
 by domain experts in biology, physics, and chemistry. We ensure that the
 questions are high-quality and extremely difficult: experts who have or are
@@ -97,16 +99,15 @@ frontier AI systems should enable realistic scalable oversight experiments,
 which we hope can help devise ways for human experts to reliably get truthful
 information from AI systems that surpass human capabilities.
 
-Homepage: https://github.com/idavidrein/gpqa/tree/main
+- Paper: https://huggingface.co/papers/2311.12022
+- Homepage: https://github.com/idavidrein/gpqa/tree/main
 
 ### Citation
 
 ```
 @misc{rein2023gpqa,
       title={GPQA: A Graduate-Level Google-Proof Q&A Benchmark},
-      author={David Rein and Betty Li Hou and Asa Cooper Stickland and Jackson
-      Petty and Richard Yuanzhe Pang and Julien Dirani and Julian Michael and
-      Samuel R. Bowman},
+      author={David Rein and Betty Li Hou and Asa Cooper Stickland and Jackson Petty and Richard Yuanzhe Pang and Julien Dirani and Julian Michael and Samuel R. Bowman},
       year={2023},
       eprint={2311.12022},
       archivePrefix={arXiv},
@@ -129,7 +130,6 @@ Homepage: https://github.com/idavidrein/gpqa/tree/main
 ### Paper
 
 Title: Instruction-Following Evaluation for Large Language Models
-Abstract: https://arxiv.org/abs/2311.07911
 
 One core capability of Large Language Models (LLMs) is to follow natural
 language instructions. However, the evaluation of such abilities is not
@@ -142,18 +142,17 @@ of "verifiable instructions" such as "write in more than 400 words" and
 "mention the keyword of AI at least 3 times". We identified 25 types of those
 verifiable instructions and constructed around 500 prompts, with each prompt
 containing one or more verifiable instructions. We show evaluation results of
-two widely available LLMs on the market. Our code and data can be found at
-https://github.com/google-research/google-research/tree/master/instruction_following_eval
+two widely available LLMs on the market.
 
-Homepage: https://github.com/google-research/google-research/tree/master/instruction_following_eval
+- Paper: https://huggingface.co/papers/2210.09261
+- Homepage: https://github.com/google-research/google-research/tree/master/instruction_following_eval
 
 ### Citation
 
 ```
 @article{zhou2023instructionfollowing,
   title={Instruction-Following Evaluation for Large Language Models},
-  author={Jeffrey Zhou and Tianjian Lu and Swaroop Mishra and Siddhartha Brahma
-  and Sujoy Basu and Yi Luan and Denny Zhou and Le Hou},
+  author={Jeffrey Zhou and Tianjian Lu and Swaroop Mishra and Siddhartha Brahma and Sujoy Basu and Yi Luan and Denny Zhou and Le Hou},
   journal={arXiv preprint arXiv:2311.07911},
   year={2023},
 }
@@ -163,13 +162,13 @@ Homepage: https://github.com/google-research/google-research/tree/master/instruc
 
 - `leaderboard_ifeval`
 
-## MATH-lvl-5
+## MATH-hard
 
-ℹ️  This is the 4-shot variant!
+This is the 4 shots variant of minerva math but only keeping the level 5 questions.
 
 ### Paper
-Measuring Mathematical Problem Solving With the MATH Dataset
-https://arxiv.org/abs/2103.03874
+
+Title: Measuring Mathematical Problem Solving With the MATH Dataset
 
 Many intellectual endeavors require mathematical problem solving, but this
 skill remains beyond the capabilities of computers. To measure this ability in
@@ -183,7 +182,8 @@ NOTE: The few-shot and the generated answer extraction is based on the
 calculated using the `sympy` library. This requires additional dependencies,
 which can be installed via the `lm-eval[math]` extra.
 
-Homepage: https://github.com/hendrycks/math
+- Paper: https://huggingface.co/papers/2103.03874
+- Homepage: https://github.com/hendrycks/math
 
 
 ### Citation
@@ -191,16 +191,12 @@ Homepage: https://github.com/hendrycks/math
 ```
 @article{hendrycksmath2021,
   title={Measuring Mathematical Problem Solving With the MATH Dataset},
-  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and
-  Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
+  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
   journal={NeurIPS},
   year={2021}
 }
 @misc{2206.14858,
-Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer
-and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and
-Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy
-Gur-Ari and Vedant Misra},
+Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dye and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
 Title = {Solving Quantitative Reasoning Problems with Language Models},
 Year = {2022},
 Eprint = {arXiv:2206.14858},
@@ -250,8 +246,8 @@ that MMLU-Pro includes more complex reasoning questions. Our assessments
 confirm that MMLU-Pro is a more discriminative benchmark to better track
 progress in the field.
 
-Homepage:
-https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
+- Paper: https://huggingface.co/papers/2406.01574
+- Homepage: https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 
 ### Citation
 
@@ -259,10 +255,7 @@ https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 @misc{wang2024mmluprorobustchallengingmultitask,
       title={MMLU-Pro: A More Robust and Challenging Multi-Task Language
       Understanding Benchmark}, 
-      author={Yubo Wang and Xueguang Ma and Ge Zhang and Yuansheng Ni and
-      Abhranil Chandra and Shiguang Guo and Weiming Ren and Aaran Arulraj and
-      Xuan He and Ziyan Jiang and Tianle Li and Max Ku and Kai Wang and Alex
-      Zhuang and Rongqi Fan and Xiang Yue and Wenhu Chen},
+      author={Yubo Wang and Xueguang Ma and Ge Zhang and Yuansheng Ni and Abhranil Chandra and Shiguang Guo and Weiming Ren and Aaran Arulraj and Xuan He and Ziyan Jiang and Tianle Li and Max Ku and Kai Wang and Alex Zhuang and Rongqi Fan and Xiang Yue and Wenhu Chen},
       year={2024},
       eprint={2406.01574},
       archivePrefix={arXiv},
@@ -277,7 +270,6 @@ https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 
 Title: MuSR: Testing the Limits of Chain-of-thought with Multistep Soft
 Reasoning  
-https://arxiv.org/abs/2310.16049
 
 While large language models (LLMs) equipped with techniques like
 chain-of-thought prompting have demonstrated impressive capabilities, they
@@ -298,7 +290,8 @@ solve with high accuracy. We evaluate a range of LLMs and prompting techniques
 on this dataset and characterize the gaps that remain for techniques like
 chain-of-thought to perform robust reasoning.
 
-Homepage: https://zayne-sprague.github.io/MuSR/
+- Paper: https://huggingface.co/papers/2310.16049
+- Homepage: https://zayne-sprague.github.io/MuSR/
 
 ### Citation
 
@@ -306,8 +299,7 @@ Homepage: https://zayne-sprague.github.io/MuSR/
 @misc{sprague2024musrtestinglimitschainofthought,
       title={MuSR: Testing the Limits of Chain-of-thought with Multistep Soft
       Reasoning}, 
-      author={Zayne Sprague and Xi Ye and Kaj Bostrom and Swarat Chaudhuri and
-      Greg Durrett},
+      author={Zayne Sprague and Xi Ye and Kaj Bostrom and Swarat Chaudhuri and Greg Durrett},
       year={2024},
       eprint={2310.16049},
       archivePrefix={arXiv},
