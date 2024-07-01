@@ -87,6 +87,7 @@ class OpenaiCompletionsLM(TemplateLM):
         batch_size: int = 1,
         seed: int = 1234,
         max_length: Optional[int] = None,
+        huggingface_tokenizer_trust_remote_code: bool = False,
     ) -> None:
         """
 
@@ -118,9 +119,10 @@ class OpenaiCompletionsLM(TemplateLM):
             import transformers  # noqa: E401
 
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                tokenizer if tokenizer else self.model
+                tokenizer if tokenizer else self.model,
+                trust_remote_code=huggingface_tokenizer_trust_remote_code,
             )
-            self.vocab_size = self.tokenizer.vocab
+            self.vocab_size = self.tokenizer.vocab_size
             self.end_of_text_token_id = self.tokenizer.eos_token
         elif self.tokenizer_backend == "tiktoken":
             if self.base_url:
