@@ -38,37 +38,66 @@ fewshot_config:
 
       (F) Facts'
     target: (D)
-  - input: "The following translations from German to English contain a particular\
-      \ error. That error will be one of the following types: Named Entities: An entity\
-      \ (names, places, locations, etc.) is changed to a different entity. Numerical\
-      \ Values: Numerical values (ordinals or cardinals), dates, and/or units are\
-      \ changed. Modifiers or Adjectives: The modifiers and adjectives pertaining\
-      \ to a noun are changed. Negation or Antonyms: Introduce or remove a negation\
-      \ or change comparatives to their antonyms. Facts: Trivial factual errors not\
-      \ pertaining to the above classes are introduced in the translations. Dropped\
-      \ Content: A significant clause in the translation is removed. Please identify\
-      \ that error.  Source: Auf dieser Seite sind die Baudenkm\xE4ler der oberbayerischen\
-      \ Gro\xDFen Kreisstadt Landsberg am Lech zusammengestellt.\nTranslation: On\
-      \ this page are compiled the architectural monuments of the town of Landsberg\
-      \ am Lech.\nThe translation contains an error pertaining to\nOptions:\n(A) Modifiers\
-      \ or Adjectives\n(B) Numerical Values\n(C) Negation or Antonyms\n(D) Named Entities\n\
-      (E) Dropped Content\n(F) Facts"
+  - input: 'The following translations from German to English contain a particular
+      error. That error will be one of the following types: Named Entities: An entity
+      (names, places, locations, etc.) is changed to a different entity. Numerical
+      Values: Numerical values (ordinals or cardinals), dates, and/or units are changed.
+      Modifiers or Adjectives: The modifiers and adjectives pertaining to a noun are
+      changed. Negation or Antonyms: Introduce or remove a negation or change comparatives
+      to their antonyms. Facts: Trivial factual errors not pertaining to the above
+      classes are introduced in the translations. Dropped Content: A significant clause
+      in the translation is removed. Please identify that error.  Source: Auf dieser
+      Seite sind die Baudenkm\xE4ler der oberbayerischen Gro\xDFen Kreisstadt Landsberg
+      am Lech zusammengestellt.
+
+      Translation: On this page are compiled the architectural monuments of the town of
+      Landsberg am Lech.
+
+      The translation contains an error pertaining to
+
+      Options:
+
+      (A) Modifiers or Adjectives
+
+      (B) Numerical Values
+
+      (C) Negation or Antonyms
+
+      (D) Named Entities
+
+      (E) Dropped Content
+
+      (F) Facts'
     target: (E)
-  - input: "The following translations from German to English contain a particular\
-      \ error. That error will be one of the following types: Named Entities: An entity\
-      \ (names, places, locations, etc.) is changed to a different entity. Numerical\
-      \ Values: Numerical values (ordinals or cardinals), dates, and/or units are\
-      \ changed. Modifiers or Adjectives: The modifiers and adjectives pertaining\
-      \ to a noun are changed. Negation or Antonyms: Introduce or remove a negation\
-      \ or change comparatives to their antonyms. Facts: Trivial factual errors not\
-      \ pertaining to the above classes are introduced in the translations. Dropped\
-      \ Content: A significant clause in the translation is removed. Please identify\
-      \ that error.  Source: \u0141eba ist eine Kleinstadt und ein Badeort im Powiat\
-      \ L\u0119borski der polnischen Woiwodschaft Pommern.\nTranslation: Eba is not\
-      \ a small town and seaside resort in the Powiat L\xE9borski county of the Pomeranian\
-      \ Voivodeship of Poland.\nThe translation contains an error pertaining to\n\
-      Options:\n(A) Modifiers or Adjectives\n(B) Numerical Values\n(C) Negation or\
-      \ Antonyms\n(D) Named Entities\n(E) Dropped Content\n(F) Facts"
+  - input: 'The following translations from German to English contain a particular
+      error. That error will be one of the following types: Named Entities: An entity
+      (names, places, locations, etc.) is changed to a different entity. Numerical
+      Values: Numerical values (ordinals or cardinals), dates, and/or units are changed.
+      Modifiers or Adjectives: The modifiers and adjectives pertaining to a noun are
+      changed. Negation or Antonyms: Introduce or remove a negation or change comparatives
+      to their antonyms. Facts: Trivial factual errors not pertaining to the above
+      classes are introduced in the translations. Dropped Content: A significant clause
+      in the translation is removed. Please identify that error.  Source: \u0141eba ist
+      eine Kleinstadt und ein Badeort im Powiat L\u0119borski der polnischen Woiwodschaft
+      Pommern.
+
+      Translation: Eba is not a small town and seaside resort in the Powiat L\xE9borski
+      county of the Pomeranian Voivodeship of Poland.\nThe translation contains an error
+      pertaining to
+
+      Options:
+
+      (A) Modifiers or Adjectives
+
+      (B) Numerical Values
+
+      (C) Negation or Antonyms
+
+      (D) Named Entities
+
+      (E) Dropped Content
+
+      (F) Facts'
     target: (C)
 include: _fewshot_template_yaml
 task: leaderboard_bbh_salient_translation_error_detection
