@@ -90,7 +90,7 @@ class TemplateAPI(TemplateLM):
             )
         elif int(batch_size) > 1:
             eval_logger.warning(
-                "Using batch size > 1. Be sure that your API supports batched requests with arbitrary (total) sequence lengths."
+                "Batch size > 1 detected. Ensure your API supports batched requests with varying total sequence lengths."
             )
         self._batch_size = int(batch_size) if batch_size != "auto" else 1
         self._truncate = truncate
@@ -108,6 +108,7 @@ class TemplateAPI(TemplateLM):
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
 
+        eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
             self.tokenizer = None
             self.tokenized_requests = False
@@ -124,12 +125,12 @@ class TemplateAPI(TemplateLM):
                     import tiktoken
 
                     self.tokenizer = tiktoken.encoding_for_model(self.model)
-                except ModuleNotFoundError:
+                except ModuleNotFoundError as e:
                     raise Exception(
-                        "attempted to use 'openai' LM type, but package`tiktoken` is not installed. \
-            please install these via `pip install lm-eval[api]` or `pip install -e .\"[api]\"`",
-                    )
-                if self.base_url and self.tokenizer_backend == "tiktoken":
+                        "Attempted to use 'openai' LM type, but the package `tiktoken` is not installed. "
+                        "Please install it via `pip install lm-eval[api]` or `pip install -e .[api]`."
+                    ) from e
+                if "openai" not in self.base_url:
                     eval_logger.warning(
                         f"Passed `base_url={self.base_url}` but using (OpenAI) Tiktoken tokenizer backend. "
                         "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."
@@ -267,7 +268,6 @@ class TemplateAPI(TemplateLM):
         if self.tokenizer_backend is None:
             return [string]
         elif self.tokenizer_backend == "huggingface":
-            eval_logger.info(f"using tokenizer {self.tokenizer_backend}")
             # by default for CausalLM - false or self.add_bos_token is set
             if not add_special_tokens:
                 add_special_tokens = False or self.add_bos_token
@@ -288,7 +288,6 @@ class TemplateAPI(TemplateLM):
             return encoding
 
         else:
-            eval_logger.info(f"using tokenizer {self.tokenizer_backend}")
             try:
                 encoding = self.tokenizer.encode(string)
             except Exception:
@@ -317,12 +316,15 @@ class TemplateAPI(TemplateLM):
                 headers=self.header,
             )
             if not response.ok:
-                eval_logger.info(
-                    f"API request failed with error message: {response.text}"
+                eval_logger.warning(
+                    f"API request failed with error message: {response.text}. Retrying..."
                 )
             response.raise_for_status()
             return response.json()
         except RetryError:
+            eval_logger.error(
+                "API request failed after multiple retries. Please check the API status."
+            )
             return None
 
     async def amodel_call(
@@ -338,6 +340,7 @@ class TemplateAPI(TemplateLM):
         payload = self._create_payload(
             self.create_message(messages), generate=generate, **kwargs
         )
+        cache_method = "generate_until" if generate else "loglikelihood"
         try:
             async with session.post(
                 self.base_url,
@@ -346,8 +349,8 @@ class TemplateAPI(TemplateLM):
             ) as response:
                 if not response.ok:
                     error_text = await response.text()
-                    eval_logger.error(
-                        f"API request failed with error message: {error_text}"
+                    eval_logger.warning(
+                        f"API request failed with error message: {error_text}. Retrying..."
                     )
                 # raising exception will retry the request
                 response.raise_for_status()
@@ -364,12 +367,14 @@ class TemplateAPI(TemplateLM):
                     )
                 )
                 if cache_keys:
-                    cache_method = "generate_until" if generate else "loglikelihood"
                     for res, cache in zip(answers, cache_keys):
                         self.cache_hook.add_partial(cache_method, cache, res)
                 return answers
         # If the retries also fail
         except RetryError:
+            eval_logger.error(
+                "API request failed after multiple retries. Please check the API status."
+            )
             return None
 
     def batch_logliklehood_requests(
@@ -424,7 +429,7 @@ class TemplateAPI(TemplateLM):
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         assert (
             self.tokenizer is not None
-        ), "Tokenizer is required for loglikelihood tasks to compute context lengths"
+        ), "Tokenizer is required for loglikelihood tasks to compute context lengths."
         res = []
 
         def _collate(req: LogLikelihoodInputs):
