@@ -13,7 +13,6 @@ class Instance:
     doc: dict
     arguments: tuple
     idx: int
-
     metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
         default_factory=lambda: (None, None, None)
     )
