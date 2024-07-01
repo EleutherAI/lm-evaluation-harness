@@ -3,7 +3,7 @@ from typing import Literal, Optional, Tuple
 
 
 OutputType = Literal[
-    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice", "multiple_choice_gpt"
+    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
 
 
