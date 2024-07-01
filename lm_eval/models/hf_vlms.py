@@ -19,65 +19,7 @@ class HFMultimodalLM(HFLM):
     An abstracted Hugging Face model class for multimodal LMs like Llava and Idefics.
     """
 
-    AUTO_MODEL_CLASS = transformers.AutoModelForVision2Seq
-
-    # @property
-    # def max_length(self):
-    #     raise NotImplementedError
-
-    @property
-    def tokenizer_name(self) -> str:
-        return self.processor.tokenizer.name_or_path.replace("/", "__")
-
-    @property
-    def chat_template(self) -> str:
-        if self.processor.tokenizer.chat_template is not None:
-            return self.processor.tokenizer.chat_template
-        return self.processor.tokenizer.default_chat_template
-
-    def _get_config(
-        self,
-        pretrained: str,
-        revision: str = "main",
-        trust_remote_code: bool = False,
-    ) -> None:
-        self._config = transformers.AutoConfig.from_pretrained(
-            pretrained,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-        )
-
-    # def _create_model(
-    #     self,
-    #     pretrained: Union[str, transformers.PreTrainedModel],
-    #     revision="main",
-    #     dtype="auto",
-    #     trust_remote_code=False,
-    #     **kwargs,
-    # ) -> None:
-    #     """
-    #     Initializes an HF or HF-compatible PreTrainedModel from scratch
-    #     inside HFLM, using the kwargs passed into self.__init__().
-    #     """
-
-    #     model_kwargs = kwargs if kwargs else {}
-
-    #     if parallelize:
-    #        # do stuff
-    #        pass
-
-    #     if isinstance(pretrained, str):
-
-    #         return self.AUTO_MODEL_CLASS.from_pretrained(
-    #             pretrained,
-    #             revision=revision,
-    #             torch_dtype=get_dtype(dtype),
-    #             trust_remote_code=trust_remote_code,
-    #             **model_kwargs,
-    #         )
-
-    #     assert isinstance(pretrained, transformers.PreTrainedModel)
-    #     return pretrained
+    AUTO_MODEL_CLASS = transformers.AutoModelForVision2Seq  # TODO: what's the right way to handle this. maybe phase out the direct class-equality checks in HFLM?
 
     def _create_tokenizer(
         self,
@@ -94,6 +36,9 @@ class HFMultimodalLM(HFLM):
     ) -> None:
         """
         Helper method during initialization.
+
+        For the multimodal variant, we initialize not just
+        `self.tokenizer` but also `self.processor`.
         """
 
         if tokenizer:
@@ -201,10 +146,10 @@ class HFMultimodalLM(HFLM):
             gen_kwargs["max_new_tokens"] = 1024
         if "temperature" not in gen_kwargs:
             gen_kwargs["temperature"] = 0
-        # if "top_p" not in gen_kwargs:
-        #     gen_kwargs["top_p"] = None
-        # if "num_beams" not in gen_kwargs:
-        #     gen_kwargs["num_beams"] = 1
+        if "top_p" not in gen_kwargs:
+            gen_kwargs["top_p"] = None
+        if "num_beams" not in gen_kwargs:
+            gen_kwargs["num_beams"] = 1
 
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer,
@@ -319,11 +264,13 @@ class HFMultimodalLM(HFLM):
             print(f"Prompt:\n\n{contexts}\n")
 
             self.tokenizer.padding_side = "left"
-            inputs = self.processor(
+            inputs = self.processor(  # TODO: write this as tok_batch_encode (and allow that to either take a visuals value or None)
                 images=visuals, text=contexts, return_tensors="pt", padding=True
             ).to(
-                self._device, self.model.dtype
+                self.device, self.model.dtype
             )  # TODO: factor out into a tok_batch_encode bit ; truncate from left using max_ctx_len
+
+            print(inputs)
 
             context_enc = inputs["input_ids"]
 

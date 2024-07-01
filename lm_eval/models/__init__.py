@@ -4,7 +4,6 @@ from . import (
     gguf,
     hf_vlms,
     huggingface,
-    llava,
     mamba_lm,
     nemo_lm,
     neuralmagic,
