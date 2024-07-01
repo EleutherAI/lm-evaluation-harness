@@ -1,0 +1,8 @@
+"dataset_name": "answer_only_high_school_european_history"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school european history.\n\n"
+"group": "answer_only_humanities"
+"group_alias": "humanities"
+"include": "mmlusr_a_yml"
+"task": "answer_only_high_school_european_history"
+"task_alias": "high school european history"

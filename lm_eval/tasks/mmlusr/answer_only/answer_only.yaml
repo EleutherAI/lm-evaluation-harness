@@ -1,0 +1,6 @@
+group: mmlusr_answer_only
+task:
+  - answer_only_stem
+  - answer_only_other
+  - answer_only_social_sciences
+  - answer_only_humanities
