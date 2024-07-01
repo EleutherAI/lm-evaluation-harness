@@ -1,0 +1,4 @@
+group: mmmu
+task:
+  - mmmu_mc
+  - mmmu_open

@@ -475,3 +475,9 @@ def get_multi_choice_info(options):
         all_choices.append(chr(ord(start_chr) + i))
 
     return index2ans, all_choices
+
+def process_multiple_choice(dataset):
+    return dataset.filter(lambda example: example["question_type"] == "multiple-choice")
+
+def process_open_choice(dataset):
+    return dataset.filter(lambda example: example["question_type"] == "open")
