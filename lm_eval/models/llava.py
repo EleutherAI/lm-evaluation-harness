@@ -325,9 +325,7 @@ class Llava(LM):
         pbar = tqdm(total=num_iters, disable=(self.rank != 0), desc="Model Responding")
         for chunk in chunks:
             contexts, all_gen_kwargs, visuals = zip(*chunk)
-            # task = task[0]
 
-            # visuals = [doc_to_visual[0](doc[0])]
             visuals = self.flatten(visuals)
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
