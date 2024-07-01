@@ -444,6 +444,8 @@ class HFLM(TemplateLM):
         # escape hatch: if we're using a subclass that shouldn't follow
         # the default _get_backend logic,
         # then skip over the method.
+        # TODO: this seems very much undesirable in some cases--our code in HFLM
+        # references AutoModelForCausalLM at times to check for equality
         if self.AUTO_MODEL_CLASS is not None:
             return
 
