@@ -355,21 +355,21 @@ class TemplateAPI(TemplateLM):
                 # raising exception will retry the request
                 response.raise_for_status()
                 outputs = await response.json()
-                answers = (
-                    self.parse_generations(
-                        outputs=outputs,
-                    )
-                    if generate
-                    else self.parse_logprobs(
-                        outputs=outputs,
-                        tokens=messages,
-                        ctxlens=ctxlens,
-                    )
+            answers = (
+                self.parse_generations(
+                    outputs=outputs,
                 )
-                if cache_keys:
-                    for res, cache in zip(answers, cache_keys):
-                        self.cache_hook.add_partial(cache_method, cache, res)
-                return answers
+                if generate
+                else self.parse_logprobs(
+                    outputs=outputs,
+                    tokens=messages,
+                    ctxlens=ctxlens,
+                )
+            )
+            if cache_keys:
+                for res, cache in zip(answers, cache_keys):
+                    self.cache_hook.add_partial(cache_method, cache, res)
+            return answers
         # If the retries also fail
         except RetryError:
             eval_logger.error(
@@ -411,6 +411,7 @@ class TemplateAPI(TemplateLM):
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),
                 reraise=True,
             )(self.amodel_call)
+            # Create tasks for each batch of request
             tasks = [
                 asyncio.create_task(
                     retry_(
@@ -424,6 +425,7 @@ class TemplateAPI(TemplateLM):
                 )
                 for message in chunks(requests, n=self._batch_size)
             ]
+
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
