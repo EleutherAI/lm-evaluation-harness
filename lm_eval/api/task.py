@@ -48,10 +48,6 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-ALL_INPUT_TYPES = [
-    "text",
-    "text_image",
-]
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -93,7 +89,6 @@ class TaskConfig(dict):
     # scoring options
     metric_list: Optional[list] = None
     output_type: OutputType = "generate_until"
-    input_type: InputType = "text"
     generation_kwargs: Optional[dict] = None
     repeats: int = 1
     filter_list: Optional[Union[str, list]] = None
@@ -733,13 +728,6 @@ class ConfigurableTask(Task):
                 )
             self.OUTPUT_TYPE = self.config.output_type
 
-        if self.config.input_type is not None:
-            if self.config.input_type not in ALL_INPUT_TYPES:
-                raise ValueError(
-                    f"Got invalid output_type '{self.config.input_type}', must be in '{','.join(ALL_INPUT_TYPES)}'"
-                )
-            self.INPUT_TYPE = self.config.input_type
-
         if self.config.dataset_path is not None:
             self.DATASET_PATH = self.config.dataset_path
 
@@ -1359,7 +1347,6 @@ class ConfigurableTask(Task):
 
         return Instance(
             request_type=self.OUTPUT_TYPE,
-            input_type=self.INPUT_TYPE,
             doc=doc,
             arguments=arguments,
             idx=0,
@@ -1571,7 +1558,6 @@ class ConfigurableTask(Task):
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
             f"group_name={getattr(self.config, 'group', None)},"
             f"output_type={self.OUTPUT_TYPE},"
-            f"input_type={self.INPUT_TYPE}",
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
             f"num_samples={len(self.eval_docs)})",
         )
