@@ -3,7 +3,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
-import jinja2
 
 import torch
 import torch.nn.functional as F
@@ -1321,21 +1320,9 @@ class HFLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        try:
-            chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-        except jinja2.exceptions.TemplateError:
-            eval_logger.warning(
-                "Failed to apply chat template. removing the system role in chat history."
-            )
-            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
-            chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-            
-
-        return chat_templated
+        return self.tokenizer.apply_chat_template(
+            chat_history, tokenize=False, add_generation_prompt=True
+        )
 
     def get_model_info(self) -> dict:
         """
