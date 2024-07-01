@@ -18,7 +18,7 @@ generation_kwargs:
   repetition_penalty: 1.0
   image_aspect_ratio: original
 metric_list:
-  - metric: acc
+  - metric: exact_match
   # - metric: mmmu_acc
   #   aggregation: !function utils.mmmu_aggregate_results
   #   higher_is_better: true
