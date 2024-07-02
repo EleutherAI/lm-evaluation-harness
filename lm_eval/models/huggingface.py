@@ -3,8 +3,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
-import jinja2
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -1317,7 +1317,6 @@ class HFLM(TemplateLM):
             chat_templated = self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
-            
 
         return chat_templated
 

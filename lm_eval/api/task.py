@@ -444,7 +444,7 @@ class Task(abc.ABC):
                 doc=doc,
                 ctx=fewshot_ctx,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
-                apply_chat_template=apply_chat_template
+                apply_chat_template=apply_chat_template,
             )
 
             if not isinstance(inst, list):
@@ -986,28 +986,6 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
-    @staticmethod
-    def append_target_question(
-        labeled_examples: List[Dict[str, str]],
-        question: str,
-        fewshot_as_multiturn: bool = False,
-    ) -> None:
-        """Adds a target question to the labeled examples list.
-        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
-        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
-        """
-        if not fewshot_as_multiturn:
-            # if no messages or last message is system, append as new user entry
-            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
-            # if last message is user, append to it to avoid two user messages in a row
-            else:
-                labeled_examples[-1]["content"] += question
-        else:
-            return self.sampler.fewshot_delimiter + "".join(
-                f"{s['role']}: {s['content']}" + self.sampler.fewshot_delimiter
-                for s in chat_history
-            )
     @staticmethod
     def append_target_question(
         labeled_examples: List[Dict[str, str]],
