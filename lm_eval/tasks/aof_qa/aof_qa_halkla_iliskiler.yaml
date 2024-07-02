@@ -5,7 +5,7 @@ dataset_path: arrow
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/halkla-iliskiler/test/data-00000-of-00001.arrow
-    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/halkla-iliskiler/dev/data-00000-of-00001.arrow
-    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/halkla-iliskiler/val/data-00000-of-00001.arrow
+    test: /mnt/nvme1n1/Projects/TRLLM/turkish-datasets/aof_qa_hf/halkla-iliskiler/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1n1/Projects/TRLLM/turkish-datasets/aof_qa_hf/halkla-iliskiler/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1n1/Projects/TRLLM/turkish-datasets/aof_qa_hf/halkla-iliskiler/val/data-00000-of-00001.arrow
 
