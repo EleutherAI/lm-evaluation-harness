@@ -296,7 +296,7 @@ task: <name of the task>
 ```
 Including a task name is mandatory.
 
-It is often also convenient to label your task with several `tag` though this field is optional:
+It is often also convenient to label your task with several `tag` values, though this field is optional:
 
 ```yaml
 tag:
@@ -319,9 +319,50 @@ Passing `--tasks /path/to/yaml/file` is also accepted.
 
 ### Advanced Group Configs
 
-You can make more complete group config while also tailoring parameters for individual tasks.
+While `tag` values are helpful when you want to be able to quickly and conveniently run a set of related tasks via `--tasks my_tag_name`, often, we wish to implement more complex logic. For example, the MMLU benchmark contains 57 *subtasks* that must all be *averaged* together in order to report a final 'MMLU score'.
 
-For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks. By default, group configs do not aggregate the scores from all the tasks in it. To get a aggregate score, use the `aggregate_metric` and set it to `true`.
+Groupings of tasks might also use particular variants of a task--for example, we might want to default to evaluating a task as 5-shot when called as part of a given grouping, but not have a preference for number of shots when evaluating it as a standalone.
+
+We implement this via **groups**, which are distinct from tags. Groups can be implemented via *group config* YAML files, which are laid out similarly but slightly differently to tasks' YAML configs.
+
+The most basic form of group can be defined via a YAML config similar to the following:
+
+```yaml
+group: nli_tasks
+task:
+  - cb
+  - anli_r1
+  - rte
+metadata:
+  version: 1.0
+```
+
+This will behave almost identically to a `tag` that includes these 3 tasks, but with one key distinction: we'll print the `nli_tasks` group as a row (with no associated metrics) in our table of outputs, and visually show that these 3 tasks appear under its subheader.
+
+
+Now, let's assume we actually want to report an aggregate score for `nli_tasks`. We would instead use a YAML config like the following:
+
+```yaml
+group: nli_tasks
+task:
+  - cb
+  - anli_r1
+  - rte
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true # defaults to `true`. Set this to `false` to do a "macro" average (taking each subtask's average accuracy, and summing those accuracies and dividing by 3)--by default we do a "micro" average (retain all subtasks' per-document accuracies, and take the mean over all documents' accuracies to get our aggregate mean).
+metadata:
+  version: 1.0
+```
+
+Similar to our `metric_list` for listing out the metrics we want to calculate for a given task, we use an `aggregate_metric_list` field to specify which metric name to aggregate across subtasks, what aggregation function to use, and whether we should micro- or macro- average these metrics. See [./task_guide.md](./task_guide.md) for a full list of related sub-keys.
+
+**[!Tip]: currently, we predominantly only support the aggregation of group metrics that use `mean` (either micro- or macro- averaged) over their subtasks. If you require even more complex aggregation rules, you may want to perform aggregation offline.**
+
+Group configs can be fairly complex! We can do various operations, such as defining new subtask(s) inline in our group YAML, overriding an existing task's specific config value, or nesting existing groups within our
+
+For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks.
 
 ```yaml
 group: nli_and_mmlu
@@ -337,32 +378,6 @@ task:
         higher_is_better: true
   - task: mmlu
     num_fewshot: 2
-```
-It's also important to note how you can basically insert a group config as a task. Here, to make a group of natural language inference tasks, you simply write like how you would normally write a group config but this time place that as part of a task list under the main group being built.
-
-### Duplicate Tasks in Group Configs
-
-There might be cases where you might want to evaluate prompts and how models perform over prompt variations. You can list an existing task (In the example below, `anli_r1`) which varying `doc_to_text` implementation. To differentiate from each variation, we can utilize `task_alias`. LM-Eval will recognize that there are multiple variations of the same tasks and differentiate them.
-
-
-```yaml
-group: flan_held_in
-group_alias: Flan (Held-In)
-task:
-  # ANLI R1
-  - group: anli_r1_flan
-    group_alias: ANLI R1
-    task:
-      - task: anli_r1
-        task_alias: prompt-0
-        include: _held_in_template_yaml
-        doc_to_text: "{{premise}}\n\nChoose your answer ..."
-        ...
-      - task: anli_r1
-        task_alias: prompt-1
-        include: _held_in_template_yaml
-        doc_to_text: "{{premise}}\n\nBased on ..."
-      ...
 ```
 
 ### Configuring python classes
@@ -390,19 +405,16 @@ task:
 
 ## Beautifying Table Display
 
-To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed. For example in `mmlu_abstract_algebra.yaml` we set `group_alias` to `stem` and `task_alias` to `abstract_algebra`.
+To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed. For example in `mmlu_abstract_algebra.yaml` we set `task_alias` to `abstract_algebra`. In group configs, a `group_alias` for a group can also be set.
 
 ```
 "dataset_name": "abstract_algebra"
 "description": "The following are multiple choice questions (with answers) about abstract\
   \ algebra.\n\n"
-"group": "mmlu_stem"
-"group_alias": "stem"
 "include": "_default_template_yaml"
 "task": "mmlu_abstract_algebra"
 "task_alias": "abstract_algebra"
 ```
-Note: Even though `group` can be a list, for now, `group_alias` can only be a single string.
 
 ## Checking validity
 
@@ -422,9 +434,9 @@ a simple eye test.
 
 ## Versioning
 
-One key feature in LM Evaluation Harness is the ability to version tasks--that is, mark them with a specific version number that can be bumped whenever a breaking change is made.
+One key feature in LM Evaluation Harness is the ability to version tasks and groups--that is, mark them with a specific version number that can be bumped whenever a breaking change is made.
 
-This version info can be provided by adding the following to your new task config file:
+This version info can be provided by adding the following to your new task or group config file:
 
 ```
 metadata:
