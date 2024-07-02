@@ -65,6 +65,7 @@ This mode supports a number of command-line arguments, the details of which can 
     * `public_repo` - whether the repository is public, can be `True` or `False`,
     * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
     * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
+    * `gated` - whether to gate the details dataset, can be `True` or `False`.
 
 ## External Library Usage
 
