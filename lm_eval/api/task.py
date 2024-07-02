@@ -1446,7 +1446,7 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif type(gold) != type(result):
+            elif type(gold) != type(result) and not isinstance(result, List):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 

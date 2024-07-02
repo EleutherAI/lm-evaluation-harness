@@ -1,0 +1,27 @@
+task: humaneval_greedy
+dataset_path: openai/openai_humaneval
+output_type: generate_until
+test_split: test
+doc_to_text: "{{prompt}}"
+doc_to_target: !function utils.build_references
+metric_list:
+  - metric: !function utils.pass_at_1
+    aggregation: mean
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "\nclass"
+    - "\ndef"
+    - "\n#"
+    - "\nif"
+    - "\nprint"
+  do_sample: false
+repeats: 1
+num_fewshot: 0
+filter_list:
+  - name: "n=1" # number of samples to estimate pass@k
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions
+metadata:
+  version: 1.0
