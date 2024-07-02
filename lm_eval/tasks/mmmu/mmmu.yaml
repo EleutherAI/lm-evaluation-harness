@@ -1,0 +1,24 @@
+dataset_path: lmms-lab/MMMU
+task: "mmmu_val"
+validation_split: validation
+output_type: generate_until
+input_type: text_image
+doc_to_visual: !function utils.mmmu_doc_to_visual
+doc_to_text: !function utils.mmmu_doc_to_text
+doc_to_target: "answer"
+# The return value of process_results will be used by metrics
+process_results: !function utils.mmmu_process_results
+# Note that the metric name can be either a registed metric function (such as the case for GQA) or a key name returned by process_results
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+  temperature: 1.0
+  do_sample: false
+  max_gen_toks: 512
+  top_p: 0.94
+  repetition_penalty: 1.0
+  image_aspect_ratio: original
+metric_list:
+  - metric: mmmu_acc
+    aggregation: !function utils.mmmu_aggregate_results
+    higher_is_better: true

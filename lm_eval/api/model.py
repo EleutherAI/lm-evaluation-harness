@@ -36,7 +36,7 @@ class LM(abc.ABC):
         LM calls whenever possible.
 
         :param requests: list[Instance]
-            A list of Instance objects, with property `args` which returns a tuple (context, continuation).
+            A list of Instance objects, with property `args` which returns a tuple (context, continuation, visual_list).
             `context: str`
                 Context string. Implementations of LM must be able to handle an
                 empty context string.
@@ -44,6 +44,8 @@ class LM(abc.ABC):
                 The continuation over which log likelihood will be calculated. If
                 there is a word boundary, the space should be in the continuation.
                 For example, context="hello" continuation=" world" is correct.
+            'visual_list: Optional[list[dict]]'
+                Visual Input to the model. Can be None
 
         :return: list[tuple[float, bool]]
             A list of pairs (logprob, isgreedy)
