@@ -245,6 +245,7 @@ class VLLM(TemplateLM):
                 lora_request=self.lora_request,
             )
         else:
+            breakpoint()
             outputs = self.model.generate(
                 prompt_token_ids=requests,
                 sampling_params=sampling_params,
@@ -290,7 +291,7 @@ class VLLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding = self.tokenizer(context, add_special_tokens=False).input_ids
+        context_encoding = self.tokenizer(context, add_special_tokens=self.add_bos_token).input_ids
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
