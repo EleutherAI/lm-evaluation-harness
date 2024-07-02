@@ -7,7 +7,7 @@ doc_to_choice: ["(A)","(B)","(C)","(D)","(E)","(F)"]
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'The following translations from German to English contain a particular
+  - input: "The following translations from German to English contain a particular
       error. That error will be one of the following types: Named Entities: An entity
       (names, places, locations, etc.) is changed to a different entity. Numerical
       Values: Numerical values (ordinals or cardinals), dates, and/or units are changed.
@@ -36,9 +36,9 @@ fewshot_config:
 
       (E) Dropped Content
 
-      (F) Facts'
+      (F) Facts"
     target: (D)
-  - input: 'The following translations from German to English contain a particular
+  - input: "The following translations from German to English contain a particular
       error. That error will be one of the following types: Named Entities: An entity
       (names, places, locations, etc.) is changed to a different entity. Numerical
       Values: Numerical values (ordinals or cardinals), dates, and/or units are changed.
@@ -67,9 +67,9 @@ fewshot_config:
 
       (E) Dropped Content
 
-      (F) Facts'
+      (F) Facts"
     target: (E)
-  - input: 'The following translations from German to English contain a particular
+  - input: "The following translations from German to English contain a particular
       error. That error will be one of the following types: Named Entities: An entity
       (names, places, locations, etc.) is changed to a different entity. Numerical
       Values: Numerical values (ordinals or cardinals), dates, and/or units are changed.
@@ -97,7 +97,7 @@ fewshot_config:
 
       (E) Dropped Content
 
-      (F) Facts'
+      (F) Facts"
     target: (C)
 include: _fewshot_template_yaml
 task: leaderboard_bbh_salient_translation_error_detection
