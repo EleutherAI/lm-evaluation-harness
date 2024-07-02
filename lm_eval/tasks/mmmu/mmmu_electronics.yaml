@@ -1,3 +1,0 @@
-include: _template_yaml
-task: mmmu_electronics
-dataset_name: Electronics
