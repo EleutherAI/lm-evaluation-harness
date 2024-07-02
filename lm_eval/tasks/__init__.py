@@ -30,6 +30,13 @@ class TaskManager:
         )
         self._all_tasks = sorted(list(self._task_index.keys()))
 
+        self._all_groups = sorted(
+            [x for x in self._all_tasks if self._task_index[x]["type"] == "group"]
+        )
+        self._all_subtasks = sorted(
+            [x for x in self._all_tasks if self._task_index[x]["type"] == "task"]
+        )
+
         self.task_group_map = collections.defaultdict(list)
 
     def initialize_tasks(
@@ -68,8 +75,68 @@ class TaskManager:
         return self._all_tasks
 
     @property
+    def all_groups(self):
+        return self._all_groups
+
+    @property
+    def all_subtasks(self):
+        return self._all_subtasks
+
+    @property
     def task_index(self):
         return self._task_index
+
+    def list_all_tasks(self, list_groups=True, list_subtasks=True) -> str:
+        from pytablewriter import MarkdownTableWriter
+
+        group_table = MarkdownTableWriter()
+        group_table.table_name = "Groups"
+        group_table.headers = ["Group", "Config Location"]
+        gt_values = []
+        for g in self.all_groups:
+            path = self.task_index[g]["yaml_path"]
+            if path == -1:
+                path = ""
+            else:
+                path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+            gt_values.append([g, path])
+        group_table.value_matrix = gt_values
+
+        subtask_table = MarkdownTableWriter()
+        subtask_table.table_name = "Subtasks"
+        subtask_table.headers = ["Task", "Config Location", "Output Type"]
+        st_values = []
+        for t in self.all_subtasks:
+            path = self.task_index[t]["yaml_path"]
+
+            output_type = ""
+
+            # read the yaml file to determine the output type
+            if path != -1:
+                config = utils.load_yaml_config(path, mode="simple")
+                if "output_type" in config:
+                    output_type = config["output_type"]
+                elif (
+                    "include" in config
+                ):  # if no output type, check if there is an include with an output type
+                    include_path = path.split("/")[:-1] + config["include"]
+                    include_config = utils.load_yaml_config(include_path, mode="simple")
+                    if "output_type" in include_config:
+                        output_type = include_config["output_type"]
+
+            if path == -1:
+                path = ""
+            else:
+                path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+            st_values.append([t, path, output_type])
+        subtask_table.value_matrix = st_values
+
+        result = "\n"
+        if list_groups:
+            result += group_table.dumps() + "\n\n"
+        if list_subtasks:
+            result += subtask_table.dumps() + "\n\n"
+        return result
 
     def match_tasks(self, task_list):
         return utils.pattern_match(task_list, self.all_tasks)
