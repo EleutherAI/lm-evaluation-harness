@@ -1,0 +1,19 @@
+group: mmmu_art_and_design
+group_alias: Art and Design
+task:
+  - task: mmmu_art
+    include: _template_yaml
+    task_alias: Art
+    dataset_name: Art
+  - task: mmmu_art_theory
+    include: _template_yaml
+    task_alias: Art Theory
+    dataset_name: Art_Theory
+  - task: mmmu_design
+    include: _template_yaml
+    task_alias: Design
+    dataset_name: Design
+  - task: mmmu_music
+    include: _template_yaml
+    task_alias: Music
+    dataset_name: Music

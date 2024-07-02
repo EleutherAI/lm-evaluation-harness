@@ -1,0 +1,23 @@
+group: mmmu_business
+group_alias: Business
+task:
+  # - task: mmmu_accounting
+  #   include: _template_yaml
+  #   task_alias: Accounting
+  #   dataset_name: Accounting
+  - task: mmmu_economics
+    include: _template_yaml
+    task_alias: Economics
+    dataset_name: Economics
+  # - task: mmmu_finance
+  #   include: _template_yaml
+  #   task_alias: Finance
+  #   dataset_name: Finance
+  # - task: mmmu_manage
+  #   include: _template_yaml
+  #   task_alias: Manage
+  #   dataset_name: Manage
+  # - task: mmmu_marketing
+  #   include: _template_yaml
+  #   task_alias: Marketing
+  #   dataset_name: Marketing

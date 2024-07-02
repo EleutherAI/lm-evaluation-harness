@@ -1,0 +1,20 @@
+dataset_path: MMMU/MMMU
+validation_split: validation
+output_type: generate_until
+doc_to_image: !function utils.doc_to_image
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "answer"
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+  temperature: 1.0
+  do_sample: false
+  max_gen_toks: 512
+  top_p: 0.94
+  repetition_penalty: 1.0
+  image_aspect_ratio: original
+metric_list:
+  - metric: mmmu_acc
+    aggregation: mean
+    higher_is_better: true
