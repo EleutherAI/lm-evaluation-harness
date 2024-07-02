@@ -58,6 +58,7 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
     * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
+    * `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
     * `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
     * `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
