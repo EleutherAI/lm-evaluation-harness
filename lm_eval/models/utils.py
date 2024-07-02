@@ -389,7 +389,12 @@ class Collator:
             self._arr_with_indices, fn=self._group_fn, group_by="contexts"
         )
 
-    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None, reset_batch_fn: Optional[Callable] = None) -> Iterator:
+    def get_batched(
+        self,
+        n: int = 1,
+        batch_fn: Optional[Callable] = None,
+        reset_batch_fn: Optional[Callable] = None,
+    ) -> Iterator:
         """
         Generates and yields batches from the reordered array. The method of grouping and batching
         depends on the parameter `group_by`.
@@ -402,7 +407,7 @@ class Collator:
         - n (int): The size of each batch. Defaults to 1.
         - batch_fn ([Callable[[int, Iterable], int]] | None): A function to determine the size of
           each batch. Optional, defaults to None.
-        - reset_batch_fn ([Callable[[int, Iterable], int]] | None): A function to reset the scheduler of 
+        - reset_batch_fn ([Callable[[int, Iterable], int]] | None): A function to reset the scheduler of
           the batch_fn, if present, when we change group in generative mode.
 
         Returns:
@@ -414,7 +419,9 @@ class Collator:
         """
         if self._group_by == "gen_kwargs":
             for key, values in self._arr_with_indices.items():  # type: ignore
-                if reset_batch_fn is not None: # with each group change, we must recompute the batch size, so we restart the scheduler
+                if (
+                    reset_batch_fn is not None
+                ):  # with each group change, we must recompute the batch size, so we restart the scheduler
                     reset_batch_fn()
                 values = self._reorder(values)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
