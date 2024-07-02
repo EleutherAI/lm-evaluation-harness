@@ -6,7 +6,6 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
 
 from datasets import load_dataset
 from datasets.utils.metadata import MetadataConfigs
@@ -16,6 +15,7 @@ from huggingface_hub import (
     HfApi,
     hf_hub_url,
 )
+from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
 
 from lm_eval.utils import (
     eval_logger,
@@ -166,8 +166,12 @@ class EvaluationTracker:
                 f"hub_results_org was not specified. Results will be pushed to '{hub_results_org}'."
             )
 
-        details_repo_name = details_repo_name if details_repo_name != "" else "lm-eval-results"
-        results_repo_name = results_repo_name if results_repo_name != "" else details_repo_name
+        details_repo_name = (
+            details_repo_name if details_repo_name != "" else "lm-eval-results"
+        )
+        results_repo_name = (
+            results_repo_name if results_repo_name != "" else details_repo_name
+        )
         self.details_repo = f"{hub_results_org}/{details_repo_name}"
         self.details_repo_private = f"{hub_results_org}/{details_repo_name}-private"
         self.results_repo = f"{hub_results_org}/{results_repo_name}"
@@ -220,16 +224,26 @@ class EvaluationTracker:
                 file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
                 if self.api and self.push_results_to_hub:
+                    repo_id = (
+                        self.results_repo
+                        if self.public_repo
+                        else self.results_repo_private
+                    )
                     self.api.create_repo(
-                        repo_id=self.results_repo if self.public_repo else self.results_repo_private,
+                        repo_id=repo_id,
                         repo_type="dataset",
                         private=not self.public_repo,
                         exist_ok=True,
                     )
                     self.api.upload_file(
-                        repo_id=self.results_repo if self.public_repo else self.results_repo_private,
-                        path_or_fileobj=str(path.joinpath(f"results_{self.date_id}.json")),
-                        path_in_repo=os.path.join(self.general_config_tracker.model_name, f"results_{self.date_id}.json"),
+                        repo_id=repo_id,
+                        path_or_fileobj=str(
+                            path.joinpath(f"results_{self.date_id}.json")
+                        ),
+                        path_in_repo=os.path.join(
+                            self.general_config_tracker.model_name,
+                            f"results_{self.date_id}.json",
+                        ),
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
                     )
@@ -341,9 +355,7 @@ class EvaluationTracker:
         """
 
         eval_logger.info("Recreating metadata card")
-        repo_id = (
-            self.details_repo if self.public_repo else self.details_repo_private
-        )
+        repo_id = self.details_repo if self.public_repo else self.details_repo_private
 
         files_in_repo = self.api.list_repo_files(repo_id=repo_id, repo_type="dataset")
         results_files = get_results_filenames(files_in_repo)
@@ -493,4 +505,3 @@ class EvaluationTracker:
             pretty_name=card_data.pretty_name,
         )
         card.push_to_hub(repo_id, repo_type="dataset")
-
