@@ -323,14 +323,18 @@ class EvaluationTracker:
                         private=not self.public_repo,
                         exist_ok=True,
                     )
-                    if self.gated_repo:
-                        headers = build_hf_headers()
-                        r = get_session().put(
-                            url=f"https://huggingface.co/api/datasets/{repo_id}/settings",
-                            headers=headers,
-                            json={"gated": "auto"},
-                        )
-                        hf_raise_for_status(r)
+                    try:
+                        if self.gated_repo:
+                            headers = build_hf_headers()
+                            r = get_session().put(
+                                url=f"https://huggingface.co/api/datasets/{repo_id}/settings",
+                                headers=headers,
+                                json={"gated": "auto"},
+                            )
+                            hf_raise_for_status(r)
+                    except Exception as e:
+                        eval_logger.warning("Could not gate the repository")
+                        eval_logger.info(repr(e))
                     self.api.upload_folder(
                         repo_id=repo_id,
                         folder_path=str(path),
