@@ -1,0 +1,3 @@
+include: _inverse_scaling_mc_yaml
+task: inverse_scaling_hindsight_neglect_10shot
+dataset_path: inverse-scaling/hindsight-neglect-10shot

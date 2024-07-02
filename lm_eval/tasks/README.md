@@ -49,6 +49,7 @@
 | [hendrycks_ethics](hendrycks_ethics/README.md)     | Tasks designed to evaluate the ethical reasoning capabilities of models. | English |
 | [hendrycks_math](hendrycks_math/README.md) | Mathematical problem-solving tasks to test numerical reasoning and problem-solving. | English |
 | [ifeval](ifeval/README.md) | Interactive fiction evaluation tasks for narrative understanding and reasoning. | English |
+| [inverse_scaling](inverse_scaling/README.md) | Multiple-choice tasks from the Inverse Scaling Prize, designed to find settings where larger language models perform worse. | English |
 | [kmmlu](kmmlu/README.md) | Knowledge-based multi-subject multiple choice questions for academic evaluation. | Korean |
 | [kobest](kobest/README.md) | A collection of tasks designed to evaluate understanding in Korean language. | Korean |
 | [kormedmcqa](kormedmcqa/README.md) | Medical question answering tasks in Korean to test specialized domain knowledge. | Korean |
