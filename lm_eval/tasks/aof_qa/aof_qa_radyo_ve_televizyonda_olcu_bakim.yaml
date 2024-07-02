@@ -1,0 +1,11 @@
+
+include: aof_qa.yaml
+task: aof_qa_radyo_ve_televizyonda_olcu_bakim
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/radyo-ve-televizyonda-olcu-bakim/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/radyo-ve-televizyonda-olcu-bakim/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/radyo-ve-televizyonda-olcu-bakim/val/data-00000-of-00001.arrow
+

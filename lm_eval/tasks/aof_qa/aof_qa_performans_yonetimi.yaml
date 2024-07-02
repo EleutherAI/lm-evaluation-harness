@@ -1,0 +1,11 @@
+
+include: aof_qa.yaml
+task: aof_qa_performans_yonetimi
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/performans-yonetimi/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/performans-yonetimi/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/performans-yonetimi/val/data-00000-of-00001.arrow
+

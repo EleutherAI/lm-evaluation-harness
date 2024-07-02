@@ -1,0 +1,11 @@
+
+include: aof_qa.yaml
+task: aof_qa_ataturk_ilkeleri_ve_inkilap_tarihi_1
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/ataturk-ilkeleri-ve-inkilap-tarihi-1/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/ataturk-ilkeleri-ve-inkilap-tarihi-1/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/ataturk-ilkeleri-ve-inkilap-tarihi-1/val/data-00000-of-00001.arrow
+

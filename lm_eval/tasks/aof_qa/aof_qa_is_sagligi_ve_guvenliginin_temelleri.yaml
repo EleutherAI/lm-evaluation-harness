@@ -1,0 +1,11 @@
+
+include: aof_qa.yaml
+task: aof_qa_is_sagligi_ve_guvenliginin_temelleri
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/is-sagligi-ve-guvenliginin-temelleri/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/is-sagligi-ve-guvenliginin-temelleri/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/is-sagligi-ve-guvenliginin-temelleri/val/data-00000-of-00001.arrow
+

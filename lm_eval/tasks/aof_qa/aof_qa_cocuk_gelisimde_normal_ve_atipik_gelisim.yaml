@@ -1,0 +1,11 @@
+
+include: aof_qa.yaml
+task: aof_qa_cocuk_gelisimde_normal_ve_atipik_gelisim
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/cocuk-gelisimde-normal-ve-atipik-gelisim/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/cocuk-gelisimde-normal-ve-atipik-gelisim/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/cocuk-gelisimde-normal-ve-atipik-gelisim/val/data-00000-of-00001.arrow
+

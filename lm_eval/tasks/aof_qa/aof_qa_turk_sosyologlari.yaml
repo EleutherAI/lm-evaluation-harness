@@ -1,0 +1,11 @@
+
+include: aof_qa.yaml
+task: aof_qa_turk_sosyologlari
+dataset_path: arrow
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/turk-sosyologlari/test/data-00000-of-00001.arrow
+    dev: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/turk-sosyologlari/dev/data-00000-of-00001.arrow
+    val: /mnt/nvme1/Projects/LLM-Benchmark/turkish-datasets/aof_qa_hf/turk-sosyologlari/val/data-00000-of-00001.arrow
+
