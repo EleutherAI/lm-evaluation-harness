@@ -138,8 +138,8 @@ class ConfigurableGroup(abc.ABC):
         config: Optional[dict] = None,
     ) -> None:
         # Create a unique identifier ID
-        self._task_id = shortuuid.uuid()[:8]
         self._config = GroupConfig(**config)
+        self._task_id = self._config.group
 
     @property
     def group(self):
@@ -159,7 +159,11 @@ class ConfigurableGroup(abc.ABC):
 
     @property
     def task_id(self) -> Any:
-        return "-".join((self.group_name, self._task_id))
+        return self._task_id
+
+    @task_id.setter
+    def task_id(self, value):
+        self._task_id = value
 
     @property
     def group_name(self) -> Any:
@@ -819,6 +823,10 @@ class Task(abc.ABC):
     @property
     def task_id(self) -> Any:
         return self._task_id
+
+    @task_id.setter
+    def task_id(self, value):
+        self._task_id = value
 
 
 class ConfigurableTask(Task):
@@ -1659,10 +1667,6 @@ class ConfigurableTask(Task):
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
-
-    @property
-    def task_id(self) -> Any:
-        return "-".join((self.task_name, self._task_id))
 
     @property
     def task_name(self) -> Any:

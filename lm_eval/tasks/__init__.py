@@ -153,6 +153,10 @@ class TaskManager:
                 task_object = config["class"](config=config)
             else:
                 task_object = ConfigurableTask(config=config)
+
+            if task != task_object.task_id:
+                task_object.task_id = task
+
             return {task: task_object}
 
         def _get_group_and_subtask_from_config(config):
