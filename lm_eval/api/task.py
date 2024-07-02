@@ -1264,6 +1264,8 @@ class ConfigurableTask(Task):
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
+        apply_chat_template = kwargs.pop("apply_chat_template", False)
+
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
@@ -1271,7 +1273,7 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
-            if kwargs.get("apply_chat_template", False) is True:
+            if apply_chat_template:
                 target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
@@ -1282,7 +1284,6 @@ class ConfigurableTask(Task):
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
-            kwargs.pop("apply_chat_template")
 
             request_list = [
                 Instance(
@@ -1319,7 +1320,6 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
-        kwargs.pop("apply_chat_template")
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
         )
