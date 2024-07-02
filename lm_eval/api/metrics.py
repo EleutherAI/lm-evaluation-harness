@@ -59,6 +59,19 @@ def f1_score(items):
     return np.max(fscore)
 
 
+@register_aggregation("squad_f1")
+def squad_f1_score(items):
+    gold_squad, pred_squad = [], []
+    for index, (ref, pred) in enumerate(items):
+        pred_dict = {'prediction_text': str(pred), 'id': str(index)}
+        ref_dict = {'answers': {'answer_start': [0], 'text': [str(ref)]}, 'id': str(index)}
+        gold_squad.append(ref_dict)
+        pred_squad.append(pred_dict)
+    squad_metric = hf_evaluate.load("squad")
+    results_squad = squad_metric.compute(predictions=pred_squad, references=gold_squad)
+    return results_squad['f1']/100
+
+
 @register_aggregation("matthews_corrcoef")
 def matthews_corrcoef(items):
     unzipped_list = list(zip(*items))
@@ -234,6 +247,15 @@ def exact_match_fn(**kwargs):
 
 
 @register_metric(
+    metric="squad",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="squad_f1"
+)
+def squad_fn(items):
+    return items
+
+@register_metric(
     metric="perplexity",
     higher_is_better=False,
     output_type="loglikelihood",
@@ -310,7 +332,7 @@ def mcc_fn(items):  # This is a passthrough function
 @register_metric(
     metric="f1",
     higher_is_better=True,
-    output_type="multiple_choice",
+    output_type=["multiple_choice"],
     aggregation="f1",
 )
 def f1_fn(items):  # This is a passthrough function

@@ -1190,7 +1190,6 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
-            print(type(doc_to_text))
             raise TypeError
 
     def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
@@ -1280,7 +1279,6 @@ class ConfigurableTask(Task):
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
-
             request_list = [
                 Instance(
                     request_type="loglikelihood",
@@ -1419,6 +1417,7 @@ class ConfigurableTask(Task):
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
+                **({"squad": (gold, pred)} if "squad" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **(
@@ -1434,15 +1433,17 @@ class ConfigurableTask(Task):
                 ]
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
-
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
             if self.config.doc_to_choice is not None:
-                # If you set doc_to_choice,
-                # it assumes that doc_to_target returns a number.
-                choices = self.doc_to_choice(doc)
-                gold = choices[gold]
+                try:
+                    # If you set doc_to_choice,
+                    # it assumes that doc_to_target returns a number.
+                    choices = self.doc_to_choice(doc)
+                    gold = choices[gold]
+                except TypeError:
+                    gold = gold
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
@@ -1458,7 +1459,6 @@ class ConfigurableTask(Task):
                     scores = []
                     if not isinstance(gold, list):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        # print(gold)
                         gold = [gold]
                     if metric == "exact_match":
                         result = [result for _ in range(len(gold))]
@@ -1492,12 +1492,20 @@ class ConfigurableTask(Task):
                             result_score = 0.0
                 else:
                     try:
-                        result_score = self._metric_fn_list[metric](
-                            references=[gold],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[metric],
-                        )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        # adds exact match logic
+                        if metric == "exact_match":
+                            result_score = self._metric_fn_list[metric](
+                                references=[str(gold)],
+                                predictions=[str(result)],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                        else:
+                            result_score = self._metric_fn_list[metric](
+                                references=[gold],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                    except TypeError as error:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
