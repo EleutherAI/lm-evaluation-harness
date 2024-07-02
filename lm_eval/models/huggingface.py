@@ -1132,7 +1132,7 @@ class HFLM(TemplateLM):
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs),
                 dim=-1,
-                dtype=torch.float16,
+                # dtype=torch.float16,
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
