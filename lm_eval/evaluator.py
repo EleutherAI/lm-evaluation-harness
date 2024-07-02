@@ -41,7 +41,7 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
-    from lm_eval.tasks import Task
+    from lm_eval.api.task import Task
 
 
 @positional_deprecated

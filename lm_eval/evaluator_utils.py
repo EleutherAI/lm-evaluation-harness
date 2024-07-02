@@ -44,7 +44,6 @@ class TaskOutput:
         self,
         task=None,
         task_name=None,
-        # task_id=None,
         task_config=None,
         version=None,
         group_name=None,
@@ -56,7 +55,6 @@ class TaskOutput:
         self.task = task
         self.task_config = task_config
         self.task_name = task_name
-        # self.task_id = task_id
         self.group_name = group_name
         self.version = version
         self.n_shot = n_shot
@@ -82,7 +80,6 @@ class TaskOutput:
                 task=task, task_name=task_name, is_group=is_group, group_name=group_name
             )
         version = task.VERSION
-        # task_id = task.task_id
         task_config = dict(task.dump_config())
         if (n_shot := task_config.get("num_fewshot")) == 0:
             n_shot = task_config.get("metadata", {}).get("num_fewshot", 0)
@@ -91,7 +88,6 @@ class TaskOutput:
         return cls(
             task=task,
             task_name=task_name,
-            # task_id=task_id,
             task_config=task_config,
             group_name=group_name,
             version=version,
@@ -321,7 +317,6 @@ def consolidate_results(
     higher_is_better = collections.defaultdict(dict)
 
     for task_output in eval_tasks:
-        # results[task_output.task_id]["task"] = task_output.task_name
         if "task_alias" in (task_config := task_output.task_config):
             results[task_output.task_name]["alias"] = task_config["task_alias"]
         else:

@@ -137,7 +137,6 @@ class ConfigurableGroup(abc.ABC):
         config: Optional[dict] = None,
     ) -> None:
         self._config = GroupConfig(**config)
-        # self._task_id = self._config.group
 
     @property
     def group(self):
@@ -154,14 +153,6 @@ class ConfigurableGroup(abc.ABC):
     @property
     def config(self):
         return self._config.to_dict()
-
-    # @property
-    # def task_id(self) -> Any:
-    #     return self._task_id
-
-    # @task_id.setter
-    # def task_id(self, value):
-    #     self._task_id = value
 
     @property
     def group_name(self) -> Any:
@@ -360,8 +351,6 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
-        # Create a unique identifier ID
-        # self._task_id = shortuuid.uuid()[:8]
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -818,14 +807,6 @@ class Task(abc.ABC):
         )
         return doc_iterator
 
-    # @property
-    # def task_id(self) -> Any:
-    #     return self._task_id
-
-    # @task_id.setter
-    # def task_id(self, value):
-    #     self._task_id = value
-
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -839,9 +820,6 @@ class ConfigurableTask(Task):
         download_mode=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
-        # Create a unique identifier ID
-        # self._task_id = shortuuid.uuid()[:8]
-
         # Get pre-configured attributes
         self._config = self.CONFIG
 
