@@ -124,8 +124,11 @@ class LM(abc.ABC):
         :return: str
             A string representing the chat history in a format that can be used as input to the LM.
         """
-        raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'apply_chat_template' method for your model type."
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        return self.tokenizer.apply_chat_template(
+            chat_history, tokenize=False, add_generation_prompt=True
         )
 
     @classmethod
@@ -189,9 +192,7 @@ class LM(abc.ABC):
         Should return the name of the tokenizer or chat template used.
         Used only to properly fingerprint caches when requests are being cached with `--cache_requests`, otherwise not used.
         """
-        raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'tokenizer_name' property."
-        )
+        return self.tokenizer.name_or_path.replace("/", "__")
 
     @property
     def chat_template(self) -> str:
@@ -199,9 +200,9 @@ class LM(abc.ABC):
         Should return the structure of the chat template applied to user/assistant messages.
         This is used only to save in the experiment results for reproducibility.
         """
-        raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'chat_template' property."
-        )
+        if self.tokenizer.chat_template is not None:
+            return self.tokenizer.chat_template
+        return self.tokenizer.default_chat_template
 
     def set_cache_hook(self, cache_hook) -> None:
         self.cache_hook = cache_hook
