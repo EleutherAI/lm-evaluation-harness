@@ -29,4 +29,3 @@ task:
     include: _template_yaml
     task_alias: Mechanical Engineering
     dataset_name: Mechanical_Engineering
-

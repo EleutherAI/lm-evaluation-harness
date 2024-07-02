@@ -1,13 +1,9 @@
 import ast
-import logging
 import random
 import re
-from collections import defaultdict
 
 import numpy as np
 
-
-lmms_logger = logging.getLogger("lm-eval")
 
 MULTI_CHOICE_PROMPT = "Answer with the option letter from the given choices directly."
 OPEN_ENDED_PROMPT = "Answer the question using a single word or phrase."
@@ -68,15 +64,16 @@ def mmmu_process_results(doc, results):
         parsed_pred = parse_multi_choice_response(pred, all_choices, index2ans)
     else:
         parsed_pred = parse_open_response(pred)
-    id = doc["id"]
-    mmmu_acc = {
-        "id": id,
+
+    sample_dict = {
+        "id": doc["id"],
         "subdomain": extract_subset_name(doc["id"]),
         "question_type": doc["question_type"],
         "answer": doc["answer"],
         "parsed_pred": parsed_pred,
     }
-    return {"mmmu_acc": mmmu_acc}
+    _, result_dict = evaluate_mmmu([sample_dict])
+    return result_dict
 
 
 def extract_subset_name(input_string):
@@ -88,51 +85,6 @@ def extract_subset_name(input_string):
         return match.group(1)
     else:
         raise ValueError(f'No match found in "{input_string}"')
-
-
-def mmmu_aggregate_results(results):
-    evaluation_result = {}
-    subset_to_eval_samples = defaultdict(list)
-    for result in results:
-        subset_to_eval_samples[result["subdomain"]].append(result)
-    for subset, sub_eval_samples in subset_to_eval_samples.items():
-        judge_dict, metric_dict = evaluate_mmmu(sub_eval_samples)
-        metric_dict.update({"num_example": len(sub_eval_samples)})
-        evaluation_result[subset] = metric_dict
-    printable_results = {}
-    for domain, in_domain_cats in DOMAIN_CAT2SUB_CAT.items():
-        in_domain_cat_results = {}
-        for cat_name in in_domain_cats:
-            if cat_name in evaluation_result.keys():
-                in_domain_cat_results[cat_name] = evaluation_result[cat_name]
-            else:
-                pass
-        in_domain_ins_acc = calculate_ins_level_acc(in_domain_cat_results)
-        in_domain_data_num = sum(
-            [
-                cat_results["num_example"]
-                for cat_results in in_domain_cat_results.values()
-            ]
-        )
-        printable_results["Overall-" + domain] = {
-            "num": int(in_domain_data_num),
-            "mmmu_acc": round(in_domain_ins_acc, 3),
-        }
-        # add sub category
-        for cat_name, cat_results in in_domain_cat_results.items():
-            printable_results[cat_name] = {
-                "num": int(cat_results["num_example"]),
-                "mmmu_acc": round(cat_results["mmmu_acc"], 3),
-            }
-    all_ins_acc = calculate_ins_level_acc(evaluation_result)
-    printable_results["Overall"] = {
-        "num": sum(
-            [cat_results["num_example"] for cat_results in evaluation_result.values()]
-        ),
-        "mmmu_acc": round(all_ins_acc, 3),
-    }
-    print(printable_results)
-    return printable_results["Overall"]
 
 
 ##################
@@ -152,41 +104,6 @@ def calculate_ins_level_acc(results):
     if ins_num == 0:
         return 0
     return acc / ins_num
-
-
-DOMAIN_CAT2SUB_CAT = {
-    "Art and Design": ["Art", "Art_Theory", "Design", "Music"],
-    "Business": ["Accounting", "Economics", "Finance", "Manage", "Marketing"],
-    "Science": [
-        "Biology",
-        "Chemistry",
-        "Geography",
-        "Math",
-        "Physics",
-    ],
-    "Health and Medicine": [
-        "Basic_Medical_Science",
-        "Clinical_Medicine",
-        "Diagnostics_and_Laboratory_Medicine",
-        "Pharmacy",
-        "Public_Health",
-    ],
-    "Humanities and Social Science": [
-        "History",
-        "Literature",
-        "Sociology",
-        "Psychology",
-    ],
-    "Tech and Engineering": [
-        "Agriculture",
-        "Architecture_and_Engineering",
-        "Computer_Science",
-        "Electronics",
-        "Energy_and_Power",
-        "Materials",
-        "Mechanical_Engineering",
-    ],
-}
 
 
 def eval_multi_choice(gold_i, pred_i):
@@ -475,11 +392,3 @@ def get_multi_choice_info(options):
         all_choices.append(chr(ord(start_chr) + i))
 
     return index2ans, all_choices
-
-
-# def process_multiple_choice(dataset):
-#     return dataset.filter(lambda example: example["question_type"] == "multiple-choice")
-
-
-# def process_open_choice(dataset):
-#     return dataset.filter(lambda example: example["question_type"] == "open")

@@ -20,5 +20,6 @@ generation_kwargs:
   image_aspect_ratio: original
 metric_list:
   - metric: mmmu_acc
-    aggregation: !function utils.mmmu_aggregate_results
+    aggregation: mean
     higher_is_better: true
+    # aggregation: !function utils.mmmu_aggregate_results
