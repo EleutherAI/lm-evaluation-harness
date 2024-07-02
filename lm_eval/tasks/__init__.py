@@ -6,6 +6,7 @@ from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.task import ConfigurableGroup, ConfigurableTask, GroupConfig, Task
+from lm_eval.evaluator_utils import get_subtask_list
 
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
@@ -154,8 +155,9 @@ class TaskManager:
             else:
                 task_object = ConfigurableTask(config=config)
 
-            if task != task_object.task_id:
-                task_object.task_id = task
+            # if task != task_object.task_id:
+            #     assert False
+            #     task_object.task_id = task
 
             return {task: task_object}
 
@@ -364,7 +366,7 @@ class TaskManager:
                             if attr in config:
                                 if attr == "group" and print_info:
                                     self.logger.info(
-                                        "`group` and `group_alias` will no longer be used in the next release of lm-eval. "
+                                        "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
                                         "`tag` will be used to allow to call a collection of tasks just like `group`. "
                                         "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
                                         "which will be the offical way to create groups with addition of group-wide configuations."
@@ -413,6 +415,33 @@ def get_task_name_from_object(task_object):
     )
 
 
+def _check_duplicates(task_dict: dict) -> List[str]:
+    """helper function solely used in validating get_task_dict output.
+    Takes the output of lm_eval.evaluator_utils.get_subtask_list and
+    returns a list of all leaf subtasks contained within, and errors if any such leaf subtasks are
+    "oversubscribed" to several disjoint groups.
+    """
+    subtask_names = []
+    for key, value in task_dict.items():
+        subtask_names.extend(value)
+
+    duplicate_tasks = {
+        task_name for task_name in subtask_names if subtask_names.count(task_name) > 1
+    }
+
+    # locate the potentially problematic groups that seem to 'compete' for constituent subtasks
+    competing_groups = [
+        group
+        for group in task_dict.keys()
+        if len(set(task_dict[group]).intersection(duplicate_tasks)) > 0
+    ]
+
+    if len(duplicate_tasks) > 0:
+        raise ValueError(
+            f"Found 1 or more tasks while trying to call get_task_dict() that were members of more than 1 called group: {list(duplicate_tasks)}. Offending groups: {competing_groups}. Please call groups which overlap their constituent tasks in separate evaluation runs."
+        )
+
+
 def get_task_dict(
     task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
@@ -430,6 +459,7 @@ def get_task_dict(
     :return
         Dictionary of task objects
     """
+
     task_name_from_string_dict = {}
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
@@ -476,8 +506,16 @@ def get_task_dict(
     ):
         raise ValueError
 
-    return {
+    final_task_dict = {
         **task_name_from_string_dict,
         **task_name_from_config_dict,
         **task_name_from_object_dict,
     }
+
+    # behavior can get odd if one tries to invoke several groups that "compete" for the same task.
+    # (notably, because one could request several num_fewshot values at once in GroupConfig overrides for the subtask
+    # and we'd be unsure which to use and report.)
+    # we explicitly check and error in this case.
+    _check_duplicates(get_subtask_list(final_task_dict))
+
+    return final_task_dict
