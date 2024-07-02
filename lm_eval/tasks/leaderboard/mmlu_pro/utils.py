@@ -1,5 +1,6 @@
 import string
 
+
 def doc_to_text(doc):
     doc_to_text = f"{doc['question']}\n"
 

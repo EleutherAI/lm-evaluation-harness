@@ -254,13 +254,13 @@ progress in the field.
 ```
 @misc{wang2024mmluprorobustchallengingmultitask,
       title={MMLU-Pro: A More Robust and Challenging Multi-Task Language
-      Understanding Benchmark}, 
+      Understanding Benchmark},
       author={Yubo Wang and Xueguang Ma and Ge Zhang and Yuansheng Ni and Abhranil Chandra and Shiguang Guo and Weiming Ren and Aaran Arulraj and Xuan He and Ziyan Jiang and Tianle Li and Max Ku and Kai Wang and Alex Zhuang and Rongqi Fan and Xiang Yue and Wenhu Chen},
       year={2024},
       eprint={2406.01574},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2406.01574}, 
+      url={https://arxiv.org/abs/2406.01574},
 }
 ```
 
@@ -298,13 +298,13 @@ chain-of-thought to perform robust reasoning.
 ```
 @misc{sprague2024musrtestinglimitschainofthought,
       title={MuSR: Testing the Limits of Chain-of-thought with Multistep Soft
-      Reasoning}, 
+      Reasoning},
       author={Zayne Sprague and Xi Ye and Kaj Bostrom and Swarat Chaudhuri and Greg Durrett},
       year={2024},
       eprint={2310.16049},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2310.16049}, 
+      url={https://arxiv.org/abs/2310.16049},
 }
 ```
 
@@ -317,4 +317,3 @@ chain-of-thought to perform robust reasoning.
 - `leaderboard_musr_murder_mysteries`
 - `leaderboard_musr_object_placements`
 - `leaderboard_musr_team_allocation`
-

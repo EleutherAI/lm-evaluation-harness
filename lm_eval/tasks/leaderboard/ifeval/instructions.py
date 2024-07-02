@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Library of instructions."""
+
 import collections
 import json
 import logging

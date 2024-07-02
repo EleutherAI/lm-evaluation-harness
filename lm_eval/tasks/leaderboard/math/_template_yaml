@@ -26,4 +26,3 @@ dataset_kwargs:
 fewshot_config:
   sampler: first_n
   samples: !function utils.list_fewshot_samples
-
