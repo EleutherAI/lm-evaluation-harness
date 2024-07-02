@@ -9,7 +9,7 @@ from lm_eval.api.metrics import (
     pooled_sample_stderr,
     stderr_for_metric,
 )
-from lm_eval.api.task import ConfigurableGroup, ConfigurableTask
+from lm_eval.api.task import ConfigurableGroup, Task
 from lm_eval.utils import eval_logger, positional_deprecated
 
 
@@ -167,7 +167,7 @@ def get_subtask_list(task_dict, task_root=None, depth=0):
             if isinstance(task_obj, ConfigurableGroup):
                 # group_or_task_name = task_obj.group_name
                 group_or_task_name = task_obj.group_name
-            elif isinstance(task_obj, ConfigurableTask):
+            elif isinstance(task_obj, Task):
                 # group_or_task_name = task_obj.task_name
                 group_or_task_name = task_obj.task_name
 
@@ -237,7 +237,7 @@ def prepare_print_tasks(
             from_configurable_group = True
         elif isinstance(task_or_group_name, str):
             name = task_or_group_name
-            if isinstance(task_or_group_obj, ConfigurableTask):
+            if isinstance(task_or_group_obj, Task):
                 # string_name = task_or_group_obj.task_name
                 name = task_or_group_obj.task_name
             from_configurable_group = False
@@ -378,7 +378,7 @@ def consolidate_group_results(
         else:
             group_config = None
 
-        if isinstance(group_or_task_info, ConfigurableTask):
+        if isinstance(group_or_task_info, Task):
             if task_root:
                 task_aggregation_list.setdefault(task_root, []).append(
                     group_or_task_info.task_name

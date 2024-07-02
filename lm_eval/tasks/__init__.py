@@ -151,13 +151,15 @@ class TaskManager:
                     **config,
                 }
             if self._config_is_python_task(config):
-                task_object = config["class"](config=config)
+                task_object = (
+                    config["class"](config=config)
+                    if isinstance(config["class"], ConfigurableTask)
+                    else config["class"]()
+                )
+                # very scuffed: set task name here TODO: fixme?
+                task_object.config.task = config["task"]
             else:
                 task_object = ConfigurableTask(config=config)
-
-            # if task != task_object.task_id:
-            #     assert False
-            #     task_object.task_id = task
 
             return {task: task_object}
 
@@ -187,7 +189,9 @@ class TaskManager:
             if update_config is not None:
                 # Process name_or_config as a dict instead
                 name_or_config = {"task": name_or_config, **update_config}
-            elif self._name_is_task(name_or_config):
+            elif self._name_is_task(name_or_config) or self._name_is_python_task(
+                name_or_config
+            ):
                 task_config = self._get_config(name_or_config)
                 return _load_task(task_config, task=name_or_config)
             else:
