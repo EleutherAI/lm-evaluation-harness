@@ -6,7 +6,7 @@ Title: `MedConceptsQA: Open Source Medical Concepts QA Benchmark`
 
 Abstract: https://arxiv.org/abs/2405.07348
 
-MedConceptsQA is a dedicated open source benchmark for medical concepts question answering. The benchmark comprises of questions of various medical concepts across different vocabularies: diagnoses, procedures, and drugs. 
+MedConceptsQA is a dedicated open source benchmark for medical concepts question answering. The benchmark comprises of questions of various medical concepts across different vocabularies: diagnoses, procedures, and drugs.
 
 The questions are categorized into three levels of difficulty: easy, medium, and hard.
 
