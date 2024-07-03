@@ -61,6 +61,6 @@ fewshot_config:
       \ strong acid, Nitric acid, will react with the conjugate base. Therefore the\
       \ maximum amount of acid that can be added will be equal to the amount of acetate\
       \ ion, or 2 moles. The answer is (C).\n\n"
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_chemistry
