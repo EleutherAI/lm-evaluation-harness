@@ -894,15 +894,6 @@ class HFLM(TemplateLM):
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
         loglikelihoods = []
-
-        adaptive_batch_size = None
-        if self.batch_size == "auto":
-            # using rolling window with maximum context
-            print("Passed argument batch_size = auto. Detecting largest batch size")
-            batch_size = self._detect_batch_size()
-            print(f"Determined Largest batch size: {batch_size}")
-            adaptive_batch_size = batch_size
-
         for (string,) in tqdm(
             [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
         ):
@@ -936,7 +927,6 @@ class HFLM(TemplateLM):
             string_nll = self._loglikelihood_tokens(
                 requests=rolling_token_windows,
                 disable_tqdm=True,
-                override_bs=adaptive_batch_size,
             )
 
             if (self.world_size > 1) and (pad_amnt > 0):
