@@ -1,0 +1,9 @@
+group: arabicmmlu_language
+group_alias: language
+task:
+  - arabicmmlu_language_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0
