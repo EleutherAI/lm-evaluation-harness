@@ -5,7 +5,8 @@ from functools import partial
 from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
-from lm_eval.api.task import ConfigurableGroup, ConfigurableTask, GroupConfig, Task
+from lm_eval.api.group import ConfigurableGroup, GroupConfig
+from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
 
@@ -153,7 +154,7 @@ class TaskManager:
             if self._config_is_python_task(config):
                 task_object = (
                     config["class"](config=config)
-                    if isinstance(config["class"], ConfigurableTask)
+                    if issubclass(config["class"], ConfigurableTask)
                     else config["class"]()
                 )
                 # very scuffed: set task name here. TODO: fixme?

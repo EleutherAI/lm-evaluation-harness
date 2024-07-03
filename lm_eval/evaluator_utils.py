@@ -4,12 +4,13 @@ import pathlib
 import sys
 from typing import List, Optional, Tuple, Union
 
+from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     pooled_sample_stderr,
     stderr_for_metric,
 )
-from lm_eval.api.task import ConfigurableGroup, Task
+from lm_eval.api.task import Task
 from lm_eval.utils import eval_logger, positional_deprecated
 
 
