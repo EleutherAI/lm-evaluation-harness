@@ -30,6 +30,7 @@ def gigachat_completion(
 ) -> str:
     """Wrapper function around the GigaChat API client with exponential back-off
     in case of RateLimitError.
+    For authorization set environmental variables "GIGACHAT_CREDENTIALS" and "GIGACHAT_SCOPE" for your API auth_data and scope (GIGACHAT_API_CORP or GIGACHAT_API_PERS) respectively.
     Skip sample after 5 retries if there is an error with GigaChat API occurred.
     params:
         client: gigachat.GigaChat
@@ -197,7 +198,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
             import gigachat
         except ModuleNotFoundError:
             raise Exception(
-                "attempted to use 'gigachat' LM type, but packages `gigachat` or `httpx` are installed. \
+                "attempted to use 'gigachat' LM type, but packages `gigachat` or `httpx` are not installed. \
 please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .[gigachat]`",
             )
 
