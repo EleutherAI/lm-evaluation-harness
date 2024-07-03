@@ -1,0 +1,6 @@
+"dataset_name": "Primary Social Science"
+"group": "arabicmmlu_social_science"
+"group_alias": "social science"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_primary_social_science"
+"task_alias": "Primary Social Science"

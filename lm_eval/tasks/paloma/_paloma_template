@@ -1,0 +1,22 @@
+group:
+  - paloma
+dataset_path: allenai/paloma
+output_type: loglikelihood_rolling
+validation_split: val
+test_split: test
+doc_to_text: ""
+doc_to_target: !function paloma_utils.doc_to_target
+should_decontaminate: true
+doc_to_decontamination_query: !function paloma_utils.doc_to_target
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1

@@ -1,0 +1,6 @@
+"dataset_name": "High Biology"
+"group": "arabicmmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_high_biology"
+"task_alias": "High Biology"

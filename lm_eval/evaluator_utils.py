@@ -223,7 +223,7 @@ def prepare_print_tasks(
 
 def consolidate_results(
     eval_tasks: List[TaskOutput],
-) -> Tuple[dict, dict, dict, dict, dict]:
+) -> Tuple[dict, dict, dict, dict, dict, dict]:
     """
     @param eval_tasks: list(TaskOutput).
     @return: A tuple containing the consolidated results, samples, configs, versions, and num_fewshot.
@@ -240,6 +240,8 @@ def consolidate_results(
     - configs: A defaultdict with task names as keys and task configurations as values.
     - versions: A defaultdict with task names as keys and task versions as values.
     - num_fewshot: A defaultdict with task names as keys and number of few-shot samples as values.
+    - higher_is_better: A defaultdict with task names as keys and indicators of whether higher values are better
+    for each metric as values.
 
     The method then returns the consolidated results, samples, configs, versions, and num_fewshot as a tuple.
     """
@@ -273,9 +275,9 @@ def consolidate_results(
                 metric_key
             ]
             results[task_output.task_name]["samples"] = task_output.sample_len
-            results[task_output.task_name][
-                f"{metric}_stderr,{filter_key}"
-            ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
+            results[task_output.task_name][f"{metric}_stderr,{filter_key}"] = (
+                task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
+            )
     return results, samples, configs, versions, num_fewshot, higher_is_better
 
 

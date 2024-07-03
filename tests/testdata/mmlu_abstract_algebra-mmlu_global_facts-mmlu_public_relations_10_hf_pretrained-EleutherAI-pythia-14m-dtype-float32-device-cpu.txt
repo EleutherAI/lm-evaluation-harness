@@ -1,0 +1,5 @@
+|     Tasks      |Version|Filter|n-shot|Metric|   |Value|   |Stderr|
+|----------------|------:|------|-----:|------|---|----:|---|------|
+|abstract_algebra|      0|none  |     0|acc   |↑  |  0.2|±  |N/A   |
+|global_facts    |      0|none  |     0|acc   |↑  |  0.2|±  |N/A   |
+|public_relations|      0|none  |     0|acc   |↑  |  0.2|±  |N/A   |
