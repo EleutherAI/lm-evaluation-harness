@@ -71,12 +71,12 @@ class GroupConfig(dict):
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
     tag_to_task: Optional[str] = False
-    aggregate_metric: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
-    ] = None
-    metadata: Optional[
-        dict
-    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    aggregate_metric: Optional[Union[List[AggMetricConfig], AggMetricConfig, dict]] = (
+        None
+    )
+    metadata: Optional[dict] = (
+        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    )
 
     def __getitem__(self, item):
         return getattr(self, item)

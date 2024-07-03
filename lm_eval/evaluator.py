@@ -688,10 +688,10 @@ def evaluate(
                                     if "N/A" in stderrs:
                                         results[group_or_task][stderr] = "N/A"
                                     else:
-                                        results[group_or_task][
-                                            stderr
-                                        ] = lm_eval.api.metrics.pooled_sample_stderr(
-                                            stderrs, sizes
+                                        results[group_or_task][stderr] = (
+                                            lm_eval.api.metrics.pooled_sample_stderr(
+                                                stderrs, sizes
+                                            )
                                         )
                                         # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
                                         # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:

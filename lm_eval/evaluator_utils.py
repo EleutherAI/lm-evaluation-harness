@@ -344,9 +344,9 @@ def consolidate_results(
                 metric_key
             ]
             results[task_output.task_id]["samples"] = task_output.sample_len
-            results[task_output.task_id][
-                f"{metric}_stderr,{filter_key}"
-            ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
+            results[task_output.task_id][f"{metric}_stderr,{filter_key}"] = (
+                task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
+            )
     return results, samples, configs, versions, num_fewshot, higher_is_better
 
 
