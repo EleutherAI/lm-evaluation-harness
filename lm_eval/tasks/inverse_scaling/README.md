@@ -23,7 +23,7 @@ Homepage: https://github.com/inverse-scaling/prize
 
 #### Groups
 
-* `inverse_scaling_mc`: all tasks of Inverse Scaling Prize (currently aside from Prompt Injection), matching their implementations on OPT.
+* `inverse_scaling_mc`: all tasks of Inverse Scaling Prize (currently aside from Prompt Injection), matching their implementations on OPT for multiple-choice type classification tasks. **These match the published dataset versions from the prize, which may slightly differ from numbers in the paper (but have been tested for equivalence to the OPT numbers reported at https://huggingface.co/inverse-scaling/opt-1.3b_eval for multiple sizes.**
 
 
 #### Tasks
