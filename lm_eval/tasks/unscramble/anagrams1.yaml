@@ -1,4 +1,4 @@
-group:
+tag:
   - unscramble
 task: anagrams1
 dataset_path: EleutherAI/unscramble

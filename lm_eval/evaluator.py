@@ -15,6 +15,7 @@ import lm_eval.api.task
 import lm_eval.models
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
+    consolidate_group_results,
     consolidate_results,
     get_sample_size,
     get_subtask_list,
@@ -26,8 +27,6 @@ from lm_eval.evaluator_utils import (
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import (
-    ConfigurableGroup,
-    ConfigurableTask,
     TaskManager,
     get_task_dict,
 )
@@ -42,7 +41,7 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
-    from lm_eval.tasks import Task
+    from lm_eval.api.task import Task
 
 
 @positional_deprecated
@@ -227,13 +226,15 @@ def simple_evaluate(
 
     task_dict = get_task_dict(tasks, task_manager)
 
-    def _adjust_config(task_dict, predict_only):
+    # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
+    # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
+    def _adjust_config(task_dict):
         adjusted_task_dict = {}
         for task_name, task_obj in task_dict.items():
             if isinstance(task_obj, dict):
                 adjusted_task_dict = {
                     **adjusted_task_dict,
-                    **{task_name: _adjust_config(task_obj, predict_only)},
+                    **{task_name: _adjust_config(task_obj)},
                 }
 
             else:
@@ -278,7 +279,7 @@ def simple_evaluate(
 
         return adjusted_task_dict
 
-    task_dict = _adjust_config(task_dict, predict_only)
+    task_dict = _adjust_config(task_dict)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -575,138 +576,7 @@ def evaluate(
 
         ### Calculate group metrics ###
         if bool(results):
-
-            def process_group(
-                results,
-                versions,
-                task_dict,
-                task_root=None,
-                show_group_table=False,
-                task_aggregation_list=None,
-            ):
-                if task_root is None:
-                    task_root = {}
-
-                if task_aggregation_list is None:
-                    task_aggregation_list = {}
-
-                for group_or_task, group_or_task_info in task_dict.items():
-                    # Convert to string
-                    if isinstance(group_or_task, ConfigurableGroup):
-                        group_config = group_or_task.config
-                        group_or_task = group_or_task.task_id
-                    else:
-                        group_config = None
-
-                    if isinstance(group_or_task_info, ConfigurableTask):
-                        if task_root:
-                            task_aggregation_list.setdefault(task_root, []).append(
-                                group_or_task_info.task_id
-                            )
-                    else:
-                        (
-                            results,
-                            versions,
-                            show_group_table,
-                            _task_aggregation_list,
-                        ) = process_group(
-                            results,
-                            versions,
-                            group_or_task_info,
-                            group_or_task,
-                            show_group_table,
-                            task_aggregation_list,
-                        )
-                        if task_root:
-                            task_aggregation_list.setdefault(task_root, []).extend(
-                                task_aggregation_list.get(group_or_task, [])
-                            )
-
-                        if (group_config is None) or (
-                            group_config["aggregate_metric"] is None
-                        ):
-                            results[group_or_task][" "] = " "
-                            continue
-
-                        if "aggregate_metric" in group_config:
-                            agg_metric_list = group_config["aggregate_metric"]
-
-                        show_group_table = show_group_table | bool(
-                            group_config["aggregate_metric"]
-                        )
-
-                        task_list = _task_aggregation_list[group_or_task]
-
-                        metric_list = list(
-                            {
-                                key
-                                for task in task_list
-                                for key in results[task].keys()
-                                if "_stderr" not in key
-                                and key not in ["task", "alias", "samples"]
-                            }
-                        )
-                        for metric in metric_list:
-                            stderr = "_stderr,".join(metric.split(","))
-
-                            # gather metrics, sizes, and stderrs from subtasks
-                            metrics = [
-                                results[task][metric]
-                                for task in task_list
-                                if metric in results[task]
-                            ]  # TODO: copy?
-                            stderrs = [
-                                results[task][stderr]
-                                for task in task_list
-                                if stderr in results[task]
-                            ]
-                            sizes = [
-                                results[task]["samples"]
-                                for task in task_list
-                                if metric in results[task]
-                            ]
-
-                            for metric_config in agg_metric_list:
-                                for filter in metric_config["filter_list"]:
-                                    if metric != ",".join(
-                                        [metric_config["metric"], filter]
-                                    ):
-                                        continue
-
-                                    # compute group's pooled metric and stderr
-                                    if metric_config["aggregation"] == "mean":
-                                        aggregate_fn = lm_eval.api.metrics.aggregate_subtask_metrics
-                                    else:
-                                        aggregate_fn = metric_config["aggregation"]
-
-                                    results[group_or_task][metric] = aggregate_fn(
-                                        metrics,
-                                        sizes,
-                                        metric_config["weight_by_size"],
-                                    )
-                                    # TODO: calculate grouped metric using aggregation fn
-                                    if "N/A" in stderrs:
-                                        results[group_or_task][stderr] = "N/A"
-                                    else:
-                                        results[group_or_task][stderr] = (
-                                            lm_eval.api.metrics.pooled_sample_stderr(
-                                                stderrs, sizes
-                                            )
-                                        )
-                                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
-                                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
-                                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
-
-                            results[group_or_task]["samples"] = sum(sizes)
-                            group_metadata = group_config.get("metadata", None)
-                            if group_metadata is not None:
-                                versions[group_or_task] = group_metadata.get(
-                                    "version", None
-                                )
-                # print(results)
-                return results, versions, show_group_table, task_aggregation_list
-
-            results, versions, show_group_table, *_ = process_group(
+            results, versions, show_group_table, *_ = consolidate_group_results(
                 results, versions, task_dict
             )
 

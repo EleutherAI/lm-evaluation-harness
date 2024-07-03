@@ -1,4 +1,4 @@
-group: copal_id
+tag: copal_id
 task: copal_id_standard
 task_alias: standard
 dataset_path: haryoaw/COPAL

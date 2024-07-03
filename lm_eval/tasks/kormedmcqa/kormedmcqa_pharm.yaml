@@ -1,4 +1,3 @@
-group: kormedmcqa
 task : kormedmcqa_pharm
 dataset_path : sean0042/KorMedMCQA
 dataset_name : pharm

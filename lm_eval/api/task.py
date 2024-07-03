@@ -22,7 +22,6 @@ from typing import (
 
 import datasets
 import numpy as np
-import shortuuid
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -50,125 +49,6 @@ ALL_OUTPUT_TYPES = [
 ]
 
 eval_logger = logging.getLogger("lm-eval")
-
-
-@dataclass
-class AggMetricConfig(dict):
-    metric: Optional[str] = "acc"
-    metric_alias: Optional[str] = None
-    aggregation: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
-    filter_list: Optional[Union[str, list]] = "none"
-
-    def __post_init__(self):
-        if isinstance(self.filter_list, str):
-            self.filter_list = [self.filter_list]
-
-
-@dataclass
-class GroupConfig(dict):
-    group: Optional[str] = None
-    group_alias: Optional[str] = None
-    task: Optional[Union[str, list]] = None
-    tag_to_task: Optional[str] = False
-    aggregate_metric: Optional[Union[List[AggMetricConfig], AggMetricConfig, dict]] = (
-        None
-    )
-    metadata: Optional[dict] = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def __post_init__(self):
-        if self.aggregate_metric is not None:
-            if isinstance(self.aggregate_metric, dict):
-                self.aggregate_metric = [self.aggregate_metric]
-
-            self.aggregate_metric = [
-                AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in self.aggregate_metric
-            ]
-
-    def to_dict(self, keep_callable: bool = False) -> dict:
-        """dumps the current config as a dictionary object, as a printable format.
-        null fields will not be printed.
-        Used for dumping results alongside full task configuration
-
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-
-        # TODO: should any default value in the TaskConfig not be printed?
-        """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
-        """Serializes a given function or string.
-
-        If 'keep_callable' is True, the original callable is returned.
-        Otherwise, attempts to return the source code of the callable using 'getsource'.
-        """
-        if keep_callable:
-            return value
-        else:
-            try:
-                return getsource(value)
-            except (TypeError, OSError):
-                return str(value)
-
-
-class ConfigurableGroup(abc.ABC):
-    def __init__(
-        self,
-        config: Optional[dict] = None,
-    ) -> None:
-        # Create a unique identifier ID
-        self._config = GroupConfig(**config)
-        self._task_id = self._config.group
-
-    @property
-    def group(self):
-        return self._config.group
-
-    @property
-    def group_alias(self):
-        return self._config.group_alias
-
-    @property
-    def version(self):
-        return self._config.version
-
-    @property
-    def config(self):
-        return self._config.to_dict()
-
-    @property
-    def task_id(self) -> Any:
-        return self._task_id
-
-    @task_id.setter
-    def task_id(self, value):
-        self._task_id = value
-
-    @property
-    def group_name(self) -> Any:
-        return self._config.group
-
-    def __repr__(self):
-        return (
-            f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"
-        )
 
 
 @dataclass
@@ -217,6 +97,18 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
+        if self.group is not None:
+            eval_logger.warning(
+                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            )
+
+            if self.tag is None:
+                self.tag = self.group
+            else:
+                raise ValueError(
+                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
+                )
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -346,8 +238,6 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
-        # Create a unique identifier ID
-        self._task_id = shortuuid.uuid()[:8]
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -805,14 +695,6 @@ class Task(abc.ABC):
         )
         return doc_iterator
 
-    @property
-    def task_id(self) -> Any:
-        return self._task_id
-
-    @task_id.setter
-    def task_id(self, value):
-        self._task_id = value
-
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -826,9 +708,6 @@ class ConfigurableTask(Task):
         download_mode=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
-        # Create a unique identifier ID
-        self._task_id = shortuuid.uuid()[:8]
-
         # Get pre-configured attributes
         self._config = self.CONFIG
 
