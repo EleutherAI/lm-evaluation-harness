@@ -288,7 +288,7 @@ class NEURON_HF(TemplateLM):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.add_bos_token = self.add_bos_token
+        self.add_bos_token = add_bos_token
 
         self._max_length = max_length
 
