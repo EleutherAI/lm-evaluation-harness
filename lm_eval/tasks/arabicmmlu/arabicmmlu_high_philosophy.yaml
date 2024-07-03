@@ -1,0 +1,6 @@
+"dataset_name": "High Philosophy"
+"group": "arabicmmlu_humanities"
+"group_alias": "humanities"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_high_philosophy"
+"task_alias": "High Philosophy"
