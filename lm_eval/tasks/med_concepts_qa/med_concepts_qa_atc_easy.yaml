@@ -1,6 +1,6 @@
 dataset_name: atc_easy
 group: mcqa_atc
-group_alias: atc
+group_alias: ATC
 include: _default_template_yaml
 task: med_concepts_qa_atc_easy
-task_alias: atc_easy
+task_alias: ATC - Easy

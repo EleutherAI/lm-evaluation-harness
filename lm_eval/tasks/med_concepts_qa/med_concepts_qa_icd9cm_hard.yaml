@@ -1,6 +1,6 @@
 dataset_name: icd9cm_hard
 group: mcqa_icd9cm
-group_alias: icd9cm
+group_alias: ICD9-CM
 include: _default_template_yaml
 task: med_concepts_qa_icd9cm_hard
-task_alias: icd9cm_hard
+task_alias: ICD9-CM - Hard

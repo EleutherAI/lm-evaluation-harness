@@ -1,6 +1,6 @@
 dataset_name: icd10cm_easy
 group: mcqa_icd10cm
-group_alias: icd10cm
+group_alias: ICD10-CM
 include: _default_template_yaml
 task: med_concepts_qa_icd10cm_easy
-task_alias: icd10cm_easy
+task_alias: ICD10-CM - Easy
