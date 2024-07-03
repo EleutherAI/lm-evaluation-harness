@@ -5,6 +5,7 @@ test_split: train
 doc_to_text: prompt
 doc_to_choice: classes
 doc_to_target: answer_index
+target_delimiter: ""
 metric_list:
   - metric: acc
     aggregation: mean
