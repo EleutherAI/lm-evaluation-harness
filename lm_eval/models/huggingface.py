@@ -683,6 +683,8 @@ class HFLM(TemplateLM):
         SECURITY_MARGIN_FACTOR_GENERATE_UNTIL = 1
 
         if len(requests[0]) == 3:  # logprob evals
+            # for logprob evals, we use the maximum context length + continuation length
+            # as the default for computing batch size
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
                 (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
@@ -691,7 +693,9 @@ class HFLM(TemplateLM):
             max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
             security_margin_factor = SECURITY_MARGIN_FACTOR_LOG_PROBS
         elif len(requests[0]) == 2:  # generative evals
-            # using rolling window with maximum context
+            # for generative evals, we use either the maximum context length of the model
+            # or the longest context of the requests, whichever is shorter as it will be truncated
+            # + the allowed maximum generation length
             longest_context = max(
                 [
                     len(self.tok_encode(request[0]))
@@ -731,7 +735,7 @@ class HFLM(TemplateLM):
                     (batch_size + security_margin, max_length), device=self.device
                 ).long()
 
-            for _ in range(5 * security_margin_factor):
+            for _ in range(5):
                 logits = self._model_call(inps=test_batch, **call_kwargs).float()
                 scores = F.log_softmax(logits, dim=-1)  # noqa: F841
 
