@@ -289,7 +289,9 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
     keys = result_dict[column].keys()
     if sort_results:
-        # sort entries alphabetically
+        # sort entries alphabetically by task or group name.
+        # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
+        # sorting here would mess that up
         keys = sorted(keys)
     for k in keys:
         dic = result_dict[column][k]

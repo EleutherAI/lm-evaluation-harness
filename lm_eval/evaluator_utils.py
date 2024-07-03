@@ -227,14 +227,32 @@ def prepare_print_tasks(
 
     Prepares the task hierarchy and aggregates the results for each task and group recursively for printing.
     """
+
+    def _sort_task_dict(task_dict):
+        """
+        Helper utility. Sorts the task dict at the current level of the hierarchy based on alphabetized task name.
+        Required so that we end up sorting within each sub-header correctly.
+        """
+
+        return dict(
+            sorted(
+                task_dict.items(),
+                key=lambda item: item[0].group_name
+                if isinstance(item[0], ConfigurableGroup)
+                else item[0],
+            )
+        )
+
     task_agg = collections.defaultdict(dict)
     group_agg = collections.defaultdict(dict)
+    task_dict = _sort_task_dict(task_dict)
     for task_or_group_name, task_or_group_obj in task_dict.items():
         tab_string = " " * task_depth + "- " if task_depth > 0 else ""
         if isinstance(task_or_group_name, ConfigurableGroup):
             # string_name = task_or_group_name.group_name
             name = task_or_group_name.group_name
             from_configurable_group = True
+            task_or_group_obj = _sort_task_dict(task_or_group_obj)
         elif isinstance(task_or_group_name, str):
             name = task_or_group_name
             if isinstance(task_or_group_obj, Task):

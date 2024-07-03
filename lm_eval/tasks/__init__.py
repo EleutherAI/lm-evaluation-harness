@@ -156,7 +156,7 @@ class TaskManager:
                     if isinstance(config["class"], ConfigurableTask)
                     else config["class"]()
                 )
-                # very scuffed: set task name here TODO: fixme?
+                # very scuffed: set task name here. TODO: fixme?
                 task_object.config.task = config["task"]
             else:
                 task_object = ConfigurableTask(config=config)
