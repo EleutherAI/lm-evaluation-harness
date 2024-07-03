@@ -1,4 +1,4 @@
-group:
+tag:
   - inverse_scaling_mc
 output_type: multiple_choice
 test_split: train

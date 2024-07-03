@@ -5,7 +5,7 @@ task:
   - bbh_cot_fewshot_date_understanding
   - bbh_cot_fewshot_disambiguation_qa
   - bbh_cot_fewshot_dyck_languages
-  - bbh_cot_fewshot_formal_languages
+  - bbh_cot_fewshot_formal_fallacies
   - bbh_cot_fewshot_geometric_shapes
   - bbh_cot_fewshot_hyperbaton
   - bbh_cot_fewshot_logical_deduction_five_objects
