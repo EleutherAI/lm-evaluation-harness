@@ -38,17 +38,18 @@ Homepage: https://github.com/hitachi-nlp/FLD
 
 ### Groups and Tasks
 
-#### Groups
-
-* `fld`
-
-#### Tasks
-
 This release is the simplified version of FLD where a model is required to predict only an answer.
 This setting is described by "answer accuracy" in the original paper.
 
+#### Tasks in Group `fld`
 * `fld_default` is a basic task based on [FLD.v2](https://huggingface.co/datasets/hitachi-nlp/FLD.v2/viewer/star)
 * `fld_star`: is a more challenging version based on [FLD.v2-star](https://huggingface.co/datasets/hitachi-nlp/FLD.v2/viewer/star)
+
+#### Tasks in Group `fld_logical_formula`
+Further, we have "logical formula" versions of the benchmarks, which evaluate LLMs' pure logical reasoning capabilities within the domain of logical formulas, rather than natural language:
+* `fld_logical_formula_default`
+* `fld_logical_formula_fld_star`
+
 
 ### Checklist
 

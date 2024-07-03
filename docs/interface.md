@@ -102,11 +102,9 @@ results = lm_eval.simple_evaluate( # call simple_evaluate
 )
 ```
 
-See https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/evaluator.py#L35 for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
+See the `simple_evaluate()` and `evaluate()` functions in [lm_eval/evaluator.py](../lm_eval/evaluator.py#:~:text=simple_evaluate) for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
 
 Additionally, the `evaluate()` function offers the core evaluation functionality provided by the library, but without some of the special handling and simplification + abstraction provided by `simple_evaluate()`.
-
-See https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/evaluator.py#L173 for more details.
 
 As a brief example usage of `evaluate()`:
 
@@ -147,7 +145,7 @@ task_dict = lm_eval.tasks.get_task_dict(
     task_manager # A task manager that allows lm_eval to
                  # load the task during evaluation.
                  # If none is provided, `get_task_dict`
-                 # will instantiated one itself, but this
+                 # will instantiate one itself, but this
                  # only includes the stock tasks so users
                  # will need to set this if including
                  # custom paths is required.
