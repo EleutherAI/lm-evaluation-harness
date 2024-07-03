@@ -1,6 +1,6 @@
 dataset_name: atc_hard
-group: mcqa_atc
-group_alias: ATC
+group: med_concepts_qa_atc
+group_alias: atc
 include: _default_template_yaml
 task: med_concepts_qa_atc_hard
-task_alias: ATC - Hard
+task_alias: atc_hard

@@ -1,7 +1,7 @@
 group: med_concepts_qa
 task:
-  - mcqa_icd9cm
-  - mcqa_icd10cm
-  - mcqa_icd9proc
-  - mcqa_icd10proc
-  - mcqa_atc
+  - med_concepts_qa_icd9cm
+  - med_concepts_qa_icd10cm
+  - med_concepts_qa_icd9proc
+  - med_concepts_qa_icd10proc
+  - med_concepts_qa_atc

@@ -1,6 +1,6 @@
 dataset_name: icd9proc_hard
-group: mcqa_icd9proc
-group_alias: ICD9-Proc
+group: med_concepts_qa_icd9proc
+group_alias: icd9proc
 include: _default_template_yaml
 task: med_concepts_qa_icd9proc_hard
-task_alias: ICD9-Proc - Hard
+task_alias: icd9proc_hard

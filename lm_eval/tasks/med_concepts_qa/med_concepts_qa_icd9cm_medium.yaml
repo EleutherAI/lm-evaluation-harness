@@ -1,6 +1,6 @@
 dataset_name: icd9cm_medium
-group: mcqa_icd9cm
-group_alias: ICD9-CM
+group: med_concepts_qa_icd9cm
+group_alias: icd9cm
 include: _default_template_yaml
 task: med_concepts_qa_icd9cm_medium
-task_alias: ICD9-CM - Medium
+task_alias: icd9cm_medium

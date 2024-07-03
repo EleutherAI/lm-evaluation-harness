@@ -6,7 +6,7 @@ import yaml
 def generate_yaml_content(vocab_name: str, level: str):
     content = {
         "dataset_name": f"{vocab_name}_{level}",
-        "group": vocab_name,
+        "group": f"med_concepts_qa_{vocab_name}",
         "group_alias": vocab_name,
         "include": "_default_template_yaml",
         "task": f"med_concepts_qa_{vocab_name}_{level}",
