@@ -1,0 +1,6 @@
+"dataset_name": "Primary General Knowledge"
+"group": "arabicmmlu_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_primary_general_knowledge"
+"task_alias": "Primary General Knowledge"

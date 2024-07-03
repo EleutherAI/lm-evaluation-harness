@@ -1,0 +1,6 @@
+"dataset_name": "Primary Geography"
+"group": "arabicmmlu_social_science"
+"group_alias": "social science"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_primary_geography"
+"task_alias": "Primary Geography"
