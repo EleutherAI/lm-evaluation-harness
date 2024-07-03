@@ -32,7 +32,7 @@ Homepage: https://github.com/inverse-scaling/prize
 - `inverse_scaling_redefine_math`
 - `inverse_scaling_quote_repetition`
 - `inverse_scaling_neqa`
-- `inverse_scaling_winobias_antistereotype`
+- `inverse_scaling_winobias_antistereotype`: not an official Inverse Scaling prize winner, but eval results reported on it at https://huggingface.co/inverse-scaling/opt-1.3b_eval . 
 - `inverse_scaling_into_the_unknown`
 - `inverse_scaling_memo_trap`
 - `inverse_scaling_modus_tollens`
