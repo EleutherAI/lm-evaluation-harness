@@ -1,5 +1,5 @@
 dataset_name: icd9proc_hard
-group: icd9proc
+group: mcqa_icd9proc
 group_alias: icd9proc
 include: _default_template_yaml
 task: med_concepts_qa_icd9proc_hard

@@ -1,5 +1,5 @@
 dataset_name: icd9cm_medium
-group: icd9cm
+group: mcqa_icd9cm
 group_alias: icd9cm
 include: _default_template_yaml
 task: med_concepts_qa_icd9cm_medium

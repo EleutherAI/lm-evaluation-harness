@@ -1,5 +1,5 @@
 dataset_name: icd10cm_easy
-group: icd10cm
+group: mcqa_icd10cm
 group_alias: icd10cm
 include: _default_template_yaml
 task: med_concepts_qa_icd10cm_easy

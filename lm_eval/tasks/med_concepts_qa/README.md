@@ -32,16 +32,16 @@ Our benchmark serves as a valuable resource for evaluating the understanding and
 #### Tasks
 
 
-* `ICD9-CM` - ICD9-CM (diagnosis codes, ICD9 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-9-CM (International Classification of Diseases, 9th Revision, Clinical Modification) diagnosis codes.
+* `mcqa_icd9cm` - ICD9-CM (diagnosis codes, ICD9 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-9-CM (International Classification of Diseases, 9th Revision, Clinical Modification) diagnosis codes.
 
 
-* `ICD10-CM` - ICD10-CM (diagnosis codes, ICD10 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-10-CM (International Classification of Diseases, 10th Revision, Clinical Modification) diagnosis codes.
+* `mcqa_icd10cm` - ICD10-CM (diagnosis codes, ICD10 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-10-CM (International Classification of Diseases, 10th Revision, Clinical Modification) diagnosis codes.
 
 
-* `ICD9-PROC` - ICD9-Proc (procedure codes, ICD9 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-9-PCS (International Classification of Diseases, 9th Revision, Procedure Coding System) procedure codes.
+* `mcqa_icd9proc` - ICD9-Proc (procedure codes, ICD9 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-9-PCS (International Classification of Diseases, 9th Revision, Procedure Coding System) procedure codes.
 
 
-* `ICD10-PROC` - ICD10-Proc (procedure codes, ICD10 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-10-PCS (International Classification of Diseases, 10th Revision, Procedure Coding System) procedure codes.
+* `mcqa_icd10proc` - ICD10-Proc (procedure codes, ICD10 format) question-answering. This involves providing information, clarifications, and answering questions related to ICD-10-PCS (International Classification of Diseases, 10th Revision, Procedure Coding System) procedure codes.
 
 
-* `ATC` - ATC (Anatomical Therapeutic Chemical Classification System) question-answering. This involves providing information, clarifications, and answering questions related to the ATC classification system, which is used for the classification of drugs and other medical products according to the organ or system on which they act and their therapeutic, pharmacological, and chemical properties.
+* `mcqa_atc` - ATC (Anatomical Therapeutic Chemical Classification System) question-answering. This involves providing information, clarifications, and answering questions related to the ATC classification system, which is used for the classification of drugs and other medical products according to the organ or system on which they act and their therapeutic, pharmacological, and chemical properties.
