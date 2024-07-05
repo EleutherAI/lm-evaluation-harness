@@ -1,0 +1,16 @@
+group: galician_bench
+task:
+  - belebele_glg_Latn
+  - flores_gl
+  - galcola
+  - summarization_gl
+  - parafrases_gl
+  - paws_gl
+  - openbookqa_gl
+  - mgsm_direct_gl
+  - veritasqa_gen_gl
+  - veritasqa_mc1_gl
+  - veritasqa_mc2_gl
+  - truthfulqa_gl
+metadata:
+  version: 1.0

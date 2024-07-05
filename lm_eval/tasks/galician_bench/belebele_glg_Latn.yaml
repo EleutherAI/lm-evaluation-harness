@@ -1,0 +1,10 @@
+# Task configuration directly taken from Eleuther AI's implementation as of March 22, 2024
+group:
+    - belebele
+task: belebele_glg_Latn
+include: ../belebele/_default_template_yaml
+dataset_path: proxectonos/belebele_gl
+fewshot_split: train
+test_split: train
+metadata:
+  version: 1.0
