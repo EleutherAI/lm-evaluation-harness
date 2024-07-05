@@ -1,0 +1,69 @@
+{
+    "params": {
+        "name": "Phi-3-mini - 10 samples - no chat template",
+        "output_path": "tests_results/phi3_10samples_nochat/",
+        "system_instruction": null,
+        "chat_template": null,
+        "model": "hf",
+        "model_args": "pretrained=microsoft/Phi-3-mini-4k-instruct",
+        "model_num_parameters": 3821079552,
+        "model_revision": "main",
+        "model_sha": "c1358f8a35e6d2af81890deffbbfa575b978c62f",
+        "batch_size": 1,
+        "max_batch_size": 1,
+        "device": "gpu",
+        "use_cache": null,
+        "write_out": false,
+        "check_integrity": false,
+        "log_samples": true,
+        "apply_chat_template": false,
+        "fewshot_as_multiturn": false,
+        "gen_kwargs": null,
+        "verbosity": "INFO",
+        "predict_only": false,
+        "default_seed_string": "0,1234,1234,1234",
+        "fewshot_seed": 1234,
+        "numpy_seed": 1234,
+        "random_seed": 0,
+        "torch_seed": 1234
+    },
+    "tasks": {
+        "leaderboard_mmlu_pro": {
+            "limit": 10,
+            "num_fewshot": 0,
+            "dataset_path": "TIGER-Lab/MMLU-Pro",
+            "description": "",
+            "doc_to_choice": "def doc_to_choice(doc):\n    return [string.ascii_uppercase[i] for i in range(len(doc[\"options\"]))]\n",
+            "doc_to_target": "answer",
+            "doc_to_text": "def doc_to_text(doc):\n    doc_to_text = f\"{doc['question']}\\n\"\n\n    for i in range(len(doc[\"options\"])):\n        doc_to_text += f\"{string.ascii_uppercase[i]}. {doc['options'][i]}\\n\"\n\n    doc_to_text += \"Answer:\"\n    return doc_to_text\n",
+            "fewshot_config": {"sampler": "first_n"},
+            "fewshot_delimiter": "\n\n",
+            "fewshot_split": "validation",
+            "metadata": {"version": 0.1},
+            "output_type": "multiple_choice",
+            "repeats": 1,
+            "should_decontaminate": false,
+            "target_delimiter": " ",
+            "task": "leaderboard_mmlu_pro",
+            "test_split": "test",
+            "results": {
+                "acc,none": 0.6,
+                "acc_stderr,none": 0.16329931618554522
+            }
+        }
+    },
+    "n_samples": {
+        "leaderboard_mmlu_pro": {"effective": 10, "original": 12032}
+    },
+    "task_hashes": {
+        "leaderboard_mmlu_pro": "7f97cab7691eb6dbdbc6c1482bc5ea71c36c5697dea88e61e51d770ba022d771"
+    },
+    "versions": {
+        "leaderboard_mmlu_pro": 0.1
+    },
+    "transformers_version": "4.41.1",
+    "system_instruction_sha": null,
+    "chat_template_sha": null,
+    "max_length": 4096,
+    "eot_token_id": 32000
+}
