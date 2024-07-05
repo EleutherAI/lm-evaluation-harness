@@ -1,5 +1,6 @@
 import copy
 import os
+from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
@@ -7,6 +8,7 @@ import torch
 import torch.nn.functional as F
 import transformers
 from accelerate import Accelerator, DistributedType, find_executable_batch_size
+from accelerate.utils import InitProcessGroupKwargs
 from packaging import version
 from peft import PeftModel
 from peft import __version__ as PEFT_VERSION
@@ -99,6 +101,10 @@ class HFLM(LM):
         **kwargs,
     ) -> None:
         super().__init__()
+        nccl_timeout = timedelta(seconds=float(kwargs.pop("nccl_timeout", 3600)))
+        if nccl_timeout == timedelta(seconds=1800):
+            eval_logger.warn("nccl_timeout cannot be set to 1800 due to a bug in accelerate. Setting to 1800.001 instead.")
+            nccl_timeout += timedelta(milliseconds=1)
 
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
@@ -132,7 +138,7 @@ class HFLM(LM):
             assert isinstance(batch_size, (int, str))
 
             gpus = torch.cuda.device_count()
-            accelerator = Accelerator()
+            accelerator = Accelerator(kwargs_handlers=[InitProcessGroupKwargs(timeout=nccl_timeout)])
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
