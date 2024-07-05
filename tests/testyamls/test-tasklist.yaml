@@ -1,0 +1,12 @@
+# Arc Easy 2-shots
+- task: arc_easy-2-shot
+  include: lm_eval/tasks/arc/arc_easy.yaml
+  num_fewshot: 2
+# Arc Easy 4-shots
+- task: arc_easy-4-shot
+  include: lm_eval/tasks/arc/arc_easy.yaml
+  num_fewshot: 4
+# Arc Easy 8-shots
+- task: arc_easy-8-shot
+  include: lm_eval/tasks/arc/arc_easy.yaml
+  num_fewshot: 8
