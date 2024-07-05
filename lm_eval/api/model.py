@@ -246,9 +246,10 @@ class CachingLM:
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str):
         lm_attr = getattr(self.lm, attr)
-        if not callable(lm_attr):
+        if attr not in ["loglikelihood", "loglikelihood_rolling", "generate_until"]:
+            eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
         def fn(requests):

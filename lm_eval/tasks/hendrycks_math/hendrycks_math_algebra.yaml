@@ -1,4 +1,4 @@
-group:
+tag:
   - math_word_problems
 task: hendrycks_math_algebra
 dataset_path: EleutherAI/hendrycks_math

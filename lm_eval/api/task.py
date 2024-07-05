@@ -22,7 +22,6 @@ from typing import (
 
 import datasets
 import numpy as np
-import shortuuid
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -53,104 +52,12 @@ eval_logger = logging.getLogger("lm-eval")
 
 
 @dataclass
-class GroupConfig(dict):
-    group: Optional[str] = None
-    group_alias: Optional[str] = None
-    task: Optional[Union[str, list]] = None
-    tag_to_task: Optional[str] = False
-    aggregate_metric: Optional[str] = False
-    aggregate_fn: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
-    metric_alias: Optional[str] = None
-    version: Optional[str] = 0
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def to_dict(self, keep_callable: bool = False) -> dict:
-        """dumps the current config as a dictionary object, as a printable format.
-        null fields will not be printed.
-        Used for dumping results alongside full task configuration
-
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-
-        # TODO: should any default value in the TaskConfig not be printed?
-        """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
-        """Serializes a given function or string.
-
-        If 'keep_callable' is True, the original callable is returned.
-        Otherwise, attempts to return the source code of the callable using 'getsource'.
-        """
-        if keep_callable:
-            return value
-        else:
-            try:
-                return getsource(value)
-            except (TypeError, OSError):
-                return str(value)
-
-
-class ConfigurableGroup(abc.ABC):
-    def __init__(
-        self,
-        config: Optional[dict] = None,
-    ) -> None:
-        # Create a unique identifier ID
-        self._task_id = shortuuid.uuid()[:8]
-        self._config = GroupConfig(**config)
-
-    @property
-    def group(self):
-        return self._config.group
-
-    @property
-    def group_alias(self):
-        return self._config.group_alias
-
-    @property
-    def version(self):
-        return self._config.version
-
-    @property
-    def config(self):
-        return self._config.to_dict()
-
-    @property
-    def task_id(self) -> Any:
-        return "-".join((self.group_name, self._task_id))
-
-    @property
-    def group_name(self) -> Any:
-        return self._config.group
-
-    def __repr__(self):
-        return (
-            f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"
-        )
-
-
-@dataclass
 class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
-    group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -160,9 +67,9 @@ class TaskConfig(dict):
     training_split: Optional[str] = None
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
-    fewshot_split: Optional[
-        str
-    ] = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+    fewshot_split: Optional[str] = (
+        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+    )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
@@ -185,11 +92,23 @@ class TaskConfig(dict):
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
-    metadata: Optional[
-        dict
-    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    metadata: Optional[dict] = (
+        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    )
 
     def __post_init__(self) -> None:
+        if self.group is not None:
+            eval_logger.warning(
+                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            )
+
+            if self.tag is None:
+                self.tag = self.group
+            else:
+                raise ValueError(
+                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
+                )
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -319,14 +238,12 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
-        # Create a unique identifier ID
-        self._task_id = shortuuid.uuid()[:8]
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[
-            random.Random
-        ] = None  # purposely induce errors in case of improper usage
+        self.fewshot_rnd: Optional[random.Random] = (
+            None  # purposely induce errors in case of improper usage
+        )
 
     def download(
         self,
@@ -463,15 +380,16 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit=None,
-        rank=None,
-        world_size=None,
-        cache_requests=False,
-        rewrite_requests_cache=False,
-        system_instruction=None,
-        apply_chat_template=False,
-        fewshot_as_multiturn=False,
-        lm=None,
+        limit: Union[int, None] = None,
+        rank: int = 0,
+        world_size: int = 1,
+        cache_requests: bool = False,
+        rewrite_requests_cache: bool = False,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable] = None,
+        tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -486,7 +404,7 @@ class Task(abc.ABC):
             if system_instruction is not None
             else ""
         )
-        cache_key += f"-tokenizer{lm.tokenizer_name}" if apply_chat_template else ""
+        cache_key += f"-tokenizer{tokenizer_name}"
 
         cached_instances = load_from_cache(file_name=cache_key)
 
@@ -531,7 +449,7 @@ class Task(abc.ABC):
                 system_instruction,
                 apply_chat_template,
                 fewshot_as_multiturn,
-                lm,
+                chat_template,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -777,10 +695,6 @@ class Task(abc.ABC):
         )
         return doc_iterator
 
-    @property
-    def task_id(self) -> Any:
-        return self._task_id
-
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -794,9 +708,6 @@ class ConfigurableTask(Task):
         download_mode=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
-        # Create a unique identifier ID
-        self._task_id = shortuuid.uuid()[:8]
-
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -1116,7 +1027,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        lm=None,
+        chat_template: Optional[Callable] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1131,8 +1042,8 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param lm:
-            Language model with definition of the tokenizer/function to use for applying the chat template.
+        :param chat_template: Callable
+            Chat template to be applied to the fewshot context.
         :returns: str
             The fewshot context.
         """
@@ -1179,7 +1090,7 @@ class ConfigurableTask(Task):
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
-                return lm.apply_chat_template(labeled_examples)
+                return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
                     labeled_examples, example, fewshot_as_multiturn
@@ -1191,7 +1102,7 @@ class ConfigurableTask(Task):
                 for ex in example:
                     chat = deepcopy(labeled_examples)
                     self.append_target_question(chat, ex, fewshot_as_multiturn)
-                    labeled_examples_list.append(lm.apply_chat_template(chat))
+                    labeled_examples_list.append(chat_template(chat))
                 return labeled_examples_list
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
@@ -1205,7 +1116,7 @@ class ConfigurableTask(Task):
                         labeled_examples, str(example), fewshot_as_multiturn
                     )
                 # return lm.apply_chat_template(labeled_examples)
-            return lm.apply_chat_template(labeled_examples)
+            return chat_template(labeled_examples)
         else:
             if self.multiple_input:
                 return labeled_examples
@@ -1620,10 +1531,6 @@ class ConfigurableTask(Task):
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
-
-    @property
-    def task_id(self) -> Any:
-        return "-".join((self.task_name, self._task_id))
 
     @property
     def task_name(self) -> Any:

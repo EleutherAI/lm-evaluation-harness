@@ -50,6 +50,6 @@ fewshot_config:
       for help. If a public relations media practitioner does not know the answer
       to a reporter''s question, they should say ''I don''t know'' and offer to provide
       the information later. The answer is (C).'
-group: mmlu_flan_cot_fewshot_social_sciences
+tag: mmlu_flan_cot_fewshot_social_sciences
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_public_relations

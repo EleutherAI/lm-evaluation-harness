@@ -5,7 +5,9 @@ from functools import partial
 from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
-from lm_eval.api.task import ConfigurableGroup, ConfigurableTask, GroupConfig, Task
+from lm_eval.api.group import ConfigurableGroup, GroupConfig
+from lm_eval.api.task import ConfigurableTask, Task
+from lm_eval.evaluator_utils import get_subtask_list
 
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
@@ -17,27 +19,43 @@ class TaskManager:
 
     """
 
-    def __init__(self, verbosity="INFO", include_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        verbosity="INFO",
+        include_path: Optional[Union[str, List]] = None,
+        include_defaults: bool = True,
+    ) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
-        self._task_index = self.initialize_tasks(include_path=include_path)
+        self._task_index = self.initialize_tasks(
+            include_path=include_path, include_defaults=include_defaults
+        )
         self._all_tasks = sorted(list(self._task_index.keys()))
 
         self.task_group_map = collections.defaultdict(list)
 
-    def initialize_tasks(self, include_path: Optional[str] = None):
+    def initialize_tasks(
+        self,
+        include_path: Optional[Union[str, List]] = None,
+        include_defaults: bool = True,
+    ):
         """Creates a dictionary of tasks index.
 
-        :param include_path: str = None
-            An additional path to be searched for tasks
-
+        :param include_path: Union[str, List] = None
+            An additional path to be searched for tasks recursively.
+            Can provide more than one such path as a list.
+        :param include_defaults: bool = True
+            If set to false, default tasks (those in lm_eval/tasks/) are not indexed.
         :return
             Dictionary of task names as key and task metadata
         """
-        all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        if include_defaults:
+            all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        else:
+            all_paths = []
         if include_path is not None:
             if isinstance(include_path, str):
                 include_path = [include_path]
@@ -150,9 +168,16 @@ class TaskManager:
                     **config,
                 }
             if self._config_is_python_task(config):
-                task_object = config["class"]()
+                task_object = (
+                    config["class"](config=config)
+                    if issubclass(config["class"], ConfigurableTask)
+                    else config["class"]()
+                )
+                # very scuffed: set task name here. TODO: fixme?
+                task_object.config.task = config["task"]
             else:
                 task_object = ConfigurableTask(config=config)
+
             return {task: task_object}
 
         def _get_group_and_subtask_from_config(config):
@@ -181,7 +206,9 @@ class TaskManager:
             if update_config is not None:
                 # Process name_or_config as a dict instead
                 name_or_config = {"task": name_or_config, **update_config}
-            elif self._name_is_task(name_or_config):
+            elif self._name_is_task(name_or_config) or self._name_is_python_task(
+                name_or_config
+            ):
                 task_config = self._get_config(name_or_config)
                 doc_to_text = task_config.get("doc_to_text", None)
                 if isinstance(doc_to_text, list):
@@ -204,9 +231,20 @@ class TaskManager:
                         group_config
                     )
                 else:
-                    group_name = ConfigurableGroup(
-                        config={"group": name_or_config, "task": subtask_list}
-                    )
+                    if self._name_is_tag(name_or_config):
+                        fn = partial(
+                            self._load_individual_task_or_group,
+                            update_config=name_or_config
+                            if isinstance(name_or_config, dict)
+                            else None,
+                        )
+                        return dict(
+                            collections.ChainMap(*map(fn, reversed(subtask_list)))
+                        )
+                    else:
+                        group_name = ConfigurableGroup(
+                            config={"group": name_or_config, "task": subtask_list}
+                        )
 
         if isinstance(name_or_config, dict):
             if self._config_is_task(name_or_config):
@@ -325,8 +363,13 @@ class TaskManager:
         """
         # TODO: remove group in next release
         print_info = True
+        ignore_dirs = [
+            "__pycache__",
+            ".ipynb_checkpoints",
+        ]
         tasks_and_groups = collections.defaultdict()
-        for root, _, file_list in os.walk(task_dir):
+        for root, dirs, file_list in os.walk(task_dir):
+            dirs[:] = [d for d in dirs if d not in ignore_dirs]
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
@@ -371,12 +414,13 @@ class TaskManager:
                             if attr in config:
                                 if attr == "group" and print_info:
                                     self.logger.info(
-                                        "`group` and `group_alias` will no longer be used in the next release of lm-eval. "
-                                        "`tags` will be used to allow to call a collection of tasks just like `group`. "
+                                        "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
+                                        "`tag` will be used to allow to call a collection of tasks just like `group`. "
                                         "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
                                         "which will be the offical way to create groups with addition of group-wide configuations."
                                     )
                                     print_info = False
+                                    # attr = "tag"
 
                                 attr_list = config[attr]
                                 if isinstance(attr_list, str):
@@ -389,6 +433,12 @@ class TaskManager:
                                             "task": [task],
                                             "yaml_path": -1,
                                         }
+                                    elif tasks_and_groups[tag]["type"] != "tag":
+                                        self.logger.info(
+                                            f"The tag {tag} is already registered as a group, this tag will not be registered. "
+                                            "This may affect tasks you want to call."
+                                        )
+                                        break
                                     else:
                                         tasks_and_groups[tag]["task"].append(task)
                     else:
@@ -419,6 +469,33 @@ def get_task_name_from_object(task_object):
     )
 
 
+def _check_duplicates(task_dict: dict) -> List[str]:
+    """helper function solely used in validating get_task_dict output.
+    Takes the output of lm_eval.evaluator_utils.get_subtask_list and
+    returns a list of all leaf subtasks contained within, and errors if any such leaf subtasks are
+    "oversubscribed" to several disjoint groups.
+    """
+    subtask_names = []
+    for key, value in task_dict.items():
+        subtask_names.extend(value)
+
+    duplicate_tasks = {
+        task_name for task_name in subtask_names if subtask_names.count(task_name) > 1
+    }
+
+    # locate the potentially problematic groups that seem to 'compete' for constituent subtasks
+    competing_groups = [
+        group
+        for group in task_dict.keys()
+        if len(set(task_dict[group]).intersection(duplicate_tasks)) > 0
+    ]
+
+    if len(duplicate_tasks) > 0:
+        raise ValueError(
+            f"Found 1 or more tasks while trying to call get_task_dict() that were members of more than 1 called group: {list(duplicate_tasks)}. Offending groups: {competing_groups}. Please call groups which overlap their constituent tasks in separate evaluation runs."
+        )
+
+
 def get_task_dict(
     task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
@@ -436,6 +513,7 @@ def get_task_dict(
     :return
         Dictionary of task objects
     """
+
     task_name_from_string_dict = {}
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
@@ -482,8 +560,16 @@ def get_task_dict(
     ):
         raise ValueError
 
-    return {
+    final_task_dict = {
         **task_name_from_string_dict,
         **task_name_from_config_dict,
         **task_name_from_object_dict,
     }
+
+    # behavior can get odd if one tries to invoke several groups that "compete" for the same task.
+    # (notably, because one could request several num_fewshot values at once in GroupConfig overrides for the subtask
+    # and we'd be unsure which to use and report.)
+    # we explicitly check and error in this case.
+    _check_duplicates(get_subtask_list(final_task_dict))
+
+    return final_task_dict

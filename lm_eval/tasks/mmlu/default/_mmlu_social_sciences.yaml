@@ -2,6 +2,8 @@ group: mmlu_social_sciences
 group_alias: social sciences
 task:
   - mmlu_social_sciences_tasks
-aggregate_metric: True
-weight_by_size: True
-version: 1
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1
