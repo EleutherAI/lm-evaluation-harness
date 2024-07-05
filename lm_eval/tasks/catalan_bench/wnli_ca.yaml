@@ -1,0 +1,14 @@
+task: wnli_ca
+dataset_path: projecte-aina/wnli-ca
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_text: "{{sentence1}}\nPregunta: {{sentence2}} Cert o Fals?\nResposta:"
+doc_to_target: label
+doc_to_choice: ["Fals", "Cert"]
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0
