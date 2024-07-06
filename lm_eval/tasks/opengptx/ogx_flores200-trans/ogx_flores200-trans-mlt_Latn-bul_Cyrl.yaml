@@ -1,6 +1,0 @@
-"include": "_default_template_yaml"
-"task": "ogx_flores200-trans-mlt_Latn-bul_Cyrl"
-"dataset_name": "mlt_Latn-bul_Cyrl"
-"doc_to_text": "Maltese phrase: {{sentence_mlt_Latn}}\nBulgarian phrase:"
-"doc_to_decontamination_query": "{{sentence_mlt_Latn}}"
-"doc_to_target": "{{sentence_bul_Cyrl}}"
