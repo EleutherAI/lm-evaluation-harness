@@ -451,6 +451,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | openai        | For using OpenAI's models             |
 | optimum       | For running Intel OpenVINO models     |
 | promptsource  | For using PromptSource prompts        |
+| scipy         | Used in DROP postprocessing and in scripts/model_comparator.py |
 | sentencepiece | For using the sentencepiece tokenizer |
 | sparseml      | For using NM's SparseML models        |
 | testing       | For running library test suite        |

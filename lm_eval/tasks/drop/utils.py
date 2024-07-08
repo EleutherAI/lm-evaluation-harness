@@ -2,7 +2,15 @@ import re
 import string
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
+
+
+try:
+    from scipy.optimize import linear_sum_assignment
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "`scipy` is required for DROP post-processing. \
+please install scipy via pip install lm-eval[scipy] or pip install -e .[scipy]",
+    )
 
 
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)

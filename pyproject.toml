@@ -70,6 +70,7 @@ multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 openai = ["openai==1.3.9", "tiktoken"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
+scipy = ["scipy"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
@@ -89,6 +90,7 @@ all = [
     "lm_eval[multilingual]",
     "lm_eval[openai]",
     "lm_eval[promptsource]",
+    "lm_eval[scipy]",
     "lm_eval[sentencepiece]",
     "lm_eval[sparseml]",
     "lm_eval[testing]",

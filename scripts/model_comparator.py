@@ -12,6 +12,15 @@ import lm_eval.models.utils
 from lm_eval import tasks, utils
 
 
+try:
+    import scipy.stats
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "`scipy` is required for computing z-scores in hf-vllm comparisons via this script. \
+please install scipy via pip install lm-eval[scipy] or pip install -e .[scipy]",
+    )
+
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 eval_logger = utils.eval_logger
 

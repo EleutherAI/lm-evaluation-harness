@@ -12,7 +12,7 @@ try:
     from sympy.parsing.latex import parse_latex
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "`sympy` is required for generating translation task prompt templates. \
+        "`sympy` is required for checking equivalence of minerva_math tasks' answers thoroughly. \
 please install sympy via pip install lm-eval[math] or pip install -e .[math]",
     )
 
