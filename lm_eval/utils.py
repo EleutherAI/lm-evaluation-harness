@@ -352,8 +352,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             k = dic.pop("alias")
 
         metric_items = dic.items()
-        if sort_results:
-            metric_items = sorted(metric_items)
+        metric_items = sorted(metric_items)
 
         for (mf), v in metric_items:
             m, _, f = mf.partition(",")
