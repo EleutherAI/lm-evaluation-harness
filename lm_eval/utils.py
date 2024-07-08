@@ -367,7 +367,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
                 se = "   N/A" if se == "N/A" else "%.4f" % se
                 values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
             else:
-                values.append([k, version, f, n, m, hib, v, "", ""])
+                values.append([k, version, f, n, m, hib, "%.4f" % v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values
