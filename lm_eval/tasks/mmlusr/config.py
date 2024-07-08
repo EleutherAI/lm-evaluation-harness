@@ -72,7 +72,7 @@ SUBJECTS = {
     "world_religions": "humanities",
 }
 
-GROUPS = ["answer_only"]
+GROUPS = ["question_and_answer"]
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate configuration YAML files for LM Evaluation Harness.")
@@ -80,7 +80,7 @@ def parse_args():
     parser.add_argument("--base_yaml_path", required=True, help="Path to the base YAML configuration file.")
 
     # Directory where the generated YAML files will be saved
-    parser.add_argument("--save_dir", default="/data/local/cat/lm-evaluation-harness/lm_eval/tasks/mmlusr/answer_only")
+    parser.add_argument("--save_dir", default="/data/local/cat/lm-evaluation-harness/lm_eval/tasks/mmlusr/question_and_answer")
 
     # Optional prefix to add to task names in the YAML files
     parser.add_argument("--task_prefix", default="")
@@ -117,9 +117,9 @@ if __name__ == "__main__":
 
             yaml_dict = {
                     "include": base_yaml_name,
-                    "group": f"{args.group_prefix}{group}_{category}" if args.group_prefix else f"{group}_{category}",
+                    "group": f"mmlusr_{args.group_prefix}{group}_{category}" if args.group_prefix else f"mmlusr_{group}_{category}",
                     "group_alias": f"{category.replace('_', ' ')}",
-                    "task": f"{args.task_prefix}{group}_{subject}" if args.task_prefix else f"{group}_{subject}",
+                    "task": f"mmlusr_{args.task_prefix}{group}_{subject}" if args.task_prefix else f"mmlusr_{group}_{subject}",
                     "task_alias": subject.replace("_", " "),
                     "description": description,
                     "dataset_name": f"{group}_{subject}",

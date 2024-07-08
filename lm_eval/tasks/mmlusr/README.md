@@ -36,11 +36,11 @@ Huggingface Dataset: [https://huggingface.co/datasets/NiniCat/MMLU-SR]([https://
 
 There are 57 symbol replaced subjects in each group. You can run a single task by:
 
-* `question_only_abstract_algebra`
+* `mmlusr_question_only_abstract_algebra`
 
 Or by categories:
 
-* `question_only_stem `
+* `mmlusr_question_only_stem `
 
 Or the entire subset:
 
