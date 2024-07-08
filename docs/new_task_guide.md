@@ -403,6 +403,17 @@ task:
   ...
 ```
 
+You can also pass a custom argument to your class by accepting `config` in the custom class constructor.
+Here's how to do it:
+
+```yaml
+task: 20_newsgroups
+class: !function task.Unitxt
+recipe: card=cards.20_newsgroups,template=templates.classification.multi_class.title
+```
+
+In this example, `recipe` is the custom argument for the `Unitxt` class.
+
 ## Beautifying Table Display
 
 To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed. For example in `mmlu_abstract_algebra.yaml` we set `task_alias` to `abstract_algebra`. In group configs, a `group_alias` for a group can also be set.

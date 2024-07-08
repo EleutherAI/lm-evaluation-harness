@@ -1,4 +1,5 @@
 import collections
+import inspect
 import logging
 import os
 from functools import partial
@@ -151,6 +152,14 @@ class TaskManager:
                 config["group_alias"] = None
         return config
 
+    def _class_has_config_in_constructor(self, cls):
+        constructor = getattr(cls, "__init__", None)
+        return (
+            "config" in inspect.signature(constructor).parameters
+            if constructor
+            else False
+        )
+
     def _load_individual_task_or_group(
         self,
         name_or_config: Optional[Union[str, dict]] = None,
@@ -168,13 +177,13 @@ class TaskManager:
                     **config,
                 }
             if self._config_is_python_task(config):
-                task_object = (
-                    config["class"](config=config)
-                    if issubclass(config["class"], ConfigurableTask)
-                    else config["class"]()
-                )
-                # very scuffed: set task name here. TODO: fixme?
-                task_object.config.task = config["task"]
+                if self._class_has_config_in_constructor(config["class"]):
+                    task_object = config["class"](config=config)
+                else:
+                    task_object = config["class"]()
+                if isinstance(task_object, ConfigurableTask):
+                    # very scuffed: set task name here. TODO: fixme?
+                    task_object.config.task = config["task"]
             else:
                 task_object = ConfigurableTask(config=config)
 
