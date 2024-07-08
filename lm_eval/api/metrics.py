@@ -256,7 +256,7 @@ def mcc_fn(items):  # This is a passthrough function
 @register_metric(
     metric="f1",
     higher_is_better=True,
-    output_type=["multiple_choice"],
+    output_type="multiple_choice",
     aggregation="f1",
 )
 def f1_fn(items):  # This is a passthrough function
