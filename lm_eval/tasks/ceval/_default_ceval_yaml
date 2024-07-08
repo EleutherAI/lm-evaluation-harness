@@ -1,4 +1,3 @@
-group: ceval-valid
 dataset_path: ceval/ceval-exam
 validation_split: val
 fewshot_split: dev

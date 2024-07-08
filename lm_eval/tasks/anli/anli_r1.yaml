@@ -1,4 +1,4 @@
-group:
+tag:
   - anli
 task: anli_r1
 dataset_path: anli

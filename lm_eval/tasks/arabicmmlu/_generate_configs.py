@@ -59,7 +59,7 @@ SUBJECTS = {
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base_yaml_path", default="_default_template_yaml")
+    parser.add_argument("--base_yaml_path", default="_default_arabicmmlu_template_yaml")
     parser.add_argument("--save_prefix_path", default="arabicmmlu")
     return parser.parse_args()
 
@@ -81,8 +81,7 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "group": f"arabicmmlu_{category}",
-            "group_alias": category.replace("_", " "),
+            "tag": f"arabicmmlu_{category}",
             "task": f"arabicmmlu_{subject.lower().replace(' ', '_')}",
             "task_alias": subject,
             "dataset_name": subject,

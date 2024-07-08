@@ -1,6 +1,3 @@
-group:
-  - agieval
-  - agieval_en
 task: agieval_math
 dataset_path: hails/agieval-math
 dataset_name: null

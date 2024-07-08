@@ -1,4 +1,4 @@
-group: glue
+tag: glue
 task: sst2
 dataset_path: glue
 dataset_name: sst2
