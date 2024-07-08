@@ -430,6 +430,9 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
 
+    if isinstance(yaml_config, list):
+        return [load_yaml_config(yaml_path, config) for config in yaml_config]
+
     if yaml_dir is None:
         yaml_dir = os.path.dirname(yaml_path)
 

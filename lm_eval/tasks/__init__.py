@@ -128,6 +128,13 @@ class TaskManager:
             raise ValueError
         return self.task_index[name]["yaml_path"]
 
+    def _get_idx(self, name):
+        if name not in self.task_index:
+            raise ValueError
+        if "idx" not in self.task_index[name]:
+            return None
+        return self.task_index[name]["idx"]
+
     def _get_config(self, name):
         if name not in self.task_index:
             raise ValueError
@@ -135,6 +142,9 @@ class TaskManager:
         if yaml_path == -1:
             return {}
         else:
+            idx = self._get_idx(name)
+            if idx is not None:
+                return utils.load_yaml_config(yaml_path, mode="full")[idx]
             return utils.load_yaml_config(yaml_path, mode="full")
 
     def _get_tasklist(self, name):
@@ -210,6 +220,17 @@ class TaskManager:
                 name_or_config
             ):
                 task_config = self._get_config(name_or_config)
+                doc_to_text = task_config.get("doc_to_text", None)
+                if isinstance(doc_to_text, list):
+                    _task_list = {}
+                    for idx, _doc_to_text in enumerate(doc_to_text):
+                        _task_config = task_config.copy()
+                        _task_config["doc_to_text"] = _doc_to_text
+                        _task_list = {
+                            **_task_list,
+                            **_load_task(_task_config, task=f"{name_or_config}-{idx}")
+                            }
+                    return _task_list
                 return _load_task(task_config, task=name_or_config)
             else:
                 subtask_list = self._get_tasklist(name_or_config)
@@ -281,6 +302,17 @@ class TaskManager:
                         }
                     else:
                         task_config = name_or_config
+                    doc_to_text = task_config.get("doc_to_text", None)
+                    if isinstance(doc_to_text, list):
+                        _task_list = {}
+                        for idx, _doc_to_text in enumerate(doc_to_text):
+                            _task_config = task_config.copy()
+                            _task_config["doc_to_text"] = _doc_to_text
+                            _task_list = {
+                                **_task_list,
+                                **_load_task(_task_config, task=f"{name}-{idx}")
+                                }
+                        return _task_list
                     return _load_task(task_config, task=name)
             else:
                 group_config, update_config = _process_group_config(name_or_config)
@@ -351,76 +383,89 @@ class TaskManager:
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
-                    config = utils.load_yaml_config(yaml_path, mode="simple")
-                    if self._config_is_python_task(config):
-                        # This is a python class config
-                        tasks_and_groups[config["task"]] = {
-                            "type": "python_task",
-                            "yaml_path": yaml_path,
-                        }
-                    elif self._config_is_group(config):
-                        # This is a group config
-                        tasks_and_groups[config["group"]] = {
-                            "type": "group",
-                            "task": -1,  # This signals that
-                            # we don't need to know
-                            # the task list for indexing
-                            # as it can be loaded
-                            # when called.
-                            "yaml_path": yaml_path,
-                        }
-
-                        # # Registered the level 1 tasks from a group config
-                        # for config in config["task"]:
-                        #     if isinstance(config, dict) and self._config_is_task(config):
-                        #         task = config["task"]
-                        #         tasks_and_groups[task] = {
-                        #             "type": "task",
-                        #             "yaml_path": yaml_path,
-                        #             }
-
-                    elif self._config_is_task(config):
-                        # This is a task config
-                        task = config["task"]
-                        tasks_and_groups[task] = {
-                            "type": "task",
-                            "yaml_path": yaml_path,
-                        }
-
-                        # TODO: remove group in next release
-                        for attr in ["tag", "group"]:
-                            if attr in config:
-                                if attr == "group" and print_info:
-                                    self.logger.info(
-                                        "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
-                                        "`tag` will be used to allow to call a collection of tasks just like `group`. "
-                                        "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
-                                        "which will be the offical way to create groups with addition of group-wide configuations."
-                                    )
-                                    print_info = False
-                                    # attr = "tag"
-
-                                attr_list = config[attr]
-                                if isinstance(attr_list, str):
-                                    attr_list = [attr_list]
-
-                                for tag in attr_list:
-                                    if tag not in tasks_and_groups:
-                                        tasks_and_groups[tag] = {
-                                            "type": "tag",
-                                            "task": [task],
-                                            "yaml_path": -1,
-                                        }
-                                    elif tasks_and_groups[tag]["type"] != "tag":
-                                        self.logger.info(
-                                            f"The tag {tag} is already registered as a group, this tag will not be registered. "
-                                            "This may affect tasks you want to call."
-                                        )
-                                        break
-                                    else:
-                                        tasks_and_groups[tag]["task"].append(task)
+                    config_list = utils.load_yaml_config(yaml_path, mode="simple")
+                    use_idx = False
+                    if isinstance(config_list, dict):
+                        config_list = [config_list]
                     else:
-                        self.logger.debug(f"File {f} in {root} could not be loaded")
+                        use_idx = True
+                    
+                    for idx, config in enumerate(config_list):
+                        if self._config_is_python_task(config):
+                            # This is a python class config
+                            tasks_and_groups[config["task"]] = {
+                                "type": "python_task",
+                                "yaml_path": yaml_path,
+                            }
+                        elif self._config_is_group(config):
+                            # This is a group config
+                            tasks_and_groups[config["group"]] = {
+                                "type": "group",
+                                "task": -1,  # This signals that
+                                # we don't need to know
+                                # the task list for indexing
+                                # as it can be loaded
+                                # when called.
+                                "yaml_path": yaml_path,
+                            }
+
+                            # # Registered the level 1 tasks from a group config
+                            # for config in config["task"]:
+                            #     if isinstance(config, dict) and self._config_is_task(config):
+                            #         task = config["task"]
+                            #         tasks_and_groups[task] = {
+                            #             "type": "task",
+                            #             "yaml_path": yaml_path,
+                            #             }
+
+                        elif self._config_is_task(config):
+                            # This is a task config
+                            task = config["task"]
+                            tasks_and_groups[task] = {
+                                "type": "task",
+                                "yaml_path": yaml_path,
+                            }
+
+                            if use_idx:
+                                tasks_and_groups[task] = {
+                                    **tasks_and_groups[task],
+                                    **{"idx": idx},
+                                }
+
+                            # TODO: remove group in next release
+                            for attr in ["tag", "group"]:
+                                if attr in config:
+                                    if attr == "group" and print_info:
+                                        self.logger.info(
+                                            "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
+                                            "`tag` will be used to allow to call a collection of tasks just like `group`. "
+                                            "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
+                                            "which will be the offical way to create groups with addition of group-wide configuations."
+                                        )
+                                        print_info = False
+                                        # attr = "tag"
+
+                                    attr_list = config[attr]
+                                    if isinstance(attr_list, str):
+                                        attr_list = [attr_list]
+
+                                    for tag in attr_list:
+                                        if tag not in tasks_and_groups:
+                                            tasks_and_groups[tag] = {
+                                                "type": "tag",
+                                                "task": [task],
+                                                "yaml_path": -1,
+                                            }
+                                        elif tasks_and_groups[tag]["type"] != "tag":
+                                            self.logger.info(
+                                                f"The tag {tag} is already registered as a group, this tag will not be registered. "
+                                                "This may affect tasks you want to call."
+                                            )
+                                            break
+                                        else:
+                                            tasks_and_groups[tag]["task"].append(task)
+                        else:
+                            self.logger.debug(f"File {f} in {root} could not be loaded")
 
         return tasks_and_groups
 
