@@ -308,7 +308,7 @@ class Reorderer:
         return res
 
 
-def make_table(result_dict, column: str = "results", sort_results: bool = True):
+def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
@@ -338,20 +338,21 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
 
     keys = result_dict[column].keys()
     if sort_results:
-        # sort entries alphabetically
+        # sort entries alphabetically by task or group name.
+        # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
+        # sorting here would mess that up
         keys = sorted(keys)
     for k in keys:
         dic = result_dict[column][k]
-        version = result_dict["versions"].get(k, "N/A")
-        n = str(result_dict["n-shot"][k])
+        version = result_dict["versions"].get(k, "    N/A")
+        n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         if "alias" in dic:
             k = dic.pop("alias")
 
         metric_items = dic.items()
-        if sort_results:
-            metric_items = sorted(metric_items)
+        metric_items = sorted(metric_items)
 
         for (mf), v in metric_items:
             m, _, f = mf.partition(",")
@@ -362,8 +363,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                if se != "N/A":
-                    se = "%.4f" % se
+                se = "   N/A" if se == "N/A" else "%.4f" % se
                 values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, "%.4f" % v, "", ""])

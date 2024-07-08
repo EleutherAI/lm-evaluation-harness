@@ -1,4 +1,4 @@
-|    Tasks     |Version|Filter|n-shot|  Metric  |   | Value  |   |Stderr|
-|--------------|------:|------|-----:|----------|---|-------:|---|------|
-|lambada_openai|      1|none  |     0|acc       |↑  |  0.1000|±  |N/A   |
-|              |       |none  |     0|perplexity|↓  |605.4879|±  |N/A   |
+|    Tasks     |Version|Filter|n-shot|  Metric  |   | Value  |   | Stderr  |
+|--------------|------:|------|-----:|----------|---|-------:|---|--------:|
+|lambada_openai|      1|none  |     0|acc       |↑  |  0.1000|±  |   0.1000|
+|              |       |none  |     0|perplexity|↓  |605.3866|±  |1636.6987|

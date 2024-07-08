@@ -68,6 +68,6 @@ fewshot_config:
       \ Then, for all $t \\in \\mathbb{R}$, we have $(s(t))-2=K e^{-t / 25}$, and\
       \ so $s(t)=2+K e^{-t / 25}$. Then $3=s(0)=2+K e^{0}=2+K$, so $K=1$. Then $s(100)=2+K\
       \ e^{-100 / 25}=2+1 \\cdot e^{-4}=2+e^{-4}$. The answer is (D).\n\n"
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_college_mathematics

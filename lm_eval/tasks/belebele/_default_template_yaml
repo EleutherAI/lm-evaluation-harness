@@ -1,4 +1,3 @@
-group: belebele
 dataset_path: facebook/belebele
 fewshot_config:
   sampler: first_n

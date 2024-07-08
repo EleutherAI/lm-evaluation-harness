@@ -1,5 +1,5 @@
 include: deontology.yaml
-group:
+tag:
   - hendrycks_ethics
 task: ethics_justice
 dataset_name: justice
