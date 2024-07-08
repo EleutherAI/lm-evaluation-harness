@@ -15,8 +15,7 @@ fewshot_delimiter: "\n"
 generation_kwargs:
   until:
     - "\n"
-    - "."
-    - ","
+    # - "."
   do_sample: false
   temperature: 0.0
 filter_list:
