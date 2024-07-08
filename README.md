@@ -7,6 +7,7 @@
 
 New updates and features include:
 
+- **New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.**
 - Internal refactoring
 - Config-based task creation and configuration
 - Easier import and sharing of externally-defined task config YAMLs

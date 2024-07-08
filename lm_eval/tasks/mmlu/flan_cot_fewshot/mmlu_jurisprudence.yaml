@@ -54,6 +54,6 @@ fewshot_config:
       principle'', and reject the ''system of natural liberty'', but the POP would
       not choose equality above liberty, since the POP assume both equal and free
       citizens. The answer is (A).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_jurisprudence

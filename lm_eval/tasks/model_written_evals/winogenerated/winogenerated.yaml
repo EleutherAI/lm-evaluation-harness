@@ -1,4 +1,4 @@
-group: winogenerated
+tag: winogenerated
 dataset_path: EleutherAI/winogenerated
 output_type: multiple_choice
 validation_split: validation
