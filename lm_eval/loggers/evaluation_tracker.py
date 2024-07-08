@@ -288,7 +288,7 @@ class EvaluationTracker:
                         + "\n"
                     )
 
-                    with open(file_results_samples, "a") as f:
+                    with open(file_results_samples, "a", encoding="utf-8") as f:
                         f.write(sample_dump)
 
                 if self.api and self.push_samples_to_hub:
