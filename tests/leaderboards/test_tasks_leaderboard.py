@@ -39,19 +39,23 @@ def update_results(results: Dict, evaluation_tracker: EvaluationTracker) -> Dict
     return results
 
 
-def compare_results_base_types(
-    target: Union[ParseConfig, Dict], observed: Dict, config_name: str, module_name: str
+def compare_results(
+    target: Union[ParseConfig, Dict],
+    observed: Dict,
+    config_name: str,
+    module_name: str,
+    recursive: bool = False,
 ):
     """
     Compares values in the target and observed ParseConfig/dictionaries, checking for equality or approximate equality for floats.
-    Skips comparison of nested structures such as dictionaries and lists.
-    Complex nested structures (e.g., dictionaries or lists) are assumed to be compared in a separate test function.
+    Complex nested structures (e.g., dictionaries or lists) are compared only if recursive is set to True.
 
     Args:
         target: target ParseConfig or dictionary to compare with
         observed: observed dictionary to compare
         config_name: name of the config with the results to display in the error message
         module_name: associated name to the checked subresults to display in the error message
+        recursive: whether to compare nested structures
 
     Example:
         target = {
@@ -72,9 +76,18 @@ def compare_results_base_types(
         raise ValueError("Target results are empty.")
     for key in target.keys():
         target_val = target[key]
-        # nested objects are compared separately
+        # compare nested objects only if recursive is set to True
         if isinstance(target_val, ParseConfig):
-            continue
+            if recursive:
+                compare_results(target_val, observed[key], config_name, key, recursive)
+                continue
+            else:
+                continue
+        if key not in observed:
+            raise ValueError(
+                f"Config: '{config_name} - {module_name}' failed. {key}: "
+                f"Expected: {repr(target_val)}, got: None"
+            )
         observed_val = observed[key]
         if isinstance(target_val, float):
             assert target_val == pytest.approx(observed_val, abs=1e-4), (
@@ -149,17 +162,19 @@ def evaluation_results(load_config):
     return config, all_results
 
 
-def test_results(evaluation_results: Dict):
+def test_general_output(evaluation_results: Dict):
     """
-    Compares the general results.
+    Compares the lowest level of the results dictionary.
     """
     config, all_results = evaluation_results
     for task_name, task in config.tasks.items():
         results = all_results[task_name]
-        compare_results_base_types(config, results, config.params.name, "results")
+        compare_results(
+            config, results, config.params.name, "general_output", recursive=False
+        )
 
 
-def test_config(evaluation_results: Dict):
+def test_evaluation_config(evaluation_results: Dict):
     """
     Compares returned evaluation config.
     """
@@ -185,8 +200,12 @@ def test_config(evaluation_results: Dict):
         ]
         for key in config_params_not_in_results:
             expected_config_dict.pop(key, None)
-        compare_results_base_types(
-            expected_config_dict, results["config"], config_name, "config"
+        compare_results(
+            expected_config_dict,
+            results["config"],
+            config_name,
+            "config",
+            recursive=False,
         )
 
 
@@ -197,23 +216,32 @@ def test_tasks_configs(evaluation_results: Dict):
     config, all_results = evaluation_results
     for task_name, task in config.tasks.items():
         results = all_results[task_name]
-        # if configs has more than one key - process as multitask
-        multitask = len(results["configs"].keys()) > 1
-        if multitask:
-            # filter subtasks for the current task
-            subtasks = filter_dict(task.to_dict(), task_name)
-        else:
-            # exclude keys not present in evaluation results
-            expected_task_dict = task.to_dict().copy()
-            expected_task_dict.pop("limit")
-            subtasks = {task_name: expected_task_dict}
-        for subtask_name, subtask in subtasks.items():
-            compare_results_base_types(
-                subtask,
-                results["configs"][subtask_name],
-                config.params.name,
-                subtask_name,
-            )
+        # # if configs has more than one key - process as multitask
+        # multitask = len(results["configs"].keys()) > 1
+        # if multitask:
+        #     # filter subtasks for the current task
+        #     subtasks = filter_dict(task.to_dict(), task_name)
+        # else:
+        #     # exclude keys not present in evaluation results
+        #     expected_task_dict = task.to_dict().copy()
+        #     expected_task_dict.pop("limit")
+        #     subtasks = {task_name: expected_task_dict}
+        # for subtask_name, subtask in subtasks.items():
+        #     compare_results(
+        #         subtask,
+        #         results["configs"][subtask_name],
+        #         config.params.name,
+        #         subtask_name,
+        #     )
+        expected_task_dict = task.to_dict().copy()
+        expected_task_dict.pop("limit")
+        compare_results(
+            expected_task_dict,
+            results["configs"][task_name],
+            config.params.name,
+            task_name,
+            recursive=True,
+        )
 
 
 def test_tasks_results(evaluation_results: Dict):
@@ -221,22 +249,31 @@ def test_tasks_results(evaluation_results: Dict):
     Compares results for each task and subtask.
     """
     config, all_results = evaluation_results
-    for task_name, task in config.tasks.items():
+    for task_name, task_results in config.results.items():
         results = all_results[task_name]
-        # if configs has more than one key - process as multitask
-        multitask = len(results["configs"].keys()) > 1
-        if multitask:
-            # filter subtasks for the current task
-            subtasks = filter_dict(task.to_dict(), task_name)
-        else:
-            subtasks = {task_name: task}
-        for subtask_name, subtask in subtasks.items():
-            compare_results_base_types(
-                subtask.results,
-                results["results"][subtask_name],
-                config.params.name,
-                subtask_name,
-            )
+    # for task_name, task in config.tasks.items():
+    #     results = all_results[task_name]
+    # # if configs has more than one key - process as multitask
+    # multitask = len(results["configs"].keys()) > 1
+    # if multitask:
+    #     # filter subtasks for the current task
+    #     subtasks = filter_dict(task.to_dict(), task_name)
+    # else:
+    #     subtasks = {task_name: task}
+    # for subtask_name, subtask in subtasks.items():
+    #     compare_results(
+    #         subtask.results,
+    #         results["results"][subtask_name],
+    #         config.params.name,
+    #         subtask_name,
+    #     )
+    compare_results(
+        task_results,
+        results["results"][task_name],
+        config.params.name,
+        task_name,
+        recursive=True,
+    )
 
 
 def test_tasks_n_samples(evaluation_results: Dict):
@@ -254,7 +291,7 @@ def test_tasks_n_samples(evaluation_results: Dict):
         else:
             subtasks = {task_name: task}
         for subtask_name, subtask in subtasks.items():
-            compare_results_base_types(
+            compare_results(
                 config.n_samples[subtask_name],
                 results["n-samples"][subtask_name],
                 config.params.name,

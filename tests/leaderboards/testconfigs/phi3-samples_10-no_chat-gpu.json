@@ -45,11 +45,14 @@
             "should_decontaminate": false,
             "target_delimiter": " ",
             "task": "leaderboard_mmlu_pro",
-            "test_split": "test",
-            "results": {
-                "acc,none": 0.6,
-                "acc_stderr,none": 0.16329931618554522
-            }
+            "test_split": "test"
+        }
+    },
+    "results": {
+        "leaderboard_mmlu_pro": {
+            "acc,none": 0.6,
+            "acc_stderr,none": 0.16329931618554522,
+            "alias": "leaderboard_mmlu_pro"
         }
     },
     "n_samples": {
