@@ -287,7 +287,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 until_ = until
 
                 for term in until_:
-                    if len(term) > 0:
+                    if len(term) > 0 and s:
                         s = s.split(term)[0]
 
                 # partial caching
@@ -455,7 +455,7 @@ class OpenaiChatCompletionsLM(LM):
 
                     if until is not None:
                         for term in until:
-                            if len(term) > 0:
+                            if len(term) > 0 and s:
                                 s = s.split(term)[0]
 
                     res[key].append(s)
