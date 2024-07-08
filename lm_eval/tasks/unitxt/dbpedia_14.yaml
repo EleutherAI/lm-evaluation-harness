@@ -1,3 +1,3 @@
-include: unitxt_tasks.classification.multi_class
 task: dbpedia_14
-dataset_name: card=cards.dbpedia_14,template=templates.classification.multi_class.title
+include: unitxt
+recipe: card=cards.dbpedia_14,template=templates.classification.multi_class.title
