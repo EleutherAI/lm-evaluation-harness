@@ -1,5 +1,5 @@
 group: arabicmmlu_social_science
-group_alias: social_science
+group_alias: Social Science
 task:
   - arabicmmlu_social_science_tasks
 aggregate_metric_list:

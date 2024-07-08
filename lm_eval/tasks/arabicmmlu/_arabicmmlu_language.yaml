@@ -1,5 +1,5 @@
 group: arabicmmlu_language
-group_alias: language
+group_alias: Language
 task:
   - arabicmmlu_language_tasks
 aggregate_metric_list:

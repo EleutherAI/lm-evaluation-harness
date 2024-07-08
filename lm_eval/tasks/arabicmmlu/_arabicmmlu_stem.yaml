@@ -1,5 +1,5 @@
 group: arabicmmlu_stem
-group_alias: stem
+group_alias: STEM
 task:
   - arabicmmlu_stem_tasks
 aggregate_metric_list:

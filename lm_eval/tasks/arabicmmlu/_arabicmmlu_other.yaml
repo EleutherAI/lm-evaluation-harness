@@ -1,5 +1,5 @@
 group: arabicmmlu_other
-group_alias: other
+group_alias: Other
 task:
   - arabicmmlu_other_tasks
 aggregate_metric_list:
