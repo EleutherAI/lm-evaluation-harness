@@ -213,13 +213,13 @@ class HFMultimodalLM(HFLM):
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
 
         for chunk in chunks:
-            contexts, all_gen_kwargs, doc_to_visual, doc = zip(
+            contexts, all_gen_kwargs, aux_arguments = zip(
                 *chunk
-            )  # TODO: what should be passed in here as part of a chunk?
+            )  # TODO: can we cut down further on number of distinct things we pass around?
 
             visuals = [
-                vis(d) for vis, d in zip(doc_to_visual, doc)
-            ]  # TODO: I think *fully* flattening is just wrong for bs>1 ?
+                arg["visual"] for arg in aux_arguments
+            ]  # TODO: I think *fully* flattening is just wrong for bs>1 ??
 
             ### this part onward: same as HFLM ###
 
