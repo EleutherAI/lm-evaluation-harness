@@ -378,22 +378,23 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    @abc.abstractmethod
+    # not an abstractmethod because not every language-only task has to implement this
     def doc_to_image(self, doc):
-        pass
+        raise NotImplementedError
 
     def build_all_requests(
         self,
         *,
-        limit=None,
-        rank=None,
-        world_size=None,
-        cache_requests=False,
-        rewrite_requests_cache=False,
-        system_instruction=None,
-        apply_chat_template=False,
-        fewshot_as_multiturn=False,
-        lm=None,
+        limit: Union[int, None] = None,
+        rank: int = 0,
+        world_size: int = 1,
+        cache_requests: bool = False,
+        rewrite_requests_cache: bool = False,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable] = None,
+        tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -408,7 +409,7 @@ class Task(abc.ABC):
             if system_instruction is not None
             else ""
         )
-        cache_key += f"-tokenizer{lm.tokenizer_name}" if apply_chat_template else ""
+        cache_key += f"-tokenizer{tokenizer_name}"
 
         cached_instances = load_from_cache(file_name=cache_key)
 
@@ -453,7 +454,7 @@ class Task(abc.ABC):
                 system_instruction,
                 apply_chat_template,
                 fewshot_as_multiturn,
-                lm,
+                chat_template,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -1031,7 +1032,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        lm=None,
+        chat_template: Optional[Callable] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1046,8 +1047,8 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param lm:
-            Language model with definition of the tokenizer/function to use for applying the chat template.
+        :param chat_template:
+            callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
         :returns: str
             The fewshot context.
         """
@@ -1094,7 +1095,7 @@ class ConfigurableTask(Task):
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
-                return lm.apply_chat_template(labeled_examples)
+                return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
                     labeled_examples, example, fewshot_as_multiturn
@@ -1106,7 +1107,7 @@ class ConfigurableTask(Task):
                 for ex in example:
                     chat = deepcopy(labeled_examples)
                     self.append_target_question(chat, ex, fewshot_as_multiturn)
-                    labeled_examples_list.append(lm.apply_chat_template(chat))
+                    labeled_examples_list.append(chat_template(chat))
                 return labeled_examples_list
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
@@ -1120,7 +1121,7 @@ class ConfigurableTask(Task):
                         labeled_examples, str(example), fewshot_as_multiturn
                     )
                 # return lm.apply_chat_template(labeled_examples)
-            return lm.apply_chat_template(labeled_examples)
+            return chat_template(labeled_examples)
         else:
             if self.multiple_input:
                 return labeled_examples
