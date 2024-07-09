@@ -1,4 +1,4 @@
-group:
+tag:
     - kmmlu
     - kmmlu_hard_direct
 dataset_path: HAERAE-HUB/KMMLU-HARD

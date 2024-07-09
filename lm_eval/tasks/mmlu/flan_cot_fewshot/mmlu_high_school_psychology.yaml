@@ -59,6 +59,6 @@ fewshot_config:
       for help. People with an external locus of control believes fate and luck play
       an important role in their lives, while people with an internal locus of control
       believes they control their lives. The answer is (D).'
-group: mmlu_flan_cot_fewshot_social_sciences
+tag: mmlu_flan_cot_fewshot_social_sciences
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_psychology
