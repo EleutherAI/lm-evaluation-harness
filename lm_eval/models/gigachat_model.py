@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from tqdm import tqdm
 
@@ -56,8 +56,6 @@ def gigachat_completion(
             stream: bool, specifies that messages should be sent in parts in the stream. Default: False
     """
     try:
-        import ast
-
         import gigachat
         import httpx
     except ModuleNotFoundError:
@@ -67,21 +65,23 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
         )
 
     messages = []
-    if chat_template_is_on:
-        for message in ast.literal_eval(prompt):
-            messages.append(
-                gigachat.models.Messages(
-                    role=message["role"],
-                    content=message["content"],
-                )
-            )
-    else:
+    if not chat_template_is_on:
         messages.append(
             gigachat.models.Messages(
                 role=gigachat.models.MessagesRole.USER,
                 content=prompt,
             )
         )
+    else:
+        seq = prompt.split("<role>")[1:]
+        for message in seq:
+            role, content = message.split("<content>")
+            messages.append(
+                gigachat.models.Messages(
+                    role=role,
+                    content=content,
+                )
+            )
 
     def _exception_callback(e: Exception, sleep_time: float = 10) -> None:
         eval_logger.warning(
@@ -91,8 +91,9 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
     @retry_on_specific_exceptions(
         on_exceptions=[
             httpx.ReadTimeout,  # it is like a RateLimitError
+            httpx.ConnectTimeout,
         ],
-        max_retries=5,
+        max_retries=None,
         on_exception_callback=_exception_callback,
     )
     def completion():
@@ -103,10 +104,13 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
             temperature=temperature,
             **kwargs,
         )
+
         response = client.chat(payload).choices[0].message.content
 
         if until:
             response = cut_generation(response, until)
+        if not response:
+            response = " "  # avoid None in resps
         return response
 
     return completion()
@@ -117,8 +121,10 @@ class GigaChatLM(LM):
     def __init__(
         self,
         model: str = "GigaChat",
-        max_tokens: int = 256,
-        temperature: float = 1e-10,
+        max_tokens: Optional[
+            int
+        ] = None,  # default is None as API will automatically choose the most optimal value
+        temperature: Optional[float] = None,
         scope: str = "GIGACHAT_API_CORP",
         verify_ssl_certs: bool = False,
         **kwargs,  # top_p,  etc.
@@ -149,15 +155,16 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
             )
 
         self.model = model
-        self.chat_template_is_on = False
         self.client = gigachat.GigaChat(
             credentials=os.environ.get("GIGACHAT_CREDENTIALS"),
             scope=os.environ.get("GIGACHAT_SCOPE", scope),
             verify_ssl_certs=verify_ssl_certs,
+            timeout=100,
         )
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.kwargs = kwargs
+        self.chat_template_is_used = False
 
     @property
     def eot_token_id(self):
@@ -208,7 +215,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
         _requests: List[Tuple[str, dict]] = [req.args for req in requests]
 
         res = []
-        for request in tqdm(_requests, disable=disable_tqdm):
+        for num, request in enumerate(tqdm(_requests, disable=disable_tqdm)):
             try:
                 inp = request[0]
                 request_args = request[1]
@@ -225,7 +232,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
                     if not self.kwargs[
                         "do_sample"
                     ]:  # Ensure greedy decoding if do_sample=False
-                        temperature = 0
+                        self.kwargs["repetition_penalty"] = 1
                         self.kwargs["top_p"] = 0
                     elif temperature == 0:
                         eval_logger.warning(
@@ -235,11 +242,14 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
 
                 if (
                     temperature == 0
-                ):  # You cannot set temperature to zero. Use temp=1e-10, top_p=0 instead to ensure greedy decoding
-                    temperature = 1e-10
+                ):  # Ensure greedy decoding by setting top_p=0 and repetition_penalty = 1
+                    temperature = (
+                        1.0  # temperature cannot be set to zero. Use top_p instead
+                    )
+                    self.kwargs["repetition_penalty"] = 1
                     self.kwargs["top_p"] = 0
 
-                if not self.chat_template_is_on:
+                if not self.chat_template_is_used:
                     eval_logger.warning(
                         "You are trying to use GigaChat without chat_template. It may lead to inappropriate model behavior. \
                             Please, set `--apply_chat_template` and `--system_instruction`  arguments."
@@ -252,9 +262,10 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
                     max_tokens_to_sample=max_gen_toks,
                     temperature=temperature,
                     until=until,
-                    chat_template_is_on=self.chat_template_is_on,
+                    chat_template_is_on=self.chat_template_is_used,
                     **self.kwargs,
                 )
+
                 res.append(response)
 
                 self.cache_hook.add_partial("generate_until", request, response)
@@ -271,8 +282,12 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
         Set chat_history as an attribute and pass it to chat completion func.
         Return a list as a string to avoid raising errors.
         """
-        self.chat_template_is_on = True
-        return str(chat_history)
+        if not self.chat_template_is_used:
+            self.chat_template_is_used = True
+        prompt = ""
+        for dct in chat_history:
+            prompt += f"<role>{dct['role']}<content>{dct['content']}"
+        return prompt
 
     @property
     def tokenizer_name(self) -> str:
@@ -310,9 +325,9 @@ def cut_generation(generation, stop):
     """
     GigaChat API has no stop argument.
     Use this func in order to cut GigaChat generation.
-    TBD: async -> stop_generation
     """
-
+    if not generation:
+        generation = " "
     stop_idxs = [generation.find(sub) for sub in stop if generation.find(sub) != -1]
     if stop_idxs:
         generation = generation[: min(stop_idxs)]
