@@ -13,7 +13,14 @@ class ParseConfig:
             if isinstance(value, dict):
                 setattr(self, key, ParseConfig(value))
             elif isinstance(value, list):
-                setattr(self, key, [ParseConfig(i) for i in value])
+                setattr(
+                    self,
+                    key,
+                    [
+                        ParseConfig(item) if isinstance(item, dict) else item
+                        for item in value
+                    ],
+                )
             else:
                 setattr(self, key, value)
 

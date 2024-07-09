@@ -216,140 +216,111 @@ def test_tasks_configs(evaluation_results: Dict):
     config, all_results = evaluation_results
     for task_name, task in config.tasks.items():
         results = all_results[task_name]
-        # # if configs has more than one key - process as multitask
-        # multitask = len(results["configs"].keys()) > 1
-        # if multitask:
-        #     # filter subtasks for the current task
-        #     subtasks = filter_dict(task.to_dict(), task_name)
-        # else:
-        #     # exclude keys not present in evaluation results
-        #     expected_task_dict = task.to_dict().copy()
-        #     expected_task_dict.pop("limit")
-        #     subtasks = {task_name: expected_task_dict}
-        # for subtask_name, subtask in subtasks.items():
-        #     compare_results(
-        #         subtask,
-        #         results["configs"][subtask_name],
-        #         config.params.name,
-        #         subtask_name,
-        #     )
-        expected_task_dict = task.to_dict().copy()
-        expected_task_dict.pop("limit")
+        # if configs has more than one key - process as multitask
+        multitask = len(results["configs"].keys()) > 1
+        if multitask:
+            # filter subtasks for the current task
+            subtasks = filter_dict(task.to_dict(), task_name)
+        else:
+            # exclude keys not present in evaluation results
+            expected_task_dict = task.to_dict().copy()
+            expected_task_dict.pop("limit")
+            subtasks = {task_name: expected_task_dict}
+        for subtask_name, subtask in subtasks.items():
+            compare_results(
+                subtask,
+                results["configs"][subtask_name],
+                config.params.name,
+                subtask_name,
+                recursive=False,
+            )
+
+
+def test_tasks_results(evaluation_results: Dict):
+    """
+    Compares results for each task and subtask. Subtasks are compared recursively.
+    """
+    config, all_results = evaluation_results
+    for task_name, task_results in config.results.items():
+        results = all_results[task_name]
+        multitask = len(results["results"].keys()) > 1
+        if multitask:
+            results = results["results"]
+        else:
+            results = results["results"][task_name]
         compare_results(
-            expected_task_dict,
-            results["configs"][task_name],
+            task_results,
+            results,
             config.params.name,
             task_name,
             recursive=True,
         )
 
 
-def test_tasks_results(evaluation_results: Dict):
-    """
-    Compares results for each task and subtask.
-    """
-    config, all_results = evaluation_results
-    for task_name, task_results in config.results.items():
-        results = all_results[task_name]
-    # for task_name, task in config.tasks.items():
-    #     results = all_results[task_name]
-    # # if configs has more than one key - process as multitask
-    # multitask = len(results["configs"].keys()) > 1
-    # if multitask:
-    #     # filter subtasks for the current task
-    #     subtasks = filter_dict(task.to_dict(), task_name)
-    # else:
-    #     subtasks = {task_name: task}
-    # for subtask_name, subtask in subtasks.items():
-    #     compare_results(
-    #         subtask.results,
-    #         results["results"][subtask_name],
-    #         config.params.name,
-    #         subtask_name,
-    #     )
-    compare_results(
-        task_results,
-        results["results"][task_name],
-        config.params.name,
-        task_name,
-        recursive=True,
-    )
-
-
 def test_tasks_n_samples(evaluation_results: Dict):
     """
-    Compares n_samples for each task and subtask.
+    Compares n_samples for each task and subtask. Subtasks are compared recursively.
     """
     config, all_results = evaluation_results
-    for task_name, task in config.tasks.items():
+    for task_name, task_n_samples in config.n_samples.items():
         results = all_results[task_name]
-        # if configs has more than one key - process as multitask
-        multitask = len(results["configs"].keys()) > 1
+        multitask = len(results["n-samples"].keys()) > 1
         if multitask:
-            # filter subtasks for the current task
-            subtasks = filter_dict(task.to_dict(), task_name)
+            results = results["n-samples"]
         else:
-            subtasks = {task_name: task}
-        for subtask_name, subtask in subtasks.items():
-            compare_results(
-                config.n_samples[subtask_name],
-                results["n-samples"][subtask_name],
-                config.params.name,
-                subtask_name,
-            )
+            results = results["n-samples"][task_name]
+        compare_results(
+            task_n_samples,
+            results,
+            config.params.name,
+            task_name,
+            recursive=True,
+        )
 
 
 def test_tasks_hashes(evaluation_results: Dict):
     """
-    Compares task hashes for each task and subtask.
+    Compares task hashes for each task and subtask. Subtasks are compared recursively.
     """
     config, all_results = evaluation_results
-    for task_name, task in config.tasks.items():
+    for task_name, task_hashes in config.task_hashes.items():
         results = all_results[task_name]
-        # if configs has more than one key - process as multitask
         multitask = len(results["configs"].keys()) > 1
         if multitask:
-            # filter subtasks for the current task
-            subtasks = filter_dict(task.to_dict(), task_name)
-            for subtask_name, subtask in subtasks.items():
-                expected_task_hash = config.task_hashes[subtask_name]
-                observed_task_hash = results["task_hashes"][subtask_name]
-                assert expected_task_hash == observed_task_hash, (
-                    f"Config: '{config.params.name}' failed. {subtask_name}: "
-                    f"Expected: {repr(expected_task_hash)}, got: {repr(observed_task_hash)}"
-                )
+            compare_results(
+                task_hashes,
+                results["task_hashes"],
+                config.params.name,
+                task_name,
+                recursive=True,
+            )
         else:
-            expected_task_hash = config.task_hashes[task_name]
             observed_task_hash = results["task_hashes"][task_name]
-            assert expected_task_hash == observed_task_hash, (
+            assert task_hashes == observed_task_hash, (
                 f"Config: '{config.params.name}' failed. {task_name}: "
-                f"Expected: {expected_task_hash}, got: {observed_task_hash}"
+                f"Expected: {repr(task_hashes)}, got: {repr(observed_task_hash)}"
             )
 
 
 def test_tasks_versions(evaluation_results: Dict):
     """
-    Compares versions for each task and subtask.
+    Compares versions for each task and subtask. Subtasks are compared recursively.
     """
     config, all_results = evaluation_results
-    for task_name, task in config.tasks.items():
+    for task_name, task_versions in config.versions.items():
         results = all_results[task_name]
-        # if configs has more than one key - process as multitask
-        multitask = len(results["configs"].keys()) > 1
+        multitask = len(results["versions"].keys()) > 1
         if multitask:
-            # filter subtasks for the current task
-            subtasks = filter_dict(task.to_dict(), task_name)
-            for subtask_name, subtask in subtasks.items():
-                expected_version = config.versions[subtask_name]
-                observed_version = results["versions"][subtask_name]
-                assert expected_version == observed_version, (
-                    f"Config: '{config.params.name}' failed. {subtask_name}: "
-                    f"Expected: {repr(expected_version)}, got: {repr(observed_version)}"
-                )
+            compare_results(
+                task_versions,
+                results["versions"],
+                config.params.name,
+                task_name,
+                recursive=True,
+            )
         else:
-            expected_version = config.versions[task_name]
             observed_version = results["versions"][task_name]
-            assert expected_version == observed_version, (
+            assert task_versions == observed_version, (
                 f"Config: '{config.params.name}' failed. {task_name}: "
-                f"Expected: {expected_version}, got: {observed_version}"
+                f"Expected: {repr(task_versions)}, got: {repr(observed_version)}"
             )
