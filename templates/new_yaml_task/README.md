@@ -17,11 +17,15 @@ Homepage: `homepage to the benchmark's website goes here, if applicable`
 BibTeX-formatted citation goes here
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 
 * `group_name`: `Short description`
+
+#### Tags
+
+* `tag_name`: `Short description`
 
 #### Tasks
 

@@ -1,4 +1,4 @@
-group:
+tag:
   - lambada
 task: lambada_standard
 dataset_path: lambada

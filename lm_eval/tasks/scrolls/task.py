@@ -116,7 +116,7 @@ class _SCROLLSTask(ConfigurableTask):
     PRUNE_MAX_TOKENS = None
     PRUNE_NUM_PROC = None
 
-    def __init__(self):
+    def __init__(self, config=None):
         super().__init__(config={"metadata": {"version": self.VERSION}})
         if self.DATASET_NAME is not None:
             self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME)
