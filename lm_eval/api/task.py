@@ -56,8 +56,8 @@ class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None
+    tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
-    group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -97,6 +97,18 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
+        if self.group is not None:
+            eval_logger.warning(
+                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            )
+
+            if self.tag is None:
+                self.tag = self.group
+            else:
+                raise ValueError(
+                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
+                )
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -980,7 +992,7 @@ class ConfigurableTask(Task):
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
-                    f"Task '{self.config.task}': "
+                    f"[Task: {self.config.task}] "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
@@ -1190,6 +1202,7 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
+            print(type(doc_to_text))
             raise TypeError
 
     def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
@@ -1279,6 +1292,7 @@ class ConfigurableTask(Task):
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
+
             request_list = [
                 Instance(
                     request_type="loglikelihood",
@@ -1432,6 +1446,7 @@ class ConfigurableTask(Task):
                 ]
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
+
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
@@ -1455,6 +1470,7 @@ class ConfigurableTask(Task):
                     scores = []
                     if not isinstance(gold, list):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
+                        # print(gold)
                         gold = [gold]
                     if metric == "exact_match":
                         result = [result for _ in range(len(gold))]
@@ -1489,10 +1505,10 @@ class ConfigurableTask(Task):
                 else:
                     try:
                         result_score = self._metric_fn_list[metric](
-                                references=[gold],
-                                predictions=[result],
-                                **self._metric_fn_kwargs[metric],
-                            )
+                            references=[gold],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[metric],
+                        )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
@@ -1516,10 +1532,13 @@ class ConfigurableTask(Task):
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
+    @property
+    def task_name(self) -> Any:
+        return getattr(self.config, "task", None)
+
     def __repr__(self):
         return (
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
-            f"group_name={getattr(self.config, 'group', None)},"
             f"output_type={self.OUTPUT_TYPE},"
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
             f"num_samples={len(self.eval_docs)})"
