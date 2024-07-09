@@ -215,7 +215,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
         _requests: List[Tuple[str, dict]] = [req.args for req in requests]
 
         res = []
-        for num, request in enumerate(tqdm(_requests, disable=disable_tqdm)):
+        for request in tqdm(_requests, disable=disable_tqdm):
             try:
                 inp = request[0]
                 request_args = request[1]
