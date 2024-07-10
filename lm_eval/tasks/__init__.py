@@ -165,12 +165,13 @@ class TaskManager:
         name_or_config: Optional[Union[str, dict]] = None,
         parent_name: Optional[str] = None,
         update_config: Optional[dict] = None,
+        yaml_path: Optional[str] = None,
     ) -> Mapping:
-        def _load_task(config, task):
+        def _load_task(config, task, yaml_path=None):
             if "include" in config:
                 config = {
                     **utils.load_yaml_config(
-                        yaml_path=None,
+                        yaml_path=yaml_path,
                         yaml_config={"include": config.pop("include")},
                         mode="full",
                     ),
@@ -186,7 +187,6 @@ class TaskManager:
                     task_object.config.task = config["task"]
             else:
                 task_object = ConfigurableTask(config=config)
-
             return {task: task_object}
 
         def _get_group_and_subtask_from_config(config):
@@ -228,6 +228,7 @@ class TaskManager:
                     group_name, subtask_list = _get_group_and_subtask_from_config(
                         group_config
                     )
+                    yaml_path = self._get_yaml_path(group_name.group)
                 else:
                     if self._name_is_tag(name_or_config):
                         fn = partial(
@@ -246,7 +247,8 @@ class TaskManager:
 
         if isinstance(name_or_config, dict):
             if self._config_is_task(name_or_config):
-                name = name_or_config.pop("task")
+                # name = name_or_config.pop("task")
+                name = name_or_config["task"]
                 if update_config is not None:
                     name_or_config = {**name_or_config, **update_config}
                 # If the name is registered as a group
@@ -290,7 +292,7 @@ class TaskManager:
                         }
                     else:
                         task_config = name_or_config
-                    return _load_task(task_config, task=name)
+                    return _load_task(task_config, task=name, yaml_path=yaml_path)
             else:
                 group_config, update_config = _process_group_config(name_or_config)
                 group_name, subtask_list = _get_group_and_subtask_from_config(
@@ -301,6 +303,7 @@ class TaskManager:
             self._load_individual_task_or_group,
             parent_name=group_name,
             update_config=update_config,
+            yaml_path=yaml_path,
         )
         return {
             group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
@@ -558,5 +561,4 @@ def get_task_dict(
     # and we'd be unsure which to use and report.)
     # we explicitly check and error in this case.
     _check_duplicates(get_subtask_list(final_task_dict))
-
     return final_task_dict
