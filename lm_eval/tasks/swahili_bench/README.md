@@ -14,7 +14,7 @@ Homepage: `https://allenai.org/data/arc`
 ```
 @inproceedings{arc_swahili_translation_2024,
 title={AI2 Reasoning Challenge (ARC) Swahili Translation},
-author={AI2 Team and Contributors},
+author={sartify LLC},
 booktitle={},
 year={2024},
 url={},
