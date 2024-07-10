@@ -361,12 +361,14 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
+            v = "%.4f" % v if isinstance(v, float) else v
+
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
                 se = "   N/A" if se == "N/A" else "%.4f" % se
-                values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
+                values.append([k, version, f, n, m, hib, v, "±", se])
             else:
-                values.append([k, version, f, n, m, hib, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, hib, v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values
