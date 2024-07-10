@@ -50,7 +50,7 @@ def simple_evaluate(
     model_args: Optional[Union[str, dict]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
-    batch_size: Optional[int] = None,
+    batch_size: Optional[Union[int, str]] = None,
     max_batch_size: Optional[int] = None,
     device: Optional[str] = None,
     use_cache: Optional[str] = None,
