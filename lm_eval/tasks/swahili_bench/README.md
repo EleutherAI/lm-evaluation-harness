@@ -2,41 +2,51 @@
 
 ### Paper
 
-Title: `paper titles goes `
+Title: `AI2 Reasoning Challenge (ARC) Swahili Translation`
 
-Abstract: `link to paper PDF or arXiv abstract goes here`
+Abstract: ``
 
-`Short description of paper / benchmark goes here:`
+`The ARC_Challenge_Swahili dataset is a Swahili translation of the original ARC dataset, designed to evaluate the ability of AI systems to answer multiple-choice science questions at a grade-school level. The translation was done using a combination of machine translation and human annotation to ensure high-quality translations.`
 
-Homepage: `homepage to the benchmark's website goes here, if applicable`
-
+Homepage: `https://allenai.org/data/arc`
 
 ### Citation
-
 ```
-BibTeX-formatted citation goes here
+@inproceedings{arc_swahili_translation_2024,
+title={AI2 Reasoning Challenge (ARC) Swahili Translation},
+author={AI2 Team and Contributors},
+booktitle={},
+year={2024},
+url={},
+}
 ```
 
 ### Groups and Tasks
 
 #### Groups
 
-* `group_name`: `Short description`
+* `Multiple Choice Science Questions`: `This group includes tasks that involve answering multiple-choice science questions designed for grade-school students.`
 
 #### Tasks
 
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+* `Multiple-Choice Question Answering`: `This task involves selecting the correct answer from multiple choices for given science questions translated into Swahili.`
 
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
-* [ ] Is the task an existing benchmark in the literature?
-  * [ ] Have you referenced the original paper that introduced the task?
-  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-
+* [x] Is the task an existing benchmark in the literature?
+  * [x] Have you referenced the original paper that introduced the task?
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 If other tasks on this dataset are already supported:
-* [ ] Is the "Main" variant of this task clearly denoted?
-* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+* [x] Is the "Main" variant of this task clearly denoted?
+* [x] Have you provided a short sentence in a README on what each new variant adds/evaluates?
+* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+
+
+
+
+
+
+
