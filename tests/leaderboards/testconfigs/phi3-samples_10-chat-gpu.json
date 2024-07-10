@@ -1,9 +1,9 @@
 {
     "params": {
-        "name": "Phi-3-mini - 10 samples - no chat template",
+        "name": "Phi-3-mini - 10 samples - chat template",
         "output_path": "tests_results/phi3_10samples_nochat/",
         "system_instruction": null,
-        "chat_template": null,
+        "chat_template": true,
         "model": "hf",
         "model_args": "pretrained=microsoft/Phi-3-mini-4k-instruct,dtype=bfloat16",
         "model_num_parameters": 3821079552,
