@@ -126,7 +126,7 @@ class TaskManager:
 
         tag_table = MarkdownTableWriter()
         tag_table.headers = ["Tag"]
-        tag_table.value_matrix = self.all_tags
+        tag_table.value_matrix = [[t] for t in self.all_tags]
 
         subtask_table = MarkdownTableWriter()
         subtask_table.headers = ["Task", "Config Location", "Output Type"]
