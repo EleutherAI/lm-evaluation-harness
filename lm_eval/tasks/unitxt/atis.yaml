@@ -1,3 +1,3 @@
-include: unitxt_tasks.span_labeling.extraction
 task: atis
-dataset_name: card=cards.atis,template=templates.span_labeling.extraction.title
+include: unitxt
+recipe: card=cards.atis,template=templates.span_labeling.extraction.title

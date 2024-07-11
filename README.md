@@ -7,6 +7,7 @@
 
 New updates and features include:
 
+- **New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.**
 - Internal refactoring
 - Config-based task creation and configuration
 - Easier import and sharing of externally-defined task config YAMLs
@@ -453,7 +454,6 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | sentencepiece | For using the sentencepiece tokenizer |
 | sparseml      | For using NM's SparseML models        |
 | testing       | For running library test suite        |
-| unitxt        | For IBM's unitxt dataset tasks        |
 | vllm          | For loading models with vLLM          |
 | zeno          | For visualizing results with Zeno     |
 |---------------|---------------------------------------|

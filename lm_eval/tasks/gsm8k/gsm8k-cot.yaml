@@ -61,7 +61,7 @@ generation_kwargs:
   - 'Q:'
   - </s>
   - <|im_end|>
-group:
+tag:
 - chain_of_thought
 metadata:
   version: 3.0

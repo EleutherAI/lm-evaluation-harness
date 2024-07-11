@@ -10,7 +10,7 @@ It uses the approach described in the [GPT-3 paper](https://arxiv.org/abs/2005.1
     the match, splitting the training data into chunks
    3) Any chunks less than `minimum_slice_length` are removed
    4) Training data sets split into more than `too_dirty_cutoff` are considered
-    completey contaminated and removed
+    completely contaminated and removed
 
 OpenAI used:
 ```

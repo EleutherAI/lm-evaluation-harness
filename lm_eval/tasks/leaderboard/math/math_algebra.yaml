@@ -1,0 +1,3 @@
+include: _template_yaml
+dataset_name: algebra
+task: leaderboard_math_algebra_hard

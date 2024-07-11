@@ -55,7 +55,7 @@ class ContextSampler:
             labeled_examples += (
                 str(doc_target[0])
                 if isinstance(doc_target, list)
-                else doc_target
+                else str(doc_target)
                 if self.config.doc_to_choice is None or isinstance(doc_target, str)
                 else str(self.doc_to_choice(doc)[doc_target])
             )
