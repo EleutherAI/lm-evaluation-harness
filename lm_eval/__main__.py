@@ -318,13 +318,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
     elif args.tasks == "list":
-        eval_logger.info(task_manager.list_all_tasks())
+        print(task_manager.list_all_tasks())
         sys.exit()
     elif args.tasks == "list_groups":
-        eval_logger.info(task_manager.list_all_tasks(list_subtasks=False))
+        print(task_manager.list_all_tasks(list_subtasks=False, list_tags=False))
+        sys.exit()
+    elif args.tasks == "list_tags":
+        print(task_manager.list_all_tags(list_groups=False, list_subtasks=False))
         sys.exit()
     elif args.tasks == "list_subtasks":
-        eval_logger.info(task_manager.list_all_tasks(list_groups=False))
+        print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
     else:
         if os.path.isdir(args.tasks):
@@ -353,7 +356,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks {{list,list_groups,list_subtasks}}` for list of available tasks, task groupings, or only (sub)tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args

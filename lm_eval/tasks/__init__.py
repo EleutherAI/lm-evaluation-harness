@@ -29,6 +29,9 @@ class TaskManager:
         self._all_subtasks = sorted(
             [x for x in self._all_tasks if self._task_index[x]["type"] == "task"]
         )
+        self._all_tags = sorted(
+            [x for x in self._all_tasks if self._task_index[x]["type"] == "tag"]
+        )
 
         self.task_group_map = collections.defaultdict(list)
 
@@ -67,27 +70,43 @@ class TaskManager:
         return self._all_subtasks
 
     @property
+    def all_tags(self):
+        return self._all_tags
+
+    @property
     def task_index(self):
         return self._task_index
 
-    def list_all_tasks(self, list_groups=True, list_subtasks=True) -> str:
+    def list_all_tasks(
+        self, list_groups=True, list_tags=True, list_subtasks=True
+    ) -> str:
         from pytablewriter import MarkdownTableWriter
 
+        def sanitize_path(path):
+            # don't print full path if we are within the lm_eval/tasks dir !
+            # if we aren't though, provide the full path.
+            if "lm_eval/tasks/" in path:
+                return "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+            else:
+                return path
+
         group_table = MarkdownTableWriter()
-        group_table.table_name = "Groups"
         group_table.headers = ["Group", "Config Location"]
         gt_values = []
         for g in self.all_groups:
             path = self.task_index[g]["yaml_path"]
             if path == -1:
-                path = ""
+                path = "---"
             else:
-                path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+                path = sanitize_path(path)
             gt_values.append([g, path])
         group_table.value_matrix = gt_values
 
+        tag_table = MarkdownTableWriter()
+        tag_table.headers = ["Tag"]
+        tag_table.value_matrix = self.all_tags
+
         subtask_table = MarkdownTableWriter()
-        subtask_table.table_name = "Subtasks"
         subtask_table.headers = ["Task", "Config Location", "Output Type"]
         st_values = []
         for t in self.all_subtasks:
@@ -109,15 +128,17 @@ class TaskManager:
                         output_type = include_config["output_type"]
 
             if path == -1:
-                path = ""
+                path = "---"
             else:
-                path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+                path = sanitize_path(path)
             st_values.append([t, path, output_type])
         subtask_table.value_matrix = st_values
 
         result = "\n"
         if list_groups:
             result += group_table.dumps() + "\n\n"
+        if list_tags:
+            result += tag_table.dumps() + "\n\n"
         if list_subtasks:
             result += subtask_table.dumps() + "\n\n"
         return result
