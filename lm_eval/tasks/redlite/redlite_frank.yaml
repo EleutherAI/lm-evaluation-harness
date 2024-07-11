@@ -1,6 +1,7 @@
-task: rt-inod-bias
-dataset_path: innodatalabs/rt-inod-bias
+task: redlite_frank
+dataset_path: innodatalabs/rt-frank
 output_type: generate_until
+training_split: train
 test_split: test
 doc_to_text: !function utils.doc_to_text
 doc_to_target: expected

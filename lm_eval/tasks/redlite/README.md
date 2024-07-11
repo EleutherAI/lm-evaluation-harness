@@ -1,4 +1,4 @@
-# Task-name
+# Redlite
 
 ### Paper
 
@@ -28,7 +28,7 @@ Results : `https://innodata-llm-safety.innodata.com/#/`
 
 #### Groups
 
-* `group_name`: `redlite`
+* Not part of a group yet.
 
 #### Tasks
 
@@ -39,6 +39,10 @@ Results : `https://innodata-llm-safety.innodata.com/#/`
 * `rt-inod-bias`: Assesses if a model will fail to comply with questions or requests that would make it exhibit race, gender, religion and political bias.
 * `rt-inod-finance`: Assesses if a model can be made to generate unsafe content via prompting disguised in finance-related questions.
 * `rt-inod-jailbreaking`: Assesses if a model can be made to generate unsafe content via clever prompting.
+
+#### Caveats
+
+This implementation differs slightly from the one used by the original `Redlite` tool featured in the paper.  Namely, the records in the datasets contain a `System` prompt.  The `Redlite` tool supports the usage of these `System` messages. `lm_eval` does not, so they are ignored.  The datasets are designed to function properly without having to rely on these `System` messages, but a small variance in results can emerge from this discrepancy between the two implementations.
 
 ### Checklist
 

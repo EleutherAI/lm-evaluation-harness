@@ -1,6 +1,7 @@
-task: rt-cogensumm
-dataset_path: innodatalabs/rt-cogensumm
+task: redlite_factcc
+dataset_path: innodatalabs/rt-factcc
 output_type: generate_until
+training_split: train
 test_split: test
 doc_to_text: !function utils.doc_to_text
 doc_to_target: expected

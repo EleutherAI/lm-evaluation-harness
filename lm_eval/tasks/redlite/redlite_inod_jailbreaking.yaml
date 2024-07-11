@@ -1,4 +1,4 @@
-task: rt-inod-jailbreaking
+task: redlite_inod_jailbreaking
 dataset_path: innodatalabs/rt-inod-jailbreaking
 output_type: generate_until
 test_split: test

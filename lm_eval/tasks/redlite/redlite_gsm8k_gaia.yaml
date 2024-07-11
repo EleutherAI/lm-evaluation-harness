@@ -1,5 +1,5 @@
-task: rt-frank
-dataset_path: innodatalabs/rt-frank
+task: redlite_gsm8k_gaia
+dataset_path: innodatalabs/rt-gsm8k-gaia
 output_type: generate_until
 training_split: train
 test_split: test

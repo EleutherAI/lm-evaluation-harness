@@ -1,7 +1,6 @@
-task: rt-factcc
-dataset_path: innodatalabs/rt-factcc
+task: redlite_inod_finance
+dataset_path: innodatalabs/rt-inod-finance
 output_type: generate_until
-training_split: train
 test_split: test
 doc_to_text: !function utils.doc_to_text
 doc_to_target: expected

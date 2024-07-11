@@ -1,5 +1,5 @@
-task: rt-inod-finance
-dataset_path: innodatalabs/rt-inod-finance
+task: redlite_inod_bias
+dataset_path: innodatalabs/rt-inod-bias
 output_type: generate_until
 test_split: test
 doc_to_text: !function utils.doc_to_text

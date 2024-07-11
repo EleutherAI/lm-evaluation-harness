@@ -1,7 +1,6 @@
-task: rt-gsm8k-gaia
-dataset_path: innodatalabs/rt-gsm8k-gaia
+task: redlite_cogensumm
+dataset_path: innodatalabs/rt-cogensumm
 output_type: generate_until
-training_split: train
 test_split: test
 doc_to_text: !function utils.doc_to_text
 doc_to_target: expected

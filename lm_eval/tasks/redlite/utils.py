@@ -19,6 +19,8 @@ from rouge_score import rouge_scorer, scoring
 #   "id": "test-0"
 # }
 
+ROUGE_SCORER = None
+
 def doc_to_text(doc):
     return doc["messages"][1]["content"]
 
@@ -36,8 +38,10 @@ def process_results(doc, results):
 
 
 def calculate_rouge(gold: str, pred: str) -> float:
-    scorer = rouge_scorer.RougeScorer(["rouge2"], use_stemmer=True)
-    scores = scorer.score(gold, pred)
+    global ROUGE_SCORER
+    if ROUGE_SCORER is None:
+        ROUGE_SCORER = rouge_scorer.RougeScorer(["rouge2"], use_stemmer=True)
+    scores = ROUGE_SCORER.score(gold, pred)
     return scores["rouge2"].fmeasure
 
 def calculate_pem(expected, actual):
