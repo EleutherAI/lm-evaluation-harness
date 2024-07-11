@@ -1,3 +1,3 @@
-include: unitxt_tasks.classification.multi_class
 task: medical_abstracts
-dataset_name: card=cards.medical_abstracts,template=templates.classification.multi_class.title
+include: unitxt
+recipe: card=cards.medical_abstracts,template=templates.classification.multi_class.title
