@@ -10,7 +10,9 @@ MedConceptsQA is a dedicated open source benchmark for medical concepts question
 
 The questions are categorized into three levels of difficulty: easy, medium, and hard.
 
-Our benchmark serves as a valuable resource for evaluating the understanding and reasoning of medical concepts by Large Language Models.
+Our benchmark serves as a valuable resource for evaluating the
+abilities of Large Language Models to interpret medical codes and distinguish
+between medical concepts.
 
 ### Citation
 
