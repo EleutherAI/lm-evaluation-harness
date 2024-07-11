@@ -1,6 +1,7 @@
 import copy
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
+import torch
 import transformers
 from tqdm import tqdm
 
@@ -102,51 +103,58 @@ class HFMultimodalLM(HFLM):
 
     #     return encoding
 
-    # def tok_batch_encode(
-    #     self,
-    #     strings: List[str],
-    #     padding_side: str = "left",
-    #     left_truncate_len: int = None,
-    #     truncation: bool = False,
-    # ) -> Tuple[torch.Tensor, torch.Tensor]:
-    #     # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
-    #     old_padding_side = self.tokenizer.padding_side
-    #     self.tokenizer.padding_side = padding_side
+    def tok_batch_encode(
+        self,
+        strings: List[str],  # note that input signature of this fn is different
+        visuals,  # TODO: typehint on this
+        padding_side: str = "left",
+        left_truncate_len: int = None,
+        truncation: bool = False,
+    ) -> Dict[
+        str, torch.Tensor
+    ]:  # TODO: note that this return signature differs from HFLM tok_batch_encode.
+        # TODO: we should allow
 
-    #     add_special_tokens = {}
-    #     if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-    #         add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+        # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
+        old_padding_side = self.tokenizer.padding_side
+        self.tokenizer.padding_side = padding_side
 
-    #     encoding = self.tokenizer(
-    #         strings,
-    #         truncation=truncation,
-    #         padding="longest",
-    #         return_tensors="pt",
-    #         **add_special_tokens,
-    #     )
-    #     if left_truncate_len:
-    #         encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
-    #         encoding["attention_mask"] = encoding["attention_mask"][
-    #             :, -left_truncate_len:
-    #         ]
-    #     self.tokenizer.padding_side = old_padding_side
+        add_special_tokens = {}
+        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
-    #     return encoding["input_ids"], encoding["attention_mask"]
+        encoding = self.processor(
+            strings,
+            truncation=truncation,
+            padding="longest",
+            return_tensors="pt",
+            **add_special_tokens,
+        ).to(
+            self.device, self.model.dtype
+        )  # TODO: casting to dtype seems odd for input_ids and attn_mask.
+        if left_truncate_len:
+            encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
+            encoding["attention_mask"] = encoding["attention_mask"][
+                :, -left_truncate_len:
+            ]
+        self.tokenizer.padding_side = old_padding_side
+
+        return encoding
 
     # def tok_decode(self, tokens, skip_special_tokens=True):
     #     return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
-    def _model_generate(self, inputs, stop, **gen_kwargs):
-        # TODO: handle max_length
+    def _model_generate(self, inputs, max_length, stop, **generation_kwargs):
         # gen_kwargs["image_sizes"] = [visuals[idx].size for idx in range(len(visuals))]
-        if "max_new_tokens" not in gen_kwargs:
-            gen_kwargs["max_new_tokens"] = 1024
-        if "temperature" not in gen_kwargs:
-            gen_kwargs["temperature"] = 0
-        if "top_p" not in gen_kwargs:
-            gen_kwargs["top_p"] = None
-        if "num_beams" not in gen_kwargs:
-            gen_kwargs["num_beams"] = 1
+        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
+        do_sample = generation_kwargs.get("do_sample", None)
+
+        # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
+        if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
+            generation_kwargs["do_sample"] = do_sample = False
+
+        if do_sample is False and generation_kwargs.get("temperature") == 0.0:
+            generation_kwargs.pop("temperature")
 
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer,
@@ -156,15 +164,11 @@ class HFMultimodalLM(HFLM):
         )
         return self.model.generate(
             **inputs,
-            # max_length=max_length,
+            max_length=max_length,
             stopping_criteria=stopping_criteria,
-            do_sample=True if gen_kwargs["temperature"] > 0 else False,
-            temperature=gen_kwargs["temperature"],
-            top_p=gen_kwargs["top_p"],
-            num_beams=gen_kwargs["num_beams"],
-            max_new_tokens=gen_kwargs["max_new_tokens"],
+            pad_token_id=self.tokenizer.pad_token_id,
             use_cache=True,
-            pad_token_id=self.tokenizer.eos_token_id,
+            **generation_kwargs,
         )
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
@@ -257,21 +261,19 @@ class HFMultimodalLM(HFLM):
 
             max_ctx_len = self.max_length - max_gen_toks  # noqa: F841 # TODO: this assumes we are using a causal LM. is that always valid? shouldn't be
 
-            self.tokenizer.padding_side = "left"
-            inputs = self.processor(  # TODO: write this as tok_batch_encode (and allow that to either take a visuals value or None)
-                images=visuals, text=contexts, return_tensors="pt", padding=True
-            ).to(
-                self.device, self.model.dtype
-            )  # TODO: factor out into a tok_batch_encode bit ; truncate from left using max_ctx_len
-
-            print(inputs)
+            inputs = self.tok_batch_encode(
+                contexts,
+                visuals,
+                left_truncate_len=max_ctx_len,
+                truncation=self.truncation,
+            ).to(self.device, self.model.dtype)
 
             context_enc = inputs["input_ids"]
 
             if "max_length" not in kwargs:
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
 
-            cont = self._model_generate(inputs, stop=until, **gen_kwargs)
+            cont = self._model_generate(inputs, stop=until, **kwargs)
 
             ### essentially same as HFLM beyond this line!
 
