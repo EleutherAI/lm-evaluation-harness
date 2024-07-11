@@ -1,8 +1,7 @@
 "dataset_name": "logical_fallacies"
 "description": "The following are multiple choice questions (with answers) about logical\
   \ fallacies.\n\n"
-"group": "mmlu_humanities_generative"
-"group_alias": "humanities"
+"tag": "mmlu_humanities_generative"
 "include": "_default_template_yaml"
 "task": "mmlu_logical_fallacies_generative"
 "task_alias": "logical_fallacies"

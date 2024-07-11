@@ -37,6 +37,6 @@ fewshot_config:
     target: 'Let''s think step by step. We refer to Wikipedia articles on world religions
       for help. In Judaism, the most distinctive sign of the covenant is circumcision
       (brit milah). The answer is (B).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_world_religions
