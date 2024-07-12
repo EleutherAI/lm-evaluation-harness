@@ -25,7 +25,7 @@ url={},
 
 #### Groups
 
-* `Multiple Choice Science Questions`: `This group includes tasks that involve answering multiple-choice science questions designed for grade-school students.`
+* Not part of a group yet.
 
 #### Tasks
 
