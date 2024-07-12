@@ -1,6 +1,3 @@
-from sklearn.metrics import f1_score
-
-
 def doc_to_text(doc):
     output = """Please identify whether the premise entails or contradicts the hypothesis in the following premise
     and hypothesis. The answer should be exact entailment, contradiction, or neutral.
@@ -20,6 +17,8 @@ def doc_to_target(doc):
 
 
 def weighted_f1_score(items):
+    from sklearn.metrics import f1_score
+
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
