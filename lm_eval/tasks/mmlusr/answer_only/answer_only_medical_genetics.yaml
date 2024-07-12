@@ -1,0 +1,7 @@
+"dataset_name": "answer_only_medical_genetics"
+"description": "The following are multiple choice questions (with answers) about medical\
+  \ genetics.\n\n"
+"tag": "mmlusr_answer_only_other_tasks"
+"include": "_mmlusr_a_yml"
+"task": "mmlusr_answer_only_medical_genetics"
+"task_alias": "medical genetics"
