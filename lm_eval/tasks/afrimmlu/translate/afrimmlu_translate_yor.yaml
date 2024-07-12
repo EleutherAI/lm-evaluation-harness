@@ -1,0 +1,3 @@
+dataset_name: yor
+include: afrimmlu_common_translate_yaml
+task: afrimmlu_translate_yor
