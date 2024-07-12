@@ -29,7 +29,7 @@ url={},
 
 #### Tasks
 
-* `Multiple-Choice Question Answering`: `This task involves selecting the correct answer from multiple choices for given science questions translated into Swahili.`
+* `arc_challenge_swh `: This task involves selecting the correct answer from multiple choices for given science questions translated into Swahili.
 
 ### Checklist
 
