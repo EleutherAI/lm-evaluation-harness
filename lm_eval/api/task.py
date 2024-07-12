@@ -1,5 +1,6 @@
 import abc
 import ast
+import functools
 import logging
 import random
 import re
@@ -20,8 +21,9 @@ from typing import (
     Union,
 )
 
+import concurrent.futures
 import datasets
-import numpy as np
+import numpy as n
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -438,31 +440,19 @@ class Task(abc.ABC):
 
         num_docs = len(doc_id_docs)
 
-        for doc_id, doc in tqdm(
-            doc_id_docs,
-            total=num_docs,
-        ):
-            # sample fewshot context #TODO: need to offset doc_id by rank now!
-            fewshot_ctx = self.fewshot_context(
-                doc,
-                0 if self.config.num_fewshot is None else self.config.num_fewshot,
-                system_instruction,
-                apply_chat_template,
-                fewshot_as_multiturn,
-                chat_template,
+        p = functools.partial(_create_instance_of_task,
+                              task=self,
+                              system_instruction=system_instruction,
+                              apply_chat_template=apply_chat_template,
+                              fewshot_as_multiturn=fewshot_as_multiturn,
+                              chat_template=chat_template)
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            instances = list(
+                tqdm(
+                    executor.map(p, doc_id_docs),
+                    total=num_docs,
+                )
             )
-
-            # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
-            inst = self.construct_requests(
-                doc=doc,
-                ctx=fewshot_ctx,
-                metadata=(self.config["task"], doc_id, self.config.repeats),
-            )
-
-            if not isinstance(inst, list):
-                inst = [inst]
-
-            instances.append(inst)
 
         # now flatten, this is to allow slicing to work with pickles
 
@@ -1666,3 +1656,35 @@ class PerplexityTask(Task):
     def count_words(cls, doc) -> int:
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+def _create_instance_of_task(doc_id_doc,
+                     task: Task,
+                     system_instruction: Optional[str] = None,
+                     apply_chat_template: bool = False,
+                     fewshot_as_multiturn: bool = False,
+                     chat_template: Optional[Callable] = None):
+    """Create an instance of a task from a doc_id and doc.
+    
+    Needs to be a top-level function to be picklable."""
+    doc_id, doc = doc_id_doc
+    # sample fewshot context #TODO: need to offset doc_id by rank now!
+    fewshot_ctx = task.fewshot_context(
+        doc,
+        0 if task.config.num_fewshot is None else task.config.num_fewshot,
+        system_instruction,
+        apply_chat_template,
+        fewshot_as_multiturn,
+        chat_template,
+    )
+
+    # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
+    inst = task.construct_requests(
+        doc=doc,
+        ctx=fewshot_ctx,
+        metadata=(task.config["task"], doc_id, task.config.repeats),
+    )
+
+    if not isinstance(inst, list):
+        inst = [inst]
+
+    return inst
