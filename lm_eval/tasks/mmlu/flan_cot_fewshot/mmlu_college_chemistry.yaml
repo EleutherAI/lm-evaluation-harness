@@ -1,38 +1,49 @@
-"dataset_name": "college_chemistry"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ chemistry.\n\nQ: 3 Cl−(aq) + 4 CrO_4^2−(aq) + 23 H+(aq) → 3 HClO2(aq) + 4 Cr3+(aq)\
-  \ + 10 H2O(l). In the reaction shown above, Cl−(aq) behaves as\n(A) an acid (B)\
-  \ a base (C) a catalyst (D) a reducing agent\nA: Let's think step by step. A molecule\
-  \ that behaves as a base accepts an H+ ion (or proton) from another molecule, whereas\
-  \ a molecule that behaves as an acid donates an H+ ion (or proton) to another molecule.\
-  \ Neither of these is the case for Cl in this reaction, which rules out (A) and\
-  \ (B). A catalyst is a substance that only accelerates a reaction without itself\
-  \ undergoing chemical change, which is not the case here. This rules out (C). Instead,\
-  \ the $Cl^{-} molecules carry a negative charge, which they donate in the reaction\
-  \ to form 3 HClO2. This is the behavior of a reducing agent, or (D). The answer\
-  \ is (D).\n\nQ: Which of the following statements about the lanthanide elements\
-  \ is NOT true?\n(A) The most common oxidation state for the lanthanide elements\
-  \ is +3. (B) Lanthanide complexes often have high coordination numbers (> 6). (C)\
-  \ All of the lanthanide elements react with aqueous acid to liberate hydrogen. (D)\
-  \ The atomic radii of the lanthanide elements increase across the period from La\
-  \ to Lu.\nA: Let's think step by step. The atomic radii of the lanthanide elements\
-  \ in fact decrease across the period from La to Lu. Options (A), (B), and (C) are\
-  \ all true. This means that only (D) is NOT true. The answer is (D).\n\nQ: Which\
-  \ of the following lists the hydrides of group-14 elements in order of thermal stability,\
-  \ from lowest to highest?\n(A) PbH4 < SnH4 < GeH4 < SiH4 < CH4 (B) PbH4 < SnH4 <\
-  \ CH4 < GeH4 < SiH4 (C) CH4 < SiH4 < GeH4 < SnH4 < PbH4 (D) CH4 < PbH4 < GeH4 <\
-  \ SnH4 < SiH4\nA: Let's think step by step. The thermal stability of group-14 hydrides\
-  \ decreases as we move from the top of group 14 to the bottom. The order of elements\
-  \ in the group from top to bottom is C, Si, Ge, Sn, Pb. Therefore in order of increasing\
-  \ thermal stability we have PbH4, SnH4, GeH4, SiH4, and CH4, or answer (A). The\
-  \ answer is (A).\n\nQ: Predict the number of lines in the EPR spectrum of a solution\
-  \ of 13C-labelled methyl radical (13CH3•), assuming the lines do not overlap.\n\
-  (A) 4 (B) 3 (C) 6 (D) 24 (E) 8\nA: Let's think step by step. The electron paramagnetic\
-  \ resonance spectrum will be split by two forms of interactions. The first is the\
-  \ hyperfine interaction with the 13C (nuclear spin $I = \nrac{1}{2}$) which will\
-  \ split the spectrum into 2 lines. This will be further split into 4 lines by the\
-  \ interaction with three equivalent 1H nuclei. The total number of lines is therefore\
-  \ $2 \\cdot 4 = 8$. The answer is (E).\n\n"
-"group": "mmlu_flan_cot_fewshot_stem"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_college_chemistry"
+dataset_name: college_chemistry
+description: The following are multiple choice questions (with answers) about college
+  chemistry.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq) +\
+      \ 4 Cr3+(aq) + 10 H2O(l). In the reaction shown above, Cl\u2212(aq) behaves\
+      \ as\n(A) an acid (B) a base (C) a catalyst (D) a reducing agent"
+    target: Let's think step by step. A molecule that behaves as a base accepts an
+      H+ ion (or proton) from another molecule, whereas a molecule that behaves as
+      an acid donates an H+ ion (or proton) to another molecule. Neither of these
+      is the case for Cl in this reaction, which rules out (A) and (B). A catalyst
+      is a substance that only accelerates a reaction without itself undergoing chemical
+      change, which is not the case here. This rules out (C). Instead, the $Cl^{-}
+      molecules carry a negative charge, which they donate in the reaction to form
+      3 HClO2. This is the behavior of a reducing agent, or (D). The answer is (D).
+  - question: 'Which of the following statements about the lanthanide elements is NOT
+      true?
+
+      (A) The most common oxidation state for the lanthanide elements is +3. (B) Lanthanide
+      complexes often have high coordination numbers (> 6). (C) All of the lanthanide
+      elements react with aqueous acid to liberate hydrogen. (D) The atomic radii
+      of the lanthanide elements increase across the period from La to Lu.'
+    target: Let's think step by step. The atomic radii of the lanthanide elements
+      in fact decrease across the period from La to Lu. Options (A), (B), and (C)
+      are all true. This means that only (D) is NOT true. The answer is (D).
+  - question: 'Which of the following lists the hydrides of group-14 elements in order
+      of thermal stability, from lowest to highest?
+
+      (A) PbH4 < SnH4 < GeH4 < SiH4 < CH4 (B) PbH4 < SnH4 < CH4 < GeH4 < SiH4 (C)
+      CH4 < SiH4 < GeH4 < SnH4 < PbH4 (D) CH4 < PbH4 < GeH4 < SnH4 < SiH4'
+    target: Let's think step by step. The thermal stability of group-14 hydrides decreases
+      as we move from the top of group 14 to the bottom. The order of elements in
+      the group from top to bottom is C, Si, Ge, Sn, Pb. Therefore in order of increasing
+      thermal stability we have PbH4, SnH4, GeH4, SiH4, and CH4, or answer (A). The
+      answer is (A).
+  - question: "Predict the number of lines in the EPR spectrum of a solution of 13C-labelled\
+      \ methyl radical (13CH3\u2022), assuming the lines do not overlap.\n(A) 4 (B)\
+      \ 3 (C) 6 (D) 24 (E) 8"
+    target: "Let's think step by step. The electron paramagnetic resonance spectrum\
+      \ will be split by two forms of interactions. The first is the hyperfine interaction\
+      \ with the 13C (nuclear spin $I = \nrac{1}{2}$) which will split the spectrum\
+      \ into 2 lines. This will be further split into 4 lines by the interaction with\
+      \ three equivalent 1H nuclei. The total number of lines is therefore $2 \\cdot\
+      \ 4 = 8$. The answer is (E).\n\n"
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_college_chemistry

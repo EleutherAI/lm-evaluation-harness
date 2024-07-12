@@ -1,5 +1,5 @@
 include: "_default_template_yaml"
-group:
+tag:
   - french_bench
   - french_bench_gen
 description: "D'après l'information dans le contexte donné, donne la réponse à la question en citant quelques extraits du contexte."

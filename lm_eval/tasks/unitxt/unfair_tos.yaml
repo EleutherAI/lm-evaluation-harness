@@ -1,0 +1,3 @@
+task: unfair_tos
+include: unitxt
+recipe: card=cards.unfair_tos,template=templates.classification.multi_label.title

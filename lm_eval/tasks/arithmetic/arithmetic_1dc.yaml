@@ -1,4 +1,4 @@
-group:
+tag:
   - arithmetic
 task: arithmetic_1dc
 dataset_path: EleutherAI/arithmetic

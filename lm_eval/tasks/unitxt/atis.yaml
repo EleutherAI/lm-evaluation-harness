@@ -1,0 +1,3 @@
+task: atis
+include: unitxt
+recipe: card=cards.atis,template=templates.span_labeling.extraction.title

@@ -1,48 +1,63 @@
-"dataset_name": "professional_accounting"
-"description": "The following are multiple choice questions (with answers) about professional\
-  \ accounting.\n\nQ: An auditor traces the serial numbers on equipment to a nonissuer’s\
-  \ subledger. Which of the following management assertions is supported by this test?\n\
-  (A) Valuation and allocation (B) Completeness (C) Rights and obligations (D) Presentation\
-  \ and disclosure\nA: Let's think step by step. We refer to Wikipedia articles on\
-  \ accounting for help. The completeness assertion is tested by tracing supporting\
-  \ documents to the record entries. The answer is (B).\n\nQ: One hundred years ago,\
-  \ your great-great-grandmother invested $100 at 5% yearly interest. What is the\
-  \ investment worth today?\n(A) $13,000 (B) $600 (C) $15,000 (D) $28,000\nA: Let's\
-  \ think step by step. We refer to Wikipedia articles on accounting for help. A $100\
-  \ investment at 5% yearly interest is worth 100*(1.05)^100=13150 after 100 years,\
-  \ which is around $13,000. The answer is (A).\n\nQ: On January 1, year 1, Alpha\
-  \ Co. signed an annual maintenance agreement with a software provider for $15,000\
-  \ and the maintenance period begins on March 1, year 1. Alpha also incurred $5,000\
-  \ of costs on January 1, year 1, related to software modification requests that\
-  \ will increase the functionality of the software. Alpha depreciates and amortizes\
-  \ its computer and software assets over five years using the straight-line method.\
-  \ What amount is the total expense that Alpha should recognize related to the maintenance\
-  \ agreement and the software modifications for the year ended December 31, year\
-  \ 1?\n(A) $5,000 (B) $13,500 (C) $16,000 (D) $20,000\nA: Let's think step by step.\
-  \ We refer to Wikipedia articles on accounting for help. The maintenance period\
-  \ begins on March 1, so only 10 months of expenses should be recognized, which is\
-  \ $15,000/12*10=$12,500. The software modification cost is amortized over 5 years,\
-  \ so each year is $5,000/5=$1,000. So the total expense is $12,500+$1,000=$13,500.\
-  \ The answer is (B).\n\nQ: Krete is an unmarried taxpayer with income exclusively\
-  \ from wages. By December 31, year 1, Krete's employer has withheld $16,000 in federal\
-  \ income taxes and Krete has made no estimated tax payments. On April 15, year 2,\
-  \ Krete timely filed for an extension request to file her individual tax return,\
-  \ and paid $300 of additional taxes. Krete's year 1 tax liability was $16,500 when\
-  \ she timely filed her return on April 30, year 2, and paid the remaining tax liability\
-  \ balance. What amount would be subject to the penalty for underpayment of estimated\
-  \ taxes?\n(A) $0 (B) $500 (C) $1,650 (D) $16,500\nA: Let's think step by step. We\
-  \ refer to Wikipedia articles on accounting for help. The tax due after withholding\
-  \ is $16,500-$16,000=$500, which is less than $1000, hence there is no underpayment\
-  \ penalty of estimated taxes. The answer is (A).\n\nQ: Box a nongovernmental not-for-profit\
-  \ organization had the following transactions during the year: Proceeds from sale\
-  \ of investments $80000 Purchase of property plant and equipment $10000 Proceeds\
-  \ from long-term debt $100000 Loss on sale of investment $5000 What amount should\
-  \ be reported as net cash provided by financing activities in Box's statement of\
-  \ cash flows?\n(A) $70,000 (B) $75,000 (C) $80,000 (D) 100000\nA: Let's think step\
-  \ by step. We refer to Wikipedia articles on accounting for help. Among the four\
-  \ transactions, only Proceeds from long-term debt belongs to the financing activities\
-  \ section of cashflow, hence the amount reported should be $100000. The answer is\
-  \ (D).\n\n"
-"group": "mmlu_flan_cot_fewshot_other"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_professional_accounting"
+dataset_name: professional_accounting
+description: The following are multiple choice questions (with answers) about professional
+  accounting.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "An auditor traces the serial numbers on equipment to a nonissuer\u2019\
+      s subledger. Which of the following management assertions is supported by this\
+      \ test?\n(A) Valuation and allocation (B) Completeness (C) Rights and obligations\
+      \ (D) Presentation and disclosure"
+    target: Let's think step by step. We refer to Wikipedia articles on accounting
+      for help. The completeness assertion is tested by tracing supporting documents
+      to the record entries. The answer is (B).
+  - question: 'One hundred years ago, your great-great-grandmother invested $100 at 5%
+      yearly interest. What is the investment worth today?
+
+      (A) $13,000 (B) $600 (C) $15,000 (D) $28,000'
+    target: Let's think step by step. We refer to Wikipedia articles on accounting
+      for help. A $100 investment at 5% yearly interest is worth 100*(1.05)^100=13150
+      after 100 years, which is around $13,000. The answer is (A).
+  - question: 'On January 1, year 1, Alpha Co. signed an annual maintenance agreement
+      with a software provider for $15,000 and the maintenance period begins on March
+      1, year 1. Alpha also incurred $5,000 of costs on January 1, year 1, related
+      to software modification requests that will increase the functionality of the
+      software. Alpha depreciates and amortizes its computer and software assets over
+      five years using the straight-line method. What amount is the total expense
+      that Alpha should recognize related to the maintenance agreement and the software
+      modifications for the year ended December 31, year 1?
+
+      (A) $5,000 (B) $13,500 (C) $16,000 (D) $20,000'
+    target: Let's think step by step. We refer to Wikipedia articles on accounting
+      for help. The maintenance period begins on March 1, so only 10 months of expenses
+      should be recognized, which is $15,000/12*10=$12,500. The software modification
+      cost is amortized over 5 years, so each year is $5,000/5=$1,000. So the total
+      expense is $12,500+$1,000=$13,500. The answer is (B).
+  - question: 'Krete is an unmarried taxpayer with income exclusively from wages. By
+      December 31, year 1, Krete''s employer has withheld $16,000 in federal income
+      taxes and Krete has made no estimated tax payments. On April 15, year 2, Krete
+      timely filed for an extension request to file her individual tax return, and
+      paid $300 of additional taxes. Krete''s year 1 tax liability was $16,500 when
+      she timely filed her return on April 30, year 2, and paid the remaining tax
+      liability balance. What amount would be subject to the penalty for underpayment
+      of estimated taxes?
+
+      (A) $0 (B) $500 (C) $1,650 (D) $16,500'
+    target: Let's think step by step. We refer to Wikipedia articles on accounting
+      for help. The tax due after withholding is $16,500-$16,000=$500, which is less
+      than $1000, hence there is no underpayment penalty of estimated taxes. The answer
+      is (A).
+  - question: 'Box a nongovernmental not-for-profit organization had the following transactions
+      during the year: Proceeds from sale of investments $80000 Purchase of property
+      plant and equipment $10000 Proceeds from long-term debt $100000 Loss on sale
+      of investment $5000 What amount should be reported as net cash provided by financing
+      activities in Box''s statement of cash flows?
+
+      (A) $70,000 (B) $75,000 (C) $80,000 (D) 100000'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on accounting
+      for help. Among the four transactions, only Proceeds from long-term debt belongs
+      to the financing activities section of cashflow, hence the amount reported should
+      be $100000. The answer is (D).'
+tag: mmlu_flan_cot_fewshot_other
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_professional_accounting

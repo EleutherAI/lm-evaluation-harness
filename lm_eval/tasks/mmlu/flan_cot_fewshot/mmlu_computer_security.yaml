@@ -1,36 +1,50 @@
-"dataset_name": "computer_security"
-"description": "The following are multiple choice questions (with answers) about computer\
-  \ security.\n\nQ: SHA-1 has a message digest of\n(A) 160 bits (B) 512 bits (C) 628\
-  \ bits (D) 820 bits\nA: Let's think step by step. Since SHA-1 is a hash function\
-  \ which takes an input and produces a 160-bit (20-byte) hash value, its message\
-  \ digest is 160 bits. The answer is (A).\n\nQ: _____________ can modify data on\
-  \ your system – so that your system doesn’t run correctly or you can no longer access\
-  \ specific data, or it may even ask for ransom in order to give your access.\n(A)\
-  \ IM – Trojans (B) Backdoor Trojans (C) Trojan-Downloader (D) Ransom Trojan\nA:\
-  \ Let's think step by step. The system is asking for trojans, which are for ransom,\
-  \ which means ransom trojan. The answer is (D).\n\nQ: What is ethical hacking?\n\
-  (A) \"Hacking\" ethics so they justify unintended selfish behavior (B) Hacking systems\
-  \ (e.g., during penetration testing) to expose vulnerabilities so they can be fixed,\
-  \ rather than exploited (C) Hacking into systems run by those whose ethics you disagree\
-  \ with (D) A slang term for rapid software development, e.g., as part of hackathons\n\
-  A: Let's think step by step. Ethical hacking is a process of detecting vulnerabilities\
-  \ in an application, system, or organization's infrastructure that an attacker can\
-  \ use to exploit an individual or organization. They use this process to prevent\
-  \ cyberattacks and security breaches by lawfully hacking into the systems and looking\
-  \ for weak points. The answer is (B).\n\nQ: The ____________ is anything which your\
-  \ search engine cannot search.\n(A) Haunted web (B) World Wide Web (C) Surface web\
-  \ (D) Deep Web\nA: Let's think step by step. The search engine searches on the Surface\
-  \ Web, which is the portion of the world wide web which is visible so (B,C) are\
-  \ wrong. The Haunted Web doesn’t correspond to an internet concept. The Deep Web\
-  \ is the part of the World Wide Web which is not indexed. The answer is (D).\n\n\
-  Q: Exploitation of the Heartbleed bug permits\n(A) overwriting cryptographic keys\
-  \ in memory (B) a kind of code injection (C) a read outside bounds of a buffer (D)\
-  \ a format string attack\nA: Let's think step by step. The Heartbleed Bug is a serious\
-  \ vulnerability in the popular OpenSSL cryptographic software library. Heartbleed\
-  \ resulted from improper input validation (due to a missing bounds check) in the\
-  \ implementation of the TLS heartbeat extension. The vulnerability was classified\
-  \ as a buffer over-read, a situation where more data can be read than should be\
-  \ allowed. The answer is (C).\n\n"
-"group": "mmlu_flan_cot_fewshot_stem"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_computer_security"
+dataset_name: computer_security
+description: The following are multiple choice questions (with answers) about computer
+  security.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'SHA-1 has a message digest of
+
+      (A) 160 bits (B) 512 bits (C) 628 bits (D) 820 bits'
+    target: Let's think step by step. Since SHA-1 is a hash function which takes an
+      question and produces a 160-bit (20-byte) hash value, its message digest is 160
+      bits. The answer is (A).
+  - question: "_____________ can modify data on your system \u2013 so that your system\
+      \ doesn\u2019t run correctly or you can no longer access specific data, or it\
+      \ may even ask for ransom in order to give your access.\n(A) IM \u2013 Trojans\
+      \ (B) Backdoor Trojans (C) Trojan-Downloader (D) Ransom Trojan"
+    target: Let's think step by step. The system is asking for trojans, which are
+      for ransom, which means ransom trojan. The answer is (D).
+  - question: 'What is ethical hacking?
+
+      (A) "Hacking" ethics so they justify unintended selfish behavior (B) Hacking
+      systems (e.g., during penetration testing) to expose vulnerabilities so they
+      can be fixed, rather than exploited (C) Hacking into systems run by those whose
+      ethics you disagree with (D) A slang term for rapid software development, e.g.,
+      as part of hackathons'
+    target: Let's think step by step. Ethical hacking is a process of detecting vulnerabilities
+      in an application, system, or organization's infrastructure that an attacker
+      can use to exploit an individual or organization. They use this process to prevent
+      cyberattacks and security breaches by lawfully hacking into the systems and
+      looking for weak points. The answer is (B).
+  - question: 'The ____________ is anything which your search engine cannot search.
+
+      (A) Haunted web (B) World Wide Web (C) Surface web (D) Deep Web'
+    target: "Let's think step by step. The search engine searches on the Surface Web,\
+      \ which is the portion of the world wide web which is visible so (B,C) are wrong.\
+      \ The Haunted Web doesn\u2019t correspond to an internet concept. The Deep Web\
+      \ is the part of the World Wide Web which is not indexed. The answer is (D)."
+  - question: 'Exploitation of the Heartbleed bug permits
+
+      (A) overwriting cryptographic keys in memory (B) a kind of code injection (C)
+      a read outside bounds of a buffer (D) a format string attack'
+    target: 'Let''s think step by step. The Heartbleed Bug is a serious vulnerability
+      in the popular OpenSSL cryptographic software library. Heartbleed resulted from
+      improper question validation (due to a missing bounds check) in the implementation
+      of the TLS heartbeat extension. The vulnerability was classified as a buffer
+      over-read, a situation where more data can be read than should be allowed. The
+      answer is (C).'
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_computer_security

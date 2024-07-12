@@ -1,0 +1,7 @@
+"dataset_name": "global_facts"
+"description": "The following are multiple choice questions (with answers) about global\
+  \ facts.\n\n"
+"tag": "mmlu_other_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_global_facts_generative"
+"task_alias": "global_facts"

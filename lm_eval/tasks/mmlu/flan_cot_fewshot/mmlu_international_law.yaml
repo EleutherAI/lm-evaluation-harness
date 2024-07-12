@@ -1,54 +1,70 @@
-"dataset_name": "international_law"
-"description": "The following are multiple choice questions (with answers) about international\
-  \ law.\n\nQ: How the consent to be bound of a State may be expressed?\n(A) The consent\
-  \ of a State to be bound is expressed only by ratification (B) The consent of a\
-  \ state to be bound by a treaty may be expressed by signature, ratification, acceptance,\
-  \ approval or accession (C) The consent of a State to be bound is expressed by signature\
-  \ (D) The consent of a State to be bound is expressed by whatever means they choose\n\
-  A: Let's think step by step. We refer to Wikipedia articles on international law\
-  \ for help. Article 11 of Vienna Convention on the Law of Treaties signed in 1969\
-  \ states that \"the consent of a State to be bound by a treaty may be expressed\
-  \ by signature, exchange of instruments constituting a treaty, ratification, acceptance,\
-  \ approval or accession, or by any other means if so agreed.\" (B) is the most precise\
-  \ and accurate answer. The answer is (B).\n\nQ: What is the judge ad hoc?\n(A) If\
-  \ a party to a contentious case before the ICJ does not have a national sitting\
-  \ as judge, it is entitled to nominate someone as a judge solely for that case,\
-  \ with the title of judge ad hoc (B) Judge ad hoc is the member of the bench of\
-  \ the ICJ with a casting vote (C) Judge ad hoc is a surrogate judge, in case a judge\
-  \ is disqualified or passes away (D) Judge ad hoc is the judge that each party will\
-  \ always nominate in every contentious case\nA: Let's think step by step. We refer\
-  \ to Wikipedia articles on international law for help. As \"ad hoc\" implies, a\
-  \ judge ad hoc is appointed only for a specific case or period, when a party to\
-  \ a contentious case before the International Court of Justice does not have a regular\
-  \ national sitting as judge. The answer is (A).\n\nQ: When 'consent' can serve as\
-  \ a circumstance precluding the wrongfulness of a State conduct?\n(A) Consent can\
-  \ serve as a circumstance precluding the wrongfulness whenever it is given (B) Consent\
-  \ can never serve as a circumstance precluding wrongfulness (C) Consent can serve\
-  \ as a circumstance precluding wrongfulness, provided the consent is valid and to\
-  \ the extent that the conduct remains within the limits of the consent given (D)\
-  \ Consent can always serve as a circumstance precluding wrongfulness, no matter\
-  \ which organ of the State gives it\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on international law for help. Valid consent can serve as a circumstance\
-  \ precluding the wrongfulness of a State conduct if the conduct remains within the\
-  \ limits of that consent, according to Chapter V of the Responsibility of States\
-  \ for Internationally Wrongful Acts, 2001, United Nations. The answer is (C).\n\n\
-  Q: Would a reservation to the definition of torture in the ICCPR be acceptable in\
-  \ contemporary practice?\n(A) This is an acceptable reservation if the reserving\
-  \ country's legislation employs a different definition (B) This is an unacceptable\
-  \ reservation because it contravenes the object and purpose of the ICCPR (C) This\
-  \ is an unacceptable reservation because the definition of torture in the ICCPR\
-  \ is consistent with customary international law (D) This is an acceptable reservation\
-  \ because under general international law States have the right to enter reservations\
-  \ to treaties\nA: Let's think step by step. We refer to Wikipedia articles on international\
-  \ law for help. For it contravenes the object and purpose of the ICCPR, this is\
-  \ an unacceptable reservation in contemporary practice. The answer is (B).\n\nQ:\
-  \ What types of force does Article 2(4) of the UN Charter prohibit?\n(A) Article\
-  \ 2(4) encompasses only armed force (B) Article 2(4) encompasses all types of force,\
-  \ including sanctions (C) Article 2(4) encompasses all interference in the domestic\
-  \ affairs of States (D) Article 2(4) encompasses force directed only against a State's\
-  \ territorial integrity\nA: Let's think step by step. We refer to Wikipedia articles\
-  \ on international law for help. Article 2(4) of the UN Charter prohibits states\
-  \ from using armed forces in their international relations. The answer is (A).\n\n"
-"group": "mmlu_flan_cot_fewshot_humanities"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_international_law"
+dataset_name: international_law
+description: The following are multiple choice questions (with answers) about international
+  law.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'How the consent to be bound of a State may be expressed?
+
+      (A) The consent of a State to be bound is expressed only by ratification (B)
+      The consent of a state to be bound by a treaty may be expressed by signature,
+      ratification, acceptance, approval or accession (C) The consent of a State to
+      be bound is expressed by signature (D) The consent of a State to be bound is
+      expressed by whatever means they choose'
+    target: Let's think step by step. We refer to Wikipedia articles on international
+      law for help. Article 11 of Vienna Convention on the Law of Treaties signed
+      in 1969 states that "the consent of a State to be bound by a treaty may be expressed
+      by signature, exchange of instruments constituting a treaty, ratification, acceptance,
+      approval or accession, or by any other means if so agreed." (B) is the most
+      precise and accurate answer. The answer is (B).
+  - question: 'What is the judge ad hoc?
+
+      (A) If a party to a contentious case before the ICJ does not have a national
+      sitting as judge, it is entitled to nominate someone as a judge solely for that
+      case, with the title of judge ad hoc (B) Judge ad hoc is the member of the bench
+      of the ICJ with a casting vote (C) Judge ad hoc is a surrogate judge, in case
+      a judge is disqualified or passes away (D) Judge ad hoc is the judge that each
+      party will always nominate in every contentious case'
+    target: Let's think step by step. We refer to Wikipedia articles on international
+      law for help. As "ad hoc" implies, a judge ad hoc is appointed only for a specific
+      case or period, when a party to a contentious case before the International
+      Court of Justice does not have a regular national sitting as judge. The answer
+      is (A).
+  - question: 'When ''consent'' can serve as a circumstance precluding the wrongfulness
+      of a State conduct?
+
+      (A) Consent can serve as a circumstance precluding the wrongfulness whenever
+      it is given (B) Consent can never serve as a circumstance precluding wrongfulness
+      (C) Consent can serve as a circumstance precluding wrongfulness, provided the
+      consent is valid and to the extent that the conduct remains within the limits
+      of the consent given (D) Consent can always serve as a circumstance precluding
+      wrongfulness, no matter which organ of the State gives it'
+    target: Let's think step by step. We refer to Wikipedia articles on international
+      law for help. Valid consent can serve as a circumstance precluding the wrongfulness
+      of a State conduct if the conduct remains within the limits of that consent,
+      according to Chapter V of the Responsibility of States for Internationally Wrongful
+      Acts, 2001, United Nations. The answer is (C).
+  - question: 'Would a reservation to the definition of torture in the ICCPR be acceptable
+      in contemporary practice?
+
+      (A) This is an acceptable reservation if the reserving country''s legislation
+      employs a different definition (B) This is an unacceptable reservation because
+      it contravenes the object and purpose of the ICCPR (C) This is an unacceptable
+      reservation because the definition of torture in the ICCPR is consistent with
+      customary international law (D) This is an acceptable reservation because under
+      general international law States have the right to enter reservations to treaties'
+    target: Let's think step by step. We refer to Wikipedia articles on international
+      law for help. For it contravenes the object and purpose of the ICCPR, this is
+      an unacceptable reservation in contemporary practice. The answer is (B).
+  - question: 'What types of force does Article 2(4) of the UN Charter prohibit?
+
+      (A) Article 2(4) encompasses only armed force (B) Article 2(4) encompasses all
+      types of force, including sanctions (C) Article 2(4) encompasses all interference
+      in the domestic affairs of States (D) Article 2(4) encompasses force directed
+      only against a State''s territorial integrity'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on international
+      law for help. Article 2(4) of the UN Charter prohibits states from using armed
+      forces in their international relations. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_international_law

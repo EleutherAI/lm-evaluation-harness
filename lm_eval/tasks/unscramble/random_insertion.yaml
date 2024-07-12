@@ -1,4 +1,4 @@
-group:
+tag:
   - unscramble
 task: random_insertion
 dataset_path: EleutherAI/unscramble

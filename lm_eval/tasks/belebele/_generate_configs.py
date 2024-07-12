@@ -1,6 +1,7 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
+
 import argparse
 import os
 
@@ -64,3 +65,36 @@ if __name__ == "__main__":
                 allow_unicode=True,
                 default_style='"',
             )
+
+    # write group config out
+
+    group_yaml_dict = {
+        "group": f"belebele_{args.task_prefix}"
+        if args.task_prefix != ""
+        else "belebele",
+        "task": [
+            (
+                f"belebele_{args.task_prefix}_{lang}"
+                if args.task_prefix != ""
+                else f"belebele_{lang}"
+            )
+            for lang in languages
+            if "default" not in lang
+        ],
+        "aggregate_metric_list": [
+            {"metric": "acc", "aggregation": "mean", "weight_by_size": False},
+            {"metric": "acc_norm", "aggregation": "mean", "weight_by_size": False},
+        ],
+        "metadata": {"version": 0.0},
+    }
+
+    file_save_path = "_" + args.save_prefix_path + f"{args.task_prefix}.yaml"
+
+    with open(file_save_path, "w", encoding="utf-8") as group_yaml_file:
+        yaml.dump(
+            group_yaml_dict,
+            group_yaml_file,
+            width=float("inf"),
+            allow_unicode=True,
+            default_style='"',
+        )
