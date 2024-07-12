@@ -28,7 +28,7 @@ Huggingface Dataset: [https://huggingface.co/datasets/NiniCat/MMLU-SR]([https://
 
 #### Groups
 
-- `mmlu_sr`: MMLU variant where the terminology in the question and answers are modified.
+- `mmlusr`: MMLU variant where the terminology in the question and answers are modified.
 - `mmlusr_answer_only`: MMLU variant where the terminology in the answers are modified.
 - `mmlusr_question_only`: MMLU variant where the terminology in the question is modified.
 

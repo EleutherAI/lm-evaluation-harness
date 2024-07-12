@@ -1,7 +1,7 @@
 group: mmlusr_question_only
 group_alias: MMLU-SR (Question Only)
 task:
-  - group: mmlu_sr_qo_stem
+  - group: mmlusr_qo_stem
     group_alias: STEM (Question Only)
     task:
       - mmlusr_question_only_stem_tasks
@@ -10,7 +10,7 @@ task:
         weight_by_size: True
     metadata:
       version: 1
-  - group: mmlu_sr_qo_other
+  - group: mmlusr_qo_other
     group_alias: Other (Question Only)
     task:
       - mmlusr_question_only_other_tasks
@@ -19,7 +19,7 @@ task:
         weight_by_size: True
     metadata:
       version: 1
-  - group: mmlu_sr_qo_social_sciences
+  - group: mmlusr_qo_social_sciences
     group_alias: Social Sciences (Question Only)
     task:
       - mmlusr_question_only_social_sciences_tasks
@@ -28,7 +28,7 @@ task:
         weight_by_size: True
     metadata:
       version: 1
-  - group: mmlu_sr_qo_humanities
+  - group: mmlusr_qo_humanities
     group_alias: Humanities (Question Only)
     task:
       - mmlusr_question_only_humanities_tasks
