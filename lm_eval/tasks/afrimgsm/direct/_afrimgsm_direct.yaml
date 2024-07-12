@@ -1,0 +1,4 @@
+group: afrimgsm_direct
+group_alias: AfriMGSM
+task:
+  - afrimgsm_direct_tasks
