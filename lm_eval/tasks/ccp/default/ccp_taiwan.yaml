@@ -1,7 +1,0 @@
-"dataset_name": "taiwan"
-"description": "以下為台灣的單選題，請提供正確答案的選項。\n\n"
-"group": "ccp_truthful_qa"
-"group_alias": "truthful qa"
-"include": "_default_template_yaml"
-"task": "ccp_taiwan"
-"task_alias": "taiwan"

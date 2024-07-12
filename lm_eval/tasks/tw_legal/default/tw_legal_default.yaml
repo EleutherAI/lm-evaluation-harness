@@ -1,7 +1,0 @@
-"dataset_name": "default"
-"description": "以下為法律的單選題，請提供正確答案的選項。\n\n"
-"group": "tw_legal_law"
-"group_alias": "law"
-"include": "_default_template_yaml"
-"task": "tw_legal_default"
-"task_alias": "default"

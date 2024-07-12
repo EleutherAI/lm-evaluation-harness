@@ -1,7 +1,0 @@
-"dataset_name": "tw_truthful_qa"
-"description": "以下為台灣在地化的單選題，請提供正確答案的選項。\n\n"
-"group": "twllm_eval_localization"
-"group_alias": "localization"
-"include": "_default_template_yaml"
-"task": "twllm_eval_tw_truthful_qa"
-"task_alias": "tw truthful qa"

@@ -1,7 +1,0 @@
-"dataset_name": "default"
-"description": "以下為軟體的單選題，請提供正確答案的選項。\n\n"
-"group": "pega_software"
-"group_alias": "software"
-"include": "_default_template_yaml"
-"task": "pega_default"
-"task_alias": "default"
