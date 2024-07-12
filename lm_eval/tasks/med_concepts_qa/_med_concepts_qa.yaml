@@ -5,3 +5,6 @@ task:
   - med_concepts_qa_icd9proc
   - med_concepts_qa_icd10proc
   - med_concepts_qa_atc
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean

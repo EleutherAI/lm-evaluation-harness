@@ -1,6 +1,5 @@
 dataset_name: icd10proc_medium
-group: med_concepts_qa_icd10proc
-group_alias: icd10proc
 include: _default_template_yaml
+tag: med_concepts_qa_icd10proc_tasks
 task: med_concepts_qa_icd10proc_medium
 task_alias: icd10proc_medium
