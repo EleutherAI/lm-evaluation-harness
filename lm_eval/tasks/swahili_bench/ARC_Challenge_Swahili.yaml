@@ -1,4 +1,4 @@
-task: ARC_Challenge_SWH
+task: arc_challenge_swh
 dataset_path: Mollel/ARC_Challenge_SWH
 output_type: multiple_choice
 training_split: train
