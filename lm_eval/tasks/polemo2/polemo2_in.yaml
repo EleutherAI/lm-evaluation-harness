@@ -1,4 +1,4 @@
-group:
+tag:
   - polemo2
 task: polemo2_in
 dataset_path: allegro/klej-polemo2-in

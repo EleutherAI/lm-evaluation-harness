@@ -1,6 +1,3 @@
 include: aqua-rat.yaml
-group:
-  - agieval
-  - agieval_en # categorizing as EN because the AGIEval codebase lists this as in `english_qa_tasks`
 task: agieval_gaokao_english
 dataset_path: hails/agieval-gaokao-english

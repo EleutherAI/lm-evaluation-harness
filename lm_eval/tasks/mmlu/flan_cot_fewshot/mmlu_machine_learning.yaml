@@ -69,6 +69,6 @@ fewshot_config:
       \ epsilon when we have N samples if 2 exp(-2 epsilon^2 N)<0.05, this implies\
       \ that N > -1/(2*epsilon**2) log ( 0.05/2 )= log (40)*5000. Since log(40)>1,\
       \ we have that one needs more than 1000 examples. The answer is (D).\n\n"
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_machine_learning

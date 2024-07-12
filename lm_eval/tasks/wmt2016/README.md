@@ -27,11 +27,7 @@ Homepage: https://huggingface.co/datasets/wmt16
 }
 ```
 
-### Groups and Tasks
-
-#### Groups
-
-* `wmt-t5-prompt`: Group for all wmt tasks with prompt templates used for T5 (`Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer`)
+### Groups, Tags, and Tasks
 
 #### Tasks
 
