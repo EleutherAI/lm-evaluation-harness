@@ -1,5 +1,6 @@
-import yaml
 import argparse
+
+import yaml
 
 
 class FunctionTag:
@@ -12,110 +13,110 @@ LANGUAGES = {
         "QUESTION_WORD": "ትክክል",
         "ENTAILMENT_LABEL": "አዎ",
         "NEUTRAL_LABEL": "እንዲሁም",
-        "CONTRADICTION_LABEL": "አይ"
+        "CONTRADICTION_LABEL": "አይ",
     },
     "eng": {
         "QUESTION_WORD": "Right",
         "ENTAILMENT_LABEL": "Yes",
         "NEUTRAL_LABEL": "Also",
-        "CONTRADICTION_LABEL": "No"
+        "CONTRADICTION_LABEL": "No",
     },
     "ewe": {
         "QUESTION_WORD": "Esɔ gbe",
         "ENTAILMENT_LABEL": "Ɛ̃",
         "NEUTRAL_LABEL": "Hã",
-        "CONTRADICTION_LABEL": "Ao"
+        "CONTRADICTION_LABEL": "Ao",
     },
     "fra": {
         "QUESTION_WORD": "correct",
         "ENTAILMENT_LABEL": "Oui",
         "NEUTRAL_LABEL": "Aussi",
-        "CONTRADICTION_LABEL": "Non"
+        "CONTRADICTION_LABEL": "Non",
     },
     "hau": {
         "QUESTION_WORD": "Daidai",
         "ENTAILMENT_LABEL": "Ee",
         "NEUTRAL_LABEL": "Haka kuma",
-        "CONTRADICTION_LABEL": "A'a"
+        "CONTRADICTION_LABEL": "A'a",
     },
     "ibo": {
         "QUESTION_WORD": "Ziri ezi",
         "ENTAILMENT_LABEL": "Éè",
         "NEUTRAL_LABEL": "Ọzọkwa",
-        "CONTRADICTION_LABEL": "Mba"
+        "CONTRADICTION_LABEL": "Mba",
     },
     "kin": {
         "QUESTION_WORD": "Nibyo",
         "ENTAILMENT_LABEL": "Yego",
         "NEUTRAL_LABEL": "Na none",
-        "CONTRADICTION_LABEL": "Oya"
+        "CONTRADICTION_LABEL": "Oya",
     },
     "lin": {
         "QUESTION_WORD": "Malamu",
         "ENTAILMENT_LABEL": "Iyo",
         "NEUTRAL_LABEL": "Lisusu",
-        "CONTRADICTION_LABEL": "Te"
+        "CONTRADICTION_LABEL": "Te",
     },
     "lug": {
         "QUESTION_WORD": "Kituufu",
         "ENTAILMENT_LABEL": "Yee",
         "NEUTRAL_LABEL": "N’ekirala",
-        "CONTRADICTION_LABEL": "Nedda"
+        "CONTRADICTION_LABEL": "Nedda",
     },
     "orm": {
         "QUESTION_WORD": "Sirrii",
         "ENTAILMENT_LABEL": "Eeyyee",
         "NEUTRAL_LABEL": "Akkasumas",
-        "CONTRADICTION_LABEL": "Lakki"
+        "CONTRADICTION_LABEL": "Lakki",
     },
     "sna": {
         "QUESTION_WORD": "Chokwadi",
         "ENTAILMENT_LABEL": "Hongu",
         "NEUTRAL_LABEL": "Uye",
-        "CONTRADICTION_LABEL": "Kwete"
+        "CONTRADICTION_LABEL": "Kwete",
     },
     "sot": {
         "QUESTION_WORD": "Nepile",
         "ENTAILMENT_LABEL": "E",
         "NEUTRAL_LABEL": "Hape",
-        "CONTRADICTION_LABEL": "Tjhe"
+        "CONTRADICTION_LABEL": "Tjhe",
     },
     "swa": {
         "QUESTION_WORD": "Sahihi",
         "ENTAILMENT_LABEL": "Ndiyo",
         "NEUTRAL_LABEL": "Pia",
-        "CONTRADICTION_LABEL": "Hapana"
+        "CONTRADICTION_LABEL": "Hapana",
     },
     "twi": {
         "QUESTION_WORD": "Nifa",
         "ENTAILMENT_LABEL": "Aane",
         "NEUTRAL_LABEL": "Anaasɛ",
-        "CONTRADICTION_LABEL": "Daabi"
+        "CONTRADICTION_LABEL": "Daabi",
     },
     "wol": {
         "QUESTION_WORD": "Dëgg",
         "ENTAILMENT_LABEL": "Waaw",
         "NEUTRAL_LABEL": "Itam",
-        "CONTRADICTION_LABEL": "Déet"
+        "CONTRADICTION_LABEL": "Déet",
     },
     "xho": {
         "QUESTION_WORD": "Ichanekile",
         "ENTAILMENT_LABEL": "Ewe",
         "NEUTRAL_LABEL": "Kananjalo",
-        "CONTRADICTION_LABEL": "Hayi"
+        "CONTRADICTION_LABEL": "Hayi",
     },
     "yor": {
         "QUESTION_WORD": "Òótọ́",
         "ENTAILMENT_LABEL": "Bẹ́ẹ̀ni",
         "NEUTRAL_LABEL": "Àti pé",
-        "CONTRADICTION_LABEL": "Rárá"
+        "CONTRADICTION_LABEL": "Rárá",
     },
     "zul": {
         "QUESTION_WORD": "Kulungile",
         "ENTAILMENT_LABEL": "Yebo",
         "NEUTRAL_LABEL": "Futhi",
-        "CONTRADICTION_LABEL": "Cha"
-    }
+        "CONTRADICTION_LABEL": "Cha",
+    },
 }
 
 
@@ -127,8 +128,26 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     :param overwrite: Whether to overwrite files if they already exist.
     """
     err = []
-    languages = ['eng', 'amh', 'ibo', 'fra', 'sna', 'wol', 'ewe', 'lin', 'lug', 'xho', 'kin', 'twi', 'zul', 'orm',
-                 'yor', 'hau', 'sot', 'swa']
+    languages = [
+        "eng",
+        "amh",
+        "ibo",
+        "fra",
+        "sna",
+        "wol",
+        "ewe",
+        "lin",
+        "lug",
+        "xho",
+        "kin",
+        "twi",
+        "zul",
+        "orm",
+        "yor",
+        "hau",
+        "sot",
+        "swa",
+    ]
     for lang in languages:
         try:
             if mode == "native-direct":
@@ -141,7 +160,9 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 task_name = f"afrixnli_native_direct_{lang}"
                 yaml_template = "afrixnli_native_direct_yaml"
                 with open(
-                        f"{output_dir}/{file_name}", "w" if overwrite else "x", encoding="utf8"
+                    f"{output_dir}/{file_name}",
+                    "w" if overwrite else "x",
+                    encoding="utf8",
                 ) as f:
                     f.write("# Generated by utils.py\n")
                     yaml.dump(
@@ -150,10 +171,10 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                             "task": task_name,
                             "dataset_name": lang,
                             "doc_to_choice": f"{{{{["
-                                           f"""premise+\", {QUESTION_WORD}? {ENTAILMENT_LABEL}, \"+hypothesis,"""
-                                           f"""premise+\", {QUESTION_WORD}? {NEUTRAL_LABEL}, \"+hypothesis,"""
-                                           f"""premise+\", {QUESTION_WORD}? {CONTRADICTION_LABEL}, \"+hypothesis"""
-                                           f"]}}}}",
+                            f"""premise+\", {QUESTION_WORD}? {ENTAILMENT_LABEL}, \"+hypothesis,"""
+                            f"""premise+\", {QUESTION_WORD}? {NEUTRAL_LABEL}, \"+hypothesis,"""
+                            f"""premise+\", {QUESTION_WORD}? {CONTRADICTION_LABEL}, \"+hypothesis"""
+                            f"]}}}}",
                         },
                         f,
                         allow_unicode=True,
@@ -163,14 +184,16 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 task_name = f"afrixnli_{mode}_{lang}"
                 yaml_template = f"afrixnli_{mode}_yaml"
                 with open(
-                        f"{output_dir}/{file_name}", "w" if overwrite else "x", encoding="utf8"
+                    f"{output_dir}/{file_name}",
+                    "w" if overwrite else "x",
+                    encoding="utf8",
                 ) as f:
                     f.write("# Generated by utils.py\n")
                     yaml.dump(
                         {
                             "include": yaml_template,
                             "task": task_name,
-                            "dataset_name": lang
+                            "dataset_name": lang,
                         },
                         f,
                         allow_unicode=True,
@@ -195,7 +218,9 @@ def main() -> None:
         help="Overwrite files if they already exist",
     )
     parser.add_argument(
-        "--output-dir", default="./manual/translate", help="Directory to write yaml files to"
+        "--output-dir",
+        default="./manual/translate",
+        help="Directory to write yaml files to",
     )
     parser.add_argument(
         "--mode",
