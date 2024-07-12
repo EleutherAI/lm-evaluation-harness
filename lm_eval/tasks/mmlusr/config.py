@@ -1,6 +1,7 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
+
 import argparse
 import logging
 import os
@@ -74,13 +75,23 @@ SUBJECTS = {
 
 GROUPS = ["question_and_answer"]
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate configuration YAML files for LM Evaluation Harness.")
+    parser = argparse.ArgumentParser(
+        description="Generate configuration YAML files for LM Evaluation Harness."
+    )
     # Path to the base YAML file from which to inherit settings
-    parser.add_argument("--base_yaml_path", required=True, help="Path to the base YAML configuration file.")
+    parser.add_argument(
+        "--base_yaml_path",
+        required=True,
+        help="Path to the base YAML configuration file.",
+    )
 
     # Directory where the generated YAML files will be saved
-    parser.add_argument("--save_dir", default="/data/local/cat/lm-evaluation-harness/lm_eval/tasks/mmlusr/question_and_answer")
+    parser.add_argument(
+        "--save_dir",
+        default="/data/local/cat/lm-evaluation-harness/lm_eval/tasks/mmlusr/question_and_answer",
+    )
 
     # Optional prefix to add to task names in the YAML files
     parser.add_argument("--task_prefix", default="")
@@ -93,20 +104,19 @@ def parse_args():
     return parser.parse_args()
 
 
-
 if __name__ == "__main__":
     args = parse_args()
 
     # Load base YAML configuration
     base_yaml_name = os.path.basename(args.base_yaml_path)
-    with open(args.base_yaml_path, 'r', encoding="utf-8") as f:
+    with open(args.base_yaml_path, "r", encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
 
         with open(args.cot_prompt_path, encoding="utf-8") as f:
-            cot_file = json.load(f)    
+            cot_file = json.load(f)
 
     for group in GROUPS:
         for subject, category in tqdm(SUBJECTS.items()):
@@ -116,14 +126,17 @@ if __name__ == "__main__":
                 description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
 
             yaml_dict = {
-                    "include": base_yaml_name,
-                    "group": f"mmlusr_{args.group_prefix}{group}_{category}" if args.group_prefix else f"mmlusr_{group}_{category}",
-                    "group_alias": f"{category.replace('_', ' ')}",
-                    "task": f"mmlusr_{args.task_prefix}{group}_{subject}" if args.task_prefix else f"mmlusr_{group}_{subject}",
-                    "task_alias": subject.replace("_", " "),
-                    "description": description,
-                    "dataset_name": f"{group}_{subject}",
-                }
+                "include": base_yaml_name,
+                "tag": f"mmlusr_{args.group_prefix}{group}_{category}"
+                if args.group_prefix
+                else f"mmlusr_{group}_{category}",
+                "task": f"mmlusr_{args.task_prefix}{group}_{subject}"
+                if args.task_prefix
+                else f"mmlusr_{group}_{subject}",
+                "task_alias": subject.replace("_", " "),
+                "description": description,
+                "dataset_name": f"{group}_{subject}",
+            }
 
             # File path for saving the generated YAML file
             file_save_path = os.path.join(args.save_dir, f"{group}_{subject}.yaml")
@@ -133,8 +146,9 @@ if __name__ == "__main__":
 
     # Save group configuration if specified
     if args.group_prefix:
-        file_save_path = os.path.join(args.save_prefix_path, args.group_prefix + ".yaml")
+        file_save_path = os.path.join(
+            args.save_prefix_path, args.group_prefix + ".yaml"
+        )
         eval_logger.info(f"Saving benchmark config to {file_save_path}")
         with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(yaml_dict, yaml_file, indent=4, default_flow_style=False)
-

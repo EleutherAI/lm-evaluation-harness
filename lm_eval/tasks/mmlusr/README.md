@@ -14,13 +14,13 @@ Huggingface Dataset: [https://huggingface.co/datasets/NiniCat/MMLU-SR]([https://
 ## Citation
 ```bib
 @misc{wang2024reasoningsimplytokenprediction,
-      title={Reasoning or Simply Next Token Prediction? A Benchmark for Stress-Testing Large Language Models}, 
+      title={Reasoning or Simply Next Token Prediction? A Benchmark for Stress-Testing Large Language Models},
       author={Wentian Wang and Paul Kantor and Jacob Feldman and Lazaros Gallos and Hao Wang},
       year={2024},
       eprint={2406.15468},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2406.15468}, 
+      url={https://arxiv.org/abs/2406.15468},
 }
 ```
 
@@ -28,9 +28,9 @@ Huggingface Dataset: [https://huggingface.co/datasets/NiniCat/MMLU-SR]([https://
 
 #### Groups
 
-- `mmlusr_answer_only`
-- `mmlusr_question_only`
-- `mmlusr_question_and_answer`
+- `mmlu_sr`: MMLU variant where the terminology in the question and answers are modified.
+- `mmlusr_answer_only`: MMLU variant where the terminology in the answers are modified.
+- `mmlusr_question_only`: MMLU variant where the terminology in the question is modified.
 
 #### Tasks
 
@@ -40,11 +40,8 @@ There are 57 symbol replaced subjects in each group. You can run a single task b
 
 Or by categories:
 
-* `mmlusr_question_only_stem `
+* `mmlusr_question_only_stem_tasks `
 
-Or the entire subset:
-
-* `mmlusr_question_only`
 
 ### Checklist
 

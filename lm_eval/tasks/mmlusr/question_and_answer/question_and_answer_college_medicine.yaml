@@ -1,8 +1,7 @@
 "dataset_name": "question_and_answer_college_medicine"
 "description": "The following are multiple choice questions (with answers) about college\
   \ medicine.\n\n"
-"group": "mmlusr_question_and_answer_other"
-"group_alias": "other"
-"include": "mmlusr_qna_yml"
+"tag": "mmlusr_question_and_answer_other_tasks"
+"include": "_mmlusr_qna_yml"
 "task": "mmlusr_question_and_answer_college_medicine"
 "task_alias": "college medicine"

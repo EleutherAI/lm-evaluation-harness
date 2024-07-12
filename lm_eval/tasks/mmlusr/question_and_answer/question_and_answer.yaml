@@ -1,6 +1,0 @@
-group: mmlusr_question_and_answer
-task:
-  - mmlusr_question_and_answer_stem
-  - mmlusr_question_and_answer_other
-  - mmlusr_question_and_answer_social_sciences
-  - mmlusr_question_and_answer_humanities
