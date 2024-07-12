@@ -9,6 +9,9 @@
 |-------------|-------------|-------------|
 | [aclue](aclue/README.md) | Tasks focusing on ancient Chinese language understanding and cultural aspects. | Ancient Chinese |
 | [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. | Arabic |
+| [afrimgsm](afrimgsm/README.md) | Part of IrokoBench covering mathematical reasoning in various low-resource African languages. | Multiple (18 languages) |
+| [afrimmlu](afrimmlu/README.md) | Part of IrokoBench covering multi-choice knowledge-based QA in various low-resource African languages. | Multiple (19 languages) |
+| [afrixnli](afrixnli/README.md) | Part of IrokoBench covering natural language inference in various low-resource African languages. | Multiple (19 languages) |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. | English, Chinese |
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
 | [arabicmmlu](arabicmmlu/README.md) | Localized Arabic version of MMLU with multiple-choice questions from 40 subjects. | Arabic |
