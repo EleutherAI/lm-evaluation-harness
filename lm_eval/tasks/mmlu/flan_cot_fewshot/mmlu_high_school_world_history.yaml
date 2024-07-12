@@ -95,6 +95,6 @@ fewshot_config:
       for help. Brahman refers to the ultimate reality of all things in the Hindu
       religion. In contrast, Buddhism does not have a concept of supreme God. The
       answer is (A).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_world_history
