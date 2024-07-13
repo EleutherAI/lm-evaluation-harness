@@ -1,10 +1,7 @@
 from functools import lru_cache
 from typing import List, Tuple
 
-import mlx.core as mx
 import numpy as np
-from mlx_lm.generate import colorprint_by_t0
-from mlx_lm.utils import generate, load
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
@@ -29,6 +26,13 @@ class MLX(TemplateLM):
         batch_size=4,
         max_gen_tokens=256,
     ):
+        try:
+            from mlx_lm.utils import load
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'mlx' LM type, but package `mlx_lm` is not installed. please install mlx_lm via "
+                "`pip install 'lm-eval[mlx]'` or `pip install -e '.[mlx]'`"
+            )
         super().__init__()
         tokenizer_config = {"trust_remote_code": trust_remote_code}
         if eos_token is not None:
@@ -71,6 +75,13 @@ class MLX(TemplateLM):
           by greedy sampling from the LM (that is, if the target string is the most likely N-token string to be output
           by the LM given the input. )
         """
+        try:
+            import mlx.core as mx
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install mlx "
+                "via `pip install 'lm-eval[mlx]'` or `pip install -e '.[mlx]'`"
+            )
         if not requests:
             return []
         res = []
@@ -203,8 +214,15 @@ class MLX(TemplateLM):
         # Return the answers in the original order (lost by the batch creation process, which )
         return list(map(lambda i: i[1:], sorted(res, key=lambda i: i[0])))
 
-    # Mostly from https://github.com/chimezie/mlx-tuning-fork/blob/main/src/mlx_tuning_fork/tuning/utils.py
     def delineated_batches(self, batch_size, context_text, continuation_text):
+        try:
+            import mlx.core as mx
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install mlx via "
+                "`pip install 'lm-eval[mlx]'` or `pip install -e '.[mlx]'`",
+            )
+
         batch_size = min(batch_size, len(context_text))
         encoded_context_batch = [self.tok_encode(record) for record in context_text]
         encoded_continuation_batch = [
@@ -262,6 +280,14 @@ class MLX(TemplateLM):
           {"until": ["\n\n", "."], "max_gen_toks": 128}).
         * The generated input+output text from the model will then be returned.
         """
+        try:
+            from mlx_lm.utils import generate
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install anthropic via "
+                "`pip install 'lm-eval[mlx]'` or `pip install -e '.[mlx]'`",
+            )
+
         if not requests:
             return []
 
@@ -272,9 +298,6 @@ class MLX(TemplateLM):
                 raise NotImplementedError("Support for until not implemented!")
             temperature = request_args.get("temperature", 0.0)
             verbose = request_args.get("verbose", False)
-            formatter = (
-                colorprint_by_t0 if request_args.get("colorize", False) else None
-            )
             res.append(
                 generate(
                     self.model,
@@ -283,7 +306,6 @@ class MLX(TemplateLM):
                     temperature,
                     request_args.get(self.max_tokens),
                     verbose,
-                    formatter=formatter,
                     top_p=self.top_p,
                 )
             )
