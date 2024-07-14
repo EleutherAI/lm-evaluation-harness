@@ -3,4 +3,4 @@
   \n"
 "group": "mmlu_pro_flan_cot_zeroshot_other"
 "include": "_mmlu_pro_flan_cot_zeroshot_template_yaml"
-"task": "mmlu_pro_flan_cot_zeroshot_other"
+"task": "mmlu_pro_flan_cot_zeroshot_miscellaneous"

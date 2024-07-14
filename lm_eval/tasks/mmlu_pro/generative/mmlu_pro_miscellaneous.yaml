@@ -4,5 +4,5 @@
 "group": "mmlu_pro_other_generative"
 "group_alias": "other"
 "include": "_default_template_yaml"
-"task": "mmlu_pro_other_generative"
-"task_alias": "other"
+"task": "mmlu_pro_miscellaneous_generative"
+"task_alias": "miscellaneous"
