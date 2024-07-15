@@ -4,3 +4,4 @@ doc_to_choice: '{{[premise+", Right? Yes, "+hypothesis,premise+", Right? Also, "
   Right? No, "+hypothesis]}}'
 include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_eng
+tag: afrixnli_native_direct_eng_only
