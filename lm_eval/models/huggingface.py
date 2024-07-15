@@ -270,6 +270,11 @@ class HFLM(TemplateLM):
                     eval_logger.warning(
                         "You are both using a HF Accelerate `device_map` (`--model_args parallelize=True`) and launching via `accelerate launch`. This will attempt to do model and data parallelism depending on the resources available."
                     )
+                    self._device = torch.device(f"{accelerator.device}")
+                    self.accelerator = accelerator
+
+                    self._rank = self.accelerator.local_process_index
+                    self._world_size = self.accelerator.num_processes
                 elif accelerator.num_processes == 1:
                     # if we aren't launching via accelerate, ditch
                     self._rank = 0
