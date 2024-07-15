@@ -5,8 +5,8 @@
 IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models
 https://arxiv.org/pdf/2406.03368
 
-IrokoBench is a human-translated benchmark dataset for 16 typologically diverse 
-low-resource African languages covering three tasks: natural language inference (AfriXNLI), 
+IrokoBench is a human-translated benchmark dataset for 16 typologically diverse
+low-resource African languages covering three tasks: natural language inference (AfriXNLI),
 mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU).
 
 
@@ -14,13 +14,13 @@ mathematical reasoning (AfriMGSM), and multi-choice knowledge-based QA (AfriMMLU
 
 ```
 @misc{adelani2024irokobenchnewbenchmarkafrican,
-      title={IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models}, 
+      title={IrokoBench: A New Benchmark for African Languages in the Age of Large Language Models},
       author={David Ifeoluwa Adelani and Jessica Ojo and Israel Abebe Azime and Jian Yun Zhuang and Jesujoba O. Alabi and Xuanli He and Millicent Ochieng and Sara Hooker and Andiswa Bukula and En-Shiun Annie Lee and Chiamaka Chukwuneke and Happy Buzaaba and Blessing Sibanda and Godson Kalipe and Jonathan Mukiibi and Salomon Kabongo and Foutse Yuehgoh and Mmasibidi Setaka and Lolwethu Ndolela and Nkiruka Odu and Rooweither Mabuya and Shamsuddeen Hassan Muhammad and Salomey Osei and Sokhar Samb and Tadesse Kebede Guge and Pontus Stenetorp},
       year={2024},
       eprint={2406.03368},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2406.03368}, 
+      url={https://arxiv.org/abs/2406.03368},
 }
 ```
 

@@ -2,8 +2,6 @@
 
 Welcome and thank you for your interest in the LM Evaluation Harness! We welcome contributions and feedback and appreciate your time spent with our library, and hope you find it useful!
 
-We intend LM Evaluation Harness to be a broadly useful and
-
 ## Important Resources
 
 There are several places information about LM Evaluation Harness is located:

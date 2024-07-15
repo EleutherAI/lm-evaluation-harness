@@ -2,4 +2,3 @@
 dataset_name: amh
 include: afrixnli_translate_yaml
 task: afrixnli_translate_amh
-
