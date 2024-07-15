@@ -257,10 +257,10 @@ class HFLM(TemplateLM):
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
 
         self.add_bos_token = add_bos_token
-        if getattr(self.config, "model_type", None) in ["gemma", "gemma2"]:
+        if "gemma" in getattr(self.config, "model_type", ""):
             self.add_bos_token = True
             eval_logger.info(
-                f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
+                f"Model type is '{self.config.model_type}', part of the Gemma family--a BOS token will be used as Gemma underperforms without it."
             )
 
         self._max_length = max_length
