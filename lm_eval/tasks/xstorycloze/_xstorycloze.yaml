@@ -1,0 +1,19 @@
+group: xstorycloze
+task:
+  - xstorycloze_ar
+  - xstorycloze_en
+  - xstorycloze_es
+  - xstorycloze_eu
+  - xstorycloze_hi
+  - xstorycloze_id
+  - xstorycloze_my
+  - xstorycloze_ru
+  - xstorycloze_sw
+  - xstorycloze_te
+  - xstorycloze_zh
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

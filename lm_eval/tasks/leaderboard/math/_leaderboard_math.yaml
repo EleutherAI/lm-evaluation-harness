@@ -1,0 +1,9 @@
+group: leaderboard_math_hard
+task:
+  - leaderboard_math_algebra_hard
+  - leaderboard_math_counting_and_prob_hard
+  - leaderboard_math_geometry_hard
+  - leaderboard_math_intermediate_algebra_hard
+  - leaderboard_math_num_theory_hard
+  - leaderboard_math_prealgebra_hard
+  - leaderboard_math_precalculus_hard

@@ -62,11 +62,8 @@ class WhitespaceFilter(Filter):
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:
-                if resp.startswith(" "):
-                    resp = resp[1:]
-
+                resp = resp.lstrip()
                 filtered_resp.append(resp)
-
             return filtered_resp
 
         filtered_resps = [filter_set(resp) for resp in resps]

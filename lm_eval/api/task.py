@@ -56,8 +56,8 @@ class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None
+    tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
-    group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -97,6 +97,18 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
+        if self.group is not None:
+            eval_logger.warning(
+                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            )
+
+            if self.tag is None:
+                self.tag = self.group
+            else:
+                raise ValueError(
+                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
+                )
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -980,7 +992,7 @@ class ConfigurableTask(Task):
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
-                    f"Task '{self.config.task}': "
+                    f"[Task: {self.config.task}] "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
@@ -1520,10 +1532,13 @@ class ConfigurableTask(Task):
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
+    @property
+    def task_name(self) -> Any:
+        return getattr(self.config, "task", None)
+
     def __repr__(self):
         return (
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
-            f"group_name={getattr(self.config, 'group', None)},"
             f"output_type={self.OUTPUT_TYPE},"
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
             f"num_samples={len(self.eval_docs)})"
