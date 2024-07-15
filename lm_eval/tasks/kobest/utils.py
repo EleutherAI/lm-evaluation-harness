@@ -1,7 +1,6 @@
 from datasets import Dataset
 
 
-
 def copa_doc_to_text(doc: dict) -> str:
     connector = {"원인": " 왜냐하면", "결과": " 그래서"}[doc["question"].strip()]
     return f"""{doc["premise"]} {connector}"""

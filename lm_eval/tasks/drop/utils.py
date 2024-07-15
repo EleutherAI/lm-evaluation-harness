@@ -4,7 +4,6 @@ import string
 import numpy as np
 
 
-
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 

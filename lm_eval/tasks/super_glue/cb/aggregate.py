@@ -3,6 +3,7 @@ import numpy as np
 
 def cb_multi_fi(items):
     from sklearn.metrics import f1_score
+
     preds, golds = zip(*items)
     preds = np.array(preds)
     golds = np.array(golds)
