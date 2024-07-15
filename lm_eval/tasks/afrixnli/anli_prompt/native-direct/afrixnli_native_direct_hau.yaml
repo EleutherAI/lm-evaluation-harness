@@ -2,5 +2,5 @@
 dataset_name: hau
 doc_to_choice: '{{[premise+", Daidai? Ee, "+hypothesis,premise+", Daidai? Haka kuma,
   "+hypothesis,premise+", Daidai? A''a, "+hypothesis]}}'
-include: afrixnli_native_direct_yaml
+include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_hau

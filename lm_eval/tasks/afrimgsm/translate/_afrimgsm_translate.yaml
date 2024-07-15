@@ -1,4 +1,0 @@
-group: afrimgsm_translate
-group_alias: AfriMGSM (Translate)
-task:
-  - afrimgsm_translate_tasks

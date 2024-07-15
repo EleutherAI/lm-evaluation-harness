@@ -1,7 +1,4 @@
-group:
-  - mmlu
-  - afrimmlu
-  - afrimmlu_direct
+tag: afrimmlu_direct_tasks
 task: null
 dataset_path: masakhane/afrimmlu
 dataset_name: null
@@ -34,5 +31,6 @@ metric_list:
     regexes_to_ignore:
       - ","
       - "\\$"
+num_fewshot: 5
 metadata:
   version: 1.0

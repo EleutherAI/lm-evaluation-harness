@@ -2,5 +2,5 @@
 dataset_name: swa
 doc_to_choice: '{{[premise+", Sahihi? Ndiyo, "+hypothesis,premise+", Sahihi? Pia,
   "+hypothesis,premise+", Sahihi? Hapana, "+hypothesis]}}'
-include: afrixnli_native_direct_yaml
+include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_swa

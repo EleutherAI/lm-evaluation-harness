@@ -1,6 +1,4 @@
-group:
-  - mmlu
-  - afrimmlu_translate
+tag: afrimmlu_translate
 task: null
 dataset_path: masakhane/afrimmlu-translate-test
 dataset_name: null
@@ -31,5 +29,6 @@ metric_list:
     regexes_to_ignore:
       - ","
       - "\\$"
+num_fewshot: 5
 metadata:
   version: 1.0

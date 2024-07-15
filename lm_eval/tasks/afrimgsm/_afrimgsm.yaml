@@ -1,0 +1,15 @@
+group: afrimgsm
+group_alias: AfriMGSM
+task:
+  - group: afrimgsm_direct
+    group_alias: AfriMGSM
+    task:
+      - afrimgsm_direct_tasks
+  - group: afrimgsm_translate
+    group_alias: AfriMGSM (Translate)
+    task:
+      - afrimgsm_translate_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: False
+num_fewshot: 8

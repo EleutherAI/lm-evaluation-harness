@@ -2,5 +2,5 @@
 dataset_name: orm
 doc_to_choice: '{{[premise+", Sirrii? Eeyyee, "+hypothesis,premise+", Sirrii? Akkasumas,
   "+hypothesis,premise+", Sirrii? Lakki, "+hypothesis]}}'
-include: afrixnli_native_direct_yaml
+include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_orm

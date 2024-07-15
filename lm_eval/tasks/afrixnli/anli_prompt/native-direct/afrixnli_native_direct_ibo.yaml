@@ -2,5 +2,5 @@
 dataset_name: ibo
 doc_to_choice: '{{[premise+", Ziri ezi? Éè, "+hypothesis,premise+", Ziri ezi? Ọzọkwa,
   "+hypothesis,premise+", Ziri ezi? Mba, "+hypothesis]}}'
-include: afrixnli_native_direct_yaml
+include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_ibo

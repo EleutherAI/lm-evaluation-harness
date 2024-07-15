@@ -1,19 +1,12 @@
-group:
-    - xnli
-    - afrixnli
-    - afrixnli_manual_direct
-dataset_path: masakhane/afrixnli-translate-test
+tag: afrixnli_native_direct
+dataset_path: masakhane/afrixnli
 dataset_name: null
 output_type: multiple_choice
+validation_split: validation
 test_split: test
-doc_to_text: !function utils.doc_to_text
-doc_to_target: !function utils.doc_to_target
-doc_to_choice:
-  - "entailment"
-  - "neutral"
-  - "contradiction"
-should_decontaminate: true
-doc_to_decontamination_query: premise
+fewshot_split: validation
+doc_to_target: label
+doc_to_text: ""
 metric_list:
   - metric: f1
     aggregation: !function utils.weighted_f1_score

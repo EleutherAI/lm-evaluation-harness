@@ -2,5 +2,5 @@
 dataset_name: xho
 doc_to_choice: '{{[premise+", Ichanekile? Ewe, "+hypothesis,premise+", Ichanekile?
   Kananjalo, "+hypothesis,premise+", Ichanekile? Hayi, "+hypothesis]}}'
-include: afrixnli_native_direct_yaml
+include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_xho

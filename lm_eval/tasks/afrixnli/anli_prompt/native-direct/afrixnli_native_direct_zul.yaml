@@ -2,5 +2,5 @@
 dataset_name: zul
 doc_to_choice: '{{[premise+", Kulungile? Yebo, "+hypothesis,premise+", Kulungile?
   Futhi, "+hypothesis,premise+", Kulungile? Cha, "+hypothesis]}}'
-include: afrixnli_native_direct_yaml
+include: _afrixnli_native_direct_yaml
 task: afrixnli_native_direct_zul
