@@ -151,7 +151,7 @@ class HFLM(TemplateLM):
                 # TODO: include in warning that `load_in_8bit` etc. affect this too
                 self._device = (
                     self.accelerator.device
-                    if self.accelerator is not None
+                    if hasattr(self, "accelerator")
                     else torch.device(device)
                 )
 
@@ -327,7 +327,7 @@ class HFLM(TemplateLM):
             # We just want gpu, not cpu, max memory
             if "cpu" in max_memory_all_gpus:
                 del max_memory_all_gpus["cpu"]
-            model_parallel = bool(num_local_processes < len(max_memory_all_gpus))
+            parallelize = bool(num_local_processes < len(max_memory_all_gpus))
             eval_logger.info(
                 f"Setting model parallel to {model_parallel} since "
                 f"the number of local processes is {num_local_processes} "
