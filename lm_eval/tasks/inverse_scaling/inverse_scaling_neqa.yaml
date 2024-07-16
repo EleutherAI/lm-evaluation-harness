@@ -1,0 +1,3 @@
+include: _inverse_scaling_mc_yaml
+task: inverse_scaling_neqa
+dataset_path: inverse-scaling/NeQA

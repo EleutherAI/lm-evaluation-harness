@@ -1,0 +1,9 @@
+group: arabicmmlu_stem
+group_alias: STEM
+task:
+  - arabicmmlu_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0

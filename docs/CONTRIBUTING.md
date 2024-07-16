@@ -2,8 +2,6 @@
 
 Welcome and thank you for your interest in the LM Evaluation Harness! We welcome contributions and feedback and appreciate your time spent with our library, and hope you find it useful!
 
-We intend LM Evaluation Harness to be a broadly useful and
-
 ## Important Resources
 
 There are several places information about LM Evaluation Harness is located:
@@ -32,7 +30,7 @@ in order to ensure linters and other checks will be run upon committing.
 We use [pytest](https://docs.pytest.org/en/latest/) for running unit tests. All library unit tests can be run via:
 
 ```
-python -m pytest --ignore=tests/tests_master --ignore=tests/extra
+python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py
 ```
 
 ## Contributor License Agreement

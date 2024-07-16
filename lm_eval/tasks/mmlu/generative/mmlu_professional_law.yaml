@@ -1,8 +1,7 @@
 "dataset_name": "professional_law"
 "description": "The following are multiple choice questions (with answers) about professional\
   \ law.\n\n"
-"group": "mmlu_humanities_generative"
-"group_alias": "humanities"
+"tag": "mmlu_humanities_generative"
 "include": "_default_template_yaml"
 "task": "mmlu_professional_law_generative"
 "task_alias": "professional_law"
