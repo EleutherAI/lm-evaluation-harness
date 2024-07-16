@@ -1,4 +1,4 @@
-# mmlu_pro
+# gsm_plus
 
 ### Paper
 
@@ -33,7 +33,7 @@ Homepage (preprocessed): https://huggingface.co/datasets/sjyuxyz/GSM-Plus-Format
 
 #### Tasks
 
-The following tasks evaluate subjects in the mmlu_pro dataset
+The following tasks evaluate subjects in the gsm_plus dataset
 - `gsm_plus`
 
 ### Checklist
