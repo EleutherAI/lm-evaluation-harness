@@ -9,7 +9,6 @@ import torch.nn.functional as F
 import transformers
 from accelerate import (
     Accelerator,
-    DistributedType,
     InitProcessGroupKwargs,
     find_executable_batch_size,
 )
@@ -258,7 +257,9 @@ class HFLM(TemplateLM):
                             f"Current run will proceed with {accelerator.num_processes} devices."
                         )
                         if self.accelerator.is_local_main_process:
-                            eval_logger.info(f"Using {gpus} devices with data parallelism")
+                            eval_logger.info(
+                                f"Using {gpus} devices with data parallelism"
+                            )
 
                     self._device = torch.device(f"{accelerator.device}")
                     self.accelerator = accelerator
@@ -282,7 +283,6 @@ class HFLM(TemplateLM):
             eval_logger.info(
                 f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
             )
-
 
     def _get_accelerate_args(
         self,
