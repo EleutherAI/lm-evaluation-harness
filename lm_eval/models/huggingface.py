@@ -245,49 +245,30 @@ class HFLM(TemplateLM):
                         )
             # multigpu data-parallel support when launched with accelerate
             if gpus > 1:
-                if parallelize and accelerator.num_processes > 1:
-                    eval_logger.warning(
-                        "You are both using a HF Accelerate `device_map` (`--model_args parallelize=True`) and launching via `accelerate launch`. This will attempt to do model and data parallelism depending on the resources available."
-                    )
-                    self._device = torch.device(f"{accelerator.device}")
-                    self.accelerator = accelerator
-
-                    self._rank = self.accelerator.local_process_index
-                    self._world_size = self.accelerator.num_processes
-                elif accelerator.num_processes == 1:
-                    # if we aren't launching via accelerate, ditch
-                    self._rank = 0
-                    self._world_size = 1
-                else:
-                    if gpus > accelerator.num_processes:
+                if accelerator.num_processes > 1:
+                    if parallelize:
+                        eval_logger.warning(
+                            "You are both using a HF Accelerate `device_map` (`--model_args parallelize=True`) and launching via `accelerate launch`. This will attempt to do model and data parallelism depending on the resources available."
+                        )
+                    elif gpus > accelerator.num_processes:
                         eval_logger.warning(
                             "WARNING: The number of total system GPUs does not match the number of spawned processes. "
                             "If you would like to use data parallelism, please launch the script "
                             "with 'accelerate launch *script*'. "
                             f"Current run will proceed with {accelerator.num_processes} devices."
                         )
-                    assert (
-                        accelerator.distributed_type
-                        in [
-                            DistributedType.FSDP,
-                            DistributedType.MULTI_GPU,
-                            DistributedType.MULTI_NPU,
-                        ]
-                    ), "Unsupported distributed type provided. Only DDP and FSDP are supported."
-                    if accelerator.distributed_type == DistributedType.FSDP:
-                        self._model = accelerator.prepare(self.model)
-                    else:
-                        self._model = accelerator.prepare_model(
-                            self.model, evaluation_mode=True
-                        )
+                        if self.accelerator.is_local_main_process:
+                            eval_logger.info(f"Using {gpus} devices with data parallelism")
+
                     self._device = torch.device(f"{accelerator.device}")
                     self.accelerator = accelerator
 
-                    if self.accelerator.is_local_main_process:
-                        eval_logger.info(f"Using {gpus} devices with data parallelism")
-
                     self._rank = self.accelerator.local_process_index
                     self._world_size = self.accelerator.num_processes
+                else:
+                    # if we aren't launching via accelerate, ditch
+                    self._rank = 0
+                    self._world_size = 1
         else:
             # if a PreTrainedModel was passed into HFLM, we forgo distributed setup.
             eval_logger.warning(
