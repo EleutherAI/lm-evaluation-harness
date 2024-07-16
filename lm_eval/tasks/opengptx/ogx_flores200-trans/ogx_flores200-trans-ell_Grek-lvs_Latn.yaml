@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-ell_Grek-lvs_Latn"
+"dataset_name": "ell_Grek-lvs_Latn"
+"doc_to_text": "Modern Greek (1453-) phrase: {{sentence_ell_Grek}}\nStandard Latvian\
+  \ phrase:"
+"doc_to_decontamination_query": "{{sentence_ell_Grek}}"
+"doc_to_target": "{{sentence_lvs_Latn}}"

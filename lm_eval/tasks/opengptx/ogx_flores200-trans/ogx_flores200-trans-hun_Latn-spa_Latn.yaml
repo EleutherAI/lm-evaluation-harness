@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-hun_Latn-spa_Latn"
+"dataset_name": "hun_Latn-spa_Latn"
+"doc_to_text": "Hungarian phrase: {{sentence_hun_Latn}}\nSpanish phrase:"
+"doc_to_decontamination_query": "{{sentence_hun_Latn}}"
+"doc_to_target": "{{sentence_spa_Latn}}"

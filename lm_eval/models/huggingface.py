@@ -742,34 +742,26 @@ class HFLM(LM):
 
         return logits
 
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        # whole_enc = self.tok_encode(context + continuation)
-        # context_enc = self.tok_encode(context, add_special_tokens=False)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
+            continuation_enc = self.tok_encode(continuation)
+
             if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
+                context_enc = [self.eot_token_id]
             else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
+                context_enc = self.tok_encode(context, add_special_tokens=False)
+                ctx_cont_enc = self.tok_encode(context + continuation, add_special_tokens=False)
+
+                if context_enc + continuation_enc != ctx_cont_enc:
+                    if ctx_cont_enc[: len(context_enc)] == context_enc:
+                        continuation_enc = ctx_cont_enc[len(context_enc) :]
+                    elif ctx_cont_enc[-len(continuation_enc) :] == continuation_enc:
+                        context_enc = ctx_cont_enc[: -len(continuation_enc)]
+                    else:
+                        print(
+                            f"WARNING: Unnatural tokenization of concatenated context ...{repr(context[-20:])} and continuation {repr(continuation)}"
+                        )
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 

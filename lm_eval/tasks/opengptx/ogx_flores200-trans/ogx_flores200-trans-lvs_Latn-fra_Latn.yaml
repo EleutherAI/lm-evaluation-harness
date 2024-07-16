@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-lvs_Latn-fra_Latn"
+"dataset_name": "lvs_Latn-fra_Latn"
+"doc_to_text": "Standard Latvian phrase: {{sentence_lvs_Latn}}\nFrench phrase:"
+"doc_to_decontamination_query": "{{sentence_lvs_Latn}}"
+"doc_to_target": "{{sentence_fra_Latn}}"

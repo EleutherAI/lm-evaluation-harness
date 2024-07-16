@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_pol_Latn"
+"test_split": "pol_Latn"
+"fewshot_split": "pol_Latn"
+"doc_to_text": "Fragment: {{flores_passage}}\nPytanie: {{question}}\nOdpowiedź:"

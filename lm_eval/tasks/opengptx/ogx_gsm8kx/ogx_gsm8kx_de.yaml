@@ -1,0 +1,10 @@
+"include": "_default_gsm8kx_template_yaml"
+"task": "ogx_gsm8kx_de"
+"dataset_name": "DE"
+"doc_to_text": "Frage: {{question}}\nAntwort:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Frage:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

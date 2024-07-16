@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "professional_law_BG"
+"task": "ogx_mmlux_bg-professional_law"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['А', 'Б', 'В', 'Г']"
+"doc_to_text": "{{question.strip()}}\nА. {{choices[0]}}\nБ. {{choices[1]}}\nВ. {{choices[2]}}\n\
+  Г. {{choices[3]}}\nОтговор:"
+"description": "Следват въпроси с избор между няколко отговора, свързани с професионалното\
+  \ право."

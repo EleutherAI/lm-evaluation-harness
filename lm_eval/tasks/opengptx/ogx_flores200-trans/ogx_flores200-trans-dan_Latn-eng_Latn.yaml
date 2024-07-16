@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-dan_Latn-eng_Latn"
+"dataset_name": "dan_Latn-eng_Latn"
+"doc_to_text": "Danish phrase: {{sentence_dan_Latn}}\nEnglish phrase:"
+"doc_to_decontamination_query": "{{sentence_dan_Latn}}"
+"doc_to_target": "{{sentence_eng_Latn}}"

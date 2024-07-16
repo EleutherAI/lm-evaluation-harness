@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "formal_logic_HU"
+"task": "ogx_mmlux_hu-formal_logic"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVálasz:"
+"description": "A következő feleletválasztós kérdések (válaszokkal) a formális logikáról\
+  \ szólnak."

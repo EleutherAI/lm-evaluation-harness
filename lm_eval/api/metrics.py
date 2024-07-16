@@ -159,9 +159,21 @@ def exact_match_fn(**kwargs):
     output_type="loglikelihood",
     aggregation="perplexity",
 )
-def perplexity_fn(items):  # This is a passthrough function
+def perplexity_fn(items):
     return items
 
+@register_aggregation("nll")
+def nll(items):
+    return -mean(items)
+
+@register_metric(
+    metric="nll",
+    higher_is_better=False,
+    output_type="loglikelihood",
+    aggregation="nll",
+)
+def nll_fn(items):
+    return items
 
 @register_metric(
     metric="word_perplexity",
