@@ -311,7 +311,7 @@ class HFLM(TemplateLM):
                 del max_memory_all_gpus["cpu"]
             parallelize = bool(num_local_processes < len(max_memory_all_gpus))
             eval_logger.info(
-                f"Setting model parallel to {model_parallel} since "
+                f"Setting model parallel to {parallelize} since "
                 f"the number of local processes is {num_local_processes} "
                 f"and the number of GPUs is {len(max_memory_all_gpus)}"
             )
