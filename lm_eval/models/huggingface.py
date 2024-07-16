@@ -296,9 +296,13 @@ class HFLM(TemplateLM):
         """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
         num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
         num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
-        if num_machines == 0:
+        if (
+            num_machines == 0
+            and hasattr(self, "accelerator")
+            and self.accelerator is not None
+        ):
             eval_logger.info(
-                "We are not in a distributed setting. Setting model_parallel to False."
+                "We are not in a distributed setting for accelerate. Setting model_parallel to False."
             )
             parallelize = False
 
