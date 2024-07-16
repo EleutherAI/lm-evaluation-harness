@@ -4,7 +4,7 @@ fewshot_split: dev
 fewshot_config:
   sampler: first_n
 output_type: generate_until
-doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nE. {{choices[4]}}\nF. {{choices[5]}}\nG. {{choices[6]}}\nH. {{choices[7]}}\nI. {{choices[8]}}\nJ. {{choices[9]}}\nAnswer:"
+doc_to_text: "{{question.strip()}}\nA. {{options[0]}}\nB. {{options[1]}}\nC. {{options[2]}}\nD. {{options[3]}}\nE. {{options[4]}}\nF. {{options[5]}}\nG. {{options[6]}}\nH. {{options[7]}}\nI. {{options[8]}}\nJ. {{options[9]}}\nAnswer:"
 doc_to_target: "{{['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'][answer]}}"
 generation_kwargs:
   until:
