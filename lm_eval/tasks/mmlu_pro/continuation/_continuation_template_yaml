@@ -5,6 +5,6 @@ fewshot_config:
   sampler: first_n
 doc_to_text: "Question: {{question.strip()}}\nAnswer:"
 doc_to_choice: "{{options}}"
-doc_to_target: "{{answer}}"
+doc_to_target: "{{answer_index}}"
 metadata:
   version: 0.0
