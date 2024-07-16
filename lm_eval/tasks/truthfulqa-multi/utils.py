@@ -37,14 +37,24 @@ def preprocess_function(examples):
                     formatted_answers.append(answer)
         return formatted_answers
 
-    incorrect_answers = _format_answers(examples["incorrect_answers"])
-    correct_answers = _format_answers(examples["correct_answers"])
-    if "I have no comment." not in correct_answers:
-        correct_answers.append("I have no comment.") # TODO: this should also be translated
+    if "correct_answers" in examples:
+        incorrect_answers = _format_answers(examples["incorrect_answers"])
+        correct_answers = _format_answers(examples["correct_answers"])
+        if examples["lang"] == 'en' and "I have no comment." not in correct_answers:
+            correct_answers.append("I have no comment.") 
+        elif examples["lang"] == 'ca' and "No tinc cap comentari." not in correct_answers:
+            correct_answers.append("No tinc cap comentari.") 
+        elif examples["lang"] == 'es' and "No tengo ningún comentario." not in correct_answers:
+            correct_answers.append("No tengo ningún comentario.") 
+        elif examples["lang"] == 'eu' and "Iruzkinik ez." not in correct_answers:
+            correct_answers.append("Iruzkinik ez.") 
+        elif examples["lang"] == 'gl' and "Non teño ningún comentario." not in correct_answers:
+            correct_answers.append("Non teño ningún comentario.") 
     return {
         "question": examples["question"].strip(),
         "correct_answers": correct_answers,
         "incorrect_answers": incorrect_answers,
+        "best_answer": examples["best_answer"]
     }
 
 

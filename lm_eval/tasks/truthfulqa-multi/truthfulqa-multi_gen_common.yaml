@@ -2,13 +2,14 @@ group:
   - truthfulqa
 dataset_path: Blanca/truthfulqa-multi
 output_type: generate_until
-training_split: null
+training_split: train
 validation_split: validation
 test_split: null
 num_fewshot: 0
-doc_to_target: " "
+doc_to_target: "{{'A: ' + best_answer}}"
 process_docs: !function utils.process_docs_gen
 process_results: !function utils.process_results_gen
+doc_to_text: "{{'Q: ' + question}}"
 should_decontaminate: True
 doc_to_decontamination_query: question
 metric_list:
