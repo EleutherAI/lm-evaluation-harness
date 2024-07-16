@@ -302,6 +302,7 @@ class HFLM(TemplateLM):
                 f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
             )
 
+
     def _get_accelerate_args(
         self,
         parallelize: bool = None,
