@@ -23,7 +23,7 @@ from typing import (
 
 import concurrent.futures
 import datasets
-import numpy as n
+import numpy as np
 from tqdm import tqdm
 
 from lm_eval import utils
