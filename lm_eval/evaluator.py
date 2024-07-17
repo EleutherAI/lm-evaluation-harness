@@ -179,11 +179,10 @@ def simple_evaluate(
             model_args = ""
 
         if isinstance(model_args, dict):
-            if apply_chat_template is not None and apply_chat_template is not False:
-                if apply_chat_template is True:
-                    model_args["chat_template_definition"] = True
-                else:
-                    model_args["chat_template_definition"] = apply_chat_template
+            if (
+                apply_chat_template is not None and apply_chat_template
+            ):  # testing if True or a string
+                model_args["chat_template_definition"] = apply_chat_template
 
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {model_args}"
@@ -198,11 +197,10 @@ def simple_evaluate(
             )
 
         else:
-            if apply_chat_template is not None and apply_chat_template is not False:
-                if apply_chat_template is True:
-                    model_args += ",chat_template_definition=True"
-                else:
-                    model_args += f",chat_template_definition={apply_chat_template}"
+            if (
+                apply_chat_template is not None and apply_chat_template
+            ):  # testing if True or a string
+                model_args += f",chat_template_definition={str(apply_chat_template)}"
 
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
