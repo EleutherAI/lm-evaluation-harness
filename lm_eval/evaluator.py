@@ -179,9 +179,8 @@ def simple_evaluate(
             model_args = ""
 
         if isinstance(model_args, dict):
-            if (
-                apply_chat_template is not None and apply_chat_template
-            ):  # testing if True or a string
+            # testing if True or a string
+            if apply_chat_template is not None and apply_chat_template:
                 model_args["chat_template_definition"] = apply_chat_template
 
             eval_logger.info(
@@ -197,9 +196,8 @@ def simple_evaluate(
             )
 
         else:
-            if (
-                apply_chat_template is not None and apply_chat_template
-            ):  # testing if True or a string
+            # testing if True or a string
+            if apply_chat_template is not None and apply_chat_template:
                 model_args += f",chat_template_definition={str(apply_chat_template)}"
 
             eval_logger.info(
