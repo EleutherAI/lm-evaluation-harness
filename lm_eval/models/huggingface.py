@@ -413,6 +413,9 @@ class HFLM(TemplateLM):
 
         The logic for determining the correct chat template is adapted from the Transformers library,
         it reflects how it is handled in the `apply_chat_template` method in the Tokenizer class.
+        The original code can be found at:
+        https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1687
+
         This method ensures that the right template is chosen based on the following:
 
         1. If the model's tokenizer has a dictionary of multiple templates:
