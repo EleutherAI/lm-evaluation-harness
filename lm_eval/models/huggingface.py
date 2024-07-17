@@ -467,7 +467,7 @@ class HFLM(TemplateLM):
                     using_default_template = True
 
         # This is the case when model chat template is not specified
-        elif chat_template is not None and chat_template is not False:
+        elif chat_template is not None and chat_template:
             # These are the cases when the model has a single template
             # priority: `chat_template` argument > `tokenizer.chat_template` > `tokenizer.default_chat_template
             if isinstance(self.tokenizer.chat_template, str):
