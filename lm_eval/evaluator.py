@@ -58,7 +58,7 @@ def simple_evaluate(
     log_samples: bool = True,
     evaluation_tracker: Optional[EvaluationTracker] = None,
     system_instruction: Optional[str] = None,
-    apply_chat_template: bool = False,
+    apply_chat_template: Optional[bool | str] = None,
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
@@ -106,8 +106,8 @@ def simple_evaluate(
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :param system_instruction: str
         System instruction to be applied to the prompt
-    :param apply_chat_template: bool
-        If True, apply chat template to the prompt
+    :param apply_chat_template: Optional[bool|str]
+        If True, apply chat template to the prompt. If a chat template name is provided, respective chat template will be applied.
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :param gen_kwargs: str
@@ -173,6 +173,12 @@ def simple_evaluate(
             model_args = ""
 
         if isinstance(model_args, dict):
+            if apply_chat_template is not None and apply_chat_template is not False:
+                if apply_chat_template is True:
+                    model_args["chat_template_definition"] = True
+                else:
+                    model_args["chat_template_definition"] = apply_chat_template
+
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {model_args}"
             )
@@ -186,6 +192,12 @@ def simple_evaluate(
             )
 
         else:
+            if apply_chat_template is not None and apply_chat_template is not False:
+                if apply_chat_template is True:
+                    model_args += ",chat_template_definition=True"
+                else:
+                    model_args += f",chat_template_definition={apply_chat_template}"
+
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
             )
@@ -343,7 +355,7 @@ def evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     system_instruction: Optional[str] = None,
-    apply_chat_template: bool = False,
+    apply_chat_template: Optional[bool | str] = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
 ):
@@ -363,8 +375,8 @@ def evaluate(
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :param system_instruction: str
         System instruction to be applied to the prompt
-    :param apply_chat_template: bool
-        If True, apply chat template to the prompt
+    :param apply_chat_template: Optional[bool|str]
+        If True, apply chat template to the prompt. If a chat template name is provided, respective chat template will be applied.
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :return
@@ -397,7 +409,7 @@ def evaluate(
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
             system_instruction=system_instruction,
-            apply_chat_template=apply_chat_template,
+            apply_chat_template=bool(apply_chat_template),
             fewshot_as_multiturn=fewshot_as_multiturn,
             chat_template=getattr(lm, "apply_chat_template")
             if apply_chat_template
