@@ -174,7 +174,12 @@ def setup_parser() -> argparse.ArgumentParser:
         nargs="?",
         const=True,
         default=False,
-        help="If True, apply chat template to the prompt. If argument is provided, specific chat template will be applied.",
+        help=(
+            "If True, apply chat template to the prompt. "
+            "Providing --apply_chat_template without an argument will apply the default chat template to the prompt. "
+            "To apply a specific template from the available list of templates, provide the template name as an argument."
+            "E.g. `--apply_chat_template template_name`"
+        ),
     )
     parser.add_argument(
         "--fewshot_as_multiturn",
