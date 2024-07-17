@@ -240,6 +240,7 @@ class HFLM(TemplateLM):
         self.batch_schedule = 1
         self.batch_sizes = {}
         self.max_batch_size = max_batch_size
+        self.dtype = get_dtype(dtype)
 
         if str(batch_size).startswith("auto"):
             batch_size = batch_size.split(":")
@@ -267,6 +268,11 @@ class HFLM(TemplateLM):
                     eval_logger.warning(
                         "You are both using a HF Accelerate `device_map` and launching via `accelerate launch`. This will attempt to do model and data parallelism depending on the resources available."
                     )
+                    self._device = torch.device(f"{accelerator.device}")
+                    self.accelerator = accelerator
+
+                    self._rank = self.accelerator.local_process_index
+                    self._world_size = self.accelerator.num_processes
                 elif accelerator.num_processes == 1:
                     # if we aren't launching via accelerate, ditch
                     self._rank = 0
@@ -1140,7 +1146,7 @@ class HFLM(TemplateLM):
                 }
 
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1, dtype=torch.float16
+                self._model_call(batched_inps, **call_kwargs), dim=-1, dtype=self.dtype
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
