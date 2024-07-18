@@ -1,10 +1,10 @@
 group: haerae
 task:
-  - haerae_gk
-  - haerae_hi
-  - haerae_lw
-  - haerae_rw
-  - haerae_sn
+  - haerae_general_knowledge
+  - haerae_history
+  - haerae_loan_word
+  - haerae_rare_word
+  - haerae_standard_nomenclature
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
