@@ -38,8 +38,8 @@ class SparseMLLM(HFLM):
     ) -> None:
         try:
             from sparseml.transformers import SparseAutoModelForCausalLM
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "Package `sparseml` is not installed. "
                 "Please install it via `pip install sparseml[transformers]`"
             )
@@ -88,8 +88,8 @@ class SparseMLLM(HFLM):
     def _get_config(self, pretrained: str, **kwargs) -> None:
         try:
             from sparseml.transformers import SparseAutoConfig
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "Package `sparseml` is not installed. "
                 "Please install it via `pip install sparseml[transformers]`"
             )
@@ -112,8 +112,8 @@ class SparseMLLM(HFLM):
     ) -> None:
         try:
             from sparseml.transformers import SparseAutoTokenizer
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "Package `sparseml` is not installed. "
                 "Please install it via `pip install sparseml[transformers]`"
             )
@@ -171,8 +171,8 @@ class DeepSparseLM(LM):
 
         try:
             import deepsparse
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "Package `deepsparse` is not installed. "
                 "Please install it via `pip install deepsparse[transformers]`"
             )
