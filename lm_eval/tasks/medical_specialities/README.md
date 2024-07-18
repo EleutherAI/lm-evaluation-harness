@@ -22,7 +22,7 @@ Homepage: [Medical Specialities Dataset](https://huggingface.co/datasets/HPAI-BS
 
 #### Groups
 
-* medical_specialities: Evaluates medical questions and joins by medical speciality
+* medical_specialities: Evaluates the classification of medical questions based on their respective medical specialties.
 
 #### Tasks
   - Cardiology
