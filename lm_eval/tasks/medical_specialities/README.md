@@ -5,6 +5,18 @@
 
 This dataset is designed for medical language models evaluation. It merges several of the most important medical QA datasets into a common format and classifies them into 35 distinct medical categories. This structure enables users to identify any specific categories where the model's performance may be lacking and address these areas accordingly.
 
+The following datasets were used in this project:
+
+- CareQA: https://huggingface.co/datasets/HPAI-BSC/CareQA (CareQA_en.json)
+- headqa_test: https://huggingface.co/datasets/openlifescienceai/headqa (test split)
+- medmcqa_validation: https://huggingface.co/datasets/openlifescienceai/medmcqa (validation split)   
+- medqa_4options_test: https://huggingface.co/datasets/GBaker/MedQA-USMLE-4-options-hf (test split)
+- mmlu_anatomy_test: https://huggingface.co/datasets/openlifescienceai/mmlu_anatomy (test split)
+- mmlu_clinical_knowledge_test: https://huggingface.co/datasets/openlifescienceai/mmlu_clinical_knowledge (test split)
+- mmlu_college_medicine_test: https://huggingface.co/datasets/openlifescienceai/mmlu_college_medicine (test split)
+- mmlu_medical_genetics_test: https://huggingface.co/datasets/openlifescienceai/mmlu_medical_genetics (test split)
+- mmlu_professional_medicine_test: https://huggingface.co/datasets/openlifescienceai/mmlu_professional_medicine (test split)
+
 Homepage: [Medical Specialities Dataset](https://huggingface.co/datasets/HPAI-BSC/medical-specialities)
 
 ### Citation
