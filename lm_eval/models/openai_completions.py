@@ -27,9 +27,17 @@ def get_result(response) -> Tuple[float, bool]:
     """
     is_greedy = True
     logprobs = response.logprobs.token_logprobs
+    skip_first = False
+    # now api includes logit for the first token that is None
+    if logprobs[0] is None:
+        logprobs = logprobs[1:]
+        skip_first = True
     continuation_logprobs = sum(logprobs)
 
     for i in range(len(response.logprobs.token_logprobs)):
+        # if first logprob is None, skip it
+        if i == 0 and skip_first:
+            continue
         token = response.logprobs.token_logprobs[i]
         top_tokens = response.logprobs.top_logprobs[i]
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
@@ -214,6 +222,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 temperature=0.0,
                 logprobs=10,
                 seed=self.seed,
+                echo=True,
             )
 
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
@@ -268,12 +277,17 @@ class OpenaiCompletionsLM(TemplateLM):
             until = request_args.get("until", ["<|endoftext|>"])
             request_args["temperature"] = request_args.get("temperature", 0)
 
+            # openai completions models have limits for length of stop sequence
+            # create shorter list of no more than 4 elements to use only for API
+            if isinstance(until, list) and len(until) > 4:
+                until_generation = until[:4]
+
             response = oa_completion(
                 client=self.client,
                 model=self.model,
                 prompt=inps,
                 max_tokens=self.max_gen_toks,
-                stop=until,
+                stop=until_generation,
                 seed=self.seed,
                 **{
                     k: v
