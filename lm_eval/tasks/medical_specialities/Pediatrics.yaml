@@ -1,0 +1,3 @@
+dataset_name: Pediatrics
+include: _default_template_yaml
+task: Pediatrics
