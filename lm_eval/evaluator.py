@@ -64,7 +64,7 @@ def simple_evaluate(
     log_samples: bool = True,
     evaluation_tracker: Optional[EvaluationTracker] = None,
     system_instruction: Optional[str] = None,
-    apply_chat_template: Optional[bool | str] = None,
+    apply_chat_template: Optional[bool | str] = False,
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
@@ -113,7 +113,10 @@ def simple_evaluate(
     :param system_instruction: str
         System instruction to be applied to the prompt
     :param apply_chat_template: Optional[bool|str]
-        If True, apply chat template to the prompt. If a chat template name is provided, respective chat template will be applied.
+        Specifies whether to apply a chat template to the prompt.
+        - If set to True, the default chat template is applied.
+        - If set to a string, applies the specified chat template by name.
+        Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :param gen_kwargs: str
@@ -391,7 +394,10 @@ def evaluate(
     :param system_instruction: str
         System instruction to be applied to the prompt
     :param apply_chat_template: Optional[bool|str]
-        If True, apply chat template to the prompt. If a chat template name is provided, respective chat template will be applied.
+        Specifies whether to apply a chat template to the prompt.
+        - If set to True, the default chat template is applied.
+        - If set to a string, applies the specified chat template by name.
+        Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :return
