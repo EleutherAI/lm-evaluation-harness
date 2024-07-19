@@ -9,7 +9,7 @@ There are several places information about LM Evaluation Harness is located:
 - Our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs)
 - We occasionally use [GitHub Milestones](https://github.com/EleutherAI/lm-evaluation-harness/milestones) to track progress toward specific near-term version releases.
 - We maintain a [Project Board](https://github.com/orgs/EleutherAI/projects/25) for tracking current work items and PRs, and for future roadmap items or feature requests.
-- Further discussion and support conversations are located in the #lm-thunderdome channel of the [EleutherAI discord](discord.gg/eleutherai).
+- Further discussion and support conversations are located in the #lm-thunderdome channel of the [EleutherAI discord](https://discord.gg/eleutherai).
 
 ## Code Style
 
