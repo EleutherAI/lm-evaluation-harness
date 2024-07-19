@@ -8,6 +8,7 @@ import subprocess
 from tqdm import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
 from tqdm_multiprocess.logger import setup_logger_tqdm
+from security import safe_command
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ def process_task(
 ):
     command = f"zstd {bucket_file_path}"
     logger.info(command)
-    subprocess.call(command, shell=False)
+    safe_command.run(subprocess.call, command, shell=False)
 
     compressed_file = bucket_file_path + ".zst"
     if output_directory:

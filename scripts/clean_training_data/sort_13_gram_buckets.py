@@ -18,6 +18,7 @@ from signal import SIGINT
 
 from tqdm import tqdm
 from tqdm_multiprocess.logger import setup_logger_tqdm
+from security import safe_command
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ def sort_13_gram_buckets(working_directory):
         sorted_file_path = bucket_file_path + ".sorted"
         command = f"sort {bucket_file_path} > {sorted_file_path}"
         logger.info(command)
-        subprocess.call(command, shell=False)
+        safe_command.run(subprocess.call, command, shell=False)
 
         if terminate:
             return
