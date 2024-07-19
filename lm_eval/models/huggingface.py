@@ -103,7 +103,6 @@ class HFLM(TemplateLM):
         use_fast_tokenizer: Optional[bool] = True,
         add_bos_token: Optional[bool] = False,
         prefix_token_id: Optional[int] = None,
-        chat_template_definition: Optional[bool | str] = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -273,7 +272,6 @@ class HFLM(TemplateLM):
         self.batch_schedule = 1
         self.batch_sizes = {}
         self.max_batch_size = max_batch_size
-        self.chat_template_definition = chat_template_definition
 
         if str(batch_size).startswith("auto"):
             batch_size = batch_size.split(":")
@@ -405,36 +403,41 @@ class HFLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
-    @property
-    def chat_template(self) -> str:
+    def chat_template(self, chat_template: Optional[bool | str] = True) -> str:
         """
-        Returns the appropriate chat template for the model,
-        ensuring reproducibility by explicitly saving which template was used.
+        Get the appropriate chat template for the model based on configuration and input.
+        This method determines, and returns the correct chat template, ensuring reproducibility.
 
-        The logic for determining the correct chat template is adapted from the Transformers library,
-        it reflects how it is handled in the `apply_chat_template` method in the Tokenizer class.
-        The original code can be found at:
+        The template selection logic is adapted from the Transformers library's `apply_chat_template`
+        method in the Tokenizer class. The original implementation can be found at:
         https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1687
 
         This method ensures that the right template is chosen based on the following:
-
-        1. If the model's tokenizer has a dictionary of multiple templates:
-            - If a template name is specified and exists in the dictionary, use that template.
-            - If no template name is specified, use the default template from the dictionary.
-            - Raise an error if no default template is found and no specific template is specified.
-
+        1. If the model's tokenizer has multiple templates:
+            a. Use the specified template if it exists in the dictionary.
+            b. Use the default template if no specific template is provided.
+            c. Raise an error if no default template exists and no specific template is specified.
         2. If the model's tokenizer has a single template or no template:
-            - Use the tokenizer's chat template if available.
-            - If no tokenizer chat template is available, use the default chat template.
+            a. Use the tokenizer's chat template if available.
+            b. Fall back to the default chat template if no tokenizer chat template exists.
+
+        Args:
+            chat_template (Optional[Union[bool, str]]): Specifies the chat template to use.
+                - If True (default), use the default template.
+                - If False or None, no template is applied (handled externally).
+                - If a string, use the template with the matching name.
 
         Returns:
-            str: The chat template to be used for the model.
+            str: The selected chat template.
         """
-        # This method won't be called if the self.chat_template_definition is False or None
-        if isinstance(self.chat_template_definition, bool):
+        # This method should not be called if the chat_template argument is None or False
+        if chat_template is False or chat_template is None:
+            raise ValueError(
+                "Chat template method should not be called with chat_template=None or chat_template=False."
+            )
+        # Handle the case where chat_template is a boolean (True)
+        if isinstance(chat_template, bool):
             chat_template = None
-        else:
-            chat_template = self.chat_template_definition
         using_default_template = False
 
         # First, handle the cases when the model has a dict of multiple templates

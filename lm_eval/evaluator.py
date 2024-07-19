@@ -182,10 +182,6 @@ def simple_evaluate(
             model_args = ""
 
         if isinstance(model_args, dict):
-            # testing if True or a string
-            if apply_chat_template is not None and apply_chat_template:
-                model_args["chat_template_definition"] = apply_chat_template
-
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {model_args}"
             )
@@ -199,10 +195,6 @@ def simple_evaluate(
             )
 
         else:
-            # testing if True or a string
-            if apply_chat_template is not None and apply_chat_template:
-                model_args += f",chat_template_definition={str(apply_chat_template)}"
-
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
             )
@@ -300,7 +292,9 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template if apply_chat_template else None,
+            chat_template=lm.chat_template(apply_chat_template)
+            if apply_chat_template
+            else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
