@@ -4,12 +4,12 @@ from functools import reduce
 
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
-from datasets import Dataset, load_metric
+from datasets import load_metric
 from transformers import AutoTokenizer
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 
 
 _CITATION = """
@@ -108,7 +108,7 @@ def _num_cpu_cores():
         return len(os.sched_getaffinity(0))
 
 
-class _SCROLLSTask(ConfigurableTask):
+class _SCROLLSTask(Task):
     VERSION = 2
     DATASET_PATH = "tau/scrolls"
     DATASET_NAME = None
@@ -117,7 +117,7 @@ class _SCROLLSTask(ConfigurableTask):
     PRUNE_NUM_PROC = None
 
     def __init__(self):
-        super().__init__(config={"metadata": {"version": self.VERSION}})
+        super().__init__()
         if self.DATASET_NAME is not None:
             self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME)
 
@@ -131,26 +131,12 @@ class _SCROLLSTask(ConfigurableTask):
         return False
 
     def training_docs(self):
-        processed_docs = list(map(self._process_doc, self.dataset["train"]))
-
-        # Flatten the list of lists since _process_doc returns a list of one element.
-        processed_docs = [item for sublist in processed_docs for item in sublist]
-        processed_dict = {
-            key: [d[key] for d in processed_docs] for key in processed_docs[0]
-        }
-
-        return Dataset.from_dict(processed_dict)
+        for doc in self.dataset["train"]:
+            yield from self._process_doc(doc)
 
     def validation_docs(self):
-        processed_docs = list(map(self._process_doc, self.dataset["validation"]))
-
-        # Flatten the list of lists since _process_doc returns a list of one element.
-        processed_docs = [item for sublist in processed_docs for item in sublist]
-        processed_dict = {
-            key: [d[key] for d in processed_docs] for key in processed_docs[0]
-        }
-
-        return Dataset.from_dict(processed_dict)
+        for doc in self.dataset["validation"]:
+            yield from self._process_doc(doc)
 
     def should_decontaminate(self):
         return True

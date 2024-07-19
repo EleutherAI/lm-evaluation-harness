@@ -1,3 +1,0 @@
-include: _template_yaml
-dataset_name: geometry
-task: leaderboard_math_geometry_hard

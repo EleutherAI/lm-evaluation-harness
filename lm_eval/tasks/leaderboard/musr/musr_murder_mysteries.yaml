@@ -1,3 +1,0 @@
-include: "_template_yaml"
-task: leaderboard_musr_murder_mysteries
-test_split: murder_mysteries

@@ -1,3 +1,0 @@
-include: "_template_yaml"
-task: leaderboard_musr_team_allocation
-test_split: team_allocation
