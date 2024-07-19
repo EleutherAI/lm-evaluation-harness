@@ -120,8 +120,9 @@ class MyCustomLM(LM):
     def tokenizer_name(self) -> str:
         # should return a string denoting the name of the model's tokenizer and/or the accompanying chat template.
 
-    @property
-    def chat_template(self) -> str:
+    def chat_template(self, chat_template: Optional[bool | str] = True) -> str:
+        # takes as input a boolean or string to choose between different chat templates if the model has multiple.
+        # for the reference check docstring of the method in HFLM.
         # should return a chat template formatting string that is used to build prompt from a user/assistant chat history.
         # this will be saved in the evaluation results for reproducibility.
 
