@@ -53,7 +53,7 @@ class TaskOutput:
         group_alias=None,
         is_group=None,
     ):
-        self.task = task
+        self.task: Optional[Task] = task
         self.task_config = task_config
         self.task_name = task_name
         self.group_name = group_name

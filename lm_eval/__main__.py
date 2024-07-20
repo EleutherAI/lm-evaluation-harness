@@ -76,6 +76,13 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Comma-separated list of task names or task groupings to evaluate on.\nTo get full list of tasks, use one of the commands `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above",
     )
     parser.add_argument(
+        "--from_logged_tasks",
+        default=None,
+        type=str,
+        metavar="DIR",
+        help="The path to a directory containing sample logs. We'll recursively look inside for `results_[timestamp].json` files and corresponding (sibling) `samples_[task]_[timestamp].jsonl` files to calculate metrics.",
+    )
+    parser.add_argument(
         "--model_args",
         "-a",
         default="",
@@ -287,6 +294,23 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "Specify --output_path if providing --log_samples or --predict_only"
         )
 
+    if args.from_logged_tasks and (
+        args.predict_only or args.log_samples or args.tasks or args.include_path
+    ):
+        raise ValueError(
+            "If from_logged_tasks is set, do not pass predict_only, log_samples, include_path, or tasks"
+        )
+
+    if args.from_logged_tasks:
+        eval_logger.warn(
+            "If from_logged_tasks is set, any arguments pertaining to prompt processing or generation will be ignored."
+        )
+
+    if args.from_logged_tasks and args.limit:
+        raise NotImplementedError(
+            "Evaluating tasks passed via `from_logged_tasks`: `limit` is not implemented."
+        )
+
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
         raise ValueError(
             "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
@@ -314,7 +338,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    if args.tasks is None:
+    results_paths = None  # Used only if `args.from_logged_tasks` is non-empty.
+    if args.tasks is None and args.from_logged_tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
     elif args.tasks == "list":
@@ -329,6 +354,26 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     elif args.tasks == "list_subtasks":
         print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
+    elif args.from_logged_tasks:
+        if not os.path.isdir(args.from_logged_tasks):
+            raise ValueError(f"{args.from_logged_tasks=} is NOT a directory.")
+
+        import glob
+
+        pathname: str = os.path.join(args.from_logged_tasks, "**", "results_*.json")
+        results_paths: list[str] = glob.glob(pathname=pathname, recursive=True)
+        task_names: list[str] = []
+        for result in results_paths:
+            with open(file=result, mode="r") as f:
+                task_names += json.load(fp=f)["configs"].keys()
+        new_task_names = task_manager.match_tasks(task_names)
+        if len(task_names) > len(new_task_names):
+            eval_logger.warning("Not all task names in results files are supported.")
+            eval_logger.warning(
+                f"Skipping: {list(set(task_names) - set(new_task_names))}\n"
+                f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
+            )
+        task_names = new_task_names
     else:
         if os.path.isdir(args.tasks):
             import glob
@@ -383,6 +428,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         model=args.model,
         model_args=args.model_args,
         tasks=task_names,
+        results_paths=results_paths,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,

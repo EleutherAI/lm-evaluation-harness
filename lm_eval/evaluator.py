@@ -4,17 +4,19 @@ import logging
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 
 import numpy as np
 import torch
 
+from lm_eval.api.instance import Instance, OutputType
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.api.task
 import lm_eval.models
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
+    TaskOutput,
     consolidate_group_results,
     consolidate_results,
     get_sample_size,
@@ -49,6 +51,7 @@ def simple_evaluate(
     model,
     model_args: Optional[Union[str, dict]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
+    results_paths: Optional[List[str]] = None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[Union[int, str]] = None,
     max_batch_size: Optional[int] = None,
@@ -84,6 +87,8 @@ def simple_evaluate(
         Ignored if `model` argument is a LM object.
     :param tasks: list[Union[str, dict, Task]]
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+    :param results_paths: list[str]
+        List of paths to `results_*.json` files. Used for grading-only workflows, where samples are already pre-generated. Corresponds to `--from_logged_tasks`.
     :param num_fewshot: int
         Number of examples in few-shot context
     :param batch_size: int or str, optional
@@ -173,7 +178,7 @@ def simple_evaluate(
         if gen_kwargs == "":
             gen_kwargs = None
 
-    if isinstance(model, str):
+    if isinstance(model, str) and results_paths is None:
         if model_args is None:
             eval_logger.warning("model_args not specified. Using defaults.")
             model_args = ""
@@ -203,13 +208,15 @@ def simple_evaluate(
                     "device": device,
                 },
             )
-    else:
+    elif results_paths is None:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError
         eval_logger.info("Using pre-initialized model")
         lm = model
+    else:
+        lm = None
 
-    if use_cache is not None:
+    if use_cache is not None and results_paths is None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
         lm = lm_eval.api.model.CachingLM(
             lm,
@@ -224,7 +231,7 @@ def simple_evaluate(
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    task_dict = get_task_dict(tasks, task_manager)
+    task_dict = get_task_dict(task_name_list=tasks, task_manager=task_manager)
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
@@ -293,9 +300,32 @@ def simple_evaluate(
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
+    tasks_to_resps = None
+    if results_paths:
+        import os
+        # Populate dictionary tasks_to_resps ({"task_name": filtered_resps})
+        tasks_to_resps = {}
+        for path in results_paths:
+            directory = os.path.dirname(path)
+            prefix = os.path.join(directory, "results_")
+            timestamp = path[len(prefix) : -len(".json")]
+            with open(path, "r") as f:
+                task_names = json.load(f)["configs"].keys()
+            for task_name in task_names:
+                sample_path = os.path.join(
+                    directory, f"samples_{task_name}_{timestamp}.jsonl"
+                )
+                if not os.path.exists(sample_path):
+                    eval_logger.error(f"Could not find expected samples for {task_name} at {sample_path}. Skipping...")
+                    continue
+                with open(sample_path, "r") as f:
+                    jsonl: List[str] = f.readlines()
+                tasks_to_resps[task_name] = [json.loads(line)["filtered_resps"] for line in jsonl if line.strip()]
+
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
+        tasks_to_resps=tasks_to_resps,
         limit=limit,
         cache_requests=cache_requests,
         rewrite_requests_cache=rewrite_requests_cache,
@@ -308,7 +338,7 @@ def simple_evaluate(
         verbosity=verbosity,
     )
 
-    if lm.rank == 0:
+    if lm is None or lm.rank == 0:
         if isinstance(model, str):
             model_name = model
         elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
@@ -353,8 +383,9 @@ def simple_evaluate(
 
 @positional_deprecated
 def evaluate(
-    lm: "LM",
+    lm: Optional["LM"],
     task_dict,
+    tasks_to_resps: Optional[Dict[str, list]] = None,
     limit: Optional[int] = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
@@ -372,6 +403,8 @@ def evaluate(
         Language Model
     :param task_dict: dict[str, Task]
         Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
+    :param tasks_to_resps: dict[str, list], optional
+        Skip generations and grade with stored filtered_resps.
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
@@ -393,13 +426,13 @@ def evaluate(
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     # tracks all Instances/requests a model must generate output on.
-    requests = defaultdict(list)
+    requests: Dict[OutputType, List[Instance]] = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
     # get lists of group hierarchy and each type of request
-    eval_tasks = get_task_list(task_dict)
+    eval_tasks: List[TaskOutput] = get_task_list(task_dict)
     if not log_samples:
         if not all(
             "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
@@ -407,12 +440,16 @@ def evaluate(
         ):
             raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
     for task_output in eval_tasks:
-        task: Task = task_output.task
+        if task_output.task is not None:
+            task: Task = task_output.task
+        else:
+            raise TypeError(f"Expected `{task_output}.task` to be Task, got None.")
+
         limit = get_sample_size(task, limit)
         task.build_all_requests(
             limit=limit,
-            rank=lm.rank,
-            world_size=lm.world_size,
+            rank=lm.rank if lm is not None else 0,
+            world_size=lm.world_size if lm is not None else 1,
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
             system_instruction=system_instruction,
@@ -435,7 +472,7 @@ def evaluate(
             reqtype = instance.request_type
             requests[reqtype].append(instance)
 
-        if lm.world_size > 1:
+        if lm is not None and lm.world_size > 1:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
             gathered_item = (
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
@@ -451,36 +488,40 @@ def evaluate(
             # todo: may not account for padding in cases like SquadV2 which has multiple req types
             padding_requests[reqtype] += numpad
 
-    ### Run LM on inputs, get all outputs ###
-    # execute each type of request
-    for reqtype, reqs in requests.items():
-        eval_logger.info(f"Running {reqtype} requests")
-        # create `K` copies of each request `req` based off `K = req.repeats`
-        cloned_reqs = []
-        for req in reqs:
-            cloned_reqs.extend([req] * req.repeats)
-
-        if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
-            for _ in range(padding_requests[reqtype]):
+    if tasks_to_resps is None:
+        ### Run LM on inputs, get all outputs ###
+        # execute each type of request
+        for reqtype, reqs in requests.items():
+            eval_logger.info(f"Running {reqtype} requests")
+            # create `K` copies of each request `req` based off `K = req.repeats`
+            cloned_reqs = []
+            for req in reqs:
                 cloned_reqs.extend([req] * req.repeats)
 
-        # run requests through model
-        resps = getattr(lm, reqtype)(cloned_reqs)
+            if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
+                for _ in range(padding_requests[reqtype]):
+                    cloned_reqs.extend([req] * req.repeats)
 
-        # put responses from model into a list of length K for each request.
-        for x, req in zip(resps, cloned_reqs):
-            req.resps.append(x)
+            # run requests through model
+            resps = getattr(lm, reqtype)(cloned_reqs)
 
-        if lm.world_size > 1:
-            lm.accelerator.wait_for_everyone()
+            # put responses from model into a list of length K for each request.
+            for x, req in zip(resps, cloned_reqs):
+                req.resps.append(x)
 
-    RANK = lm.rank
-    WORLD_SIZE = lm.world_size
+            if lm.world_size > 1:
+                lm.accelerator.wait_for_everyone()
+
+    RANK = lm.rank if lm is not None else 0
+    WORLD_SIZE = lm.world_size if lm is not None else 1
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output in eval_tasks:
+        if task_output.task is None:
+            raise TypeError("`task_output.task` should not be None.")
         task = task_output.task
-        task.apply_filters()
+        if tasks_to_resps is None:
+            task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
@@ -492,16 +533,22 @@ def evaluate(
         # Sort instances within each group
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
-        # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps.keys():
-            doc_iterator = task.doc_iterator(
-                rank=RANK, limit=limit, world_size=WORLD_SIZE
-            )
-            for doc_id, doc in doc_iterator:
-                requests = instances_by_doc_id[doc_id]
+
+        doc_iterator = task.doc_iterator(
+            rank=RANK, limit=limit, world_size=WORLD_SIZE
+        )
+        for doc_id, doc in doc_iterator:
+            requests = instances_by_doc_id[doc_id]
+            if tasks_to_resps is not None:
+                filtered_resps = tasks_to_resps[task.task_name]
+                for i, req in enumerate(requests):
+                    req.filtered_resps = {'none': filtered_resps[doc_id][i]}
+            # iterate over different filters used
+            for filter_key in task.instances[0].filtered_resps.keys():
                 metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
+                    doc=doc, results=[req.filtered_resps[filter_key] for req in requests]
                 )
+
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
