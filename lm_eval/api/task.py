@@ -1341,12 +1341,18 @@ class ConfigurableTask(Task):
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
+            if isinstance(ll, str):
+                ll: float = float(ll)
+            if isinstance(is_greedy, str):
+                is_greedy: bool = (is_greedy == "True")
             return {
                 **({"perplexity": ll} if "perplexity" in use_metric else {}),
                 **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
             }
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             (loglikelihood,) = results
+            if isinstance(loglikelihood, str):
+                loglikelihood: float = float(loglikelihood)
             _words = self.count_words(self.doc_to_target(doc))
             _bytes = self.count_bytes(self.doc_to_target(doc))
             return {
@@ -1367,11 +1373,15 @@ class ConfigurableTask(Task):
                 ),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls, is_greedy = zip(*results)
+            lls, are_greedy = zip(*results)
+            if all(isinstance(ll, str) for ll in lls):
+                lls: list[float] = [float(ll) for ll in lls]
+            if all(isinstance(elem, str) for elem in are_greedy):
+                are_greedy: list[bool] = [greedy == "True" for greedy in are_greedy]
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
-            choices = self.doc_to_choice(doc)
-            completion_len = np.array([float(len(i)) for i in choices])
+            choices: List[str] = self.doc_to_choice(doc)
+            completion_len: np.ndarray[Any, np.dtype[Any]] = np.array([float(len(i)) for i in choices])
 
             if (
                 2 * len(choices) == len(lls)
@@ -1379,14 +1389,14 @@ class ConfigurableTask(Task):
             ):
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
-                lls_unconditional = lls[1::2]
+                lls_unconditional: List[float] = lls[1::2]
                 if len(lls_unconditional) != len(choices):
                     raise ValueError
                 # and this stores our "regular" conditional loglikelihoods
                 lls = lls[::2]
 
-            pred = np.argmax(lls)
-            pred_norm = np.argmax(lls / completion_len)
+            pred: np.signedinteger[Any] = np.argmax(lls)
+            pred_norm: np.signedinteger[Any] = np.argmax(lls / completion_len)
 
             if self.multiple_input:
                 gold = self.doc_to_text(doc)
@@ -1416,12 +1426,12 @@ class ConfigurableTask(Task):
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
+                exact_match = int(any([are_greedy[i] if i != -100 else 0 for i in gold]))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold]) if gold != -100 else 0
+                exact_match = int(are_greedy[gold]) if gold != -100 else 0
 
             prob_norm = utils.softmax(lls)
 
