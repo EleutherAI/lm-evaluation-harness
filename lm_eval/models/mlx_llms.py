@@ -1,6 +1,7 @@
 from functools import lru_cache
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
+import jinja2
 import numpy as np
 from tqdm import tqdm
 
@@ -25,6 +26,7 @@ class MLX(TemplateLM):
         max_tokens=2048,
         batch_size=4,
         max_gen_tokens=256,
+        ensure_bos_token=False,
     ):
         try:
             from mlx_lm.utils import load
@@ -45,6 +47,7 @@ class MLX(TemplateLM):
         self.top_p = top_p
         self.batch_size = int(batch_size)
         self.max_gen_tokens = max_gen_tokens
+        self.ensure_bos_token = ensure_bos_token
 
     @property
     def eot_token_id(self):
@@ -53,7 +56,39 @@ class MLX(TemplateLM):
 
     @lru_cache(maxsize=2000)
     def tok_encode(self, string: str) -> List[int]:
-        return self.tokenizer.encode(string)
+        encoding = self.tokenizer.encode(string)
+        if self.ensure_bos_token and encoding[0] != self.tokenizer.bos_token_id:
+            encoding = [self.tokenizer.bos_token_id] + encoding
+        return encoding
+
+    @property
+    def chat_template(self) -> str:
+        if self.tokenizer.chat_template is not None:
+            return self.tokenizer.chat_template
+        return self.tokenizer.default_chat_template
+
+    @property
+    def tokenizer_name(self) -> str:
+        return self.tokenizer.name_or_path.replace("/", "__")
+
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        try:
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+        except jinja2.exceptions.TemplateError:
+            eval_logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+
+        return chat_templated
 
     def _loglikelihood_tokens(
         self,
