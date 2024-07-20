@@ -1344,7 +1344,7 @@ class ConfigurableTask(Task):
             if isinstance(ll, str):
                 ll: float = float(ll)
             if isinstance(is_greedy, str):
-                is_greedy: bool = (is_greedy == "True")
+                is_greedy: bool = is_greedy == "True"
             return {
                 **({"perplexity": ll} if "perplexity" in use_metric else {}),
                 **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
@@ -1381,7 +1381,9 @@ class ConfigurableTask(Task):
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices: List[str] = self.doc_to_choice(doc)
-            completion_len: np.ndarray[Any, np.dtype[Any]] = np.array([float(len(i)) for i in choices])
+            completion_len: np.ndarray[Any, np.dtype[Any]] = np.array(
+                [float(len(i)) for i in choices]
+            )
 
             if (
                 2 * len(choices) == len(lls)
@@ -1426,7 +1428,9 @@ class ConfigurableTask(Task):
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([are_greedy[i] if i != -100 else 0 for i in gold]))
+                exact_match = int(
+                    any([are_greedy[i] if i != -100 else 0 for i in gold])
+                )
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
@@ -1468,7 +1472,7 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif type(gold) != type(result):
+            elif type(gold) is not type(result):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 

@@ -4,16 +4,16 @@ import logging
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 import torch
 
-from lm_eval.api.instance import Instance, OutputType
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.api.task
 import lm_eval.models
+from lm_eval.api.instance import Instance, OutputType
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     TaskOutput,
@@ -303,6 +303,7 @@ def simple_evaluate(
     tasks_to_resps = None
     if results_paths:
         import os
+
         # Populate dictionary tasks_to_resps ({"task_name": filtered_resps})
         tasks_to_resps = {}
         for path in results_paths:
@@ -316,11 +317,15 @@ def simple_evaluate(
                     directory, f"samples_{task_name}_{timestamp}.jsonl"
                 )
                 if not os.path.exists(sample_path):
-                    eval_logger.error(f"Could not find expected samples for {task_name} at {sample_path}. Skipping...")
+                    eval_logger.error(
+                        f"Could not find expected samples for {task_name} at {sample_path}. Skipping..."
+                    )
                     continue
                 with open(sample_path, "r") as f:
                     jsonl: List[str] = f.readlines()
-                tasks_to_resps[task_name] = [json.loads(line)["filtered_resps"] for line in jsonl if line.strip()]
+                tasks_to_resps[task_name] = [
+                    json.loads(line)["filtered_resps"] for line in jsonl if line.strip()
+                ]
 
     results = evaluate(
         lm=lm,
@@ -534,19 +539,18 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
 
-        doc_iterator = task.doc_iterator(
-            rank=RANK, limit=limit, world_size=WORLD_SIZE
-        )
+        doc_iterator = task.doc_iterator(rank=RANK, limit=limit, world_size=WORLD_SIZE)
         for doc_id, doc in doc_iterator:
             requests = instances_by_doc_id[doc_id]
             if tasks_to_resps is not None:
                 filtered_resps = tasks_to_resps[task.task_name]
                 for i, req in enumerate(requests):
-                    req.filtered_resps = {'none': filtered_resps[doc_id][i]}
+                    req.filtered_resps = {"none": filtered_resps[doc_id][i]}
             # iterate over different filters used
             for filter_key in task.instances[0].filtered_resps.keys():
                 metrics = task.process_results(
-                    doc=doc, results=[req.filtered_resps[filter_key] for req in requests]
+                    doc=doc,
+                    results=[req.filtered_resps[filter_key] for req in requests],
                 )
 
                 if log_samples:
