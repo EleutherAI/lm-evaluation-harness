@@ -16,6 +16,8 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups. A list of supported tasks can be viewed with `--tasks list`.
 
+- `--from_logged_tasks` : Used in place of `--tasks`. Supply the path to a directory containing sample logs. We'll recursively look inside for `results_[timestamp].json` files and corresponding (sibling) `samples_[task]_[timestamp].jsonl` files to directly calculate metrics.
+
 - `--num_fewshot` : Sets the number of few-shot examples to place in context. Must be an integer.
 
 - `--gen_kwargs` : takes an arg string in same format as `--model_args` and creates a dictionary of keyword arguments. These will be passed to the models for all called `generate_until` (free-form or greedy generation task) tasks, to set options such as the sampling temperature or `top_p` / `top_k`. For a list of what args are supported for each model type, reference the respective library's documentation (for example, the documentation for `transformers.AutoModelForCausalLM.generate()`.) These kwargs will be applied to all `generate_until` tasks called--we do not currently support unique gen_kwargs or batch_size values per task in a single run of the library. To control these on a per-task level, set them in that task's YAML file.
