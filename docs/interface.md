@@ -58,12 +58,15 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
     * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
-    * `hub_repo_name` - repository name on Hugging Face Hub, e.g., `lm-eval-results`,
+    * `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
+    * `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
+    * `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
     * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
     * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
+    * `gated` - whether to gate the details dataset, can be `True` or `False`.
 
 ## External Library Usage
 

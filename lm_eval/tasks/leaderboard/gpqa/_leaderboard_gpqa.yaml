@@ -1,0 +1,5 @@
+group: leaderboard_gpqa
+task:
+  - leaderboard_gpqa_diamond
+  - leaderboard_gpqa_extended
+  - leaderboard_gpqa_main
