@@ -63,7 +63,7 @@ class TemplateAPI(TemplateLM):
         max_gen_toks: int = 256,
         batch_size: Union[str, int] = 1,
         seed: int = 1234,
-        max_length: Optional[int] = 2058,
+        max_length: Optional[int] = 2048,
         add_bos_token: bool = False,
         custom_prefix_token_id=None,
         # send the requests as tokens or strings
