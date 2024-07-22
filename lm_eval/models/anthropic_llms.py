@@ -357,4 +357,6 @@ class AnthropicChat(LocalCompletionsAPI):
         return [string]
 
     def _loglikelihood_tokens(self, requests, **kwargs):
-        raise NotImplementedError("Anthropic Chat Completions API does not support the return of log")
+        raise NotImplementedError(
+            "Anthropic Chat Completions API does not support the return of log"
+        )
