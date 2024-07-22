@@ -1,3 +1,4 @@
+import copy
 import os
 from functools import cached_property
 from typing import Any, Dict, List, Tuple, Union
@@ -27,6 +28,8 @@ class LocalCompletionsAPI(TemplateAPI):
         **kwargs,
     ) -> dict:
         if generate:
+            # !!! Copy: shared dict for each request, need new object !!!
+            gen_kwargs = copy.deepcopy(gen_kwargs)
             gen_kwargs.pop("do_sample", False)
             max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
