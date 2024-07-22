@@ -1,4 +1,4 @@
-group:
+tag:
   - super-glue-lm-eval-v1-seq2seq
 task: "boolq-seq2seq"
 dataset_path: super_glue

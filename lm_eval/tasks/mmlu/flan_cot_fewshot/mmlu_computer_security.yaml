@@ -45,6 +45,6 @@ fewshot_config:
       of the TLS heartbeat extension. The vulnerability was classified as a buffer
       over-read, a situation where more data can be read than should be allowed. The
       answer is (C).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_computer_security

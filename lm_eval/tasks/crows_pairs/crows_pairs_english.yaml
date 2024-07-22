@@ -1,7 +1,5 @@
-group:
+tag:
   - crows_pairs
-  - social_bias
-  - loglikelihood
 task: crows_pairs_english
 dataset_path: BigScienceBiasEval/crows_pairs_multilingual
 dataset_name: english

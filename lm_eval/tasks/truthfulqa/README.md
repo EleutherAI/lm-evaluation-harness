@@ -36,8 +36,8 @@ Homepage: `https://github.com/sylinrl/TruthfulQA`
 #### Tasks
 
 * `truthfulqa_mc1`: `Multiple-choice, single answer`
-* (MISSING)`truthfulqa_mc2`: `Multiple-choice, multiple answers`
-* (MISSING)`truthfulqa_gen`: `Answer generation`
+* `truthfulqa_mc2`: `Multiple-choice, multiple answers`
+* `truthfulqa_gen`: `Answer generation`
 
 ### Checklist
 
