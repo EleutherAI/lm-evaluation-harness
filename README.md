@@ -123,7 +123,7 @@ For cases where your model can fit on a single GPU, this allows you to evaluate 
 
 The second way of using `accelerate` for multi-GPU evaluation is when your model is *too large to fit on a single GPU.*
 
-In this setting, run the library *outside of the `accelerate` launcher*, but passing `parallelize=True` to `--model_args` as follows:
+In this setting, run the library *outside the `accelerate` launcher*, but passing `parallelize=True` to `--model_args` as follows:
 
 ```
 lm_eval --model hf \
