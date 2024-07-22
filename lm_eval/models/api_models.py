@@ -47,7 +47,7 @@ class TemplateAPI(TemplateLM):
     def __init__(
         self,
         model: str = None,
-        pretrained: str = None, # `model` takes precedence over `pretrained` when passed.
+        pretrained: str = None,  # `model` takes precedence over `pretrained` when passed.
         base_url: str = None,
         tokenizer: Optional[str] = None,
         # Logliklehood tasks require a tokenizer to calculate context lengths,
@@ -77,7 +77,7 @@ class TemplateAPI(TemplateLM):
             if find_spec(pkg) is None
         ]
         if missing_packages:
-            raise Exception(
+            raise ModuleNotFoundError(
                 f"Attempted to use an API model, but the required packages {missing_packages} are not installed. "
                 'Please install these via `pip install lm-eval[api]` or `pip install -e ."[api]"`'
             )
@@ -119,6 +119,7 @@ class TemplateAPI(TemplateLM):
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                     self.tokenizer if self.tokenizer else self.model
                 )
+                # Not used as the API will handle padding but to mirror the behavior of the HFLM
                 self.tokenizer = configure_pad_token(self.tokenizer)
             elif self.tokenizer_backend == "tiktoken":
                 try:
@@ -377,7 +378,7 @@ class TemplateAPI(TemplateLM):
             )
             return None
 
-    def batch_loglikelihood_requests(
+    def batch_logliklehood_requests(
         self, chunks: Iterable[List[LogLikelihoodInputs]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
         inputs = []
