@@ -47,7 +47,7 @@ class TemplateAPI(TemplateLM):
     def __init__(
         self,
         model: str = None,
-        pretrained: str = None,
+        pretrained: str = None, # `model` takes precedence over `pretrained` when passed.
         base_url: str = None,
         tokenizer: Optional[str] = None,
         # Logliklehood tasks require a tokenizer to calculate context lengths,
