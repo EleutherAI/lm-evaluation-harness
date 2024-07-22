@@ -416,8 +416,8 @@ class HFLM(TemplateLM):
         This method ensures that the right template is chosen based on the following:
         1. If the model's tokenizer has multiple templates:
             a. Use the specified template if it exists in the dictionary.
-            b. Use the default template if no specific template is provided.
-            c. Raise an error if no default template exists and no specific template is specified.
+            b. Use the default template from the list of templates if no specific template is provided.
+            c. Raise an error if no default template exists and no specific template is provided.
         2. If the model's tokenizer has a single template or no template:
             a. Use the tokenizer's chat template if available.
             b. Fall back to the default chat template if no tokenizer chat template exists.
