@@ -403,7 +403,7 @@ class HFLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
-    def chat_template(self, chat_template: Optional[bool | str] = False) -> str:
+    def chat_template(self, chat_template: Optional[Union[bool, str]] = False) -> str:
         """
         Get the appropriate chat template for the model based on configuration and input.
         This method determines, and returns the correct chat template, ensuring reproducibility.

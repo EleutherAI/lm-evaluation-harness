@@ -138,9 +138,9 @@ class MyCustomLM(LM):
 
         Args:
             chat_template (Optional[Union[bool, str]]): Specifies whether to apply a chat template:
-                - True: Apply the default chat template.
-                - False: Do not apply any chat template.
-                - str: Apply the specified chat template by name.
+                - If True: Apply the default chat template.
+                - If False: Do not apply any chat template.
+                - If str: Apply the specified chat template by name.
 
         Returns:
             str: The selected chat template in Jinja format.
