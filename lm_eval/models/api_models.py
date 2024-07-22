@@ -377,7 +377,7 @@ class TemplateAPI(TemplateLM):
             )
             return None
 
-    def batch_logliklehood_requests(
+    def batch_loglikelihood_requests(
         self, chunks: Iterable[List[LogLikelihoodInputs]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
         inputs = []
