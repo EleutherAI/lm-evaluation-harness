@@ -292,9 +292,7 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template)
-            if apply_chat_template
-            else None,
+            chat_template=lm.chat_template(apply_chat_template),
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 

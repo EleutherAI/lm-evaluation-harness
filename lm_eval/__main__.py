@@ -296,7 +296,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
         raise ValueError(
-            "When fewshot_as_multiturn is enabled, apply_chat_template must be set to True or specify a template name."
+            "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
         )
 
     if (

@@ -402,7 +402,7 @@ class HFLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
-    def chat_template(self, chat_template: Optional[bool | str] = True) -> str:
+    def chat_template(self, chat_template: Optional[bool | str] = False) -> str:
         """
         Get the appropriate chat template for the model based on configuration and input.
         This method determines, and returns the correct chat template, ensuring reproducibility.
@@ -422,18 +422,20 @@ class HFLM(TemplateLM):
 
         Args:
             chat_template (Optional[Union[bool, str]]): Specifies the chat template to use.
-                - If True (default), use the default template.
-                - If False or None, no template is applied (handled externally).
-                - If a string, use the template with the matching name.
+                - If False or None, no template is applied.
+                - If True, the default or only available template is used.
+                - If a string, the template with the matching name is used.
 
         Returns:
             str: The selected chat template.
         """
         # This method should not be called if the chat_template argument is None or False
-        if chat_template is False or chat_template is None:
-            raise ValueError(
-                "Chat template method should not be called with chat_template=None or chat_template=False."
+        if not chat_template:
+            eval_logger.warning(
+                "model.chat_template was called with the chat_template set to False or None. "
+                "Therefore no chat template will be applied. Make sure this is an intended behavior."
             )
+            return None
         # Handle the case where chat_template is a boolean (True)
         if isinstance(chat_template, bool):
             chat_template = None
