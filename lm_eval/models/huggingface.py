@@ -403,7 +403,9 @@ class HFLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
-    def chat_template(self, chat_template: Optional[Union[bool, str]] = False) -> str:
+    def chat_template(
+        self, chat_template: Optional[Union[bool, str]] = False
+    ) -> Optional[str]:
         """
         Get the appropriate chat template for the model based on configuration and input.
         This method determines, and returns the correct chat template, ensuring reproducibility.
@@ -428,16 +430,16 @@ class HFLM(TemplateLM):
                 - If a string, the template with the matching name is used.
 
         Returns:
-            str: The selected chat template.
+            Optional[str]: The selected chat template, or None if no template is applied.
         """
-        # This method should not be called if the chat_template argument is None or False
-        if not chat_template:
+        if chat_template is False or chat_template is None:
             eval_logger.warning(
                 "model.chat_template was called with the chat_template set to False or None. "
                 "Therefore no chat template will be applied. Make sure this is an intended behavior."
             )
             return None
-        # Handle the case where chat_template is a boolean (True)
+
+        # Convert boolean chat_template to None to ensure compatibility with the adapted logic
         if isinstance(chat_template, bool):
             chat_template = None
         using_default_template = False
@@ -470,7 +472,7 @@ class HFLM(TemplateLM):
                         f"template names are {sorted(template.keys())}."
                     )
 
-        # These are the cases when the model has a single template or no template
+        # Cases when the model has a single template or no template
         else:
             # priority: `chat_template` argument > `tokenizer.chat_template` > `tokenizer.default_chat_template
             if isinstance(chat_template, str):
