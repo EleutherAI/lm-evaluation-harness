@@ -99,6 +99,7 @@ def simple_parse_args_string(args_string):
         args1=val1,arg2=val2
     Into a dictionary
     """
+    print(f"[DEBUG]: {args_string}")
     args_string = args_string.strip()
     if not args_string:
         return {}
