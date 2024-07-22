@@ -118,18 +118,45 @@ class MyCustomLM(LM):
     #...
     @property
     def tokenizer_name(self) -> str:
-        # should return a string denoting the name of the model's tokenizer and/or the accompanying chat template.
+        """
+        Return the name of the model's tokenizer and/or the accompanying chat template.
+        The returned string is used to cache requests.
 
-    def chat_template(self, chat_template: Optional[bool | str] = True) -> str:
-        # takes as input a boolean or string to choose between different chat templates if the model has multiple.
-        # for the reference check docstring of the method in HFLM.
-        # should return a chat template formatting string that is used to build prompt from a user/assistant chat history.
-        # this will be saved in the evaluation results for reproducibility.
+        Returns:
+            str: The name of the model's tokenizer and/or chat template.
+        """
+
+    def chat_template(self, chat_template: Optional[Union[bool, str]] = True) -> str:
+        """
+        Get the appropriate chat template for the model based on the chat_template argument.
+
+        This method returns the chat template string to build the prompt from a chat history.
+        The chat template is saved in the evaluation results for reproducibility.
+        Boolean arguments should be used with models that have only one chat template,
+        while string arguments are used with models that have multiple chat templates.
+        For the reference implementation, see HFLM.
+
+        Args:
+            chat_template (Optional[Union[bool, str]]): Specifies whether to apply a chat template:
+                - True: Apply the default chat template.
+                - False: Do not apply any chat template.
+                - str: Apply the specified chat template by name.
+
+        Returns:
+            str: The selected chat template in Jinja format.
+        """
 
     def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
-        # responsible for taking as input a chat history that would be fed into the model, and
-        # rendering it as a string that can be then tokenized and input into the model.
-    #...
+        """
+        Process a chat history to create a string that can be tokenized and input into the model.
+
+        Args:
+            chat_history (List[Dict[str, str]]): A list of dictionaries representing the chat history,
+                where each dictionary has "role" and "content" keys.
+
+        Returns:
+            str: A string representing the chat history that can be tokenized and fed into the model.
+        """
 ```
 
 - `apply_chat_template`
