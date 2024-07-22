@@ -1,10 +1,10 @@
 #!/usr/bin/python
+import math
 import re
 import sys
-import math
 import xml.sax.saxutils
+from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
 
-from typing import List, Pattern, Tuple, Union, Dict, Any, Optional
 
 """
 This script was adapted from the original version by hieuhoang1972 which is part of MOSES.
@@ -60,7 +60,7 @@ def normalize(s):
     # Added to bypass NIST-style pre-processing of hyp and ref files -- wade
     if nonorm:
         return s.split()
-    if type(s) is not str:
+    if not isinstance(s, str):
         s = " ".join(s)
     # language-independent part:
     for pattern, replace in normalize1:

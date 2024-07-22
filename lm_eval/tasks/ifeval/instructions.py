@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Library of instructions."""
+
 import collections
 import json
 import logging
@@ -22,7 +23,9 @@ import string
 from typing import Dict, Optional, Sequence, Union
 
 import langdetect
+
 from lm_eval.tasks.ifeval import instructions_util
+
 
 logger = logging.getLogger(__name__)
 

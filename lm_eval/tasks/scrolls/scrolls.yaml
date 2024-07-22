@@ -1,9 +1,0 @@
-group: scrolls
-task:
-  - scrolls_qasper
-  - scrolls_quality
-  - scrolls_narrativeqa
-  - scrolls_contractnli
-  - scrolls_govreport
-  - scrolls_summscreenfd
-  - scrolls_qmsum

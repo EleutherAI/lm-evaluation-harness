@@ -1,0 +1,6 @@
+"dataset_name": "Middle Civics"
+"group": "arabicmmlu_social_science"
+"group_alias": "social science"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_middle_civics"
+"task_alias": "Middle Civics"

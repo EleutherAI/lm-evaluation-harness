@@ -1,0 +1,3 @@
+include: hendrycks_math_algebra.yaml
+dataset_name: counting_and_probability
+task: hendrycks_math_counting_and_prob

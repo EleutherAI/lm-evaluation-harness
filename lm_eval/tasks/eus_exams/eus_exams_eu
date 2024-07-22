@@ -1,0 +1,4 @@
+include: eus_exams
+group:
+  - eus_exams_eu
+doc_to_text: "Galdera: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nD: {{candidates[3]}}\nErantzuna:"

@@ -1,0 +1,16 @@
+group: xnli
+task: null
+dataset_path: xnli
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: null
+doc_to_target: label
+doc_to_choice: null
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

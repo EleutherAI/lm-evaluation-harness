@@ -6,10 +6,7 @@ training_split: train
 validation_split: validation
 doc_to_text: "Q: {{context}} {{question}}\nA:"
 target_delimiter: " "
-doc_to_choice:
-  - "{{answerA}}"
-  - "{{answerB}}"
-  - "{{answerC}}"
+doc_to_choice: "{{[answerA, answerB, answerC]}}"
 doc_to_target: "{{ (label|int) - 1 }}"
 metric_list:
   - metric: acc

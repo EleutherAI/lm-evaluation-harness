@@ -1,0 +1,3 @@
+dataset_name: industrial_engineer
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_industrial_engineer
