@@ -1,5 +1,3 @@
-group:
-  - fld
 task: fld_default
 dataset_path: hitachi-nlp/FLD.v2
 dataset_name: default

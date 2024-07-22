@@ -1,5 +1,5 @@
 include: "_default_template_yaml"
-group:
+tag:
   - french_bench
   - french_bench_extra
 description: "A propos du thème spécifié, l'avis client est il positif, négatif, ou neutre ?"

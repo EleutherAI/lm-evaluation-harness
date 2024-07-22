@@ -16,7 +16,8 @@ Tasks are configured via the `TaskConfig` object. Below, we describe all fields 
 
 Task naming + registration:
 - **task** (`str`, defaults to None) — name of the task.
-- **group** (`str`, *optional*) — name of the task group(s) a task belongs to. Enables one to run all tasks with a specified tag or group name at once.
+- **task_alias** (`str`, defaults to None) - Alias of the task name that will be printed in the final table results.
+- **tag** (`str`, *optional*) — name of the task tags(s) a task belongs to. Enables one to run all tasks with a specified tag name at once.
 
 Dataset configuration options:
 - **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub.
@@ -54,8 +55,6 @@ Other:
 - **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n-shot` table column for a task.
 
 ## Filters
-
-Explain: What are filters? What is their place in the pipeline?
 
 A key component of the `lm-evaluation-harness` library is the `Filter` object. In a typical evaluation run of the harness, we take the formatted inputs and run them through our LM, with the appropriate output type (greedy or free-form generation, or loglikelihood-based comparative scoring).
 
@@ -295,105 +294,24 @@ Generative tasks:
 Tasks using complex filtering:
 - GSM8k with CoT (+ with Self-Consistency): (`lm_eval/tasks/gsm8k/gsm8k-cot.yaml` ; `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`)
 
-
-## Benchmarks
+# Group Configuration
 
 When evaluating a language model, it's is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
 
-To solve this, we can create a benchmark yaml config. This is a config that contains the names of the tasks that should be included in a particular benchmark. The config consists of two main keys `group` which denotes the name of the benchmark and `task` which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example would be the list of tasks used to evaluate the Pythia Suite.
+To solve this, we can create a **group** yaml config. This is a config that contains the names of the tasks that should be included in a particular group. The config consists of two main keys: a `group` key which denotes the name of the group (as it would be called from the command line, e.g. `mmlu`) and a `task` key which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example of a group yaml config can be found at [../lm_eval/tasks/mmlu/default/_mmlu.yaml]. See also the [New Task Guide](./new_task_guide.md) for a more in-depth and tutorial-esque explanation of how to write complex GroupConfigs.
 
-```yaml
-group: pythia
-task:
-  - lambada_openai
-  - wikitext
-  - piqa
-  - sciq
-  - wsc
-  - winogrande
-  - arc
-  - logiqa
-  - blimp
-  - hendrycksTest*
-```
+## Configurations
 
-It is also possible to list an existing task in your benchmark configuration with some adjustments. For example, a few tasks from mmlu is included `multimedqa`. There, the `task_alias` and `group_alias` (See [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#beautifying-table-display) for more details) are modified to suit the benchmark.
+Groups are configured via the `GroupConfig` object. Below, we describe all fields usable within the object, and their role in defining a task.
 
-```yaml
-group: multimedqa
-task:
-  - pubmedqa
-  - medmcqa
-  - medqa_4options
-  - task: mmlu_anatomy
-    task_alias: "anatomy (mmlu)"
-    group_alias: null
-  - task: mmlu_clinical_knowledge
-    task_alias: "clinical_knowledge (mmlu)"
-    group_alias: null
-  ...
-```
+### Parameters
 
-Alternatively, benchmarks can have tasks that are customizable for each task. They can be defined like how a yaml task is usually set.
-
-```yaml
-group: t0_eval
-task:
-  # Coreference Resolution
-  - dataset_path: super_glue
-    dataset_name: wsc.fixed
-    use_prompt: promptsource:*
-    training_split: train
-    validation_split: validation
-    metric_list:
-      - metric: exact_match
-        aggregation: mean
-        higher_is_better: true
-        ignore_case: true
-        ignore_punctuation: true
-  # Coreference Resolution
-  - dataset_path: winogrande
-    dataset_name: winogrande_xl
-    use_prompt: promptsource:*
-    training_split: train
-    validation_split: validation
-    metric_list:
-      - metric: exact_match
-        aggregation: mean
-        higher_is_better: true
-        ignore_case: true
-        ignore_punctuation: true
-  ...
-```
-
-If the benchmark contains the same dataset but with different configurations, use `task` to differentiate between them. For example, T0-Eval evaluates on 3 versions of ANLI but the huggingface dataset collects them in one dataset.
-
-```YAML
-group: t0_eval
-task:
-  ...
-  - task: anli_r1
-    dataset_path: anli
-    use_prompt: promptsource:*
-    training_split: train_r1
-    validation_split: dev_r1
-    metric_list:
-      - metric: exact_match
-        aggregation: mean
-        higher_is_better: true
-        ignore_case: true
-        ignore_punctuation: true
-  - task: anli_r2
-    dataset_path: anli
-    use_prompt: promptsource:*
-    training_split: train_r2
-    validation_split: dev_r2
-    metric_list:
-      - metric: exact_match
-        aggregation: mean
-        higher_is_better: true
-        ignore_case: true
-        ignore_punctuation: true
-```
-
-Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/tasks/benchmarks/`
+- **group** (`str`, defaults to `None`) — name of the group. Used to invoke it from the command line.
+- **group_alias** (`str`, defaults to `None`) - Alternative name for the group that will be printed in the table output.
+- **task** (`Union[str, list]`, defaults to `None`) - List of tasks that constitute the group.
+- **aggregate_metric_list** (`list`, defaults to `None`) - similar to `metric_list` in TaskConfigs, provide a list of configurations for metrics that should be aggregated across subtasks. Leaving empty will result in no aggregation being performed for this group. Keys for each list entry are:
+  - `metric: str` - the name of the metric to aggregate over (all subtasks must report a metric holding this name.)
+  - `aggregation: str` - what aggregation function to apply to aggregate these per-subtask metrics.  **currently, only `mean` is supported.**
+  - `weight_by_size: bool = True` whether to perform micro- averaging (`True`) or macro- (`False`) averaging of subtasks' accuracy scores when reporting the group's metric. MMLU, for example, averages over per-document accuracies (the *micro average*), resulting in the same accuracy as if one simply concatenated all 57 subjects into a single dataset and evaluated accuracy on that dataset.
+  - `filter_list: Union[str, List[str]] = "none"` - what filter keys one should match on to aggregate results. For example, if trying to aggregate over the `exact_match` metric using `strict-match` filter for `bbh_cot_zeroshot`, then set this to be `filter_list: "strict-match"`.  
+- **metadata** (`dict`, *optional*) - As with TaskConfigs, a field where extra config metadata can be passed. set the `num_fewshot` key within this to override the printed n_shot value in a results table for your group, for example.
