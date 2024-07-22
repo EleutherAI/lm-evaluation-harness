@@ -1,7 +1,7 @@
 group:
     - xnli
 task: xnli_gl
-dataset_path: proxectonos/xnli-gl
+dataset_path: proxectonos/xnli_gl
 dataset_name: null
 include: ../xnli/xnli_common_yaml
 output_type: multiple_choice
