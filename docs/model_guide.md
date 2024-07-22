@@ -128,13 +128,13 @@ class MyCustomLM(LM):
 
     def chat_template(self, chat_template: Optional[Union[bool, str]] = False) -> str:
         """
-        Get the appropriate chat template for the model based on the chat_template argument.
+        Get the appropriate chat template for the model based on the `chat_template` argument.
 
         This method returns the chat template string to build the prompt from a chat history.
         The chat template is saved in the evaluation results for reproducibility.
         Boolean arguments should be used with models that have only one chat template,
         while string arguments are used with models that have multiple chat templates.
-        For the reference implementation, see HFLM class in lm_eval.models.huggingface.
+        For the reference implementation, see HFLM class in `lm_eval.models.huggingface`.
 
         Args:
             chat_template (Optional[Union[bool, str]]): Specifies whether to apply a chat template:
