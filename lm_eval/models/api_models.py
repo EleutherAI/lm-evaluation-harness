@@ -405,6 +405,7 @@ class TemplateAPI(TemplateLM):
         ctxlens: List[int] = None,
         **kwargs,
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
+        ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(connector=conn) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
@@ -418,13 +419,17 @@ class TemplateAPI(TemplateLM):
                     retry_(
                         session=session,
                         messages=message,
-                        cache_keys=cache_keys,
+                        cache_keys=cache_key,
                         generate=generate,
-                        ctxlens=ctxlens,
+                        ctxlens=ctxlen,
                         **kwargs,
                     )
                 )
-                for message in chunks(requests, n=self._batch_size)
+                for message, cache_key, ctxlen in zip(
+                    chunks(requests, n=self._batch_size),
+                    chunks(cache_keys, n=self._batch_size),
+                    chunks(ctxlens, n=self._batch_size),
+                )
             ]
 
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
