@@ -143,7 +143,7 @@ class TemplateAPI(TemplateLM):
         messages: Union[List[List[int]], List[dict], List[str], str],
         *,
         generate: bool = True,
-        gen_kwargs: dict = None,
+        gen_kwargs: Optional[dict] = None,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -306,13 +306,19 @@ class TemplateAPI(TemplateLM):
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
         *,
         generate: bool = True,
+        gen_kwargs: Optional[Dict] = None,
         **kwargs,
     ) -> Optional[dict]:
+        # !!! Copy: shared dict for each request, need new object !!!
+        gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
             response = requests.post(
                 self.base_url,
                 json=self._create_payload(
-                    self.create_message(messages), generate=generate, **kwargs
+                    self.create_message(messages),
+                    generate=generate,
+                    gen_kwargs=gen_kwargs,
+                    **kwargs,
                 ),
                 headers=self.header,
             )
@@ -336,10 +342,16 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         cache_keys: list = None,
         ctxlens: Optional[List[int]] = None,
+        gen_kwargs: Optional[Dict] = None,
         **kwargs,
     ) -> Union[List[str], List[Tuple[float, bool]], None]:
+        # !!! Copy: shared dict for each request, need new object !!!
+        gen_kwargs = copy.deepcopy(gen_kwargs)
         payload = self._create_payload(
-            self.create_message(messages), generate=generate, **kwargs
+            self.create_message(messages),
+            generate=generate,
+            gen_kwargs=gen_kwargs,
+            **kwargs,
         )
         cache_method = "generate_until" if generate else "loglikelihood"
         try:

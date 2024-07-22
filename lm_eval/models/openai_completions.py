@@ -1,7 +1,6 @@
-import copy
 import os
 from functools import cached_property
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
@@ -24,12 +23,10 @@ class LocalCompletionsAPI(TemplateAPI):
         self,
         messages: Union[List[List[int]], List[dict], List[str], str],
         generate=False,
-        gen_kwargs: dict = None,
+        gen_kwargs: Optional[dict] = None,
         **kwargs,
     ) -> dict:
         if generate:
-            # !!! Copy: shared dict for each request, need new object !!!
-            gen_kwargs = copy.deepcopy(gen_kwargs)
             gen_kwargs.pop("do_sample", False)
             max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
