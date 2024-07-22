@@ -1287,7 +1287,9 @@ class ConfigurableTask(Task):
             target_delimiter = self.config.target_delimiter
             if apply_chat_template:
                 target_delimiter = ""
-                eval_logger.debug("Using chat templating, so TaskConfig's `target_delimiter` will be set to the empty string ''.")
+                eval_logger.debug(
+                    "Using chat templating, so TaskConfig's `target_delimiter` will be set to the empty string ''."
+                )
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
