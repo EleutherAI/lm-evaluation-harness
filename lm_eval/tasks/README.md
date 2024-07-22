@@ -10,8 +10,8 @@
 | [aclue](aclue/README.md) | Tasks focusing on ancient Chinese language understanding and cultural aspects. | Ancient Chinese |
 | [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. | Arabic |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. | English, Chinese |
-| [ammlu](ammlu/README.md) | Arabic version of MMLU. | Arabic |
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
+| [arabicmmlu](arabicmmlu/README.md) | Localized Arabic version of MMLU with multiple-choice questions from 40 subjects. | Arabic |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
 | [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English |
@@ -20,11 +20,13 @@
 | [bbh](bbh/README.md) | Tasks focused on deep semantic understanding through hypothesization and reasoning. | English, German |
 | [belebele](belebele/README.md) | Language understanding tasks in a variety of languages and scripts. | Multiple (122 languages) |
 | benchmarks | General benchmarking tasks that test a wide range of language understanding capabilities. | |
+| [bertaqa](bertaqa/README.md) | Local Basque cultural trivia QA tests in English and Basque languages. | English, Basque, Basque (MT) |
 | [bigbench](bigbench/README.md) | Broad tasks from the BIG-bench benchmark designed to push the boundaries of large models. | Multiple |
 | [blimp](blimp/README.md) | Tasks testing grammatical phenomena to evaluate language model's linguistic capabilities. | English |
 | [ceval](ceval/README.md) | Tasks that evaluate language understanding and reasoning in an educational context. | Chinese |
 | [cmmlu](cmmlu/README.md) | Multi-subject multiple choice question tasks for comprehensive academic assessment. | Chinese |
 | code_x_glue | Tasks that involve understanding and generating code across multiple programming languages. | Go, Java, JS, PHP, Python, Ruby |
+| [commonsense_qa](commmonsense_qa/README.md) | CommonsenseQA, a multiple-choice QA dataset for measuring commonsense knowledge. | English |
 | [copal_id](copal_id/README.md) | Indonesian causal commonsense reasoning dataset that captures local nuances. | Indonesian |
 | [coqa](coqa/README.md) | Conversational question answering tasks to test dialog understanding. | English |
 | [crows_pairs](crows_pairs/README.md) | Tasks designed to test model biases in various sociodemographic groups. | English, French |
@@ -47,21 +49,26 @@
 | [hendrycks_ethics](hendrycks_ethics/README.md)     | Tasks designed to evaluate the ethical reasoning capabilities of models. | English |
 | [hendrycks_math](hendrycks_math/README.md) | Mathematical problem-solving tasks to test numerical reasoning and problem-solving. | English |
 | [ifeval](ifeval/README.md) | Interactive fiction evaluation tasks for narrative understanding and reasoning. | English |
+| [inverse_scaling](inverse_scaling/README.md) | Multiple-choice tasks from the Inverse Scaling Prize, designed to find settings where larger language models perform worse. | English |
 | [kmmlu](kmmlu/README.md) | Knowledge-based multi-subject multiple choice questions for academic evaluation. | Korean |
 | [kobest](kobest/README.md) | A collection of tasks designed to evaluate understanding in Korean language. | Korean |
 | [kormedmcqa](kormedmcqa/README.md) | Medical question answering tasks in Korean to test specialized domain knowledge. | Korean |
 | [lambada](lambada/README.md) | Tasks designed to predict the endings of text passages, testing language prediction skills. | English |
 | [lambada_cloze](lambada_cloze/README.md) | Cloze-style LAMBADA dataset. | English |
-| [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. | German, English, Spanish, French, Italian |
+| [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. This is a legacy version of the multilingual dataset, and users should instead use `lambada_multilingual_stablelm`. | German, English, Spanish, French, Italian |
+| [lambada_multilingual_stablelm](lambada_multilingual_stablelm/README.md) | Multilingual LAMBADA dataset. Users should prefer evaluating on this version of the multilingual dataset instead of on `lambada_multilingual`. | German, English, Spanish, French, Italian, Dutch, Portuguese |
+| [leaderboard](leaderboard/README.md) | Task group used by Hugging Face's [Open LLM Leaderboard v2](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard). Those tasks are static and will not change through time | English |
 | [logiqa](logiqa/README.md) | Logical reasoning tasks requiring advanced inference and deduction. | English, Chinese |
 | [logiqa2](logiqa2/README.md) | Large-scale logical reasoning dataset adapted from the Chinese Civil Service Examination. | English, Chinese |
 | [mathqa](mathqa/README.md) | Question answering tasks involving mathematical reasoning and problem-solving. | English |
 | [mc_taco](mc_taco/README.md) | Question-answer pairs that require temporal commonsense comprehension. | English |
+| [med_concepts_qa](med_concepts_qa/README.md) | Benchmark for evaluating LLMs on their abilities to interpret medical codes and distinguish between medical concept. | English |
 | medmcqa | Medical multiple choice questions assessing detailed medical knowledge. | English |
 | medqa | Multiple choice question answering based on the United States Medical License Exams. | |
 | [mgsm](mgsm/README.md) | Benchmark of multilingual grade-school math problems. | Spanish, French, German, Russian, Chinese, Japanese, Thai, Swahili, Bengali, Telugu |
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
 | mmlu | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
+| [mmlusr](mmlusr/README.md) | Variation of MMLU designed to be more rigourous. | English |
 | model_written_evals | Evaluation tasks auto-generated for evaluating a collection of AI Safety concerns. | |
 | [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
 | [nq_open](nq_open/README.md) | Open domain question answering tasks based on the Natural Questions dataset. | English |
@@ -70,6 +77,7 @@
 | okapi/mmlu_multilingual | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (34 languages) |
 | [okapi/truthfulqa_multilingual](okapi/truthfulqa_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) |
 | [openbookqa](openbookqa/README.md) | Open-book question answering tasks that require external knowledge and reasoning. | English |
+| [paloma](paloma/README.md) | Paloma is a comprehensive benchmark designed to evaluate open language models across a wide range of domains, ranging from niche artist communities to mental health forums on Reddit. | English |
 | [paws-x](paws-x/README.md) | Paraphrase Adversaries from Word Scrambling, focusing on cross-lingual capabilities. | English, French, Spanish, German, Chinese, Japanese, Korean |
 | [pile](pile/README.md) | Open source language modelling data set that consists of 22 smaller, high-quality datasets. | English |
 | [pile_10k](pile_10k/README.md) | The first 10K elements of The Pile, useful for debugging models trained on it. | English |

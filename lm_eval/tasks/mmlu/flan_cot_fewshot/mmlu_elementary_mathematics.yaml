@@ -72,6 +72,6 @@ fewshot_config:
       (D) (5 x 9) x (6 x 9)'
     target: 'Let''s think step by step. We know that 9 = (5 + 4), so 5 x 9 = 5 x (5
       + 4) = (5 x 5) + (5 x 4). The answer is (B).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_elementary_mathematics

@@ -73,7 +73,7 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         type=str,
         metavar="task1,task2",
-        help="To get full list of tasks, use the command lm-eval --tasks list",
+        help="Comma-separated list of task names or task groupings to evaluate on.\nTo get full list of tasks, use one of the commands `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above",
     )
     parser.add_argument(
         "--model_args",
@@ -237,7 +237,7 @@ def setup_parser() -> argparse.ArgumentParser:
         help=(
             "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
             "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
-            "respectively, or a single integer to set the same seed for all three.\n"
+            "respectively, or a single integer to set the same seed for all four.\n"
             f"The values are either an integer or 'None' to not set the seed. Default is `{default_seed_string}` "
             "(for backward compatibility).\n"
             "E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot sampling seed to 52. "
@@ -318,9 +318,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
     elif args.tasks == "list":
-        eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
-        )
+        print(task_manager.list_all_tasks())
+        sys.exit()
+    elif args.tasks == "list_groups":
+        print(task_manager.list_all_tasks(list_subtasks=False, list_tags=False))
+        sys.exit()
+    elif args.tasks == "list_tags":
+        print(task_manager.list_all_tasks(list_groups=False, list_subtasks=False))
+        sys.exit()
+    elif args.tasks == "list_subtasks":
+        print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
     else:
         if os.path.isdir(args.tasks):
@@ -349,16 +356,22 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above, or pass '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
-        os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
-        args.model_args = (
-            args.model_args
-            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
+        eval_logger.info(
+            "Passed `--trust_remote_code`, setting environment variable `HF_DATASETS_TRUST_REMOTE_CODE=true`"
         )
+        # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
+        # because it's already been determined based on the prior env var before launching our
+        # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
+        import datasets
+
+        datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+
+        args.model_args = args.model_args + ",trust_remote_code=True"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 

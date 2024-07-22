@@ -1,0 +1,5 @@
+"dataset_name": "Middle History"
+"tag": "arabicmmlu_humanities_tasks"
+"include": "_default_arabicmmlu_template_yaml"
+"task": "arabicmmlu_middle_history"
+"task_alias": "Middle History"

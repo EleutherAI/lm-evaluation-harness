@@ -1,5 +1,5 @@
 include: commonsense.yaml
-group:
+tag:
   - hendrycks_ethics
 task: ethics_utilitarianism
 dataset_name: utilitarianism

@@ -25,11 +25,15 @@ Homepage: `https://github.com/idavidrein/gpqa/tree/main`
 
 This dataset is gated, so you will have to accept the terms of use at https://huggingface.co/datasets/Idavidrein/gpqa and login via `huggingface-cli login` using your HF Hub token before running this task.
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 
-* `gpqa`
+None
+
+#### Tags
+
+* `gpqa`: runs all GPQA variants.
 
 #### Tasks
 
