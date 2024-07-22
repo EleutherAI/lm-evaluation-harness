@@ -2,6 +2,15 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
+---
+
+*Latest News 📣*
+
+- [2024/07] API model support has been updated and refactored, introducing support for batched and async requests, and making it significantly easier to customize and use for your own purposes.
+- [2024/07] New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.
+
+---
+
 ## Announcement
 **A new v0.4.0 release of lm-evaluation-harness is available** !
 
@@ -20,6 +29,8 @@ New updates and features include:
 Please see our updated documentation pages in `docs/` for more details.
 
 Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
+
+---
 
 ## Overview
 
