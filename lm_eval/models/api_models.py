@@ -57,8 +57,8 @@ class TemplateAPI(TemplateLM):
             Literal["tiktoken", "huggingface", None]
         ] = "huggingface",
         truncate: bool = False,
-        # concurrent requests. More useful if not batching
-        concurrent: int = 1,
+        # number of concurrent requests. More useful if not batching
+        num_concurrent: int = 1,
         max_retries: int = 3,
         max_gen_toks: int = 256,
         batch_size: Union[str, int] = 1,
@@ -97,11 +97,11 @@ class TemplateAPI(TemplateLM):
         self._max_gen_toks = int(max_gen_toks)
         self._seed = int(seed)
         self.max_length = max_length
-        if int(concurrent) <= 1:
+        if int(num_concurrent) <= 1:
             eval_logger.info(
-                "Concurrent requests are disabled. To enable concurrent requests, set `concurrent > 1`."
+                "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent > 1`."
             )
-        self._concurrent = int(concurrent)
+        self._concurrent = int(num_concurrent)
         self.tokenizer_backend = tokenizer_backend
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
