@@ -87,7 +87,7 @@ class LocalCompletionsAPI(TemplateAPI):
         return os.environ.get("OPENAI_API_KEY", "")
 
 
-@register_model("local-chatcompletions")
+@register_model("local-chat-completions")
 class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
