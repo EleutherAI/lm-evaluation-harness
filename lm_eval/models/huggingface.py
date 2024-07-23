@@ -402,9 +402,7 @@ class HFLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
-    def chat_template(
-        self, chat_template: Optional[Union[bool, str]] = False
-    ) -> Optional[str]:
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
         """
         Get the appropriate chat template for the model based on configuration and input.
         This method determines, and returns the correct chat template, ensuring reproducibility.
@@ -423,7 +421,7 @@ class HFLM(TemplateLM):
             b. Fall back to the default chat template if no tokenizer chat template exists.
 
         Args:
-            chat_template (Optional[Union[bool, str]]): Specifies the chat template to use.
+            chat_template (Union[bool, str]): Specifies the chat template to use.
                 - If False or None, no template is applied.
                 - If True, the default or only available template is used.
                 - If a string, the template with the matching name is used.

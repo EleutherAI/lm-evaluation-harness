@@ -126,7 +126,7 @@ class MyCustomLM(LM):
             str: The name of the model's tokenizer and/or chat template.
         """
 
-    def chat_template(self, chat_template: Optional[Union[bool, str]] = False) -> str:
+    def chat_template(self, chat_template: Union[bool, str] = False) -> str:
         """
         Get the appropriate chat template for the model based on the `chat_template` argument.
 
@@ -137,7 +137,7 @@ class MyCustomLM(LM):
         For the reference implementation, see HFLM class in `lm_eval.models.huggingface`.
 
         Args:
-            chat_template (Optional[Union[bool, str]]): Specifies whether to apply a chat template:
+            chat_template (Union[bool, str]): Specifies whether to apply a chat template:
                 - If False: Do not apply any chat template.
                 - If True: Apply the default chat template.
                 - If str: Apply the specified chat template by name.

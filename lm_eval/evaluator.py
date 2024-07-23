@@ -64,7 +64,7 @@ def simple_evaluate(
     log_samples: bool = True,
     evaluation_tracker: Optional[EvaluationTracker] = None,
     system_instruction: Optional[str] = None,
-    apply_chat_template: Optional[Union[bool, str]] = False,
+    apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
@@ -112,7 +112,7 @@ def simple_evaluate(
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :param system_instruction: str
         System instruction to be applied to the prompt
-    :param apply_chat_template: Optional[Union[bool, str]]
+    :param apply_chat_template: Union[bool, str]
         Specifies whether to apply a chat template to the prompt.
         - If set to True, the default chat template is applied.
         - If set to a string, applies the specified chat template by name.
@@ -365,7 +365,7 @@ def evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     system_instruction: Optional[str] = None,
-    apply_chat_template: Optional[Union[bool, str]] = False,
+    apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
 ):
@@ -385,7 +385,7 @@ def evaluate(
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :param system_instruction: str
         System instruction to be applied to the prompt
-    :param apply_chat_template: Optional[Union[bool, str]]
+    :param apply_chat_template: Union[bool, str]
         Specifies whether to apply a chat template to the prompt.
         - If set to True, the default chat template is applied.
         - If set to a string, applies the specified chat template by name.
