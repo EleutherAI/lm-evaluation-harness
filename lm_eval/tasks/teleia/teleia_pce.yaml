@@ -1,3 +1,5 @@
+group:
+  - teleia
 task: teleia_pce
 dataset_path: gonzmart/teleia
 dataset_name: pce
@@ -12,6 +14,9 @@ doc_to_choice:
 doc_to_target: "{{['A', 'B', 'C'].index(answer)}}"
 doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nRespuesta:"
 metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
   - metric: acc
     aggregation: mean
     higher_is_better: true

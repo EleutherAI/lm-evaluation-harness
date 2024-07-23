@@ -1,3 +1,5 @@
+group:
+  - teleia
 include: teleia_pce.yaml
 task: teleia_cervantes_ave
 dataset_name: cervantes_ave
