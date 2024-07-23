@@ -1346,7 +1346,7 @@ class ConfigurableTask(Task):
                 **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
             }
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            (loglikelihood,) = results
+            (loglikelihood, _tokens) = results[0]
             _words = self.count_words(self.doc_to_target(doc))
             _bytes = self.count_bytes(self.doc_to_target(doc))
             return {
@@ -1363,6 +1363,11 @@ class ConfigurableTask(Task):
                 **(
                     {"bits_per_byte": (loglikelihood, _bytes)}
                     if "bits_per_byte" in use_metric
+                    else {}
+                ),
+                **(
+                    {"perplexity_rolling": (loglikelihood, _tokens)}
+                    if "perplexity_rolling" in use_metric
                     else {}
                 ),
             }
@@ -1618,6 +1623,7 @@ class PerplexityTask(Task):
             "word_perplexity": False,
             "byte_perplexity": False,
             "bits_per_byte": False,
+            "perplexity_rolling": False,
         }
 
     def doc_to_decontamination_query(self, doc):
@@ -1642,13 +1648,14 @@ class PerplexityTask(Task):
         )
 
     def process_results(self, doc: dict, results: Tuple[float]) -> dict:
-        (loglikelihood,) = results
+        (loglikelihood, tokens_) = results[0]
         words = self.count_words(self.doc_to_target(doc))
         bytes_ = self.count_bytes(self.doc_to_target(doc))
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
+            "perplexity_rolling": (loglikelihood, _tokens),
         }
 
     def aggregation(self) -> dict:
@@ -1656,6 +1663,7 @@ class PerplexityTask(Task):
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
             "bits_per_byte": bits_per_byte,
+            "perplexity_rolling": weighted_perplexity,
         }
 
     @classmethod

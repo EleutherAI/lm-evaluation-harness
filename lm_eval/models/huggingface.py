@@ -850,7 +850,7 @@ class HFLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
-        loglikelihoods = []
+        loglikelihoods_tokens = []
 
         adaptive_batch_size = None
         if self.batch_size == "auto":
@@ -903,9 +903,11 @@ class HFLM(TemplateLM):
                 string_nll = [x[0] for x in string_nll]
 
             string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
+            tokens_string = self.max_length * (len(rolling_token_windows)-1) + len(rolling_token_windows[-1][2])
 
-        return loglikelihoods
+            loglikelihoods_tokens.append((string_nll, tokens_string))
+
+        return loglikelihoods_tokens
 
     def _batch_scheduler(self, pos, n_reordered_requests):
         sched = pos // int(len(n_reordered_requests) / self.batch_schedule)

@@ -1,0 +1,15 @@
+task: proof-pile
+dataset_path: data/proof_pile
+output_type: loglikelihood_rolling
+validation_split: validation
+test_split: test
+doc_to_text: ""
+doc_to_target: "{{text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: perplexity_rolling
+    aggregation: weighted_perplexity
+    higher_is_better: false
+metadata:
+  version: 2.0
