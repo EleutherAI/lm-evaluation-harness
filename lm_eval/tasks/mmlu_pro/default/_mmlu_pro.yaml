@@ -4,3 +4,8 @@ task:
   - mmlu_pro_other
   - mmlu_pro_social_sciences
   - mmlu_pro_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1
