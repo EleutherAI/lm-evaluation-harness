@@ -2,7 +2,7 @@ dataset_path: sjyuxyz/MMLU-Pro-with-subset
 validation_split: validation
 fewshot_split: dev
 output_type: generate_until
-doc_to_text: "Q: {{question.strip()}}\n(A) {{options[0]}} (B) {{options[1]}} (C) {{options[2]}} (D) {{options[3]}} (E) {{options[4]}} (F) {{options[5]}} (G) {{options[6]}} (H) {{options[7]}} (I) {{options[8]}} (J) {{options[9]}}\nA: Let's think step by step."
+doc_to_text: "{% set alphabet = 'ABCDEFGHIJ' %}{{ question.strip() }}\n{% for index in range(options|length) %}({{ alphabet[index] }}) {{ options[index] }} {% endfor %}\nA: Let's think step by step."
 doc_to_target: "{{['(A)', '(B)', '(C)', '(D)', '(E)', '(F)', '(G)', '(H)', '(I)', '(J)'][answer]}}"
 filter_list:
   - name: "strict-match"

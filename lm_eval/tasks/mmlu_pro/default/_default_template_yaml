@@ -4,8 +4,8 @@ fewshot_split: dev
 fewshot_config:
   sampler: first_n
 output_type: multiple_choice
-doc_to_text: "{% set alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}{{ question.strip() }}{% for index in range(options|length) %}\n{{ alphabet[index] }}. {{ options[index] }}{% endfor %}\nAnswer:"
-doc_to_choice: "{% set alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}{% set choices = [] %}{% for index in range(options|length) %}{% set _ = choices.append(alphabet[index]) %}{% endfor %}{{ choices }}"
+doc_to_text: "{% set alphabet = 'ABCDEFGHIJ' %}{{ question.strip() }}{% for index in range(options|length) %}\n{{ alphabet[index] }}. {{ options[index] }}{% endfor %}\nAnswer:"
+doc_to_choice: "{% set alphabet = 'ABCDEFGHIJ' %}{% set choices = [] %}{% for index in range(options|length) %}{% set _ = choices.append(alphabet[index]) %}{% endfor %}{{ choices }}"
 doc_to_target: answer_index
 metric_list:
   - metric: acc
