@@ -5,6 +5,7 @@
 Title: `Spanish Language Benchmark for Artificial Intelligence Models (TELEIA)`
 
 Abstract: `This dataset is designed to evaluate Large Language Models (LLMs) in Spanish language proficiency. It comprises three distinct components, each targeting different aspects of language competency. The TELEIA_Cervantes_AVE component assesses vocabulary and grammatical structures through fill-in-the-gap questions, mirroring the format of the Cervantes AVE exam, with each entry including a sentence with a gap, four options to fill the gap, and the correct answer. The TELEIA_PCE component focuses on morphology and semantics, featuring short questions and incomplete sentences similar to the PCE exam format, where each entry consists of a question or incomplete sentence, three options, and the correct answer. Lastly, the TELEIA_SIELE component evaluates reading comprehension skills using text-based questions modeled after the SIELE exam, with each entry including a question related to a given text, three answer options, and the correct answer. This dataset provides a robust framework for assessing various dimensions of Spanish language proficiency in LLMs, facilitating the development and benchmarking of AI models in Spanish language understanding and generation tasks.`
+
 Homepage: [TELEIA Dataset](https://zenodo.org/records/12571763)
 
 
