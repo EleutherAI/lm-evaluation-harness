@@ -5,7 +5,7 @@ fewshot_split: dev
 fewshot_config:
   sampler: first_n
 output_type: generate_until
-doc_to_text: "{% set alphabet = 'ABCDEFGHIJ' %}{{ question.strip() }}\n{% for index in range(options|length) %}({{ alphabet[index] }}) {{ options[index] }} {% endfor %}\nA: Let's think step by step."
+doc_to_text: "{% set alphabet = 'ABCDEFGHIJ' %}Q: {{ question.strip() }}\n{% for index in range(options|length) %}({{ alphabet[index] }}) {{ options[index] }} {% endfor %}\nA: Let's think step by step."
 doc_to_target: "{{['(A)', '(B)', '(C)', '(D)', '(E)', '(F)', '(G)', '(H)', '(I)', '(J)'][answer_index]}}"
 filter_list:
   - name: "get-answer"
