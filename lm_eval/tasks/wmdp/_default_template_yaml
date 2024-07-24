@@ -1,5 +1,4 @@
 dataset_path: cais/wmdp
-group: wmdp
 test_split: test
 training_split: null
 validation_split: null

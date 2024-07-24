@@ -1,6 +1,3 @@
 include: aqua-rat.yaml
-group:
-  - agieval
-  - agieval_cn
 task: agieval_logiqa_zh
 dataset_path: hails/agieval-logiqa-zh

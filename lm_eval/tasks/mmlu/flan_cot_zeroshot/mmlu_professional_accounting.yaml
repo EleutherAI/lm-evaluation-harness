@@ -1,6 +1,6 @@
 "dataset_name": "professional_accounting"
 "description": "The following are multiple choice questions (with answers) about professional\
   \ accounting.\n\n"
-"group": "mmlu_flan_cot_zeroshot_other"
+"tag": "mmlu_flan_cot_zeroshot_other"
 "include": "_mmlu_flan_cot_zeroshot_template_yaml"
 "task": "mmlu_flan_cot_zeroshot_professional_accounting"

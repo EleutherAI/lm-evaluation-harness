@@ -1,6 +1,7 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
+
 import argparse
 import logging
 import os
@@ -58,7 +59,7 @@ SUBJECTS = {
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base_yaml_path", default="_default_template_yaml")
+    parser.add_argument("--base_yaml_path", default="_default_arabicmmlu_template_yaml")
     parser.add_argument("--save_prefix_path", default="arabicmmlu")
     return parser.parse_args()
 
@@ -76,20 +77,21 @@ if __name__ == "__main__":
         if category not in ALL_CATEGORIES:
             ALL_CATEGORIES.append(category)
 
-        
         # description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
 
         yaml_dict = {
             "include": base_yaml_name,
-            "group": f"arabicmmlu_{category}",
-            "group_alias": category.replace("_", " "),
+            "tag": f"arabicmmlu_{category}",
             "task": f"arabicmmlu_{subject.lower().replace(' ', '_')}",
             "task_alias": subject,
             "dataset_name": subject,
             # "description": description,
         }
 
-        file_save_path = args.save_prefix_path + f"_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}.yaml"
+        file_save_path = (
+            args.save_prefix_path
+            + f"_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}.yaml"
+        )
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(

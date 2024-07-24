@@ -58,12 +58,15 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
     * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
-    * `hub_repo_name` - repository name on Hugging Face Hub, e.g., `lm-eval-results`,
+    * `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
+    * `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
+    * `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
     * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
     * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
+    * `gated` - whether to gate the details dataset, can be `True` or `False`.
 
 ## External Library Usage
 
@@ -102,11 +105,9 @@ results = lm_eval.simple_evaluate( # call simple_evaluate
 )
 ```
 
-See https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/evaluator.py#L35 for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
+See the `simple_evaluate()` and `evaluate()` functions in [lm_eval/evaluator.py](../lm_eval/evaluator.py#:~:text=simple_evaluate) for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
 
 Additionally, the `evaluate()` function offers the core evaluation functionality provided by the library, but without some of the special handling and simplification + abstraction provided by `simple_evaluate()`.
-
-See https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/evaluator.py#L173 for more details.
 
 As a brief example usage of `evaluate()`:
 
