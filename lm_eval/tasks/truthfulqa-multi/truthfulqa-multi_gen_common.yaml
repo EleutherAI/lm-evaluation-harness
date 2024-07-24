@@ -2,6 +2,11 @@ group:
   - truthfulqa
 dataset_path: Blanca/truthfulqa-multi
 output_type: generate_until
+generation_kwargs:
+  until:
+    - "!\n\n"
+    - "Q:"
+    - ".\n\n"
 training_split: train
 validation_split: validation
 test_split: null
