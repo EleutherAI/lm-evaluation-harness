@@ -1,0 +1,16 @@
+group: haerae
+task:
+  - haerae_general_knowledge
+  - haerae_history
+  - haerae_loan_word
+  - haerae_rare_word
+  - haerae_standard_nomenclature
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

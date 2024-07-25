@@ -70,6 +70,6 @@ fewshot_config:
       \ moral arguments relating to: negative *externalities*, the *power* that corporations\
       \ possess and the *mutual independence* of business and society. The answer\
       \ is (D).\n\n"
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_business_ethics

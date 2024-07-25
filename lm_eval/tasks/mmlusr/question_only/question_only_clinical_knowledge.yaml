@@ -1,0 +1,7 @@
+"dataset_name": "question_only_clinical_knowledge"
+"description": "The following are multiple choice questions (with answers) about clinical\
+  \ knowledge.\n\n"
+"tag": "mmlusr_question_only_other_tasks"
+"include": "_mmlusr_q_yml"
+"task": "mmlusr_question_only_clinical_knowledge"
+"task_alias": "clinical knowledge"

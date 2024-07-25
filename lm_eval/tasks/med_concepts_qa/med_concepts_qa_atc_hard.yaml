@@ -1,0 +1,5 @@
+dataset_name: atc_hard
+include: _default_template_yaml
+tag: med_concepts_qa_atc_tasks
+task: med_concepts_qa_atc_hard
+task_alias: atc_hard

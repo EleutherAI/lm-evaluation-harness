@@ -1,0 +1,3 @@
+dataset_name: sot
+include: afrimmlu_common_yaml
+task: afrimmlu_direct_sot
