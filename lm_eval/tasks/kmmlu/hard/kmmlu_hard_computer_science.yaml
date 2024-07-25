@@ -1,0 +1,3 @@
+dataset_name: computer_science
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_computer_science

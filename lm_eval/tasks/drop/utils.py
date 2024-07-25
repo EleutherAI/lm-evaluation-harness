@@ -4,6 +4,7 @@ import string
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 

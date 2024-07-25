@@ -1,6 +1,0 @@
-"include": "_default_template_yaml"
-"task": "ogx_flores200-trans-gle_Latn-por_Latn"
-"dataset_name": "gle_Latn-por_Latn"
-"doc_to_text": "Irish phrase: {{sentence_gle_Latn}}\nPortuguese phrase:"
-"doc_to_decontamination_query": "{{sentence_gle_Latn}}"
-"doc_to_target": "{{sentence_por_Latn}}"

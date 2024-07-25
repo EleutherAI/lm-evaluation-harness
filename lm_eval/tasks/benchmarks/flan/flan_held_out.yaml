@@ -1,10 +1,10 @@
 group: flan_held_out
 task:
   # BBH
-  - bbh_flan_zeroshot
-  - bbh_flan_fewshot
-  - bbh_flan_cot_fewshot
-  - bbh_flan_cot_zeroshot
+  - bbh_zeroshot
+  - bbh_fewshot
+  - bbh_cot_fewshot
+  - bbh_cot_zeroshot
   # MMLU
   - mmlu
   - mmlu_flan_n_shot_generative

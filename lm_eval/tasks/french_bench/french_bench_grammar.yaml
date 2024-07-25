@@ -1,0 +1,20 @@
+include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_mc
+description: "Répond au mieux en complétant la question avec une des réponses proposées."
+dataset_path: manu/french-bench-grammar-vocab-reading
+output_type: multiple_choice
+validation_split: Grammar
+fewshot_split: Grammar
+test_split: Grammar
+#doc_to_text: "Question: {{question.strip()}}\nA: {{answerA}}\nB: {{answerB}}\nC: {{answerC}}\nD: {{answerD}}\nRéponse："
+#doc_to_choice: ["A", "B", "C", "D"]
+doc_to_text: "La phrase suivante est correcte grammaticalement:\n"
+doc_to_choice: "{{[question.replace('<...>', answerA), question.replace('<...>', answerB), question.replace('<...>', answerC), question.replace('<...>', answerD)]}}"
+doc_to_target: '{{["answerA", "answerB", "answerC", "answerD"].index("answer" + answer)}}'
+task: french_bench_grammar
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

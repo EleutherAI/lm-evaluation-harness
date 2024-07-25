@@ -1,5 +1,6 @@
-import datasets
 import re
+
+import datasets
 
 
 def preprocess(text):

@@ -1,0 +1,16 @@
+dataset_path: cais/wmdp
+group: wmdp
+test_split: test
+training_split: null
+validation_split: null
+num_fewshot: 0
+output_type: multiple_choice
+doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

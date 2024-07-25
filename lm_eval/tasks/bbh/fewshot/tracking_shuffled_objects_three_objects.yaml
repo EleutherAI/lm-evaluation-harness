@@ -1,5 +1,62 @@
-"dataset_name": "tracking_shuffled_objects_three_objects"
-"description": "A task requiring determining the final positions of a set of objects given their initial positions and a description of a sequence of swaps.\n\n"
-"doc_to_text": "Q: Alice, Bob, and Claire are playing a game. At the start of the game, they are each holding a ball: Alice has a yellow ball, Bob has a blue ball, and Claire has a pink ball.\nAs the game progresses, pairs of players trade balls. First, Claire and Alice swap balls. Then, Alice and Bob swap balls. Finally, Claire and Bob swap balls. At the end of the game, Bob has the\nOptions:\n(A) yellow ball\n(B) blue ball\n(C) pink ball\nA: (A)\n\nQ: Alice, Bob, and Claire are playing a game. At the start of the game, they are each holding a ball: Alice has a white ball, Bob has a purple ball, and Claire has a pink ball.\nAs the game progresses, pairs of players trade balls. First, Bob and Alice swap balls. Then, Bob and Claire swap balls. Finally, Bob and Alice swap balls. At the end of the game, Alice has the\nOptions:\n(A) white ball\n(B) purple ball\n(C) pink ball\nA: (C)\n\nQ: Alice, Bob, and Claire are dancers at a square dance. At the start of a song, they each have a partner: Alice is dancing with Lola, Bob is dancing with Rodrigo, and Claire is dancing with Patrick.\nThroughout the song, the dancers often trade partners. First, Alice and Bob switch partners. Then, Claire and Bob switch partners. Finally, Bob and Alice switch partners. At the end of the dance, Alice is dancing with\nOptions:\n(A) Lola\n(B) Rodrigo\n(C) Patrick\nA: (C)\n\nQ: {{input}}\nA:"
-"include": "_fewshot_template_yaml"
-"task": "bbh_fewshot_tracking_shuffled_objects_three_objects"
+dataset_name: tracking_shuffled_objects_three_objects
+description: 'A task requiring determining the final positions of a set of objects
+  given their initial positions and a description of a sequence of swaps.
+
+
+  '
+doc_to_text: 'Q: {{input}}
+
+  A:'
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input: 'Alice, Bob, and Claire are playing a game. At the start of the game, they
+      are each holding a ball: Alice has a yellow ball, Bob has a blue ball, and Claire
+      has a pink ball.
+
+      As the game progresses, pairs of players trade balls. First, Claire and Alice
+      swap balls. Then, Alice and Bob swap balls. Finally, Claire and Bob swap balls.
+      At the end of the game, Bob has the
+
+      Options:
+
+      (A) yellow ball
+
+      (B) blue ball
+
+      (C) pink ball'
+    target: (A)
+  - input: 'Alice, Bob, and Claire are playing a game. At the start of the game, they
+      are each holding a ball: Alice has a white ball, Bob has a purple ball, and
+      Claire has a pink ball.
+
+      As the game progresses, pairs of players trade balls. First, Bob and Alice swap
+      balls. Then, Bob and Claire swap balls. Finally, Bob and Alice swap balls. At
+      the end of the game, Alice has the
+
+      Options:
+
+      (A) white ball
+
+      (B) purple ball
+
+      (C) pink ball'
+    target: (C)
+  - input: 'Alice, Bob, and Claire are dancers at a square dance. At the start of
+      a song, they each have a partner: Alice is dancing with Lola, Bob is dancing
+      with Rodrigo, and Claire is dancing with Patrick.
+
+      Throughout the song, the dancers often trade partners. First, Alice and Bob
+      switch partners. Then, Claire and Bob switch partners. Finally, Bob and Alice
+      switch partners. At the end of the dance, Alice is dancing with
+
+      Options:
+
+      (A) Lola
+
+      (B) Rodrigo
+
+      (C) Patrick'
+    target: (C)
+include: _fewshot_template_yaml
+task: bbh_fewshot_tracking_shuffled_objects_three_objects

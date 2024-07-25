@@ -1,6 +1,0 @@
-"include": "_default_template_yaml"
-"task": "ogx_flores200-trans-gle_Latn-hrv_Latn"
-"dataset_name": "gle_Latn-hrv_Latn"
-"doc_to_text": "Irish phrase: {{sentence_gle_Latn}}\nCroatian phrase:"
-"doc_to_decontamination_query": "{{sentence_gle_Latn}}"
-"doc_to_target": "{{sentence_hrv_Latn}}"
