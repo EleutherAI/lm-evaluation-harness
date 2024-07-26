@@ -40,6 +40,7 @@ from lm_eval.models.utils import Collator, chunks, configure_pad_token
 LogLikelihoodInputs = Tuple[Tuple[str, str], List[int], List[int]]
 
 
+# utility class to keep track of json encoded chats
 class JsonChatStr(NamedTuple):
     prompt: str
 
