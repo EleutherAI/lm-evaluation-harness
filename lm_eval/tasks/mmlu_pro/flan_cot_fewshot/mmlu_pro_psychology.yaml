@@ -18,6 +18,6 @@ fewshot_config:
   - question: "In terms of Hofstede’s (1980) five cultural dimensions, the United States scores at the top of the scale on:
       (A) individualism and long-term orientation. (B) individualism and power distance. (C) uncertainty avoidance. (D) long-term orientation. (E) individualism. (F) individualism and masculinity. (G) long-term orientation and uncertainty avoidance. (H) power distance. (I) power distance and masculinity. (J) N/A"
     target: "Let's think step by step. We refer to Wikipedia articles on psychology for help. The US scores highest on individualism among the five cultural dimensions. The answer is (E)."
-group: mmlu_pro_flan_cot_fewshot_social_sciences
+tag: mmlu_pro_flan_cot_fewshot_social_sciences
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_psychology

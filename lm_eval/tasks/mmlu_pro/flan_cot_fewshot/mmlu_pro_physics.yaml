@@ -18,6 +18,6 @@ fewshot_config:
   - question: "A microwave oven is connected to an outlet, 120 V, and draws a current of 2 amps. At what rate is energy being used by the microwave oven?
       (A) 240 W (B) 120 W (C) 10 W (D) 480 W (E) 360 W (F) 200 W (G) 30 W (H) 150 W (I) 60 W (J) 300 W"
     target: "Let's think step by step. Rate of energy usage is known as power; in an dissipative electrical circuit, power is given by voltage times current. So in our case, the power is 120 V times 2 amps, or 240 W. The answer is (A)."
-group: mmlu_pro_flan_cot_fewshot_stem
+tag: mmlu_pro_flan_cot_fewshot_stem
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_physics

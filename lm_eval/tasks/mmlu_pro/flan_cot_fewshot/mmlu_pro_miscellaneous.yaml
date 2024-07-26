@@ -18,6 +18,6 @@ fewshot_config:
   - question: "What place is named in the title of the 1979 live album by rock legends Cheap Trick?
       (A) Brooklyn (B) Beijing (C) Budapest (D) Boston (E) Bhutan (F) Barcelona (G) Britain (H) Brisbane (I) Bruges (J) Budokan"
     target: "Let's think step by step. We refer to Wikipedia for help. Nippon Budokan is an indoor arena in Tokyo, Japan renowned for hosting rock music concerts including Cheap Trick in 1978. 'Cheap Trick at Budokan' became the name of their album. The answer is (J)."
-group: mmlu_pro_flan_cot_fewshot_other
+tag: mmlu_pro_flan_cot_fewshot_other
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_miscellaneous

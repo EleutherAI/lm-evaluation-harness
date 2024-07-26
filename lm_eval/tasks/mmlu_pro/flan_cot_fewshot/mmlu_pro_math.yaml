@@ -28,6 +28,6 @@ fewshot_config:
   - question: "A total of 30 players will play basketball at a park. There will be exactly 5 players on each team. Which statement correctly explains how to find the number of teams needed?
       (A) Multiply 5 by 5 to find 25 teams. (B) Divide 30 by 5 to find 6 teams. (C) Add 5 to 30 to find 35 teams. (D) Subtract 30 from 5 to find -25 teams. (E) Divide 5 by 30 to find 0.1667 teams. (F) Add 5 to 30 then divide by 2 to find 17.5 teams. (G) N/A (H) N/A (I) N/A (J) N/A"
     target: "Let's think step by step. We want to find the number of teams. We know that there are 5 players/team, and 30 players. Thus to get the number of teams we divide players by players/team, so 30 players / 5 players/team = 6 teams. The answer is (B)."
-group: mmlu_pro_flan_cot_fewshot_stem
+tag: mmlu_pro_flan_cot_fewshot_stem
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_math

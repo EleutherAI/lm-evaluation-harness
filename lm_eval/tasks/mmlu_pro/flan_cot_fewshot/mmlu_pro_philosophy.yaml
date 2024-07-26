@@ -24,6 +24,6 @@ fewshot_config:
   - question: "What is the sign of the covenant for Jewish males?
       (A) Fasting on Yom Kippur (B) Lighting Shabbat candles (C) The rainbow (D) Circumcision (E) The Torah (F) Bar mitzvah (G) Keeping kosher (H) Wearing a kippah (I) A son (J) The Star of David"
     target: "Let's think step by step. We refer to Wikipedia articles on world religions for help. In Judaism, the most distinctive sign of the covenant is circumcision (brit milah). The answer is (D)."
-group: mmlu_pro_flan_cot_fewshot_humanities
+tag: mmlu_pro_flan_cot_fewshot_humanities
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_philosophy
