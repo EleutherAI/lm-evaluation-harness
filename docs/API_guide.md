@@ -198,6 +198,6 @@ To implement your own API model:
 
 ## Best Practices
 
-1. Use the `@register_model` decorator to register your model with the framework.
+1. Use the `@register_model` decorator to register your model with the framework (and import it in `lm_eval/models/__init__.py`!).
 3. Use environment variables for sensitive information like API keys.
 4. Properly handle batching and concurrent requests if supported by your API.
