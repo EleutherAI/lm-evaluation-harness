@@ -25,6 +25,9 @@ When subclassing `TemplateAPI`, you need to implement the following methods:
 
 You may also need to override other methods or properties depending on your API's specific requirements.
 
+> [!NOTE]
+> Currently logliklehood and MCQ based tasks (such as MMLU) are only supported for completion endpoints. Not for chat-completion — those that expect a list of dicts — endpoints! Completion APIs which support intruct tuned models can be evaluated `--apply_chat_template` option.
+
 # TemplateAPI Usage Guide
 
 ## TemplateAPI Arguments
@@ -116,7 +119,7 @@ When subclassing `TemplateAPI`, you can override these arguments in your `__init
 
 ## Example Implementation: OpenAI API
 
-The `OpenAICompletionsAPI` and `OpenAIChatCompletion` ([here](./lm_eval/models/openai_completions.py)) classes demonstrate how to implement API models using the `TemplateAPI` class. Here's a breakdown of the key components:
+The `OpenAICompletionsAPI` and `OpenAIChatCompletion` ([here]([./lm_eval/models/openai_completions.py](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/openai_completions.py))) classes demonstrate how to implement API models using the `TemplateAPI` class. Here's a breakdown of the key components:
 
 ### 1. Subclassing and Initialization
 
