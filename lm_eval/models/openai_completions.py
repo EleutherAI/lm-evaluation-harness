@@ -182,7 +182,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         return super()._loglikelihood_tokens(requests, **kwargs)
 
 
-@register_model("openai-chatcompletions")
+@register_model("openai-chat-completions")
 class OpenAIChatCompletion(LocalChatCompletion):
     def __init__(
         self,
