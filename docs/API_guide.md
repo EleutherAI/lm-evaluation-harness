@@ -1,6 +1,6 @@
 # TemplateAPI Usage Guide
 
-The `TemplateAPI` class is a versatile superclass designed to facilitate the integration of various API-based language models into the lm-evaluation-harness framework. This guide will explain how to use and extend the `TemplateAPI` class to implement your own API models.
+The `TemplateAPI` class is a versatile superclass designed to facilitate the integration of various API-based language models into the lm-evaluation-harness framework. This guide will explain how to use and extend the `TemplateAPI` class to implement your own API models. If your API implements the OpenAI API you can use the `local-completions` or the `local-chat-completions` (defined [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/openai_completions.py)) model types.
 
 ## Overview
 
@@ -119,7 +119,7 @@ When subclassing `TemplateAPI`, you can override these arguments in your `__init
 
 ## Example Implementation: OpenAI API
 
-The `OpenAICompletionsAPI` and `OpenAIChatCompletion` ([here]([./lm_eval/models/openai_completions.py](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/openai_completions.py))) classes demonstrate how to implement API models using the `TemplateAPI` class. Here's a breakdown of the key components:
+The `OpenAICompletionsAPI` and `OpenAIChatCompletion` ([here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/openai_completions.py) classes demonstrate how to implement API models using the `TemplateAPI` class. Here's a breakdown of the key components:
 
 ### 1. Subclassing and Initialization
 
