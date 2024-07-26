@@ -18,6 +18,6 @@ fewshot_config:
   - question: "In a 2 pole lap winding dc machine, the resistance of one conductor is 2Ω and the total number of conductors is 100. Find the total resistance
       (A) 50Ω (B) 1Ω (C) 25Ω (D) 200Ω (E) 10Ω (F) 100Ω (G) 500Ω (H) 150Ω (I) 75Ω (J) 20Ω"
     target: "Let's think step by step. In lap winding, effectively two resistors are connected in parallel, so the actual resistance of each pair is 1 Ohm. Since we have 50 pairs, we get a total resistance of 50 Ohms. The answer is (A)."
-group: mmlu_pro_flan_cot_fewshot_stem
+tag: mmlu_pro_flan_cot_fewshot_stem
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_engineering

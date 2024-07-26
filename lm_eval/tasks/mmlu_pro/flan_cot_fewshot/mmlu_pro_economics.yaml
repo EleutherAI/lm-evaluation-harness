@@ -31,6 +31,6 @@ fewshot_config:
   - question: "The concentration ratio for a monopoly is
       (A) 50 (B) 5 (C) 10 (D) 90 (E) 15 (F) 100 (G) 0 (H) 25 (I) 75 (J) N/A"
     target: "Let's think step by step. We refer to Wikipedia articles on microeconomics for help. The concentration ratio is calculated as the sum of market share of a specific number of largest companies. Monopoly means one company or entity controls the entire market, therefore, the concentration ratio is 100 percent. The answer is (F)."
-group: mmlu_pro_flan_cot_fewshot_social_sciences
+tag: mmlu_pro_flan_cot_fewshot_social_sciences
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_economics

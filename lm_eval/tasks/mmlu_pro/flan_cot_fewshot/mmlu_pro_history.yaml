@@ -40,6 +40,6 @@ fewshot_config:
   - question: "Recent research on hominid species dating from the Middle Pliocene indicates there was (as of 2020):
       (A) multiple hominid species but with limited diversity. (B) a single species with no diversity. (C) decreased species diversity but increased numbers of hammerstones and flakes, indicating stone tool manufacture. (D) a single dominant species that outcompeted all others, leading to decreased diversity. (E) increased species diversity due to a prolonged ice age followed by a severe drought. (F) decreased species diversity due to a prolonged ice age followed by a severe drought. (G) a great amount of species diversity, or a single species that exhibited a lot of diversity. (H) increased species diversity but with decreased population numbers due to harsh climate conditions. (I) increased species diversity but decreased numbers of hammerstones and flakes, indicating less stone tool manufacture. (J) very little species diversity during this period and very few hominids."
     target: "Let's think step by step. We refer to Wikipedia articles on prehistory for help. Recent research has recognized multiple hominid species from the Middle Pliocene, meaning that there is a great amount of species diversity or diversity in a single species. The answer is (G)."
-group: mmlu_pro_flan_cot_fewshot_humanities
+tag: mmlu_pro_flan_cot_fewshot_humanities
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_history

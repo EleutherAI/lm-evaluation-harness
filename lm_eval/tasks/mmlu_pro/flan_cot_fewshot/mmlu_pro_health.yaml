@@ -13,6 +13,6 @@ fewshot_config:
       target: "Let's think step by step. We refer to Wikipedia articles on clinical knowledge for help. According to the medical protocol as of 2020, you should make two attempts to cannulate a patient before passing the job on to a more-senior practitioner. The answer is (F)."
     - question: "Why are parvoviruses a highly impactful parasite? (A) They are able to alter the host's DNA (B) Because they have no nucleic acid (C) They can survive in extreme temperatures (D) Only replicate in dividing cells (E) They can infect multiple species (F) They don't require a host to survive (G) Can integrate into host chromosomes (H) N/A (I) N/A (J) N/A"
       target: "Let's think step by step. We refer to Wikipedia articles on virology for help. Paroviruses are highly impactful because they do not have nucleic acid. The answer is (B)."
-group: mmlu_pro_flan_cot_fewshot_other
+tag: mmlu_pro_flan_cot_fewshot_other
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_health

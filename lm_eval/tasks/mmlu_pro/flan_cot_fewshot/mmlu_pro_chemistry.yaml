@@ -18,6 +18,6 @@ fewshot_config:
   - question: "A solution contains 2.00 mole of acetic acid, CH3COOH, and 1.00 mole of calcium acetate, Ca(CH3COO)2. The solution is able to resist the addition of a small amount of strong acid or strong base with only minor changes in the pH of the solution. Larger quantities of strong acid or strong base can cause a significant change in pH. How many moles of nitric acid, HNO3, may be added before the pH begins to change significantly?
       (A) 0.250 mole (B) 0.500 mole (C) 3.00 mole (D) 1.00 mole (E) 3.50 mole (F) 1.50 mole (G) 2.50 mole (H) 4.00 mole (I) 0.750 mole (J) 2.00 mole"
     target: "Let's think step by step. We would like to compute the buffer capacity of this solution. First we write the equation for the ionization of the weak acid, in this case of acetic acid. $CH_{3}COOH (aq) + H_{2}O \\rightarrow H_{3}O^{+} + CH3COO^{-}$. The conjugate base is therefore the acetate ion. The added strong acid, Nitric acid, will react with the conjugate base. Therefore the maximum amount of acid that can be added will be equal to the amount of acetate ion, or 2 moles. The answer is (J)."
-group: mmlu_pro_flan_cot_fewshot_stem
+tag: mmlu_pro_flan_cot_fewshot_stem
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_chemistry

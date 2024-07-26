@@ -58,6 +58,6 @@ fewshot_config:
     What is displayed as a result of running the program?
       (A) November (B) Foxtrot (C) Zulu (D) Alpha (E) Charlie (F) Bravo (G) Yankee (H) Echo (I) Hotel (J) Delta"
     target: "Let's think step by step. Because X has the value 5, the first conditional IF (X < 0) is false, so we move to the first ELSE clause. Because X is 5 and Y is 10, the second conditional IF (X > Y) is false, so we move to the following ELSE clause. Since Y is 10, the conditional IF (Y > 0) is true, so the command DISPLAY (\"November\") is executed. The answer is (A)."
-group: mmlu_pro_flan_cot_fewshot_stem
+tag: mmlu_pro_flan_cot_fewshot_stem
 include: _mmlu_pro_flan_cot_fewshot_template_yaml
 task: mmlu_pro_flan_cot_fewshot_computer_science
