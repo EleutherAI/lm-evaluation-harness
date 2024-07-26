@@ -121,29 +121,37 @@ class TemplateAPI(TemplateLM):
             self.tokenizer = None
             self.tokenized_requests = False
         else:
-            if self.tokenizer_backend == "huggingface":
+            if self.tokenizer is None:
+                if self.tokenizer_backend == "huggingface":
+                    import transformers
+
+                    self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                        self.tokenizer if self.tokenizer else self.model
+                    )
+                    # Not used as the API will handle padding but to mirror the behavior of the HFLM
+                    self.tokenizer = configure_pad_token(self.tokenizer)
+                elif self.tokenizer_backend == "tiktoken":
+                    try:
+                        import tiktoken
+
+                        self.tokenizer = tiktoken.encoding_for_model(self.model)
+                    except ModuleNotFoundError as e:
+                        raise Exception(
+                            "Attempted to use 'openai' LM type, but the package `tiktoken` is not installed. "
+                            "Please install it via `pip install lm-eval[api]` or `pip install -e .[api]`."
+                        ) from e
+                    if "openai" not in self.base_url:
+                        eval_logger.warning(
+                            f"Passed `base_url={self.base_url}` but using (OpenAI) Tiktoken tokenizer backend. "
+                            "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."
+                        )
+            else:
                 import transformers
 
+                assert isinstance(tokenizer, str), "tokenizer must be a string"
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                    self.tokenizer if self.tokenizer else self.model
+                    tokenizer,
                 )
-                # Not used as the API will handle padding but to mirror the behavior of the HFLM
-                self.tokenizer = configure_pad_token(self.tokenizer)
-            elif self.tokenizer_backend == "tiktoken":
-                try:
-                    import tiktoken
-
-                    self.tokenizer = tiktoken.encoding_for_model(self.model)
-                except ModuleNotFoundError as e:
-                    raise Exception(
-                        "Attempted to use 'openai' LM type, but the package `tiktoken` is not installed. "
-                        "Please install it via `pip install lm-eval[api]` or `pip install -e .[api]`."
-                    ) from e
-                if "openai" not in self.base_url:
-                    eval_logger.warning(
-                        f"Passed `base_url={self.base_url}` but using (OpenAI) Tiktoken tokenizer backend. "
-                        "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."
-                    )
 
     @abc.abstractmethod
     def _create_payload(
