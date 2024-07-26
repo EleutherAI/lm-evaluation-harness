@@ -179,7 +179,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         assert (
             self.model != "gpt-3.5-turbo"
         ), "Loglikelihood is not supported for gpt-3.5-turbo"
-        return super()._loglikelihood_tokens(requests, **kwargs)
+        return super().loglikelihood(requests, **kwargs)
 
 
 @register_model("openai-chat-completions")
