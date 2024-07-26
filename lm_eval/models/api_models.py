@@ -3,7 +3,6 @@ import asyncio
 import copy
 import itertools
 import json
-from collections import namedtuple
 from functools import cached_property
 from typing import (
     Any,
@@ -13,6 +12,7 @@ from typing import (
     Iterable,
     List,
     Literal,
+    NamedTuple,
     Optional,
     Tuple,
     Union,
@@ -38,7 +38,14 @@ from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
 LogLikelihoodInputs = Tuple[Tuple[str, str], List[int], List[int]]
-JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
+
+
+class JsonChatStr(NamedTuple):
+    prompt: str
+
+    def encode(self, encoding):
+        return self.prompt.encode(encoding)
+
 
 eval_logger = utils.eval_logger
 
