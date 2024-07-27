@@ -32,7 +32,7 @@ You may also need to override other methods or properties depending on your API'
 
 ## TemplateAPI Arguments
 
-When initializing a `TemplateAPI` instance or a subclass, you can provide several arguments to customize its behavior. Here's a detailed explanation of each argument:
+When initializing a `TemplateAPI` instance or a subclass, you can provide several arguments to customize its behavior. Here's a detailed explanation of some important arguments:
 
 - `model` or `pretrained` (str, optional):
    - The name or identifier of the model to use.
@@ -46,17 +46,15 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - The name or path of the tokenizer to use.
   - If not provided, it defaults to using the same tokenizer as the model.
 
-- `num_concurrent` (int, optional):
+- `num_concurrent` (int):
    - Number of concurrent requests to make to the API.
    - Useful for APIs that support parallel processing.
    - Default is 1 (sequential processing).
 
-- `tokenized_requests` (bool, optional):
-  - Whether to send requests as tokenized sequences or text.
-  - For loglikelihood-based tasks, the prompts need to be tokenized to calculate the context length.
-  - This decodes the prompts back into text before sending them to the API.
-  - Default is True.
-  - if tokenizer_backend is None, this is ignored.
+- `tokenized_requests` (bool):
+  - Requests can be sent either in tokenized form (list[list[int]) or as text (list[str]). Defaults to True.
+  - For loglikelihood-based tasks, the prompts need to be tokenized to calculate the context length. This decodes the prompts back into text before sending them to the API.
+  - Ignored for chat formatted inputs (list[dict...]) or if tokenizer_backend is None.
 
 - `tokenizer_backend` (str, optional):
   - Required for loglikelihood-based or MCQ tasks.
