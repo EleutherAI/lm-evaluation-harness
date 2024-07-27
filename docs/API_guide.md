@@ -40,11 +40,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 
 - `base_url` (str, optional):
    - The base URL for the API endpoint.
-   - Should be overridden in subclasses with the appropriate API endpoint.
 
 - `tokenizer` (str, optional):
   - The name or path of the tokenizer to use.
-  - If not provided, it defaults to using the same tokenizer as the model.
+  - If not provided, it defaults to using the same tokenizer name as the model.
 
 - `num_concurrent` (int):
    - Number of concurrent requests to make to the API.
@@ -61,9 +60,9 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Specifies the tokenizer library to use. Options are "tiktoken", "huggingface", or None.
   - Default is "huggingface".
 
-- `truncate` (bool, optional):
-   - Whether to truncate sequences that exceed the model's maximum length.
-   - Default is False.
+- `max_length` (int, optional):
+  - Maximum length of input + output.
+  - Default is 2048.
 
 - `max_retries` (int, optional):
    - Maximum number of retries for failed API requests.
@@ -71,7 +70,7 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 
 - `max_gen_toks` (int, optional):
   - Maximum number of tokens to generate in completion tasks.
-  - Default is 256.
+  - Default is 256 or set in task yaml.
 
 - `batch_size` (int or str, optional):
   - Number of requests to batch together (if the API supports batching).
@@ -81,10 +80,6 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 - `seed` (int, optional):
   - Random seed for reproducibility.
   - Default is 1234.
-
-- `max_length` (int, optional):
-  - Maximum length of input sequences.
-  - Default is 2048.
 
 - `add_bos_token` (bool, optional):
   - Whether to add the beginning-of-sequence token to inputs.
