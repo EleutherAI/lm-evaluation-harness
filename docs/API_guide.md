@@ -34,11 +34,11 @@ You may also need to override other methods or properties depending on your API'
 
 When initializing a `TemplateAPI` instance or a subclass, you can provide several arguments to customize its behavior. Here's a detailed explanation of some important arguments:
 
-- `model` or `pretrained` (str, optional):
+- `model` or `pretrained` (str):
    - The name or identifier of the model to use.
-   - `model` precedence over `pretrained` when both are provided.
+   - `model` takes precedence over `pretrained` when both are provided.
 
-- `base_url` (str, optional):
+- `base_url` (str):
    - The base URL for the API endpoint.
 
 - `tokenizer` (str, optional):
@@ -51,8 +51,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
    - Default is 1 (sequential processing).
 
 - `tokenized_requests` (bool):
-  - Requests can be sent either in tokenized form (list[list[int]) or as text (list[str]). Defaults to True.
-  - For loglikelihood-based tasks, the prompts need to be tokenized to calculate the context length. This decodes the prompts back into text before sending them to the API.
+  - Determines whether the input is pre-tokenized. Defaults to `True`.
+  - Requests can be sent in either tokenized form (`list[list[int]]`) or as text (`list[str]`, or `str` for batch_size=1).
+  - For loglikelihood-based tasks, prompts require tokenization to calculate the context length. If `False` prompts are decoded back to text before being sent to the API.
+  - Not as important for `generate_until` tasks.
   - Ignored for chat formatted inputs (list[dict...]) or if tokenizer_backend is None.
 
 - `tokenizer_backend` (str, optional):
@@ -82,7 +84,7 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Default is 1234.
 
 - `add_bos_token` (bool, optional):
-  - Whether to add the beginning-of-sequence token to inputs.
+  - Whether to add the beginning-of-sequence token to inputs (when tokenizing).
   - Default is False.
 
 - `custom_prefix_token_id` (int, optional):
