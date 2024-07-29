@@ -26,7 +26,7 @@ When subclassing `TemplateAPI`, you need to implement the following methods:
 You may also need to override other methods or properties depending on your API's specific requirements.
 
 > [!NOTE]
-> Currently loglikelihood and MCQ based tasks (such as MMLU) are only supported for completion endpoints. Not for chat-completion — those that expect a list of dicts — endpoints! Completion APIs which support instruct tuned models can be evaluated with the `--apply_chat_template` option.
+> Currently loglikelihood and MCQ based tasks (such as MMLU) are only supported for completion endpoints. Not for chat-completion — those that expect a list of dicts — endpoints! Completion APIs which support instruct tuned models can be evaluated with the `--apply_chat_template` option in order to simultaneously evaluate models using a chat template format while still being able to access the model logits needed for loglikelihood-based tasks.
 
 # TemplateAPI Usage Guide
 
