@@ -110,7 +110,7 @@ class MyAPIModel(TemplateAPI):
     # Implement other required methods...
 ```
 
-When subclassing `TemplateAPI`, you can override these arguments in your `__init__` method to set default values specific to your API. You can also add additional arguments as needed for your specific implementation.
+When subclassing `TemplateAPI`, you can override these arguments in your `__init__` method to set default values specific to your API. You can also add additional (potentially user-specified) arguments as needed for your specific implementation.
 
 ## Example Implementation: OpenAI API
 
