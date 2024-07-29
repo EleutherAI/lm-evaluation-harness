@@ -1,5 +1,5 @@
 task: proof-pile
-dataset_path: data/proof_pile
+dataset_path: hoskinson-center/proof-pile
 output_type: loglikelihood_rolling
 validation_split: validation
 test_split: test
