@@ -1,10 +1,13 @@
-from typing import Any, List, Tuple
+import os
+from functools import cached_property
+from typing import Any, Dict, List, Tuple, Union
 
 from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.models.openai_completions import LocalCompletionsAPI
 from lm_eval.models.utils import retry_on_specific_exceptions
 
 
@@ -138,7 +141,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
     return messages()
 
 
-@register_model("anthropic")
+@register_model("anthropic-completions")
 class AnthropicLM(LM):
     REQ_CHUNK_SIZE = 20  # TODO: not used
 
@@ -271,90 +274,89 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
 
 
 @register_model("anthropic-chat", "anthropic-chat-completions")
-class AnthropicChatLM(AnthropicLM):
-    REQ_CHUNK_SIZE = 20  # TODO: not used
-
+class AnthropicChat(LocalCompletionsAPI):
     def __init__(
         self,
-        model: str,
-        batch_size: int = 1,
-        max_tokens: int = 256,
-        temperature: float = 0,  # defaults to 1
-        **kwargs,  # top_p, top_k, etc.
-    ) -> None:
-        """Anthropic API wrapper.
+        base_url="https://api.anthropic.com/v1/messages",
+        tokenizer_backend=None,
+        **kwargs,
+    ):
+        super().__init__(
+            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+        )
+        eval_logger.warning(
+            "Chat completions does not support batching. Defaulting to batch size 1."
+        )
+        self._batch_size = 1
+        self.anthropic_version = "2023-06-01"
+        eval_logger.warning(
+            f"Using Anthropic Version: {self.anthropic_version}. Confirm the current version here: https://docs.anthropic.com/en/api/versioning"
+        )
 
-        :param model: str
-            Anthropic model e.g. 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'
-        :param max_tokens: int
-            Maximum number of tokens to sample from the model
-        :param temperature: float
-            Sampling temperature
-        :param kwargs: Any
-            Additional model_args to pass to the API client
-        """
-        super().__init__()
-
-        try:
-            import anthropic
-        except ModuleNotFoundError:
-            raise Exception(
-                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
+    @cached_property
+    def api_key(self):
+        """Override this property to return the API key for the API request."""
+        key = os.environ.get("ANTHROPIC_API_KEY", None)
+        if key is None:
+            raise ValueError(
+                "API key not found. Please set the ANTHROPIC_API_KEY environment variable."
             )
+        return key
 
-        self.model = model
-        # defaults to os.environ.get("ANTHROPIC_API_KEY")
-        self.client = anthropic.Anthropic()
-        self.temperature = temperature
-        self.max_tokens = max_tokens
-        self.tokenizer = self.client.get_tokenizer()
-        self.kwargs = kwargs
+    @cached_property
+    def header(self):
+        return {
+            "x-api-key": f"{self.api_key}",
+            "anthropic-version": self.anthropic_version,
+        }
 
-    @property
-    def max_gen_toks(self) -> int:
-        return self.max_tokens
+    def _create_payload(
+        self, messages: List[Dict], generate=True, gen_kwargs: dict = None, **kwargs
+    ) -> dict:
+        system = (
+            messages[0].get("content") if messages[0].get("role") == "system" else None
+        )
+        if system:
+            messages = messages[1:]
+        gen_kwargs.pop("do_sample", False)
+        max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+        temperature = gen_kwargs.pop("temperature", 0)
+        stop = gen_kwargs.pop("until", ["\n\nHuman:"])
+        if not isinstance(stop, list):
+            stop = [stop]
+        out = {
+            "messages": messages,
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stop_sequences": stop,
+            **gen_kwargs,
+        }
+        if system:
+            out["system"] = system
+        return out
 
-    def generate_until(self, requests) -> List[str]:
-        try:
-            import anthropic
-        except ModuleNotFoundError:
-            raise Exception(
-                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
-            )
-
-        if not requests:
-            return []
-
-        _requests: List[Tuple[str, dict]] = [req.args for req in requests]
-
+    def parse_generations(
+        self, outputs: Union[Dict, List[Dict]], **kwargs
+    ) -> List[str]:
         res = []
-        for request in tqdm(_requests):
-            try:
-                inp = request[0]
-                request_args = request[1]
-                # generation_kwargs
-                until = request_args.get("until")
-                max_tokens = request_args.get("max_gen_toks", self.max_length)
-                temperature = request_args.get("temperature", self.temperature)
-                response = anthropic_chat(
-                    client=self.client,
-                    model=self.model,
-                    prompt=inp,
-                    max_tokens=max_tokens,
-                    temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
-                    stop=until,  # type: ignore
-                    **self.kwargs,
-                )
-                res.append(response)
-
-                self.cache_hook.add_partial("generate_until", request, response)
-            except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
-                eval_logger.critical(f"Server unreachable: {e.__cause__}")
-                break
-            except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
-                eval_logger.critical(f"API error {e.status_code}: {e.message}")
-                break
-
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        for out in outputs:
+            for choices in out["content"]:
+                res.append(choices["text"])
         return res
+
+    def tok_encode(
+        self,
+        string: str,
+        left_truncate_len=None,
+        add_special_tokens=None,
+        **kwargs,
+    ) -> List[str]:
+        return [string]
+
+    def _loglikelihood_tokens(self, requests, **kwargs):
+        raise NotImplementedError(
+            "Anthropic Chat Completions API does not support the return of log"
+        )
