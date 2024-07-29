@@ -82,7 +82,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                     yaml.dump(
                         {
 #                             "group": [f"{BENCH_NAME}_bench", f"{BENCH_NAME}_bench_flores"],
-                            "group": "flores_ca",
+#                            "group": "flores_ca",
                             "include": "_flores_common_yaml",
                             "task": f"flores_{lang_pair_name}",
                             "doc_to_text": doc_to_text(src, tgt),
