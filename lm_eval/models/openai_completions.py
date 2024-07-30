@@ -113,7 +113,12 @@ class LocalChatCompletion(LocalCompletionsAPI):
             self._batch_size = 1
 
     def _create_payload(
-        self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
+        self,
+        messages: List[Dict],
+        generate=False,
+        gen_kwargs: dict = None,
+        seed=1234,
+        **kwargs,
     ) -> dict:
         gen_kwargs.pop("do_sample", False)
         max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
@@ -127,6 +132,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             "max_tokens": max_tokens,
             "temperature": temperature,
             "stop": stop[:4],
+            "seed": seed,
             **gen_kwargs,
         }
 
