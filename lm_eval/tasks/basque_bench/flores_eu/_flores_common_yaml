@@ -23,3 +23,5 @@ metric_list:
     higher_is_better: true
 metadata:
   version: 0.1
+dataset_kwargs:
+  trust_remote_code: true
