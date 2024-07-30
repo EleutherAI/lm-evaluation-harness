@@ -1,42 +1,59 @@
-"dataset_name": "prehistory"
-"description": "The following are multiple choice questions (with answers) about prehistory.\n\
-  \nQ: What is the approximate mean cranial capacity of Homo erectus?\n(A) under 650\
-  \ cc (B) about 800 cc (C) just under 1000 cc (D) 1200 cc\nA: Let's think step by\
-  \ step. We refer to Wikipedia articles on prehistory for help. The average cranium\
-  \ capacity of Homo erectus is less than 1000 cubic cm. The answer is (C).\n\nQ:\
-  \ According to Timothy Pauketat, the evidence for social stratification and political\
-  \ power at Cahokia suggests:\n(A) a center of Mississippian civilization with conditions\
-  \ similar to the rise of early states. (B) the limitations of authority in a Native\
-  \ American society of egalitarian foragers. (C) a simple chiefdom or perhaps a complex\
-  \ chiefdom had evolved by A.D. 1500. (D) a center of Mississippian civilization\
-  \ with conditions similar to societies on the Northwest Coast of North America.\n\
-  A: Let's think step by step. We refer to Wikipedia articles on prehistory for help.\
-  \ Timothy Pauketat is known for his research on Cahokia, the center of the Mississippian\
-  \ culture, where he found similar conditions to the rise of early states. The answer\
-  \ is (A).\n\nQ: Recent research on hominid species dating from the Middle Pliocene\
-  \ indicates there was (as of 2020):\n(A) a great amount of species diversity, or\
-  \ a single species that exhibited a lot of diversity. (B) very little species diversity\
-  \ during this period and very few hominids. (C) decreased species diversity due\
-  \ to a prolonged ice age followed by a severe drought. (D) decreased species diversity\
-  \ but increased numbers of hammerstones and flakes, indicating stone tool manufacture.\n\
-  A: Let's think step by step. We refer to Wikipedia articles on prehistory for help.\
-  \ Recent research has recognized multiple hominid species from the Middle Pliocene,\
-  \ meaning that there is a great amount of species diversity or diversity in a single\
-  \ species. The answer is (A).\n\nQ: Researchers now believe that the decline of\
-  \ the Maya was caused chiefly by:\n(A) a cataclysm of some kind, such as an earthquake,\
-  \ volcano, or tsunami. (B) ecological degradation resulting from slash-and-burn\
-  \ farming techniques. (C) endless wars between neighboring Mayan city-states. (D)\
-  \ practices of interbreeding that led to a steep rise in congenital disorders.\n\
-  A: Let's think step by step. We refer to Wikipedia articles on prehistory for help.\
-  \ Researchers believe that the Maya collapse was mainly caused by over-exploitation\
-  \ of natural resources like the slash-and-burn farming techniques. The answer is\
-  \ (B).\n\nQ: The great Mayan king Pacal built temples in the city of Palenque in\
-  \ order to:\n(A) satisfy the powerful Mayan astronomer priests. (B) display his\
-  \ generosity to the common people, since they were allowed to live in the temples.\
-  \ (C) frighten away enemies, in particular the Spaniards. (D) legitimize his kingship,\
-  \ since his father was not royal.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on prehistory for help. Pacal built the temples as the funerary monument\
-  \ to legitimize his kingship. The answer is (D).\n\n"
-"group": "mmlu_flan_cot_fewshot_humanities"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_prehistory"
+dataset_name: prehistory
+description: The following are multiple choice questions (with answers) about prehistory.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'What is the approximate mean cranial capacity of Homo erectus?
+
+      (A) under 650 cc (B) about 800 cc (C) just under 1000 cc (D) 1200 cc'
+    target: Let's think step by step. We refer to Wikipedia articles on prehistory
+      for help. The average cranium capacity of Homo erectus is less than 1000 cubic
+      cm. The answer is (C).
+  - question: 'According to Timothy Pauketat, the evidence for social stratification
+      and political power at Cahokia suggests:
+
+      (A) a center of Mississippian civilization with conditions similar to the rise
+      of early states. (B) the limitations of authority in a Native American society
+      of egalitarian foragers. (C) a simple chiefdom or perhaps a complex chiefdom
+      had evolved by A.D. 1500. (D) a center of Mississippian civilization with conditions
+      similar to societies on the Northwest Coast of North America.'
+    target: Let's think step by step. We refer to Wikipedia articles on prehistory
+      for help. Timothy Pauketat is known for his research on Cahokia, the center
+      of the Mississippian culture, where he found similar conditions to the rise
+      of early states. The answer is (A).
+  - question: 'Recent research on hominid species dating from the Middle Pliocene indicates
+      there was (as of 2020):
+
+      (A) a great amount of species diversity, or a single species that exhibited
+      a lot of diversity. (B) very little species diversity during this period and
+      very few hominids. (C) decreased species diversity due to a prolonged ice age
+      followed by a severe drought. (D) decreased species diversity but increased
+      numbers of hammerstones and flakes, indicating stone tool manufacture.'
+    target: Let's think step by step. We refer to Wikipedia articles on prehistory
+      for help. Recent research has recognized multiple hominid species from the Middle
+      Pliocene, meaning that there is a great amount of species diversity or diversity
+      in a single species. The answer is (A).
+  - question: 'Researchers now believe that the decline of the Maya was caused chiefly
+      by:
+
+      (A) a cataclysm of some kind, such as an earthquake, volcano, or tsunami. (B)
+      ecological degradation resulting from slash-and-burn farming techniques. (C)
+      endless wars between neighboring Mayan city-states. (D) practices of interbreeding
+      that led to a steep rise in congenital disorders.'
+    target: Let's think step by step. We refer to Wikipedia articles on prehistory
+      for help. Researchers believe that the Maya collapse was mainly caused by over-exploitation
+      of natural resources like the slash-and-burn farming techniques. The answer
+      is (B).
+  - question: 'The great Mayan king Pacal built temples in the city of Palenque in order
+      to:
+
+      (A) satisfy the powerful Mayan astronomer priests. (B) display his generosity
+      to the common people, since they were allowed to live in the temples. (C) frighten
+      away enemies, in particular the Spaniards. (D) legitimize his kingship, since
+      his father was not royal.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on prehistory
+      for help. Pacal built the temples as the funerary monument to legitimize his
+      kingship. The answer is (D).'
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_prehistory

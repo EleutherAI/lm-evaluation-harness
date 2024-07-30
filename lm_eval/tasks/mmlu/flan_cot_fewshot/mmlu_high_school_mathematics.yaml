@@ -1,37 +1,51 @@
-"dataset_name": "high_school_mathematics"
-"description": "The following are multiple choice questions (with answers) about high\
-  \ school mathematics.\n\nQ: Simplify and write the result with a rational denominator:\
-  \ $$\\sqrt{\\sqrt[3]{\\sqrt{\\frac{1}{729}}}}$$\n(A) \\frac{3\\sqrt{3}}{3} (B) \\\
-  frac{1}{3} (C) \\sqrt{3} (D) \\frac{\\sqrt{3}}{3}\nA: Let's think step by step.\
-  \ Factoring $729=3^6$ and combining the roots $\\frac{1}{2}\\frac{1}{3}\\frac{1}{2}=\\\
-  frac{1}{12}$, we get that $\\sqrt{\\sqrt[3]{\\sqrt{\\frac{1}{729}}}}=\\left(\\frac{1}{3^6}\\\
-  right)^{\\frac{1}{12}}=\\frac{1}{3^{\\frac{1}{2}}}=\\frac{3}{\\sqrt{3}}$ The answer\
-  \ is (D).\n\nQ: Five thousand dollars compounded annually at an $x\\%$ interest\
-  \ rate takes six years to double. At the same interest rate, how many years will\
-  \ it take $\\$300$ to grow to $\\$9600$?\n(A) 12 (B) 1 (C) 30 (D) 5\nA: Let's think\
-  \ step by step. To go from $\\$300$ to $\\$9600$, the value must go up by a factor\
-  \ of $9600/300=32=2^5$. Since at this interest rate it takes six years for it to\
-  \ double, it will take $5*6=30$ years to grow to $\\$9600$. The answer is (C).\n\
-  \nQ: Ten students take a biology test and receive the following scores: 45, 55,\
-  \ 50, 70, 65, 80, 40, 90, 70, 85. What is the mean of the students’ test scores?\n\
-  (A) 55 (B) 60 (C) 62 (D) 65\nA: Let's think step by step. There are 10 students\
-  \ and the sum of their scores is $45 + 55 + 50 + 70 + 65 + 80 + 40 + 90 + 70 + 85\
-  \ = 650$, the mean is $650/10=65$. The answer is (D).\n\nQ: The variable $x$ varies\
-  \ directly as the square of $y$, and $y$ varies directly as the cube of $z$. If\
-  \ $x$ equals $-16$ when $z$ equals 2, what is the value of $x$ when $z$ equals $\\\
-  frac{1}{2}$?\n(A) -1 (B) 16 (C) -\\frac{1}{256} (D) \\frac{1}{16}\nA: Let's think\
-  \ step by step. We know that $x \\propto y^2$ and $y \\propto z^3$, so $x = k z^6$\
-  \ for some constant $k$. Plugging in for $x=-16$ and $z=2$, the constant value is\
-  \ $k=\\frac{x}{z^6}=\\frac{-16}{64}=-\\frac{1}{4}$. So, when $z=\\frac{1}{2}$, the\
-  \ value of $x$ is $x=kz^6=-\\frac{1}{4}\\frac{1}{2^6}=-\\frac{1}{256}$. The answer\
-  \ is (C).\n\nQ: Joe was in charge of lights for a dance. The red light blinks every\
-  \ two seconds, the yellow light every three seconds, and the blue light every five\
-  \ seconds. If we include the very beginning and very end of the dance, how many\
-  \ times during a seven minute dance will all the lights come on at the same time?\
-  \ (Assume that all three lights blink simultaneously at the very beginning of the\
-  \ dance.)\n(A) 3 (B) 15 (C) 6 (D) 5\nA: Let's think step by step. The least common\
-  \ multiple of 2, 3 and 5 is 30, so during a 7 minute dance, all the three lights\
-  \ will come on at the same time $2*7+1=15$ times. The answer is (B).\n\n"
-"group": "mmlu_flan_cot_fewshot_stem"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_high_school_mathematics"
+dataset_name: high_school_mathematics
+description: The following are multiple choice questions (with answers) about high
+  school mathematics.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Simplify and write the result with a rational denominator: $$\sqrt{\sqrt[3]{\sqrt{\frac{1}{729}}}}$$
+
+      (A) \frac{3\sqrt{3}}{3} (B) \frac{1}{3} (C) \sqrt{3} (D) \frac{\sqrt{3}}{3}'
+    target: Let's think step by step. Factoring $729=3^6$ and combining the roots
+      $\frac{1}{2}\frac{1}{3}\frac{1}{2}=\frac{1}{12}$, we get that $\sqrt{\sqrt[3]{\sqrt{\frac{1}{729}}}}=\left(\frac{1}{3^6}\right)^{\frac{1}{12}}=\frac{1}{3^{\frac{1}{2}}}=\frac{3}{\sqrt{3}}$
+      The answer is (D).
+  - question: 'Five thousand dollars compounded annually at an $x\%$ interest rate takes
+      six years to double. At the same interest rate, how many years will it take
+      $\$300$ to grow to $\$9600$?
+
+      (A) 12 (B) 1 (C) 30 (D) 5'
+    target: Let's think step by step. To go from $\$300$ to $\$9600$, the value must
+      go up by a factor of $9600/300=32=2^5$. Since at this interest rate it takes
+      six years for it to double, it will take $5*6=30$ years to grow to $\$9600$.
+      The answer is (C).
+  - question: "Ten students take a biology test and receive the following scores: 45,\
+      \ 55, 50, 70, 65, 80, 40, 90, 70, 85. What is the mean of the students\u2019\
+      \ test scores?\n(A) 55 (B) 60 (C) 62 (D) 65"
+    target: Let's think step by step. There are 10 students and the sum of their scores
+      is $45 + 55 + 50 + 70 + 65 + 80 + 40 + 90 + 70 + 85 = 650$, the mean is $650/10=65$.
+      The answer is (D).
+  - question: 'The variable $x$ varies directly as the square of $y$, and $y$ varies
+      directly as the cube of $z$. If $x$ equals $-16$ when $z$ equals 2, what is
+      the value of $x$ when $z$ equals $\frac{1}{2}$?
+
+      (A) -1 (B) 16 (C) -\frac{1}{256} (D) \frac{1}{16}'
+    target: Let's think step by step. We know that $x \propto y^2$ and $y \propto
+      z^3$, so $x = k z^6$ for some constant $k$. Plugging in for $x=-16$ and $z=2$,
+      the constant value is $k=\frac{x}{z^6}=\frac{-16}{64}=-\frac{1}{4}$. So, when
+      $z=\frac{1}{2}$, the value of $x$ is $x=kz^6=-\frac{1}{4}\frac{1}{2^6}=-\frac{1}{256}$.
+      The answer is (C).
+  - question: 'Joe was in charge of lights for a dance. The red light blinks every two
+      seconds, the yellow light every three seconds, and the blue light every five
+      seconds. If we include the very beginning and very end of the dance, how many
+      times during a seven minute dance will all the lights come on at the same time?
+      (Assume that all three lights blink simultaneously at the very beginning of
+      the dance.)
+
+      (A) 3 (B) 15 (C) 6 (D) 5'
+    target: 'Let''s think step by step. The least common multiple of 2, 3 and 5 is
+      30, so during a 7 minute dance, all the three lights will come on at the same
+      time $2*7+1=15$ times. The answer is (B).'
+tag: mmlu_flan_cot_fewshot_stem
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_high_school_mathematics

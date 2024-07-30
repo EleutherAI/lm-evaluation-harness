@@ -1,4 +1,4 @@
-group: basque-glue
+tag: basque-glue
 task: qnlieu
 dataset_path: orai-nlp/basqueGLUE
 dataset_name: qnli
@@ -13,4 +13,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  - version: 1.0
+  version: 1.0

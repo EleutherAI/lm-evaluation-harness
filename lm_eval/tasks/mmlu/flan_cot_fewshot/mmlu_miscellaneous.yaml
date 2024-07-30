@@ -1,27 +1,43 @@
-"dataset_name": "miscellaneous"
-"description": "The following are multiple choice questions (with answers) about miscellaneous.\n\
-  \nQ: Which of these songs was a Top 10 hit for the rock band The Police?\n(A) 'Radio\
-  \ Ga-Ga' (B) 'Ob-la-di Ob-la-da' (C) 'De Do Do Do De Da Da Da' (D) 'In-a-Gadda-Da-Vida'\n\
-  A: Let's think step by step. We refer to Wikipedia for help. Radio Ga-Ga is by Queen.\
-  \ Ob-la-di Ob-la-da is by The Beatles. And In-a-Gadda-Da-Vida is by Iron Butterfly.\
-  \ Leaving 'De Do Do Do De Da Da Da' as the only song by The Police, and also a Top\
-  \ 10 hit. The answer is (C).\n\nQ: What place is named in the title of the 1979\
-  \ live album by rock legends Cheap Trick?\n(A) Budapest (B) Budokan (C) Bhutan (D)\
-  \ Britain\nA: Let's think step by step. We refer to Wikipedia for help. Nippon Budokan\
-  \ is an indoor arena in Tokyo, Japan renowned for hosting rock music concerts including\
-  \ Cheap Trick in 1978. 'Cheap Trick at Budokan' became the name of their album.\
-  \ The answer is (B).\n\nQ: What is produced during photosynthesis?\n(A) hydrogen\
-  \ (B) nylon (C) oxygen (D) light\nA: Let's think step by step. We refer to Wikipedia\
-  \ for help. Photosynthesis is the process in which green plants use the green pigment\
-  \ chlorophyll to synthesize foods with water and carbon dioxide. Oxygen is the byproduct\
-  \ of this process. The answer is (C).\n\nQ: Who is the shortest man to ever win\
-  \ an NBA slam dunk competition?\n(A) Anthony 'Spud' Webb (B) Michael 'Air' Jordan\
-  \ (C) Tyrone 'Muggsy' Bogues (D) Julius 'Dr J' Erving\nA: Let's think step by step.\
-  \ We refer to Wikipedia for help. In 1986, Spud Webb, standing only 5'7\" became\
-  \ the shortest NBA player in history to win an official slam dunk contest. The answer\
-  \ is (A).\n\nQ: How many axles does a standard automobile have?\n(A) one (B) two\
-  \ (C) four (D) eight\nA: Let's think step by step. We refer to Wikipedia for help.\
-  \ Most cars have two axles to rotate the wheels.. The answer is (B).\n\n"
-"group": "mmlu_flan_cot_fewshot_other"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_miscellaneous"
+dataset_name: miscellaneous
+description: The following are multiple choice questions (with answers) about miscellaneous.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which of these songs was a Top 10 hit for the rock band The Police?
+
+      (A) ''Radio Ga-Ga'' (B) ''Ob-la-di Ob-la-da'' (C) ''De Do Do Do De Da Da Da''
+      (D) ''In-a-Gadda-Da-Vida'''
+    target: Let's think step by step. We refer to Wikipedia for help. Radio Ga-Ga
+      is by Queen. Ob-la-di Ob-la-da is by The Beatles. And In-a-Gadda-Da-Vida is
+      by Iron Butterfly. Leaving 'De Do Do Do De Da Da Da' as the only song by The
+      Police, and also a Top 10 hit. The answer is (C).
+  - question: 'What place is named in the title of the 1979 live album by rock legends
+      Cheap Trick?
+
+      (A) Budapest (B) Budokan (C) Bhutan (D) Britain'
+    target: Let's think step by step. We refer to Wikipedia for help. Nippon Budokan
+      is an indoor arena in Tokyo, Japan renowned for hosting rock music concerts
+      including Cheap Trick in 1978. 'Cheap Trick at Budokan' became the name of their
+      album. The answer is (B).
+  - question: 'What is produced during photosynthesis?
+
+      (A) hydrogen (B) nylon (C) oxygen (D) light'
+    target: Let's think step by step. We refer to Wikipedia for help. Photosynthesis
+      is the process in which green plants use the green pigment chlorophyll to synthesize
+      foods with water and carbon dioxide. Oxygen is the byproduct of this process.
+      The answer is (C).
+  - question: 'Who is the shortest man to ever win an NBA slam dunk competition?
+
+      (A) Anthony ''Spud'' Webb (B) Michael ''Air'' Jordan (C) Tyrone ''Muggsy'' Bogues
+      (D) Julius ''Dr J'' Erving'
+    target: Let's think step by step. We refer to Wikipedia for help. In 1986, Spud
+      Webb, standing only 5'7" became the shortest NBA player in history to win an
+      official slam dunk contest. The answer is (A).
+  - question: 'How many axles does a standard automobile have?
+
+      (A) one (B) two (C) four (D) eight'
+    target: 'Let''s think step by step. We refer to Wikipedia for help. Most cars
+      have two axles to rotate the wheels.. The answer is (B).'
+tag: mmlu_flan_cot_fewshot_other
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_miscellaneous

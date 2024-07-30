@@ -1,5 +1,3 @@
-"""
-"""
 import re
 from typing import List
 
@@ -14,7 +12,7 @@ class FDA(ConfigurableTask):
     DATASET_PATH = "hazyresearch/based-fda"
     DATASET_NAME = "default"
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(config={"metadata": {"version": self.VERSION}})
 
     def has_training_docs(self):

@@ -1,4 +1,3 @@
-group: kormedmcqa
 task : kormedmcqa_doctor
 dataset_path : sean0042/KorMedMCQA
 dataset_name : doctor
