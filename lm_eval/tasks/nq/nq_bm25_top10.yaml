@@ -15,8 +15,6 @@ fewshot_delimiter: "\n"
 generation_kwargs:
   until:
     - "\n"
-    - "."
-    - ","
   do_sample: false
   temperature: 0.0
 filter_list:
@@ -31,3 +29,4 @@ metric_list:
     higher_is_better: True
 metadata:
   version: 3.0
+

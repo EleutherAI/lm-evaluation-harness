@@ -48,7 +48,7 @@ def nq_exact_match(references,predictions):
     return nq_exact_match_fn(predictions[0], references[0])
 
 
-
+# https://github.com/facebookresearch/FiD/blob/fe769f30e3714e22476910ee39ea0054dd7921de/src/evaluation.py#L129
 def doc_to_preamble(doc):
     template = "{% for ctx in ctxs | reverse %}\nTitle: {{ ctx.title }}\n{{ ctx.text }}\n{% endfor %}\n\n"
     ctxs= []
