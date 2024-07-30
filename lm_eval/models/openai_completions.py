@@ -145,7 +145,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
     ) -> Union[List[str], List[int], Any]:
         return string
 
-    def _loglikelihood_tokens(self, requests, **kwargs):
+    def loglikelihood(self, requests, **kwargs):
         raise NotImplementedError(
             "Loglikelihood is not supported for chat completions. Consider using the completions API instead."
         )
@@ -175,14 +175,14 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
             )
         return key
 
-    def _loglikelihood_tokens(self, requests, **kwargs):
+    def loglikelihood(self, requests, **kwargs):
         assert (
             self.model != "gpt-3.5-turbo"
         ), "Loglikelihood is not supported for gpt-3.5-turbo"
-        return super()._loglikelihood_tokens(requests, **kwargs)
+        return super().loglikelihood(requests, **kwargs)
 
 
-@register_model("openai-chatcompletions")
+@register_model("openai-chat-completions")
 class OpenAIChatCompletion(LocalChatCompletion):
     def __init__(
         self,
