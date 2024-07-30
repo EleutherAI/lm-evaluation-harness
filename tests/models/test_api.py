@@ -28,6 +28,7 @@ def test_create_payload_generate(api):
         "temperature": 0.7,
         "until": ["The End"],
         "do_sample": True,
+        "seed": 1234,
     }
     payload = api._create_payload(messages, generate=True, gen_kwargs=gen_kwargs)
 
@@ -37,6 +38,7 @@ def test_create_payload_generate(api):
         "max_tokens": 100,
         "temperature": 0.7,
         "stop": ["The End"],
+        "seed": 1234,
     }
 
 
@@ -50,6 +52,8 @@ def test_create_payload_loglikelihood(api):
         "max_tokens": 1,
         "logprobs": 1,
         "echo": True,
+        "temperature": 0,
+        "seed": 1234,
     }
 
 
@@ -66,6 +70,7 @@ def test_create_payload_loglikelihood(api):
                 "max_tokens": 100,
                 "temperature": 0.7,
                 "stop": ["<|endoftext|>"],
+                "seed": 1234,
             },
         ),
         (
@@ -78,6 +83,7 @@ def test_create_payload_loglikelihood(api):
                 "max_tokens": 256,
                 "temperature": 0,
                 "stop": ["<|endoftext|>"],
+                "seed": 1234,
             },
         ),
     ],
@@ -116,6 +122,8 @@ def test_model_generate_call_usage(
                 "max_tokens": 1,
                 "logprobs": 1,
                 "echo": True,
+                "seed": 1234,
+                "temperature": 0,
             },
         ),
     ],
