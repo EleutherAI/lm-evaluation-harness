@@ -1,3 +1,17 @@
+# Evaluando LLMS
+
+Este repositorio es un fork del excelente trabajo de [EleutherAI](https://github.com/EleutherAI/lm-evaluation-harness).
+
+## ¿Qué es esto?
+
+Queremos desarrollar un LLM Latinoamericano de manera colaborativa y descentralizada.
+
+Con el fin de facilitar el proceso de evaluación de datasets y capacidades de distintos modelos a nuestros colaboradores, desarrollamos este repositorio.
+
+## ¿Cómo utilizarlo?
+
+---
+
 # Language Model Evaluation Harness
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
