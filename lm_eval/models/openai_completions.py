@@ -24,6 +24,7 @@ class LocalCompletionsAPI(TemplateAPI):
         messages: Union[List[List[int]], List[dict], List[str], str],
         generate=False,
         gen_kwargs: Optional[dict] = None,
+        seed: int = 1234,
         **kwargs,
     ) -> dict:
         if generate:
@@ -37,6 +38,7 @@ class LocalCompletionsAPI(TemplateAPI):
                 "max_tokens": max_tokens,
                 "temperature": temperature,
                 "stop": stop,
+                "seed": seed,
                 **gen_kwargs,
             }
         else:
@@ -46,6 +48,7 @@ class LocalCompletionsAPI(TemplateAPI):
                 "temperature": 0,
                 "max_tokens": 1,
                 "logprobs": 1,
+                "seed": seed,
                 "echo": True,
             }
 
