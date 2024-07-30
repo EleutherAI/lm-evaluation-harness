@@ -1,5 +1,5 @@
-task: nq_bm25_subset_top5
-dataset_path: iohadrubin/nq_bm25_top100_subset
+task: nq_6k_oracle_top5
+dataset_path: iohadrubin/nq_bm25_top100_subset_oracle
 output_type: generate_until
 validation_split: validation
 # test_split: test
