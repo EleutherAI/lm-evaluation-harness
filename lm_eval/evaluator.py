@@ -55,6 +55,7 @@ def simple_evaluate(
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
+    only_return_task_dict: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -244,6 +245,8 @@ def simple_evaluate(
             # if num_fewshot not provided, and the task does not define a default one, default to 0
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
                 task_obj.set_config(key="num_fewshot", value=0)
+    if only_return_task_dict:
+        return task_dict
 
     if check_integrity:
         run_task_tests(task_list=tasks)
