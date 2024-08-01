@@ -487,3 +487,13 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     among ranks in multigpu setting or only pulling a sample of documents
     """
     return islice(raw_iterator, rank, limit, world_size)
+
+
+def weighted_f1_score(items):
+    from sklearn.metrics import f1_score
+
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="weighted")
+    return fscore

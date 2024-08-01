@@ -104,3 +104,4 @@ known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401","F402","F403"]
+"utils.py" = ["F401"]
