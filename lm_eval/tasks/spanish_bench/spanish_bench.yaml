@@ -1,0 +1,15 @@
+group: spanish_bench
+task:
+  - belebele_spa_Latn
+  - wnli_es
+  - xnli_es
+  - escola
+  - xstorycloze_es
+  - xquad_es
+  - xlsum_es
+  - paws_es
+  - mgsm_direct_es_v2
+  - flores_es
+  - phrases_es
+metadata:
+  version: 1.0
