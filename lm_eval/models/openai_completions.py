@@ -100,6 +100,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
         tokenized_requests=False,
         **kwargs,
     ):
+        eval_logger.warning(
+            "chat-completions endpoint requires the `--apply_chat_template` flag."
+        )
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
