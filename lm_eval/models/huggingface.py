@@ -113,7 +113,7 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
-        gptqmodel: Optional[Union[bool, str]] = False,
+        gptqmodel: Optional[bool] = False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -230,7 +230,7 @@ class HFLM(TemplateLM):
                 peft=peft,
                 delta=delta,
                 autogptq=autogptq,
-                gptqmodel=gptqmodel
+                gptqmodel=gptqmodel,
                 **kwargs,
             )
 
@@ -493,7 +493,7 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
-        gptqmodel: Optional[Union[bool, str]] = False,
+        gptqmodel: Optional[bool] = False,
         **kwargs,
     ) -> None:
         """
