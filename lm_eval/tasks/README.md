@@ -73,9 +73,9 @@
 | [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
 | [nq_open](nq_open/README.md) | Open domain question answering tasks based on the Natural Questions dataset. | English |
 | [okapi/arc_multilingual](okapi/arc_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) **Machine Translated.** |
-| [okapi/hellaswag_multilingual](okapi/hellaswag_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (30 languages) |
-| okapi/mmlu_multilingual | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (34 languages) |
-| [okapi/truthfulqa_multilingual](okapi/truthfulqa_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) |
+| [okapi/hellaswag_multilingual](okapi/hellaswag_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (30 languages) **Machine Translated.** |
+| okapi/mmlu_multilingual | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (34 languages) **Machine Translated.** |
+| [okapi/truthfulqa_multilingual](okapi/truthfulqa_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) **Machine Translated.** |
 | [openbookqa](openbookqa/README.md) | Open-book question answering tasks that require external knowledge and reasoning. | English |
 | [paloma](paloma/README.md) | Paloma is a comprehensive benchmark designed to evaluate open language models across a wide range of domains, ranging from niche artist communities to mental health forums on Reddit. | English |
 | [paws-x](paws-x/README.md) | Paraphrase Adversaries from Word Scrambling, focusing on cross-lingual capabilities. | English, French, Spanish, German, Chinese, Japanese, Korean |
