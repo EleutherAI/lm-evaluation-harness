@@ -1,0 +1,17 @@
+task: xstorycloze_ca
+dataset_path: projecte-aina/xstorycloze_ca
+dataset_name: ca
+output_type: multiple_choice
+training_split: train
+validation_split: eval
+doc_to_text: "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}"
+doc_to_target: "{{answer_right_ending-1}}"
+doc_to_choice: "{{[sentence_quiz1, sentence_quiz2]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
