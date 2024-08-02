@@ -6,3 +6,7 @@ task:
   - mmmu_humanities_and_social_science
   - mmmu_science
   - mmmu_tech_and_engineering
+aggregate_metric_list:
+  - metric: mmmu_acc
+    aggregation: mean
+    weight_by_size: true

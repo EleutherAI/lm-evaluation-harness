@@ -21,3 +21,7 @@ task:
     include: _template_yaml
     task_alias: Public Health
     dataset_name: Public_Health
+aggregate_metric_list:
+  - metric: mmmu_acc
+    aggregation: mean
+    weight_by_size: true

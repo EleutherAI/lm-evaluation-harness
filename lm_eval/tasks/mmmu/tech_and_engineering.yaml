@@ -29,3 +29,7 @@ task:
     include: _template_yaml
     task_alias: Mechanical Engineering
     dataset_name: Mechanical_Engineering
+aggregate_metric_list:
+  - metric: mmmu_acc
+    aggregation: mean
+    weight_by_size: true
