@@ -160,6 +160,7 @@ class TemplateAPI(TemplateLM):
         *,
         generate: bool = True,
         gen_kwargs: Optional[dict] = None,
+        seed: int = 1234,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -334,6 +335,7 @@ class TemplateAPI(TemplateLM):
                     self.create_message(messages),
                     generate=generate,
                     gen_kwargs=gen_kwargs,
+                    seed=self._seed,
                     **kwargs,
                 ),
                 headers=self.header,
@@ -367,6 +369,7 @@ class TemplateAPI(TemplateLM):
             self.create_message(messages),
             generate=generate,
             gen_kwargs=gen_kwargs,
+            seed=self._seed,
             **kwargs,
         )
         cache_method = "generate_until" if generate else "loglikelihood"
