@@ -1280,7 +1280,7 @@ class ConfigurableTask(Task):
 
     def doc_to_image(self, doc: Any) -> Union[int, str, list]:
         if self.config.doc_to_image is None:
-            eval_logger.error("doc_to_image was called but not set in config")
+            return None
         else:
             doc_to_image = self.config.doc_to_image
 

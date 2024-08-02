@@ -216,7 +216,15 @@ class HFMultimodalLM(HFLM):
 
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
 
-        for chunk in chunks:
+        for idx, _chunk in enumerate(chunks):
+            if idx == 0:
+                zero_chunk = _chunk
+                chunk = _chunk
+            elif idx == 69:
+                chunk = zero_chunk
+            else:
+                chunk = _chunk
+            chunk = _chunk
             contexts, all_gen_kwargs, aux_arguments = zip(
                 *chunk
             )  # TODO: can we cut down further on number of distinct things we pass around?
