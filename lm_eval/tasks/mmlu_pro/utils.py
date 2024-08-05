@@ -3,7 +3,26 @@ from functools import partial
 
 from lm_eval.api.filter import Filter
 
-choices = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
+
+choices = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+]
+
 
 def format_cot_example(example, including_answer=True):
     prompt = "Question:\n"
@@ -14,8 +33,9 @@ def format_cot_example(example, including_answer=True):
     for i, opt in enumerate(options):
         prompt += "{}. {}\n".format(choices[i], opt)
     if including_answer:
-        cot_content = example["cot_content"].replace("A: Let's think step by step.",
-                                                     "Answer: Let's think step by step.")
+        cot_content = example["cot_content"].replace(
+            "A: Let's think step by step.", "Answer: Let's think step by step."
+        )
         prompt += cot_content + "\n\n"
     else:
         prompt += "Answer: Let's think step by step."
@@ -28,6 +48,7 @@ fewshot_to_text = partial(format_cot_example, including_answer=True)
 
 def process_docs(dataset, subject):
     return dataset.filter(lambda x: x["category"] == subject)
+
 
 process_biology = partial(process_docs, subject="biology")
 process_business = partial(process_docs, subject="business")
@@ -45,26 +66,15 @@ process_physics = partial(process_docs, subject="physics")
 process_psychology = partial(process_docs, subject="psychology")
 
 
-# def generate_cot_prompt(val_df, curr, k):
-#     prompt = ""
-#     with open(f"cot_prompt_lib/initial_prompt.txt", "r") as fi:
-#         for line in fi.readlines():
-#             prompt += line
-#     subject = curr["category"]
-#     val_df = select_by_category(val_df, subject)
-#     val_df = val_df[: k]
-#     prompt = prompt.replace("{$}", subject) + "\n"
-#     for example in val_df:
-#         prompt += format_cot_example(example, including_answer=True)
-#     prompt += format_cot_example(curr, including_answer=False)
-#     return prompt
-
 class CustomRegexFilter(Filter):
     """ """
 
     def __init__(
         self,
-        regex_pattern: list = [r"answer is \(?([ABCDEFGHIJ])\)?", r".*[aA]nswer:\s*([A-J])"],
+        regex_pattern: list = [
+            r"answer is \(?([ABCDEFGHIJ])\)?",
+            r".*[aA]nswer:\s*([A-J])",
+        ],
         group_select=0,
         fallback: str = "[invalid]",
     ) -> None:
@@ -89,7 +99,7 @@ class CustomRegexFilter(Filter):
                 if match:
                     filtered_resps.append(match.group(1))
                     break
-        
+
         if len(filtered_resps) == 0:
             filtered_resps = [None]
 
