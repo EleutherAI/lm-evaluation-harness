@@ -331,12 +331,19 @@ class HFLM(TemplateLM):
                 max_memory_all_gpus = get_max_memory()
                 if "cpu" in max_memory_all_gpus:
                     del max_memory_all_gpus["cpu"]
-                max_memory_per_gpu_map = {
-                    k: v
-                    for k, v in max_memory_all_gpus.items()
-                    if k % num_local_processes
-                    == (self.accelerator.process_index % num_local_processes)
-                }
+                if not hasattr(self, "accelerator"):
+                    max_memory_per_gpu_map = {
+                        k: v
+                        for k, v in max_memory_all_gpus.items()
+                    }
+                else: 
+                    # use only 1 / num_processes of the GPUs if we are running under accelerate launch
+                    max_memory_per_gpu_map = {
+                        k: v
+                        for k, v in max_memory_all_gpus.items()
+                        if k % num_local_processes
+                        == (self.accelerator.process_index % num_local_processes)
+                    }
             args["max_memory"] = max_memory_per_gpu_map
             args["device_map"] = "auto"
             eval_logger.info(
