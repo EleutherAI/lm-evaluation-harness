@@ -15,13 +15,13 @@ Homepage (preprocessed): https://huggingface.co/datasets/sjyuxyz/GSM-Plus-Format
 
 ```bibtex
 @misc{li2024gsmpluscomprehensivebenchmarkevaluating,
-      title={GSM-Plus: A Comprehensive Benchmark for Evaluating the Robustness of LLMs as Mathematical Problem Solvers}, 
+      title={GSM-Plus: A Comprehensive Benchmark for Evaluating the Robustness of LLMs as Mathematical Problem Solvers},
       author={Qintong Li and Leyang Cui and Xueliang Zhao and Lingpeng Kong and Wei Bi},
       year={2024},
       eprint={2402.19255},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2402.19255}, 
+      url={https://arxiv.org/abs/2402.19255},
 }
 ```
 
