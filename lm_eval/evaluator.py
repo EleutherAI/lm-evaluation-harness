@@ -607,8 +607,6 @@ def evaluate(
                             _higher_is_better[m] = None
                 higher_is_better[group] = _higher_is_better
 
-<<<<<<< HEAD
-=======
                 # collect all metric keys used by a subtask in the group.
                 metric_list = list(
                     {
@@ -678,7 +676,6 @@ def evaluate(
                     task_list[0]
                 ]  # TODO: validate this
 
->>>>>>> mmlu-pro-changes
         results_dict = {
             "results": dict(results_agg.items()),
             **(
