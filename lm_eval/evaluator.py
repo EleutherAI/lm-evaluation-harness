@@ -607,6 +607,78 @@ def evaluate(
                             _higher_is_better[m] = None
                 higher_is_better[group] = _higher_is_better
 
+<<<<<<< HEAD
+=======
+                # collect all metric keys used by a subtask in the group.
+                metric_list = list(
+                    {
+                        key
+                        for task in task_list
+                        for key in results[task].keys()
+                        if "_stderr" not in key and key not in ["alias", "samples"]
+                    }
+                )
+                for metric in metric_list:
+                    stderr = "_stderr,".join(metric.split(","))
+
+                    # gather metrics, sizes, and stderrs from subtasks
+                    metrics = [
+                        results[task][metric]
+                        for task in task_list
+                        if metric in results[task]
+                    ]  # TODO: copy?
+                    stderrs = [
+                        results[task][stderr]
+                        for task in task_list
+                        if stderr in results[task]
+                    ]
+                    sizes = [
+                        results[task]["samples"]
+                        for task in task_list
+                        if metric in results[task]
+                    ]
+
+                    # compute group's pooled metric and stderr
+                    results[group][metric] = (
+                        lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    )
+                    # TODO: calculate grouped metric using aggregation fn
+                    if "N/A" in stderrs:
+                        results[group][stderr] = "N/A"
+                    else:
+                        results[group][stderr] = (
+                            lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        )
+                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
+                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
+
+                    results[group]["samples"] = sum(sizes)
+
+        results_agg = defaultdict(dict)
+        groups_agg = defaultdict(dict)
+        all_tasks_list = list(task_hierarchy.keys())
+        while True:
+            add_tasks_list = list(k for k in results_agg.keys())
+            left_tasks_list = sorted(list(set(all_tasks_list) - set(add_tasks_list)))
+            if len(left_tasks_list) == 0:
+                break
+
+            _task_hierarchy = {
+                k: v for k, v in task_hierarchy.items() if k in left_tasks_list
+            }
+            _results_agg, _groups_agg = prepare_print_tasks(_task_hierarchy, results)
+
+            results_agg = {**results_agg, **_results_agg}
+            groups_agg = {**groups_agg, **_groups_agg}
+
+        for group_name, task_list in task_hierarchy.items():
+            if task_list:
+                num_fewshot[group_name] = num_fewshot[
+                    task_list[0]
+                ]  # TODO: validate this
+
+>>>>>>> mmlu-pro-changes
         results_dict = {
             "results": dict(results_agg.items()),
             **(
