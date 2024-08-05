@@ -29,7 +29,7 @@ Homepage (preprocessed): https://huggingface.co/datasets/sjyuxyz/GSM-Plus-Format
 
 #### Groups
 
-* `math_word_problems`
+* Not part of a group yet
 
 #### Tasks
 
