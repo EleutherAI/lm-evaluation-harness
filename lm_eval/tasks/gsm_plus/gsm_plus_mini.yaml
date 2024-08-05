@@ -1,12 +1,12 @@
 tag:
   - math_word_problems
-task: gsm_plus
+task: gsm_plus_mini
 dataset_path: sjyuxyz/GSM-Plus-Formatted
 dataset_name: all
 output_type: generate_until
-training_split: test
-fewshot_split: test
-test_split: test
+training_split: testmini
+fewshot_split: testmini
+test_split: testmini
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{solution}}"
 metric_list:
