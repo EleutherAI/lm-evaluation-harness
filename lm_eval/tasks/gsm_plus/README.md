@@ -35,6 +35,7 @@ Homepage (preprocessed): https://huggingface.co/datasets/sjyuxyz/GSM-Plus-Format
 
 The following tasks evaluate subjects in the gsm_plus dataset
 - `gsm_plus`
+- `gsm_plus_mini`
 
 ### Checklist
 
