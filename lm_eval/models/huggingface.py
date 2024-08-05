@@ -154,6 +154,7 @@ class HFLM(TemplateLM):
                     else torch.device(device)
                 )
 
+            revision = str(revision)  # cast to string if not already one
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
 
@@ -333,10 +334,9 @@ class HFLM(TemplateLM):
                     del max_memory_all_gpus["cpu"]
                 if not hasattr(self, "accelerator"):
                     max_memory_per_gpu_map = {
-                        k: v
-                        for k, v in max_memory_all_gpus.items()
+                        k: v for k, v in max_memory_all_gpus.items()
                     }
-                else: 
+                else:
                     # use only 1 / num_processes of the GPUs if we are running under accelerate launch
                     max_memory_per_gpu_map = {
                         k: v
