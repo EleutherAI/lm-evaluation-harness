@@ -431,7 +431,7 @@ class HFLM(TemplateLM):
         """
         if chat_template is False or chat_template is None:
             eval_logger.warning(
-                "model.chat_template was called with the chat_template set to False or None. "
+                f"The model's `.chat_template` method was called with argument {chat_template}. No chat template will be applied. Please ensure this is the intended behavior."
                 "Therefore no chat template will be applied. Make sure this is an intended behavior."
             )
             return None
@@ -464,8 +464,8 @@ class HFLM(TemplateLM):
                     using_default_template = True
                 else:
                     raise ValueError(
-                        "This model has multiple chat templates with no default specified! Please either pass a chat "
-                        "template or the name of the template you wish to use to the `chat_template` argument. Available "
+                        "This model has multiple chat templates with no default specified! Please pass "
+                        "the name of the template you wish to use manually either through the CLI or to `lm_eval.evaluate()` or `lm_eval.simple_evaluate()`. Available "
                         f"template names are {sorted(template.keys())}."
                     )
 
