@@ -106,7 +106,7 @@ lm_eval --model hf \
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
-We support two main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
+We support three main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
 
 To perform *data-parallel evaluation* (where each GPU loads a **separate full copy** of the model), we leverage the `accelerate` launcher as follows:
 
@@ -140,7 +140,19 @@ For more advanced users or even larger models, we allow for the following argume
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
 
-These two options (`accelerate launch` and `parallelize=True`) are mutually exclusive.
+The third option is to use both at the same time. This will allow you to take advantage of both data parallelism and model sharding, and is especially useful for models that are too large to fit on a single GPU.
+
+```
+accelerate launch --multi_gpu --num_processes {nb_of_copies_of_your_model} \
+    -m lm_eval --model hf \
+    --tasks lambada_openai,arc_easy \
+    --model_args parallelize=True \
+    --batch_size 16
+```
+
+To learn more about model parallelism and how to use it with the `accelerate` library, see the [accelerate documentation](https://huggingface.co/docs/transformers/v4.15.0/en/parallelism)
+
+**Warning: We do not natively support multi-node evaluation using the `hf` model type! Please reference [our GPT-NeoX library integration](https://github.com/EleutherAI/gpt-neox/blob/main/eval.py) for an example of code in which a custom multi-machine evaluation script is written.**
 
 **Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
 
