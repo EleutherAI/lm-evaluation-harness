@@ -1,6 +1,0 @@
-"dataset_name": "business"
-"description": "The following are questions (with answers) about business.\n\
-  \n"
-"tag": "mmlu_pro_continuation_other"
-"include": "_continuation_template_yaml"
-"task": "mmlu_pro_continuation_business"

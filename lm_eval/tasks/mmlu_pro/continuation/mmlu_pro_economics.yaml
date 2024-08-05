@@ -1,6 +1,0 @@
-"dataset_name": "economics"
-"description": "The following are questions (with answers) about economics.\n\
-  \n"
-"tag": "mmlu_pro_continuation_social_sciences"
-"include": "_continuation_template_yaml"
-"task": "mmlu_pro_continuation_economics"

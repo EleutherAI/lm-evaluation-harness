@@ -1,7 +1,0 @@
-"dataset_name": "engineering"
-"description": "The following are multiple choice questions (with answers) about engineering.\n\
-  \n"
-"tag": "mmlu_pro_stem_generative"
-"include": "_default_template_yaml"
-"task": "mmlu_pro_engineering_generative"
-"task_alias": "engineering"

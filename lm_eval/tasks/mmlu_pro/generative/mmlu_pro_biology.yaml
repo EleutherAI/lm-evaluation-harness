@@ -1,7 +1,0 @@
-"dataset_name": "biology"
-"description": "The following are multiple choice questions (with answers) about biology.\n\
-  \n"
-"tag": "mmlu_pro_stem_generative"
-"include": "_default_template_yaml"
-"task": "mmlu_pro_biology_generative"
-"task_alias": "biology"

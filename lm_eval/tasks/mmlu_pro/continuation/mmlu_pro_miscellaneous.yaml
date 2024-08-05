@@ -1,6 +1,0 @@
-"dataset_name": "other"
-"description": "The following are questions (with answers) about other.\n\
-  \n"
-"tag": "mmlu_pro_continuation_other"
-"include": "_continuation_template_yaml"
-"task": "mmlu_pro_continuation_miscellaneous"

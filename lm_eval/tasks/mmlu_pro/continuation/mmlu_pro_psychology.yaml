@@ -1,6 +1,0 @@
-"dataset_name": "psychology"
-"description": "The following are questions (with answers) about psychology.\n\
-  \n"
-"tag": "mmlu_pro_continuation_social_sciences"
-"include": "_continuation_template_yaml"
-"task": "mmlu_pro_continuation_psychology"
