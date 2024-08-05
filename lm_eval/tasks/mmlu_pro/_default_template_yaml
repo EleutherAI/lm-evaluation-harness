@@ -8,11 +8,11 @@ fewshot_config:
 output_type: generate_until
 doc_to_text: !function utils.doc_to_text
 doc_to_target: answer
-# filter_list:
-#   - name: "custom-extract"
-#     filter:
-#       - function: !function utils.CustomRegexFilter
-#       - function: "take_first"
+filter_list:
+  - name: "custom-extract"
+    filter:
+      - function: !function utils.CustomRegexFilter
+      - function: "take_first"
 generation_kwargs:
   until:
     - "</s>"
