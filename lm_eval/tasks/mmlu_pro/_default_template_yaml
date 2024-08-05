@@ -11,7 +11,9 @@ doc_to_target: answer
 filter_list:
   - name: "custom-extract"
     filter:
-      - function: !function utils.CustomRegexFilter
+      - function: "regex"
+        regex_pattern: r"answer is \(?([ABCDEFGHIJ])\)?"
+        # regex_pattern: r".*[aA]nswer:\s*([A-J])",
       - function: "take_first"
 generation_kwargs:
   until:
