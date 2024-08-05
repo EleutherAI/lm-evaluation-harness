@@ -453,9 +453,11 @@ class VLLM(TemplateLM):
 
                 res.append(answer)
 
-                # partial caching
-                if cache_key is not None:
-                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                if cache_key is None:
+                    # special case: loglikelihood_rolling inputs condition on None.
+                    # cache this as empty string instead of NoneType
+                    cache_key = ""
+                self.cache_hook.add_partial("loglikelihood", cache_key, answer)
                 pbar.update(1)
         pbar.close()
         return re_ord.get_original(res)
