@@ -431,7 +431,7 @@ class HFLM(TemplateLM):
         """
         if chat_template is False or chat_template is None:
             eval_logger.warning(
-                f"The model's `.chat_template` method was called with argument {chat_template}. No chat template will be applied. Please ensure this is the intended behavior."
+                "model.chat_template was called with the chat_template set to False or None. "
                 "Therefore no chat template will be applied. Make sure this is an intended behavior."
             )
             return None
@@ -449,7 +449,7 @@ class HFLM(TemplateLM):
 
             if chat_template is not None:
                 if chat_template in template:
-                    chat_template = template[chat_template]
+                    selected_template = template[chat_template]
                     if using_default_dict:
                         using_default_template = True
                 else:
@@ -460,12 +460,12 @@ class HFLM(TemplateLM):
             else:
                 # If user didn't pass a chat template, use the default template from the dict
                 if "default" in template:
-                    chat_template = template["default"]
+                    selected_template = template["default"]
                     using_default_template = True
                 else:
                     raise ValueError(
-                        "This model has multiple chat templates with no default specified! Please pass "
-                        "the name of the template you wish to use manually either through the CLI or to `lm_eval.evaluate()` or `lm_eval.simple_evaluate()`. Available "
+                        "This model has multiple chat templates with no default specified! Please either pass a chat "
+                        "template or the name of the template you wish to use to the `chat_template` argument. Available "
                         f"template names are {sorted(template.keys())}."
                     )
 
@@ -478,9 +478,9 @@ class HFLM(TemplateLM):
                     "Using the tokenizer's chat template or the default template instead."
                 )
             if self.tokenizer.chat_template is not None:
-                chat_template = self.tokenizer.chat_template
+                selected_template = self.tokenizer.chat_template
             else:
-                chat_template = self.tokenizer.default_chat_template
+                selected_template = self.tokenizer.default_chat_template
                 using_default_template = True
 
         if using_default_template:
@@ -492,7 +492,7 @@ class HFLM(TemplateLM):
                 "then to ensure that this model continues working without issues."
             )
 
-        return chat_template
+        return selected_template
 
     def _get_backend(
         self,
