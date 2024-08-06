@@ -11,8 +11,8 @@ fewshot_split: null
 
 process_docs: !function utils.load_all_questions
 
-doc_to_text: "{{prompt}}"
-doc_to_target: "{{answers}}"
+doc_to_text: prompt
+doc_to_target: answers
 
 metric_list:
   - metric: !function script.compute_scores
@@ -21,5 +21,3 @@ metric_list:
 
 metadata:
   version: 0
-
-  
