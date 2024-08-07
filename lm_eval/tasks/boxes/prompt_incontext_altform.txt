@@ -1,0 +1,10 @@
+Given the description after "Description:", write a true statement about a container or box and the contents of this container or box according to the description after "Statement:".
+
+Description: The biscotti is in Container A, the icicle is in Container B, the granite and the machine are in Container C, the folio and the encyclopedia are in Container D, the bill is in Container E, the spork and the jackknife and the frappuccino are in Container F, the clipper and the ladybug are in Container G.
+Statement: Container A contains the biscotti.
+
+Description: The biscotti is in Container A, the icicle is in Container B, the granite and the machine are in Container C, the folio and the encyclopedia are in Container D, the bill is in Container E, the spork and the jackknife and the frappuccino are in Container F, the clipper and the ladybug are in Container G. Take the biscotti out of Container A. Take the folio and the encyclopedia out of container D. Place the tetrapod inside Container A. Pick up the ladybug in Container G and place it into Container C. Take the bill out of Container E. Place the gumball inside Container D.
+Statement: Container C contains the granite and the machine and the ladybug.
+
+Description: {description}
+Statement: Box {boxnum} contains
