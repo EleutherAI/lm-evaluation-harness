@@ -1160,6 +1160,10 @@ class HFLM(TemplateLM):
 
                     res.append(answer)
 
+                    if request_str is None:
+                        # special case: loglikelihood_rolling inputs condition on None.
+                        # cache this as empty string instead of NoneType
+                        request_str = ""
                     self.cache_hook.add_partial("loglikelihood", request_str, answer)
                     pbar.update(1)
 

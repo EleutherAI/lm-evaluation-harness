@@ -467,8 +467,11 @@ class NeMoLM(LM):
                     is_greedy = is_greedy.all()
                 answer = (logprob, is_greedy)
 
-                if cache_key is not None:
-                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                if cache_key is None:
+                    # special case: loglikelihood_rolling inputs condition on None.
+                    # cache this as empty string instead of NoneType
+                    cache_key = ""
+                self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
                 res.append(answer)
                 pbar.update(1)
