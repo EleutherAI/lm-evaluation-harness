@@ -1,6 +1,6 @@
 import ast
-import unicodedata as ud
 import re
+import unicodedata as ud
 
 
 def clean_answer(answer: str):
@@ -17,7 +17,7 @@ def clean_answer(answer: str):
     clean = re.sub("\\+", "", clean)
 
     # make quotes consistent
-    quotes_map = {"‘": "'", "’": "'", "’": "'", "“": '"', "”": '"'}
+    quotes_map = {"‘": "'", "’": "'", "“": '"', "”": '"'}
 
     for k, v in quotes_map.items():
         clean = re.sub(k, v, clean)
@@ -28,7 +28,7 @@ def clean_answer(answer: str):
     return clean
 
 
-def safe_exact(references: list[str], predictions: list[str], helper):
+def safe_exact(references: list[str], predictions: list[str]):
     if len(references[0]) == 0:
         return 1.0
     if len(predictions[0]) == 0:
@@ -38,7 +38,8 @@ def safe_exact(references: list[str], predictions: list[str], helper):
 
     return score
 
-def parse_str_list_score(model, correct, scoring_func, helper):
+
+def parse_str_list_score(model, correct, scoring_func):
     model = str(model)
     if len(correct) == 0:
         return 1.0
@@ -48,7 +49,7 @@ def parse_str_list_score(model, correct, scoring_func, helper):
         readstr = ast.literal_eval(correct)
         if isinstance(readstr, list):
             correct = readstr
-    except:
+    except SyntaxError:
         pass
     if isinstance(correct, list):
         if all(isinstance(c, str) for c in correct):
@@ -61,7 +62,6 @@ def parse_str_list_score(model, correct, scoring_func, helper):
                 score = scoring_func(
                     references=[clean_answer(c)],
                     predictions=[clean_answer(model)],
-                    helper=helper,
                 )
                 if score > max_score:
                     max_score = score
@@ -74,13 +74,11 @@ def parse_str_list_score(model, correct, scoring_func, helper):
                     score = scoring_func(
                         references=[clean_answer(c)],
                         predictions=[clean_answer(model)],
-                        helper=helper,
                     )
                 else:
                     score = scoring_func(
                         references=[clean_answer(c)],
                         predictions=[clean_answer(model)],
-                        helper=helper,
                     )
                 if score > max_score:
                     max_score = score
@@ -89,13 +87,35 @@ def parse_str_list_score(model, correct, scoring_func, helper):
         return scoring_func(
             references=[clean_answer(correct)],
             predictions=[clean_answer(model)],
-            helper=helper,
         )
 
 
-def compute_scores(response):
+def compute_scores(input):
+    ref_dict = ast.literal_eval(input[0])
+    try:
+        pred_dict = ast.literal_eval(input[1])
+    except SyntaxError:
+        pred_dict = {}
+        for k in ref_dict.keys():
+            m = re.search(str(k) + "': ([^']+)'[,\\}]", input[1])
+            if m:
+                pred_dict[k] = m.group()[:-1]
+            else:
+                pred_dict[k] = ""
+    pred_dict_full = {
+        k: pred_dict[k] if k in pred_dict else "" for k in ref_dict.keys()
+    }
     scores = [
-        parse_str_list_score(response["model_answers"][k], v, safe_exact)
-        for k, v in response["correct_answers"].items()
+        parse_str_list_score(pred_dict_full[k], v, safe_exact)
+        for k, v in ref_dict.items()
     ]
+
+    if sum(scores) / len(scores) >= 0.5:
+        print(scores)
+        print(pred_dict_full)
+        print(ref_dict)
     return scores
+
+
+def aggregate_scores(input):
+    return sum([sum(i) for i in input]) / sum([len(j) for j in input])

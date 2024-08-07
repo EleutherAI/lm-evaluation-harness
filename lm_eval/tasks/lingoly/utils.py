@@ -1,5 +1,7 @@
 import json
+
 import datasets
+
 
 def load_questionsheet(qsheet: dict, no_context: bool = False):
     subquestions = json.loads(qsheet["questions"])
@@ -12,12 +14,12 @@ def load_questionsheet(qsheet: dict, no_context: bool = False):
             all_subquestions += "\n"
 
     if no_context:
-        prompt = f"""{qsheet['preamble']} 
-                 
+        prompt = f"""{qsheet['preamble']}
+
                  {all_subquestions}
                  """
     else:
-        prompt = f"""{qsheet['preamble']} 
+        prompt = f"""{qsheet['preamble']}
                  {qsheet['context']}
 
                  {all_subquestions}
@@ -85,9 +87,14 @@ def load_all_questions(
             nc_prompt, _ = load_question(qsheet, i, no_context=True)
             nc_prompts.append(nc_prompt)
             prompts.append(prompt)
-            answers.append(answer)
+            answers.append(str(answer))
             indices.append(qsheet["overall_question_n"])
 
-    qsheets = {"prompt": prompts, "nc_prompt": nc_prompts, "answers": answers, "index": indices}
+    qsheets = {
+        "prompt": prompts,
+        "nc_prompt": nc_prompts,
+        "answers": answers,
+        "index": indices,
+    }
     dataset = datasets.Dataset.from_dict(qsheets)
     return dataset
