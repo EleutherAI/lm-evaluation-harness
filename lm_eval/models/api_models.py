@@ -107,7 +107,7 @@ class TemplateAPI(TemplateLM):
         self.max_length = max_length
         if int(num_concurrent) <= 1:
             eval_logger.info(
-                "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent > 1`."
+                "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
             )
         self._concurrent = int(num_concurrent)
         self.tokenizer_backend = tokenizer_backend
@@ -160,6 +160,7 @@ class TemplateAPI(TemplateLM):
         *,
         generate: bool = True,
         gen_kwargs: Optional[dict] = None,
+        seed: int = 1234,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -334,6 +335,7 @@ class TemplateAPI(TemplateLM):
                     self.create_message(messages),
                     generate=generate,
                     gen_kwargs=gen_kwargs,
+                    seed=self._seed,
                     **kwargs,
                 ),
                 headers=self.header,
@@ -367,6 +369,7 @@ class TemplateAPI(TemplateLM):
             self.create_message(messages),
             generate=generate,
             gen_kwargs=gen_kwargs,
+            seed=self._seed,
             **kwargs,
         )
         cache_method = "generate_until" if generate else "loglikelihood"
@@ -496,7 +499,7 @@ class TemplateAPI(TemplateLM):
                     stop=stop_after_attempt(self.max_retries),
                     wait=wait_exponential(multiplier=0.5, min=1, max=10),
                     reraise=True,
-                )(self.model_call)(messages=self.create_message(inputs), generate=False)
+                )(self.model_call)(messages=inputs, generate=False)
                 if isinstance(outputs, dict):
                     outputs = [outputs]
                 for answer_, cache_key in zip(
