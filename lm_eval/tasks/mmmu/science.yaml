@@ -22,6 +22,6 @@ task:
     task_alias: Physics
     dataset_name: Physics
 aggregate_metric_list:
-  - metric: mmmu_acc
+  - metric: acc
     aggregation: mean
     weight_by_size: true
