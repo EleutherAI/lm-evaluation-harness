@@ -2,7 +2,6 @@ tag:
   - math_word_problems
 task: gsm_plus_mini
 dataset_path: qintongli/GSM-Plus
-dataset_name: all
 output_type: generate_until
 training_split: testmini
 fewshot_split: testmini
