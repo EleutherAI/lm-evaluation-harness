@@ -1,0 +1,7 @@
+"dataset_name": "bjn_Arab-ory_Orya"
+"doc_to_target": "{{sentence_ory_Orya}}"
+"doc_to_text": "{{sentence_bjn_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_bjn_Arab-ory_Orya"
+"test_split": "dev"

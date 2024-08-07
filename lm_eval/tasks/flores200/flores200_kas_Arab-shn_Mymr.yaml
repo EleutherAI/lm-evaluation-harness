@@ -1,0 +1,7 @@
+"dataset_name": "kas_Arab-shn_Mymr"
+"doc_to_target": "{{sentence_shn_Mymr}}"
+"doc_to_text": "{{sentence_kas_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kas_Arab-shn_Mymr"
+"test_split": "dev"

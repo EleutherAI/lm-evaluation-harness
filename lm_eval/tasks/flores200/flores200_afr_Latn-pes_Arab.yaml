@@ -1,0 +1,7 @@
+"dataset_name": "afr_Latn-pes_Arab"
+"doc_to_target": "{{sentence_pes_Arab}}"
+"doc_to_text": "{{sentence_afr_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_afr_Latn-pes_Arab"
+"test_split": "dev"

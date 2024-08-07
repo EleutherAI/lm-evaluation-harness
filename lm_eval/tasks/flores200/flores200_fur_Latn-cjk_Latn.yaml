@@ -1,0 +1,7 @@
+"dataset_name": "fur_Latn-cjk_Latn"
+"doc_to_target": "{{sentence_cjk_Latn}}"
+"doc_to_text": "{{sentence_fur_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_fur_Latn-cjk_Latn"
+"test_split": "dev"

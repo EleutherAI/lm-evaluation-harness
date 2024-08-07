@@ -1,0 +1,7 @@
+"dataset_name": "mkd_Cyrl-hye_Armn"
+"doc_to_target": "{{sentence_hye_Armn}}"
+"doc_to_text": "{{sentence_mkd_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mkd_Cyrl-hye_Armn"
+"test_split": "dev"

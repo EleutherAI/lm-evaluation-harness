@@ -1,0 +1,7 @@
+"dataset_name": "mni_Beng-bug_Latn"
+"doc_to_target": "{{sentence_bug_Latn}}"
+"doc_to_text": "{{sentence_mni_Beng}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mni_Beng-bug_Latn"
+"test_split": "dev"
