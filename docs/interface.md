@@ -46,7 +46,11 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
 
-- `--apply_chat_template` : If this flag is on, a chat template will be applied to the prompt. For Hugging Face models, the chat template is taken from the tokenizer, if the tokenizer does not have a chat template, a default one will be applied. For other models, chat templating is not currently implemented.
+- `--apply_chat_template` : This flag specifies whether to apply a chat template to the prompt. It can be used in the following ways:
+	- `--apply_chat_template` : When used without an argument, applies the only available chat template to the prompt. For Hugging Face models, if no dedicated chat template exists, the default chat template will be applied.
+	- `--apply_chat_template template_name` : If the model has multiple chat templates, apply the specified template to the prompt.
+
+    For Hugging Face models, the default chat template can be found in the [`default_chat_template`](https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1912) property of the Transformers Tokenizer.
 
 - `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
 
