@@ -1,0 +1,22 @@
+task: xlsum_es
+dataset_path: csebuetnlp/xlsum
+dataset_name: spanish
+doc_to_text: 'Texto: {{text}}
+
+  Resumen:'
+doc_to_target: '{{summary}}'
+output_type: generate_until
+test_split: test
+training_split: train
+validation_split: validation
+fewshot_split: train
+process_docs: !function utils.process_xlsum
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: !function utils.rouge1
+    aggregation: !function utils.rouge1_agg
+    higher_is_better: true
+metadata:
+  version: 1.0
