@@ -1,0 +1,17 @@
+task: assin_paraphrase
+dataset_path: nilc-nlp/assin
+dataset_name: null
+training_split: train
+validation_split: validation
+test_split: test
+output_type: multiple_choice
+doc_to_text: ""
+doc_to_target: '{{0 if entailment_judgment == 0 else 1}}'
+target_delimiter: ""
+doc_to_choice: '{{[premise + ", certo? Não, " + hypothesis, premise + ", certo? Sim, " + hypothesis]}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
