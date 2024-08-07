@@ -9,7 +9,6 @@ The datasets included in SpanishBench are:
 | Task          | Category       | Paper title          | Homepage  |
 |:-------------:|:-----:|:-------------:|:-----:|
 | Belebele_es | Reading Comprehension | [The Belebele Benchmark: a Parallel Reading Comprehension Dataset in 122 Language Variants](https://arxiv.org/abs/2308.16884) | https://huggingface.co/datasets/facebook/belebele |
-| EsCoLA | Linguistic Acceptability | [CatCoLA: Catalan Corpus of Linguistic Acceptability](https://aclanthology.org/2024.lrec-main.554/) | https://huggingface.co/datasets/nbel/EsCoLA |
 | FLORES_es | Translation | [The FLORES-101  Evaluation Benchmark for Low-Resource and Multilingual Machine Translation](https://arxiv.org/abs/2106.03193) | https://huggingface.co/datasets/facebook/flores |
 | MGSM_es | Math | [Language Models are Multilingual Chain-of-Thought Reasoners](https://arxiv.org/abs/2210.03057) | https://huggingface.co/datasets/juletxara/mgsm |
 | PAWS-X_es | Paraphrasing | [PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification](https://aclanthology.org/D19-1382/) | https://huggingface.co/datasets/google-research-datasets/paws-x |
@@ -35,7 +34,6 @@ Paper for SpanishBench coming soon.
 
 The following tasks evaluate tasks on SpanishBench dataset using various scoring methods.
   - `belebele_spa_Latn`
-  - `escola`
   - `flores_es`
   - `flores_es-ca`
   - `flores_es-de`
