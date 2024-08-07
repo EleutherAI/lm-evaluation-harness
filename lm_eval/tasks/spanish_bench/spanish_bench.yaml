@@ -3,7 +3,6 @@ task:
   - belebele_spa_Latn
   - wnli_es
   - xnli_es
-  - escola
   - xstorycloze_es
   - xquad_es
   - xlsum_es
