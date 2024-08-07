@@ -10,6 +10,7 @@ from . import (
     neuron_optimum,
     openai_completions,
     optimum_lm,
+    optimum_lm_genai,
     textsynth,
     vllm_causallms,
 )
