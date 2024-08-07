@@ -1,0 +1,23 @@
+task: coqcat
+dataset_path: projecte-aina/CoQCat
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: '{{story+"\n\n"}}{% for i in range(questions|length-1) %}{{"Q: "+questions[i]+"\n\n"+"A: "+answers["input_text"][i]+"\n\n"}}{% endfor %}{{"Q: "+questions[-1]+"\n\n"+"A:"}}'
+doc_to_target: '{{ answers["input_text"][questions|length - 1] }}'
+process_results: !function utils.process_results_coqcat
+should_decontaminate: true
+doc_to_decontamination_query: "{{story}} {{question.input_text|join('\n')}}"
+generation_kwargs:
+  until:
+    - "\nQ:"
+metric_list:
+  - metric: "em"
+    aggregation: mean
+    higher_is_better: true
+  - metric: "f1"
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

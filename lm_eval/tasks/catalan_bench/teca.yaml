@@ -1,0 +1,18 @@
+task: teca
+dataset_path: projecte-aina/teca
+dataset_name: null
+training_split: train
+validation_split: validation
+test_split: test
+output_type: multiple_choice
+process_docs: !function utils.process_doc_nli
+doc_to_text: ""
+doc_to_target: label
+target_delimiter: ""
+doc_to_choice: '{{[premise + ", correcte? Sí, " + hypothesis, premise + ", correcte? A més, " + hypothesis, premise + ", correcte? No, " + hypothesis]}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
