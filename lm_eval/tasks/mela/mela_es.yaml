@@ -1,0 +1,4 @@
+include: mela_en.yaml
+task: mela_es
+dataset_name: es
+training_split: null
