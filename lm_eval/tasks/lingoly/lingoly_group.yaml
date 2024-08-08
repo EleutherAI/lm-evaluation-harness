@@ -1,0 +1,6 @@
+group: lingoly
+task:
+  - lingoly_context
+  - lingoly_nocontext
+metadata:
+  version: 1.0
