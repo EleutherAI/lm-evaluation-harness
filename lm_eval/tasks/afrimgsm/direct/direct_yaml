@@ -2,7 +2,6 @@
 # It doesn't have a yaml file extension as it is not meant to be imported directly
 # by the harness.
 group:
-    - mgsm
     - afrimgsm
     - afrimgsm_direct
 dataset_path: masakhane/afrimgsm
