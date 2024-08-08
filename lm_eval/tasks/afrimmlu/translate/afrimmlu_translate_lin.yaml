@@ -1,3 +1,7 @@
 dataset_name: lin
+<<<<<<< HEAD
 include: _translate_yaml
+=======
+include: afrimmlu_common_translate_yaml
+>>>>>>> 0571eeb14d4e48aac51956a726c62cd8b382b3d8
 task: afrimmlu_translate_lin

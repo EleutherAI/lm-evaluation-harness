@@ -1,0 +1,12 @@
+group: afrixnli
+group_alias: AfriXNLI
+task:
+  - group: afrixnli_direct
+    group_alias: Prompt in African Languages
+    task:
+      - afrixnli_native_direct
+  - afrixnli_native_direct_eng_only
+  - group: afrixnli_translate
+    group_alias: Translate-Test
+    task:
+      - afrixnli_translate

@@ -1,4 +1,4 @@
-from sklearn.metrics import f1_score
+from lm_eval.utils import weighted_f1_score
 
 
 def doc_to_choice(doc):
@@ -30,6 +30,7 @@ def doc_to_text(doc):
         choice4=choices[3],
     )
     return text
+<<<<<<< HEAD
 
 
 def weighted_f1_score(items):
@@ -38,3 +39,5 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+=======
+>>>>>>> 0571eeb14d4e48aac51956a726c62cd8b382b3d8
