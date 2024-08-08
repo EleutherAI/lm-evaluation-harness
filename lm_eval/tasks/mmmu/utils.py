@@ -23,11 +23,11 @@ Answer the question using a single word or phrase."""
 START_CHR = "A"
 
 
-# def doc_to_image(doc):
-#     question = doc["question"]
-#     image_list = re.findall(r"<image \d+>", question)
-#     image_list = [image_list.strip("<>").replace(" ", "_") for image in image_list]
-#     return [doc[image].convert("RGB") for image in image_list]
+def doc_to_image(doc):
+    question = doc["question"]
+    image_list = re.findall(r"<image \d+>", question)
+    image_list = [image.strip("<>").replace(" ", "_") for image in image_list]
+    return [doc[image].convert("RGB") for image in image_list]
 
 
 def doc_to_text(doc):
