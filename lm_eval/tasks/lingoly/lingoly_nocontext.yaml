@@ -1,4 +1,4 @@
-task: lingoly
+task: lingoly_nocontext
 
 dataset_path: ambean/lingOly # the name of the dataset on the HF Hub.
 dataset_name: null # the dataset configuration to use. Leave `null` if your dataset does not require a config to be passed. See https://huggingface.co/docs/datasets/load_hub#configurations for more info.
@@ -11,13 +11,13 @@ fewshot_split: null
 
 process_docs: !function utils.load_all_questions
 
-doc_to_text: prompt
+doc_to_text: nc_prompt
 doc_to_target: answers
 
 metric_list:
   - metric: !function script.compute_scores
     aggregation: !function script.aggregate_scores
-    higher_is_better: true
+    higher_is_better: false
 
 metadata:
   version: 0
