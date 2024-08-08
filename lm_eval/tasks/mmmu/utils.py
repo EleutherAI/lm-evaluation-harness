@@ -5,185 +5,91 @@ import re
 import numpy as np
 
 
-MULTI_CHOICE_PROMPT = "Answer with the option letter from the given choices directly."
-OPEN_ENDED_PROMPT = "Answer the question using a single word or phrase."
+random.seed(42)
 
 
-def replace_images_tokens(input_string):
-    for i in range(1, 8):
-        question_text = f"<image {i}>"
-        query_text = "<image>"
-        if question_text in input_string:
-            input_string = input_string.replace(question_text, query_text)
-    return input_string
+# source for prompt fstrings: https://github.com/MMMU-Benchmark/MMMU/blob/7787d60648c82a9d40acd656fa541a6c74f58995/eval/configs/llava1.5.yaml#L3
+MULTI_CHOICE_EXAMPLE_FORMAT = """{}
+
+{}
+
+Answer with the option's letter from the given choices directly."""
 
 
-def parse_options(options):
-    option_letters = [chr(ord("A") + i) for i in range(len(options))]
-    choices_str = "\n".join(
-        [
-            f"{option_letter}. {option}"
-            for option_letter, option in zip(option_letters, options)
-        ]
-    )
-    return choices_str
+SHORT_ANS_EXAMPLE_FORMAT = """{}
+
+Answer the question using a single word or phrase."""
+
+START_CHR = "A"
 
 
-def construct_prompt(doc):
-    question = doc["question"]
-    if doc["question_type"] == "multiple-choice":
-        # Weirdly, data["options"] is a string in MMMU Huggingface dataset
-        parsed_options = parse_options(ast.literal_eval(doc["options"]))
-        # parsed_options already prepends a newline so no need to add space here
-        question = f"{question}\n{parsed_options}\n{MULTI_CHOICE_PROMPT}"
-    else:
-        question = f"{question}\n{OPEN_ENDED_PROMPT}"
-    return question
+# def doc_to_image(doc):
+#     question = doc["question"]
+#     image_list = re.findall(r"<image \d+>", question)
+#     image_list = [image_list.strip("<>").replace(" ", "_") for image in image_list]
+#     return [doc[image].convert("RGB") for image in image_list]
 
 
 def doc_to_text(doc):
-    question = construct_prompt(doc)
-    return replace_images_tokens(question)
+    """Get the prompt for a given document."""
 
+    if doc["question_type"] == "multiple-choice":
+        choices_str = ""
 
-def doc_to_image(doc):
-    prompt = construct_prompt(doc)
-    image_tokens = re.findall(r"<image \d+>", prompt)
-    # Remove <> and  swap space as _
-    image_tokens = [
-        image_token.strip("<>").replace(" ", "_") for image_token in image_tokens
-    ]
-    visual = [doc[image_token].convert("RGB") for image_token in image_tokens]
-    return visual
+        for i, choice in enumerate(ast.literal_eval(doc["options"])):
+            # add (A) {choice1}\n , (B) {choice2}\n , and so on
+            # to create the list of formatted choices in the prompt
+            choices_str += f"\n({chr(ord(START_CHR) + i)}) {choice}"
+
+        choices_str = (
+            choices_str.lstrip()
+        )  # remove the extraneous prepended \n that we added
+
+        prompt = MULTI_CHOICE_EXAMPLE_FORMAT.format(doc["question"], choices_str)
+    else:
+        prompt = SHORT_ANS_EXAMPLE_FORMAT.format(doc["question"])
+
+    for i in range(1, 8):
+        # replace <image {i}> with <image>. TODO: check this is always the right decision incl. for non-HF models
+        prompt = prompt.replace(f"<image {i}>", "<image>")
+    print(prompt)
+
+    return prompt
 
 
 def process_results(doc, results):
-    pred = results[0]
     if doc["question_type"] == "multiple-choice":
-        index2ans, all_choices = get_multi_choice_info(ast.literal_eval(doc["options"]))
-        parsed_pred = parse_multi_choice_response(pred, all_choices, index2ans)
+        # multichoice logic
+        option_strs = ast.literal_eval(doc["options"])
+        option_letters = ["A", "B", "C", "D"]
+
+        all_choices = option_letters[: len(option_strs)]
+        index2ans = {index: ans for index, ans in zip(option_letters, option_strs)}
+
+        pred = parse_multi_choice_response(results[0], all_choices, index2ans)
+        print(pred, all_choices, index2ans)
+        is_correct = eval_multi_choice(doc["answer"], pred)
     else:
-        parsed_pred = parse_open_response(pred)
+        pred = parse_open_response(results[0])
+        is_correct = eval_open(doc["answer"], pred)
+        # freeform response handling
 
-    sample_dict = {
-        "id": doc["id"],
-        "subdomain": extract_subset_name(doc["id"]),
-        "question_type": doc["question_type"],
-        "answer": doc["answer"],
-        "parsed_pred": parsed_pred,
-    }
-    _, result_dict = evaluate_mmmu([sample_dict])
-    return result_dict
+    return {"acc": float(is_correct)}
+
+    # TODO: it would be better if we could use a Filter for this logic.
 
 
-def extract_subset_name(input_string):
-    # Define a regex pattern to match "validation_" at the beginning and "_<number>" at the end
-    split = input_string.split("_")[0]
-    pattern = re.compile(rf"^{split}_(.+?)_\d+$")
-    match = pattern.search(input_string)
-    if match:
-        return match.group(1)
-    else:
-        raise ValueError(f'No match found in "{input_string}"')
+### Output parsing and answer selection taken from
+### https://github.com/MMMU-Benchmark/MMMU/blob/main/eval/utils/data_utils.py
+### and
+### https://github.com/MMMU-Benchmark/MMMU/blob/main/eval/utils/eval_utils.py
 
 
-##################
-# Helper functions written by official MMMU repo.
-##################
-
-
-def calculate_ins_level_acc(results):
-    """Calculate the instruction level accuracy for given Subject results
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L246
-    """
-    acc = 0
-    ins_num = 0
-    for cat_results in results.values():
-        acc += cat_results["mmmu_acc"] * cat_results["num_example"]
-        ins_num += cat_results["num_example"]
-    if ins_num == 0:
-        return 0
-    return acc / ins_num
-
-
-def eval_multi_choice(gold_i, pred_i):
-    """
-    Evaluate a multiple choice instance.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L175
-    """
-    correct = False
-    # only they are exactly the same, we consider it as correct
-    if isinstance(gold_i, list):
-        for answer in gold_i:
-            if answer == pred_i:
-                correct = True
-                break
-    else:  # gold_i is a string
-        if gold_i == pred_i:
-            correct = True
-    return correct
-
-
-def eval_open(gold_i, pred_i):
-    """
-    Evaluate an open question instance
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L191
-    """
-    correct = False
-    if isinstance(gold_i, list):
-        # use float to avoid trivial matches
-        norm_answers = []
-        for answer in gold_i:
-            norm_answers.extend(normalize_str(answer))
-    else:
-        norm_answers = normalize_str(gold_i)
-    for pred in pred_i:  # pred is already normalized in parse response phase
-        if isinstance(pred, str):  # if it's a string, then find if ans in the pred_i
-            for norm_ans in norm_answers:
-                # only see if the string answer in the string pred
-                if isinstance(norm_ans, str) and norm_ans in pred:
-                    if not correct:
-                        correct = True
-                    break
-        else:  # it's a float number
-            if pred in norm_answers:
-                if not correct:
-                    correct = True
-                break
-    return correct
-
-
-def evaluate_mmmu(samples):
-    """
-    Batch evaluation for multiple choice and open questions.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L219
-    """
-    pred_correct = 0
-    judge_dict = dict()
-    for sample in samples:
-        gold_i = sample["answer"]
-        pred_i = sample["parsed_pred"]
-        if sample["question_type"] == "multiple-choice":
-            correct = eval_multi_choice(gold_i, pred_i)
-        else:  # open question
-            correct = eval_open(gold_i, pred_i)
-
-        if correct:
-            judge_dict[sample["id"]] = "Correct"
-            pred_correct += 1
-        else:
-            judge_dict[sample["id"]] = "Wrong"
-
-    if len(samples) == 0:
-        return {"mmmu_acc": 0}
-    return judge_dict, {"mmmu_acc": pred_correct / len(samples)}
-
-
+# ----------- Process Multi-choice -------------
 def parse_multi_choice_response(response, all_choices, index2ans):
     """
     Parse the prediction from the generated response.
     Return the predicted index e.g., A, B, C, D.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L10
     """
     for char in [",", ".", "!", "?", ";", ":", "'"]:
         response = response.strip(char)
@@ -199,12 +105,7 @@ def parse_multi_choice_response(response, all_choices, index2ans):
 
     if len(candidates) == 0:
         for choice in all_choices:  # e.g., A B C D
-            if f"{choice} " in response:
-                candidates.append(choice)
-
-    if len(candidates) == 0:
-        for choice in all_choices:  # e.g., A. B. C. D.
-            if f"{choice}." in response:
+            if f" {choice} " in response:
                 candidates.append(choice)
 
     # if all above doesn't get candidates, check if the content is larger than 5 tokens and try to parse the example
@@ -237,37 +138,15 @@ def parse_multi_choice_response(response, all_choices, index2ans):
     else:  # if only one candidate, use it.
         pred_index = candidates[0]
 
+    print(response, all_choices, index2ans, pred_index)
+
     return pred_index
 
 
-def extract_numbers(string):
-    """
-    Exact all forms of numbers from a string with regex.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L100
-    """
-    # Pattern for numbers with commas
-    pattern_commas = r"-?\b\d{1,3}(?:,\d{3})+\b"
-    # Pattern for scientific notation
-    pattern_scientific = r"-?\d+(?:\.\d+)?[eE][+-]?\d+"
-    # Pattern for simple numbers without commas
-    pattern_simple = r"-?(?:\d+\.\d+|\.\d+|\d+\b)(?![eE][+-]?\d+)(?![,\d])"
-
-    # Extract numbers with commas
-    numbers_with_commas = re.findall(pattern_commas, string)
-    # Extract numbers in scientific notation
-    numbers_scientific = re.findall(pattern_scientific, string)
-    # Extract simple numbers without commas
-    numbers_simple = re.findall(pattern_simple, string)
-
-    # Combine all extracted numbersz
-    all_numbers = numbers_with_commas + numbers_scientific + numbers_simple
-    return all_numbers
-
-
+# ----------- Process Open -------------
 def check_is_number(string):
     """
     Check if the given string a number.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L65
     """
     try:
         float(string.replace(",", ""))
@@ -280,7 +159,6 @@ def check_is_number(string):
 def normalize_str(string):
     """
     Normalize the str to lower case and make them float numbers if possible.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L76
     """
     # check if characters in the string
 
@@ -303,11 +181,33 @@ def normalize_str(string):
         return [string]
 
 
+def extract_numbers(string):
+    """
+    Exact all forms of numbers from a string with regex.
+    """
+    # Pattern for numbers with commas
+    pattern_commas = r"-?\b\d{1,3}(?:,\d{3})+\b"
+    # Pattern for scientific notation
+    pattern_scientific = r"-?\d+(?:\.\d+)?[eE][+-]?\d+"
+    # Pattern for simple numbers without commas
+    pattern_simple = r"-?(?:\d+\.\d+|\.\d+|\d+\b)(?![eE][+-]?\d+)(?![,\d])"
+
+    # Extract numbers with commas
+    numbers_with_commas = re.findall(pattern_commas, string)
+    # Extract numbers in scientific notation
+    numbers_scientific = re.findall(pattern_scientific, string)
+    # Extract simple numbers without commas
+    numbers_simple = re.findall(pattern_simple, string)
+
+    # Combine all extracted numbers
+    all_numbers = numbers_with_commas + numbers_scientific + numbers_simple
+    return all_numbers
+
+
 def parse_open_response(response):
     """
     Parse the prediction from the generated response.
     Return a list of predicted strings or numbers.
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/eval_utils.py#L122
     """
 
     # content = content.strip("\n").strip(".").strip(" ")
@@ -377,18 +277,75 @@ def parse_open_response(response):
     return pred_list
 
 
-def get_multi_choice_info(options):
-    """
-    Given the list of options for multiple choice question
-    Return the index2ans and all_choices
-    https://github.com/MMMU-Benchmark/MMMU/blob/51ce7f3e829c16bb44bc5445782686b4c3508794/eval/data_utils.py#L54
-    """
+# ----------- Evaluation -------------
 
-    start_chr = "A"
-    all_choices = []
-    index2ans = {}
-    for i, option in enumerate(options):
-        index2ans[chr(ord(start_chr) + i)] = option
-        all_choices.append(chr(ord(start_chr) + i))
 
-    return index2ans, all_choices
+def eval_multi_choice(gold_i, pred_i):
+    """
+    Evaluate a multiple choice instance.
+    """
+    correct = False
+    # only they are exactly the same, we consider it as correct
+    if isinstance(gold_i, list):
+        for answer in gold_i:
+            if answer == pred_i:
+                correct = True
+                break
+    else:  # gold_i is a string
+        if gold_i == pred_i:
+            correct = True
+    return correct
+
+
+def eval_open(gold_i, pred_i):
+    """
+    Evaluate an open question instance
+    """
+    correct = False
+    if isinstance(gold_i, list):
+        # use float to avoid trivial matches
+        norm_answers = []
+        for answer in gold_i:
+            norm_answers.extend(normalize_str(answer))
+    else:
+        norm_answers = normalize_str(gold_i)
+    for pred in pred_i:  # pred is already normalized in parse response phase
+        if isinstance(pred, str):  # if it's a string, then find if ans in the pred_i
+            for norm_ans in norm_answers:
+                # only see if the string answer in the string pred
+                if isinstance(norm_ans, str) and norm_ans in pred:
+                    if not correct:
+                        correct = True
+                    break
+        else:  # it's a float number
+            if pred in norm_answers:
+                if not correct:
+                    correct = True
+                break
+    return correct
+
+
+# ----------- Batch Evaluation -------------
+def evaluate(samples):
+    """
+    Batch evaluation for multiple choice and open questions.
+    """
+    pred_correct = 0
+    judge_dict = dict()
+    for sample in samples:
+        gold_i = sample["answer"]
+        pred_i = sample["parsed_pred"]
+        if sample["question_type"] == "multiple-choice":
+            correct = eval_multi_choice(gold_i, pred_i)
+        else:  # open question
+            correct = eval_open(gold_i, pred_i)
+
+        if correct:
+            judge_dict[sample["id"]] = "Correct"
+            pred_correct += 1
+        else:
+            judge_dict[sample["id"]] = "Wrong"
+
+    if len(samples) == 0:
+        return {"acc": 0}
+    return judge_dict, {"acc": pred_correct / len(samples)}

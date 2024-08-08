@@ -1,10 +1,10 @@
 dataset_path: MMMU/MMMU
 validation_split: validation
 output_type: generate_until
-doc_to_image: !function new_utils.doc_to_image
-doc_to_text: !function new_utils.doc_to_text
+doc_to_image: ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6", "image_7"]
+doc_to_text: !function utils.doc_to_text
 doc_to_target: "answer"
-process_results: !function new_utils.process_results
+process_results: !function utils.process_results
 generation_kwargs:
   until:
     - "<|endoftext|>"

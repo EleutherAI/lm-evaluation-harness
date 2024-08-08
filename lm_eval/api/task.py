@@ -1278,13 +1278,20 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_image(self, doc: Any) -> Union[int, str, list]:
-        if self.config.doc_to_image is None:
-            return None
-        else:
+    def doc_to_image(self, doc: Any, doc_to_image=None) -> Union[int, str, list]:
+        if doc_to_image is not None:
+            doc_to_image = doc_to_image
+        elif self.config.doc_to_image is not None:
             doc_to_image = self.config.doc_to_image
+        else:
+            return None
 
-        if isinstance(self.config.doc_to_image, str):
+        if isinstance(doc_to_image, list):
+            image_feature = [
+                self.doc_to_image(doc, feature) for feature in doc_to_image
+            ]
+            return [feature for feature in image_feature if feature is not None]
+        elif isinstance(doc_to_image, str):
             if doc_to_image in self.features:
                 return doc[doc_to_image]
             else:
