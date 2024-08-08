@@ -5,8 +5,13 @@ task:
     group_alias: Prompt in African Languages
     task:
       - afrixnli_native_direct
-  - afrixnli_native_direct_eng_only
-  - group: afrixnli_lai_prompt_translate
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: False
+  - group: afrixnli_translate_test
     group_alias: Translate-Test
     task:
-      - afrixnli_lai_prompt_translate
+      - afrixnli_translate
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: False
