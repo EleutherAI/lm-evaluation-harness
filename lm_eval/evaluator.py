@@ -43,6 +43,7 @@ if TYPE_CHECKING:
     from lm_eval.api.task import Task
 
 eval_logger = logging.getLogger(__name__)
+# eval_logger.setLevel(logging.INFO)
 
 
 @positional_deprecated
@@ -134,7 +135,7 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    # eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     start_date = time.time()
 
     if delete_requests_cache:
@@ -391,7 +392,7 @@ def evaluate(
         Dictionary of results
     """
 
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    # eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
