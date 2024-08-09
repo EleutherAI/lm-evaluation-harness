@@ -1,7 +1,5 @@
 dataset_name: boolean_expressions
-description: 'Evaluate the result of a random Boolean expression.
-
-        '
+description: 'Evaluate the result of a random Boolean expression.'
 doc_to_choice: ["False", "True"]
 fewshot_config:
   sampler: first_n
