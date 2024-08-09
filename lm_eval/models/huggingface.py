@@ -112,7 +112,7 @@ class HFLM(TemplateLM):
             gpus = torch.cuda.device_count()
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
-            if accelerator.num_processes > 1:
+            if accelerator.num_processes > 0:
                 self.accelerator = accelerator
 
             if "npu" in accelerator.device.type:
@@ -334,6 +334,10 @@ class HFLM(TemplateLM):
         """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
         num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
         num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
+        if gpus > 1 and num_machines == 0:
+            # Catching an edge case when launching with one process for DP and several for MP 
+            # is detected as all process for DP
+            num_machines = 1
         if num_machines == 0:
             eval_logger.info("We are not in a distributed setting. Setting model_parallel to False.")
             parallelize = False
