@@ -31,7 +31,6 @@ from lm_eval.tasks import (
     get_task_dict,
 )
 from lm_eval.utils import (
-    eval_logger,
     handle_non_serializable,
     hash_string,
     positional_deprecated,
@@ -42,6 +41,8 @@ from lm_eval.utils import (
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
+
+eval_logger = logging.getLogger(__name__)
 
 
 @positional_deprecated

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import importlib
+import logging
 import pathlib
 from copy import deepcopy
 from typing import List, Literal
@@ -27,11 +28,13 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator
 from lm_eval.utils import (
-    eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
     simple_parse_args_string,
 )
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 def _patch_pretrained_cfg(

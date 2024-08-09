@@ -1,4 +1,5 @@
 import copy
+import logging
 from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
@@ -12,7 +13,6 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, configure_pad_token, undistribute
 from lm_eval.utils import (
-    eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -29,7 +29,7 @@ except ModuleNotFoundError:
 if TYPE_CHECKING:
     pass
 
-eval_logger = eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("vllm")

@@ -1,4 +1,5 @@
 import copy
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -37,7 +38,7 @@ from lm_eval.models.utils import (
 )
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-auto", "hf", "huggingface")

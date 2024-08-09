@@ -267,9 +267,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    eval_logger = utils.eval_logger
-    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
-    eval_logger.info(f"Verbosity set to {args.verbosity}")
+    eval_logger = logging.getLogger(__name__)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
@@ -458,4 +456,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
 
 if __name__ == "__main__":
-    cli_evaluate()
+    parser = setup_parser()
+    args = parse_eval_args(parser)
+    cli_evaluate(args)
+
+    logging.basicConfig(
+        format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d:%H:%M:%S",
+        level=args.verbosity if args.verbosity is None else logging.ERROR,
+    )

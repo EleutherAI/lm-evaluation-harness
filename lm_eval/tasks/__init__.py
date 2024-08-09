@@ -13,6 +13,8 @@ from lm_eval.evaluator_utils import get_subtask_list
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
+eval_logger = logging.getLogger(__name__)
+
 
 class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
@@ -28,8 +30,8 @@ class TaskManager:
     ) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
-        self.logger = utils.eval_logger
-        self.logger.setLevel(getattr(logging, f"{verbosity}"))
+        # eval_logger = utils.eval_logger
+        # eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults
@@ -488,7 +490,7 @@ class TaskManager:
                         for attr in ["tag", "group"]:
                             if attr in config:
                                 if attr == "group" and print_info:
-                                    self.logger.info(
+                                    eval_logger.info(
                                         "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
                                         "`tag` will be used to allow to call a collection of tasks just like `group`. "
                                         "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
@@ -509,7 +511,7 @@ class TaskManager:
                                             "yaml_path": -1,
                                         }
                                     elif tasks_and_groups[tag]["type"] != "tag":
-                                        self.logger.info(
+                                        eval_logger.info(
                                             f"The tag {tag} is already registered as a group, this tag will not be registered. "
                                             "This may affect tasks you want to call."
                                         )
@@ -517,7 +519,7 @@ class TaskManager:
                                     else:
                                         tasks_and_groups[tag]["task"].append(task)
                     else:
-                        self.logger.debug(f"File {f} in {root} could not be loaded")
+                        eval_logger.debug(f"File {f} in {root} could not be loaded")
 
         return tasks_and_groups
 
