@@ -227,7 +227,7 @@ class HFLM(TemplateLM):
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
-        if "gemma" in getattr(self.config, "model_type", None):
+        if getattr(self.config, "model_type", None) in ["gemma", "recurrentgemma", "gemma2"]:
             self.add_bos_token = True
             eval_logger.info(
                 f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
@@ -1349,15 +1349,14 @@ class HFLM(TemplateLM):
             chat_templated = self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
-        except jinja2.exceptions.TemplateError:
+        except jinja2.exceptions.TemplateError as e:
             eval_logger.warning(
-                "Failed to apply chat template. removing the system role in chat history."
+                f"Failed to apply chat template due to error: {e}. Removing the system role in chat history."
             )
             chat_history = [msg for msg in chat_history if msg["role"] != "system"]
             chat_templated = self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
-            
 
         return chat_templated
 
