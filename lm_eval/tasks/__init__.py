@@ -24,14 +24,10 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity="INFO",
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
     ) -> None:
-        self.verbosity = verbosity
         self.include_path = include_path
-        # eval_logger = utils.eval_logger
-        # eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults

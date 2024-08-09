@@ -43,7 +43,6 @@ if TYPE_CHECKING:
     from lm_eval.api.task import Task
 
 eval_logger = logging.getLogger(__name__)
-# eval_logger.setLevel(logging.INFO)
 
 
 @positional_deprecated
@@ -70,7 +69,6 @@ def simple_evaluate(
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
-    verbosity: str = "INFO",
     predict_only: bool = False,
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
@@ -135,7 +133,6 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    # eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     start_date = time.time()
 
     if delete_requests_cache:
@@ -224,7 +221,7 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = TaskManager(verbosity)
+        task_manager = TaskManager()
 
     task_dict = get_task_dict(tasks, task_manager)
 
@@ -307,7 +304,6 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
-        verbosity=verbosity,
     )
 
     if lm.rank == 0:
@@ -366,7 +362,6 @@ def evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: bool = False,
     fewshot_as_multiturn: bool = False,
-    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -391,8 +386,6 @@ def evaluate(
     :return
         Dictionary of results
     """
-
-    # eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)

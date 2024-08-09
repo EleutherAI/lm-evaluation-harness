@@ -268,8 +268,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
     if args.verbosity:
-        # logging.getLogger().setLevel(args.verbosity)
-        # logging.getLogger().setLevel(logging.DEBUG)
         verbosity = args.verbosity
     else:
         verbosity = logging.ERROR
@@ -312,7 +310,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(include_path=args.include_path)
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
@@ -409,7 +407,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
-        verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
