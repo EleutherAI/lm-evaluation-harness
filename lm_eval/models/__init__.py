@@ -5,6 +5,7 @@ from . import (
     gguf,
     huggingface,
     mamba_lm,
+    mlx_llms,
     nemo_lm,
     neuralmagic,
     neuron_optimum,
