@@ -124,12 +124,18 @@ class HFMultimodalLM(HFLM):
             add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.processor(
-            strings,
+            # images=visuals,
+            text=strings,
+            images=None,
             truncation=truncation,
             padding="longest",
             return_tensors="pt",
             **add_special_tokens,
-        ).to(
+        )
+        if encoding["pixel_values"] is None:
+            encoding.pop("pixel_values")
+
+        encoding.to(
             self.device, self.model.dtype
         )  # TODO: casting to dtype seems odd for input_ids and attn_mask.
         if left_truncate_len:
@@ -232,7 +238,6 @@ class HFMultimodalLM(HFLM):
             visuals = [
                 arg["visual"] for arg in aux_arguments
             ]  # TODO: I think *fully* flattening is just wrong for bs>1 ??
-
             ### this part onward: same as HFLM ###
 
             # we assume all gen kwargs in the batch are the same
