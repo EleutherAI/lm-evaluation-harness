@@ -2,7 +2,7 @@ task: coverbench_zeroshot
 dataset_path: google/coverbench
 dataset_name: eval
 output_type: generate_until
-doc_to_text: !function doc_to_text_zeroshot
+doc_to_text: !function utils.doc_to_text_zeroshot
 doc_to_target: !function utils.doc_to_target
 metric_list:
   - metric: exact_match
