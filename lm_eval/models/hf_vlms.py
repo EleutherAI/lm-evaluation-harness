@@ -132,7 +132,7 @@ class HFMultimodalLM(HFLM):
             return_tensors="pt",
             **add_special_tokens,
         )
-        if encoding["pixel_values"] is None:
+        if "pixel_values" in encoding and encoding["pixel_values"] is None:
             encoding.pop("pixel_values")
 
         encoding.to(
