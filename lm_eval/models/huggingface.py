@@ -51,7 +51,7 @@ class HFLM(TemplateLM):
     """
 
     AUTO_MODEL_CLASS = None
-    _DEFAULT_MAX_LENGTH = 2048
+    _DEFAULT_MAX_LENGTH = 4096
 
     def __init__(
         self,
@@ -426,18 +426,27 @@ class HFLM(TemplateLM):
 
     @property
     def max_length(self):
-        if self._max_length:  # if max length manually set, return it
+        # If max length manually set, return it
+        if self._max_length:
             return self._max_length
-        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
-        for attr in seqlen_config_attrs:
-            if hasattr(self.model.config, attr):
-                return getattr(self.model.config, attr)
-        if hasattr(self.tokenizer, "model_max_length"):
-            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
-                return self._DEFAULT_MAX_LENGTH
-            return self.tokenizer.model_max_length
-        return self._DEFAULT_MAX_LENGTH
+        
+        # Configuration attributes to check for max length
+        length_source = [
+            (self.model.config, "n_positions"),
+            (self.model.config, "max_position_embeddings"),
+            (self.model.config, "n_ctx"),
+            (self.tokenizer, "model_max_length")
+        ]
 
+        # Check each component's attribute and return the minimum found value
+        for component, attr in length_source:
+            if hasattr(component, attr):
+                local_max = getattr(component, attr)
+                return min(local_max, self._DEFAULT_MAX_LENGTH)
+
+        # Fallback to the default maximum length
+        return self._DEFAULT_MAX_LENGTH
+    
     @property
     def max_gen_toks(self) -> int:
         return 256

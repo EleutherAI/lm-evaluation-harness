@@ -225,8 +225,8 @@ lm_cache
 # Evaluation results
 eval_results/
 
-# HF_TOKEN
-slurm_files/
+# SH files (feel free to change the condition to less strict)
+*.sh
 
 # Slurm scripts
 *.slurm
