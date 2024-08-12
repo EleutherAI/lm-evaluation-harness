@@ -1,0 +1,7 @@
+include: _default
+task: ko_commongen_v2_espanol
+test_split: espanol
+description: "La siguiente tarea consiste en combinar morfemas existentes en el conjunto de conceptos dado, concept set:, para crear una oración que concuerde con el sentido común. Elige el número de la opción que incluya la oración más coherente y válida entre los cuatro ejemplos creados combinando morfemas del concept set: ."
+doc_to_text: "{{query}}\nContesta:"
+
+

@@ -1,0 +1,19 @@
+task: ko_commongen_v2
+dataset_path: nlpai-lab/ko_commongen_v2_code_switching
+output_type: multiple_choice
+training_split: null
+validation_split: null
+process_docs: !function utils.process_docs
+doc_to_target: "{{gold}}"
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+num_fewshot: 0
+metadata:
+  version: 0.0
+
