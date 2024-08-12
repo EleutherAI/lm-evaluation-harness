@@ -3,7 +3,7 @@ import numpy as np
 
 
 def doc_to_target(doc):
-    return "نعم" if ((line["toxicity_ai"] + line["toxicity_human"]) > 5.5) else "لا"
+    return 1 if ((line["toxicity_ai"] + line["toxicity_human"]) > 5.5) else 0
 
 def doc_to_text(doc):
     text = doc["text"]
