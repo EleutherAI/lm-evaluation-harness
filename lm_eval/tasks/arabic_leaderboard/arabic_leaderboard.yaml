@@ -14,5 +14,14 @@ task:
   - leaderboard_arabic_race
   - leaderboard_arabic_sciq
   - leaderboard_arabic_toxigen
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
 
 
