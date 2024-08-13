@@ -15,7 +15,7 @@ doc_to_text: nc_prompt
 doc_to_target: answers
 
 metric_list:
-  - metric: !function script.compute_scores
+  - metric: !function script.exact_match
     aggregation: !function script.aggregate_scores
     higher_is_better: false
 

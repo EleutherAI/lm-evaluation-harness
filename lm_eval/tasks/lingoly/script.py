@@ -45,12 +45,13 @@ def parse_str_list_score(model, correct, scoring_func):
         return 1.0
     if len(model) == 0:
         return 0.0
-    try:
-        readstr = ast.literal_eval(correct)
-        if isinstance(readstr, list):
-            correct = readstr
-    except SyntaxError:
-        pass
+    if "[" in correct:
+        try:
+            readstr = ast.literal_eval(correct)
+            if isinstance(readstr, list):
+                correct = readstr
+        except SyntaxError:
+            pass
     if isinstance(correct, list):
         if all(isinstance(c, str) for c in correct):
             max_score = 0.0
@@ -90,7 +91,7 @@ def parse_str_list_score(model, correct, scoring_func):
         )
 
 
-def compute_scores(input):
+def exact_match(input):
     ref_dict = ast.literal_eval(input[0])
     try:
         pred_dict = ast.literal_eval(input[1])
@@ -110,12 +111,14 @@ def compute_scores(input):
         for k, v in ref_dict.items()
     ]
 
-    if sum(scores) / len(scores) >= 0.5:
-        print(scores)
-        print(pred_dict_full)
-        print(ref_dict)
     return scores
 
 
 def aggregate_scores(input):
     return sum([sum(i) for i in input]) / sum([len(j) for j in input])
+
+
+def aggregate_metrics(
+    metrics_scores: list[int], dataset_size: list[int], weight_by_size: bool
+):
+    return metrics_scores[0] - metrics_scores[1]
