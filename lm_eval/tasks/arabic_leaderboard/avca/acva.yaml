@@ -1,0 +1,66 @@
+group: leaderboard_acva
+task:
+- arabic_Algeria
+- arabic_Ancient_Egypt
+- arabic_Arab_Empire
+- arabic_Arabic_Architecture
+- arabic_Arabic_Art
+- arabic_Arabic_Astronomy
+- arabic_Arabic_Calligraphy
+- arabic_Arabic_Ceremony
+- arabic_Arabic_Clothing
+- arabic_Arabic_Culture
+- arabic_Arabic_Food
+- arabic_Arabic_Funeral
+- arabic_Arabic_Geography
+- arabic_Arabic_History
+- arabic_Arabic_Language_Origin
+- arabic_Arabic_Literature
+- arabic_Arabic_Math
+- arabic_Arabic_Medicine
+- arabic_Arabic_Music
+- arabic_Arabic_Ornament
+- arabic_Arabic_Philosophy
+- arabic_Arabic_Physics_and_Chemistry
+- arabic_Arabic_Wedding
+- arabic_Bahrain
+- arabic_Comoros
+- arabic_Egypt_modern
+- arabic_InfluenceFromAncientEgypt
+- arabic_InfluenceFromByzantium
+- arabic_InfluenceFromChina
+- arabic_InfluenceFromGreece
+- arabic_InfluenceFromPersia
+- arabic_InfluenceFromRome
+- arabic_Iraq
+- arabic_Islam_Education
+- arabic_Islam_branches_and_schools
+- arabic_Islamic_law_system
+- arabic_Jordan
+- arabic_Kuwait
+- arabic_Lebanon
+- arabic_Libya
+- arabic_Mauritania
+- arabic_Mesopotamia_civilization
+- arabic_Morocco
+- arabic_Oman
+- arabic_Palestine
+- arabic_Qatar
+- arabic_communication
+- arabic_computer_and_phone
+- arabic_daily_life
+- arabic_entertainment
+
+
+
+
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
