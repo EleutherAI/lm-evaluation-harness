@@ -1,4 +1,4 @@
-task: leaderboard_arabic_exams_light
+task: arabic_exams_light
 dataset_path: arcee-globe/Arabic_EXAMS-10percent
 dataset_name: default
 output_type: multiple_choice
