@@ -6,6 +6,11 @@ LETTER_INDICES_AR = ["أ", "ب", "ج", "د", "هـ", "و", "ز", "ح", "ط", "ي
 # fmt: on
 
 
+# fmt: off
+LETTER_INDICES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+# fmt: on
+
+
 def process_docs(dataset: datasets.Dataset):
     def _process_doc(doc):
         topic = doc["subject"]

@@ -1,6 +1,6 @@
 task: arabic_mmlu_us_foreign_policy_light
 dataset_path: arcee-globe/Arabic_MMLU-10percent
-dataset_name: foreign_policy
+dataset_name: us_foreign_policy
 output_type: multiple_choice
 training_split: null
 validation_split: dev
