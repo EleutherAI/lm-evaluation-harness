@@ -1,10 +1,11 @@
-from datasets import Dataset
+import random
+import datasets
 import numpy as np
 
 def doc_to_text(doc):
     instruction = "بناءً على السياق أدناه، اختر الإجابة الصحيحة للسؤال التالي من قائمة الاقتراحات"
-    support = line["support"]
-    question = line["question"]
+    support = doc["support"]
+    question = doc["question"]
     query = f"""{instruction}
     السياق:
     {support}

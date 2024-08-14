@@ -1,4 +1,4 @@
-from datasets import Dataset
+import datasets
 import numpy as np
 
 # fmt: off
