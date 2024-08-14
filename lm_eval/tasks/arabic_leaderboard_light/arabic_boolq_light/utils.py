@@ -21,3 +21,4 @@ def process_docs(dataset: datasets.Dataset):
             "choices": ["نعم", "لا"],
             "gold": 0 if doc["answer"] else 1
         }
+    return dataset.map(_process_doc)

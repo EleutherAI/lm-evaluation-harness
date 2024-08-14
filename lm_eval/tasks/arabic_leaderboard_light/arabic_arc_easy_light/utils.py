@@ -22,3 +22,4 @@ def process_docs(dataset: datasets.Dataset):
             "choices": choices,
             "gold": answer_index
         }
+    return dataset.map(_process_doc)

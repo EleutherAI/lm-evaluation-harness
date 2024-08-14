@@ -22,3 +22,4 @@ def process_docs(dataset: datasets.Dataset):
             "choices": LETTER_INDICES_AR[:4],
             "gold": answer_index
         }
+    return dataset.map(_process_doc)
