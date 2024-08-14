@@ -8,7 +8,7 @@ MODEL_PATHS=( # This can be a local directory OR a huggingface repo, put as many
 )
 
 tasks=(
-"leaderboard_arabic_copa_light"
+"leaderboard_alghafa_light"
 )
 
 for MODEL_PATH in "${MODEL_PATHS[@]}"; do
@@ -23,8 +23,3 @@ for MODEL_PATH in "${MODEL_PATHS[@]}"; do
   done
 done
 
-lm_eval --model hf \
-    --model_args pretrained=TinyLlama/TinyLlama-1.1B-Chat-v1.0,trust_remote_code=True,dtype=float16 \
-    --tasks leaderboard_arabic_copa_light \
-    --device cuda:0 \
-    --batch_size auto:2
