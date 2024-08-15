@@ -10,7 +10,6 @@
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
 "tag": "tmlu_social_sciences_tasks"
-"group_alias": "social sciences"
 "include": "_default_template_yaml"
 "task": "tmlu_GSAT_geography"
 "task_alias": "GSAT geography"

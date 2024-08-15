@@ -11,7 +11,6 @@
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
 "tag": "tmlu_stem_tasks"
-"group_alias": "STEM"
 "include": "_default_template_yaml"
 "task": "tmlu_AST_chemistry"
 "task_alias": "AST chemistry"

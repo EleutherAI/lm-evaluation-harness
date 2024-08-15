@@ -10,7 +10,6 @@
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
 "tag": "tmlu_humanities_tasks"
-"group_alias": "humanities"
 "include": "_default_template_yaml"
 "task": "tmlu_tour_leader"
 "task_alias": "tour leader"

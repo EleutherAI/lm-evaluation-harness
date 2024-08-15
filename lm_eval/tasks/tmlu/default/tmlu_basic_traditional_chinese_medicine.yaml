@@ -10,7 +10,6 @@
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
 "tag": "tmlu_other_tasks"
-"group_alias": "other"
 "include": "_default_template_yaml"
 "task": "tmlu_basic_traditional_chinese_medicine"
 "task_alias": "basic traditional chinese medicine"

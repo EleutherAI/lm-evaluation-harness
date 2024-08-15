@@ -10,7 +10,6 @@
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
 "tag": "tmlu_taiwan_specific"
-"group_alias": "Taiwan Specific"
 "include": "_default_template_yaml"
 "task": "tmlu_driving_rule"
 "task_alias": "driving rule"
