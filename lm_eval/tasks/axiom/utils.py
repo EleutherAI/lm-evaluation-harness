@@ -61,13 +61,11 @@ def list_fewshot_samples() -> list[dict]:
             "problem": "If the system of equations\n\n\\begin{align*}\n6x-4y&=a,\\\n6y-9x &=b.\n\\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,\nfind $\\frac{a}{b},$ assuming $b$ is nonzero.",
             "solution": "If we multiply the first equation by $-\\frac{3}{2}$, we obtain\n\n$$6y-9x=-\\frac{3}{2}a.$$Since we also know that $6y-9x=b$, we have\n\n$$-\\frac{3}{2}a=b\\Rightarrow\\frac{a}{b}=\\boxed{-\\frac{2}{3}}.$$\nFinal Answer: The final answer is $-\\frac{2}{3}$. I hope it is correct.",
             "few_shot": "1",
-        },
+        }
     ]
 
-
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    request_output = results[0][0]
-    completion_output = request_output.outputs[0]
+    completion_output = results[0].outputs[0]
     candidates = completion_output.text
 
     unnormalized_answer = get_unnormalized_answer(candidates)
