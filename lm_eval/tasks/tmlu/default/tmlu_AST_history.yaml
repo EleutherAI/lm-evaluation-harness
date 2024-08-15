@@ -9,7 +9,7 @@
   D. {{choices[3]}}{% if choices is defined and choices|length > 4 %}\nE. {{choices[4]}}{%\
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
-"group": "tmlu_humanities"
+"tag": "tmlu_humanities_tasks"
 "group_alias": "humanities"
 "include": "_default_template_yaml"
 "task": "tmlu_AST_history"

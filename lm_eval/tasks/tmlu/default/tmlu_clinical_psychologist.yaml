@@ -9,7 +9,7 @@
   D. {{choices[3]}}{% if choices is defined and choices|length > 4 %}\nE. {{choices[4]}}{%\
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
-"group": "tmlu_social_sciences"
+"tag": "tmlu_social_sciences_tasks"
 "group_alias": "social sciences"
 "include": "_default_template_yaml"
 "task": "tmlu_clinical_psychologist"
