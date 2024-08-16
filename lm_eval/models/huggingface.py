@@ -607,7 +607,7 @@ class HFLM(TemplateLM):
                 except ModuleNotFoundError:
                     raise Exception(
                         "Tried to load gptqmodel, but gptqmodel is not installed ",
-                        "please install gptqmodel via pip install gptqmodel",
+                        "please install gptqmodel via `pip install gptqmodel --no-build-isolation` or `pip install lm-eval[gptqmodel] --no-build-isolation`",
                     )
 
                 self._model = GPTQModel.from_quantized(
