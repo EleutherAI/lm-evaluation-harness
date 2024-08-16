@@ -30,6 +30,7 @@ task:
   - arabic_InfluenceFromByzantium_light
   - arabic_InfluenceFromChina_light
   - arabic_InfluenceFromGreece_light
+  - arabic_InfluenceFromIslam_light
   - arabic_InfluenceFromPersia_light
   - arabic_InfluenceFromRome_light
   - arabic_Iraq_light
@@ -46,6 +47,13 @@ task:
   - arabic_Oman_light
   - arabic_Palestine_light
   - arabic_Qatar_light
+  - arabic_Saudi_Arabia_light
+  - arabic_Somalia_light
+  - arabic_Sudan_light
+  - arabic_Syria_light
+  - arabic_Tunisia_light
+  - arabic_United_Arab_Emirates_light
+  - arabic_Yemen_light
   - arabic_communication_light
   - arabic_computer_and_phone_light
   - arabic_daily_life_light
