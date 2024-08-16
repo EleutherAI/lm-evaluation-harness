@@ -1,5 +1,5 @@
 task: ifeval
-dataset_path: wis-k/instruction-following-eval
+dataset_path: google/IFEval
 dataset_name: null
 output_type: generate_until
 test_split: train
