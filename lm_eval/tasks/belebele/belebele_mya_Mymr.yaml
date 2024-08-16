@@ -1,4 +1,5 @@
-"fewshot_split": "mya_Mymr"
-"include": "_default_template_yaml"
-"task": "belebele_mya_Mymr"
-"test_split": "mya_Mymr"
+dataset_name: mya_Mymr
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_mya_Mymr
+test_split: test
