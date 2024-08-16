@@ -326,6 +326,14 @@ lm_eval --model hf \
     --tasks hellaswag
 ```
 
+[GPTQModel](https://github.com/ModelCloud/GPTQModel) quantized models can be loaded by specifying their file names in `,gptqmodel=True` in the `model_args` argument:
+
+```bash
+lm_eval --model hf \
+    --model_args pretrained=model-name-or-path,gptqmodel=True \
+    --tasks hellaswag
+```
+
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
 ## Saving Results
