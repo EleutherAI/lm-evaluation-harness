@@ -191,6 +191,17 @@ def simple_evaluate(
         eval_logger.info("Using pre-initialized model")
         lm = model
 
+
+    # [PoE Modify] check if model is a PoE model
+    if isinstance(lm, lm_eval.models.huggingface.HFLM):
+        is_poe = lm.is_poe # check if model is a PoE model
+    else:
+        is_poe = False # if not a Hugging Face model, it is not a PoE model
+
+    if is_poe:
+        eval_logger.info("Model is a PoE model. Initializing PoE model.")
+
+
     if use_cache is not None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
         lm = lm_eval.api.model.CachingLM(
@@ -284,6 +295,14 @@ def simple_evaluate(
         }
         results["git_hash"] = get_git_commit_hash()
         results["date"] = start_date
+
+        if is_poe:
+            expert_frequency = []
+            for distribution in lm.get_expert_frequency():
+                expert_frequency.append(distribution.detach().cpu().numpy().tolist())
+            results["expert_frequency"] = expert_frequency
+            
+
         add_env_info(results)  # additional environment info to results
         return results
     else:

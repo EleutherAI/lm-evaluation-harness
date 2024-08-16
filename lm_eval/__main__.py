@@ -210,6 +210,19 @@ def setup_parser() -> argparse.ArgumentParser:
         default=False,
         help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
     )
+    # [POE INVESTIGATION] Add the path to store the distribution of each layer
+    parser.add_argument(
+        "--distribution_path",
+        type=str,
+        default=None,
+        help="Path to store the distribution of each layer",
+    )
+    parser.add_argument(
+        "--overwrite_existing_result",
+        action="store_true",
+        default=False,
+        help="Overwrite the existing result file",
+    )
     parser.add_argument(
         "--seed",
         type=partial(_int_or_none_list_arg_type, 3),
@@ -250,6 +263,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+    eval_logger.info("Welecome to lm-eval! This is modified version of the original lm-eval.")
 
     if args.predict_only:
         args.log_samples = True
@@ -309,9 +324,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.output_path:
         path = Path(args.output_path)
         # check if file or 'dir/results.json' exists
-        if path.is_file():
+        if path.is_file() and not args.overwrite_existing_result:
             raise FileExistsError(f"File already exists at {path}")
         output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
+        
         if output_path_file.is_file():
             eval_logger.warning(
                 f"File {output_path_file} already exists. Results will be overwritten."

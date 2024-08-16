@@ -22,6 +22,15 @@ from transformers.models.auto.modeling_auto import (
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
 
+# PoE import requirements
+import sys
+sys.path.insert(0, "/home/koios/poe_model")
+from poe_utils import *
+ACCEPT_MODEL_TYPES = [transformers.AutoModelForCausalLM]
+for model in backbone_config.keys():
+    if backbone_config[model]["poe_model"] not in ACCEPT_MODEL_TYPES:
+        ACCEPT_MODEL_TYPES.append(backbone_config[model]["poe_model"])
+
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
@@ -89,6 +98,12 @@ class HFLM(TemplateLM):
                 transformers.PreTrainedTokenizerFast,
             ]
         ] = None,
+        is_fsdp: Optional[bool] = False, # [PoE Modify] Use is_fsdp to indicate whether current model is FSDP
+        fsdp_path: Optional[str] = None, # [PoE Modify] Use fsdp_path to indicate the path of FSDP checkpoint
+        is_poe: Optional[bool] = False, # [PoE Modify] Use is_poe to indicate whether current model is PoE
+        backbone: Optional[str] = None, # [PoE Modify] Use backbone to indicate the backbone model of PoE
+        #config_path: Optional[str] = None, # [PoE Modify] Use config_path to indicate the config path of PoE
+        #router_path: Optional[str] = None, # [PoE Modify] Use router_path to indicate the router path of PoE
         truncation: Optional[bool] = False,
         logits_cache: bool = True,
         max_length: Optional[int] = None,
@@ -114,6 +129,15 @@ class HFLM(TemplateLM):
         **kwargs,
     ) -> None:
         super().__init__()
+
+        self.is_poe = is_poe # [PoE Modify] Use is_poe to determine if PoEModelConfig should be used
+        self.is_fsdp = is_fsdp # [PoE Modify] Use is_fsdp to determine if FSDP should be used
+        self.fsdp_path = fsdp_path # [PoE Modify] Use fsdp_path to determine the path of FSDP checkpoint
+        if is_poe:
+            assert backbone in backbone_config.keys(), f"The backbone {backbone} is not yet supported" # [PoE Modify] Use backbone to determine the backbone model of PoE
+        self.backbone = backbone # [PoE Modify] Use backbone to determine the backbone model of PoE
+        #self.config_path = config_path # [PoE Modify] Use config_path to determine the config path of PoE
+        #self.router_path = router_path # [PoE Modify] Use router_path to determine the router path of PoE
 
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
@@ -183,6 +207,7 @@ class HFLM(TemplateLM):
                     )
                 # TODO: include in warning that `load_in_8bit` etc. affect this too
                 self._device = torch.device(device)
+                print("Device:", self._device)
 
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -294,6 +319,7 @@ class HFLM(TemplateLM):
             # multigpu data-parallel support when launched with accelerate
             if gpus > 1:
                 if parallelize:
+                    print("Entered parallelize section")
                     if accelerator.num_processes > 1:
                         raise RuntimeError(
                             "Attempted to use both a HF Accelerate `device_map` and to launch via `accelerate launch`. If this is the case, please either remove `parallelize=True` from --model_args or launch outside of the Accelerate launcher."
@@ -348,6 +374,8 @@ class HFLM(TemplateLM):
             eval_logger.info(
                 f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
             )
+
+        print("Completed HFLM initialization")
 
     @property
     def config(self):
@@ -434,7 +462,10 @@ class HFLM(TemplateLM):
             )
         else:
             # determine and use the default HF backend for this model, based on its config + metadata.
-            if (
+            if self.is_poe: # [PoE Modify] add PoE model type
+                self.AUTO_MODEL_CLASS = backbone_config[self.backbone]["poe_model"]
+                eval_logger.info(f"Model is PoE with backbone {self.backbone}.")
+            elif (
                 getattr(config, "model_type")
                 in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
             ):
@@ -456,10 +487,7 @@ class HFLM(TemplateLM):
                 # then we default to AutoModelForCausalLM
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
-        assert self.AUTO_MODEL_CLASS in [
-            transformers.AutoModelForCausalLM,
-            transformers.AutoModelForSeq2SeqLM,
-        ]
+        assert self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES or self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM # [PoE Modify] add PoE model type
         return None
 
     def _get_config(
@@ -468,11 +496,19 @@ class HFLM(TemplateLM):
         revision: str = "main",
         trust_remote_code: bool = False,
     ) -> None:
-        self._config = transformers.AutoConfig.from_pretrained(
-            pretrained,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-        )
+        # [PoE Modify] get the model's config, and use PoEModelConfig if the model is PoE
+        if self.is_poe:
+            self._config = backbone_config[self.backbone]["poe_config"].from_pretrained(
+                pretrained,
+                revision=revision,
+                trust_remote_code=trust_remote_code,
+            )
+        else:
+            self._config = transformers.AutoConfig.from_pretrained(
+                pretrained,
+                revision=revision,
+                trust_remote_code=trust_remote_code,
+            )
 
     def _create_model(
         self,
@@ -529,6 +565,8 @@ class HFLM(TemplateLM):
             else:
                 model_kwargs.update({"device_map": {"": str(self.device)}})
 
+        print(model_kwargs)
+
         if not autogptq:
             if model_kwargs.get("load_in_4bit", None):
                 assert (
@@ -540,13 +578,42 @@ class HFLM(TemplateLM):
                         model_kwargs["bnb_4bit_compute_dtype"] = get_dtype(
                             model_kwargs["bnb_4bit_compute_dtype"]
                         )
-            self._model = self.AUTO_MODEL_CLASS.from_pretrained(
-                pretrained,
-                revision=revision,
-                torch_dtype=get_dtype(dtype),
-                trust_remote_code=trust_remote_code,
-                **model_kwargs,
-            )
+            if self.is_poe:
+                eval_logger.info(f"Loading PoE model {self.backbone}.")
+                self._model = backbone_config[self.backbone]["poe_model"].from_pretrained(
+                    pretrained,
+                    revision=revision,
+                    torch_dtype=get_dtype(dtype),
+                    trust_remote_code=trust_remote_code,
+                    **model_kwargs,
+                )
+                # self._model = get_poe_model(
+                #     self.backbone,
+                #     config_path=self.config_path,
+                #     router_path=self.router_path,
+                # )
+            else:    
+                self._model = self.AUTO_MODEL_CLASS.from_pretrained(
+                    pretrained,
+                    revision=revision,
+                    torch_dtype=get_dtype(dtype),
+                    trust_remote_code=trust_remote_code,
+                    **model_kwargs,
+                )
+
+            # Configuring model from fsdp checkpoint
+            if self.is_fsdp:
+                eval_logger.info(f"Loading FSDP model from {self.fsdp_path}.")
+                state_dict = {
+                    "model": self._model.state_dict(),
+                }
+                import torch.distributed.checkpoint as checkpoint
+                checkpoint.load(
+                    state_dict=state_dict,
+                    checkpoint_id=self.fsdp_path
+                )
+                self._model.load_state_dict(state_dict["model"])
+                eval_logger.info(f"Compeleted loading FSDP model.")
         else:
             try:
                 from auto_gptq import AutoGPTQForCausalLM
@@ -624,6 +691,9 @@ class HFLM(TemplateLM):
         Create a tokenizer object corresponding to the correct
         tokenizer for value of `pretrained`, or use the pre-initialized tokenizer passed.
         """
+        if self.is_poe:
+            # [PoE Modify] Use Mixtral tokenizer as PoE tokenizer
+            tokenizer = backbone_config[self.backbone]["base_model_path"]
 
         if tokenizer:
             if isinstance(tokenizer, str):
@@ -718,7 +788,7 @@ class HFLM(TemplateLM):
 
         # by default for CausalLM - false or self.add_bos_token is set
         if add_special_tokens is None:
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
                 special_tokens_kwargs = {
                     "add_special_tokens": False or self.add_bos_token
                 }
@@ -746,7 +816,7 @@ class HFLM(TemplateLM):
         self.tokenizer.padding_side = padding_side
 
         add_special_tokens = {}
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+        if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
             add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.tokenizer(
@@ -791,7 +861,7 @@ class HFLM(TemplateLM):
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
             else:
-                assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                assert self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES # [PoE Modify] add PoE model type
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
@@ -824,7 +894,7 @@ class HFLM(TemplateLM):
     def _select_cont_toks(
         self, logits: torch.Tensor, contlen: int = None, inplen: int = None
     ) -> torch.Tensor:
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+        if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
             assert (
                 contlen and inplen
             ), "Must pass input len and cont. len to select scored logits for causal LM"
@@ -951,7 +1021,7 @@ class HFLM(TemplateLM):
             requests,
             sort_fn=_collate,
             group_by="contexts"
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+            if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES # [PoE Modify] add PoE model type
             and self.logits_cache
             else None,
             group_fn=_lookup_one_token_cont,
@@ -1009,7 +1079,7 @@ class HFLM(TemplateLM):
                 # cont_toks      4 5 6 7 8 9      [:, -len(continuation_enc):, :self.vocab_size] slice
 
                 # when too long to fit in context, truncate from the left
-                if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
                     inp = torch.tensor(
                         (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1],
                         dtype=torch.long,
@@ -1056,7 +1126,7 @@ class HFLM(TemplateLM):
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
                 batched_inps = pad_and_concat(
                     padding_len_inp, inps, padding_side="right"
                 )  # [batch, padding_len_inp]
@@ -1091,7 +1161,7 @@ class HFLM(TemplateLM):
                 # from prompt/prefix tuning tokens, if applicable
                 ctx_len = (
                     inplen + (logits.shape[0] - padding_len_inp)
-                    if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                    if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES # [PoE Modify] add PoE model type
                     else None
                 )
                 logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
@@ -1220,7 +1290,7 @@ class HFLM(TemplateLM):
                 max_gen_toks = self.max_gen_toks
 
             # set the max length in tokens of inputs ("context_enc")
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
                 # max len for inputs = max length, minus room to generate the max new tokens
                 max_ctx_len = self.max_length - max_gen_toks
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
@@ -1250,7 +1320,7 @@ class HFLM(TemplateLM):
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts):
                 # discard context + left-padding toks if using causal decoder-only LM
-                if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                if self.AUTO_MODEL_CLASS in ACCEPT_MODEL_TYPES: # [PoE Modify] add PoE model type
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
                 s = self.tok_decode(cont_toks)
@@ -1272,3 +1342,10 @@ class HFLM(TemplateLM):
         pbar.close()
 
         return res
+
+    def get_expert_frequency(self):
+        # [POE Modify] get the expert frequency for PoE model
+        if self.is_poe:
+            return self.model.get_expert_frequency()
+        else:
+            return None
