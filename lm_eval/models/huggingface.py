@@ -36,6 +36,13 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
+try:
+    # import for using dolomite_engine models in lm-eval directly
+    # https://github.com/ibm-granite/dolomite-engine
+    import dolomite_engine.hf_models
+except:
+    pass
+
 
 eval_logger = utils.eval_logger
 
