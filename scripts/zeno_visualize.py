@@ -177,13 +177,13 @@ def generate_dataset(
         labels = [x["arguments"][0][1] for x in data]
     elif config["output_type"] == "multiple_choice":
         instance = [
-            x["arguments"][0][0]
+            x["arguments"]["gen_args_0"]["arg_0"]
             + "\n\n"
             + "\n".join([f"- {y[1]}" for y in x["arguments"]])
             for x in data
         ]
     elif config["output_type"] == "loglikelihood_rolling":
-        instance = [x["arguments"][0][0] for x in data]
+        instance = [ x["arguments"]["gen_args_0"]["arg_0"] for x in data]
     elif config["output_type"] == "generate_until":
         instance = [x["arguments"][0][0] for x in data]
 
