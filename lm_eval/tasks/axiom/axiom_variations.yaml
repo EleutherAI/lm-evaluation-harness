@@ -1,4 +1,4 @@
-task: axiom
+task: axiom_variations
 dataset_path: json
 process_docs: !function utils.process_docs
 dataset_name: axiom
@@ -21,8 +21,7 @@ num_fewshot: 4
 metadata:
   version: 1.0
 dataset_kwargs:
-  data_files: Putnam_MATH_original_static_final/Putnam_MATH_boxed_problems_full.json
-description: "Given a mathematics question, compose a detailed solution. Simplify your answer as much as possible. Always give the final answer inside a \\boxed{{answer}}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct."
+  data_files: Putnam_MATH_variations_static5/test
 fewshot_config:
   sampler: first_n
   samples: !function utils.list_fewshot_samples

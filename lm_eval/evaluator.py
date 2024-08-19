@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 import torch
+import pandas as pd
 
 import lm_eval.api.metrics
 import lm_eval.api.registry
@@ -74,6 +75,7 @@ def simple_evaluate(
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    csv_file: Optional[str] = None
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -306,6 +308,7 @@ def simple_evaluate(
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
+        csv_file=csv_file
     )
 
     if lm.rank == 0:
@@ -365,6 +368,7 @@ def evaluate(
     apply_chat_template: bool = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
+    csv_file: Optional[str] = None
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -497,11 +501,21 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
+            correct_id = []
+            records = []
             for doc_id, doc in doc_iterator:
                 requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
+                metrics, id, csv_append = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+                for problem_id, values in csv_append.items():
+                    records.append({
+                        "Problem ID": problem_id,
+                        "Correct?": values[0],
+                        "Solution": values[1]
+                    })
+                if id != None:
+                    correct_id.append(id)
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -528,6 +542,14 @@ def evaluate(
                     task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)
+            df = pd.DataFrame(records)
+            df = df.sort_values(by='Problem ID')
+
+            correct_id_row = pd.DataFrame([{'Problem ID': 'Correct IDs', 'Exact Match': None, 'Predicted Solution': ', '.join(map(str, correct_id))}])
+            df = pd.concat([correct_id_row, df], ignore_index=True)
+            
+            df.to_csv(csv_file, index=False)
+            print(correct_id)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
