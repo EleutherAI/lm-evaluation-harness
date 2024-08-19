@@ -1,8 +1,6 @@
 dataset_name: sports_understanding
 description: 'Determine whether an artificially constructed sentence relating to sports
-  is plausible or not.
-
-        '
+  is plausible or not.'
 doc_to_choice: ["yes","no"]
 fewshot_config:
   sampler: first_n
