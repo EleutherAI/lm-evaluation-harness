@@ -212,8 +212,6 @@ def get_unnormalized_answer(text: str) -> str:
     if match:
         return match.group(1).strip()
     else:
-        print("invalid answer :(")
-        print(text)
         return INVALID_ANSWER
 
 

@@ -503,6 +503,7 @@ def evaluate(
             )
             correct_id = []
             records = []
+            bin_count = 0
             for doc_id, doc in doc_iterator:
                 requests = instances_by_doc_id[doc_id]
                 metrics, id, csv_append = task.process_results(
@@ -515,6 +516,8 @@ def evaluate(
                         "Solution": values[1]
                     })
                 if id != None:
+                    if doc['answer_type'] == "binary":
+                        bin_count += 1
                     correct_id.append(id)
                 if log_samples:
                     target = task.doc_to_target(doc)
@@ -545,11 +548,12 @@ def evaluate(
             df = pd.DataFrame(records)
             df = df.sort_values(by='Problem ID')
 
-            correct_id_row = pd.DataFrame([{'Problem ID': 'Correct IDs', 'Exact Match': None, 'Predicted Solution': ', '.join(map(str, correct_id))}])
+            correct_id_row = pd.DataFrame([{'Problem ID': 'Bin Count', 'Exact Match': bin_count, 'Predicted Solution': ', '.join(map(str, correct_id))}])
             df = pd.concat([correct_id_row, df], ignore_index=True)
             
             df.to_csv(csv_file, index=False)
             print(correct_id)
+            print("binary count:", bin_count)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
