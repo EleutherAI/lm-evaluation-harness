@@ -7,6 +7,7 @@ import datasets
 
 from lm_eval.utils import eval_logger
 
+import numpy as np
 
 try:
     import sympy
@@ -24,6 +25,7 @@ def doc_to_text(doc: dict) -> str:
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+
     def _process_doc(doc: dict) -> dict:
         out_doc = {
             "problem": doc["problem"],
@@ -37,6 +39,47 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         return out_doc
 
     return dataset.map(_process_doc)
+
+def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
+    # index = np.random.randint(0, 5) + 1
+    # def _process_doc(doc: dict) -> dict:
+    #     if doc.get("variation") == index or doc.get("variation") == 0:
+    #         out_doc = {
+    #             "problem": doc["problem"],
+    #             "solution": doc["solution"],
+    #             "answer": normalize_final_answer(
+    #                 remove_boxed(last_boxed_only_string(doc["solution"]))
+    #             ),
+    #         }
+    #         if getattr(doc, "few_shot", None) is not None:
+    #             out_doc["few_shot"] = True
+    #         return out_doc
+    #     return None
+    
+    # return dataset.map(_process_doc)
+    index = np.random.randint(0, 5) + 1
+    print("index", index)
+    def filter_doc(doc: dict) -> bool:
+        return doc.get("variation") == index or doc.get("variation") == 0
+
+    filtered_dataset = dataset.filter(filter_doc)
+
+    # Further processing if needed
+    def _process_doc(doc: dict) -> dict:
+        out_doc = {
+            "problem": doc["problem"],
+            "solution": doc["solution"],
+            "answer": normalize_final_answer(
+                remove_boxed(last_boxed_only_string(doc["solution"]))
+            ),
+        }
+        if getattr(doc, "few_shot", None) is not None:
+            out_doc["few_shot"] = True
+        return out_doc
+
+    processed_dataset = filtered_dataset.map(_process_doc, batched=False)
+    return processed_dataset
+
 
 def list_fewshot_samples() -> list[dict]:
     return [
@@ -71,9 +114,12 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         answer = ground_truth_boxed_answer(candidates)
     except:
         answer = get_generated_answer(candidates)
+    
+    if answer == "[invalidanswer]":
+        print("invalid", doc['isOriginal'])
 
     if is_equiv(answer, doc["answer"]):
-        id = doc['id']
+        id = doc['year'] + '_' + doc['id']
         retval = 1
     else:
         retval = 0
@@ -81,7 +127,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     results = {
         "exact_match": retval,
     }
-    csv_append = {doc['id']: [retval, candidates]}
+    csv_append = {doc['year'] + '_' + doc['id']: [retval, candidates]}
 
     return results, id, csv_append
 

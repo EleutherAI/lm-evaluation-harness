@@ -1,27 +1,6 @@
+include: axiom.yaml
+dataset_name: axiom_variations
 task: axiom_variations
-dataset_path: json
-process_docs: !function utils.process_docs
-dataset_name: axiom
-output_type: generate_until
-training_split: null
-test_split: train
-doc_to_text:  !function utils.doc_to_text
-process_results: !function utils.process_results
-doc_to_target: "{{answer if few_shot is undefined else solution}}"
-generation_kwargs:
-  until:
-    - "Problem:"
-  do_sample: false
-  temperature: 0
-metric_list:
-  - metric: exact_match
-    aggregation: mean
-    higher_is_better: true
-num_fewshot: 4
-metadata:
-  version: 1.0
+process_docs: !function utils.process_variations
 dataset_kwargs:
-  data_files: Putnam_MATH_variations_static5/test
-fewshot_config:
-  sampler: first_n
-  samples: !function utils.list_fewshot_samples
+  data_files: Putnam_MATH_variations_static6/Putnam_AXIOM_Variations.json

@@ -501,24 +501,46 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
-            correct_id = []
+
             records = []
-            bin_count = 0
+            orig_correct = []
+            var_correct = []
+            orig_acc = 0
+            var_acc = 0
+            constant_count = 0
+            variable_count = 0
+            total_orig = 0
+            total_var = 0
+
             for doc_id, doc in doc_iterator:
                 requests = instances_by_doc_id[doc_id]
                 metrics, id, csv_append = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+
                 for problem_id, values in csv_append.items():
                     records.append({
                         "Problem ID": problem_id,
+                        "Type": doc["isOriginal"],
                         "Correct?": values[0],
                         "Solution": values[1]
                     })
-                if id != None:
-                    if doc['answer_type'] == "binary":
-                        bin_count += 1
-                    correct_id.append(id)
+                
+                if doc['isOriginal']:
+                    total_orig += 1
+                    if id != None:
+                        orig_acc += 1
+                        orig_correct.append(id)
+                else:
+                    total_var += 1
+                    if id != None:
+                        var_acc += 1
+                        var_correct.append(id)
+                        if doc['type'] == 'constant':
+                            constant_count += 1
+                        else:
+                            variable_count += 1
+                
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -545,15 +567,30 @@ def evaluate(
                     task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)
+
+            orig_acc = orig_acc / total_orig
+            var_acc = var_acc / total_var
+            print("totals", total_orig, total_var)
+            print("original accuracy:", orig_acc)
+            print("variation accuracy:", var_acc)
+            print("constant count", constant_count)
+            print("variable count", variable_count)
             df = pd.DataFrame(records)
             df = df.sort_values(by='Problem ID')
 
-            correct_id_row = pd.DataFrame([{'Problem ID': 'Bin Count', 'Exact Match': bin_count, 'Predicted Solution': ', '.join(map(str, correct_id))}])
-            df = pd.concat([correct_id_row, df], ignore_index=True)
+            unlabeled_row = pd.DataFrame([[
+                "original accuracy" + str(orig_acc),
+                "variation accuracy" + str(var_acc),
+                "original correct" + ', '.join(map(str, orig_correct)),
+                "variation correct" + ', '.join(map(str, var_correct))
+            ]], columns=['Exact Match', 'Predicted Solution', 'Original Correct', 'Variation Correct'])
+
+            # Concatenate the unlabeled row with the rest of the DataFrame
+            df = pd.concat([unlabeled_row, df], ignore_index=True)
             
             df.to_csv(csv_file, index=False)
-            print(correct_id)
-            print("binary count:", bin_count)
+            # print(correct_id)
+            # print("binary count:", bin_count)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
