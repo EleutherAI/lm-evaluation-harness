@@ -1,4 +1,5 @@
-"fewshot_split": "khm_Khmr"
-"include": "_default_template_yaml"
-"task": "belebele_khm_Khmr"
-"test_split": "khm_Khmr"
+dataset_name: khm_Khmr
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_khm_Khmr
+test_split: test
