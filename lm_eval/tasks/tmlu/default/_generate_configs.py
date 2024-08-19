@@ -1,6 +1,7 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
+
 import argparse
 import os
 
@@ -13,16 +14,10 @@ categories = {
     "STEM": [
         "biology",
         "chemistry",
-        "mathematics"
-        "physics",
+        "mathematics" "physics",
         "earth science",
     ],
-    "humanities": [
-        "Chinese",
-        "history", 
-        "Tour",
-        "law"
-    ],
+    "humanities": ["Chinese", "history", "Tour", "law"],
     "social_sciences": [
         "civics",
         "geography",
@@ -133,7 +128,7 @@ if __name__ == "__main__":
             name_of_subject = subject2name[subject].replace("＿", " ")
             description = f"以下為{name_of_subject}的單選題，請提供正確答案的選項。\n\n"
             # description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
-        
+
         num_choies = subject2num_choice[subject]
         # basic_doc_to_text = "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}"
         basic_doc_to_choice = ["A", "B", "C", "D"]
