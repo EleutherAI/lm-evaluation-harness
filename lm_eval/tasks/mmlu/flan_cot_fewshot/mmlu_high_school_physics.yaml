@@ -45,6 +45,6 @@ fewshot_config:
       cannot have any net displacement because the pipe closure stops them. So the
       particle displacement is at a node. This closure also causes the pressure to
       be maximal, i.e. an antinode. The answer is (B).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_physics

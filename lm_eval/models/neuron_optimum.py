@@ -231,6 +231,7 @@ class NEURON_HF(TemplateLM):
             " For inf2.48xlarge, set it to `24`."
         )
 
+        revision = str(revision)  # cast to string if not already one
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
@@ -288,7 +289,7 @@ class NEURON_HF(TemplateLM):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.add_bos_token = self.add_bos_token
+        self.add_bos_token = add_bos_token
 
         self._max_length = max_length
 
