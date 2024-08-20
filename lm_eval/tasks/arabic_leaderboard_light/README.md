@@ -2,7 +2,7 @@
 
 Title: Open Arabic LLM Leaderboard Light
 
-This leaderboard follows all the details as in [`arabic_leaderboard_complete`](arabic_leaderboard_complete), except that a light version - 10% random sample of each benchmark - is used to test the language models.
+This leaderboard follows all the details as in [`arabic_leaderboard_complete`](../arabic_leaderboard_complete), except that a light version - 10% random sample of each benchmark - is used to test the language models.
 
 ### Checklist
 
