@@ -183,7 +183,7 @@ def generate_dataset(
             for x in data
         ]
     elif config["output_type"] == "loglikelihood_rolling":
-        instance = [ x["arguments"]["gen_args_0"]["arg_0"] for x in data]
+        instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
     elif config["output_type"] == "generate_until":
         instance = [x["arguments"][0][0] for x in data]
 
