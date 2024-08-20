@@ -1,4 +1,5 @@
-"fewshot_split": "lvs_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_lvs_Latn"
-"test_split": "lvs_Latn"
+dataset_name: lvs_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_lvs_Latn
+test_split: test
