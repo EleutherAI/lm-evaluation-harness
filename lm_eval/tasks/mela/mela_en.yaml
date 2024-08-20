@@ -1,5 +1,3 @@
-group:
-  - mela
 task: mela_en
 dataset_path: Geralt-Targaryen/MELA
 dataset_name: en
