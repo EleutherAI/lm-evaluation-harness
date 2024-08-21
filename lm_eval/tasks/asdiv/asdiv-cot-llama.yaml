@@ -40,10 +40,6 @@ fewshot_config:
       she have left?
     target: Olivia had 23 dollars. 5 bagels for 3 dollars each will be 5 x 3 = 15
       dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The final answer is 8
-  - question: Olivia has $23. She bought five bagels for $3 each. How much money does
-      she have left?
-    target: Olivia had 23 dollars. 5 bagels for 3 dollars each will be 5 x 3 = 15
-      dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The final answer is 8
 filter_list:
 - filter:
   - function: regex
@@ -85,6 +81,7 @@ output_type: generate_until
 repeats: 1
 task: asdiv_cot_llama
 validation_split: validation
+test_split: validation
 should_decontaminate: true
 doc_to_decontamination_query: "{{body}} {{question}}"
 dataset_kwargs:
