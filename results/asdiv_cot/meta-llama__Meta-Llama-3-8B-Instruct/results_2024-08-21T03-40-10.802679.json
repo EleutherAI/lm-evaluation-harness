@@ -1,0 +1,113 @@
+{
+  "results": {
+    "asdiv": {
+      "alias": "asdiv",
+      "acc,none": 0.92,
+      "acc_stderr,none": 0.0387561713321444
+    }
+  },
+  "group_subtasks": {
+    "asdiv": []
+  },
+  "configs": {
+    "asdiv": {
+      "task": "asdiv",
+      "dataset_path": "EleutherAI/asdiv",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "validation_split": "validation",
+      "doc_to_text": "{{body}}\nQuestion:{{question}}\nAnswer:",
+      "doc_to_target": "{{answer.split(' (')[0]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 8,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{body}} {{question}}",
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "asdiv": 1.0
+  },
+  "n-shot": {
+    "asdiv": 8
+  },
+  "higher_is_better": {
+    "asdiv": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "asdiv": {
+      "original": 2305,
+      "effective": 50
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=meta-llama/Meta-Llama-3-8B-Instruct",
+    "model_num_parameters": 8030261248,
+    "model_dtype": "torch.bfloat16",
+    "model_revision": "main",
+    "model_sha": "e1945c40cd546c78e41f1151f4db032b271faeaa",
+    "batch_size": "1",
+    "batch_sizes": [],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": 50.0,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": {
+      "max_gen_toks": 1024
+    },
+    "random_seed": 42,
+    "numpy_seed": 42,
+    "torch_seed": 42,
+    "fewshot_seed": 42
+  },
+  "git_hash": "59170e85",
+  "date": 1724211596.0077522,
+  "pretty_env_info": "PyTorch version: 2.3.1\nIs debug build: False\nCUDA used to build PyTorch: 12.1\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.4 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.35\n\nPython version: 3.11.9 | packaged by conda-forge | (main, Apr 19 2024, 18:36:13) [GCC 12.3.0] (64-bit runtime)\nPython platform: Linux-5.15.0-118-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: 12.5.82\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: GPU 0: NVIDIA H100 80GB HBM3\nNvidia driver version: 550.90.07\ncuDNN version: Probably one of the following:\n/usr/lib/x86_64-linux-gnu/libcudnn.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_adv.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_cnn.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_engines_precompiled.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_engines_runtime_compiled.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_graph.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_heuristic.so.9.2.1\n/usr/lib/x86_64-linux-gnu/libcudnn_ops.so.9.2.1\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        46 bits physical, 57 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               22\nOn-line CPU(s) list:                  0-21\nVendor ID:                            GenuineIntel\nModel name:                           Intel(R) Xeon(R) Platinum 8470\nCPU family:                           6\nModel:                                143\nThread(s) per core:                   2\nCore(s) per socket:                   11\nSocket(s):                            1\nStepping:                             8\nBogoMIPS:                             4000.10\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch topoext cpuid_fault invpcid_single ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 wbnoinvd arat avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b fsrm md_clear serialize tsxldtrk avx512_fp16 arch_capabilities\nVirtualization:                       VT-x\nL1d cache:                            704 KiB (22 instances)\nL1i cache:                            704 KiB (22 instances)\nL2 cache:                             44 MiB (11 instances)\nL3 cache:                             16 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-21\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Unknown: No mitigations\nVulnerability Reg file data sampling: Not affected\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Not affected\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Mitigation; TSX disabled\n\nVersions of relevant libraries:\n[pip3] numpy==1.26.4\n[pip3] torch==2.3.1\n[pip3] torchaudio==2.3.1\n[pip3] torchvision==0.18.1\n[pip3] triton==2.3.1\n[conda] blas                      2.116                       mkl    conda-forge\n[conda] blas-devel                3.9.0            16_linux64_mkl    conda-forge\n[conda] libblas                   3.9.0            16_linux64_mkl    conda-forge\n[conda] libcblas                  3.9.0            16_linux64_mkl    conda-forge\n[conda] liblapack                 3.9.0            16_linux64_mkl    conda-forge\n[conda] liblapacke                3.9.0            16_linux64_mkl    conda-forge\n[conda] libopenvino-pytorch-frontend 2024.2.0             he02047a_1    conda-forge\n[conda] mkl                       2022.1.0           h84fe81f_915    conda-forge\n[conda] mkl-devel                 2022.1.0           ha770c72_916    conda-forge\n[conda] mkl-include               2022.1.0           h84fe81f_915    conda-forge\n[conda] nomkl                     2.0                           0    anaconda\n[conda] numpy                     1.26.4          py311h64a7726_0    conda-forge\n[conda] pytorch                   2.3.1           py3.11_cuda12.1_cudnn8.9.2_0    pytorch\n[conda] pytorch-cuda              12.1                 ha16c6d3_5    pytorch\n[conda] pytorch-mutex             1.0                        cuda    pytorch\n[conda] torchaudio                2.3.1               py311_cu121    pytorch\n[conda] torchtriton               2.3.1                     py311    pytorch\n[conda] torchvision               0.18.1              py311_cu121    pytorch",
+  "transformers_version": "4.44.0",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|eot_id|>",
+    "128009"
+  ],
+  "tokenizer_eos_token": [
+    "<|eot_id|>",
+    "128009"
+  ],
+  "tokenizer_bos_token": [
+    "<|begin_of_text|>",
+    "128000"
+  ],
+  "eot_token_id": 128009,
+  "max_length": 8192,
+  "task_hashes": {
+    "asdiv": "9d680106738d5a52bfbf339bc6d90808bcf504ef02dbd0a4f1a041df8baa7070"
+  },
+  "model_source": "hf",
+  "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "model_name_sanitized": "meta-llama__Meta-Llama-3-8B-Instruct",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": true,
+  "chat_template": "{% set loop_messages = messages %}{% for message in loop_messages %}{% set content = '<|start_header_id|>' + message['role'] + '<|end_header_id|>\n\n'+ message['content'] | trim + '<|eot_id|>' %}{% if loop.index0 == 0 %}{% set content = bos_token + content %}{% endif %}{{ content }}{% endfor %}{% if add_generation_prompt %}{{ '<|start_header_id|>assistant<|end_header_id|>\n\n' }}{% endif %}",
+  "chat_template_sha": "ba03a121d097859c7b5b9cd03af99aafe95275210d2876f642ad9929a150f122",
+  "start_time": 41711.968882485,
+  "end_time": 41730.829429057,
+  "total_evaluation_time_seconds": "18.860546571995656"
+}

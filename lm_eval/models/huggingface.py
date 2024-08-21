@@ -845,6 +845,8 @@ class HFLM(TemplateLM):
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
         )
+        #import pdb; pdb.set_trace()
+
         return self.model.generate(
             input_ids=context,
             max_length=max_length,
