@@ -4,7 +4,7 @@ doc_to_target: '{{answer.split(''####'')[-1].strip() if answer is defined else t
 doc_to_text: "Problem: {{question}}\n\nPerform the following actions:\n1. Extract the core question from the problem with 1 sentence, only the most comprehensive and detailed one!\n2. Extract the the most useful information from the problem related to the core question and list it piece by piece! Explicitly state how each operative verb translates into the relevant math, describing specifically what that verb will do to the numbers.\n3. Reason through the problem step-by-step, including every step! Use only one step per line, until you have answered the core question.\n4. Your response should end with \"The final answer is [answer]\" where [answer] is the integer which correctly answers the core question.\n"
 fewshot_config:
   sampler: first_n
-  samples:  
+  samples:
   - question: There are 15 trees in the grove. Grove workers will plant trees in the
       grove today. After they are done, there will be 21 trees. How many trees did
       the grove workers plant today?
