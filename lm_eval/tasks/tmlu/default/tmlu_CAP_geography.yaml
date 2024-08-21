@@ -1,0 +1,15 @@
+"dataset_name": "CAP_geography"
+"description": "以下為會考地理的單選題，請提供正確答案的選項。\n\n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}{% if choices is defined and choices|length > 4 %}\nE. {{choices[4]}}{%\
+  \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
+  \ endif %}\nAnswer:"
+"tag": "tmlu_social_sciences_tasks"
+"include": "_default_template_yaml"
+"task": "tmlu_CAP_geography"
+"task_alias": "CAP geography"

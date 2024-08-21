@@ -1,4 +1,5 @@
-"fewshot_split": "hin_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_hin_Latn"
-"test_split": "hin_Latn"
+dataset_name: hin_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_hin_Latn
+test_split: test
