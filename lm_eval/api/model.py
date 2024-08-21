@@ -3,7 +3,7 @@ import hashlib
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Type, TypeVar
+from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import transformers
 from sqlitedict import SqliteDict
@@ -192,14 +192,21 @@ class LM(abc.ABC):
             "To use this model with chat templates, please implement the 'tokenizer_name' property."
         )
 
-    @property
-    def chat_template(self) -> str:
-        """Must be defined for LM subclasses that implement Chat Templating.
-        Should return the structure of the chat template applied to user/assistant messages.
-        This is used only to save in the experiment results for reproducibility.
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        """Returns the chat template structure for user/assistant messages if a template is provided.
+        This method is intended to be overridden in a subclass to define a specific chat template format.
+        For models that do not support chat templates, this method returns None by default.
         """
+
+        if chat_template is False or chat_template is None:
+            eval_logger.warning(
+                "The 'chat_template' method was called with 'chat_template' set to False or None. "
+                "No chat template will be applied. Ensure this is the intended behavior."
+            )
+            return None
+
         raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'chat_template' property."
+            "To use chat templates with this model, please override the 'chat_template' method."
         )
 
     def set_cache_hook(self, cache_hook) -> None:
