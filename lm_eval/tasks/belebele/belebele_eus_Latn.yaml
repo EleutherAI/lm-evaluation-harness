@@ -1,4 +1,5 @@
-"fewshot_split": "eus_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_eus_Latn"
-"test_split": "eus_Latn"
+dataset_name: eus_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_eus_Latn
+test_split: test

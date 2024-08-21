@@ -1,4 +1,5 @@
-"fewshot_split": "swh_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_swh_Latn"
-"test_split": "swh_Latn"
+dataset_name: swh_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_swh_Latn
+test_split: test
