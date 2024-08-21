@@ -12,8 +12,8 @@ from llm_bench.python.llm_bench_utils.ov_utils import create_text_gen_model, bui
 from llm_bench.python.llm_bench_utils.model_utils import get_use_case
 
 
-@register_model("optimum-causal")
-class OptimumLM_2(HFLM):
+@register_model("openvino-causal")
+class OpenVINOCausalLM(HFLM):
     """
     Optimum Intel provides a simple interface to optimize Transformer models and convert them to \
     OpenVINO™ Intermediate Representation (IR) format to accelerate end-to-end pipelines on \
@@ -28,12 +28,6 @@ class OptimumLM_2(HFLM):
         kv_cache = False,
         **kwargs,
     ) -> None:
-        # if "backend" in kwargs:
-        #     # optimum currently only supports causal models
-        #     assert (
-        #         kwargs["backend"] == "causal" 
-        #     ), "Currently, only OVModelForCausalLM is supported."
-
         self.openvino_device = device
         self.trust_remote_code = trust_remote_code,
         self.convert_tokenizer = convert_tokenizer
@@ -72,93 +66,18 @@ class OptimumLM_2(HFLM):
             'torch_compile_backend': 'openvino',
         }
 
-        MODEL_TYPE_BY_MODEL_NAME = {
-            'aquilachat-7b': 'aquila',
-            'baichuan2-7b': 'baichuan',
-            'baichuan2-7b-chat': 'baichuan',
-            'baichuan2-13b-chat': 'baichuan',
-            'bloomz-560m': 'bloom',
-            'bloomz-7b1': 'bloom',
-            'bloom-1b4-zh': 'bloom',
-            'codegen2-1b': 'codegen2',
-            'codegen2-3_7b': 'codegen2',
-            'codegen2-7b': 'codegen2',
-            'codegen25-7b': 'codegen2',
-            'codellama-7b': 'llama',
-            'codet5-base-sum': 'codet5',
-            'chatglm-6b': 'chatglm',
-            'chatglm2-6b': 'chatglm2',
-            'chatglm2-6b-gptq': 'chatglm2',
-            'chatglm3-6b': 'chatglm2',
-            'chatglm3-6b-gptq': 'chatglm2',
-            'dolly-v2-12b': 'dolly',
-            'dolly-v2-2-8b': 'dolly',
-            'dolly-v2-3b': 'dolly',
-            'falcon-40b': 'falcon',
-            'falcon-7b-instruct': 'falcon',
-            'flan-t5-large-grammar-synthesis': 't5',
-            'flan-t5-xxl': 't5',
-            'gemma-2b-it': 'gemma',
-            'gemma-7b-it': 'gemma',
-            't5': 't5',
-            'gpt-2': 'gpt',
-            'gpt-j-6b': 'gpt',
-            'gpt-neox-20b': 'gpt',
-            'instruct-gpt-j': 'gpt',
-            'llama-2-7b-chat': 'llama',
-            'llama-2-7b-gptq': 'llama',
-            'llama-2-13b-chat': 'llama',
-            'llama-3-8b': 'llama',
-            'llama-7b': 'llama',
-            'mistral-7b-v0.1': 'mistral',
-            'mixtral-8x7b-v0.1': 'mixtral',
-            'mpt-7b-chat': 'mpt',
-            'mpt-30b-chat': 'mpt',
-            'open-llama-3b': 'open_llama',
-            'open-llama-7b': 'open_llama',
-            'open-assistant-pythia-12b': 'pythia-',
-            'opt-2.7b': 'opt-',
-            'orca-mini-3b': 'orca-mini',
-            'pythia-12b': 'pythia-',
-            'phi-2': 'phi-',
-            'phi-3-mini-4k-instruct': 'phi-',
-            'pythia-12b': 'pythia-',
-            'stablelm-3b-4e1t': 'stablelm-',
-            'stablelm-3b-4e1t-gptq': 'stablelm-',
-            'stablelm-7b': 'stablelm-',
-            'stablelm-tuned-alpha-3b': 'stablelm-',
-            'stablelm-epoch-3b-preview': 'stablelm-',
-            'vicuna-7b-v1.5': 'vicuna',
-            'longchat-b7': 'longchat',
-            'red-pajama-incite-chat-3b-v1': 'red-pajama',
-            'qwen-7b-chat': 'qwen',
-            'qwen-7b-chat-gptq': 'qwen',
-            'qwen-14b-chat': 'qwen',
-            'xgen-7b-instruct':'xgen',
-            'stable-zephyr-3b-dpo': 'zephyr',
-            'starcoder': 'starcoder',
-            'starcoder2-15b': 'starcoder',
-            'starcoder2-3b': 'starcoder',
-            'starcoder2-7b': 'starcoder',
-            'zephyr-7b-beta': 'zephyr',
-        }
-
         ov_config = {'PERFORMANCE_HINT': 'LATENCY', 'NUM_STREAMS': '1', 'CACHE_DIR': ''}
         if self.kv_cache:
             print("kv_cache enabled")
             ov_config['KV_CACHE_PRECISION'] = 'u8'
             ov_config['DYNAMIC_QUANTIZATION_GROUP_SIZE'] = '32'
-        use_case, model_name = get_use_case(pretrained)
+        use_case, model_type = get_use_case(pretrained)
 
-        if model_name in MODEL_TYPE_BY_MODEL_NAME.keys():
-            model_type = MODEL_TYPE_BY_MODEL_NAME[model_name]
-            llm_bench_args = DEFAULT_LLM_BENCH_ARGS
-            llm_bench_args['model'] = pretrained
-            llm_bench_args["convert_tokenizer"] = self.convert_tokenizer
-            llm_bench_args["config"] =  ov_config
-            llm_bench_args["use_case"] =  use_case
-            llm_bench_args["trust_remote_code"] = self.trust_remote_code
-            llm_bench_args["model_type"] =  model_type
-            self._model, self.tokenizer, _, _, _ = create_text_gen_model(pretrained, self.openvino_device, **llm_bench_args)
-        else:
-            assert False, f"ERROR model type not defined formodel: {model_name}"
+        llm_bench_args = DEFAULT_LLM_BENCH_ARGS
+        llm_bench_args['model'] = pretrained
+        llm_bench_args["convert_tokenizer"] = self.convert_tokenizer
+        llm_bench_args["config"] =  ov_config
+        llm_bench_args["use_case"] =  use_case
+        llm_bench_args["trust_remote_code"] = self.trust_remote_code
+        llm_bench_args["model_type"] =  model_type
+        self._model, self.tokenizer, _, _, _ = create_text_gen_model(pretrained, self.openvino_device, **llm_bench_args)
