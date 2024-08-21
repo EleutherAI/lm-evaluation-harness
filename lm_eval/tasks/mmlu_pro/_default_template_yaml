@@ -12,7 +12,7 @@ filter_list:
   - name: "custom-extract"
     filter:
       - function: "regex"
-        regex_pattern: r"answer is \(?([ABCDEFGHIJ])\)?"
+        regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
         # regex_pattern: r".*[aA]nswer:\s*([A-J])",
       - function: "take_first"
 generation_kwargs:
