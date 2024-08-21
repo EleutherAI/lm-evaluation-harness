@@ -14,7 +14,6 @@ __pycache__
 .ipynb_checkpoints
 temp
 test_logs/
-results/
 # IPython
 profile_default/
 ipython_config.py
