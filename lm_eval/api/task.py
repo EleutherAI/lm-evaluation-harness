@@ -78,6 +78,7 @@ class TaskConfig(dict):
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     doc_to_preamble: Optional[Union[Callable, str]] = None
+    doc_to_documents: Optional[Callable] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
     description: str = ""
@@ -1057,6 +1058,20 @@ class ConfigurableTask(Task):
             return doc_to_preamble(doc)
         else:
             raise TypeError
+        
+    def doc_to_documents(self, doc: Mapping):
+        doc_to_documents = self.config.doc_to_documents
+        if doc_to_documents is None:
+            return None
+        else:
+            assert callable(doc_to_documents)
+            documents = doc_to_documents(doc)
+            for document in documents:
+                assert isinstance(document, dict)
+                assert "contents" in document
+                # optional title field
+                assert "title" in document or len(document) == 1, "The only other field allowed is title"
+            return documents
             
             
     
@@ -1181,7 +1196,11 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, deepcopy(self.config.generation_kwargs))
+            named_kwargs = deepcopy(self.config.generation_kwargs)
+            documents = self.doc_to_documents(doc)
+            if documents is not None:
+                named_kwargs["documents"] = documents
+            arguments = (ctx, named_kwargs)
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs

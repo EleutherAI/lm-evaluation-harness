@@ -58,6 +58,15 @@ def doc_to_preamble(doc):
     return Template(template).render(ctxs=ctxs)
 
 
+
+def doc_to_documents(doc):
+    documents= []
+    for ctx in doc["ctxs"][::-1]:
+        title,contents = ctx.split("\n",1)
+        documents.append(dict(title=title,contents=contents))
+    return documents
+        
+    
 def doc_to_target(doc: Dict) -> List[str]:
     return doc["answer"]
 
