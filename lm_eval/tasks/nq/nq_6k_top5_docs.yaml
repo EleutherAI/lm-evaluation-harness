@@ -1,0 +1,31 @@
+task: nq_6k_top5_docs
+dataset_path: iohadrubin/nq_bm25_top100_subset
+output_type: generate_until
+validation_split: validation
+# test_split: test
+description: "Answer these questions:\n\n"
+doc_to_text: "Q: {{question}}?\nA:"
+doc_to_target: !function nq_utils.doc_to_target
+# doc_to_preamble: !function nq_utils.doc_to_preamble
+doc_to_documents: !function nq_utils.doc_to_documents
+process_docs: !function nq_utils.process_docs
+process_docs_config:
+  top_n: 5
+fewshot_delimiter: "\n"
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+target_delimiter: " "
+metric_list:
+  - metric: !function nq_utils.nq_exact_match
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 3.0
