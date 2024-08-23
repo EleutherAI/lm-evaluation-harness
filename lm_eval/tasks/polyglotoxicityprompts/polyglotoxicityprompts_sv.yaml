@@ -1,0 +1,4 @@
+task: polyglotoxicityprompts_sv
+include: _default_ptp_template_yaml
+dataset_name: "ptp-sv"
+process_results: !function metric.toxicity_perspective_api_sv

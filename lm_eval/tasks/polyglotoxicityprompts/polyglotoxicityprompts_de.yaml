@@ -1,0 +1,4 @@
+task: polyglotoxicityprompts_de
+include: _default_ptp_template_yaml
+dataset_name: "ptp-de"
+process_results: !function metric.toxicity_perspective_api_de
