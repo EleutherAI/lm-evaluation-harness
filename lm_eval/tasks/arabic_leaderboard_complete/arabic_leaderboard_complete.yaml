@@ -4,16 +4,16 @@ task:
   - leaderboard_alghafa
   - leaderboard_arabic_mmlu
   - leaderboard_arabic_exams
-  - leaderboard_arabic_arc_challenge
-  - leaderboard_arabic_arc_easy
-  - leaderboard_arabic_boolq
-  - leaderboard_arabic_hellaswag
-  - leaderboard_arabic_copa
-  - leaderboard_arabic_openbook_qa
-  - leaderboard_arabic_piqa
-  - leaderboard_arabic_race
-  - leaderboard_arabic_sciq
-  - leaderboard_arabic_toxigen
+  - leaderboard_arabic_mt_arc_challenge
+  - leaderboard_arabic_mt_arc_easy
+  - leaderboard_arabic_mt_boolq
+  - leaderboard_arabic_mt_hellaswag
+  - leaderboard_arabic_mt_copa
+  - leaderboard_arabic_mt_openbook_qa
+  - leaderboard_arabic_mt_piqa
+  - leaderboard_arabic_mt_race
+  - leaderboard_arabic_mt_sciq
+  - leaderboard_arabic_mt_toxigen
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

@@ -1,6 +1,6 @@
-task: arabic_openbook_qa
+task: arabic_mt_toxigen
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: openbook_qa_ext_ar
+dataset_name: toxigen_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

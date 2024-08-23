@@ -1,6 +1,6 @@
-task: arabic_boolq
+task: arabic_mt_arc_challenge
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: boolq_ar
+dataset_name: arc_challenge_okapi_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

@@ -1,6 +1,6 @@
-task: arabic_toxigen
+task: arabic_mt_boolq
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: toxigen_ar
+dataset_name: boolq_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

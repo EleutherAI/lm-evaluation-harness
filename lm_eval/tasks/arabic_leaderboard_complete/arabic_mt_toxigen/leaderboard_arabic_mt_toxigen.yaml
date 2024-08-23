@@ -1,6 +1,6 @@
-group: leaderboard_arabic_arc_challenge
+group: leaderboard_arabic_mt_toxigen
 task:
-  - arabic_arc_challenge
+  - arabic_mt_toxigen
 
 aggregate_metric_list:
   - metric: acc

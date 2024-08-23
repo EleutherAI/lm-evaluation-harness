@@ -1,6 +1,6 @@
-task: arabic_piqa
+task: arabic_mt_sciq
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: piqa_ar
+dataset_name: sciq_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

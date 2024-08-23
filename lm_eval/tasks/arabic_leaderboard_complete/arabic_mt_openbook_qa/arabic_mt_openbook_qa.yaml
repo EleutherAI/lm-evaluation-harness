@@ -1,6 +1,6 @@
-task: arabic_arc_easy
+task: arabic_mt_openbook_qa
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: arc_easy_ar
+dataset_name: openbook_qa_ext_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

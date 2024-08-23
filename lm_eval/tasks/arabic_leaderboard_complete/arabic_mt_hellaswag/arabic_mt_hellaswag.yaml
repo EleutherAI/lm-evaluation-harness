@@ -1,6 +1,6 @@
-task: arabic_copa
+task: arabic_mt_hellaswag
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: copa_ext_ar
+dataset_name: hellaswag_okapi_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

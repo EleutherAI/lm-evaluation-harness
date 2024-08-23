@@ -1,6 +1,6 @@
-task: arabic_sciq
+task: arabic_mt_arc_easy
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: sciq_ar
+dataset_name: arc_easy_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation

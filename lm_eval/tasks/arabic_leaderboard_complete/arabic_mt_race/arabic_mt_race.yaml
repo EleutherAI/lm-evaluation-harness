@@ -1,6 +1,6 @@
-task: arabic_arc_challenge
+task: arabic_mt_race
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Translated
-dataset_name: arc_challenge_okapi_ar
+dataset_name: race_ar
 output_type: multiple_choice
 training_split: null
 validation_split: validation
