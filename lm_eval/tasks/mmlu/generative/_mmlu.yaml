@@ -26,7 +26,8 @@ task:
       - metric: acc
         weight_by_size: True
 aggregate_metric_list:
-  - metric: acc
+  - aggregation: mean
+    metric: exact_match
     weight_by_size: True
 metadata:
   version: 2
