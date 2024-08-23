@@ -1,6 +1,6 @@
-group: leaderboard_arabic_race_light
+group: leaderboard_arabic_mt_arc_easy_light
 task:
-  - arabic_race_light
+  - arabic_mt_arc_easy_light
 
 aggregate_metric_list:
   - metric: acc

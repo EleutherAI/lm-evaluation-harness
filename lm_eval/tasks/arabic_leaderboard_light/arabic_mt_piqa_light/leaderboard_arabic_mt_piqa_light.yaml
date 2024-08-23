@@ -1,6 +1,6 @@
-group: leaderboard_arabic_arc_easy_light
+group: leaderboard_arabic_mt_piqa_light
 task:
-  - arabic_arc_easy_light
+  - arabic_mt_piqa_light
 
 aggregate_metric_list:
   - metric: acc

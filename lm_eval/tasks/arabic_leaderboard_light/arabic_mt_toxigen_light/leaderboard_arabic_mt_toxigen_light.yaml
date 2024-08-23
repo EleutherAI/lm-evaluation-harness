@@ -1,6 +1,6 @@
-group: leaderboard_arabic_openbook_qa_light
+group: leaderboard_arabic_mt_toxigen_light
 task:
-  - arabic_openbook_qa_light
+  - arabic_mt_toxigen_light
 
 aggregate_metric_list:
   - metric: acc
