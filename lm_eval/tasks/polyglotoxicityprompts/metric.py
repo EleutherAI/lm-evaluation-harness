@@ -7,6 +7,7 @@ from requests.adapters import HTTPAdapter, Retry
 
 from lm_eval.utils import eval_logger
 
+
 def toxicity_perspective_api(
     doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
 ):
@@ -91,32 +92,82 @@ def toxicity_perspective_api(
 
     return {"score": scores[0], "perspective_api_toxicity_score": toxicity_scores[0]}
 
-def toxicity_perspective_api_cs(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='cs')
 
-def toxicity_perspective_api_nl(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='nl')
+def toxicity_perspective_api_cs(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="cs"
+    )
 
-def toxicity_perspective_api_en(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='en')
 
-def toxicity_perspective_api_fr(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='fr')
+def toxicity_perspective_api_nl(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="nl"
+    )
 
-def toxicity_perspective_api_de(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='de')
 
-def toxicity_perspective_api_it(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='it')
+def toxicity_perspective_api_en(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="en"
+    )
 
-def toxicity_perspective_api_pl(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='pl')
 
-def toxicity_perspective_api_pt(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='pt')
+def toxicity_perspective_api_fr(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="fr"
+    )
 
-def toxicity_perspective_api_es(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='es')
 
-def toxicity_perspective_api_sv(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='sv')
+def toxicity_perspective_api_de(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="de"
+    )
+
+
+def toxicity_perspective_api_it(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="it"
+    )
+
+
+def toxicity_perspective_api_pl(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="pl"
+    )
+
+
+def toxicity_perspective_api_pt(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="pt"
+    )
+
+
+def toxicity_perspective_api_es(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="es"
+    )
+
+
+def toxicity_perspective_api_sv(
+    doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs
+):
+    return toxicity_perspective_api(
+        doc, predictions, toxicity_threshold, total_retries, language="sv"
+    )
