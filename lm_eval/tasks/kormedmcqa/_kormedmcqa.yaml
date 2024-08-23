@@ -1,0 +1,11 @@
+group: kormedmcqa
+task:
+  - kormedmcqa_doctor
+  - kormedmcqa_nurse
+  - kormedmcqa_pharm
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

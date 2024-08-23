@@ -46,7 +46,11 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
 
-- `--apply_chat_template` : If this flag is on, a chat template will be applied to the prompt. For Hugging Face models, the chat template is taken from the tokenizer, if the tokenizer does not have a chat template, a default one will be applied. For other models, chat templating is not currently implemented.
+- `--apply_chat_template` : This flag specifies whether to apply a chat template to the prompt. It can be used in the following ways:
+	- `--apply_chat_template` : When used without an argument, applies the only available chat template to the prompt. For Hugging Face models, if no dedicated chat template exists, the default chat template will be applied.
+	- `--apply_chat_template template_name` : If the model has multiple chat templates, apply the specified template to the prompt.
+
+    For Hugging Face models, the default chat template can be found in the [`default_chat_template`](https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1912) property of the Transformers Tokenizer.
 
 - `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
 
@@ -58,12 +62,15 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
     * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
-    * `hub_repo_name` - repository name on Hugging Face Hub, e.g., `lm-eval-results`,
+    * `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
+    * `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
+    * `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
     * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
     * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
+    * `gated` - whether to gate the details dataset, can be `True` or `False`.
 
 ## External Library Usage
 

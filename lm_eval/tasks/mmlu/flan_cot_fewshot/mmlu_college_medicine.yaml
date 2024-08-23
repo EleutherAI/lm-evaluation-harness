@@ -63,6 +63,6 @@ fewshot_config:
       for help. Glucose (also known as the blood sugar) is the main sugar found in
       the human body. It is transported into the muscle cell via diffusion through
       protein transporters called GLUT4. The answer is (A).'
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_college_medicine

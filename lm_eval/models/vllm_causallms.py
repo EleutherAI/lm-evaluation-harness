@@ -125,7 +125,7 @@ class VLLM(TemplateLM):
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
             eval_logger.info(
-                "Found 'gemma' in model name, a BOS token will be used as Gemma underperforms without it."
+                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
 
         self.custom_prefix_token_id = prefix_token_id

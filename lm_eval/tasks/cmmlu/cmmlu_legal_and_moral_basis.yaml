@@ -1,0 +1,4 @@
+"dataset_name": "legal_and_moral_basis"
+"description": "以下是关于法律与道德基础的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "cmmlu_legal_and_moral_basis"

@@ -1,4 +1,3 @@
-group: kormedmcqa
 task : kormedmcqa_nurse
 dataset_path : sean0042/KorMedMCQA
 dataset_name : nurse

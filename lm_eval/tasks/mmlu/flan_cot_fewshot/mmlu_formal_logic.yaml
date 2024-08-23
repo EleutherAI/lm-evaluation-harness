@@ -65,6 +65,6 @@ fewshot_config:
       \ p do not drive on Mars.\nOf all these options, Option (C) appears to be the\
       \ best and most meaningful interpretation of the argument \u201CNo people drive\
       \ on Mars.\u201D The answer is (C).\n\n"
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_formal_logic

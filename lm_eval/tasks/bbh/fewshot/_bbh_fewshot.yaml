@@ -1,0 +1,35 @@
+group: bbh_fewshot
+task:
+  - bbh_fewshot_boolean_expressions
+  - bbh_fewshot_causal_judgement
+  - bbh_fewshot_date_understanding
+  - bbh_fewshot_disambiguation_qa
+  - bbh_fewshot_dyck_languages
+  - bbh_fewshot_formal_fallacies
+  - bbh_fewshot_geometric_shapes
+  - bbh_fewshot_hyperbaton
+  - bbh_fewshot_logical_deduction_five_objects
+  - bbh_fewshot_logical_deduction_seven_objects
+  - bbh_fewshot_logical_deduction_three_objects
+  - bbh_fewshot_movie_recommendation
+  - bbh_fewshot_multistep_arithmetic_two
+  - bbh_fewshot_navigate
+  - bbh_fewshot_object_counting
+  - bbh_fewshot_penguins_in_a_table
+  - bbh_fewshot_reasoning_about_colored_objects
+  - bbh_fewshot_ruin_names
+  - bbh_fewshot_salient_translation_error_detection
+  - bbh_fewshot_snarks
+  - bbh_fewshot_sports_understanding
+  - bbh_fewshot_temporal_sequences
+  - bbh_fewshot_tracking_shuffled_objects_five_objects
+  - bbh_fewshot_tracking_shuffled_objects_seven_objects
+  - bbh_fewshot_tracking_shuffled_objects_three_objects
+  - bbh_fewshot_web_of_lies
+  - bbh_fewshot_word_sorting
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 3.0

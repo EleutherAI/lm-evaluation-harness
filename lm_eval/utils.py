@@ -163,7 +163,7 @@ def get_file_datetime(filename: str) -> str:
     """
     Given the results and sample results filenames, extracts and returns the datetime.
     """
-    return filename[filename.rfind("_") + 1 :].replace(".json", "")
+    return filename[filename.rfind("_") + 1 :].replace(".jsonl", "")
 
 
 def sanitize_model_name(model_name: str) -> str:
@@ -308,7 +308,7 @@ class Reorderer:
         return res
 
 
-def make_table(result_dict, column: str = "results", sort_results: bool = True):
+def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
@@ -338,20 +338,21 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
 
     keys = result_dict[column].keys()
     if sort_results:
-        # sort entries alphabetically
+        # sort entries alphabetically by task or group name.
+        # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
+        # sorting here would mess that up
         keys = sorted(keys)
     for k in keys:
         dic = result_dict[column][k]
-        version = result_dict["versions"].get(k, "N/A")
-        n = str(result_dict["n-shot"][k])
+        version = result_dict["versions"].get(k, "    N/A")
+        n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         if "alias" in dic:
             k = dic.pop("alias")
 
         metric_items = dic.items()
-        if sort_results:
-            metric_items = sorted(metric_items)
+        metric_items = sorted(metric_items)
 
         for (mf), v in metric_items:
             m, _, f = mf.partition(",")
@@ -360,13 +361,14 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
+            v = "%.4f" % v if isinstance(v, float) else v
+
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                if se != "N/A":
-                    se = "%.4f" % se
-                values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
+                se = "   N/A" if se == "N/A" else "%.4f" % se
+                values.append([k, version, f, n, m, hib, v, "±", se])
             else:
-                values.append([k, version, f, n, m, hib, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, hib, v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values
@@ -469,7 +471,9 @@ def regex_replace(string, pattern, repl, count: int = 0):
     return re.sub(pattern, repl, string, count=count)
 
 
-env = Environment(loader=BaseLoader, undefined=StrictUndefined)
+env = Environment(
+    loader=BaseLoader, undefined=StrictUndefined, keep_trailing_newline=True
+)
 env.filters["regex_replace"] = regex_replace
 
 
@@ -485,3 +489,13 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     among ranks in multigpu setting or only pulling a sample of documents
     """
     return islice(raw_iterator, rank, limit, world_size)
+
+
+def weighted_f1_score(items):
+    from sklearn.metrics import f1_score
+
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="weighted")
+    return fscore
