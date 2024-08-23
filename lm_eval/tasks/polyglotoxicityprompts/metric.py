@@ -115,8 +115,8 @@ def toxicity_perspective_api_pl(doc, predictions, toxicity_threshold=0.5, total_
 def toxicity_perspective_api_pt(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
     return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='pt')
 
-def toxicity_perspective_api_sp(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
-    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='sp')
+def toxicity_perspective_api_es(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
+    return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='es')
 
 def toxicity_perspective_api_sv(doc, predictions, toxicity_threshold=0.5, total_retries=5, **kwargs):
     return toxicity_perspective_api(doc, predictions, toxicity_threshold, total_retries, language='sv')
