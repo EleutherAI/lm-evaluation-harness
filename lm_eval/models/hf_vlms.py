@@ -106,7 +106,7 @@ class HFMultimodalLM(HFLM):
     def tok_batch_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        visuals,  # TODO: typehint on this
+        visuals=None,  # TODO: typehint on this
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
@@ -124,16 +124,15 @@ class HFMultimodalLM(HFLM):
             add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.processor(
-            # images=visuals,
+            images=visuals,
             text=strings,
-            images=None,
             truncation=truncation,
             padding="longest",
             return_tensors="pt",
             **add_special_tokens,
         )
-        if "pixel_values" in encoding and encoding["pixel_values"] is None:
-            encoding.pop("pixel_values")
+        # if "pixel_values" in encoding and encoding["pixel_values"] is None: # TODO: what case does this handle?
+        #     encoding.pop("pixel_values")
 
         encoding.to(
             self.device, self.model.dtype
@@ -179,10 +178,13 @@ class HFMultimodalLM(HFLM):
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
-            "model type `hf-multimodal` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks"
+            "model type `hf-multimodal` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
+            "this is because we do not support measuring the loglikelihood a model assigns to an image.",
         )
 
-    def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
+    def loglikelihood(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[Tuple[float, bool]]:
         raise NotImplementedError(
             "model type `hf-multimodal` does not support loglikelihood or multiple choice. Use 'hf' model type for text-only loglikelihood tasks"
         )
@@ -190,6 +192,7 @@ class HFMultimodalLM(HFLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
+        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments
         res = []
 
         def _collate(x):

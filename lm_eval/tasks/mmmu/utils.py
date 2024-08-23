@@ -24,14 +24,35 @@ START_CHR = "A"
 
 
 def doc_to_image(doc):
-    question = doc["question"]
-    image_list = re.findall(r"<image \d+>", question)
-    image_list = [image.strip("<>").replace(" ", "_") for image in image_list]
-    return [doc[image].convert("RGB") for image in image_list]
+    # get formatted prompt (incl. multi-choice options) pre-<image {i}> reformatting
+    input_text = _doc_to_text(doc)
+    # locate <image {i}> instances in input
+    image_placeholders = [
+        img.replace(" ", "_").replace("<", "").replace(">", "")
+        for img in re.findall("<image [1-7]>", input_text)
+    ]
+
+    # collect visuals (can have dupes of a given image or be out of order)
+    # E.g. validation_Math_19 contains <image 1> and <image 2> but seen as [<image 1>, <image 2>, <image 1>, <image 1>, <image 2>]
+    visuals = [doc[img] for img in image_placeholders]
+
+    return visuals
 
 
 def doc_to_text(doc):
     """Get the prompt for a given document."""
+
+    prompt = _doc_to_text(doc)
+
+    for i in range(1, 8):
+        # replace <image {i}> with <image>. TODO: check this is always the right decision incl. for non-HF models
+        prompt = prompt.replace(f"<image {i}>", "<image>")
+
+    return prompt
+
+
+def _doc_to_text(doc):
+    """Helper--get the prompt for a given document but DO NOT yet replace <image {i}> with <image>."""
 
     if doc["question_type"] == "multiple-choice":
         choices_str = ""
@@ -48,11 +69,6 @@ def doc_to_text(doc):
         prompt = MULTI_CHOICE_EXAMPLE_FORMAT.format(doc["question"], choices_str)
     else:
         prompt = SHORT_ANS_EXAMPLE_FORMAT.format(doc["question"])
-
-    for i in range(1, 8):
-        # replace <image {i}> with <image>. TODO: check this is always the right decision incl. for non-HF models
-        prompt = prompt.replace(f"<image {i}>", "<image>")
-    print(prompt)
 
     return prompt
 
