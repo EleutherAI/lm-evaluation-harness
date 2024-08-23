@@ -281,7 +281,6 @@ class MLX(TemplateLM):
             )
         pad_to = 8
         max_length_in_batch = pad_to * ((max(lengths) + pad_to - 1) // pad_to)
-        max_length_in_batch = min(max_length_in_batch, self.max_tokens)
 
         batch_arr = np.zeros((batch_size, max_length_in_batch), np.int32)
         adjusted_lengths = []
