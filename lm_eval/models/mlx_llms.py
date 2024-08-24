@@ -362,7 +362,7 @@ class MLX(TemplateLM):
         if max(lengths) > self.max_tokens:
             print(
                 f"[WARNING] Some sequences are longer than {self.max_tokens} tokens. "
-                f"The longest sentence {max(lengths)} will be truncated to {self.max_tokens}. "
+                f"The longest sentence {max(lengths)} would normally be truncated to {self.max_tokens}. "
                 "Consider pre-splitting your data to save memory."
             )
         pad_to = 8
