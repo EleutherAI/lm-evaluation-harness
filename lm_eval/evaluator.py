@@ -287,12 +287,18 @@ def simple_evaluate(
     if check_integrity:
         run_task_tests(task_list=tasks)
 
+    # hotfix: delete when chat_template fixed
+    try:
+        chat = lm.chat_template(apply_chat_template)
+    except:  # noqa: E722
+        chat = None
+
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template),
+            chat_template=chat,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
