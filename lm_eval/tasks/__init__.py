@@ -274,9 +274,9 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = config["task"]
             else:
-                if "resp_to_doc" in config:
+                if "output_type" in config:
                     task_object = JudgeTask(
-                        config=config, output_path=config.get("output_path", None)
+                        config=config, output_path=config.get("output_path")
                     )
                 else:
                     task_object = ConfigurableTask(config=config)
