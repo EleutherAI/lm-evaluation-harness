@@ -44,7 +44,10 @@ class JudgeTask(ConfigurableTask):
         self.dataset["test"] = self.dataset["test"].add_column(
             "resp", [resp["resp"] for resp in resps]
         )
-        print("done")
+        self.dataset["train"] = self.dataset["train"].add_column(
+            "resp", self.dataset["train"]["answer"]
+        )
+        print("resp columns added")
 
     # def process_docs(self, dataset: datasets.Dataset):
     #     resps = []

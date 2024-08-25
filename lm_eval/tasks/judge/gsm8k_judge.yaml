@@ -6,8 +6,10 @@ output_type: generate_until
 
 output_path:
 
-doc_to_text: "Question: {{question}}\nAnswer:"
-doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
+#doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: 'Given the following question and reference answer, verify if the attempted answer is correct. If it is, return "The answer is Correct". If it is incorrect, return "The answer is Incorrect".\nQuestion: {{question}}\nReference Answer: {{answer}}\nAnswer Attempt: {{resp}}'
+target_delimiter: "\n"
+doc_to_target: "The answer is Correct" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -21,6 +23,7 @@ metric_list:
       - "\\.$"
 generation_kwargs:
   until:
+    - '<|start_header_id|>user<|end_header_id|>'
     - "Question:"
     - "</s>"
     - "<|im_end|>"
@@ -29,16 +32,12 @@ generation_kwargs:
 repeats: 1
 num_fewshot: 5
 filter_list:
-  - name: "strict-match"
+  - name: "test"
     filter:
       - function: "regex"
-        regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
-      - function: "take_first"
-  - name: "flexible-extract"
-    filter:
-      - function: "regex"
-        group_select: -1
-        regex_pattern: "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+        regex_pattern: "The answer is (Correct|Incorrect)"
+        ignore_punctuation: true
+        ignore_case: true
       - function: "take_first"
 metadata:
   version: 3.0
