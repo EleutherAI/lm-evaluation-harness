@@ -416,7 +416,7 @@ class MLX(TemplateLM):
             prompt, request_args = request
             if "until" in request_args:
                 raise NotImplementedError(
-                    f"Support for until ({request['until']}) not implemented!"
+                    f"Support for until ({request_args['until']}) not implemented!"
                 )
             temperature = request_args.get("temperature", 0.0)
             verbose = request_args.get("verbose", False)
