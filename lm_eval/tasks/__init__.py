@@ -7,6 +7,7 @@ from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
+from lm_eval.api.judge_task import JudgeTask
 from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
@@ -273,7 +274,12 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = config["task"]
             else:
-                task_object = ConfigurableTask(config=config)
+                if "resp_to_doc" in config:
+                    task_object = JudgeTask(
+                        config=config, output_path=config.get("output_path", None)
+                    )
+                else:
+                    task_object = ConfigurableTask(config=config)
 
             return {task: task_object}
 
