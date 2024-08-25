@@ -74,6 +74,7 @@ def simple_evaluate(
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    filter_device: Optional[str] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -92,6 +93,8 @@ def simple_evaluate(
         Maximal batch size to try with automatic batch size detection
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
+    :param filter_device: str, optional
+        PyTorch device (e.g. "cpu" or "cuda:0") for running additional models from filters (e.g. reward models)
     :param use_cache: str, optional
         A path to a sqlite db file for caching model responses. `None` if not caching.
     :param cache_requests: bool, optional
@@ -309,6 +312,8 @@ def simple_evaluate(
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
+        predict_only=predict_only,
+        filter_device=filter_device,
     )
 
     if lm.rank == 0:
@@ -368,6 +373,8 @@ def evaluate(
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
+    predict_only: bool = False,
+    filter_device: Optional[str] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -392,6 +399,8 @@ def evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
+    :param filter_device: str, optional
+        PyTorch device (e.g. "cpu" or "cuda:0") for running additional models from filters (e.g. reward models)
     :return
         Dictionary of results
     """
@@ -486,7 +495,8 @@ def evaluate(
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output in eval_tasks:
         task = task_output.task
-        task.apply_filters()
+        # no need to run reward models when `predict_only=True`
+        task.apply_filters(predict_only=predict_only, filter_device=filter_device)
 
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task

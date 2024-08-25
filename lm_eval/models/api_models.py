@@ -21,7 +21,7 @@ from typing import (
 
 try:
     import requests
-    from aiohttp import ClientSession, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
@@ -76,6 +76,8 @@ class TemplateAPI(TemplateLM):
         custom_prefix_token_id=None,
         # send the requests as tokens or strings
         tokenized_requests=True,
+        # timeout for async client
+        timeout: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -115,6 +117,7 @@ class TemplateAPI(TemplateLM):
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
+        self.timeout = timeout
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -249,7 +252,8 @@ class TemplateAPI(TemplateLM):
             )
         else:
             # bit of a hack. We'll load back before sending to the API
-            return JsonChatStr(json.dumps(chat_history))
+            # to store cyrillic symbols disable `ensure_ascii`
+            return JsonChatStr(json.dumps(chat_history), ensure_ascii=False)
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:
@@ -438,7 +442,9 @@ class TemplateAPI(TemplateLM):
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
-        async with ClientSession(connector=conn) as session:
+        async with ClientSession(
+            connector=conn, timeout=ClientTimeout(total=self.timeout)
+        ) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
                 stop=stop_after_attempt(self.max_retries),
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),

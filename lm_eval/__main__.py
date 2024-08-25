@@ -236,6 +236,12 @@ def setup_parser() -> argparse.ArgumentParser:
         default=False,
         help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
     )
+    parser.add_argument(
+        "--filter_device",
+        type=str,
+        default=None,
+        help="Device to use (e.g. cuda, cuda:0, cpu) for models in filters. By default, equals to LM device.",
+    )
     default_seed_string = "0,1234,1234,1234"
     parser.add_argument(
         "--seed",
@@ -295,15 +301,22 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
-        raise ValueError(
-            "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
+        # no chat_template means definitely no multiturn
+        args.fewshot_as_multiturn = False
+        eval_logger.warning(
+            (
+                "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
+                "Disabling `fewshot_as_multiturn`."
+            )
         )
 
     if (
         args.num_fewshot is None or args.num_fewshot == 0
     ) and args.fewshot_as_multiturn:
-        raise ValueError(
-            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
+        # if no fewshots, multiturn has no sense, disable it
+        args.fewshot_as_multiturn = False
+        eval_logger.warning(
+            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0. Disabling `fewshot_as_multiturn`."
         )
 
     if args.include_path is not None:
@@ -320,6 +333,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+
+    if args.filter_device is None:
+        # no need to spam warning, default behaviour
+        args.filter_device = args.device
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -411,6 +428,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
+        filter_device=args.filter_device,
         **request_caching_args,
     )
 
