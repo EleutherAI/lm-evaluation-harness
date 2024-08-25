@@ -1,0 +1,49 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "legal-multiple-choice",
+  "dataset_size": 635627,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/nlplabtdtu/legal-multiple-choice@2c62cc0997b128ea1fa37886ff9d10a8258959c6/questions.jsonl": {
+      "num_bytes": 694247,
+      "checksum": null
+    }
+  },
+  "download_size": 694247,
+  "features": {
+    "question": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "options": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "ground_truth": {
+      "dtype": "int64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 1329874,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 635627,
+      "num_examples": 1776,
+      "dataset_name": "legal-multiple-choice"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
