@@ -415,7 +415,9 @@ class MLX(TemplateLM):
         for request in tqdm([req.args for req in requests], disable=disable_tqdm):
             prompt, request_args = request
             if "until" in request_args:
-                raise NotImplementedError("Support for until not implemented!")
+                raise NotImplementedError(
+                    f"Support for until ({request['until']}) not implemented!"
+                )
             temperature = request_args.get("temperature", 0.0)
             verbose = request_args.get("verbose", False)
             res.append(
