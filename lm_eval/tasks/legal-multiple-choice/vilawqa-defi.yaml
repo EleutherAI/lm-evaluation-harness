@@ -1,14 +1,14 @@
-task: vilawqa
-dataset_path: iamnguyen/legal-multiple-choice
+task: vilawqa-defi
+dataset_path: thangvip/legaldocuments-defination-test
 dataset_name: null
 output_type: multiple_choice
 training_split: null
 validation_split: null
 test_split: train
 fewshot_split: test
-doc_to_text: "\nCâu hỏi: {{question}}\nTrả lời:"
+doc_to_text: "{{question}}"
 doc_to_target: ground_truth
-doc_to_choice: "{{options}}"
+doc_to_choice: "{{choices}}"
 should_decontaminate: true
 metric_list:
   - metric: acc

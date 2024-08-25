@@ -1,5 +1,5 @@
-task: vilawqa
-dataset_path: iamnguyen/legal-multiple-choice
+task: vilawqa-case
+dataset_path: iamnguyen/legal-multiple-choice-v3
 dataset_name: null
 output_type: multiple_choice
 training_split: null

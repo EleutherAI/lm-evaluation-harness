@@ -1,0 +1,21 @@
+task: vilawqa-syllo
+dataset_path: thangvip/legaldocuments-syllogism-test
+dataset_name: null
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: train
+doc_to_text: "\nBạn là một trợ lý AI pháp luật Việt Nam hữu ích. Bạn luôn trả lời câu hỏi và giải thích một cách chi tiết, tuân theo định dạng tam đoạn luận trong lĩnh vực pháp luật.\n {{question}}\nTrả lời:"
+doc_to_target: "{{syllogysim_answer}}"
+should_decontaminate: true
+metric_list:
+  - metric: f1
+    average: micro
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.1
+metadata:
+  version: 1.0
