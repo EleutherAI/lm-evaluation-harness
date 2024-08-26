@@ -34,7 +34,7 @@ class JudgeTask(ConfigurableTask):
         resps = []
         # load json
         if self.output_path is not None:
-            with open(self.output_path, "r") as f:
+            with open(self.output_path, "r", encoding='utf-8') as f:
                 for line in f:
                     resp = json.loads(line)
                     resps.append({"resp": resp["resps"][0][0], "doc": resp["doc_id"]})
