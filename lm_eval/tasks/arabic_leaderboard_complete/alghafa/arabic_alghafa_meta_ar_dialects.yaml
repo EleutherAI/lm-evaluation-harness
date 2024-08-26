@@ -1,6 +1,6 @@
-task: arabic_multiple_choice_grounded_statement_xglue_mlqa_task
+task: arabic_alghafa_meta_ar_dialects
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Native
-dataset_name: multiple_choice_grounded_statement_xglue_mlqa_task
+dataset_name: meta_ar_dialects
 output_type: multiple_choice
 training_split: null
 validation_split: validation

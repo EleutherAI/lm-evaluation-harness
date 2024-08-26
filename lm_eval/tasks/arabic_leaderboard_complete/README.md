@@ -80,15 +80,15 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
 * `alghafa`: A multiple-choice evaluation benchmark for zero- and few-shot evaluation of Arabic LLMs prepared from scratch natively for Arabic.
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
     * You can find the list of the tasks as follows:
-      * `arabic_mcq_exams_test_ar`
-      * `arabic_meta_ar_dialects`
-      * `arabic_meta_ar_msa`
-      * `arabic_multiple_choice_facts_truefalse_balanced_task`
-      * `arabic_multiple_choice_grounded_statement_soqal_task`
-      * `arabic_multiple_choice_grounded_statement_xglue_mlqa_task`
-      * `arabic_multiple_choice_rating_sentiment_no_neutral_task`
-      * `arabic_multiple_choice_rating_sentiment_task`
-      * `arabic_multiple_choice_sentiment_task`
+      * `arabic_alghafa_mcq_exams_test_ar`
+      * `arabic_alghafa_meta_ar_dialects`
+      * `arabic_alghafa_meta_ar_msa`
+      * `arabic_alghafa_multiple_choice_facts_truefalse_balanced_task`
+      * `arabic_alghafa_multiple_choice_grounded_statement_soqal_task`
+      * `arabic_alghafa_multiple_choice_grounded_statement_xglue_mlqa_task`
+      * `arabic_alghafa_multiple_choice_rating_sentiment_no_neutral_task`
+      * `arabic_alghafa_multiple_choice_rating_sentiment_task`
+      * `arabic_alghafa_multiple_choice_sentiment_task`
 * `arabic_mt_arc_challenge`: AI2 Reasoning Challenge (ARC) is a multiple-choice question task. The dataset contains only natural, grade-school science questions,
   written for human tests. The challenge set contains only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurence algorithm. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
