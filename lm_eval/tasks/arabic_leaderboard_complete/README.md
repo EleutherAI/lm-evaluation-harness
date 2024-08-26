@@ -77,7 +77,7 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
 
 ### Groups and Tasks
 
-* `alghafa`: A multiple-choice evaluation benchmark for zero- and few-shot evaluation of Arabic LLMs prepared from scratch natively for Arabic.
+* `arabic_leaderboard_alghafa`: A multiple-choice evaluation benchmark for zero- and few-shot evaluation of Arabic LLMs prepared from scratch natively for Arabic.
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
     * You can find the list of the tasks as follows:
       * `arabic_alghafa_mcq_exams_test_ar`
@@ -89,21 +89,21 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
       * `arabic_alghafa_multiple_choice_rating_sentiment_no_neutral_task`
       * `arabic_alghafa_multiple_choice_rating_sentiment_task`
       * `arabic_alghafa_multiple_choice_sentiment_task`
-* `arabic_mt_arc_challenge`: AI2 Reasoning Challenge (ARC) is a multiple-choice question task. The dataset contains only natural, grade-school science questions,
+* `arabic_leaderboard_arabic_mt_arc_challenge`: AI2 Reasoning Challenge (ARC) is a multiple-choice question task. The dataset contains only natural, grade-school science questions,
   written for human tests. The challenge set contains only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurence algorithm. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_arc_easy`: This dataset is the same as `arabic_arc_challenge`, except it is not from the challenge set.
+* `arabic_leaderboard_arabic_mt_arc_easy`: This dataset is the same as `arabic_arc_challenge`, except it is not from the challenge set.
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_boolq`: A true/false questions dataset that contains the columns passage, question, and the answer (i.e., true/false). (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+* `arabic_leaderboard_arabic_mt_boolq`: A true/false questions dataset that contains the columns passage, question, and the answer (i.e., true/false). (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_copa`: Choice Of Plausible Alternatives (COPA) is a multiple-choice question dataset, which involves open-domain commonsense causal reasoning. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+* `arabic_leaderboard_arabic_mt_copa`: Choice Of Plausible Alternatives (COPA) is a multiple-choice question dataset, which involves open-domain commonsense causal reasoning. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_exams`: A question answering benchmark for high school examinations in different school subjects that requires knowledge and reasoning in different languages in multiple domains.
+* `arabic_leaderboard_arabic_exams`: A question answering benchmark for high school examinations in different school subjects that requires knowledge and reasoning in different languages in multiple domains.
     * Paper: https://aclanthology.org/2020.emnlp-main.438.pdf
-* `arabic_mt_hellaswag`: The tesk is to choose the next set of sentences, based on the given candidates. The tasks involve reading comprehension and information retrieval challenges
+* `arabic_leaderboard_arabic_mt_hellaswag`: The tesk is to choose the next set of sentences, based on the given candidates. The tasks involve reading comprehension and information retrieval challenges
   by testing the abilities of the models on basic knowledge (i.e., from 3rd grade to 9th) and commonsense inference. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mmlu`: A multi-task language understanding benchmark for the Arabic language, sourced from school exams across diverse educational levels in different countries.
+* `arabic_leaderboard_arabic_mmlu`: A multi-task language understanding benchmark for the Arabic language, sourced from school exams across diverse educational levels in different countries.
   The data comprises multiple choice questions in 40 tasks.
     * Paper: https://arxiv.org/pdf/2402.12840
     * You can find the list of the tasks as follows:
@@ -164,19 +164,19 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
       * `arabic_mmlu_us_foreign_policy`
       * `arabic_mmlu_virology`
       * `arabic_mmlu_world_religions`
-* `arabic_mt_openbook_qa`: A multiple-choice openbook question answering dataset that requires external knowledge and reasoning. The open book that comes with these questions is
+* `arabic_leaderboard_arabic_mt_openbook_qa`: A multiple-choice openbook question answering dataset that requires external knowledge and reasoning. The open book that comes with these questions is
   based on elementary level science facts. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_piqa`: Physical Interaction Question Answering (PIQA) is a multiple-choice question answering based on physical commonsense reasoning. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+* `arabic_leaderboard_arabic_mt_piqa`: Physical Interaction Question Answering (PIQA) is a multiple-choice question answering based on physical commonsense reasoning. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_race`: A multiple-choice questions dataset to assess reading comprehension tasks based on English exams in China - designed for middle school and high school students
+* `arabic_leaderboard_arabic_mt_race`: A multiple-choice questions dataset to assess reading comprehension tasks based on English exams in China - designed for middle school and high school students
   (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_sciq`: A multiple-choice Science Question Answering task to assess understanding of scientific concepts about physics, chemistry, and biology. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+* `arabic_leaderboard_arabic_mt_sciq`: A multiple-choice Science Question Answering task to assess understanding of scientific concepts about physics, chemistry, and biology. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_mt_toxigen`: This benchmark consists of tasks designed to evaluate language models and classify input text as hateful or not hateful. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+* `arabic_leaderboard_arabic_mt_toxigen`: This benchmark consists of tasks designed to evaluate language models and classify input text as hateful or not hateful. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `acva`: Arabic-Culture-Value-Alignment (ACVA) is a yes/no question dataset, generated by GPT3.5 Turbo from Arabic topics to assess model alignment with Arabic values and cultures.
+* `arabic_leaderboard_acva`: Arabic-Culture-Value-Alignment (ACVA) is a yes/no question dataset, generated by GPT3.5 Turbo from Arabic topics to assess model alignment with Arabic values and cultures.
     * Paper: https://arxiv.org/pdf/2309.12053
     * You can find the list of the tasks as follows:
       - `arabic_acva_Algeria`

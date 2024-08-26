@@ -1,4 +1,4 @@
-group: leaderboard_arabic_mt_toxigen
+group: arabic_leaderboard_arabic_mt_toxigen
 task:
   - arabic_mt_toxigen
 

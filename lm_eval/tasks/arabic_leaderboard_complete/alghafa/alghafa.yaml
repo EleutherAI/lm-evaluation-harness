@@ -1,4 +1,4 @@
-group: leaderboard_alghafa
+group: arabic_leaderboard_alghafa
 task:
   - arabic_alghafa_mcq_exams_test_ar
   - arabic_alghafa_meta_ar_dialects

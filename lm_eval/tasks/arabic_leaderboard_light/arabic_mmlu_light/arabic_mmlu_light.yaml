@@ -1,4 +1,4 @@
-group: leaderboard_arabic_mmlu_light
+group: arabic_leaderboard_arabic_mmlu_light
 task:
   - arabic_mmlu_abstract_algebra_light
   - arabic_mmlu_anatomy_light

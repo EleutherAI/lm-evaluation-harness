@@ -1,4 +1,4 @@
-group: leaderboard_arabic_mt_sciq
+group: arabic_leaderboard_arabic_mt_sciq
 task:
   - arabic_mt_sciq
 

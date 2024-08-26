@@ -1,19 +1,19 @@
 group: arabic_leaderboard_complete
 task:
-  - leaderboard_acva
-  - leaderboard_alghafa
-  - leaderboard_arabic_mmlu
-  - leaderboard_arabic_exams
-  - leaderboard_arabic_mt_arc_challenge
-  - leaderboard_arabic_mt_arc_easy
-  - leaderboard_arabic_mt_boolq
-  - leaderboard_arabic_mt_hellaswag
-  - leaderboard_arabic_mt_copa
-  - leaderboard_arabic_mt_openbook_qa
-  - leaderboard_arabic_mt_piqa
-  - leaderboard_arabic_mt_race
-  - leaderboard_arabic_mt_sciq
-  - leaderboard_arabic_mt_toxigen
+  - arabic_leaderboard_acva
+  - arabic_leaderboard_alghafa
+  - arabic_leaderboard_arabic_mmlu
+  - arabic_leaderboard_arabic_exams
+  - arabic_leaderboard_arabic_mt_arc_challenge
+  - arabic_leaderboard_arabic_mt_arc_easy
+  - arabic_leaderboard_arabic_mt_boolq
+  - arabic_leaderboard_arabic_mt_hellaswag
+  - arabic_leaderboard_arabic_mt_copa
+  - arabic_leaderboard_arabic_mt_openbook_qa
+  - arabic_leaderboard_arabic_mt_piqa
+  - arabic_leaderboard_arabic_mt_race
+  - arabic_leaderboard_arabic_mt_sciq
+  - arabic_leaderboard_arabic_mt_toxigen
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
