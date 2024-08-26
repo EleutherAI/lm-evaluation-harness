@@ -36,6 +36,7 @@ class OpenVINOCausalLM(HFLM):
         super().__init__(
             device=self.openvino_device,
             backend=kwargs.pop("backend", "causal"),
+            trust_remote_code=trust_remote_code,
             **kwargs,
         )
 
