@@ -1366,8 +1366,8 @@ class ConfigurableTask(Task):
                     else {}
                 ),
                 **(
-                    {"perplexity_rolling": (loglikelihood, _tokens)}
-                    if "perplexity_rolling" in use_metric
+                    {"token_perplexity": (loglikelihood, _tokens)}
+                    if "token_perplexity" in use_metric
                     else {}
                 ),
             }
@@ -1623,7 +1623,7 @@ class PerplexityTask(Task):
             "word_perplexity": False,
             "byte_perplexity": False,
             "bits_per_byte": False,
-            "perplexity_rolling": False,
+            "token_perplexity": False,
         }
 
     def doc_to_decontamination_query(self, doc):
@@ -1655,7 +1655,7 @@ class PerplexityTask(Task):
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
-            "perplexity_rolling": (loglikelihood, _tokens),
+            "token_perplexity": (loglikelihood, tokens_),
         }
 
     def aggregation(self) -> dict:
@@ -1663,7 +1663,7 @@ class PerplexityTask(Task):
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
             "bits_per_byte": bits_per_byte,
-            "perplexity_rolling": weighted_perplexity,
+            "token_perplexity": weighted_perplexity,
         }
 
     @classmethod

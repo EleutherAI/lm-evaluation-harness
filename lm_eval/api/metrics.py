@@ -249,7 +249,7 @@ def perplexity_fn(items):  # This is a passthrough function
     output_type="loglikelihood_rolling",
     aggregation="weighted_perplexity"
 )
-def perplexity_rolling_fn(items):
+def token_perplexity_fn(items):
     return items
 
 @register_metric(

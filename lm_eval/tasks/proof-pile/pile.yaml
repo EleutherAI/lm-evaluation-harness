@@ -8,7 +8,7 @@ doc_to_target: "{{text}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{text}}"
 metric_list:
-  - metric: perplexity_rolling
+  - metric: token_perplexity
     aggregation: weighted_perplexity
     higher_is_better: false
 metadata:
