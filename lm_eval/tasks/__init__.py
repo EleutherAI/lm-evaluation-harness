@@ -265,7 +265,7 @@ class TaskManager:
                     ),
                     **config,
                 }
-            if "output_type" in config:
+            if "output_path" in config:
                 task_object = JudgeTask(
                     config=config, output_path=config.get("output_path", None)
                 )
