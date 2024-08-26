@@ -33,21 +33,22 @@ class JudgeTask(ConfigurableTask):
 
         resps = []
         # load json
-        with open(self.output_path, "r") as f:
-            for line in f:
-                resp = json.loads(line)
-                resps.append({"resp": resp["resps"][0][0], "doc": resp["doc_id"]})
+        if self.output_path is not None:
+            with open(self.output_path, "r") as f:
+                for line in f:
+                    resp = json.loads(line)
+                    resps.append({"resp": resp["resps"][0][0], "doc": resp["doc_id"]})
 
-        resps.sort(key=lambda x: x["doc"])
-        # TODO: add filter name to resps
-        resps = resps[::2]
-        self.dataset["test"] = self.dataset["test"].add_column(
-            "resp", [resp["resp"] for resp in resps]
-        )
-        self.dataset["train"] = self.dataset["train"].add_column(
-            "resp", self.dataset["train"]["answer"]
-        )
-        print("resp columns added")
+            resps.sort(key=lambda x: x["doc"])
+            # TODO: add filter name to resps
+            resps = resps[::2]
+            self.dataset["test"] = self.dataset["test"].add_column(
+                "resp", [resp["resp"] for resp in resps]
+            )
+            self.dataset["train"] = self.dataset["train"].add_column(
+                "resp", self.dataset["train"]["answer"]
+            )
+            print("resp columns added")
 
     # def process_docs(self, dataset: datasets.Dataset):
     #     resps = []
