@@ -244,7 +244,7 @@ def perplexity_fn(items):  # This is a passthrough function
 
 
 @register_metric(
-    metric="perplexity_rolling",
+    metric="token_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
     aggregation="weighted_perplexity"
