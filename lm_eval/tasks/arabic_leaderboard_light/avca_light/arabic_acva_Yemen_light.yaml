@@ -1,5 +1,5 @@
 task: arabic_acva_Yemen_light
-dataset_path: arcee-globe/ACVA-10percent
+dataset_path: OALL/ACVA
 dataset_name: Yemen
 output_type: multiple_choice
 training_split: null

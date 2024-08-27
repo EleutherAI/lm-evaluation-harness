@@ -2,7 +2,9 @@
 
 Title: Open Arabic LLM Leaderboard Light
 
-This leaderboard follows all the details as in [`arabic_leaderboard_complete`](../arabic_leaderboard_complete), except that a light version - 10% random sample of the training set of each benchmark - is used to test the language models.
+This leaderboard follows all the details as in [`arabic_leaderboard_complete`](../arabic_leaderboard_complete), except that a light version - 10% random sample of the test set of each benchmark - is used to test the language models.
+
+NOTE: In ACVA benchmark, there is Yemen subset, and it is a small dataset - it has only 10 samples in the test split. So, for this specific subset dataset, to have more reliable results, we consider the original dataset, instead of 10% of its test samples.
 
 ### Checklist
 
