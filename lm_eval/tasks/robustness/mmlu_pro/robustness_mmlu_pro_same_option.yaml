@@ -1,0 +1,3 @@
+task: robustness_mmlu_pro_same_option
+class: !function task.MmluProSameOption
+ 
