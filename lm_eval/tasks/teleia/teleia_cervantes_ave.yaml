@@ -1,12 +1,4 @@
-group:
-  - teleia
-include: teleia_pce.yaml
+include: _teleia_yaml
 task: teleia_cervantes_ave
 dataset_name: cervantes_ave
-doc_to_choice:
-  - "A"
-  - "B"
-  - "C"
-  - "D"
-doc_to_target: "{{['A', 'B', 'C', 'D'].index(answer)}}"
-doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nRespuesta:"
+process_docs: !function utils.process_cervantes

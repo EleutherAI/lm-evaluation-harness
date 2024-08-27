@@ -1,0 +1,17 @@
+tag:
+  - teleia
+dataset_path: migonsa/teleia
+output_type: multiple_choice
+training_split: train
+test_split: test
+validation_split: val
+doc_to_text: "query"
+doc_to_target: "target"
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

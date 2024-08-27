@@ -1,24 +1,4 @@
-group:
-  - teleia
+include: _teleia_yaml
 task: teleia_pce
-dataset_path: gonzmart/teleia
 dataset_name: pce
-output_type: multiple_choice
-training_split: train
-test_split: test
-description: "A continuación se presentan preguntas de vocabulario y estructuras gramaticales siguiendo el formato del examen Cervantes AVE. Por favor, seleccione la opción correcta para completar cada oración.\n\n"
-doc_to_choice:
-  - "A"
-  - "B"
-  - "C"
-doc_to_target: "{{['A', 'B', 'C'].index(answer)}}"
-doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nRespuesta:"
-metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
-    aggregation: mean
-    higher_is_better: true
-metadata:
-  - version: 1.0
+process_docs: !function utils.process_pce_siele
