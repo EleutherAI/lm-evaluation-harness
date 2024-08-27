@@ -1,0 +1,2 @@
+task: robustness_mmlu_pro
+class: !function task.MmluPro
