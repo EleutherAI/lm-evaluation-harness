@@ -283,8 +283,11 @@ class CachingLM:
             eval_logger.info(
                 f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
             )
-            # actually run the LM on the requests that do not have cached results
-            rem_res = getattr(self.lm, attr)(remaining_reqs)
+            if remaining_reqs:
+                # actually run the LM on the requests that do not have cached results
+                rem_res = getattr(self.lm, attr)(remaining_reqs)
+            else:
+                rem_res = []
 
             # stick the new ones back into the list and also cache any of the new ones
             resptr = 0
