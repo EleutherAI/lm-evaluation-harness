@@ -307,6 +307,10 @@ class VLLM(TemplateLM):
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
+
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+
         return loglikelihoods
 
     def generate_until(
@@ -453,8 +457,10 @@ class VLLM(TemplateLM):
 
                 res.append(answer)
 
-                # partial caching
                 if cache_key is not None:
+                    # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                    # all with cache key None. instead do add_partial on the per-example level
+                    # in the loglikelihood_rolling() function for those.
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
                 pbar.update(1)
         pbar.close()
