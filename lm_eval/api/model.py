@@ -284,7 +284,7 @@ class CachingLM:
                 f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
             )
             if remaining_reqs:
-            # actually run the LM on the requests that do not have cached results
+                # actually run the LM on the requests that do not have cached results
                 rem_res = getattr(self.lm, attr)(remaining_reqs)
             else:
                 rem_res = []
