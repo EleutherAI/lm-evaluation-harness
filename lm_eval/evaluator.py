@@ -208,7 +208,7 @@ def simple_evaluate(
             )
     else:
         if not isinstance(model, lm_eval.api.model.LM):
-            raise TypeError
+            raise TypeError(f"The value of `model` passed to simple_evaluate() was of type {type(model)}, but is required to be a subclass of lm_eval.api.model.LM . This may be because you are passing an initialized Hugging Face PretrainedModel class without having wrapped it in HFLM(my_hf_model).")  
         eval_logger.info("Using pre-initialized model")
         lm = model
 
