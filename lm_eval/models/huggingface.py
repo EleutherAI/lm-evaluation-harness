@@ -1018,6 +1018,9 @@ class HFLM(TemplateLM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+
         return loglikelihoods
 
     def _batch_scheduler(self, pos, n_reordered_requests):
@@ -1246,7 +1249,13 @@ class HFLM(TemplateLM):
 
                     res.append(answer)
 
-                    self.cache_hook.add_partial("loglikelihood", request_str, answer)
+                    if request_str is not None:
+                        # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                        # all with cache key None. instead do add_partial on the per-example level
+                        # in the loglikelihood_rolling() function for those.
+                        self.cache_hook.add_partial(
+                            "loglikelihood", request_str, answer
+                        )
                     pbar.update(1)
 
         pbar.close()
