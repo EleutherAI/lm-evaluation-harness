@@ -69,7 +69,11 @@ class MmluPro(ConfigurableTask):
         # uppercase letters
         _l = string.ascii_uppercase
         options = "\n".join([f"{_l[i]}) {doc['options'][i]}" for i in range(len(doc["options"]))])
-        return self.prompt_templates[doc["prompt_id"]].format(question=doc["question"], options=options)
+
+        prompt = self.prompt_templates[doc["prompt_id"]]["prompt"]
+        options_format = self.prompt_templates[doc["prompt_id"]]["options_format"]
+        options = "".join([options_format.format(letter=_l[i], option=doc['options'][i]) for i in range(len(doc["options"]))])
+        return prompt.format(question=doc["question"], options=options)
     
     def doc_to_target(self, doc):
         return doc["answer"]

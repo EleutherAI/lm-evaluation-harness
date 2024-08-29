@@ -1,22 +1,55 @@
 {
-"v0.1_templates":[
-        {
-            "prompt": "Answer the following multiple-choice question about {0} by selecting the correct option: 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J' . \nQuestion:{1}\n{2}\nAnswer: ",
-            "separator": f"\n{letter}: :",
+    "v0.1_templates":[
+            {
+                "prompt": "Answer the following multiple-choice question about {0} by selecting the correct option: 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J' . \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
 
-    },
-        "For the multiple-choice question related to {0}, please choose the most accurate answer from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
-        "Below are multiple-choice question concerning {0}. Indicate your response with 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\nAnswer: ",
-        "Please respond to the multiple-choice question about {0} by selecting the appropriate answer: 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
-        "Regarding the following multiple-choice question on {0}, pick the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
-        "Evaluate the multiple-choice question about {0} and select the most fitting response from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
-        "Examine the following question based on {0} and choose the correct response from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
-        "For each multiple-choice question about {0}, identify the correct answer by selecting 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
-        "In relation to the multiple-choice question on {0}, please provide the accurate answer by choosing 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer:",
-        "Answer the subsequent multiple-choice question about {0} by picking the right option among 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. {1}\n{2}\nAnswer: ",
-        "Below is a multi-choice question about {0}. You must reply with only a single letter (either A, B, C, D, E, F, G, H, I or J).\n\n{1}\n{2}"
+        },
+            {
+                "prompt": "For the multiple-choice question related to {0}, please choose the most accurate answer from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "Below are multiple-choice question concerning {0}. Indicate your response with 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "Please respond to the multiple-choice question about {0} by selecting the appropriate answer: 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "Regarding the following multiple-choice question on {0}, pick the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+        {
+                "prompt": "Evaluate the multiple-choice question about {0} and select the most fitting response from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "Examine the following question based on {0} and choose the correct response from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "For each multiple-choice question about {0}, identify the correct answer by selecting 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "In relation to the multiple-choice question on {0}, please provide the accurate answer by choosing 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. \nQuestion:{1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "Answer the subsequent multiple-choice question about {0} by picking the right option among 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. {1}\n{2}\nAnswer: ",
+                "options_format": "\n{letter}: {option}"
+        },
+            {
+                "prompt": "Below is a multi-choice question about {0}. You must reply with only a single letter (either A, B, C, D, E, F, G, H, I or J).\n\n{1}\n{2}",
+                "options_format": "\n{letter}: {option}"
+        }
     ],
-"v0.2_templates":[
-        "Given the following question and candidate answers (A, B, C, D, E, F, G, H, I or J), choose the best answer.\n\nQuestion: {question}\n{options}\n\n- For simple problems:\nDirectly provide the answer with minimal explanation.\n\n- For complex problems:\nUse this step-by-step format:\n## Step 1: [Concise description]\n[Brief explanation]\n## Step 2: [Concise description]\n[Brief explanation]\n\nRegardless of the approach, always conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C, D, E, F, G, H, I or J.\n\nLet's think step by step."
-    ]
+    "v0.2_templates":[
+            {
+                "prompt": "Given the following question and candidate answers (A, B, C, D, E, F, G, H, I or J), choose the best answer.\n\nQuestion: {question}\n{options}\n\n- For simple problems:\nDirectly provide the answer with minimal explanation.\n\n- For complex problems:\nUse this step-by-step format:\n## Step 1: [Concise description]\n[Brief explanation]\n## Step 2: [Concise description]\n[Brief explanation]\n\nRegardless of the approach, always conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C, D, E, F, G, H, I or J.\n\nLet's think step by step.",
+                "options_format": "\n{letter}) {option}"
+            }
+        ]
 }
