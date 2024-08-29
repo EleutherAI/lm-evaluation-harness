@@ -510,7 +510,7 @@ class TemplateAPI(TemplateLM):
                 ):
                     if answer_ is not None:
                         res.append(answer_)
-                        # partial caching
+                        # cache requests that aren't from a loglikelihood_rolling request
                         if cache_key is not None:
                             self.cache_hook.add_partial(
                                 "loglikelihood", cache_key, answer_
@@ -638,4 +638,7 @@ class TemplateAPI(TemplateLM):
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
+
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         return loglikelihoods
