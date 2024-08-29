@@ -1,8 +1,10 @@
 import abc
+import functools
 import hashlib
 import json
 import logging
 import os
+import concurrent.futures
 from typing import Dict, List, Optional, Tuple, Type, TypeVar
 
 import transformers
@@ -363,17 +365,9 @@ class TemplateLM(LM):
         self, requests, disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
         new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # BOS or EOS as context
-                context_enc, continuation_enc = (
-                    [self.prefix_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
+        p = functools.partial(_encode, lm=self)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            new_reqs = list(tqdm(executor.map(p, [req.args for req in requests])))
 
         return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)
 
@@ -386,3 +380,19 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         pass
+
+def _encode(args, lm):
+    """Encode a context-continuation pair using the LM's tokenizer.
+    
+    Needs to be a top-level function to be picklable."""
+    context, continuation = args
+    if context == "":
+        # BOS or EOS as context
+        context_enc, continuation_enc = (
+            [lm.prefix_token_id],
+            lm.tok_encode(continuation),
+        )
+    else:
+        context_enc, continuation_enc = lm._encode_pair(context, continuation)
+
+    return ((context, continuation), context_enc, continuation_enc)

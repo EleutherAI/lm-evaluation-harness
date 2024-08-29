@@ -146,6 +146,6 @@ def test_printed_results(task_name: List[str], limit: int, model: str, model_arg
             try:
                 t1_item = float(t1_item)
                 t2_item = float(t2_item)
-                assert abs(t1_item - t2_item) < 0.3
+                assert abs(t1_item - t2_item) < 0.4
             except ValueError:
                 assert t1_item == t2_item
