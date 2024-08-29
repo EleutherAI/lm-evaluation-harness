@@ -92,6 +92,7 @@ class TaskConfig(dict):
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
+    gen_prefix: str = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -1022,13 +1023,13 @@ class ConfigurableTask(Task):
     @utils.positional_deprecated
     def fewshot_context(
         self,
-        doc: str,
+        doc: Dict[str, str],
         num_fewshot: int,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
-    ) -> str:
+    ) -> Union[str, List[Dict[str, str]]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -1057,6 +1058,7 @@ class ConfigurableTask(Task):
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
+        ## [System prompt/Description] ##
         # create system prompt based on the provided system instruction and description
         if system_instruction is not None and description:
             system_prompt = (
@@ -1076,6 +1078,7 @@ class ConfigurableTask(Task):
             else:
                 labeled_examples = system_prompt
 
+        ## [Few-shot examples] ##
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
@@ -1087,6 +1090,7 @@ class ConfigurableTask(Task):
             else:
                 labeled_examples += self.sampler.get_context(doc, num_fewshot)
 
+        ## [Prompt] ##
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
@@ -1207,7 +1211,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
+    def doc_to_target(self, doc: Dict, doc_to_target=None) -> Union[int, str, list]:
         if self.prompt is not None:
             doc_to_target = self.prompt
         elif doc_to_target is not None:
