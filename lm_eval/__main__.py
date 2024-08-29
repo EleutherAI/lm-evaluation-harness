@@ -310,15 +310,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             )
         )
 
-    if (
-        args.num_fewshot is None or args.num_fewshot == 0
-    ) and args.fewshot_as_multiturn:
-        # if no fewshots, multiturn has no sense, disable it
-        args.fewshot_as_multiturn = False
-        eval_logger.warning(
-            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0. Disabling `fewshot_as_multiturn`."
-        )
-
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
