@@ -110,10 +110,6 @@ def test_instruction_following_loose(
 
 
 def process_results(doc, results):
-    eval_logger.warning(
-        "This task is meant for chat-finetuned models, and may not give meaningful results for models other than `openai` or `anthropic` if `doc_to_text` in its YAML is not wrapped in the appropriate chat template string. This warning will be removed when chat templating support is added natively to local models"
-    )
-
     inp = InputExample(
         key=doc["key"],
         instruction_id_list=doc["instruction_id_list"],

@@ -492,7 +492,7 @@ class TaskManager:
                                         "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
                                         "`tag` will be used to allow to call a collection of tasks just like `group`. "
                                         "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
-                                        "which will be the offical way to create groups with addition of group-wide configuations."
+                                        "which will be the official way to create groups with addition of group-wide configurations."
                                     )
                                     print_info = False
                                     # attr = "tag"

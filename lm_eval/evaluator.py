@@ -208,7 +208,9 @@ def simple_evaluate(
             )
     else:
         if not isinstance(model, lm_eval.api.model.LM):
-            raise TypeError
+            raise TypeError(
+                f"The value of `model` passed to simple_evaluate() was of type {type(model)}, but is required to be a subclass of lm_eval.api.model.LM . This may be because you are passing an initialized Hugging Face PreTrainedModel without having wrapped it in `lm_eval.models.huggingface.HFLM(pretrained=my_model)` first."
+            )
         eval_logger.info("Using pre-initialized model")
         lm = model
 
@@ -287,12 +289,18 @@ def simple_evaluate(
     if check_integrity:
         run_task_tests(task_list=tasks)
 
+    # hotfix: delete when chat_template fixed
+    try:
+        chat = lm.chat_template(apply_chat_template)
+    except:  # noqa: E722
+        chat = None
+
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template),
+            chat_template=chat,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
