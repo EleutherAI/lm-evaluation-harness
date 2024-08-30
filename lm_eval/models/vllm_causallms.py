@@ -289,7 +289,8 @@ class VLLM(TemplateLM):
                     make_disjoint_window,
                     get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
+                        prefix_token=self.prefix_token_id,
+                        # max_seq_len - (1 for context)
                         max_seq_len=self.max_length - 1,
                         context_len=1,
                     ),
