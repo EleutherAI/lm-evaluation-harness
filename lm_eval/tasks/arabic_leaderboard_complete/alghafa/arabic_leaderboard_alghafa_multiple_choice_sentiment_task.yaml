@@ -1,4 +1,4 @@
-task: arabic_alghafa_multiple_choice_sentiment_task
+task: arabic_leaderboard_alghafa_multiple_choice_sentiment_task
 dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Native
 dataset_name: multiple_choice_sentiment_task
 output_type: multiple_choice

@@ -1,6 +1,6 @@
-task: arabic_alghafa_multiple_choice_facts_truefalse_balanced_task
-dataset_path: OALL/AlGhafa-Arabic-LLM-Benchmark-Native
-dataset_name: multiple_choice_facts_truefalse_balanced_task
+task: arabic_leaderboard_alghafa_multiple_choice_rating_sentiment_no_neutral_task_light
+dataset_path: arcee-globe/AlGhafa-Arabic-LLM-Benchmark-Native-10percent
+dataset_name: multiple_choice_rating_sentiment_no_neutral_task
 output_type: multiple_choice
 training_split: null
 validation_split: validation
