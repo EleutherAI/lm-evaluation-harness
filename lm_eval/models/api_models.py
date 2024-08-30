@@ -104,8 +104,9 @@ class TemplateAPI(TemplateLM):
         self._truncate = truncate
         self._max_gen_toks = int(max_gen_toks)
         self._seed = int(seed)
-        eval_logger.info(f"Using max length {max_length}")
-        self.max_length = max_length
+        # max_length - 1 as we always have 1 token for generation
+        eval_logger.info(f"Using max length {max_length} - 1")
+        self.max_length = max_length - 1
         if int(num_concurrent) <= 1:
             eval_logger.info(
                 "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
@@ -419,9 +420,9 @@ class TemplateAPI(TemplateLM):
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
                 # max_length - 1 as we always have 1 token for generation
-                inp = (context_enc + continuation_enc)[-(self.max_length - 1) :]
+                inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length - 1)
+                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
                 )
 
                 inputs.append(inp)
