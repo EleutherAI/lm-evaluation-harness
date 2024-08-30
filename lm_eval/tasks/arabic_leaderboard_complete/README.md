@@ -89,21 +89,9 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
       * `arabic_alghafa_multiple_choice_rating_sentiment_no_neutral_task`
       * `arabic_alghafa_multiple_choice_rating_sentiment_task`
       * `arabic_alghafa_multiple_choice_sentiment_task`
-* `arabic_leaderboard_arabic_mt_arc_challenge`: AI2 Reasoning Challenge (ARC) is a multiple-choice question task. The dataset contains only natural, grade-school science questions,
-  written for human tests. The challenge set contains only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurence algorithm. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
-    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_leaderboard_arabic_mt_arc_easy`: This dataset is the same as `arabic_arc_challenge`, except it is not from the challenge set.
-    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_leaderboard_arabic_mt_boolq`: A true/false questions dataset that contains the columns passage, question, and the answer (i.e., true/false). (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
-    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_leaderboard_arabic_mt_copa`: Choice Of Plausible Alternatives (COPA) is a multiple-choice question dataset, which involves open-domain commonsense causal reasoning. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
-    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
 * `arabic_leaderboard_arabic_exams`: A question answering benchmark for high school examinations in different school subjects that requires knowledge and reasoning in different languages in multiple domains.
     * Paper: https://aclanthology.org/2020.emnlp-main.438.pdf
-* `arabic_leaderboard_arabic_mt_hellaswag`: The tesk is to choose the next set of sentences, based on the given candidates. The tasks involve reading comprehension and information retrieval challenges
-  by testing the abilities of the models on basic knowledge (i.e., from 3rd grade to 9th) and commonsense inference. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
-    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
-* `arabic_leaderboard_arabic_mmlu`: A multi-task language understanding benchmark for the Arabic language, sourced from school exams across diverse educational levels in different countries.
+* `arabic_leaderboard_arabic_mmlu`: A multi-task language understanding benchmark for the Arabic language, sourced from school exams across diverse educational levels in different countries with native speakers in the region.
   The data comprises multiple choice questions in 40 tasks.
     * Paper: https://arxiv.org/pdf/2402.12840
     * You can find the list of the tasks as follows:
@@ -164,6 +152,20 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
       * `arabic_mmlu_us_foreign_policy`
       * `arabic_mmlu_virology`
       * `arabic_mmlu_world_religions`
+* `arabic_leaderboard_arabic_mt_arc_challenge`: AI2 Reasoning Challenge (ARC) is a multiple-choice question task. The dataset contains only natural, grade-school science questions,
+  written for human tests. The challenge set contains only questions answered incorrectly by both a retrieval-based algorithm and a word co-occurence algorithm. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
+* `arabic_leaderboard_arabic_mt_arc_easy`: This dataset is the same as `arabic_arc_challenge`, except it is not from the challenge set.
+    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
+* `arabic_leaderboard_arabic_mt_boolq`: A true/false questions dataset that contains the columns passage, question, and the answer (i.e., true/false). (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
+* `arabic_leaderboard_arabic_mt_copa`: Choice Of Plausible Alternatives (COPA) is a multiple-choice question dataset, which involves open-domain commonsense causal reasoning. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
+* `arabic_leaderboard_arabic_mt_hellaswag`: The tesk is to choose the next set of sentences, based on the given candidates. The tasks involve reading comprehension and information retrieval challenges
+  by testing the abilities of the models on basic knowledge (i.e., from 3rd grade to 9th) and commonsense inference. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
+    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
+* `arabic_leaderboard_arabic_mt_mmlu`: A multiple-choice question answering dataset from various branches of knowledge including humanities, social sciences, hard sciences, and other areas. The examples in the English dataset are translated into Arabic using ChatGPT with a translation prompt.
+    * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
 * `arabic_leaderboard_arabic_mt_openbook_qa`: A multiple-choice openbook question answering dataset that requires external knowledge and reasoning. The open book that comes with these questions is
   based on elementary level science facts. (machine translated benchmark - part of the Alghafa Arabic translated LLM benchmark)
     * Paper: https://aclanthology.org/2023.arabicnlp-1.21.pdf
