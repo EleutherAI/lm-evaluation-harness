@@ -32,7 +32,6 @@ from packaging.version import parse as parse_version
 # for more information.
 NLTK_MIN_VERSION = "3.9.1"
 RANK = os.environ.get("LOCAL_RANK", "0")
-print(f"RANK: {RANK}")
 
 
 def download_nltk_resources():
