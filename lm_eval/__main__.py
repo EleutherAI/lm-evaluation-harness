@@ -286,6 +286,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         args.hf_hub_log_args += f",token={os.environ.get('HF_TOKEN')}"
     evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
     evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
+    if evaluation_tracker.push_results_to_hub or evaluation_tracker.push_samples_to_hub:
+        args.log_samples = True
 
     if args.predict_only:
         args.log_samples = True
@@ -309,11 +311,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
-
-    if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
-        eval_logger.warning(
-            "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
-        )
 
     if args.limit:
         eval_logger.warning(
