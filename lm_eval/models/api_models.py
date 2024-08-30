@@ -419,6 +419,7 @@ class TemplateAPI(TemplateLM):
         cache_keys = []
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
+                # max_length - 1 as we always have 1 token for generation
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)
