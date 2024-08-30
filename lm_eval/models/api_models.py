@@ -104,6 +104,7 @@ class TemplateAPI(TemplateLM):
         self._truncate = truncate
         self._max_gen_toks = int(max_gen_toks)
         self._seed = int(seed)
+        eval_logger.info(f"Using max length {max_length}")
         self.max_length = max_length
         if int(num_concurrent) <= 1:
             eval_logger.info(
@@ -417,9 +418,10 @@ class TemplateAPI(TemplateLM):
         cache_keys = []
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
-                inp = (context_enc + continuation_enc)[-(self.max_length) :]
+                # max_length - 1 as we always have 1 token for generation
+                inp = (context_enc + continuation_enc)[-(self.max_length - 1) :]
                 ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
+                    0, len(context_enc) + len(continuation_enc) - (self.max_length - 1)
                 )
 
                 inputs.append(inp)
@@ -619,7 +621,8 @@ class TemplateAPI(TemplateLM):
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
                         prefix_token=self.prefix_token_id,
-                        max_seq_len=self.max_length,
+                        # max_seq_len - (1 for context)
+                        max_seq_len=self.max_length - 1,
                         context_len=1,
                     ),
                 )
