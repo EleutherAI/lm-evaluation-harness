@@ -1004,8 +1004,9 @@ class ConfigurableTask(Task):
         labeled_examples: List[Dict[str, str]],
         question: str,
         fewshot_as_multiturn: bool = False,
+        gen_prefix: str = None,
     ) -> None:
-        """Adds a target question to the labeled examples list.
+        """Adds a target question to the labeled examples list (in-place update)
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
         Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
         """
@@ -1019,6 +1020,11 @@ class ConfigurableTask(Task):
         else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
             labeled_examples.append({"role": "user", "content": question})
+
+        if gen_prefix:
+            labeled_examples.append(
+                {"role": "assistant", "content": gen_prefix.lstrip()}
+            )
 
     @utils.positional_deprecated
     def fewshot_context(
@@ -1094,10 +1100,14 @@ class ConfigurableTask(Task):
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
+                # TODO<baber>: How to handle gen_prefix for multiple inputs?
                 return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
-                    labeled_examples, example, fewshot_as_multiturn
+                    labeled_examples,
+                    example,
+                    fewshot_as_multiturn,
+                    self.config.gen_prefix,
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
@@ -1113,27 +1123,36 @@ class ConfigurableTask(Task):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
                     self.append_target_question(
-                        labeled_examples, choices[example], fewshot_as_multiturn
+                        labeled_examples,
+                        choices[example],
+                        fewshot_as_multiturn,
+                        self.config.gen_prefix,
                     )
                 else:
                     self.append_target_question(
-                        labeled_examples, str(example), fewshot_as_multiturn
+                        labeled_examples,
+                        str(example),
+                        fewshot_as_multiturn,
+                        self.config.gen_prefix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(labeled_examples)
         else:
             if self.multiple_input:
+                # TODO<baber>: How to handle gen_prefix for multiple inputs?
                 return labeled_examples
             if isinstance(example, str):
-                return labeled_examples + example
+                return labeled_examples + example + self.config.gen_prefix
             elif isinstance(example, list):
-                return [labeled_examples + ex for ex in example]
+                return [
+                    labeled_examples + ex + self.config.gen_prefix for ex in example
+                ]
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example]
+                    return labeled_examples + choices[example] + self.config.gen_prefix
                 else:
-                    return labeled_examples + str(example)
+                    return labeled_examples + str(example) + self.config.gen_prefix
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
