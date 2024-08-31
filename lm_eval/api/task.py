@@ -1060,6 +1060,8 @@ class ConfigurableTask(Task):
         else:
             labeled_examples = ""
 
+        gen_prefix = "" if not self.config.gen_prefix else self.config.gen_prefix
+
         # get task description
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
@@ -1107,7 +1109,7 @@ class ConfigurableTask(Task):
                     labeled_examples,
                     example,
                     fewshot_as_multiturn,
-                    self.config.gen_prefix,
+                    gen_prefix,
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
@@ -1126,14 +1128,14 @@ class ConfigurableTask(Task):
                         labeled_examples,
                         choices[example],
                         fewshot_as_multiturn,
-                        self.config.gen_prefix,
+                        gen_prefix,
                     )
                 else:
                     self.append_target_question(
                         labeled_examples,
                         str(example),
                         fewshot_as_multiturn,
-                        self.config.gen_prefix,
+                        gen_prefix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(labeled_examples)
@@ -1142,17 +1144,15 @@ class ConfigurableTask(Task):
                 # TODO<baber>: How to handle gen_prefix for multiple inputs?
                 return labeled_examples
             if isinstance(example, str):
-                return labeled_examples + example + self.config.gen_prefix
+                return labeled_examples + example + gen_prefix
             elif isinstance(example, list):
-                return [
-                    labeled_examples + ex + self.config.gen_prefix for ex in example
-                ]
+                return [labeled_examples + ex + gen_prefix for ex in example]
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example] + self.config.gen_prefix
+                    return labeled_examples + choices[example] + gen_prefix
                 else:
-                    return labeled_examples + str(example) + self.config.gen_prefix
+                    return labeled_examples + str(example) + gen_prefix
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
