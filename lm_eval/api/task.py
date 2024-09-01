@@ -1113,6 +1113,7 @@ class ConfigurableTask(Task):
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
+                # TODO<baber>: when is example a list?
                 labeled_examples_list = []
                 # copy chat history for each example and append the answer
                 for ex in example:
