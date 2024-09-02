@@ -1,4 +1,4 @@
-include: _teleia_yaml
+include: _teleia_template
 task: teleia_cervantes_ave
 dataset_name: cervantes_ave
 process_docs: !function utils.process_cervantes

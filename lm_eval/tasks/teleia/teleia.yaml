@@ -1,0 +1,12 @@
+group: teleia
+task:
+  - teleia_pce
+  - teleia_cervantes_ave
+  - teleia_siele
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+metadata:
+  version: 1

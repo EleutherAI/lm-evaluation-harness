@@ -1,4 +1,4 @@
-include: _teleia_yaml
+include: _teleia_template
 task: teleia_pce
 dataset_name: pce
 process_docs: !function utils.process_pce_siele
