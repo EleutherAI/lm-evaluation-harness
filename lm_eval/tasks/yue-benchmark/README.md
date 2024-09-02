@@ -14,13 +14,13 @@ Homepage: [GitHub](https://github.com/jiangjyjy/Yue-Benchmark), [HuggingFace](ht
 
 ```
 @misc{jiang2024farcantonesenlpgo,
-      title={How Far Can Cantonese NLP Go? Benchmarking Cantonese Capabilities of Large Language Models}, 
+      title={How Far Can Cantonese NLP Go? Benchmarking Cantonese Capabilities of Large Language Models},
       author={Jiyue Jiang and Liheng Chen and Pengan Chen and Sheng Wang and Qinghang Bao and Lingpeng Kong and Yu Li and Chuan Wu},
       year={2024},
       eprint={2408.16756},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2408.16756}, 
+      url={https://arxiv.org/abs/2408.16756},
 }
 ```
 
