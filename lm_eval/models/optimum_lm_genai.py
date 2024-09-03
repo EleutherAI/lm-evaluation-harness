@@ -18,6 +18,8 @@ class OpenVINOCausalLM(HFLM):
     Optimum Intel provides a simple interface to optimize Transformer models and convert them to \
     OpenVINO™ Intermediate Representation (IR) format to accelerate end-to-end pipelines on \
     Intel® architectures using OpenVINO™ runtime.
+
+    `lm_eval --model openvino-causal --model_args pretrained=gpt2 --task wikitext`
     """
 
     def __init__(
