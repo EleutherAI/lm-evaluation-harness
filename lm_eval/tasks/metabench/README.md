@@ -31,9 +31,9 @@ There are no groups.
 #### Tasks
 
 * `metabench_arc` -- a subset of the [ARC benchmark](https://huggingface.co/datasets/allenai/ai2_arc) containing the 100 most informative items.
-* `metabench_gsm8k` -- a subset of the [GSM8K benchmark](https://huggingface.co/datasets/openai/gsm8k) containing the 237 most informative items.
+* `metabench_gsm8k` -- a subset of the [GSM8K benchmark](https://huggingface.co/datasets/openai/gsm8k) containing the 196 most informative items.
 * `metabench_hellaswag` -- a subset of the [HellaSwag](https://huggingface.co/datasets/Rowan/hellaswag) benchmark containing the 58 most informative items.
-* `metabench_mmlu` -- a subset of the [MMLU benchmark](https://huggingface.co/datasets/cais/mmlu) containing the 102 most informative items (strictly, a subset of [hails/mmmlu_no_train](https://huggingface.co/datasets/hails/mmlu_no_train)).
+* `metabench_mmlu` -- a subset of the [MMLU benchmark](https://huggingface.co/datasets/cais/mmlu) containing the 103 most informative items (strictly, a subset of [hails/mmmlu_no_train](https://huggingface.co/datasets/hails/mmlu_no_train)).
 * `metabench_truthfulqa` -- a subset of the [TruthfulQA benchmark](https://huggingface.co/datasets/truthfulqa/truthful_qa) containing the 136 most informative items.
 * `metabench_winogrande` -- a subset of the [Winogrande benchmark](https://huggingface.co/datasets/allenai/winogrande) containing the 106 most informative items.
 

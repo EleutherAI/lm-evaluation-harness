@@ -1,18 +1,15 @@
 task: metabench_hellaswag
 tag:
   - metabench_hellaswag_subset
-dataset_path: csv
-dataset_name: null
+dataset_path: HCAI/metabench
+dataset_name: HellaSwag
 process_docs: !function process_docs.process_hellaswag
 output_type: multiple_choice
 training_split: null
 validation_split: null
 test_split: test
 num_fewshot: 0
-dataset_kwargs:
-  data_files: 
-    test: ../metabench_benchmark/hellaswag_reduced.csv
-doc_to_text: "{{query}}"
+doc_to_text: "{{ten_shot_preprompt}}{{query}}"
 doc_to_target: "{{label}}"
 doc_to_choice: "choices"
 metric_list:

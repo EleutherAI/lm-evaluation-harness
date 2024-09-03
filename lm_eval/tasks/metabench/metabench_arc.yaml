@@ -1,18 +1,15 @@
 task: metabench_arc
 tag:
   - metabench_arc_subset
-dataset_path: csv
-dataset_name: null
+dataset_path: HCAI/metabench
+dataset_name: ARC
 process_docs: !function process_docs.process_arc
 output_type: multiple_choice
 training_split: null
 validation_split: null
 test_split: test
 num_fewshot: 0
-dataset_kwargs:
-  data_files: 
-    test: ../metabench_benchmark/arc_reduced.csv
-doc_to_text: "{{question}}"
+doc_to_text: "{{twentyfive_shot_preprompt}}Question: {{question}}\nAnswer:"
 doc_to_target: "{{choices.label.index(answerKey)}}"
 doc_to_choice: "{{choices.text}}"
 metric_list:

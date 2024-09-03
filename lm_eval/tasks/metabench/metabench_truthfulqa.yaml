@@ -1,16 +1,12 @@
 task: metabench_truthfulqa
 tag:
   - metabench_truthfulqa_subset
-dataset_path: csv
-dataset_name: null
-process_docs: !function process_docs.process_truthfulqa
+dataset_path: HCAI/metabench
+dataset_name: TruthfulQA
 output_type: multiple_choice
 training_split: null
 validation_split: null
 test_split: test
-dataset_kwargs:
-  data_files: 
-    test: ../metabench_benchmark/truthfulqa_reduced.csv
 num_fewshot: 0
 doc_to_text: "\
   {% set prompt_qa = '\
