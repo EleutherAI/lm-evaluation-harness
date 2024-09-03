@@ -38,7 +38,7 @@ We offer two sets of tasks. The first uses the original benchmark items straight
 * `metabench_arc` -- a subset of the [ARC benchmark](https://huggingface.co/datasets/allenai/ai2_arc) containing the 100 most informative items.
 * `metabench_gsm8k` -- a subset of the [GSM8K benchmark](https://huggingface.co/datasets/openai/gsm8k) containing the 196 most informative items.
 * `metabench_hellaswag` -- a subset of the [HellaSwag](https://huggingface.co/datasets/Rowan/hellaswag) benchmark containing the 58 most informative items.
-* `metabench_mmlu` -- a subset of the [MMLU benchmark](https://huggingface.co/datasets/cais/mmlu) containing the 103 most informative items (strictly, a subset of [hails/mmmlu_no_train](https://huggingface.co/datasets/hails/mmlu_no_train)).
+* `metabench_mmlu` -- a subset of the [MMLU benchmark](https://huggingface.co/datasets/cais/mmlu) containing the 102 most informative items (strictly, a subset of [hails/mmmlu_no_train](https://huggingface.co/datasets/hails/mmlu_no_train)).
 * `metabench_truthfulqa` -- a subset of the [TruthfulQA benchmark](https://huggingface.co/datasets/truthfulqa/truthful_qa) containing the 136 most informative items.
 * `metabench_winogrande` -- a subset of the [Winogrande benchmark](https://huggingface.co/datasets/allenai/winogrande) containing the 106 most informative items.
 
@@ -46,7 +46,7 @@ Since the original benchmarks are open-source, there is a risk of contamination.
 
 * `metabench_arc_permute` -- a subset of the [ARC benchmark](https://huggingface.co/datasets/allenai/ai2_arc) containing the 100 most informative items. The answers are randomly permuted such that the answer key is different to the original benchmark.
 * `metabench_hellaswag_permute` -- a subset of the [HellaSwag](https://huggingface.co/datasets/Rowan/hellaswag) benchmark containing the 58 most informative items. The answers are randomly permuted such that the answer key is different to the original benchmark.
-* `metabench_mmlu_permute` -- a subset of the [MMLU benchmark](https://huggingface.co/datasets/cais/mmlu) containing the 103 most informative items (strictly, a subset of [hails/mmmlu_no_train](https://huggingface.co/datasets/hails/mmlu_no_train)). The answers are randomly permuted such that the answer key is different to the original benchmark.
+* `metabench_mmlu_permute` -- a subset of the [MMLU benchmark](https://huggingface.co/datasets/cais/mmlu) containing the 102 most informative items (strictly, a subset of [hails/mmmlu_no_train](https://huggingface.co/datasets/hails/mmlu_no_train)). The answers are randomly permuted such that the answer key is different to the original benchmark.
 * `metabench_truthfulqa_permute` -- a subset of the [TruthfulQA benchmark](https://huggingface.co/datasets/truthfulqa/truthful_qa) containing the 136 most informative items. The answers are randomly permuted such that the answer key is different to the original benchmark.
 * `metabench_winogrande_permute` -- a subset of the [Winogrande benchmark](https://huggingface.co/datasets/allenai/winogrande) containing the 106 most informative items. The answers are randomly permuted such that the answer key is different to the original benchmark.
 
