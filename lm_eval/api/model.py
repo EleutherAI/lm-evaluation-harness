@@ -397,6 +397,7 @@ class TemplateLM(LM):
         https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1687
 
         This method ensures that the right template is chosen based on the following:
+	0. If the model has no 'tokenizer' attribute: assumes that there is only a single possible chat template, handled on the model provider side internally. Returns the empty string.
         1. If the model's tokenizer has multiple templates:
             a. Use the specified template if it exists in the dictionary.
             b. Use the default template from the list if no specific template is provided.
