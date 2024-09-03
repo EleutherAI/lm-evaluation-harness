@@ -1333,11 +1333,15 @@ class ConfigurableTask(Task):
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
                 aux_arguments = [("", f"{choice}") for choice in choices]
 
+                arguments.extend(aux_arguments)
+
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         multimodal_arg = {}
-        if self.doc_to_image:
+        if (
+            self.config.doc_to_image
+        ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
             multimodal_arg = {
                 **multimodal_arg,
                 **{"visual": self.doc_to_image(doc)},
@@ -1349,25 +1353,17 @@ class ConfigurableTask(Task):
             else:
                 arguments = arguments + (multimodal_arg,)
 
-        if isinstance(arguments, type):
-            if aux_arguments is not None:
-                all_arg_list = [arguments, aux_arguments]
-            else:
-                all_arg_list = [arguments]
-            request_list = []
-            for arg_list in all_arg_list:
-                request_list.extend(
-                    [
-                        Instance(
-                            request_type="loglikelihood",
-                            doc=doc,
-                            arguments=arg,
-                            idx=i,
-                            **kwargs,
-                        )
-                        for i, arg in enumerate(arg_list)
-                    ]
+        if self.OUTPUT_TYPE == "multiple_choice":
+            request_list = [
+                Instance(
+                    request_type="loglikelihood",
+                    doc=doc,
+                    arguments=arg,
+                    idx=i,
+                    **kwargs,
                 )
+                for i, arg in enumerate(arguments)
+            ]
 
             return request_list
 

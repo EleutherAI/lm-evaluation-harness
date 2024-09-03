@@ -1,17 +1,30 @@
+# dataset_path: MMMU/MMMU
+# validation_split: validation
+# output_type: generate_until
+# doc_to_image: ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6", "image_7"]
+# doc_to_image: !function utils.doc_to_image
+# doc_to_text: !function utils.doc_to_text
+# doc_to_target: "answer"
+# process_results: !function utils.process_results
+# generation_kwargs:
+#   until:
+#     - "<|endoftext|>"
+#   temperature: 0.0
+#   do_sample: false
+#   max_gen_toks: 512
+# metric_list:
+#   - metric: acc
+#     aggregation: mean
+#     higher_is_better: true
+### Test MCQA YAML ###
 dataset_path: MMMU/MMMU
 validation_split: validation
-output_type: generate_until
-doc_to_image: ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6", "image_7"]
+output_type: multiple_choice
 doc_to_image: !function utils.doc_to_image
 doc_to_text: !function utils.doc_to_text
-doc_to_target: "answer"
-process_results: !function utils.process_results
-generation_kwargs:
-  until:
-    - "<|endoftext|>"
-  temperature: 0.0
-  do_sample: false
-  max_gen_toks: 512
+doc_to_choice: !function test_mcqa_utils.doc_to_choice
+process_docs: !function test_mcqa_utils.process_docs
+doc_to_target: !function test_mcqa_utils.doc_to_target
 metric_list:
   - metric: acc
     aggregation: mean
