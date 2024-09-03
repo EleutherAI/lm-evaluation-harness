@@ -194,6 +194,9 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         ), "Loglikelihood is not supported for gpt-3.5-turbo"
         return super().loglikelihood(requests, **kwargs)
 
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        return ""
+
 
 @register_model("openai-chat-completions")
 class OpenAIChatCompletion(LocalChatCompletion):
