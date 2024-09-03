@@ -1,6 +1,7 @@
 import datasets
 import numpy as np
 
+
 # fmt: off
 LETTER_INDICES_AR = ["أ", "ب", "ج", "د", "هـ", "و", "ز", "ح", "ط", "ي", "ك", "ل", "م", "ن", "س", "ع", "ف", "ص", "ق", "ر", "ش", "ت", "ث", "خ", "ذ", "ض", "ظ", "غ"]
 # fmt: on
@@ -21,14 +22,14 @@ def process_docs(dataset: datasets.Dataset):
         gold_ix = LETTER_INDICES.index(doc["answer"])
 
         query = f"{instruction}{doc['question']}\n"
-        query += "".join([f"{key}. {choice}\n" for key, choice in zip(LETTER_INDICES_AR[:4], choices)])
+        query += "".join(
+            [
+                f"{key}. {choice}\n"
+                for key, choice in zip(LETTER_INDICES_AR[:4], choices)
+            ]
+        )
         query += "الإجابة:"
 
-        return {
-            "query": query,
-            "choices": LETTER_INDICES_AR[:4],
-            "gold": gold_ix
-
-        }
+        return {"query": query, "choices": LETTER_INDICES_AR[:4], "gold": gold_ix}
 
     return dataset.map(_process_doc)

@@ -59,7 +59,7 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
     abstract = "Recent advances in the space of Arabic large language models have opened up a wealth of potential practical applications. From optimal training strategies, large scale data acquisition and continuously increasing NLP resources, the Arabic LLM landscape has improved in a very short span of time, despite being plagued by training data scarcity and limited evaluation resources compared to English. In line with contributing towards this ever-growing field, we introduce AlGhafa, a new multiple-choice evaluation benchmark for Arabic LLMs. For showcasing purposes, we train a new suite of models, including a 14 billion parameter model, the largest monolingual Arabic decoder-only model to date. We use a collection of publicly available datasets, as well as a newly introduced HandMade dataset consisting of 8 billion tokens. Finally, we explore the quantitative and qualitative toxicity of several Arabic models, comparing our models to existing public Arabic LLMs.",
 }
 @misc{huang2023acegpt,
-      title={AceGPT, Localizing Large Language Models in Arabic}, 
+      title={AceGPT, Localizing Large Language Models in Arabic},
       author={Huang Huang and Fei Yu and Jianqing Zhu and Xuening Sun and Hao Cheng and Dingjie Song and Zhihong Chen and Abdulmohsen Alharthi and Bang An and Ziche Liu and Zhiyi Zhang and Junying Chen and Jianquan Li and Benyou Wang and Lian Zhang and Ruoyu Sun and Xiang Wan and Haizhou Li and Jinchao Xu},
       year={2023},
       eprint={2309.12053},
@@ -239,7 +239,7 @@ Homepage: https://huggingface.co/spaces/OALL/Open-Arabic-LLM-Leaderboard
       - `arabic_leaderboard_acva_computer_and_phone`
       - `arabic_leaderboard_acva_daily_life`
       - `arabic_leaderboard_acva_entertainment`
-     
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
@@ -252,5 +252,3 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
-
-

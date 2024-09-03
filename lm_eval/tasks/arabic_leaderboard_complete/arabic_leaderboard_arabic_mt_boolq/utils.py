@@ -6,7 +6,6 @@ def process_docs(dataset: datasets.Dataset):
     def _process_doc(doc):
         question = doc["question"]
         passage = doc["passage"]
-        answer = "نعم" if doc["answer"] else "لا"
         instruction = "بناء على المقطع التالي، أجب عن السؤال ب نعم أو لا"
         query = f"""{instruction}
         المقطع :
@@ -19,6 +18,7 @@ def process_docs(dataset: datasets.Dataset):
         return {
             "query": query,
             "choices": ["نعم", "لا"],
-            "gold": 0 if doc["answer"] else 1
+            "gold": 0 if doc["answer"] else 1,
         }
+
     return dataset.map(_process_doc)

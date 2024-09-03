@@ -1,7 +1,7 @@
-import datasets
-import numpy as np
 import re
 
+import datasets
+import numpy as np
 
 
 def process_docs(dataset: datasets.Dataset):
@@ -11,7 +11,9 @@ def process_docs(dataset: datasets.Dataset):
             re.sub(r"\[.*?\]", "", e) for e in eval(doc["endings"])
         ]  # endings is a string representation of a list
         answer_index = doc["label"]
-        instruction = "بناء على السياق التالي، اختر النهاية الصحيحة من الاقتراحات التالية"
+        instruction = (
+            "بناء على السياق التالي، اختر النهاية الصحيحة من الاقتراحات التالية"
+        )
 
         query = f"""{instruction}
         السياق:
@@ -23,9 +25,6 @@ def process_docs(dataset: datasets.Dataset):
             query += f"{i}) {ending}\n"
         query += "الإجابة:"
 
-        return {
-            "query": query,
-            "choices": endings,
-            "gold": answer_index
-        }
+        return {"query": query, "choices": endings, "gold": answer_index}
+
     return dataset.map(_process_doc)
