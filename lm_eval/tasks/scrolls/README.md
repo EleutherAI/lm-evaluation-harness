@@ -11,7 +11,7 @@ Homepage: https://www.scrolls-benchmark.com/
 Since SCROLLS tasks are generally longer than the maximum sequence length of many models,
 it is possible to create "subset" tasks that contain only those samples whose tokenized length
 is less than some pre-defined limit. For example, to create a subset of "Qasper" that would
-be suitable for a model using the GPTNeoX tokenizer and a 4K maximium sequence length:
+be suitable for a model using the GPTNeoX tokenizer and a 4K maximum sequence length:
 
 ```
 class QasperGPTNeoX4K(Qasper):
