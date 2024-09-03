@@ -357,8 +357,12 @@ def simple_evaluate(
         results["date"] = start_date
         add_env_info(results)  # additional environment info to results
         add_tokenizer_info(results, lm)  # additional info about tokenizer
+        
+        del lm
         return results
     else:
+        
+        del lm
         return None
 
 
