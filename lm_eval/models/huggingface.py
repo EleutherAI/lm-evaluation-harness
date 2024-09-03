@@ -688,10 +688,10 @@ class HFLM(TemplateLM):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
             if self._model.config.vocab_size != len(self.tokenizer):
                 # resize model for LoRAs with added tokens
-                self._model.resize_token_embeddings(len(self.tokenizer))
                 eval_logger.info(
                     f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
                 )
+                self._model.resize_token_embeddings(len(self.tokenizer))
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
@@ -1018,6 +1018,9 @@ class HFLM(TemplateLM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+
         return loglikelihoods
 
     def _batch_scheduler(self, pos, n_reordered_requests):
@@ -1246,7 +1249,13 @@ class HFLM(TemplateLM):
 
                     res.append(answer)
 
-                    self.cache_hook.add_partial("loglikelihood", request_str, answer)
+                    if request_str is not None:
+                        # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                        # all with cache key None. instead do add_partial on the per-example level
+                        # in the loglikelihood_rolling() function for those.
+                        self.cache_hook.add_partial(
+                            "loglikelihood", request_str, answer
+                        )
                     pbar.update(1)
 
         pbar.close()
