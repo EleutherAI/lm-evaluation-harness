@@ -1,0 +1,5 @@
+tag: evalita-mp_ls_tasks
+include: _ls_template_yaml
+task: evalita-mp_ls_prompt-1
+task_alias: prompt-1
+doc_to_text: "Sostituisci la parola tra i tag <head> con sinonimi appropriati per il contesto. Separa i sinonimi con virgole. Testo:\n{{context}}"

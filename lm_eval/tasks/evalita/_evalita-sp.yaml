@@ -1,0 +1,24 @@
+group: evalita-sp
+task:
+  - evalita-sp_sa # sentiment analysis
+  - evalita-sp_sa_v2 # sentiment analysis v2 (4 classses f1 macro)
+  - evalita-sp_te # textual entailment
+  - evalita-sp_wic # word-in-context
+  - evalita-sp_hs # hate speech
+  - evalita-sp_ls # lexical substitution
+  - evalita-sp_dd_task
+  - evalita-sp_sum_task_fp # summarization fanpage
+  - evalita-sp_sum_task_ip # summarization ilpost
+  - evalita-sp_faq_task
+  - evalita-sp_ner_group
+  #- evalita-sp_ht # headline translation
+  - evalita-sp_at  # admission test
+  - evalita-sp_re  # relation extraction
+
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: rouge1
+  - metric: f1
+metadata:
+  version: 1

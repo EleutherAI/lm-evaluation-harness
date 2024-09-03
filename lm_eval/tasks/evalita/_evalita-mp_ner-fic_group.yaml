@@ -1,0 +1,9 @@
+group: evalita-mp_ner_fic_group
+group_alias: 'evalita NER: FIC'
+task:
+  - evalita-mp_ner-v2_tasks_fic
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: True
+metadata:
+  version: 1

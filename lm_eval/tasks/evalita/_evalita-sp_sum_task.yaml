@@ -1,0 +1,13 @@
+tag: evalita-sp_sum
+include: _sum_template_yaml
+task: evalita-sp_sum_task
+task_alias: summarization
+doc_to_text: "Crea un sommario del seguente testo. Testo: {{source}}\nSommario: "
+doc_to_text: >
+  "Crea un sommario del seguente testo. Testo: {{source}}\nSommario: "
+#doc_to_text: "Summarize the following text: Text: {{source}}\n: "
+process_results: !function utils.process_results_sum
+metric_list:
+  - metric: rouge1
+    higher_is_better: true
+    aggregation: mean

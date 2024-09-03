@@ -1,0 +1,9 @@
+tag: evalita-sp_te
+include: _te_template_yaml
+task: evalita-sp_te_task
+task_alias: textual-entailment
+doc_to_text: "{{text1}}\nDomanda: {{text2}} Vero o Falso?\nRisposta:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

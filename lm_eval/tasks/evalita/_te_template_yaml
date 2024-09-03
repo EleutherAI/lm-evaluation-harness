@@ -1,0 +1,9 @@
+dataset_path: evalitahf/textual_entailment 
+output_type: multiple_choice
+test_split: test
+validation_split: dev
+doc_to_target: "{{ 'Vero' if entailment == 'SI' else 'Falso' }}"
+doc_to_choice: ["Vero", "Falso"]
+metadata:
+  version: 0.0
+

@@ -1,0 +1,13 @@
+tag: evalita-sp_sa
+include: _sa_template_yaml
+task: evalita-sp_sa_task
+task_alias: sentiment-analysis
+doc_to_text: "Opinione: '{{text}}' Determinare la sentiment dell'opinione data. Possibili risposte: A – neutrale B – negativo C – positivo D - misto Risposta:"
+metric_list: 
+  - metric: f1
+    higher_is_better: True
+    aggregation: !function metrics._aggreg_sa
+
+#process_results: !function metrics._process_results
+metadata:
+  version: 1

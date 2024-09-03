@@ -1,0 +1,10 @@
+tag: evalita-sp_faq
+include: _faq_template_yaml
+task: evalita-sp_faq_task
+task_alias: faq v1
+doc_to_text: "Data la seguente domanda {{question}}, individua la risposta corretta tra le seguenti opzioni:\n A: {{A}}\nB: {{B}}\nC: {{C}}\nD: {{D}} Risposta:"
+metric_list:
+  - metric: acc
+    higher_is_better: true
+metadata:
+  version: 1

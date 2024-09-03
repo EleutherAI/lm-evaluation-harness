@@ -1,0 +1,9 @@
+tag: evalita-sp_wic
+include: _wic_template_yaml
+task: evalita-sp_wic_task
+task_alias: word-in-context
+doc_to_text: >
+  "Considera le seguenti frasi:
+  Frase 1: {{ sentence1[:start1] }}[TGTS]{{ sentence1[start1:end1] }}[TGTE]{{ sentence1[end1:] }}
+  Frase 2: {{ sentence2[:start2] }}[TGTS]{{ sentence2[start2:end2] }}[TGTE]{{ sentence2[end2:] }}
+  La parola compresa tra [TGTS] e [TGTE] ha lo stesso significato? Rispondi con 'Si' o 'No'."
