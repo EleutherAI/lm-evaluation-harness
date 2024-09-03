@@ -1,0 +1,6 @@
+include: metabench_truthfulqa.yaml
+task: metabench_truthfulqa_permute
+process_docs: !function process_docs_permute.process_truthfulqa
+doc_to_target: answer
+metadata:
+  version: 0.0
