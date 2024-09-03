@@ -26,7 +26,10 @@ Homepage: https://github.com/adkipnis/metabench
 
 #### Groups
 
-There are no groups.
+There are two groups.
+
+* `metabench` -- combines the six tasks covering the six reduced benchmarks, using the original data and transformations from the respective benchmarks, and produces an aggregated mean score. It contains a total of 699 items.
+* `metabench_permute` -- combines five tasks covering five of the reduced benchmarks, permuting the multiple choice ordering, and produces an aggregated mean score. It contains a total of 699 items. For more details, see immediately below.
 
 #### Tasks
 
