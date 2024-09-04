@@ -299,13 +299,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
         )
 
-    if (
-        args.num_fewshot is None or args.num_fewshot == 0
-    ) and args.fewshot_as_multiturn:
-        raise ValueError(
-            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
-        )
-
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
