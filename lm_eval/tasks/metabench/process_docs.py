@@ -23,12 +23,12 @@ def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
 def process_gsm8k(dataset: datasets.Dataset) -> datasets.Dataset:
     def _subprocess(doc):
         long_prompt = ""
-        for shot in ["first", "second", "third", "fourth", "fifth"]:
-            question = doc[f"gsm8k_{shot}shot_training_prompt"]
-            doc.pop(f"gsm8k_{shot}shot_training_prompt")
-            answer = doc[f"gsm8k_{shot}shot_training_answer"]
-            doc.pop(f"gsm8k_{shot}shot_training_answer")
-            doc.pop(f"gsm8k_{shot}shot_training_idx")
+        for shot in range(1,6):
+            question = doc[f"gsm8k_prompt_shot_{shot}"]
+            doc.pop(f"gsm8k_prompt_shot_{shot}")
+            answer = doc[f"gsm8k_answer_shot_{shot}"]
+            doc.pop(f"gsm8k_answer_shot_{shot}")
+            doc.pop(f"gsm8k_idx_shot_{shot}")
 
             long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n" #no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
         doc["five_shot_preprompt"] = long_prompt
@@ -109,25 +109,25 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
 def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset: 
     def _subprocess(doc):
         long_prompt = ""
-        for shot in ["first", "second", "third", "fourth", "fifth"]:
-            if doc[f"winogrande_{shot}shot_training_answer"] == "1":
-                answer = doc[f"winogrande_{shot}shot_training_option1"]
-            elif doc[f"winogrande_{shot}shot_training_answer"] == "2":
-                answer = doc[f"winogrande_{shot}shot_training_option2"]
+        for shot in range(1,6):
+            if doc[f"winogrande_answer_shot_{shot}"] == "1":
+                answer = doc[f"winogrande_option1_shot_{shot}"]
+            elif doc[f"winogrande_answer_shot_{shot}"] == "2":
+                answer = doc[f"winogrande_option2_shot_{shot}"]
             else:
                 raise ValueError("Answer not recognised.")
             
-            question = doc[f"winogrande_{shot}shot_training_prompt"].replace("_", answer)
+            question = doc[f"winogrande_prompt_shot_{shot}"].replace("_", answer)
 
-            doc.pop(f"winogrande_{shot}shot_training_prompt")
-            doc.pop(f"winogrande_{shot}shot_training_answer")
-            doc.pop(f"winogrande_{shot}shot_training_idx")
-            doc.pop(f"winogrande_{shot}shot_training_option1")
-            doc.pop(f"winogrande_{shot}shot_training_option2")
+            doc.pop(f"winogrande_prompt_shot_{shot}")
+            doc.pop(f"winogrande_answer_shot_{shot}")
+            doc.pop(f"winogrande_idx_shot_{shot}")
+            doc.pop(f"winogrande_option1_shot_{shot}")
+            doc.pop(f"winogrande_option2_shot_{shot}")
 
             long_prompt = f"{long_prompt}{question}\n\n" 
         doc["sentence"] = f"{long_prompt}{doc["sentence"]}"
-        doc.pop("metabench_fiveshot_prompt")
+        doc.pop("allfiveshot_longprompt")
         return doc
     return dataset.map(_subprocess)
 

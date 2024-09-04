@@ -1,0 +1,5 @@
+include: metabench_winogrande_permute.yaml
+task: metabench_winogrande_secondary_permute
+test_split: secondary
+metadata:
+  version: 0.0

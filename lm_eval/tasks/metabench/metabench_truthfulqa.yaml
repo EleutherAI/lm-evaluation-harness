@@ -6,7 +6,7 @@ dataset_name: TruthfulQA
 output_type: multiple_choice
 training_split: null
 validation_split: null
-test_split: test
+test_split: primary
 num_fewshot: 0
 doc_to_text: "\
   {% set prompt_qa = '\

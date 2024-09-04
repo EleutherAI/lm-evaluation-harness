@@ -1,0 +1,5 @@
+include: metabench_arc_permute.yaml
+task: metabench_arc_secondary_permute
+test_split: secondary
+metadata:
+  version: 0.0

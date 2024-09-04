@@ -7,7 +7,7 @@ process_docs: !function process_docs.process_gsm8k
 output_type: generate_until
 training_split: null
 validation_split: null
-test_split: test
+test_split: primary
 doc_to_text: "{{five_shot_preprompt}}Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}"
 metric_list:

@@ -7,7 +7,7 @@ process_docs: !function process_docs.process_winogrande
 output_type: multiple_choice
 training_split: null
 validation_split: null
-test_split: test
+test_split: primary
 num_fewshot: 0
 doc_to_text: !function process_docs.winogrande_doc_to_text
 doc_to_target: !function process_docs.winogrande_doc_to_target
