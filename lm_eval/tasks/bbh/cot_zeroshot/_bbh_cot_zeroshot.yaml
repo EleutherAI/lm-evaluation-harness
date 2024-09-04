@@ -33,4 +33,4 @@ aggregate_metric_list:
     weight_by_size: true
     filter_list: flexible-extract
 metadata:
-  version: 2.0
+  version: 3.0

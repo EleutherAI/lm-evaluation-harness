@@ -51,7 +51,6 @@ In this work, we focus on a suite of 23 challenging BIG-Bench tasks which we cal
 - `leaderboard_bbh_causal_judgement`
 - `leaderboard_bbh_date_understanding`
 - `leaderboard_bbh_disambiguation_qa`
-- `leaderboard_bbh_dyck_languages`
 - `leaderboard_bbh_formal_fallacies`
 - `leaderboard_bbh_geometric_shapes`
 - `leaderboard_bbh_hyperbaton`
@@ -59,7 +58,6 @@ In this work, we focus on a suite of 23 challenging BIG-Bench tasks which we cal
 - `leaderboard_bbh_logical_deduction_seven_objects`
 - `leaderboard_bbh_logical_deduction_three_objects`
 - `leaderboard_bbh_movie_recommendation`
-- `leaderboard_bbh_multistep_arithmetic_two`
 - `leaderboard_bbh_navigate`
 - `leaderboard_bbh_object_counting`
 - `leaderboard_bbh_penguins_in_a_table`
@@ -73,7 +71,6 @@ In this work, we focus on a suite of 23 challenging BIG-Bench tasks which we cal
 - `leaderboard_bbh_tracking_shuffled_objects_seven_objects`
 - `leaderboard_bbh_tracking_shuffled_objects_three_objects`
 - `leaderboard_bbh_web_of_lies`
-- `leaderboard_bbh_word_sorting`
 
 ## GPQA
 
@@ -215,7 +212,7 @@ Eprint = {arXiv:2206.14858},
 - `leaderboard_math_intermediate_algebra_hard`
 - `leaderboard_math_num_theory_hard`
 - `leaderboard_math_prealgebra_hard`
-- `leaderboard_math_precalc_hard`
+- `leaderboard_math_precalculus_hard`
 
 
 ## MMLU-Pro
