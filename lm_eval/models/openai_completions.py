@@ -29,7 +29,10 @@ class LocalCompletionsAPI(TemplateAPI):
     ) -> dict:
         if generate:
             gen_kwargs.pop("do_sample", False)
-            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+            if "max_tokens" in gen_kwargs:
+                max_tokens = gen_kwargs.pop("max_tokens")
+            else:
+                max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
             stop = gen_kwargs.pop("until", ["<|endoftext|>"])
             return {
@@ -124,7 +127,10 @@ class LocalChatCompletion(LocalCompletionsAPI):
         **kwargs,
     ) -> dict:
         gen_kwargs.pop("do_sample", False)
-        max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+        if "max_tokens" in gen_kwargs:
+            max_tokens = gen_kwargs.pop("max_tokens")
+        else:
+            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = gen_kwargs.pop("until", ["<|endoftext|>"])
         if not isinstance(stop, (list, tuple)):
