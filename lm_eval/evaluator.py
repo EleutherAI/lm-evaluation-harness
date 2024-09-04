@@ -358,11 +358,15 @@ def simple_evaluate(
         add_env_info(results)  # additional environment info to results
         add_tokenizer_info(results, lm)  # additional info about tokenizer
         
-        del lm
+        if not isinstance(model, lm_eval.api.model.LM): 
+            del lm
+        
         return results
     else:
         
-        del lm
+        if not isinstance(model, lm_eval.api.model.LM):
+            del lm
+        
         return None
 
 
