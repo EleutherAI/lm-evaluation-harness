@@ -7,7 +7,7 @@ class LowercaseFilter(Filter):
     def __init__(self) -> None:
         pass
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         def filter_set(inst):
             return [resp.lower() for resp in inst]
 
@@ -19,7 +19,7 @@ class UppercaseFilter(Filter):
     def __init__(self) -> None:
         pass
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         def filter_set(inst):
             return [resp.upper() for resp in inst]
 
@@ -49,7 +49,7 @@ class MapFilter(Filter):
         self.mapping_dict = mapping_dict
         self.default_value = default_value
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         def filter_set(inst):
             return [self.mapping_dict.get(resp, self.default_value) for resp in inst]
 

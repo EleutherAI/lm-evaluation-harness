@@ -25,7 +25,7 @@ class RegexFilter(Filter):
         self.group_select = group_select
         self.fallback = fallback
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)
@@ -58,7 +58,7 @@ class WhitespaceFilter(Filter):
     def __init__(self) -> None:
         pass
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:
@@ -103,7 +103,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         self.ignore_punctuation = ignore_punctuation
         self.regexes_to_ignore = regexes_to_ignore
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)

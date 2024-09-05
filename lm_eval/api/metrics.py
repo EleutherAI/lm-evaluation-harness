@@ -60,6 +60,30 @@ def f1_score(items):
     return np.max(fscore)
 
 
+@register_aggregation("f1_macro")
+def f1_macro_score(items):
+    from sklearn.metrics import f1_score
+
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="macro")
+
+    return np.max(fscore)
+
+
+@register_aggregation("f1_micro")
+def f1_micro_score(items):
+    from sklearn.metrics import f1_score
+
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="micro")
+
+    return np.max(fscore)
+
+
 @register_aggregation("matthews_corrcoef")
 def matthews_corrcoef(items):
     from sklearn.metrics import matthews_corrcoef
@@ -316,6 +340,26 @@ def mcc_fn(items):  # This is a passthrough function
     aggregation="f1",
 )
 def f1_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="f1_macro",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="f1_macro",
+)
+def f1_macro_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="f1_micro",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="f1_micro",
+)
+def f1_micro_fn(items):  # This is a passthrough function
     return items
 
 
