@@ -2,7 +2,6 @@ dataset_path: evalitahf/entity_recognition
 output_type: generate_until
 generation_kwargs:
   until:
-    - "\n"
     - "</s>"
 doc_to_target: entities 
 process_results: !function utils.ner_process_results

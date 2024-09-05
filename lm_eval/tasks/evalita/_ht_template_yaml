@@ -3,7 +3,6 @@ output_type: generate_until
 test_split: test
 generation_kwargs:
   until:
-    - "\n"
     - "</s>"
 doc_to_target: !function utils.ht_doc_to_target
 metric_list: 

@@ -4,7 +4,6 @@ validation_split: test
 output_type: generate_until
 generation_kwargs:
   until:
-    - "\n"
     - "</s>"
 doc_to_target: !function utils.ls_doc_to_target
 process_results: !function utils.ls_process_results

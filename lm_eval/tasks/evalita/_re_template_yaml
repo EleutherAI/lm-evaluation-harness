@@ -3,7 +3,6 @@ test_split: test
 output_type: generate_until
 generation_kwargs:
   until:
-    - "\n"
     - "</s>"
 doc_to_target: relations 
 process_results: !function utils.rel_process_results_v3
