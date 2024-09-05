@@ -48,7 +48,7 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass

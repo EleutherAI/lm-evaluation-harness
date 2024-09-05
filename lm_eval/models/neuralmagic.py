@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import List, Optional, Tuple, Union
 
 import numpy
@@ -13,7 +14,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("sparseml")

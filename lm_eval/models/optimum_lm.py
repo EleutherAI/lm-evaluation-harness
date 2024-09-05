@@ -1,13 +1,13 @@
 import json
+import logging
 from importlib.util import find_spec
 from pathlib import Path
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("openvino")
