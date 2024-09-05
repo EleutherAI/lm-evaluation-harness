@@ -126,7 +126,8 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"winogrande_option2_shot_{shot}")
 
             long_prompt = f"{long_prompt}{question}\n\n" 
-        doc["sentence"] = f"{long_prompt}{doc["sentence"]}"
+        sentence = doc["sentence"]
+        doc["sentence"] = f"{long_prompt}{sentence}"
         doc.pop("allfiveshot_longprompt")
         return doc
     return dataset.map(_subprocess)
