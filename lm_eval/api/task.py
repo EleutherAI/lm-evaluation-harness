@@ -53,6 +53,7 @@ eval_logger = logging.getLogger("lm-eval")
 
 @dataclass
 class TaskConfig(dict):
+    output_path: Optional[str] = None
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None

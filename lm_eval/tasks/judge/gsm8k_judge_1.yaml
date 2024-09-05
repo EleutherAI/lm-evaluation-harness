@@ -1,0 +1,37 @@
+tag:
+  - math_word_problems
+task: gsm8k
+dataset_path: gsm8k
+dataset_name: main
+output_type: generate_until
+training_split: train
+fewshot_split: train
+test_split: test
+doc_to_text: "Solve the following math problem step by step. The last line of your response should be of the form Answer: $ANSWER (without quotes) where $ANSWER is the answer to the problem\n\nQuestion: {{question}}\nAnswer:"
+doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
+metric_list:
+  - metric: bypass
+    aggregation: mean
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+num_fewshot: 5
+#filter_list:
+#  - name: "strict-match"
+#    filter:
+#      - function: "regex"
+#        regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+#      - function: "take_first"
+#  - name: "flexible-extract"
+#    filter:
+#      - function: "regex"
+#        group_select: -1
+#        regex_pattern: "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+#      - function: "take_first"
+metadata:
+  version: 3.0

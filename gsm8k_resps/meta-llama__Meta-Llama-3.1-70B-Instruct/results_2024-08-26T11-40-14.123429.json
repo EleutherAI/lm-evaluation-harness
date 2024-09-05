@@ -1,0 +1,142 @@
+{
+  "results": {
+    "gsm8k_judge_2": {
+      "alias": "gsm8k_judge_2",
+      "exact_match,test": 0.8165276724791509,
+      "exact_match_stderr,test": 0.01066137044869965
+    }
+  },
+  "group_subtasks": {
+    "gsm8k_judge_2": []
+  },
+  "configs": {
+    "gsm8k_judge_2": {
+      "output_path": "/home/mchorse/lm-evaluation-harness/gsm8k_resps/meta-llama__Meta-Llama-3-8B-Instruct/samples_gsm8k_cot_llama_2024-08-25T21-59-12.123082.jsonl",
+      "task": "gsm8k_judge_2",
+      "tag": [
+        "judge"
+      ],
+      "dataset_path": "gsm8k",
+      "dataset_name": "main",
+      "training_split": "train",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "doc_to_text": "Given the following question and reference answer, verify if the attempted answer is correct. If it is, return \"The answer is Correct\". If it is incorrect, return \"The answer is Incorrect\".\\nQuestion: {{question}}\\nReference Answer: {{answer}}\\nAnswer Attempt: {{resp}}",
+      "doc_to_target": "Correct",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 5,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$",
+            "(?s).*#### ",
+            "\\.$"
+          ]
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "<|start_header_id|>user<|end_header_id|>",
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "test",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "(Correct|Incorrect)"
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 3.0
+      }
+    }
+  },
+  "versions": {
+    "gsm8k_judge_2": 3.0
+  },
+  "n-shot": {
+    "gsm8k_judge_2": 5
+  },
+  "higher_is_better": {
+    "gsm8k_judge_2": {
+      "exact_match": true
+    }
+  },
+  "n-samples": {
+    "gsm8k_judge_2": {
+      "original": 1319,
+      "effective": 1319
+    }
+  },
+  "config": {
+    "model": "vllm",
+    "model_args": "pretrained=meta-llama/Meta-Llama-3.1-70B-Instruct,max_length=4096,tensor_parallel_size=4,gpu_memory_utilization=0.85",
+    "batch_size": "auto",
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "69a82648",
+  "date": 1724670994.7125044,
+  "pretty_env_info": "'NoneType' object has no attribute 'splitlines'",
+  "transformers_version": "4.44.2",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|eot_id|>",
+    "128009"
+  ],
+  "tokenizer_eos_token": [
+    "<|eot_id|>",
+    "128009"
+  ],
+  "tokenizer_bos_token": [
+    "<|begin_of_text|>",
+    "128000"
+  ],
+  "eot_token_id": 128009,
+  "max_length": 4096,
+  "task_hashes": {
+    "gsm8k_judge_2": "2d5235e1cea72159554b8768090f30eb9c56d68b614c4b1851ed2441d5c87590"
+  },
+  "model_source": "vllm",
+  "model_name": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+  "model_name_sanitized": "meta-llama__Meta-Llama-3.1-70B-Instruct",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": true,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 6544438.38826315,
+  "end_time": 6545862.296918048,
+  "total_evaluation_time_seconds": "1423.9086548974738"
+}

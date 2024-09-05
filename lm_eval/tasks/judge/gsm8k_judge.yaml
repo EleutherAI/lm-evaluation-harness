@@ -1,0 +1,41 @@
+tag:
+  - judge
+include: gsm8k_judge_1.yaml
+task: gsm8k_judge_2
+output_type: generate_until
+
+output_path: '/home/mchorse/lm-evaluation-harness/gsm8k_resps/meta-llama__Meta-Llama-3-8B-Instruct/samples_gsm8k_cot_llama_2024-08-25T21-59-12.123082.jsonl'
+
+#doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: 'Given the following question and reference answer, verify if the attempted answer is correct. If it is, return "The answer is Correct". If it is incorrect, return "The answer is Incorrect".\nQuestion: {{question}}\nReference Answer: {{answer}}\nAnswer Attempt: {{resp}}'
+# target_delimiter: "\n"
+doc_to_target: "Correct" #" {{answer.split('### ')[-1].rstrip()}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+      - "(?s).*#### "
+      - "\\.$"
+generation_kwargs:
+  until:
+    - '<|start_header_id|>user<|end_header_id|>'
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+num_fewshot: 5
+filter_list:
+  - name: "test"
+    filter:
+      - function: "regex"
+        regex_pattern: "(Correct|Incorrect)"
+      - function: "take_first"
+metadata:
+  version: 3.0

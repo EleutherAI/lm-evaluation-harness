@@ -7,6 +7,7 @@ from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
+from lm_eval.api.judge_task import JudgeTask
 from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
@@ -264,14 +265,18 @@ class TaskManager:
                     ),
                     **config,
                 }
-            if self._config_is_python_task(config):
-                if self._class_has_config_in_constructor(config["class"]):
-                    task_object = config["class"](config=config)
-                else:
-                    task_object = config["class"]()
-                if isinstance(task_object, ConfigurableTask):
-                    # very scuffed: set task name here. TODO: fixme?
-                    task_object.config.task = config["task"]
+            if "output_path" in config:
+                task_object = JudgeTask(
+                    config=config, output_path=config.get("output_path", None)
+                )
+            # if self._config_is_python_task(config):
+            #     if self._class_has_config_in_constructor(config["class"]):
+            #         task_object = config["class"](config=config)
+            #     else:
+            #         task_object = config["class"]()
+            #     if isinstance(task_object, ConfigurableTask):
+            #         # very scuffed: set task name here. TODO: fixme?
+            #         task_object.config.task = config["task"]
             else:
                 task_object = ConfigurableTask(config=config)
 
