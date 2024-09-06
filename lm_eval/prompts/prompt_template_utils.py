@@ -3,19 +3,6 @@ import os
 import random
 import sys
 
-
-# try:
-#     from unitxt import add_to_catalog
-#     from unitxt.blocks import AddFields, LoadHF, TaskCard
-#     from unitxt.splitters import RenameSplits
-#     from unitxt.templates import MultipleChoiceTemplate
-# except ImportError:
-#     raise ImportError(
-#         'Please install unitxt to use this module. \
-#                       pip install -e ".[unitxt]"'
-#     )
-
-
 CHOSEN_SEPARATOR_LIST = [":", "-", "|", "<sep>", ".", "]", "/", "\\", "!", "'", '"']
 CHOSEN_SPACE_LIST = [" ", "\n", " \n", "  ", "; \n", ", ", " , ", "\n "]
 
@@ -48,9 +35,7 @@ def call_operator_fn(string, operator_fn, space, initial_space):
 
 def generate_n_templates(initial_template, initial_separator, n=100):
     random.seed(0)
-    templates_metadata = set(
-        [(initial_template, "\n", initial_separator, "lambda x: x")]
-    )
+    templates_metadata = set([(initial_template, "\n", initial_separator, "lambda x: x")])
     templates = set([initial_template])
     agenda = [(initial_template, 0, initial_separator)]
 
@@ -128,14 +113,9 @@ def build_prompts_variations_str_template(
     # if metadata is needed for the templates (e.g., separator, space, operator)
     if return_metadata:
         print("Saving metadata for the templates.")
-        with open(
-            f"{templates_folder}/{dataset_name}_templates_metadata.json", "w"
-        ) as json_file:
+        with open(f"{templates_folder}/{dataset_name}_templates_metadata.json", "w") as json_file:
             json.dump(
-                {
-                    template: {"sep": sep, "space": space, "op": op}
-                    for template, sep, space, op in templates
-                },
+                {template: {"sep": sep, "space": space, "op": op} for template, sep, space, op in templates},
                 json_file,
                 indent=2,
             )
