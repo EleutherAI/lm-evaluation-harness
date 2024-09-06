@@ -1,0 +1,3 @@
+"include": "_default.yaml"
+"task": "TurkishMMLU_Religion_and_Ethics"
+dataset_name: Religion_and_Ethics

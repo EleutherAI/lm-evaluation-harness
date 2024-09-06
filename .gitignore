@@ -12,6 +12,7 @@ venv
 temp
 __pycache__
 .ipynb_checkpoints
+*.ipynb
 temp
 test_logs/
 # IPython
