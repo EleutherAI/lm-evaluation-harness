@@ -3,6 +3,7 @@ from . import (
     api_models,
     dummy,
     gguf,
+    gigachat_model,
     huggingface,
     mamba_lm,
     nemo_lm,
