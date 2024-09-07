@@ -10,8 +10,7 @@ doc_to_target: answer
 generation_kwargs:
   max_gen_toks: 1024
   do_sample: False
-  until:
-    - "<|eot_id|>"
+fewshot_delimiter: null
 process_results: !function utils.prompt_robustness_process_results
 metric_list:
   - metric: per_prompt_accuracy_std
