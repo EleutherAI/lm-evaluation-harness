@@ -10,7 +10,7 @@ from lm_eval.utils import eval_logger
 import re
 import numpy as np
 
-PROMPT_TEMPLATES_VERSION_02 = "v0.3_templates"
+PROMPT_TEMPLATES_KEY = "v0.4_templates"
 PROMPT_TEMPLATES_SAME_OPTIONS = "same_options_prompt"
 
 
@@ -25,7 +25,7 @@ def prompt_robustness_process_docs(doc: Dataset) -> Dataset:
         try:
             template_file = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
             with open(template_file) as f:
-                prompt_templates = json.load(f)[PROMPT_TEMPLATES_VERSION_02] #todo
+                prompt_templates = json.load(f)[PROMPT_TEMPLATES_KEY] #todo
         except FileNotFoundError:
             eval_logger.error("Prompt templates not found")
             sys.exit()
@@ -99,70 +99,12 @@ def robustness_doc_to_text(doc: Dataset) -> str:
     options = "".join([options_format.format(letter=_l[i], option=doc['options'][i]) for i in range(len(doc["options"]))])
     return prompt.format(question=doc["question"], options=options, category=doc["category"])
 
-def __postprocess_pred(predict_str):
-        """
-        Todo: make code simpler
-        """        
-        labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-        separators = ["<extra_id_1>", "<|eot_id|>", "\n", " ", "\\n"]
-
-        for l in labels:
-            if predict_str.startswith(f"{l}:"):
-                return l
-            if predict_str.startswith(f"{l}\n"):
-                return l
-            if f" {l}: " in predict_str:
-                return l
-
-        if 'which corresponds to' in predict_str:
-            predict_str = predict_str.split('which corresponds to')[-1].strip()
-            for word in predict_str.split():
-                only_letters = re.sub(r"[^a-zA-Z]", "", word).strip()
-                for choice in ["A", "B", "C", "D", "E"]:
-                    if only_letters == choice:
-                        return only_letters
-
-        predict_str = predict_str.strip()
-        to_split = ['the correct answer is', 'the correct response is', 'the correct option is', 'the most accurate answer is',
-                    'the best answer here is', 'the best answer is', 'the answer must be', 'the most accurate response is',
-                    'the most fitting response is', 'the most fitting answer is', 'the answer is', 'answer: ' ]
-        for answer_str in to_split:
-            if answer_str in predict_str.lower():
-                predict_str = predict_str.lower().split(answer_str)
-                predict_str = [i for i in predict_str if len(i) > 0]
-                if len(predict_str) > 0:
-                    predict_str = predict_str[-1].upper()
-                else:
-                    return "EMPTY"
-                predict_str = predict_str.strip(string.punctuation).strip()
-
-        for separator in separators:
-            if separator in predict_str:
-                predict_str = predict_str.split(separator)[0].strip()
-
-        delimiters = [" ", ",", "."]
-        quotes = ["'", '"', "'", "`", "`", "."]
-        # if LABEL_TO_ID[task_name] doesn't contain any quotes, remove them from predict_str
-        if not any([quote in "".join(labels) for quote in quotes]):
-            for quote in quotes:
-                predict_str = predict_str.replace(quote, "")
-
-        # remove repeated labels while making sure only the label is repeated
-        for label in labels:
-            label_count = predict_str.count(label)
-            if label_count > 1:
-                for delimiter in delimiters:
-                    if delimiter in predict_str:
-                        repeated_label = delimiter.join([label] * label_count)
-                        if repeated_label == predict_str:
-                            predict_str = predict_str.split(delimiter)[0]
-                            break
-        replace_dict = {',':'', '\\_': '_', '.':'', ':':''}
-        for key, value in replace_dict.items():
-            predict_str = predict_str.replace(key, value)
-
-        predict_str = predict_str.strip(string.punctuation).strip()
-        return predict_str
+def __postprocess_pred(pred):
+    if "the best answer is" not in pred.lower():
+        return pred
+    pred_proc = pred.lower().split("the best answer is ")[-1].split(' ')[0]
+    pred_proc = re.sub(r"[^a-zA-Z]", "", pred_proc).strip().upper()
+    return pred_proc
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = __postprocess_pred(results[0]).lower()

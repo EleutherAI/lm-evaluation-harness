@@ -10,8 +10,6 @@ doc_to_target: answer
 generation_kwargs:
   max_gen_toks: 1024
   do_sample: False
-  until:
-    - "<|eot_id|>"
 process_results: !function utils.options_robustness_process_results
 metric_list:
   - metric: per_option_accuracy_std
