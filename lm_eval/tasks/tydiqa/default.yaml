@@ -1,0 +1,18 @@
+group: tydiqa
+task:
+  - tydiqa_arabic
+  - tydiqa_bengali
+  - tydiqa_english
+  - tydiqa_finnish
+  - tydiqa_finnish
+  - tydiqa_indonesian
+  - tydiqa_korean
+  - tydiqa_russian
+  - tydiqa_swahili
+  - tydiqa_telugu
+aggregate_metric_list:
+  - metric: f1
+    aggregation: mean
+    weight_by_size: False
+metadata:
+  version: 1.0

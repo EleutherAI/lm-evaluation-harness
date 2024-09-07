@@ -1,0 +1,28 @@
+task: tydiqa_swahili
+dataset_path: google-research-datasets/tydiqa
+dataset_name: secondary_task
+output_type: generate_until
+process_docs: !function util.filter_swahili
+training_split: train
+validation_split: validation
+doc_to_text: "Answer the following question based on Context. You can extract an answer span from Context.\nContext: {{context}} Question: {{question}}?\nAnswer:"
+doc_to_target: !function util.doc_to_target
+process_results: !function util.process_results
+num_fewshot: 4
+generation_kwargs:
+  until:
+    - "."
+    - "\n"
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+metric_list:
+  - metric: em
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
