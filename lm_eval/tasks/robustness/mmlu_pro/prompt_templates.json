@@ -35,10 +35,6 @@
             {
                 "prompt": "You must reply with only a single letter from A, B, C, D, E, F, G, H, I or J to this question. Conclude with:\nThe best answer is answer_letter where the answer_letter is a single letter from A to J. \n{question} {options}\n",
                 "options_format": "\n{letter}: {option}"
-        },
-            {
-            "prompt": "You must reply with only a single letter from A, B, C, D, E, F, G, H, I or J to this question. Conclude with:\nThe best answer is answer_letter where the answer_letter is a single letter from A to J. \n{question} {options}\n",
-            "options_format": "\n{letter}: {option}"
         }
     ],
     "v0.4_templates": [

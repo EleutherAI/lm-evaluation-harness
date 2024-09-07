@@ -10,7 +10,7 @@ from lm_eval.utils import eval_logger
 import re
 import numpy as np
 
-PROMPT_TEMPLATES_KEY = "v0.4_templates"
+PROMPT_TEMPLATES_KEY = "v0.3_templates"
 PROMPT_TEMPLATES_SAME_OPTIONS = "same_options_prompt"
 
 
