@@ -13,6 +13,36 @@ generation_kwargs:
 fewshot_delimiter: null
 process_results: !function utils.prompt_robustness_process_results
 metric_list:
+  - metric: prompt_0_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_0
+    higher_is_better: true
+  - metric: prompt_1_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_1
+    higher_is_better: true
+  - metric: prompt_2_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_2
+    higher_is_better: true
+  - metric: prompt_3_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_3
+    higher_is_better: true
+  - metric: prompt_4_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_4
+    higher_is_better: true
+  - metric: prompt_5_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_5
+    higher_is_better: true
+  - metric: prompt_6_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_6
+    higher_is_better: true
+  - metric: prompt_7_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_7
+    higher_is_better: true
+  - metric: prompt_8_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_8
+    higher_is_better: true
+  - metric: prompt_9_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_9
+    higher_is_better: true
   - metric: per_prompt_accuracy_std
     aggregation:  !function utils.per_prompt_accuracy_std
     higher_is_better: true

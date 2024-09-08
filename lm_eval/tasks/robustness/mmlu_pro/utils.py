@@ -1,4 +1,5 @@
 import copy
+from functools import partial
 from itertools import combinations
 import json
 import os
@@ -10,7 +11,7 @@ from lm_eval.utils import eval_logger
 import re
 import numpy as np
 
-PROMPT_TEMPLATES_KEY = "v0.3_templates"
+PROMPT_TEMPLATES_KEY = "v0.4_templates"
 PROMPT_TEMPLATES_SAME_OPTIONS = "same_options_prompt"
 
 
@@ -111,8 +112,11 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     gt = doc["answer"].lower()
     prompt_id = doc["prompt_id"]
     question_id = doc["question_id"]
-    return {"per_prompt_accuracy_std": (question_id, prompt_id, final_answer, gt),
-            "prompt_consistency_rate": (question_id, prompt_id, final_answer, gt)}
+    category = doc["category"]
+    return {
+        f"prompt_{prompt_id}_macro_accuracy": (question_id, prompt_id, final_answer, gt, category),
+        "per_prompt_accuracy_std": (question_id, prompt_id, final_answer, gt, category),
+        "prompt_consistency_rate": (question_id, prompt_id, final_answer, gt)}
 
 def options_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = __postprocess_pred(results[0]).lower()
@@ -125,27 +129,58 @@ def options_robustness_process_results(doc, results) -> Dict[str, float]:
     return {"per_option_accuracy_std": (question_id, always_same_option, final_answer, gt),
              "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)}
 
+def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
+    accuracies = {}
+    for result in results:
+        question_id, prompt_id, final_answer, gt, category = result
+        if prompt_id != p_id:
+            continue
+        if category not in accuracies:
+            accuracies[category] = []
+        accuracies[category].append(int(final_answer == gt))
+    
+    for key in accuracies:
+        accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
+        eval_logger.info(f"Prompt - {prompt_id}, category - {key} accuracy: {accuracies[key]}")
+    
+    return np.round(np.mean([v for v in accuracies.values()]), 4)
+
+per_prompt_accuracy_0 = partial(per_prompt_macro_accuracy, p_id=0)
+per_prompt_accuracy_1 = partial(per_prompt_macro_accuracy, p_id=1)
+per_prompt_accuracy_2 = partial(per_prompt_macro_accuracy, p_id=2)
+per_prompt_accuracy_3 = partial(per_prompt_macro_accuracy, p_id=3)
+per_prompt_accuracy_4 = partial(per_prompt_macro_accuracy, p_id=4)
+per_prompt_accuracy_5 = partial(per_prompt_macro_accuracy, p_id=5)
+per_prompt_accuracy_6 = partial(per_prompt_macro_accuracy, p_id=6)
+per_prompt_accuracy_7 = partial(per_prompt_macro_accuracy, p_id=7)
+per_prompt_accuracy_8 = partial(per_prompt_macro_accuracy, p_id=8)
+per_prompt_accuracy_9 = partial(per_prompt_macro_accuracy, p_id=9)
 
 def per_prompt_accuracy_std(results: List[Dict[str, Any]]) -> float:
     """
-    Computes the mean accuracy of the per_prompt_accuracy_std metric.
-    Input: List of dictionaries, each containing the keys "question_id", "prompt_id", "final_answer", "gt"
-    Output: Dictionary containing accuracy_`prompt_id` keys with the mean accuracy for each prompt_id
+    Computes std of the per_prompt_accuracy.
+    Input: List of dictionaries, each containing the keys "question_id", "prompt_id", "final_answer", "gt", "category"
+    Output: accuracy std through prompt_id's
     """
     prompt_accuracies = {}
     for result in results:
-        question_id, prompt_id, final_answer, gt = result
+        question_id, prompt_id, final_answer, gt, category = result
         if f"accuracy_{prompt_id}" not in prompt_accuracies:
-            prompt_accuracies[f"accuracy_{prompt_id}"] = []
-        prompt_accuracies[f"accuracy_{prompt_id}"].append(int(final_answer == gt))
+            prompt_accuracies[f"accuracy_{prompt_id}"] = {category:[]}
+        if category not in prompt_accuracies[f"accuracy_{prompt_id}"]:
+            prompt_accuracies[f"accuracy_{prompt_id}"][category] = []
+        prompt_accuracies[f"accuracy_{prompt_id}"][category].append(int(final_answer == gt))
 
     for key in prompt_accuracies:
-        prompt_accuracies[key] = sum(prompt_accuracies[key]) / len(prompt_accuracies[key])
+        per_prompt_accuracies = []
+        for category in prompt_accuracies[key]:
+            per_prompt_accuracies.append(sum(prompt_accuracies[key][category]) / len(prompt_accuracies[key][category]))
+        prompt_accuracies[key] = np.mean(per_prompt_accuracies)
         eval_logger.info(f"Prompt {key} accuracy: {prompt_accuracies[key]}")
     
     std_dev = np.std([v for v in prompt_accuracies.values()])
     
-    return np.round(std_dev,3)
+    return np.round(std_dev, 4)
 
 
 def per_option_accuracy_std(results: List[Dict[str, Any]]) -> float:

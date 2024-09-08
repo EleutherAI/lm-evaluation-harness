@@ -67,10 +67,6 @@
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "Select the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J' for the question provided below. Conclude by stating: The best answer is answer_letter where answer_letter is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.\nQuestion: {question} {options}\nLet's think step by step.",
-                "options_format": "\n{letter}: {option}"
-        },
-            {
                 "prompt": "Select the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J' for the question provided below. Conclude by stating: The best answer is answer_letter where answer_letter is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. Let's think step by step.\nQuestion: {question} {options}",
                 "options_format": "\n{letter}: {option}"
         },
