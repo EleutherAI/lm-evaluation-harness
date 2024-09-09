@@ -1,4 +1,4 @@
-tag: TurkishMMLU_COT
+tag: TurkishMMLU_Cot
 dataset_path: AYueksel/TurkishMMLU
 dataset_name: TurkishMMLU
 test_split: test
