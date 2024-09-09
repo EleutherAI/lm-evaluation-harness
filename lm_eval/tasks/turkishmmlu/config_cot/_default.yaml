@@ -1,4 +1,4 @@
-tag: TMMLU_COT
+tag: TurkishMMLU_COT
 dataset_path: ./data
 dataset_name: null
 test_split: test
