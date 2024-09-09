@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_Religion_and_Ethics"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_Religion_and_Ethics
+description:
   "Soru: (I)  Allah’a (c.c.) inanmak insanın hayatında olumlu değişiklikler yapar. (II)  Bunun nedeni imanın; duygu, düşünce ve davranışlar üzerinde etkili olmasıdır.\
   \ (III)  İnsanın Allah (c.c.) ile irtibatı dua, ibadet, tövbe ve Kur’an okuma gibi yollarla gerçekleşir. (IV)  İnsan büyük oranda inancına göre görür, düşünür ve davranışlar sergiler.\
   \ (V)  Bu durumu açıklayan birçok ayet ve hadis bulunmaktadır. Bu parçadaki numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?\nA)\
@@ -47,5 +47,5 @@
   \ Parça, İslam medeniyetinin Emeviler, Abbasiler, Selçuklular ve Osmanlılar dönemlerindeki oluşumunu ve gelişimini kapsamlı bir şekilde ele alırken,\
   \ İslam medeniyetinin farklı alanlardaki önemli katkılarını ve ilim adamlarının rollerini vurgular.\
   \ Doğru cevap E şıkkıdır."
-dataset_name: Religion and Ethics
+dataset_name: Religion_and_Ethics
 num_fewshot: 0

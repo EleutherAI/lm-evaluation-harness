@@ -1,3 +1,3 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Mathematics"
+include: _default.yaml
+task: TurkishMMLU_Mathematics
 dataset_name: Mathematics

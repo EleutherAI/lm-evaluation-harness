@@ -1,3 +1,3 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_History"
+include: _default.yaml
+task: TurkishMMLU_History
 dataset_name: History

@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_Biology"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_Biology
+description:
   "Soru: AaKkDdEeX$^{R}$X$^{r}$ genotipli bireyde AKD alelleri bağlı olup diğerleri bağımsızdır.\
   \ Bu birey bu karakterler açısından kaç çeşit gamet oluşturabilir? (Krossing over gerçekleşmemiştir.)\nA) 2 \nB)\
   \ 4 \nC) 8 \nD) 16 \nE) 32 \nÇözüm: Adım adım düşünelim.\

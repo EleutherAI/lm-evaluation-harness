@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_Turkish_Language_and_Literature"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_Turkish_Language_and_Literature
+description:
   "Soru: Aşağıdakilerden hangisi edebiyat tarihinin  konuları arasında yer almaz?\nA) Edebî dönemler\nB)\
   \ Şair ve yazarların edebî kişiliği\nC) Şair ve yazarların hayatları\nD) Edebî eserler\nE)\
   \ Arkeolojik eserler\nÇözüm: Adım adım düşünelim.\

@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_Philosophy"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_Philosophy
+description:
   "Soru: Aşağıdaki ifadelerden hangisi Kant'ın epistemolojik görüşünü yansıtan bir yargıdır?\nA)\
   \ Bilginin kaynağı hem akıl hem deneyimdir.\nB) Doğru bilgi mümkün değildir.\nC) Sezgiye\
   \ dayalı bilgi gerçektir.\nD) Akıl tek başına bilgi elde etmek için yeterlidir.\nE)\
@@ -42,7 +42,4 @@
   \ ve hatta tekrar dirilmesi fikrini savunan görüşlerinden etkilendiği ifade edilmiştir. Bu görüşleri savunan Antik Yunan filozofunun Platon olduğu bilinmektedir.\
   \ İslam filozoflarının ise Tanrı'nın varlığını kanıtlamada başka bir Antik Yunan filozofunun mantığından yararlandığı ifade edilmektedir\
   \ ve bu filozofun da Aristoteles olduğu bilinmektedir. Doğru cevap C şıkkıdır."
-dataset_kwargs:
-  data_files:
-    test: test/Felsefe.json
-    dev: dev/Felsefe.json
+dataset_name: Philosophy

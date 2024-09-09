@@ -1,3 +1,3 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Chemistry"
+include: _default.yaml
+task: TurkishMMLU_Chemistry
 dataset_name: Chemistry

@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_History"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_History
+description:
   "Soru: Denizcilikte öne çıkan ............. Beyliği Balıkesir bölgesinde kuruldu.\
   \ Osmanlı Devleti’ne .............. döneminde katıldı. Bu beyliğin Osmanlı Devletine katılmasıyla Osmanlı\
   \ Devleti’nde donanma gücü oluşturuldu. Yukarıdaki metinde boş bırakılan yerlere aşağıdakilerden hangisi getirilmelidir?\nA)\

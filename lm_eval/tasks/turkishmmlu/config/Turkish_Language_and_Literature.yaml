@@ -1,3 +1,3 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Turkish_Language_and_Literature"
+include: _default.yaml
+task: TurkishMMLU_Turkish_Language_and_Literature
 dataset_name: Turkish_Language_and_Literature

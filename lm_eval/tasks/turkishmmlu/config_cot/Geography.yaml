@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_Geography"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_Geography
+description:
   "Soru: Yerkabuğunu oluşturan levha sınırları ile aşağıdakilerden hangisinin dağılışı paralellik göstermez?\nA) Tektonik depremlerin\nB) Volkanik faaliyetlerin\nC) Kaplıcaların\nD)\
   \ Orman alanlarının\nE) Fay hatlarının\nÇözüm: Adım adım düşünelim.\
   \ Bu soruyu cevaplayabilmek için, levha sınırlarının özelliklerini ve levha hareketlerinin yeryüzündeki etkilerini bilmek gerekir.\

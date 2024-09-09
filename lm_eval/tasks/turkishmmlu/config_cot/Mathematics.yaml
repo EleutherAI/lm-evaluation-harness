@@ -1,6 +1,6 @@
-"include": "_default.yaml"
-"task": "TurkishMMLU_Cot_Mathematics"
-"description":
+include: _default.yaml
+task: TurkishMMLU_Cot_Mathematics
+description:
   "Soru: 3 farklı fizik ve 4 farklı kimya kitabı sıra halinde bir rafa dizilecektir. Fizik veya kimya kitaplarının\
   \ birbirinden ayrılmaması koşuluyla bu kitaplar kaç farklı şekilde dizilebilir\nA) 7.3!.4! \nB) 3.3!.4!\nC) 5.3!.4!\nD)\
   \ 6.3!.4!\nE) 2!.3!.4!\nÇözüm: Adım adım düşünelim.
