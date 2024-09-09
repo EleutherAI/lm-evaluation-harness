@@ -77,7 +77,7 @@ def process_results(doc, results):
     if doc["question_type"] == "multiple-choice":
         # multichoice logic
         option_strs = ast.literal_eval(doc["options"])
-        option_letters = ["A", "B", "C", "D"]
+        option_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
         all_choices = option_letters[: len(option_strs)]
         index2ans = {index: ans for index, ans in zip(option_letters, option_strs)}
@@ -154,7 +154,7 @@ def parse_multi_choice_response(response, all_choices, index2ans):
     else:  # if only one candidate, use it.
         pred_index = candidates[0]
 
-    print(response, all_choices, index2ans, pred_index)
+    # print(response, all_choices, index2ans, pred_index)
 
     return pred_index
 

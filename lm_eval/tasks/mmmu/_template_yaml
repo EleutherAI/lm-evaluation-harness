@@ -16,6 +16,8 @@ metric_list:
   - metric: acc
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 0.0
 ### Test MCQA YAML ###
 # dataset_path: MMMU/MMMU
 # validation_split: validation
