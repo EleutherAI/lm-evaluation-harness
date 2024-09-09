@@ -6,10 +6,17 @@ import torch.nn.functional as F
 import transformers
 from tqdm import tqdm
 
+from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import Collator, pad_and_concat, stop_sequences_criteria
+
+
+DEFAULT_IMAGE_PLACEHOLDER = "<image>"
+
+
+eval_logger = utils.eval_logger
 
 
 @register_model("hf-multimodal")
@@ -19,6 +26,37 @@ class HFMultimodalLM(HFLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForVision2Seq  # TODO: what's the right way to handle this. maybe phase out the direct class-equality checks in HFLM?
+
+    # TODO: init method taking all kwargs, args, and `image_token_id` and setting image_token_id
+
+    def __init__(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        image_token_id: Optional[int] = None,
+        **kwargs,
+    ):
+        # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
+        # modify init behavior.
+        super().__init__(pretrained, **kwargs)
+
+        # HF AutoModelForVision2Seq models have an `image_token_id` value in their configs
+        # denoting the token which indicates a location where an image will be substituted in.
+        # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
+        # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
+        self.image_token_id = (
+            int(image_token_id) if image_token_id else self.config.image_token_id
+        )
+        assert (
+            self.image_token_id is not None
+        ), "Must have a non-None image_token_id to evaluate a Hugging Face AutoModelForVision2Seq model. Please pass `image_token_id` in `--model_args` if model's config does not already specify one."
+        # get the string this token ID corresponds to
+        self.image_token = self.tok_decode(
+            [self.image_token_id], skip_special_tokens=False
+        )
+        if image_token_id is not None:
+            eval_logger.info(
+                f"A non-default image_token_id with image_token_id={self.image_token_id} and string value '{self.image_token}' was specified manually. Note that using an improper image_token placeholder may lead to ignored image input or errors!"
+            )
 
     def _create_tokenizer(
         self,
@@ -70,14 +108,6 @@ class HFMultimodalLM(HFLM):
 
         self.tokenizer = self.processor.tokenizer
 
-    # def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
-    #     """
-    #     Method to apply a chat template to a list of chat history between user and model.
-    #     """
-    #     return self.tokenizer.apply_chat_template(
-    #         chat_history, tokenize=False, add_generation_prompt=True
-    #     )
-
     # def tok_encode(
     #     self, string: str, left_truncate_len=None, add_special_tokens=None
     # ) -> List[int]:
@@ -114,7 +144,11 @@ class HFMultimodalLM(HFLM):
     ) -> Dict[
         str, torch.Tensor
     ]:  # TODO: note that this return signature differs from HFLM tok_batch_encode.
-        # TODO: we should allow
+        # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
+        strings = [
+            string.replace(DEFAULT_IMAGE_PLACEHOLDER, self.image_token)
+            for string in strings
+        ]
 
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
@@ -146,9 +180,6 @@ class HFMultimodalLM(HFLM):
         self.tokenizer.padding_side = old_padding_side
 
         return encoding
-
-    # def tok_decode(self, tokens, skip_special_tokens=True):
-    #     return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
     def _model_call(self, inps, imgs, attn_mask=None, labels=None):
         """
@@ -212,6 +243,8 @@ class HFMultimodalLM(HFLM):
             else:
                 visuals = aux_arguments["visual"]
 
+                # TODO: write a multimodal _encode_pair that handles this
+                # TODO: rename these tokenization methods so we can still use the old ones
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
             # TODO: key to pick for caching images
             new_reqs.append(
@@ -469,7 +502,7 @@ class HFMultimodalLM(HFLM):
                 contexts = list(
                     contexts
                 )  # for Qwen2-VL, processor is unhappy accepting a tuple of strings instead of a list.
-                # TODO: could we upstream this workaround?
+                # TODO: could we upstream this workaround to HF?
             ### this part onward: same as HFLM ###
 
             # we assume all gen kwargs in the batch are the same

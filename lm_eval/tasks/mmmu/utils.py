@@ -46,7 +46,7 @@ def doc_to_text(doc):
 
     for i in range(1, 8):
         # replace <image {i}> with <image>. TODO: check this is always the right decision incl. for non-HF models
-        prompt = prompt.replace(f"<image {i}>", "<|image_pad|>")
+        prompt = prompt.replace(f"<image {i}>", "<image>")
 
     return prompt
 
@@ -83,12 +83,12 @@ def process_results(doc, results):
         index2ans = {index: ans for index, ans in zip(option_letters, option_strs)}
 
         pred = parse_multi_choice_response(results[0], all_choices, index2ans)
-        print(pred, all_choices, index2ans)
+        # print(pred, all_choices, index2ans)
         is_correct = eval_multi_choice(doc["answer"], pred)
     else:
+        # freeform response handling
         pred = parse_open_response(results[0])
         is_correct = eval_open(doc["answer"], pred)
-        # freeform response handling
 
     return {"acc": float(is_correct)}
 
@@ -339,29 +339,3 @@ def eval_open(gold_i, pred_i):
                     correct = True
                 break
     return correct
-
-
-# ----------- Batch Evaluation -------------
-def evaluate(samples):
-    """
-    Batch evaluation for multiple choice and open questions.
-    """
-    pred_correct = 0
-    judge_dict = dict()
-    for sample in samples:
-        gold_i = sample["answer"]
-        pred_i = sample["parsed_pred"]
-        if sample["question_type"] == "multiple-choice":
-            correct = eval_multi_choice(gold_i, pred_i)
-        else:  # open question
-            correct = eval_open(gold_i, pred_i)
-
-        if correct:
-            judge_dict[sample["id"]] = "Correct"
-            pred_correct += 1
-        else:
-            judge_dict[sample["id"]] = "Wrong"
-
-    if len(samples) == 0:
-        return {"acc": 0}
-    return judge_dict, {"acc": pred_correct / len(samples)}
