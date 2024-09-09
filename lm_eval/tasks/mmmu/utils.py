@@ -46,7 +46,7 @@ def doc_to_text(doc):
 
     for i in range(1, 8):
         # replace <image {i}> with <image>. TODO: check this is always the right decision incl. for non-HF models
-        prompt = prompt.replace(f"<image {i}>", "<image>")
+        prompt = prompt.replace(f"<image {i}>", "<|image_pad|>")
 
     return prompt
 

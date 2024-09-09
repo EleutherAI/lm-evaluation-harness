@@ -124,7 +124,6 @@ class HFMultimodalLM(HFLM):
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
             add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
-        print(visuals)
         encoding = self.processor(
             images=visuals,
             text=strings,
@@ -457,15 +456,7 @@ class HFMultimodalLM(HFLM):
 
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
 
-        for idx, _chunk in enumerate(chunks):
-            if idx == 0:
-                zero_chunk = _chunk
-                chunk = _chunk
-            elif idx == 69:
-                chunk = zero_chunk
-            else:
-                chunk = _chunk
-            chunk = _chunk
+        for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(
                 *chunk
             )  # TODO: can we cut down further on number of distinct things we pass around?
@@ -473,6 +464,12 @@ class HFMultimodalLM(HFLM):
             visuals = [
                 arg["visual"] for arg in aux_arguments
             ]  # TODO: I think *fully* flattening is just wrong for bs>1 ??
+
+            if not isinstance(contexts, list):
+                contexts = list(
+                    contexts
+                )  # for Qwen2-VL, processor is unhappy accepting a tuple of strings instead of a list.
+                # TODO: could we upstream this workaround?
             ### this part onward: same as HFLM ###
 
             # we assume all gen kwargs in the batch are the same
@@ -509,6 +506,7 @@ class HFMultimodalLM(HFLM):
 
             max_ctx_len = self.max_length - max_gen_toks  # noqa: F841 # TODO: this assumes we are using a causal LM. is that always valid? shouldn't be
 
+            print(visuals, contexts)
             inputs = self.tok_batch_encode(
                 contexts,
                 visuals,
@@ -522,6 +520,12 @@ class HFMultimodalLM(HFLM):
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
 
             cont = self._model_generate(inputs, stop=until, **kwargs)
+
+            del inputs
+            torch.cuda.empty_cache()
+            import gc
+
+            gc.collect()
 
             ### essentially same as HFLM beyond this line!
 
@@ -541,7 +545,9 @@ class HFMultimodalLM(HFLM):
                         s = s.split(term)[0]
 
                 res.append(s)
-                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), s
+                )  # TODO: cache key for multimodal input should be what?
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
