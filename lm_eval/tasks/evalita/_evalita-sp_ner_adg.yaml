@@ -1,6 +1,6 @@
 dataset_path: mic-rest/evalita_er
 dataset_name: adg
-test_split: test
+test_split: reduced_test
 tag: evalita-sp_ner_tasks
 include: _ner_template_yaml
 task: evalita-sp_ner_task_adg

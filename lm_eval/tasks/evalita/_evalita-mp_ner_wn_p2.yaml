@@ -1,6 +1,6 @@
 include: _ner_template_yaml
 dataset_name: wn
-test_split: test
+test_split: reduced_test
 
 task_alias: WN prompt-2
 tag: evalita-mp_ner_tasks_wn
