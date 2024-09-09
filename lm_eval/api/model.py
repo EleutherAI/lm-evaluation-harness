@@ -3,7 +3,7 @@ import hashlib
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Type, TypeVar
+from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import transformers
 from sqlitedict import SqliteDict
@@ -192,15 +192,13 @@ class LM(abc.ABC):
             "To use this model with chat templates, please implement the 'tokenizer_name' property."
         )
 
-    @property
-    def chat_template(self) -> str:
-        """Must be defined for LM subclasses that implement Chat Templating.
-        Should return the structure of the chat template applied to user/assistant messages.
-        This is used only to save in the experiment results for reproducibility.
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        """Returns the chat template structure for user/assistant messages if a template is provided.
+        This method is intended to be overridden in a subclass to define a specific chat template format.
+        For models that do not support chat templates, this method returns None by default.
         """
-        raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'chat_template' property."
-        )
+
+        return ""
 
     def set_cache_hook(self, cache_hook) -> None:
         self.cache_hook = cache_hook
@@ -316,6 +314,8 @@ class TemplateLM(LM):
     and boilerplate often included in other LM subclasses.
     """
 
+    tokenizer = None
+
     @property
     @abc.abstractmethod
     def eot_token_id(self):
@@ -386,3 +386,99 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         pass
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        """
+        Set and get the appropriate chat template for the model.
+        This method sets the tokenizer's chat_template and returns the template string for reproducibility.
+
+        The template selection logic is adapted from the Transformers library's `apply_chat_template`
+        method in the Tokenizer class. The original implementation can be found at:
+        https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1687
+
+        This method ensures that the right template is chosen based on the following:
+        0. If the model has no 'tokenizer' attribute: assumes that there is only a single possible chat template, handled on the model provider side internally. Returns the empty string.
+        1. If the model's tokenizer has multiple templates:
+            a. Use the specified template if it exists in the dictionary.
+            b. Use the default template from the list if no specific template is provided.
+            c. Raise an error if no default template exists and no specific template is provided.
+        2. If the model's tokenizer has a single template or no template:
+            a. Use the tokenizer's chat template if available.
+            b. Fall back to the default chat template if no tokenizer chat template exists.
+
+        Args:
+            chat_template (Union[bool, str]): Specifies the chat template to use.
+                - If False or None, no template is applied.
+                - If True, the default or only available template is used.
+                - If a string, the template with the matching name is used.
+
+        Returns:
+            Optional[str]: The selected chat template, or None if no template is applied.
+        """
+        if self.tokenizer is None:
+            return ""
+
+        if chat_template is False or chat_template is None:
+            eval_logger.warning(
+                "model.chat_template was called with the chat_template set to False or None. "
+                "Therefore no chat template will be applied. Make sure this is an intended behavior."
+            )
+            return None
+
+        # Convert boolean chat_template to None to ensure compatibility with the adapted logic
+        if isinstance(chat_template, bool):
+            chat_template = None
+        using_default_template = False
+
+        # First, handle the cases when the model has a dict of multiple templates
+        template = self.tokenizer.chat_template or self.tokenizer.default_chat_template
+
+        if isinstance(template, dict):
+            using_default_dict = self.tokenizer.chat_template is None
+
+            if chat_template is not None:
+                if chat_template in template:
+                    selected_template = template[chat_template]
+                    if using_default_dict:
+                        using_default_template = True
+                else:
+                    raise ValueError(
+                        f"The specified chat template '{chat_template}' is not available. "
+                        f"Available template names are {sorted(template.keys())}."
+                    )
+            else:
+                # If user didn't pass a chat template, use the default template from the dict
+                if "default" in template:
+                    selected_template = template["default"]
+                    using_default_template = True
+                else:
+                    raise ValueError(
+                        "This model has multiple chat templates with no default specified! Please either pass a chat "
+                        "template or the name of the template you wish to use to the `chat_template` argument. Available "
+                        f"template names are {sorted(template.keys())}."
+                    )
+
+        # Cases when the model has a single template or no template
+        else:
+            # priority: `chat_template` argument > `tokenizer.chat_template` > `tokenizer.default_chat_template
+            if isinstance(chat_template, str):
+                eval_logger.warning(
+                    "Chat template name provided, but the tokenizer's chat template is not a dictionary. "
+                    "Using the tokenizer's chat template or the default template instead."
+                )
+            if self.tokenizer.chat_template is not None:
+                selected_template = self.tokenizer.chat_template
+            else:
+                selected_template = self.tokenizer.default_chat_template
+                using_default_template = True
+
+        if using_default_template:
+            eval_logger.warning(
+                "No chat template is set for this tokenizer, falling back to a default class-level template. This is "
+                "very error-prone, because models are often trained with templates different from the class default! "
+                "Default chat templates are a legacy feature and will be removed in Transformers v4.43, at which "
+                "point any code depending on them will stop working. We recommend setting a valid chat template before "
+                "then to ensure that this model continues working without issues."
+            )
+
+        return selected_template
