@@ -13,8 +13,6 @@ Multiple choice question answering tasks evaluate the reasoning, comprehension, 
 
 ## Dataset
 
-![alt text](image.png)
-
 Dataset is divided into four categories Natural Sciences, Mathematics, Language, and Social Sciences and Humanities with a total of nine subjects in Turkish highschool education. It is available in multiple choice for LLM evaluation. The questions also contain difficulty indicator referred as Correctness ratio.
 
 ## Evaluation
