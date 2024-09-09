@@ -11,8 +11,9 @@ from lm_eval.utils import eval_logger
 import re
 import numpy as np
 
-PROMPT_TEMPLATES_KEY = "v0.4_templates"
-PROMPT_TEMPLATES_SAME_OPTIONS = "same_options_prompt"
+PROMPT_ROBUSTNESS_TEMPLATE_KEY = "v0.4_templates"
+OPTION_FORMAT_ROBUSTNESS_TEMPLATE_KEY = "options_format_robustness"
+OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY = "same_options_prompt"
 
 
 def __repeat_elements(lst, n):
@@ -21,12 +22,12 @@ def __repeat_elements(lst, n):
         result.extend([element] * n)
     return result
 
-def prompt_robustness_process_docs(doc: Dataset) -> Dataset:
+def process_docs_add_prompts(doc: Dataset, templates_key) -> Dataset:
     def process_batch(batch):
         try:
             template_file = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
             with open(template_file) as f:
-                prompt_templates = json.load(f)[PROMPT_TEMPLATES_KEY] #todo
+                prompt_templates = json.load(f)[templates_key] #todo
         except FileNotFoundError:
             eval_logger.error("Prompt templates not found")
             sys.exit()
@@ -41,13 +42,14 @@ def prompt_robustness_process_docs(doc: Dataset) -> Dataset:
         return result
     return doc.map(process_batch, batched=True)
 
+prompt_robustness_process_docs = partial(process_docs_add_prompts, templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY)
+option_format_robustness_process_docs = partial(process_docs_add_prompts, templates_key=OPTION_FORMAT_ROBUSTNESS_TEMPLATE_KEY)
 
-
-def options_robustness_process_docs(doc: Dataset) -> Dataset:
+def option_order_robustness_process_docs(doc: Dataset) -> Dataset:
     try:
         template_file = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
         with open(template_file) as f:
-            prompt_template = json.load(f)[PROMPT_TEMPLATES_SAME_OPTIONS] #todo
+            prompt_template = json.load(f)[OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY] #todo
             prompt = prompt_template["prompt"]
             options_format = prompt_template["options_format"]
     except FileNotFoundError:
@@ -93,11 +95,10 @@ def options_robustness_process_docs(doc: Dataset) -> Dataset:
 
 def robustness_doc_to_text(doc: Dataset) -> str:
     _l = string.ascii_uppercase
-    options = "\n".join([f"{_l[i]}) {doc['options'][i]}" for i in range(len(doc["options"]))])
-
+    numerals = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     prompt = doc["prompt"]
     options_format = doc["options_format"]
-    options = "".join([options_format.format(letter=_l[i], option=doc['options'][i]) for i in range(len(doc["options"]))])
+    options = "".join([options_format.format(letter=_l[i], option=doc['options'][i], numeral=numerals[i]) for i in range(len(doc["options"]))])
     return prompt.format(question=doc["question"], options=options, category=doc["category"])
 
 def __postprocess_pred(pred):
@@ -118,7 +119,7 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
         "per_prompt_accuracy_std": (question_id, prompt_id, final_answer, gt, category),
         "prompt_consistency_rate": (question_id, prompt_id, final_answer, gt)}
 
-def options_robustness_process_results(doc, results) -> Dict[str, float]:
+def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = __postprocess_pred(results[0]).lower()
     gt = doc["answer"].lower()
     always_same_option = doc["always_same_option"]
