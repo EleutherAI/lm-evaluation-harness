@@ -39,12 +39,20 @@ class HFMultimodalLM(HFLM):
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
 
+        assert (
+            self.batch_size != "auto"
+        ), "Batch size 'auto' is not yet supported for hf-multimodal models."
+
+        # TODO: phi-3.5 "image placeholders" are <image_1>, <image_2>, ... in order. how to handle this case
+
         # HF AutoModelForVision2Seq models have an `image_token_id` value in their configs
         # denoting the token which indicates a location where an image will be substituted in.
         # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         self.image_token_id = (
-            int(image_token_id) if image_token_id else self.config.image_token_id
+            int(image_token_id)
+            if image_token_id
+            else getattr(self.config, "image_token_id", None)
         )
         assert (
             self.image_token_id is not None
@@ -88,8 +96,8 @@ class HFMultimodalLM(HFLM):
                 )
             else:
                 assert isinstance(
-                    tokenizer, transformers.PreTrainedTokenizer
-                ) or isinstance(tokenizer, transformers.PreTrainedTokenizerFast)
+                    tokenizer, transformers.ProcessorMixin
+                )  # TODO: check this condition
                 return tokenizer
 
         # Get tokenizer based on 'pretrained'
@@ -134,10 +142,70 @@ class HFMultimodalLM(HFLM):
 
     #     return encoding
 
-    def tok_batch_encode(
+    def tok_multimodal_encode(
+        self, string, images, left_truncate_len=None, add_special_tokens=None
+    ):
+        """Helper function which encodes an image + string combo using AutoProcessor"""
+        # We inherit special token kwarg setup from HFLM.tok_encode
+        # special_tokens_kwargs = {}
+
+        # by default for CausalLM - false or self.add_bos_token is set
+        # if add_special_tokens is None:
+        #     special_tokens_kwargs = {"add_special_tokens": False or self.add_bos_token}
+        # otherwise the method explicitly defines the value
+        # else:
+        #     special_tokens_kwargs = {"add_special_tokens": add_special_tokens}
+
+        # encode text+images
+        # TODO: why does (Qwen2-VL) processor error when attempting to add special tokens to text?
+        encoding = self.processor(
+            text=string, images=images, return_tensors=None
+        )  # , **special_tokens_kwargs)
+
+        # remove (and store) our tokenized text
+        text_encoding = encoding.pop("input_ids")
+        encoding.pop("attention_mask")
+
+        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
+        if left_truncate_len:
+            text_encoding = text_encoding[-left_truncate_len:]
+
+        return text_encoding, encoding  # image_encoding is a dict
+
+    def _encode_multimodal_pair(self, context, continuation, images):
+        """Helper function to perform the role of TemplateLM._encode_pair
+        Except allowing for image input to also be processed alongside `context`.
+
+        This method is a bit messy due to the need to defer conversion of image and text token input
+        into PyTorch tensors until the main inference loop.
+        """
+
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+
+        # TODO: replace default <image> placeholder with self.image_token, for contexts
+
+        whole_enc, image_enc = self.tok_multimodal_encode(
+            context + continuation, images
+        )
+        context_enc, _ = self.tok_multimodal_encode(context, images)
+
+        # tok_multimodal_encode returns List[List[int]] for tokenized text. Get rid of the batch dim
+        # since we only are encoding a single string.
+        # TODO: this is a bit hacky, it'd be nice to make this generally cleaner
+        whole_enc, context_enc = whole_enc[0], context_enc[0]
+
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len:]
+
+        return context_enc, continuation_enc, image_enc
+
+    def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        visuals=None,  # TODO: typehint on this
+        images,  # TODO: typehint on this
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
@@ -154,20 +222,16 @@ class HFMultimodalLM(HFLM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = {}
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+        # add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.processor(
-            images=visuals,
+            images=images,
             text=strings,
             truncation=truncation,
             padding="longest",
             return_tensors="pt",
-            **add_special_tokens,
+            # **add_special_tokens, # TODO: at least some Processors error out when passing this. How do we control whether text gets BOS added?
         )
-        # if "pixel_values" in encoding and encoding["pixel_values"] is None: # TODO: what case does this handle?
-        #     encoding.pop("pixel_values")
 
         encoding.to(
             self.device, self.model.dtype
@@ -181,27 +245,15 @@ class HFMultimodalLM(HFLM):
 
         return encoding
 
-    def _model_call(self, inps, imgs, attn_mask=None, labels=None):
+    def _model_multimodal_call(self, inps, imgs, attn_mask=None, labels=None):
         """
         TODO: update docstring
-        :param inps: torch.Tensor
-            A torch tensor of shape [batch, (sequence_ctx + sequence_cont)] or of shape
-            [batch, sequence_ctx]. the size of sequence may vary from call to call
-        :param attn_mask: torch.Tensor, optional
-            A torch tensor of shape [batch, (sequence_ctx + sequence_cont)]. Only passed
-            (and must be passed) if self.AUTO_MODEL_CLASS is transformers.AutoModelForSeq2SeqLM
-        :param labels: torch.Tensor, optional
-            A torch tensor of shape [batch, (sequence_ctx + sequence_cont)]. Only passed
-            (and must be passed) if self.AUTO_MODEL_CLASS is transformers.AutoModelForSeq2SeqLM
-        :return
-            A torch tensor of shape [batch, sequence, vocab] with the
-        logits returned from the model's decoder
         """
+        # note: imgs is a dict.
         with torch.no_grad():
-            return self.model(inps, imgs).logits
+            return self.model(inps, **imgs).logits
 
-    def _model_generate(self, inputs, max_length, stop, **generation_kwargs):
-        # gen_kwargs["image_sizes"] = [visuals[idx].size for idx in range(len(visuals))]
+    def _model_multimodal_generate(self, inputs, max_length, stop, **generation_kwargs):
         generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
         do_sample = generation_kwargs.get("do_sample", None)
 
@@ -227,11 +279,32 @@ class HFMultimodalLM(HFLM):
             **generation_kwargs,
         )
 
+    def _batch_images(self, image_encs):
+        """
+        Helper function: batch together image encodings across examples in a batch.
+        # TODO: for variable-sized images, this may break down.
+        """
+        batched_imgs = {}
+        for key in image_encs[0].keys():
+            batched_imgs[key] = torch.cat(
+                [
+                    torch.tensor(
+                        image_enc[key], device=self.device, dtype=self.model.dtype
+                    )
+                    for image_enc in image_encs
+                ],
+                dim=0,
+            )
+        print(batched_imgs)
+        return batched_imgs
+
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
             "model type `hf-multimodal` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
             "this is because we do not support measuring the loglikelihood a model assigns to an image.",
         )
+
+        # TODO: support this, but for only text-only input
 
     def loglikelihood(
         self, requests: List[Instance], disable_tqdm: bool = False
@@ -245,14 +318,16 @@ class HFMultimodalLM(HFLM):
 
                 # TODO: write a multimodal _encode_pair that handles this
                 # TODO: rename these tokenization methods so we can still use the old ones
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
+                context_enc, continuation_enc, image_enc = self._encode_multimodal_pair(
+                    context, continuation, visuals
+                )
             # TODO: key to pick for caching images
             new_reqs.append(
                 (
-                    (visuals, context, continuation),
-                    visuals,
+                    (context, continuation, visuals),
                     context_enc,
                     continuation_enc,
+                    image_enc,
                 )
             )
 
@@ -268,6 +343,7 @@ class HFMultimodalLM(HFLM):
     ) -> List[Tuple[float, bool]]:
         res = []
 
+        # TODO: **improve multimodal collation.** We currently ignore image size when ordering docs. ideally we'd take them into account
         def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
@@ -276,8 +352,7 @@ class HFMultimodalLM(HFLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-
-            toks = req[2] + req[3]
+            toks = req[1] + req[2]
             return -len(toks), tuple(toks)
 
         def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
@@ -286,7 +361,7 @@ class HFMultimodalLM(HFLM):
             # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
             # groups requests by context+continuation[:-1] and infer on one request/group.
-            return req[-3] + req[-2] + req[-1][:-1]
+            return req[-1] + req[-3] + req[-2][:-1]
 
         re_ord = Collator(
             requests,
@@ -320,7 +395,7 @@ class HFMultimodalLM(HFLM):
         pbar = tqdm(
             total=len(requests),
             disable=(disable_tqdm or (self.rank != 0)),
-            desc="Running loglikelihood requests",
+            desc="Running loglikelihood requests with text+image input",
         )
         for chunk in chunks:
             imgs = []
@@ -333,7 +408,7 @@ class HFMultimodalLM(HFLM):
             # tensors, then we pack them together into a batch, call the model, and then pick it all apart
             # again because vectorizing is annoying
 
-            for _, image_enc, context_enc, continuation_enc in chunk:
+            for _, context_enc, continuation_enc, image_enc in chunk:
                 # sanity check
                 assert len(image_enc) > 0
                 assert len(context_enc) > 0
@@ -366,39 +441,28 @@ class HFMultimodalLM(HFLM):
                 cont_toks_list.append(continuation_enc)
                 inplens.append(inplen)
 
-                # image encoding
-                image_enc = self.processor(  # TODO: factor this call into an image_encode method??
-                    text="<image>"
-                    * len(
-                        image_enc
-                    ),  # we need this to process images for some models, annoyingly
-                    images=image_enc,
-                    return_tensors="pt",  # TODO: push tensor conversion into _loglikelihood_tokens
-                    # **add_special_tokens,
-                )[
-                    "pixel_values"
-                ]  # TODO: are keys from processors always the same? just pop attention_mask and input_ids keys
-
                 imgs.append(image_enc)
-
-                # TODO: batch input images together...
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
             batched_inps = pad_and_concat(
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
-            batched_imgs = torch.cat(imgs, dim=0)  # TODO: might be wrong, fix
+            # batch our examples' image inputs together
+            batched_imgs = self._batch_images(
+                imgs
+            )  # TODO: fix/test for bs>1 case with differently-sized imgs!
 
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, batched_imgs, **call_kwargs), dim=-1
+                self._model_multimodal_call(batched_inps, batched_imgs, **call_kwargs),
+                dim=-1,
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (
                 request_str,
-                image_encs,
                 ctx_tokens,
                 _,
+                image_encs,
             ), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
@@ -446,7 +510,9 @@ class HFMultimodalLM(HFLM):
 
                     res.append(answer)
 
-                    self.cache_hook.add_partial("loglikelihood", request_str, answer)
+                    self.cache_hook.add_partial(
+                        "loglikelihood", request_str, answer
+                    )  # TODO: how to add images into the cache key?
                     pbar.update(1)
 
         pbar.close()
@@ -539,8 +605,7 @@ class HFMultimodalLM(HFLM):
 
             max_ctx_len = self.max_length - max_gen_toks  # noqa: F841 # TODO: this assumes we are using a causal LM. is that always valid? shouldn't be
 
-            print(visuals, contexts)
-            inputs = self.tok_batch_encode(
+            inputs = self.tok_batch_multimodal_encode(
                 contexts,
                 visuals,
                 left_truncate_len=max_ctx_len,
@@ -552,7 +617,7 @@ class HFMultimodalLM(HFLM):
             if "max_length" not in kwargs:
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
 
-            cont = self._model_generate(inputs, stop=until, **kwargs)
+            cont = self._model_multimodal_generate(inputs, stop=until, **kwargs)
 
             del inputs
             torch.cuda.empty_cache()
