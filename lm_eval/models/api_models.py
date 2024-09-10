@@ -226,14 +226,6 @@ class TemplateAPI(TemplateLM):
         return {"Authorization": f"Bearer {self.api_key}"}
 
     @property
-    def chat_template(self) -> str:
-        """Must be defined for LM subclasses that implement Chat Templating.
-        Should return the structure of the chat template applied to user/assistant messages.
-        Only used for logging and reproducibility.
-        """
-        return ""
-
-    @property
     def tokenizer_name(self) -> str:
         """Must be defined for LM subclasses which implement Chat Templating.
         Should return the name of the tokenizer or chat template used.
