@@ -1,0 +1,3 @@
+task: bluebench_Summarization_tldr_document_filtered_to_6000_chars
+include: unitxt
+recipe: card=cards.tldr_document_filtered_to_6000_chars,template=[templates.summarization.abstractive.instruct_full,templates.summarization.abstractive.instruct_one_sentence,templates.summarization.abstractive.instruct_passive],demos_pool_size=100,demos_taken_from=train

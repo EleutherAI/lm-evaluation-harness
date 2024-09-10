@@ -1,0 +1,3 @@
+task: bluebench_Knowledge_mmlu_pro_law
+include: unitxt
+recipe: card=cards.mmlu_pro.law,template=[templates.qa.multiple_choice.with_topic.fm_eval,templates.qa.multiple_choice.with_topic.mmlu,templates.qa.multiple_choice.with_topic.helm],demos_pool_size=20,demos_taken_from=test

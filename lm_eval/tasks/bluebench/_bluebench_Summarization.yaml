@@ -1,0 +1,4 @@
+group: bluebench_Summarization
+task:
+  - "bluebench_Summarization_billsum_document_filtered_to_6000_chars"
+  - "bluebench_Summarization_tldr_document_filtered_to_6000_chars"

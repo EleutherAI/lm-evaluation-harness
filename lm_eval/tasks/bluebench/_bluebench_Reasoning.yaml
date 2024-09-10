@@ -1,0 +1,4 @@
+group: bluebench_Reasoning
+task:
+  - "bluebench_Reasoning_hellaswag"
+  - "bluebench_Reasoning_openbook_qa"

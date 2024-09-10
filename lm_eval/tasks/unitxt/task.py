@@ -27,6 +27,7 @@ _CITATION = """
 
 def score(items, metric):
     predictions, references = zip(*items)
+    # evaluator = evaluate.load("unitxt/metric", revision="1.12.2")
     evaluator = evaluate.load("unitxt/metric")
     for reference in references:
         reference["metrics"] = [metric]
@@ -45,6 +46,7 @@ class Unitxt(ConfigurableTask):
         super().__init__(
             config={
                 "metadata": {"version": self.VERSION},
+                # "dataset_kwargs": {"trust_remote_code": True, "revision": "1.12.2"},
                 "dataset_kwargs": {"trust_remote_code": True},
                 "dataset_name": config["recipe"],
                 "dataset_path": "unitxt/data",

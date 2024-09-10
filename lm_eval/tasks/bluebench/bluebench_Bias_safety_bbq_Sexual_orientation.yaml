@@ -1,0 +1,3 @@
+task: bluebench_Bias_safety_bbq_Sexual_orientation
+include: unitxt
+recipe: card=cards.safety.bbq.Sexual_orientation,template=templates.qa.multiple_choice.with_context.match,demos_pool_size=20,demos_taken_from=test

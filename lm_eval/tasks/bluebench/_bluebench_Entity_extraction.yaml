@@ -1,0 +1,3 @@
+group: bluebench_Entity_extraction
+task:
+  - "bluebench_Entity_extraction_cards_universal_ner_en_ewt"

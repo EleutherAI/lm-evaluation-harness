@@ -1,0 +1,3 @@
+task: bluebench_Legal_legalbench_proa
+include: unitxt
+recipe: card=cards.legalbench.proa,template=[templates.classification.multi_class.instruction,templates.classification.multi_class.instruct_question_selects,templates.classification.multi_class.instruct_question_select_i_think],demos_pool_size=10,demos_taken_from=test

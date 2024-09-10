@@ -1,0 +1,3 @@
+task: bluebench_Product_help_CFPB_product_2023
+include: unitxt
+recipe: card=cards.CFPB.product.2023,template=[templates.classification.multi_class.instruct_question_selects,templates.classification.multi_class.instruct_question_select_i_think,templates.classification.multi_class.instruct_select_question],demos_pool_size=100,demos_taken_from=train

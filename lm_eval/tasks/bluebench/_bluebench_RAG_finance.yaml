@@ -1,0 +1,3 @@
+group: bluebench_RAG_finance
+task:
+  - "bluebench_RAG_finance_fin_qa"
