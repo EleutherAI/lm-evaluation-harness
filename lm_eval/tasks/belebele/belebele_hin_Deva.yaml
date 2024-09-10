@@ -1,4 +1,5 @@
-"fewshot_split": "hin_Deva"
-"include": "_default_template_yaml"
-"task": "belebele_hin_Deva"
-"test_split": "hin_Deva"
+dataset_name: hin_Deva
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_hin_Deva
+test_split: test

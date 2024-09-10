@@ -231,6 +231,7 @@ class NEURON_HF(TemplateLM):
             " For inf2.48xlarge, set it to `24`."
         )
 
+        revision = str(revision)  # cast to string if not already one
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
@@ -501,7 +502,8 @@ class NEURON_HF(TemplateLM):
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
-
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         return loglikelihoods
 
     def _loglikelihood_tokens(
@@ -619,7 +621,11 @@ class NEURON_HF(TemplateLM):
 
                 res.append(answer)
 
-                self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                if cache_key is not None:
+                    # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                    # all with cache key None. instead do add_partial on the per-example level
+                    # in the loglikelihood_rolling() function for those.
+                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
         return re_ord.get_original(res)
 

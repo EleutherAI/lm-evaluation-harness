@@ -163,7 +163,7 @@ def get_file_datetime(filename: str) -> str:
     """
     Given the results and sample results filenames, extracts and returns the datetime.
     """
-    return filename[filename.rfind("_") + 1 :].replace(".json", "")
+    return filename[filename.rfind("_") + 1 :].replace(".jsonl", "")
 
 
 def sanitize_model_name(model_name: str) -> str:
@@ -471,7 +471,9 @@ def regex_replace(string, pattern, repl, count: int = 0):
     return re.sub(pattern, repl, string, count=count)
 
 
-env = Environment(loader=BaseLoader, undefined=StrictUndefined)
+env = Environment(
+    loader=BaseLoader, undefined=StrictUndefined, keep_trailing_newline=True
+)
 env.filters["regex_replace"] = regex_replace
 
 
@@ -487,3 +489,13 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     among ranks in multigpu setting or only pulling a sample of documents
     """
     return islice(raw_iterator, rank, limit, world_size)
+
+
+def weighted_f1_score(items):
+    from sklearn.metrics import f1_score
+
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="weighted")
+    return fscore

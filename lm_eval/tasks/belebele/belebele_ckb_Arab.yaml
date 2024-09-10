@@ -1,4 +1,5 @@
-"fewshot_split": "ckb_Arab"
-"include": "_default_template_yaml"
-"task": "belebele_ckb_Arab"
-"test_split": "ckb_Arab"
+dataset_name: ckb_Arab
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ckb_Arab
+test_split: test

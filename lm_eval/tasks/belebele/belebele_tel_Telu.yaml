@@ -1,4 +1,5 @@
-"fewshot_split": "tel_Telu"
-"include": "_default_template_yaml"
-"task": "belebele_tel_Telu"
-"test_split": "tel_Telu"
+dataset_name: tel_Telu
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_tel_Telu
+test_split: test

@@ -1,0 +1,7 @@
+"dataset_name": "question_and_answer_moral_scenarios"
+"description": "The following are multiple choice questions (with answers) about moral\
+  \ scenarios.\n\n"
+"tag": "mmlusr_question_and_answer_humanities_tasks"
+"include": "_mmlusr_qna_yml"
+"task": "mmlusr_question_and_answer_moral_scenarios"
+"task_alias": "moral scenarios"
