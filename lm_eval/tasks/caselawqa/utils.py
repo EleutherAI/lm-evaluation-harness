@@ -1,3 +1,7 @@
+import re
+from lm_eval.api.filter import Filter
+from lm_eval.api.registry import register_filter
+
 
 def get_choice_labels(choices):
     n_choices = len(choices)
@@ -31,11 +35,43 @@ def construct_prompt(instruction, opinion, question):
     return f"{instruction}\n\n{opinion}\n\n{question}"
 
 
-def doc_to_text(doc):
-    question, _, _ = get_question_target(doc['choices'], doc['answer'], doc['question'])
-    return construct_prompt(doc['instruction'], doc['opinion'], question)
+def process_targets(targets):
+    target = str(targets[0]).strip()
+    if target.isdigit():
+        target = str(int(target))
+    return target
 
 
-def doc_to_answer(doc):
-    _, target, _ = get_question_target(doc['choices'], doc['answer'], doc['question'])
-    return target[0]
+def process_docs(dataset):
+    def _helper(doc):
+        question, targets, _ = get_question_target(doc['choices'], doc['answer'], doc['question'])
+        return {
+            **doc,
+            'text': construct_prompt(doc['instruction'], doc['opinion'], question),
+            'target': process_targets(targets),
+        }
+    
+    return dataset.map(_helper)
+
+
+@register_filter("caselaw-default-filter")
+class UppercaseFilter(Filter):
+    def __init__(self) -> None:
+        pass
+
+    def apply(self, resps, docs):
+        def filter_inst(inst, target):
+            if target.isdigit():
+                search = re.search(r'\d+', inst)
+                inst = str(int(search.group())) if search is not None else '[no match]'
+            elif target.isupper():
+                search = re.search(r'[A-Z]', inst)
+                inst = search.group() if search is not None else '[no match]'
+            else:
+                inst = inst.strip()
+            return inst
+
+        def filter_set(inst, doc):
+            return [filter_inst(inst, doc['target']) for inst in inst]
+
+        return [filter_set(resp, doc) for resp, doc in zip(resps, docs)]

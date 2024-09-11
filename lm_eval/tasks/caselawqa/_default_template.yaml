@@ -1,0 +1,30 @@
+dataset_path: ricdomolm/caselawqa-8k
+dataset_kwargs: null
+test_split: test
+
+output_type: generate_until
+process_docs: !function utils.process_docs
+doc_to_text: text
+doc_to_target: target
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "."
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+  max_new_tokens: 5
+  
+filter_list:
+  - name: default
+    filter:
+      - function: "caselaw-default-filter"
+
+metadata:
+  version: 0.0

@@ -1,36 +1,11 @@
-dataset_path: ricdomolm/caselawqa-8k
-dataset_kwargs: null
+group: caselawqa
 
-dataset_name: songer
-task: caselawqa_songer
+task:
+  - caselawqa_sc
+  - caselawqa_songer
 
-training_split: null
-validation_split: null
-test_split: test
-
-output_type: generate_until
-
-doc_to_text: !function utils.doc_to_text
-doc_to_target: !function utils.doc_to_target
-
-metric_list:
+aggregate_metric_list:
   - metric: exact_match
     aggregation: mean
-    higher_is_better: true
-    ignore_case: true
-    ignore_punctuation: true
-
-generation_kwargs:
-  until:
-    - "Question:"
-    - "</s>"
-    - "<|im_end|>"
-    - "\n\n"
-    - "."
-  do_sample: false
-  temperature: 0.0
-  max_new_tokens: 5
-  
-
-metadata:
-  version: 0.1
+    weight_by_size: false
+    filter_list: "default"
