@@ -6,14 +6,17 @@ import pytest
 from lm_eval.tasks import TaskManager
 
 
+@pytest.fixture(scope="module")
 def custom_task_name():
     return "zzz_my_python_task"
 
 
+@pytest.fixture(scope="module")
 def custom_task_tag():
     return "zzz-tag"
 
 
+@pytest.fixture(scope="module")
 def task_yaml(pytestconfig, custom_task_name, custom_task_tag):
     yield f"""include: {pytestconfig.rootpath}/lm_eval/tasks/hellaswag/hellaswag.yaml
 task: {custom_task_name}
@@ -23,6 +26,7 @@ tag:
 """
 
 
+@pytest.fixture(scope="module")
 def task_code():
     return """
 from lm_eval.tasks import ConfigurableTask
