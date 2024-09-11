@@ -38,7 +38,7 @@ class MockPythonTask(ConfigurableTask):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
-        config: dict | None = None,
+        config=None,
     ) -> None:
         config.pop("class")
         super().__init__(data_dir, cache_dir, download_mode, config)
