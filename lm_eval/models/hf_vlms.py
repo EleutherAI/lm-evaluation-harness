@@ -42,17 +42,21 @@ class HFMultimodalLM(HFLM):
         assert (
             self.batch_size != "auto"
         ), "Batch size 'auto' is not yet supported for hf-multimodal models."
-
+        self.chat_applied: bool = False
         # TODO: phi-3.5 "image placeholders" are <image_1>, <image_2>, ... in order. how to handle this case
 
         # HF AutoModelForVision2Seq models have an `image_token_id` value in their configs
         # denoting the token which indicates a location where an image will be substituted in.
         # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
+        # TODO: llava-1.6 uses image_token_index
         self.image_token_id = (
             int(image_token_id)
             if image_token_id
-            else getattr(self.config, "image_token_id", None)
+            else (
+                getattr(self.config, "image_token_id", None)
+                or getattr(self.config, "image_token_index", None)
+            )
         )
         assert (
             self.image_token_id is not None
@@ -202,6 +206,29 @@ class HFMultimodalLM(HFLM):
 
         return context_enc, continuation_enc, image_enc
 
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+        self.chat_applied = True
+        for content in chat_history:
+            c = []
+            text = content["content"]
+
+            # Count and remove image placeholders
+            image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
+            text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
+
+            # Add image entries
+            for _ in range(image_count):
+                c.append({"type": "image", "image": None})
+
+            # Add single text entry at the end
+            c.append({"type": "text", "text": text})
+
+            content["content"] = c
+
+        return self.processor.apply_chat_template(
+            chat_history, add_generation_prompt=True
+        )
+
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
@@ -213,10 +240,11 @@ class HFMultimodalLM(HFLM):
         str, torch.Tensor
     ]:  # TODO: note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
-        strings = [
-            string.replace(DEFAULT_IMAGE_PLACEHOLDER, self.image_token)
-            for string in strings
-        ]
+        if not self.chat_applied:
+            strings = [
+                string.replace(DEFAULT_IMAGE_PLACEHOLDER, self.image_token)
+                for string in strings
+            ]
 
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
