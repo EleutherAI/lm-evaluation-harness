@@ -32,6 +32,7 @@ class HFMultimodalLM(HFLM):
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
         image_token_id: Optional[int] = None,
+        interleave: bool = False,
         **kwargs,
     ):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
@@ -47,6 +48,7 @@ class HFMultimodalLM(HFLM):
         # HF AutoModelForVision2Seq models have an `image_token_id` value in their configs
         # denoting the token which indicates a location where an image will be substituted in.
         # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
+        self.interleave = interleave
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         self.image_token_id = (
             int(image_token_id)
@@ -206,22 +208,44 @@ class HFMultimodalLM(HFLM):
 
     def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
         self.chat_applied = True
-        for content in chat_history:
-            c = []
-            text = content["content"]
+        if not self.interleave:
+            for content in chat_history:
+                c = []
+                text = content["content"]
 
-            # Count and remove image placeholders
-            image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
-            text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
+                # Count and remove image placeholders
+                image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
 
-            # Add image entries
-            for _ in range(image_count):
-                c.append({"type": "image", "image": None})
+                # Add image entries
+                for _ in range(image_count):
+                    c.append({"type": "image", "image": None})
 
-            # Add single text entry at the end
-            c.append({"type": "text", "text": text})
+                # Add single text entry at the end
+                c.append({"type": "text", "text": text})
 
-            content["content"] = c
+                content["content"] = c
+        else:
+            for content in chat_history:
+                c = []
+                text = content["content"]
+                expected_image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                if expected_image_count > 1:
+                    print("hello")
+                actual_image_count = 0
+
+                text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
+
+                for i, part in enumerate(text_parts):
+                    if part:  # Add non-empty text parts
+                        c.append({"type": "text", "text": part})
+                    if (
+                        i < len(text_parts) - 1
+                    ):  # Add image placeholder after each split except the last
+                        c.append({"type": "image"})
+                        actual_image_count += 1
+
+                content["content"] = c
 
         return self.processor.apply_chat_template(
             chat_history, add_generation_prompt=True
