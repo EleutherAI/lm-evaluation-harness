@@ -740,6 +740,10 @@ class ConfigurableTask(Task):
                 )
             self.OUTPUT_TYPE = self.config.output_type
 
+        if self.config.doc_to_image is not None:
+            # mark the task as requiring multimodality.
+            self.MULTIMODAL = True
+
         if self.config.dataset_path is not None:
             self.DATASET_PATH = self.config.dataset_path
 

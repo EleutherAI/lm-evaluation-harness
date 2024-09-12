@@ -25,9 +25,8 @@ class HFMultimodalLM(HFLM):
     An abstracted Hugging Face model class for multimodal LMs like Llava and Idefics.
     """
 
-    AUTO_MODEL_CLASS = transformers.AutoModelForVision2Seq  # TODO: what's the right way to handle this. maybe phase out the direct class-equality checks in HFLM?
-
-    # TODO: init method taking all kwargs, args, and `image_token_id` and setting image_token_id
+    AUTO_MODEL_CLASS = transformers.AutoModelForVision2Seq
+    MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
 
     def __init__(
         self,
@@ -49,7 +48,6 @@ class HFMultimodalLM(HFLM):
         # denoting the token which indicates a location where an image will be substituted in.
         # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
-        # TODO: llava-1.6 uses image_token_index
         self.image_token_id = (
             int(image_token_id)
             if image_token_id
@@ -238,7 +236,7 @@ class HFMultimodalLM(HFLM):
         truncation: bool = False,
     ) -> Dict[
         str, torch.Tensor
-    ]:  # TODO: note that this return signature differs from HFLM tok_batch_encode.
+    ]:  # note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
         if not self.chat_applied:
             strings = [
@@ -332,20 +330,22 @@ class HFMultimodalLM(HFLM):
             "this is because we do not support measuring the loglikelihood a model assigns to an image.",
         )
 
-        # TODO: support this, but for only text-only input
-
     def loglikelihood(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
+        raise NotImplementedError(
+            "'loglikelihood' requests for model type `hf-multimodal` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
+        )
+
         new_reqs = []
         for context, continuation, aux_arguments in [req.args for req in requests]:
             if context == "":
-                raise ValueError("Must get non-empty context for multimodal requests!")
+                raise ValueError(
+                    "Must get non-empty context for multimodal requests! You might be trying to run 'loglikelihood_rolling', which is not supported in the multimodal case."
+                )
             else:
                 visuals = aux_arguments["visual"]
 
-                # TODO: write a multimodal _encode_pair that handles this
-                # TODO: rename these tokenization methods so we can still use the old ones
                 context_enc, continuation_enc, image_enc = self._encode_multimodal_pair(
                     context, continuation, visuals
                 )
@@ -540,7 +540,7 @@ class HFMultimodalLM(HFLM):
 
                     self.cache_hook.add_partial(
                         "loglikelihood", request_str, answer
-                    )  # TODO: how to add images into the cache key?
+                    )  # TODO: choose convention for adding images into the cache key
                     pbar.update(1)
 
         pbar.close()
@@ -550,7 +550,7 @@ class HFMultimodalLM(HFLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments
+        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments (text-only reqs)
         res = []
 
         def _collate(x):
@@ -584,13 +584,9 @@ class HFMultimodalLM(HFLM):
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
 
         for chunk in chunks:
-            contexts, all_gen_kwargs, aux_arguments = zip(
-                *chunk
-            )  # TODO: can we cut down further on number of distinct things we pass around?
+            contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [
-                arg["visual"] for arg in aux_arguments
-            ]  # TODO: I think *fully* flattening is just wrong for bs>1 ??
+            visuals = [arg["visual"] for arg in aux_arguments]
 
             if not isinstance(contexts, list):
                 contexts = list(
@@ -631,7 +627,7 @@ class HFMultimodalLM(HFLM):
 
             ### end stuff that's entirely copied verbatim from HFLM ###
 
-            max_ctx_len = self.max_length - max_gen_toks  # noqa: F841 # TODO: this assumes we are using a causal LM. is that always valid? shouldn't be
+            max_ctx_len = self.max_length - max_gen_toks
 
             inputs = self.tok_batch_multimodal_encode(
                 contexts,
@@ -657,8 +653,7 @@ class HFMultimodalLM(HFLM):
 
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts):
-                # discard context + left-padding toks if using causal decoder-only LM
-                # if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM: # TODO: ensure this holds for VLMs
+                # discard context + left-padding toks if using causal decoder-only VLM
                 cont_toks = cont_toks[context_enc.shape[1] :]
 
                 s = self.tok_decode(cont_toks)
