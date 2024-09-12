@@ -247,6 +247,11 @@ class HFMultimodalLM(HFLM):
 
                 content["content"] = c
 
+                if actual_image_count != expected_image_count:
+                    raise ValueError(
+                        f"Mismatch in image placeholder count. Expected: {expected_image_count}, Actual: {actual_image_count}"
+                    )
+
         return self.processor.apply_chat_template(
             chat_history, add_generation_prompt=True
         )
