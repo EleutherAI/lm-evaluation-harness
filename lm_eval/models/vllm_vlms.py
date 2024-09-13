@@ -264,22 +264,12 @@ class VLLM_VLM(VLLM):
 
             cont = self._model_generate(inputs, stop=until, **kwargs)
 
-            ### essentially same as HFLM beyond this line!
-
-            for s, context in zip(cont, contexts):
-                # discard context + left-padding toks if using causal decoder-only VLM
-
-                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                for term in until:
-                    if len(term) > 0:
-                        # ignore '' separator,
-                        # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                        s = s.split(term)[0]
-
-                res.append(s)
+            for output, context in zip(cont, contexts):
+                generated_text = output.outputs[0].text
+                res.append(generated_text)
                 self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), s
-                )  # TODO: cache key for multimodal input should be what?
+                    "generate_until", (context, gen_kwargs), generated_text
+                )
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
