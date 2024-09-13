@@ -40,7 +40,7 @@ class HFMultimodalLM(HFLM):
         image_token_id: Optional[int] = None,
         image_string="<image>",
         interleave: bool = True,
-        # TODO: hamdle whitespace in image placeholder (replacement)
+        # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
         convert_img_format=False,
         **kwargs,
@@ -263,7 +263,7 @@ class HFMultimodalLM(HFLM):
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        images: List[List],  # TODO: images are pil.I
+        images: List[List],  # TODO: images are pil.Image at the moment, update typehint
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
