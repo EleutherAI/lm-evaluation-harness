@@ -33,9 +33,12 @@ class VLLM_VLM(VLLM):
         trust_remote_code: Optional[bool] = False,
         revision: Optional[str] = None,
         interleave: bool = True,
+        # TODO<baber>: handle max_images and limit_mm_per_prompt better
         max_images: int = 999,
+        limit_mm_per_prompt: str = "image=1",
         **kwargs,
     ):
+        kwargs["limit_mm_per_prompt"] = limit_mm_per_prompt
         super().__init__(
             pretrained=pretrained,
             trust_remote_code=trust_remote_code,
@@ -58,6 +61,8 @@ class VLLM_VLM(VLLM):
         left_truncate_len: int = None,
         truncation: bool = False,
     ):
+        images = [img[: self.max_images] for img in images]
+
         outputs = []
         for x, i in zip(strings, images):
             inputs = {
@@ -262,7 +267,7 @@ class VLLM_VLM(VLLM):
                 left_truncate_len=max_ctx_len,
             )
 
-            cont = self._model_generate(inputs, stop=until, **kwargs)
+            cont = self._model_generate(inputs, stop=until, generate=True, **kwargs)
 
             for output, context in zip(cont, contexts):
                 generated_text = output.outputs[0].text
