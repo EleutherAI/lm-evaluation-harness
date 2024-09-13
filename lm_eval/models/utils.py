@@ -664,3 +664,21 @@ def configure_pad_token(
             tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
     return tokenizer
+
+
+def replace_placeholders(string, placeholder, replacement, max_count):
+    count = 0
+    result = ""
+    start = 0
+    while True:
+        index = string.find(placeholder, start)
+        if index == -1:
+            result += string[start:]
+            break
+        if count < max_count:
+            result += string[start:index] + replacement
+            count += 1
+        else:
+            result += string[start:index]
+        start = index + len(placeholder)
+    return result

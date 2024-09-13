@@ -10,7 +10,12 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-from lm_eval.models.utils import Collator, pad_and_concat, stop_sequences_criteria
+from lm_eval.models.utils import (
+    Collator,
+    pad_and_concat,
+    replace_placeholders,
+    stop_sequences_criteria,
+)
 
 
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
@@ -32,7 +37,9 @@ class HFMultimodalLM(HFLM):
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
         image_token_id: Optional[int] = None,
-        interleave: bool = False,
+        interleave: bool = True,
+        # TODO: hamdle whitespace in image placeholder (replacement)
+        max_images: Optional[int] = 999,
         **kwargs,
     ):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
@@ -49,6 +56,7 @@ class HFMultimodalLM(HFLM):
         # denoting the token which indicates a location where an image will be substituted in.
         # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
         self.interleave = interleave
+        self.max_images = max_images
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         self.image_token_id = (
             int(image_token_id)
@@ -214,7 +222,9 @@ class HFMultimodalLM(HFLM):
                 text = content["content"]
 
                 # Count and remove image placeholders
-                image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                image_count = min(
+                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                )
                 text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
 
                 # Add image entries
@@ -230,17 +240,16 @@ class HFMultimodalLM(HFLM):
                 c = []
                 text = content["content"]
                 expected_image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
-                if expected_image_count > 1:
-                    print("hello")
                 actual_image_count = 0
 
                 text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
 
                 for i, part in enumerate(text_parts):
+                    # TODO: concatenate text parts (esp. if skipping images)?
                     if part:  # Add non-empty text parts
                         c.append({"type": "text", "text": part})
                     if (
-                        i < len(text_parts) - 1
+                        (i < len(text_parts) - 1) and i < self.max_images
                     ):  # Add image placeholder after each split except the last
                         c.append({"type": "image"})
                         actual_image_count += 1
@@ -269,7 +278,9 @@ class HFMultimodalLM(HFLM):
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
         if not self.chat_applied:
             strings = [
-                string.replace(DEFAULT_IMAGE_PLACEHOLDER, self.image_token)
+                replace_placeholders(
+                    string, DEFAULT_IMAGE_PLACEHOLDER, self.image_token, self.max_images
+                )
                 for string in strings
             ]
 
@@ -278,6 +289,8 @@ class HFMultimodalLM(HFLM):
         self.tokenizer.padding_side = padding_side
 
         # add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+
+        images = [img[: self.max_images] for img in images]
 
         encoding = self.processor(
             images=images,
