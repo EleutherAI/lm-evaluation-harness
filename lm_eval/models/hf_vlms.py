@@ -38,7 +38,7 @@ class HFMultimodalLM(HFLM):
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
         image_token_id: Optional[int] = None,
-        image_string="<image>",
+        image_string: Optional[str] = None,
         interleave: bool = True,
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
@@ -272,6 +272,7 @@ class HFMultimodalLM(HFLM):
     ]:  # note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
         if not self.chat_applied:
+            # TODO<baber>: This still keeps the whitespace in the image placeholder, which is not ideal.
             strings = [
                 replace_placeholders(
                     string, DEFAULT_IMAGE_PLACEHOLDER, self.image_token, self.max_images
