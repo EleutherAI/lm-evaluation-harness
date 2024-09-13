@@ -271,7 +271,6 @@ class HFMultimodalLM(HFLM):
         BatchEncoding, Dict[str, torch.Tensor]
     ]:  # note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
-        # Moves the encodings to device
         if not self.chat_applied:
             strings = [
                 replace_placeholders(
@@ -299,7 +298,7 @@ class HFMultimodalLM(HFLM):
             # **add_special_tokens, # TODO: at least some Processors error out when passing this. How do we control whether text gets BOS added?
         )
 
-        encoding.to(
+        encoding.to(  # TODO: our other tokenization methods in HFLM don't typically move to device. this breaks convention
             self.device, self.model.dtype
         )  # TODO: This only casts the pixel values. Should they always be float16?
         if left_truncate_len:
