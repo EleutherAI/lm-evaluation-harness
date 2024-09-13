@@ -294,7 +294,9 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template),
+            # TODO: change this back
+            # chat_template=lm.chat_template(apply_chat_template),
+            chat_template=None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
@@ -425,7 +427,7 @@ def evaluate(
     if len(incompatible_tasks) > 0:
         if not getattr(lm, "MULTIMODAL", False):
             raise ValueError(
-                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the 'hf-multimodal' model type."
+                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
             )
         else:
             raise ValueError(
