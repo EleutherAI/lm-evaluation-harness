@@ -239,7 +239,9 @@ class HFMultimodalLM(HFLM):
             for content in chat_history:
                 c = []
                 text = content["content"]
-                expected_image_count = text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                expected_image_count = min(
+                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                )
                 actual_image_count = 0
 
                 text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
