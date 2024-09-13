@@ -64,6 +64,77 @@ Note: Some questions have multiple images in context. To control for this use `m
 
 The `mmmu_val` group implements MMMU using processing code [from the original MMMU authors](https://github.com/MMMU-Benchmark/MMMU/tree/main/mmmu) and uses the prompt format found in [the MMMU repository for Llava-1.5](https://github.com/MMMU-Benchmark/MMMU/blob/main/mmmu/configs/llava1.5.yaml). This implementation should give scores on par with or slightly higher than those reported by [lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval/tree/main/lmms_eval/tasks/mmmu) for `mmmu_val` and the MMMU repository code.
 
+Scores on several tested models (**all with `--apply_chat_template`**) are:
+
+Qwen2-VL-2B:
+```
+hf-multimodal (pretrained=Qwen/Qwen2-VL-2B-Instruct,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
+```
+```
+|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|--------------------------------|------:|------|------|------|---|-----:|---|-----:|
+|mmmu_val                        |      0|none  |      |acc   |↑  |0.3778|±  |0.0155|
+| - Art and Design               |      0|none  |      |acc   |↑  |0.5500|±  |0.0415|
+| - Business                     |      0|none  |      |acc   |↑  |0.3600|±  |0.0389|
+| - Health and Medicine          |      0|none  |      |acc   |↑  |0.3667|±  |0.0394|
+| - Humanities and Social Science|      0|none  |      |acc   |↑  |0.5167|±  |0.0438|
+| - Science                      |      0|none  |      |acc   |↑  |0.2467|±  |0.0352|
+| - Tech and Engineering         |      0|none  |      |acc   |↑  |0.3143|±  |0.0317|
+```
+Author-reported score: 41.1%
+
+
+Qwen2-VL-7B:
+```
+hf-multimodal (pretrained=Qwen/Qwen2-VL-7B-Instruct,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
+```
+```
+|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|--------------------------------|------:|------|------|------|---|-----:|---|-----:|
+|mmmu_val                        |      0|none  |      |acc   |↑  |0.5056|±  |0.0160|
+| - Art and Design               |      0|none  |      |acc   |↑  |0.6917|±  |0.0398|
+| - Business                     |      0|none  |      |acc   |↑  |0.4333|±  |0.0406|
+| - Health and Medicine          |      0|none  |      |acc   |↑  |0.5667|±  |0.0401|
+| - Humanities and Social Science|      0|none  |      |acc   |↑  |0.6750|±  |0.0426|
+| - Science                      |      0|none  |      |acc   |↑  |0.3800|±  |0.0392|
+| - Tech and Engineering         |      0|none  |      |acc   |↑  |0.4000|±  |0.0341|
+```
+Author-reported score: 54.1%
+
+Idefics2-8B:
+```
+hf-multimodal (pretrained=HuggingFaceM4/idefics2-8b,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True,max_images=2), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
+```
+```
+|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|--------------------------------|------:|------|------|------|---|-----:|---|-----:|
+|mmmu_val                        |      0|none  |      |acc   |↑  |0.4011|±  |0.0154|
+| - Art and Design               |      0|none  |      |acc   |↑  |0.6167|±  |0.0436|
+| - Business                     |      0|none  |      |acc   |↑  |0.3200|±  |0.0373|
+| - Health and Medicine          |      0|none  |      |acc   |↑  |0.4000|±  |0.0401|
+| - Humanities and Social Science|      0|none  |      |acc   |↑  |0.5750|±  |0.0424|
+| - Science                      |      0|none  |      |acc   |↑  |0.2600|±  |0.0358|
+| - Tech and Engineering         |      0|none  |      |acc   |↑  |0.3381|±  |0.0312|
+```
+Author-reported score: ~43%
+
+Llava-v1.6-Mistral-7B:
+```
+hf-multimodal (pretrained=llava-hf/llava-v1.6-mistral-7b-hf,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
+```
+```
+|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|--------------------------------|------:|------|------|------|---|-----:|---|-----:|
+|mmmu_val                        |      0|none  |      |acc   |↑  |0.3522|±  |0.0151|
+| - Art and Design               |      0|none  |      |acc   |↑  |0.5167|±  |0.0440|
+| - Business                     |      0|none  |      |acc   |↑  |0.2667|±  |0.0362|
+| - Health and Medicine          |      0|none  |      |acc   |↑  |0.3867|±  |0.0397|
+| - Humanities and Social Science|      0|none  |      |acc   |↑  |0.5917|±  |0.0433|
+| - Science                      |      0|none  |      |acc   |↑  |0.2200|±  |0.0342|
+| - Tech and Engineering         |      0|none  |      |acc   |↑  |0.2524|±  |0.0299|
+```
+Author-reported score: 35.3%
+
 
 ### Checklist
 
