@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 import transformers
 from tqdm import tqdm
+from transformers import BatchEncoding
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
@@ -276,14 +277,15 @@ class HFMultimodalLM(HFLM):
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        images,  # TODO: typehint on this
+        images: List[List],  # TODO: images are pil.I
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
-    ) -> Dict[
-        str, torch.Tensor
+    ) -> Union[
+        BatchEncoding, Dict[str, torch.Tensor]
     ]:  # note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
+        # Moves the encodings to device
         if not self.chat_applied:
             strings = [
                 replace_placeholders(
@@ -313,7 +315,7 @@ class HFMultimodalLM(HFLM):
 
         encoding.to(
             self.device, self.model.dtype
-        )  # TODO: casting to dtype seems odd for input_ids and attn_mask.
+        )  # TODO: This only casts the pixel values. Should they always be float16?
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
             encoding["attention_mask"] = encoding["attention_mask"][
@@ -686,7 +688,7 @@ class HFMultimodalLM(HFLM):
                 visuals,
                 left_truncate_len=max_ctx_len,
                 truncation=self.truncation,
-            ).to(self.device, self.model.dtype)
+            )
 
             context_enc = inputs["input_ids"]
 
