@@ -427,7 +427,7 @@ def evaluate(
     if len(incompatible_tasks) > 0:
         if not getattr(lm, "MULTIMODAL", False):
             raise ValueError(
-                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the 'hf-multimodal' model type."
+                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
             )
         else:
             raise ValueError(

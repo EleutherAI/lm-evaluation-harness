@@ -25,6 +25,8 @@ DEFAULT_IMAGE_PLACEHOLDER = "<image>"
 
 @register_model("vllm-vlm")
 class VLLM_VLM(VLLM):
+    MULTIMODAL = True
+
     def __init__(
         self,
         pretrained: str,
