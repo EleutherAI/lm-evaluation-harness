@@ -8,7 +8,7 @@ Title: Lawma: The Power of Specialization for Legal Tasks
 
 Abstract: https://arxiv.org/abs/2407.16615
 
-CaselawQA is a benchmark designed for legal classification tasks, drawing from the Supreme Court and Songer Court of Appeals databases.
+CaselawQA is a benchmark comprising legal classification tasks, drawing from the Supreme Court and Songer Court of Appeals legal databases.
 The majority of its 10,000 questions are multiple-choice, with 5,000 sourced from each database. 
 The questions are randomly selected from the test sets of the [Lawma tasks](https://huggingface.co/datasets/ricdomolm/lawma-tasks).\
 From a technical machine learning perspective, these tasks provide highly non-trivial classification problems where even the best models leave much room for improvement. 
