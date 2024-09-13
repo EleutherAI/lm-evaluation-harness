@@ -9,6 +9,7 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, undistribute
 from lm_eval.models.vllm_causallms import VLLM
+from lm_eval.utils import simple_parse_args_string
 
 
 try:
@@ -38,7 +39,7 @@ class VLLM_VLM(VLLM):
         limit_mm_per_prompt: str = "image=1",
         **kwargs,
     ):
-        kwargs["limit_mm_per_prompt"] = limit_mm_per_prompt
+        kwargs["limit_mm_per_prompt"] = simple_parse_args_string(limit_mm_per_prompt)
         super().__init__(
             pretrained=pretrained,
             trust_remote_code=trust_remote_code,
