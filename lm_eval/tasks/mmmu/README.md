@@ -81,6 +81,8 @@ hf-multimodal (pretrained=Qwen/Qwen2-VL-2B-Instruct,attn_implementation=flash_at
 | - Science                      |      0|none  |      |acc   |↑  |0.2467|±  |0.0352|
 | - Tech and Engineering         |      0|none  |      |acc   |↑  |0.3143|±  |0.0317|
 ```
+Author-reported score: 41.1%
+
 
 Qwen2-VL-7B:
 ```
@@ -97,9 +99,9 @@ hf-multimodal (pretrained=Qwen/Qwen2-VL-7B-Instruct,attn_implementation=flash_at
 | - Science                      |      0|none  |      |acc   |↑  |0.3800|±  |0.0392|
 | - Tech and Engineering         |      0|none  |      |acc   |↑  |0.4000|±  |0.0341|
 ```
+Author-reported score: 54.1%
 
 Idefics2-8B:
-
 ```
 hf-multimodal (pretrained=HuggingFaceM4/idefics2-8b,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True,max_images=2), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
 ```
@@ -114,6 +116,7 @@ hf-multimodal (pretrained=HuggingFaceM4/idefics2-8b,attn_implementation=flash_at
 | - Science                      |      0|none  |      |acc   |↑  |0.2600|±  |0.0358|
 | - Tech and Engineering         |      0|none  |      |acc   |↑  |0.3381|±  |0.0312|
 ```
+Author-reported score: ~43%
 
 Llava-v1.6-Mistral-7B:
 ```
@@ -130,7 +133,7 @@ hf-multimodal (pretrained=llava-hf/llava-v1.6-mistral-7b-hf,attn_implementation=
 | - Science                      |      0|none  |      |acc   |↑  |0.2200|±  |0.0342|
 | - Tech and Engineering         |      0|none  |      |acc   |↑  |0.2524|±  |0.0299|
 ```
-
+Author-reported score: 35.3%
 
 
 ### Checklist
