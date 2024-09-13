@@ -1,5 +1,6 @@
 dataset_path: AI4Math/MathVista
-test_split: testmini_mcq
+task: mathvista_mcq
+test_split: testmini
 output_type: multiple_choice
 process_docs: !function utils.process_docs
 doc_to_image: !function utils.doc_to_image
