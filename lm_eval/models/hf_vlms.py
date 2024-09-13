@@ -361,7 +361,6 @@ class HFMultimodalLM(HFLM):
                 ],
                 dim=0,
             )
-        print(batched_imgs)
         return batched_imgs
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
@@ -669,7 +668,6 @@ class HFMultimodalLM(HFLM):
 
             max_ctx_len = self.max_length - max_gen_toks
 
-            print(contexts, visuals)
             inputs = self.tok_batch_multimodal_encode(
                 contexts,
                 visuals,
