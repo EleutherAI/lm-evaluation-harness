@@ -118,32 +118,6 @@ class HFMultimodalLM(HFLM):
 
         self.tokenizer = self.processor.tokenizer
 
-    # def tok_encode(
-    #     self, string: str, left_truncate_len=None, add_special_tokens=None
-    # ) -> List[int]:
-    #     """ """
-    #     # default for None - empty dict, use predefined tokenizer param
-    #     # used for all models except for CausalLM or predefined value
-    #     special_tokens_kwargs = {}
-
-    #     # by default for CausalLM - false or self.add_bos_token is set
-    #     if add_special_tokens is None:
-    #         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-    #             special_tokens_kwargs = {
-    #                 "add_special_tokens": False or self.add_bos_token
-    #             }
-    #     # otherwise the method explicitly defines the value
-    #     else:
-    #         special_tokens_kwargs = {"add_special_tokens": add_special_tokens}
-
-    #     encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
-
-    #     # left-truncate the encoded context to be at most `left_truncate_len` tokens long
-    #     if left_truncate_len:
-    #         encoding = encoding[-left_truncate_len:]
-
-    #     return encoding
-
     def tok_multimodal_encode(
         self, string, images, left_truncate_len=None, add_special_tokens=None
     ):
@@ -226,6 +200,18 @@ class HFMultimodalLM(HFLM):
         return self.processor.apply_chat_template(
             chat_history, add_generation_prompt=True
         )
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        if hasattr(self.processor, "apply_chat_template"):
+            _tokenizer = self.tokenizer
+            self.tokenizer = self.processor
+
+            selected_template = super().chat_template(chat_template)
+
+            self.tokenizer = _tokenizer
+            return selected_template
+        else:
+            return super().chat_template(chat_template)
 
     def tok_batch_multimodal_encode(
         self,
@@ -629,6 +615,7 @@ class HFMultimodalLM(HFLM):
 
             max_ctx_len = self.max_length - max_gen_toks
 
+            print(contexts, visuals)
             inputs = self.tok_batch_multimodal_encode(
                 contexts,
                 visuals,
