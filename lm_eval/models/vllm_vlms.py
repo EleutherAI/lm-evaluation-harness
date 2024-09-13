@@ -183,7 +183,7 @@ class VLLM_VLM(VLLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments (text-only reqs)
+        # TODO: support text-only reqs
         res = []
 
         def _collate(x):
@@ -214,8 +214,6 @@ class VLLM_VLM(VLLM):
         )
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
 
-        ### Up to here: was identical to non-multimodal HFLM generate_until ###
-
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
@@ -226,7 +224,6 @@ class VLLM_VLM(VLLM):
                     contexts
                 )  # for Qwen2-VL, processor is unhappy accepting a tuple of strings instead of a list.
                 # TODO: could we upstream this workaround to HF?
-            ### this part onward: same as HFLM ###
 
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
@@ -257,8 +254,6 @@ class VLLM_VLM(VLLM):
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
                 max_gen_toks = self.max_gen_toks
-
-            ### end stuff that's entirely copied verbatim from HFLM ###
 
             max_ctx_len = self.max_length - max_gen_toks
 
