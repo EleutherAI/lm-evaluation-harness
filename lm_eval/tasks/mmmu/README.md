@@ -62,6 +62,7 @@ Note: Some questions have multiple images in context. To control for this use `m
 
 ### Variants
 
+The `mmmu_val` group implements MMMU using processing code [from the original MMMU authors](https://github.com/MMMU-Benchmark/MMMU/tree/main/mmmu) and uses the prompt format found in [the MMMU repository for Llava-1.5](https://github.com/MMMU-Benchmark/MMMU/blob/main/mmmu/configs/llava1.5.yaml). This implementation should give scores on par with or slightly higher than those reported by [lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval/tree/main/lmms_eval/tasks/mmmu) for `mmmu_val` and the MMMU repository code.
 
 
 ### Checklist
