@@ -1,0 +1,4 @@
+task: mmmu_val_mechanical_engineering
+include: _template_yaml
+task_alias: Mechanical Engineering
+dataset_name: Mechanical_Engineering

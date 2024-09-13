@@ -1,0 +1,4 @@
+task: mmmu_val_art_theory
+include: _template_yaml
+task_alias: Art Theory
+dataset_name: Art_Theory
