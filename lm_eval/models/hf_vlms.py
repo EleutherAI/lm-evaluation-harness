@@ -83,6 +83,9 @@ class HFMultimodalLM(HFLM):
                     f"A non-default image_token_id with image_token_id={self.image_token_id} and string value '{self.image_token}' was specified manually. Note that using an improper image_token placeholder may lead to ignored image input or errors!"
                 )
         else:
+            eval_logger.info(
+                f"A non-default image_token string with string value image_string='{image_string}' was specified manually. Note that using an improper image_token placeholder may lead to ignored image input or errors!"
+            )
             self.image_token = image_string
 
     def _create_tokenizer(
