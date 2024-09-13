@@ -37,9 +37,11 @@ class HFMultimodalLM(HFLM):
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
         image_token_id: Optional[int] = None,
+        image_string="<image>",
         interleave: bool = True,
         # TODO: hamdle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
+        convert_img_format=False,
         **kwargs,
     ):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
@@ -57,26 +59,30 @@ class HFMultimodalLM(HFLM):
         # This can take different string values across models, e.g. <image> for Idefics2 and <|image_pad|> for Qwen2-VL
         self.interleave = interleave
         self.max_images = max_images
+        self.rgb = convert_img_format
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
-        self.image_token_id = (
-            int(image_token_id)
-            if image_token_id
-            else (
-                getattr(self.config, "image_token_id", None)
-                or getattr(self.config, "image_token_index", None)
+        if not image_string:
+            self.image_token_id = (
+                int(image_token_id)
+                if image_token_id
+                else (
+                    getattr(self.config, "image_token_id", None)
+                    or getattr(self.config, "image_token_index", None)
+                )
             )
-        )
-        assert (
-            self.image_token_id is not None
-        ), "Must have a non-None image_token_id to evaluate a Hugging Face AutoModelForVision2Seq model. Please pass `image_token_id` in `--model_args` if model's config does not already specify one."
-        # get the string this token ID corresponds to
-        self.image_token = self.tok_decode(
-            [self.image_token_id], skip_special_tokens=False
-        )
-        if image_token_id is not None:
-            eval_logger.info(
-                f"A non-default image_token_id with image_token_id={self.image_token_id} and string value '{self.image_token}' was specified manually. Note that using an improper image_token placeholder may lead to ignored image input or errors!"
+            assert (
+                self.image_token_id is not None
+            ), "Must have a non-None image_token_id to evaluate a Hugging Face AutoModelForVision2Seq model. Please pass `image_token_id` in `--model_args` if model's config does not already specify one."
+            # get the string this token ID corresponds to
+            self.image_token = self.tok_decode(
+                [self.image_token_id], skip_special_tokens=False
             )
+            if image_token_id is not None:
+                eval_logger.info(
+                    f"A non-default image_token_id with image_token_id={self.image_token_id} and string value '{self.image_token}' was specified manually. Note that using an improper image_token placeholder may lead to ignored image input or errors!"
+                )
+        else:
+            self.image_token = image_string
 
     def _create_tokenizer(
         self,
@@ -293,6 +299,8 @@ class HFMultimodalLM(HFLM):
         # add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         images = [img[: self.max_images] for img in images]
+        if self.rgb:
+            images = [[img.convert("RGB") for img in sublist] for sublist in images]
 
         encoding = self.processor(
             images=images,
