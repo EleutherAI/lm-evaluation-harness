@@ -105,7 +105,7 @@ def __postprocess_pred(pred):
     if "the best answer is" not in pred.lower():
         return pred
     pred_proc = pred.lower().split("the best answer is ")[-1].split(' ')[0]
-    pred_proc = re.sub(r"[^a-zA-Z]", "", pred_proc).strip().upper()
+    pred_proc = re.sub(r"[^a-zA-Z0-9]", "", pred_proc).strip().upper()
     return pred_proc
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
@@ -115,20 +115,33 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     question_id = doc["question_id"]
     category = doc["category"]
     return {
-        f"prompt_{prompt_id}_macro_accuracy": (question_id, prompt_id, final_answer, gt, category),
-        "per_prompt_accuracy_std": (question_id, prompt_id, final_answer, gt, category),
-        "prompt_consistency_rate": (question_id, prompt_id, final_answer, gt)}
+                f"prompt_{prompt_id}_macro_accuracy": (question_id, prompt_id, final_answer, gt, category),
+                "per_prompt_accuracy_std": (question_id, prompt_id, final_answer, gt, category),
+                "prompt_consistency_rate": (question_id, prompt_id, final_answer, gt)
+            }
 
 def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = __postprocess_pred(results[0]).lower()
     gt = doc["answer"].lower()
-    always_same_option = doc["always_same_option"]
+    always_same_option = doc["always_same_option"].lower()
     question_id = doc["question_id"]
     original_answer_index = doc["original_answer_index"]
-    answer_index = doc["answer_index"]
-    
-    return {"per_option_accuracy_std": (question_id, always_same_option, final_answer, gt),
-             "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)}
+    answer_index = doc["answer_index"],
+    category = doc["category"]
+    return {
+                f"per_option_macro_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt, category),
+                "per_option_accuracy_std": (question_id, always_same_option, final_answer, gt, category),
+                "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
+            }
+
+
+def translate_model_answer_to_labels(answer):
+    labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+    if answer in labels:
+        return answer
+    if str.isdigit(answer):
+        return labels[int(answer)-1]
+
 
 def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
     accuracies = {}
@@ -138,13 +151,14 @@ def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
             continue
         if category not in accuracies:
             accuracies[category] = []
-        accuracies[category].append(int(final_answer == gt))
+        accuracies[category].append(int(translate_model_answer_to_labels(final_answer) == gt))
     
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
         eval_logger.info(f"Prompt - {prompt_id}, category - {key} accuracy: {accuracies[key]}")
     
     return np.round(np.mean([v for v in accuracies.values()]), 4)
+
 
 per_prompt_accuracy_0 = partial(per_prompt_macro_accuracy, p_id=0)
 per_prompt_accuracy_1 = partial(per_prompt_macro_accuracy, p_id=1)
@@ -156,6 +170,36 @@ per_prompt_accuracy_6 = partial(per_prompt_macro_accuracy, p_id=6)
 per_prompt_accuracy_7 = partial(per_prompt_macro_accuracy, p_id=7)
 per_prompt_accuracy_8 = partial(per_prompt_macro_accuracy, p_id=8)
 per_prompt_accuracy_9 = partial(per_prompt_macro_accuracy, p_id=9)
+
+
+def per_option_macro_accuracy(results: List[Dict[str, Any]], always_opt='a') -> float:
+    accuracies = {}
+    for result in results:
+        question_id, always_same_option, final_answer, gt, category = result
+        if always_opt != always_same_option:
+            continue
+        if category not in accuracies:
+            accuracies[category] = []
+        accuracies[category].append(int(translate_model_answer_to_labels(final_answer) == gt))
+    
+    for key in accuracies:
+        accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
+        eval_logger.info(f"Prompt - {always_opt.upper()}, category - {key} accuracy: {accuracies[key]}")
+    
+    return np.round(np.mean([v for v in accuracies.values()]), 4)
+
+
+per_option_macro_accuracy_a = partial(per_option_macro_accuracy, always_opt='a')
+per_option_macro_accuracy_b = partial(per_option_macro_accuracy, always_opt='b')
+per_option_macro_accuracy_c = partial(per_option_macro_accuracy, always_opt='c')
+per_option_macro_accuracy_d = partial(per_option_macro_accuracy, always_opt='d')
+per_option_macro_accuracy_e = partial(per_option_macro_accuracy, always_opt='e')
+per_option_macro_accuracy_f = partial(per_option_macro_accuracy, always_opt='f')
+per_option_macro_accuracy_g = partial(per_option_macro_accuracy, always_opt='g')
+per_option_macro_accuracy_h = partial(per_option_macro_accuracy, always_opt='h')
+per_option_macro_accuracy_i = partial(per_option_macro_accuracy, always_opt='i')
+per_option_macro_accuracy_j = partial(per_option_macro_accuracy, always_opt='j')
+
 
 def per_prompt_accuracy_std(results: List[Dict[str, Any]]) -> float:
     """
@@ -186,24 +230,29 @@ def per_prompt_accuracy_std(results: List[Dict[str, Any]]) -> float:
 
 def per_option_accuracy_std(results: List[Dict[str, Any]]) -> float:
     """
-    Computes the mean accuracy of the per_option_accuracy_std metric.
-    Input: List of dictionaries, each containing the keys "question_id", "always_same_option", "final_answer", "gt"
-    Output: Dictionary containing accuracy_`option` keys with the mean accuracy for each option
+    Computes std of the per_option_accuracy.
+    Input: List of dictionaries, each containing the keys "question_id", "always_same_option", "final_answer", "gt", "category"
+    Output: accuracy std through always_same_option's
     """
-    options_accuracies = {}
+    option_accuracies = {}
     for result in results:
-        question_id, always_same_option, final_answer, gt = result
-        if f"accuracy_{always_same_option}" not in options_accuracies:
-            options_accuracies[f"accuracy_{always_same_option}"] = []
-        options_accuracies[f"accuracy_{always_same_option}"].append(int(final_answer == gt))
+        question_id, always_same_option, final_answer, gt, category = result
+        if f"accuracy_{always_same_option}" not in option_accuracies:
+            option_accuracies[f"accuracy_{always_same_option}"] = {category:[]}
+        if category not in option_accuracies[f"accuracy_{always_same_option}"]:
+            option_accuracies[f"accuracy_{always_same_option}"][category] = []
+        option_accuracies[f"accuracy_{always_same_option}"][category].append(int(final_answer == gt))
 
-    for key in options_accuracies:
-        options_accuracies[key] = sum(options_accuracies[key]) / len(options_accuracies[key])
-        eval_logger.info(f"Option {key} accuracy: {options_accuracies[key]}")
+    for key in option_accuracies:
+        per_option_accuracies = []
+        for category in option_accuracies[key]:
+            per_option_accuracies.append(sum(option_accuracies[key][category]) / len(option_accuracies[key][category]))
+        option_accuracies[key] = np.mean(per_option_accuracies)
+        eval_logger.info(f"Option {key} accuracy: {option_accuracies[key]}")
     
-    std_dev = np.std([v for v in options_accuracies.values()])
+    std_dev = np.std([v for v in option_accuracies.values()])
     
-    return np.round(std_dev,3)
+    return np.round(std_dev, 4)
 
 
 def calculate_consistency_rate(responses: List[List[str]]) -> float:

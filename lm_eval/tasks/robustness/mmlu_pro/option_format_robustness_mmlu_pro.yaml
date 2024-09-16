@@ -1,3 +1,6 @@
+tag:
+  - robustness_mmlu_pro
+  - rubustness
 task: option_format_robustness_mmlu_pro
 dataset_path: TIGER-Lab/MMLU-Pro
 dataset_name: default
@@ -10,7 +13,6 @@ doc_to_target: answer
 generation_kwargs:
   max_gen_toks: 1024
   do_sample: False
-fewshot_delimiter: null
 process_results: !function utils.prompt_robustness_process_results
 metric_list:
   - metric: prompt_0_macro_accuracy
@@ -27,7 +29,7 @@ metric_list:
     higher_is_better: true
   - metric: per_prompt_accuracy_std
     aggregation:  !function utils.per_prompt_accuracy_std
-    higher_is_better: true
+    higher_is_better: false
   - metric: prompt_consistency_rate
     aggregation:  !function utils.prompt_consistency_rate
     higher_is_better: true
