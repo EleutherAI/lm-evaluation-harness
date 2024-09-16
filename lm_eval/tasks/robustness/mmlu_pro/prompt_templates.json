@@ -28,73 +28,73 @@
     "same_options_prompt":
             {
                 "prompt": "Given the following question and candidate answers (A, B, C, D, E, F, G, H, I or J), choose the best answer.\n\nQuestion: {question}\n{options}\n\n- For simple problems:\nDirectly provide the answer with minimal explanation.\n\n- For complex problems:\nUse this step-by-step format:\n## Step 1: [Concise description]\n[Brief explanation]\n## Step 2: [Concise description]\n[Brief explanation]\n\nRegardless of the approach, always conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C, D, E, F, G, H, I or J.\n\nLet's think step by step.",
-                "options_format": "\n{letter}) {option}"
+                "options_format": "\n{letter}: {option}"
         },
 
     "v0.3_templates": [  
             {
-                "prompt": "You must reply with only a single letter from A, B, C, D, E, F, G, H, I or J to this question. Conclude with:\nThe best answer is answer_letter where the answer_letter is a single letter from A to J. \n{question} {options}\n",
+                "prompt": "You must reply with only a single letter from A, B, C, D, E, F, G, H, I or J to this question. Conclude with:\nThe best answer is answer_letter where the answer_letter is a single letter from A to J. \n{question}{options}\n",
                 "options_format": "\n{letter}: {option}"
         }
     ],
     "v0.4_templates": [
             {
-                "prompt": "{question} {options}\nExamine the question and choose the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. End your answer with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is a letter from A to J.",
+                "prompt": "{question}{options}\nExamine the question and choose the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. End your answer with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is a letter from A to J.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "{question} {options}\nAnswer the multiple-choice question about {category} by selecting the correct option from A to J. Always conclude with 'The best answer is (answer_letter)' where the (answer_letter) is one of A, B, C, D, E, F, G, H, I, J.",
+                "prompt": "{question}{options}\nAnswer the multiple-choice question about {category} by selecting the correct option from A to J. Always conclude with 'The best answer is (answer_letter)' where the (answer_letter) is one of A, B, C, D, E, F, G, H, I, J.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "You must reply with only a single letter from A, B, C, D, E, F, G, H, I or J to this question. Conclude with:\nThe best answer is answer_letter where the answer_letter is a single letter from A to J. \n{question} {options}",
+                "prompt": "You must reply with only a single letter from A, B, C, D, E, F, G, H, I or J to this question. Conclude with:\nThe best answer is answer_letter where the answer_letter is a single letter from A to J. \n{question}{options}",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "From the options A-J, select the correct answer to the following question. End the answer with - The best answer is answer_letter, where answer_letter is one of A, B, C, D, E, F, G, H, I, or J.\nQuestion: {question} {options}",
+                "prompt": "From the options A-J, select the correct answer to the following question. End the answer with - The best answer is answer_letter, where answer_letter is one of A, B, C, D, E, F, G, H, I, or J.\nQuestion: {question}{options}",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion:{question} {options}\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
+                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion:{question}{options}\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "Evaluate the multiple-choice question and select the most fitting response from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'. \nQuestion:{question} {options}\nAlways conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C, D, E, F, G, H, I or J.",
+                "prompt": "Evaluate the multiple-choice question and select the most fitting response from 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'. \nQuestion:{question}{options}\nAlways conclude with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is one of A, B, C, D, E, F, G, H, I or J.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "Answer to the following question about {category} by selecting the correct option A, B, C, D, E, F, G, H, I or J. {question} {options}\nThe answer should end with:\nThe best answer is [the_answer_letter] where [the_answer_letter] is one of letters A to J. Let's think step by step.",
+                "prompt": "Answer to the following question about {category} by selecting the correct option A, B, C, D, E, F, G, H, I or J. {question}{options}\nThe answer should end with:\nThe best answer is [the_answer_letter] where [the_answer_letter] is one of the letters A to J. Let's think step by step.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "Select the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J' for the question provided below. Conclude by stating: The best answer is answer_letter where answer_letter is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. Let's think step by step.\nQuestion: {question} {options}",
+                "prompt": "Select the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J' for the question provided below. Conclude by stating: The best answer is answer_letter where answer_letter is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. Let's think step by step.\nQuestion: {question}{options}",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "{question} {options}\nFor this question about {category} with 10 possible answers A, B, C, D, E, F, G, H, I, J, choose the one that answers the question. If the problem is simple or straightforward, just provide the answer. If the answer is more complex, use a step-by-step approach and for each step briefly explain your reasoning. Always conclude with 'The best answer is (answer_letter)' where the (answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J'. Let's think step by step.",
+                "prompt": "{question}{options}\nFor this question about {category} with 10 possible answers A, B, C, D, E, F, G, H, I, J choose the one that answers the question. If the problem is simple or straightforward, just provide the answer. If the answer is more complex, use a step-by-step approach and for each step briefly explain your reasoning. Always conclude with 'The best answer is (answer_letter)' where the (answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I','J'. Let's think step by step.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "Read the question and options below, then determine the correct answer choice (A-J)\nQuestion: {question} {options}\n\nFor simple questions, provide a quick answer. For complicated ones, think step by step, break down the question into smaller problems and reach to a conclusion\nEnd your answer by stating:\nThe best answer is [the_answer_letter].\nwhere [the_answer_letter] is one of A, B, C, D, E, F, G, H, I, or J.",
+                "prompt": "Read the question and options below, then determine the correct answer choice (A-J)\nQuestion: {question}{options}\n\nFor simple questions, provide a quick answer. For complicated ones, think step by step, break down the question into smaller problems and reach to a conclusion\nEnd your answer by stating:\nThe best answer is [the_answer_letter].\nwhere [the_answer_letter] is one of A, B, C, D, E, F, G, H, I, or J.",
                 "options_format": "\n{letter}: {option}"
         }
        
     ],
     "options_format_robustness":[
             {
-                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question} {options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
+                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
                 "options_format": "\n{letter}: {option}"
         },
             {
-                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question} {options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
+                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
                 "options_format": "\n{letter}) {option}"
         },
             {
-                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question} {options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
+                "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
                 "options_format": "\n{letter}. {option}"
         },
             {  
-                "prompt": "For the multiple-choice question related to {category}, which option (1-10) is correct?.\n\nQuestion: {question} {options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_numeral) where the (the_answer_numeral) is one of '1', '2', '3', '4', '5', '6', '7', '8', '9' or '10'.",
+                "prompt": "For the multiple-choice question related to {category}, which option (1-10) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_numeral) where the (the_answer_numeral) is one of '1', '2', '3', '4', '5', '6', '7', '8', '9' or '10'.",
                 "options_format": "\n{numeral}. {option}"
         }
     ]

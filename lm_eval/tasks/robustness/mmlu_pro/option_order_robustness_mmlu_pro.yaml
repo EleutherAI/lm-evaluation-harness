@@ -1,3 +1,6 @@
+tag:
+  - robustness_mmlu_pro
+  - rubustness
 task: option_order_robustness_mmlu_pro
 dataset_path: TIGER-Lab/MMLU-Pro
 dataset_name: default
@@ -14,6 +17,36 @@ process_results: !function utils.option_order_robustness_process_results
 metric_list:
   - metric: per_option_accuracy_std
     aggregation:  !function utils.per_option_accuracy_std
+    higher_is_better: false
+  - metric: per_option_macro_accuracy_a
+    aggregation:  !function utils.per_option_macro_accuracy_a
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_b
+    aggregation:  !function utils.per_option_macro_accuracy_b
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_c
+    aggregation:  !function utils.per_option_macro_accuracy_c
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_d
+    aggregation:  !function utils.per_option_macro_accuracy_d
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_e
+    aggregation:  !function utils.per_option_macro_accuracy_e
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_f
+    aggregation:  !function utils.per_option_macro_accuracy_f
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_g
+    aggregation:  !function utils.per_option_macro_accuracy_g
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_h
+    aggregation:  !function utils.per_option_macro_accuracy_h
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_i
+    aggregation:  !function utils.per_option_macro_accuracy_i
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_j
+    aggregation:  !function utils.per_option_macro_accuracy_j
     higher_is_better: true
   - metric: options_consistency_rate
     aggregation:  !function utils.options_consistency_rate
