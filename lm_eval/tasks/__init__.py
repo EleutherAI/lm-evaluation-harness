@@ -489,10 +489,12 @@ class TaskManager:
                             if attr in config:
                                 if attr == "group" and print_info:
                                     self.logger.info(
-                                        "`group` and `group_alias` keys in tasks' configs will no longer be used in the next release of lm-eval. "
-                                        "`tag` will be used to allow to call a collection of tasks just like `group`. "
-                                        "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
-                                        "which will be the official way to create groups with addition of group-wide configurations."
+                                        "`group` and `group_alias` keys in TaskConfigs are deprecated and will be removed in v0.4.5 of lm_eval. "
+                                        "The new `tag` field will be used to allow for a shortcut to a group of tasks one does not wish to aggregate metrics across. "
+                                        "`group`s which aggregate across subtasks must be only defined in a separate group config file, "
+                                        "which will be the official way to create groups that support cross-task aggregation as in `mmlu`. "
+                                        "Please see the v0.4.4 patch notes and our documentation: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#advanced-group-configs "
+                                        "for more information."
                                     )
                                     print_info = False
                                     # attr = "tag"

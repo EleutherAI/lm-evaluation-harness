@@ -664,3 +664,37 @@ def configure_pad_token(
             tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
     return tokenizer
+
+
+def replace_placeholders(
+    string: str, default_placeholder: str, image_token: str, max_images: int
+):
+    """
+    A utility function used for local multimodal models. It locates all `placeholder` string
+    occurrences in the given input `string_` and replaces the first `max_count` instances with
+    `replacement`, and all subsequent occurrences with the empty string.
+
+    This is used to replace <image> placeholder tags by model-specific image tokens like <|image_pad|>
+    and to allow for only the first `max_count` images to be passed to a model if desired.
+
+    :param string: The original string containing placeholders.
+    :param default_placeholder: The placeholder text to be replaced.
+    :param image_token: The token to replace the placeholder with.
+    :param max_images: The maximum number of replacements to make.
+    :return: The string with placeholders replaced.
+    """
+    count = 0
+    result = []
+
+    parts = string.split(default_placeholder)
+    for part in parts[:-1]:  # Iterate through all but the last part
+        result.append(part)
+        if count < max_images:
+            result.append(image_token)
+            count += 1
+        elif default_placeholder != image_token:
+            result.append(default_placeholder)
+
+    # Add the last part of the string
+    result.append(parts[-1])
+    return "".join(result)
