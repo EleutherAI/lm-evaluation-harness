@@ -1594,7 +1594,7 @@ class ConfigurableTask(Task):
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
             f"output_type={self.OUTPUT_TYPE},"
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
-            f"num_samples={len(self.eval_docs)})",
+            f"num_samples={len(self.eval_docs)})"
         )
 
 
