@@ -80,13 +80,9 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.hellaswag",
             template=[
-                (
-                    "["
-                    "templates.completion.multiple_choice.simple,"
-                    "templates.completion.multiple_choice.enumerated,"
+                    "templates.completion.multiple_choice.simple",
+                    "templates.completion.multiple_choice.enumerated",
                     "templates.completion.multiple_choice.standard"
-                    "]"
-                )
             ],
             # "templates.completion.multiple_choice.title",
             # ],
@@ -95,13 +91,9 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.openbook_qa",
             template=[
-                (
-                    "["
-                    "templates.qa.multiple_choice.open.helm,"
-                    "templates.qa.multiple_choice.open.lm_eval_harness,"
+                    "templates.qa.multiple_choice.open.helm",
+                    "templates.qa.multiple_choice.open.lm_eval_harness",
                     "templates.qa.multiple_choice.open.mmlu"
-                    "]"
-                )
             ],
             num_demos=[5],
         ),
@@ -110,13 +102,9 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card=f"cards.mt.flores_101.{subset}",
             template=[
-                (
-                    "["
-                    "templates.translation.directed.simple,"
-                    "templates.translation.directed.formal,"
+                    "templates.translation.directed.simple",
+                    "templates.translation.directed.formal",
                     "templates.translation.directed.casual"
-                    "]"
-                )
                 # "templates.translation.directed.playful",
                 # "templates.translation.directed.instructional",
                 # "templates.translation.directed.title",
@@ -291,7 +279,6 @@ bench_cards = [
     for uni_args in uni_args_list
 ]
 
-print([long_output_task in bench_cards for long_output_task in long_output_tasks])
 assert all([long_output_task in bench_cards for long_output_task in long_output_tasks])
 
 if __name__ == "__main__":
@@ -324,6 +311,7 @@ if __name__ == "__main__":
                         task_file.write(f'recipe: card={task.card},')
                         if len(task.template) > 1:
                             task_file.write(f'template=[{",".join(task.template)}],')
+                            # task_file.write(f'template=[{task.template[0]}],')
                         elif len(task.template) > 0:
                             task_file.write(f'template={task.template[0] if type(task.template) == list and len(task.template) > 0 else ""},')
                         task_file.write(f'demos_pool_size={task.demos_pool_size[0] if type(task.demos_pool_size) == list else task.demos_pool_size},')
