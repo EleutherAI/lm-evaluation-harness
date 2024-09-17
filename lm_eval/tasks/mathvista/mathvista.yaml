@@ -3,7 +3,8 @@ task: mathvista
 test_split: testmini
 output_type: "generate_until"
 #process_docs: !function utils.process_docs
-doc_to_image: decoded_image
+doc_to_image:
+  - decoded_image
 doc_to_text: "<image> {{query}}"
 #doc_to_choice: '{{ ["A", "B", "C", "D", "E", "F"][:choices.length] }}'
 doc_to_target: answer
