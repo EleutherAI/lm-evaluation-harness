@@ -96,6 +96,14 @@
             {  
                 "prompt": "For the multiple-choice question related to {category}, which option (1-10) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_numeral) where the (the_answer_numeral) is one of '1', '2', '3', '4', '5', '6', '7', '8', '9' or '10'.",
                 "options_format": "\n{numeral}. {option}"
+        },
+            {  
+                "prompt": "For the multiple-choice question related to {category}, which option (a-j) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' or 'j'.",
+                "options_format": "\n{lower_case_letter}: {option}"
+        },
+            {  
+                "prompt": "For the multiple-choice question related to {category}, which option (I-X) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX' or 'X'.",
+                "options_format": "\n{roman_numeral}: {option}"
         }
     ]
     
