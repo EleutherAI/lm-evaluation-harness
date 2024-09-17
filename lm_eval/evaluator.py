@@ -436,7 +436,7 @@ def evaluate(
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        limit = get_sample_size(task, limit)
+        limit = get_sample_size(task, limit, getattr(lm, "batch_size", None))
         task.build_all_requests(
             limit=limit,
             rank=lm.rank,
