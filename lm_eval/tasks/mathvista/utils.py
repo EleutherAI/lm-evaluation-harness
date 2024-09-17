@@ -1,10 +1,11 @@
 import re
+from typing import Optional
 
 from Levenshtein import distance
 
 
 # taken from https://github.com/lupantech/MathVista/blob/main/evaluation/calculate_score.py
-def get_most_similar(prediction: str, choices: list):
+def get_most_similar(prediction: str, choices: list) -> float:
     """
     Use the Levenshtein distance (or edit distance) to determine which of the choices is most similar to the given prediction
     """
@@ -14,17 +15,19 @@ def get_most_similar(prediction: str, choices: list):
     # return min(choices, key=lambda choice: distance(prediction, choice))
 
 
+# taken from https://github.com/lupantech/MathVista/blob/main/evaluation/extract_answer.py
 def normalize_extracted_answer(
-    extraction,
+    extraction: str,
     choices: list,
     question_type: str,
     answer_type: str,
     precision,
-    ignore_empty_extractions=False,
-):
+    ignore_empty_extractions=True,
+) -> Optional[str]:
     """
     Normalize the extracted answer to match the answer type
     """
+
     if question_type == "multi_choice":
         # make sure the extraction is a string
         if isinstance(extraction, str):
@@ -88,37 +91,47 @@ def safe_equal(prediction, answer):
         return False
 
 
-def get_acc_with_contion(res_pd, key, value):
-    if key == "skills":
-        total_pd = res_pd[res_pd[key].apply(lambda x: value in x)]
-    else:
-        total_pd = res_pd[res_pd[key] == value]
+def extract_answer(response: str, problem: dict) -> str:
+    question_type = problem["question_type"]
+    answer_type = problem["answer_type"]
+    choices = problem["choices"]
+    # query = problem["query"]
+    # pid = problem['pid']
 
-    correct_pd = total_pd[total_pd["true_false"] == True]  # noqa: E712
-    acc = len(correct_pd) / len(total_pd)
+    if response == "":
+        return ""
 
-    return len(correct_pd), len(total_pd), acc
-
-
-# adapted from https://github.com/lupantech/MathVista/blob/main/evaluation/extract_answer.py
-def process_results(doc, results):
-    response = results[0]
-    choices = doc["choices"]
-    question_type = doc["question_type"]
-    answer_type = doc["answer_type"]
-    precision = doc["precision"]  # noqa: F841
-    extraction = doc["extraction"]  # noqa: F841
     if question_type == "multi_choice" and response in choices:
-        return {"acc": 1.0}
+        return response
+
     if answer_type == "integer":
         try:
             extraction = int(response)
             return str(extraction)
         except Exception:
             pass
+
     if answer_type == "float":
         try:
             extraction = str(float(response))
             return extraction
         except Exception:
             pass
+
+    return ""
+
+
+# adapted from https://github.com/lupantech/MathVista/blob/main/evaluation/extract_answer.py
+def process_results(doc: dict, results: list[str]):
+    response = results[0]  # noqa: F841
+    choices = doc["choices"]
+    question_type = doc["question_type"]
+    answer_type = doc["answer_type"]
+    precision = doc["precision"]  # noqa: F841
+    answer = doc["answer"]
+    extracted_answer = extract_answer(response, doc)
+    normalized_extraction = normalize_extracted_answer(
+        extracted_answer, choices, question_type, answer_type, precision
+    )
+    res = safe_equal(normalized_extraction, answer)
+    return {"acc": 1.0} if res else {"acc": 0.0}
