@@ -1,0 +1,8 @@
+"dataset_name": "moral_disputes"
+"description": "The following are multiple choice questions (with answers) about moral\
+  \ disputes in the Arabic (Generic) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_ar_xy_humanities"
+"task": "mmlu_ar_xy_moral_disputes"
+"task_alias": "ar_xy moral disputes"
+"test_split": "AR_XY"

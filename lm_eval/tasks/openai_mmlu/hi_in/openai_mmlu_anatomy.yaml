@@ -1,0 +1,8 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy\
+  \ in the Hindi (India) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_hi_in_stem"
+"task": "mmlu_hi_in_anatomy"
+"task_alias": "hi_in anatomy"
+"test_split": "HI_IN"

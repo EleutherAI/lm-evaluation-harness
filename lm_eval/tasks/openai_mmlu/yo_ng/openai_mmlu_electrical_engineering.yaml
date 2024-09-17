@@ -1,0 +1,8 @@
+"dataset_name": "electrical_engineering"
+"description": "The following are multiple choice questions (with answers) about electrical\
+  \ engineering in the Yoruba (Nigeria) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_yo_ng_stem"
+"task": "mmlu_yo_ng_electrical_engineering"
+"task_alias": "yo_ng electrical engineering"
+"test_split": "YO_NG"

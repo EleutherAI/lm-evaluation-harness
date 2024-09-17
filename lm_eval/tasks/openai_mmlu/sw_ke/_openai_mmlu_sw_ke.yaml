@@ -1,0 +1,9 @@
+aggregate_metric_list:
+-   metric: acc
+    weight_by_size: true
+group: openai_mmlu_sw_ke
+group_alias: sw_ke
+metadata:
+    version: 1.0.0
+task:
+- mmlu_sw_ke_tasks

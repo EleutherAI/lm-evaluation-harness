@@ -1,0 +1,8 @@
+"dataset_name": "human_sexuality"
+"description": "The following are multiple choice questions (with answers) about human\
+  \ sexuality in the Hindi (India) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_hi_in_social_sciences"
+"task": "mmlu_hi_in_human_sexuality"
+"task_alias": "hi_in human sexuality"
+"test_split": "HI_IN"

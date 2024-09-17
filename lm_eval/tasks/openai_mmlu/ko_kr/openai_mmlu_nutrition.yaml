@@ -1,0 +1,8 @@
+"dataset_name": "nutrition"
+"description": "The following are multiple choice questions (with answers) about nutrition\
+  \ in the Korean (South Korea) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_ko_kr_other"
+"task": "mmlu_ko_kr_nutrition"
+"task_alias": "ko_kr nutrition"
+"test_split": "KO_KR"

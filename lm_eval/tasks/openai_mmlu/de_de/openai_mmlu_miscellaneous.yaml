@@ -1,0 +1,8 @@
+"dataset_name": "miscellaneous"
+"description": "The following are multiple choice questions (with answers) about miscellaneous\
+  \ in the German (Germany) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_de_de_other"
+"task": "mmlu_de_de_miscellaneous"
+"task_alias": "de_de miscellaneous"
+"test_split": "DE_DE"

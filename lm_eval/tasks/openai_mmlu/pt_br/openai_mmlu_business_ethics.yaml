@@ -1,0 +1,8 @@
+"dataset_name": "business_ethics"
+"description": "The following are multiple choice questions (with answers) about business\
+  \ ethics in the Portuguese (Brazil) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_pt_br_other"
+"task": "mmlu_pt_br_business_ethics"
+"task_alias": "pt_br business ethics"
+"test_split": "PT_BR"

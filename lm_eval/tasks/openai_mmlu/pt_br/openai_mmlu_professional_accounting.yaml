@@ -1,0 +1,8 @@
+"dataset_name": "professional_accounting"
+"description": "The following are multiple choice questions (with answers) about professional\
+  \ accounting in the Portuguese (Brazil) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_pt_br_other"
+"task": "mmlu_pt_br_professional_accounting"
+"task_alias": "pt_br professional accounting"
+"test_split": "PT_BR"

@@ -1,0 +1,8 @@
+"dataset_name": "us_foreign_policy"
+"description": "The following are multiple choice questions (with answers) about us\
+  \ foreign policy in the Bengali (Bangladesh) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_bn_bd_social_sciences"
+"task": "mmlu_bn_bd_us_foreign_policy"
+"task_alias": "bn_bd us foreign policy"
+"test_split": "BN_BD"

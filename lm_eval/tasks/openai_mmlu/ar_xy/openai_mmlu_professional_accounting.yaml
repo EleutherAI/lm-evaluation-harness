@@ -1,0 +1,8 @@
+"dataset_name": "professional_accounting"
+"description": "The following are multiple choice questions (with answers) about professional\
+  \ accounting in the Arabic (Generic) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_ar_xy_other"
+"task": "mmlu_ar_xy_professional_accounting"
+"task_alias": "ar_xy professional accounting"
+"test_split": "AR_XY"

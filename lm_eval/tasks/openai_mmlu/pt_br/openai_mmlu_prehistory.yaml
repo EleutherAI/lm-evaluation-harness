@@ -1,0 +1,8 @@
+"dataset_name": "prehistory"
+"description": "The following are multiple choice questions (with answers) about prehistory\
+  \ in the Portuguese (Brazil) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_pt_br_humanities"
+"task": "mmlu_pt_br_prehistory"
+"task_alias": "pt_br prehistory"
+"test_split": "PT_BR"

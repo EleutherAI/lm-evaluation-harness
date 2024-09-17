@@ -1,0 +1,8 @@
+"dataset_name": "security_studies"
+"description": "The following are multiple choice questions (with answers) about security\
+  \ studies in the Italian (Italy) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_it_it_social_sciences"
+"task": "mmlu_it_it_security_studies"
+"task_alias": "it_it security studies"
+"test_split": "IT_IT"

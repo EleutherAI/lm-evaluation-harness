@@ -1,0 +1,8 @@
+"dataset_name": "management"
+"description": "The following are multiple choice questions (with answers) about management\
+  \ in the Italian (Italy) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_it_it_other"
+"task": "mmlu_it_it_management"
+"task_alias": "it_it management"
+"test_split": "IT_IT"

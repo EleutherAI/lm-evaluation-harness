@@ -1,0 +1,8 @@
+"dataset_name": "high_school_geography"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school geography in the Chinese (China) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_zh_cn_social_sciences"
+"task": "mmlu_zh_cn_high_school_geography"
+"task_alias": "zh_cn high school geography"
+"test_split": "ZH_CN"

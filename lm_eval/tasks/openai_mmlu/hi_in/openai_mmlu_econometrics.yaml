@@ -1,0 +1,8 @@
+"dataset_name": "econometrics"
+"description": "The following are multiple choice questions (with answers) about econometrics\
+  \ in the Hindi (India) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_hi_in_social_sciences"
+"task": "mmlu_hi_in_econometrics"
+"task_alias": "hi_in econometrics"
+"test_split": "HI_IN"

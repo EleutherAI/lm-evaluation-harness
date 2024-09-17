@@ -1,0 +1,8 @@
+"dataset_name": "human_aging"
+"description": "The following are multiple choice questions (with answers) about human\
+  \ aging in the French (France) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_fr_fr_other"
+"task": "mmlu_fr_fr_human_aging"
+"task_alias": "fr_fr human aging"
+"test_split": "FR_FR"

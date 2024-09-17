@@ -1,0 +1,8 @@
+"dataset_name": "electrical_engineering"
+"description": "The following are multiple choice questions (with answers) about electrical\
+  \ engineering in the French (France) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_fr_fr_stem"
+"task": "mmlu_fr_fr_electrical_engineering"
+"task_alias": "fr_fr electrical engineering"
+"test_split": "FR_FR"

@@ -1,0 +1,8 @@
+"dataset_name": "world_religions"
+"description": "The following are multiple choice questions (with answers) about world\
+  \ religions in the Hindi (India) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_hi_in_humanities"
+"task": "mmlu_hi_in_world_religions"
+"task_alias": "hi_in world religions"
+"test_split": "HI_IN"

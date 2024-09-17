@@ -1,0 +1,8 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy\
+  \ in the Bengali (Bangladesh) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_bn_bd_stem"
+"task": "mmlu_bn_bd_anatomy"
+"task_alias": "bn_bd anatomy"
+"test_split": "BN_BD"

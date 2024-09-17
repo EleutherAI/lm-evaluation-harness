@@ -1,0 +1,8 @@
+"dataset_name": "marketing"
+"description": "The following are multiple choice questions (with answers) about marketing\
+  \ in the French (France) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_fr_fr_other"
+"task": "mmlu_fr_fr_marketing"
+"task_alias": "fr_fr marketing"
+"test_split": "FR_FR"

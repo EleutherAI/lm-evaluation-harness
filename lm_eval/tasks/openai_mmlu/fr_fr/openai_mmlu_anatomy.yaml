@@ -1,0 +1,8 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy\
+  \ in the French (France) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_fr_fr_stem"
+"task": "mmlu_fr_fr_anatomy"
+"task_alias": "fr_fr anatomy"
+"test_split": "FR_FR"

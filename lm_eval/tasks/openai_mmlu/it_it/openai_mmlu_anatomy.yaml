@@ -1,0 +1,8 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy\
+  \ in the Italian (Italy) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_it_it_stem"
+"task": "mmlu_it_it_anatomy"
+"task_alias": "it_it anatomy"
+"test_split": "IT_IT"

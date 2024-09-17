@@ -1,0 +1,8 @@
+"dataset_name": "high_school_geography"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school geography in the Indonesian (Indonesia) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_id_id_social_sciences"
+"task": "mmlu_id_id_high_school_geography"
+"task_alias": "id_id high school geography"
+"test_split": "ID_ID"

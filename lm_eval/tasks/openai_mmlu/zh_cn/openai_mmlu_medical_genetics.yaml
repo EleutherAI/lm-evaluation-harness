@@ -1,0 +1,8 @@
+"dataset_name": "medical_genetics"
+"description": "The following are multiple choice questions (with answers) about medical\
+  \ genetics in the Chinese (China) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_zh_cn_other"
+"task": "mmlu_zh_cn_medical_genetics"
+"task_alias": "zh_cn medical genetics"
+"test_split": "ZH_CN"

@@ -1,0 +1,8 @@
+"dataset_name": "prehistory"
+"description": "The following are multiple choice questions (with answers) about prehistory\
+  \ in the Korean (South Korea) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_ko_kr_humanities"
+"task": "mmlu_ko_kr_prehistory"
+"task_alias": "ko_kr prehistory"
+"test_split": "KO_KR"

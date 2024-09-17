@@ -1,0 +1,8 @@
+"dataset_name": "econometrics"
+"description": "The following are multiple choice questions (with answers) about econometrics\
+  \ in the Bengali (Bangladesh) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_bn_bd_social_sciences"
+"task": "mmlu_bn_bd_econometrics"
+"task_alias": "bn_bd econometrics"
+"test_split": "BN_BD"

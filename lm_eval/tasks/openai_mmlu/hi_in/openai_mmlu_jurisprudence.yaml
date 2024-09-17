@@ -1,0 +1,8 @@
+"dataset_name": "jurisprudence"
+"description": "The following are multiple choice questions (with answers) about jurisprudence\
+  \ in the Hindi (India) language.\n\n"
+"include": "../_default_template.yaml"
+"tag": "mmlu_hi_in_humanities"
+"task": "mmlu_hi_in_jurisprudence"
+"task_alias": "hi_in jurisprudence"
+"test_split": "HI_IN"
