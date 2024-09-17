@@ -215,35 +215,16 @@ class NEURON_HF(TemplateLM):
 
         self.batch_size_per_gpu = int(batch_size)
         batch_size = int(batch_size)
-        if tp_degree is None:
-            # execute `neuron-ls --json-output | jq '.[0].nc_count'``
-            # to get the number of neuron cores on your instance
-            tp_degree = get_nc_count()
-
-        assert isinstance(tp_degree, int), (
-            f"model_args must include tp_degree. tp_degree must be set to an integer,"
-            f" but is tp_degree=`{tp_degree}` with type=`{type(tp_degree)}`."
-            "Set it to number of neuron cores on your instance."
-            " For inf2.xlarge and inf2.8xlarge, set it to `2`."
-            " For inf2.24xlarge, set it to `12`."
-            " For inf2.48xlarge, set it to `24`."
-        )
-
-        revision = str(revision)  # cast to string if not already one
-        # TODO: update this to be less of a hack once subfolder is fixed in HF
-        revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,
             revision=revision,
             trust_remote_code=trust_remote_code,
         )
-        torch_dtype = lm_eval.models.utils.get_dtype(dtype)
 
-        assert torch_dtype in [
-            torch.float16,
-            torch.bfloat16,
-        ], "Only float16 and bfloat16 are supported"
+        revision = str(revision)  # cast to string if not already one
+        # TODO: update this to be less of a hack once subfolder is fixed in HF
+        revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
@@ -252,36 +233,68 @@ class NEURON_HF(TemplateLM):
             use_fast=use_fast_tokenizer,
         )
 
-        # Neuron specific code
-        if torch_dtype == torch.float16:
-            self.amp_dtype = "f16"
-        elif torch_dtype == torch.bfloat16:
-            self.amp_dtype = "bf16"
-        elif torch_dtype == torch.float32:
-            self.amp_dtype = "f32"
+        neuron_config = getattr(self._config, "neuron", None)
+        if neuron_config is None:
+            if tp_degree is None:
+                # execute `neuron-ls --json-output | jq '.[0].nc_count'``
+                # to get the number of neuron cores on your instance
+                tp_degree = get_nc_count()
+
+            assert isinstance(tp_degree, int), (
+                f"model_args must include tp_degree. tp_degree must be set to an integer,"
+                f" but is tp_degree=`{tp_degree}` with type=`{type(tp_degree)}`."
+                "Set it to number of neuron cores on your instance."
+                " For inf2.xlarge and inf2.8xlarge, set it to `2`."
+                " For inf2.24xlarge, set it to `12`."
+                " For inf2.48xlarge, set it to `24`."
+            )
+            torch_dtype = lm_eval.models.utils.get_dtype(dtype)
+
+            assert torch_dtype in [
+                torch.float16,
+                torch.bfloat16,
+            ], "Only float16 and bfloat16 are supported"
+
+            if torch_dtype == torch.float16:
+                self.amp_dtype = "f16"
+            elif torch_dtype == torch.bfloat16:
+                self.amp_dtype = "bf16"
+            elif torch_dtype == torch.float32:
+                self.amp_dtype = "f32"
+            else:
+                raise NotImplementedError("Only float16 and bfloat16 are implemented.")
+
+            compiler_args = {"num_cores": tp_degree, "auto_cast_type": self.amp_dtype}
+            input_shapes = {
+                "batch_size": batch_size,
+                "sequence_length": self._DEFAULT_MAX_LENGTH,
+            }
+
+            print(
+                f"{'='*20} \n exporting model to neuron with"
+                f" {compiler_args}, {input_shapes}..."
+            )
+            self.model = CustomNeuronModelForCausalLM.from_pretrained(
+                pretrained,
+                revision=revision,
+                trust_remote_code=trust_remote_code,
+                low_cpu_mem_usage=low_cpu_mem_usage,
+                export=True,
+                **compiler_args,
+                **input_shapes,
+            )
+            print(f"SUCCESS: neuron model exported. \n {'='*20}")
         else:
-            raise NotImplementedError("Only float16 and bfloat16 are implemented.")
-
-        compiler_args = {"num_cores": tp_degree, "auto_cast_type": self.amp_dtype}
-        input_shapes = {
-            "batch_size": batch_size,
-            "sequence_length": self._DEFAULT_MAX_LENGTH,
-        }
-
-        print(
-            f"{'='*20} \n loading model to neuron with"
-            f" {compiler_args}, {input_shapes}..."
-        )
-        self.model = CustomNeuronModelForCausalLM.from_pretrained(
-            pretrained,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-            low_cpu_mem_usage=low_cpu_mem_usage,
-            export=True,
-            **compiler_args,
-            **input_shapes,
-        )
-        print(f"SUCCESS: neuron model compiled. \n {'='*20}")
+            print(
+                f"{'='*20} \n loading neuron model with config" f" {neuron_config}..."
+            )
+            self.model = CustomNeuronModelForCausalLM.from_pretrained(
+                pretrained,
+                revision=revision,
+                trust_remote_code=trust_remote_code,
+                low_cpu_mem_usage=low_cpu_mem_usage,
+            )
+            print(f"SUCCESS: neuron model loaded. \n {'='*20}")
 
         self.truncation = truncation
 
