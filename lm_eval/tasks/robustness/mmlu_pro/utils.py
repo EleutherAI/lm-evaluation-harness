@@ -215,16 +215,16 @@ def per_option_macro_accuracy(results: List[Dict[str, Any]], always_opt='a') -> 
     return np.round(np.mean([v for v in accuracies.values()]), 4)
 
 
-per_option_macro_accuracy_a = partial(per_option_macro_accuracy, always_opt='a')
-per_option_macro_accuracy_b = partial(per_option_macro_accuracy, always_opt='b')
-per_option_macro_accuracy_c = partial(per_option_macro_accuracy, always_opt='c')
-per_option_macro_accuracy_d = partial(per_option_macro_accuracy, always_opt='d')
-per_option_macro_accuracy_e = partial(per_option_macro_accuracy, always_opt='e')
-per_option_macro_accuracy_f = partial(per_option_macro_accuracy, always_opt='f')
-per_option_macro_accuracy_g = partial(per_option_macro_accuracy, always_opt='g')
-per_option_macro_accuracy_h = partial(per_option_macro_accuracy, always_opt='h')
-per_option_macro_accuracy_i = partial(per_option_macro_accuracy, always_opt='i')
-per_option_macro_accuracy_j = partial(per_option_macro_accuracy, always_opt='j')
+per_option_macro_accuracy_a = partial(per_option_macro_accuracy, always_opt='A')
+per_option_macro_accuracy_b = partial(per_option_macro_accuracy, always_opt='B')
+per_option_macro_accuracy_c = partial(per_option_macro_accuracy, always_opt='C')
+per_option_macro_accuracy_d = partial(per_option_macro_accuracy, always_opt='D')
+per_option_macro_accuracy_e = partial(per_option_macro_accuracy, always_opt='E')
+per_option_macro_accuracy_f = partial(per_option_macro_accuracy, always_opt='F')
+per_option_macro_accuracy_g = partial(per_option_macro_accuracy, always_opt='G')
+per_option_macro_accuracy_h = partial(per_option_macro_accuracy, always_opt='H')
+per_option_macro_accuracy_i = partial(per_option_macro_accuracy, always_opt='I')
+per_option_macro_accuracy_j = partial(per_option_macro_accuracy, always_opt='J')
 
 
 def per_prompt_accuracy_std(results: List[Dict[str, Any]]) -> float:
