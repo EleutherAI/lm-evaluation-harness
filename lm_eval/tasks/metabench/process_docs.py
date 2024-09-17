@@ -1,5 +1,9 @@
 import datasets
+import hashlib
 import re
+
+def hash_string(string: str) -> str:
+    return hashlib.sha256(string.encode("utf-8")).hexdigest()
 
 def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
     def _subprocess(doc):
@@ -16,6 +20,7 @@ def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
 
             long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n" #no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
         doc["twentyfive_shot_preprompt"] = long_prompt
+        doc["original_hash"] = hash_string(doc["question"])
         doc.pop("alltwentyfiveshot_longprompt")
         return doc
     return dataset.map(_subprocess)
@@ -31,6 +36,7 @@ def process_gsm8k(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"gsm8k_idx_shot_{shot}")
 
             long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n" #no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
+        doc["original_hash"] = hash_string(doc["question"])
         doc["five_shot_preprompt"] = long_prompt
         doc.pop("allfiveshot_longprompt")
         return doc
@@ -75,6 +81,7 @@ def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"hellaswag_split_shot_{shot}")
             doc.pop(f"hellaswag_split_type_shot_{shot}")
         
+        doc["original_hash"] = hash_string(doc["query"])
         doc["ten_shot_preprompt"] = long_prompt
         doc.pop("alltenshot_longprompt")
         return doc
@@ -100,11 +107,19 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"mmlu_ind_shot_{shot}")
 
             long_prompt = f"{long_prompt}{question}\nA. {choice_A}\nB. {choice_B}\nC. {choice_C}\nD. {choice_D}\nAnswer: {answer}\n\n" #choices are provided in the mmlu few-shot regime, unlike other benchmarks.
-
+        
+        doc["original_hash"] = hash_string(doc["question"])
         doc["five_shot_preprompt"] = long_prompt
         doc.pop("allfiveshot_longprompt")
         return doc
     return dataset.map(_subprocess)
+
+def process_truthfulqa(dataset: datasets.Dataset) -> datasets.Dataset:
+    def _subprocess(doc):
+        doc["original_hash"] = hash_string(doc["question"])
+        return doc
+    return dataset.map(_subprocess)
+
 
 def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset: 
     def _subprocess(doc):
@@ -127,6 +142,7 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
 
             long_prompt = f"{long_prompt}{question}\n\n" 
         sentence = doc["sentence"]
+        doc["original_hash"] = hash_string(doc["sentence"])
         doc["sentence"] = f"{long_prompt}{sentence}"
         doc.pop("allfiveshot_longprompt")
         return doc

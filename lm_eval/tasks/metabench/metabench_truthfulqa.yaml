@@ -3,6 +3,7 @@ tag:
   - metabench_truthfulqa_subset
 dataset_path: HCAI/metabench
 dataset_name: TruthfulQA
+process_docs: !function process_docs.process_truthfulqa
 output_type: multiple_choice
 training_split: null
 validation_split: null
