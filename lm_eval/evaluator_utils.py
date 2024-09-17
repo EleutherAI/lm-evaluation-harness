@@ -4,8 +4,6 @@ import pathlib
 import sys
 from typing import List, Optional, Tuple, Union
 
-from pandas.core.dtypes.inference import is_float
-
 from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
@@ -206,7 +204,7 @@ def get_sample_size(
     task, limit: Optional[int], batch_size: Optional[int]
 ) -> Union[int, None]:
     if limit is not None:
-        if batch_size is not None and is_float(limit) and limit == 1.0:
+        if batch_size is not None and isinstance(limit, float) and limit == 1.0:
             eval_logger.warning(
                 "Limit is 1.0, adjusting the sample size to be a multiple of the batch size"
             )
