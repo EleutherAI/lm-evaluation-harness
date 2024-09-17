@@ -1,7 +1,5 @@
 import copy
-import json
 import logging
-import subprocess
 from collections import defaultdict
 from typing import List, Optional, Union
 
@@ -31,20 +29,6 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
-
-
-def get_nc_count() -> Union[int, None]:
-    """Returns the number of neuron cores on the current instance."""
-    try:
-        cmd = "neuron-ls --json-output"
-        result = subprocess.run(cmd, shell=True, capture_output=True)
-        print(f"inferring nc_count from `neuron-ls` {result.stdout}")
-        json_output = json.loads(result.stdout)
-        count = sum([x["nc_count"] for x in json_output])
-        print(f"nc_count={count}")
-        return count
-    except Exception:
-        return None
 
 
 def wrap_constant_batch_size(func):
@@ -177,8 +161,6 @@ class NEURON_HF(TemplateLM):
     Tested with neuron 2.17.0
     """
 
-    _DEFAULT_MAX_LENGTH = 2048
-
     def __init__(
         self,
         pretrained: Optional[str] = "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
@@ -235,25 +217,17 @@ class NEURON_HF(TemplateLM):
 
         neuron_config = getattr(self._config, "neuron", None)
         if neuron_config is None:
-            if tp_degree is None:
-                # execute `neuron-ls --json-output | jq '.[0].nc_count'``
-                # to get the number of neuron cores on your instance
-                tp_degree = get_nc_count()
-
-            assert isinstance(tp_degree, int), (
-                f"model_args must include tp_degree. tp_degree must be set to an integer,"
-                f" but is tp_degree=`{tp_degree}` with type=`{type(tp_degree)}`."
-                "Set it to number of neuron cores on your instance."
-                " For inf2.xlarge and inf2.8xlarge, set it to `2`."
-                " For inf2.24xlarge, set it to `12`."
-                " For inf2.48xlarge, set it to `24`."
-            )
+            # Check export parameters
+            if tp_degree is not None:
+                assert isinstance(tp_degree, int), (
+                    f"tp_degree must be set to an integer,"
+                    f" but is tp_degree=`{tp_degree}` with type=`{type(tp_degree)}`."
+                    "Set it to a number lower than the number of neuron cores on your instance."
+                    " For inf2.xlarge and inf2.8xlarge, set it to `2`."
+                    " For inf2.24xlarge, set it <= `12`."
+                    " For inf2.48xlarge, set it <= `24`."
+                )
             torch_dtype = lm_eval.models.utils.get_dtype(dtype)
-
-            assert torch_dtype in [
-                torch.float16,
-                torch.bfloat16,
-            ], "Only float16 and bfloat16 are supported"
 
             if torch_dtype == torch.float16:
                 self.amp_dtype = "f16"
@@ -262,28 +236,26 @@ class NEURON_HF(TemplateLM):
             elif torch_dtype == torch.float32:
                 self.amp_dtype = "f32"
             else:
-                raise NotImplementedError("Only float16 and bfloat16 are implemented.")
+                raise NotImplementedError(
+                    "Only float16/bfloat16/float32 are supported."
+                )
 
-            compiler_args = {"num_cores": tp_degree, "auto_cast_type": self.amp_dtype}
-            input_shapes = {
-                "batch_size": batch_size,
-                "sequence_length": self._DEFAULT_MAX_LENGTH,
-            }
-
-            print(
-                f"{'='*20} \n exporting model to neuron with"
-                f" {compiler_args}, {input_shapes}..."
-            )
+            print(f"{'='*20} \n exporting model to neuron")
             self.model = CustomNeuronModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision,
                 trust_remote_code=trust_remote_code,
                 low_cpu_mem_usage=low_cpu_mem_usage,
                 export=True,
-                **compiler_args,
-                **input_shapes,
+                batch_size=batch_size,
+                num_cores=tp_degree,
+                auto_cast_type=self.amp_dtype,
+                sequence_length=max_length,
             )
-            print(f"SUCCESS: neuron model exported. \n {'='*20}")
+            neuron_config = self.model.config.neuron
+            print(
+                f"SUCCESS: neuron model exported with config {neuron_config}. \n {'='*20}"
+            )
         else:
             print(
                 f"{'='*20} \n loading neuron model with config" f" {neuron_config}..."
@@ -301,8 +273,6 @@ class NEURON_HF(TemplateLM):
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.add_bos_token = add_bos_token
-
-        self._max_length = max_length
 
         self.batch_schedule = 1
         self.batch_sizes = {}
@@ -324,17 +294,7 @@ class NEURON_HF(TemplateLM):
 
     @property
     def max_length(self):
-        if self._max_length:  # if max length manually set, return it
-            return self._max_length
-        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
-        for attr in seqlen_config_attrs:
-            if hasattr(self.model.config, attr):
-                return getattr(self.model.config, attr)
-        if hasattr(self.tokenizer, "model_max_length"):
-            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
-                return self._DEFAULT_MAX_LENGTH
-            return self.tokenizer.model_max_length
-        return self._DEFAULT_MAX_LENGTH
+        return self.model.max_length
 
     @property
     def max_gen_toks(self) -> int:
