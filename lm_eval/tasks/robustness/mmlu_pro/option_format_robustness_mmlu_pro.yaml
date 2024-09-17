@@ -27,6 +27,15 @@ metric_list:
   - metric: prompt_3_macro_accuracy
     aggregation:  !function utils.per_prompt_accuracy_3
     higher_is_better: true
+  - metric: prompt_4_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_4
+    higher_is_better: true
+  - metric: prompt_5_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_5
+    higher_is_better: true
+  - metric: prompt_6_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_6
+    higher_is_better: true
   - metric: per_prompt_accuracy_std
     aggregation:  !function utils.per_prompt_accuracy_std
     higher_is_better: false

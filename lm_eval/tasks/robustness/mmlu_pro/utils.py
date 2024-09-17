@@ -11,6 +11,7 @@ from lm_eval.utils import eval_logger
 import re
 import numpy as np
 
+TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "v0.4_templates"
 OPTION_FORMAT_ROBUSTNESS_TEMPLATE_KEY = "options_format_robustness"
 OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY = "same_options_prompt"
@@ -25,8 +26,7 @@ def __repeat_elements(lst, n):
 def process_docs_add_prompts(doc: Dataset, templates_key) -> Dataset:
     def process_batch(batch):
         try:
-            template_file = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
-            with open(template_file) as f:
+            with open(TEMPLATE_FILE_PATH) as f:
                 prompt_templates = json.load(f)[templates_key] #todo
         except FileNotFoundError:
             eval_logger.error("Prompt templates not found")
@@ -47,8 +47,7 @@ option_format_robustness_process_docs = partial(process_docs_add_prompts, templa
 
 def option_order_robustness_process_docs(doc: Dataset) -> Dataset:
     try:
-        template_file = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
-        with open(template_file) as f:
+        with open(TEMPLATE_FILE_PATH) as f:
             prompt_template = json.load(f)[OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY] #todo
             prompt = prompt_template["prompt"]
             options_format = prompt_template["options_format"]
@@ -94,23 +93,30 @@ def option_order_robustness_process_docs(doc: Dataset) -> Dataset:
 
 
 def robustness_doc_to_text(doc: Dataset) -> str:
-    _l = string.ascii_uppercase
+    upper_case = string.ascii_uppercase
+    lower_case = string.ascii_lowercase
     numerals = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    roman_numerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
     prompt = doc["prompt"]
     options_format = doc["options_format"]
-    options = "".join([options_format.format(letter=_l[i], option=doc['options'][i], numeral=numerals[i]) for i in range(len(doc["options"]))])
+    options = "".join([options_format.format(letter=upper_case[i], 
+                                             option=doc['options'][i], 
+                                             numeral=numerals[i],
+                                             roman_numeral=roman_numerals[i],
+                                             lower_case_letter=lower_case[i]) for i in range(len(doc["options"]))])
     return prompt.format(question=doc["question"], options=options, category=doc["category"])
 
 def __postprocess_pred(pred):
     if "the best answer is" not in pred.lower():
         return pred
     pred_proc = pred.lower().split("the best answer is ")[-1].split(' ')[0]
-    pred_proc = re.sub(r"[^a-zA-Z0-9]", "", pred_proc).strip().upper()
-    return pred_proc
+    pred_proc = re.sub(r"[^a-zA-Z0-9]", "", pred_proc).strip()
+    return pred_proc.upper()
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
-    final_answer = __postprocess_pred(results[0]).lower()
-    gt = doc["answer"].lower()
+    final_answer = __postprocess_pred(results[0])
+    final_answer = translate_model_answer_to_labels(final_answer, option_format=doc["options_format"])
+    gt = doc["answer"]
     prompt_id = doc["prompt_id"]
     question_id = doc["question_id"]
     category = doc["category"]
@@ -120,10 +126,12 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
                 "prompt_consistency_rate": (question_id, prompt_id, final_answer, gt)
             }
 
+
 def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
-    final_answer = __postprocess_pred(results[0]).lower()
-    gt = doc["answer"].lower()
-    always_same_option = doc["always_same_option"].lower()
+    final_answer = __postprocess_pred(results[0])
+    final_answer = translate_model_answer_to_labels(final_answer, option_format=doc["options_format"])
+    gt = doc["answer"]
+    always_same_option = doc["always_same_option"]
     question_id = doc["question_id"]
     original_answer_index = doc["original_answer_index"]
     answer_index = doc["answer_index"],
@@ -135,12 +143,30 @@ def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
             }
 
 
-def translate_model_answer_to_labels(answer):
-    labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    if answer in labels:
+def translate_model_answer_to_labels(answer, option_format=None):
+    numerals = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    roman_numerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+    labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+    answer = answer.upper()
+
+    if option_format is None:
         return answer
-    if str.isdigit(answer):
-        return labels[int(answer)-1]
+    
+    elif "numeral" in option_format:
+        
+        if "roman" in option_format:
+            if answer not in roman_numerals:
+                return answer
+            else:
+                return labels[roman_numerals.index(answer)]
+            
+        if answer not in numerals:
+            return answer
+        else:
+            return labels[numerals.index(answer)]
+        
+    return answer
+
 
 
 def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
@@ -151,7 +177,7 @@ def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
             continue
         if category not in accuracies:
             accuracies[category] = []
-        accuracies[category].append(int(translate_model_answer_to_labels(final_answer) == gt))
+        accuracies[category].append(final_answer == gt)
     
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
@@ -180,7 +206,7 @@ def per_option_macro_accuracy(results: List[Dict[str, Any]], always_opt='a') -> 
             continue
         if category not in accuracies:
             accuracies[category] = []
-        accuracies[category].append(int(translate_model_answer_to_labels(final_answer) == gt))
+        accuracies[category].append(int(final_answer == gt))
     
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
