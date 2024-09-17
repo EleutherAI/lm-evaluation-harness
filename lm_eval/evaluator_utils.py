@@ -209,10 +209,12 @@ def get_sample_size(
                 "Limit is 1.0, adjusting the sample size to be a multiple of the batch size"
             )
             return (len(task.eval_docs) // batch_size) * batch_size
-    elif limit is not None:
-        limit = (
-            int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
-        )
+        else:
+            limit = (
+                int(math.ceil(len(task.eval_docs) * limit))
+                if limit < 1.0
+                else int(limit)
+            )
     return limit
 
 
