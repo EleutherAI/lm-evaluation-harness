@@ -146,7 +146,7 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
             raise ValueError(
                 f"The specified batch_size ({batch_size}) exceeds the model static batch size ({self.batch_size})"
             )
-        elif batch_size < self.batch_size:
+        elif batch_size < self.batch_size and not self.continuous_batching:
             logger.warning(
                 "Inputs will be padded to match the model static batch size. This will increase latency."
             )
@@ -158,8 +158,6 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
             if attention_mask is not None:
                 padding = torch.zeros(padding_shape, dtype=torch.int64)
                 padded_attention_mask = torch.cat([attention_mask, padding])
-        # Drop the current generation context and clear the Key/Value cache
-        self.reset_generation()
 
         output_ids = self.generate_tokens(
             padded_input_ids,
@@ -203,7 +201,7 @@ class NEURON_HF(TemplateLM):
                 "please install neuron via pip install transformers-neuron ",
                 "also make sure you are running on an AWS inf2 instance",
             )
-        if version.parse(optimum_neuron_version) != version.parse("0.0.17"):
+        if version.parse(optimum_neuron_version) != version.parse("0.0.24"):
             logger.warning(
                 '`optimum-neuron` model requires `pip install "optimum[neuronx]>=0.0.17" '
                 "preferably using the Hugging Face Neuron Deep Learning AMI (Ubuntu 22.04) "
