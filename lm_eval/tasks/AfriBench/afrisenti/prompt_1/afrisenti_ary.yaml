@@ -1,0 +1,3 @@
+dataset_name: ary
+include: afrisenti
+task: afrisenti_ary_prompt_1

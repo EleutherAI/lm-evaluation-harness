@@ -1,0 +1,4 @@
+dataset_name: arq
+include: afrisenti
+doc_to_text: 'Does this Algerian Arabic statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_arq_prompt_2

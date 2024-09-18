@@ -1,0 +1,4 @@
+dataset_name: yor
+include: afrisenti
+doc_to_text: 'Does this Yoruba statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_yor_prompt_2

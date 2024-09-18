@@ -1,0 +1,4 @@
+dataset_name: swa
+include: afrisenti
+doc_to_text: 'Does this Swahili statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_swa_prompt_2
