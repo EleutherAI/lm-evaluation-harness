@@ -66,7 +66,7 @@ def normalize_extracted_answer(
 
     elif answer_type == "float":
         try:
-            normalized_extraction = str(round(float(extraction), precision))
+            normalized_extraction = str(round(float(extraction), int(precision)))
         except Exception:
             normalized_extraction = None
 
@@ -102,7 +102,9 @@ def extract_answer(response: str, problem: dict) -> str:
         return ""
 
     ### This is not in the original code:
-    extract = re.findall(r"[tT]he answer is (\d+)", response)
+    extract = re.findall(
+        r"[tT]he answer is ([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)?)", response
+    )
     if extract:
         return str(extract[0])
     ###
@@ -124,7 +126,7 @@ def extract_answer(response: str, problem: dict) -> str:
         except Exception:
             pass
 
-    return ""
+    return response
 
 
 # adapted from https://github.com/lupantech/MathVista/blob/main/evaluation/extract_answer.py
