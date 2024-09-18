@@ -439,7 +439,7 @@ class GovReport(_SCROLLSSummaryTask):
 
     Note: The average length of the reference summaries is ~3,000
     characters, or ~600 tokens as tokenized by GPT-NeoX. For causal models,
-    it is recommended to set `max_gen_toks` sufficently large (e.g. 1024)
+    it is recommended to set `max_gen_toks` sufficiently large (e.g. 1024)
     to allow a full summary to be generated.
     """
 

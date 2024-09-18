@@ -8,7 +8,6 @@ from typing import List
 
 import numpy as np
 import sacrebleu
-import sklearn.metrics
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -51,21 +50,24 @@ def bits_per_byte(items):
 
 @register_aggregation("f1")
 def f1_score(items):
+    from sklearn.metrics import f1_score
+
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    fscore = sklearn.metrics.f1_score(golds, preds)
+    fscore = f1_score(golds, preds)
 
     return np.max(fscore)
 
 
 @register_aggregation("matthews_corrcoef")
 def matthews_corrcoef(items):
+    from sklearn.metrics import matthews_corrcoef
+
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    # print(preds)
-    return sklearn.metrics.matthews_corrcoef(golds, preds)
+    return matthews_corrcoef(golds, preds)
 
 
 @register_aggregation("bleu")
