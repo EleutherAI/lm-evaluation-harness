@@ -17,6 +17,7 @@ from lm_eval.models.utils import (
     replace_placeholders,
     stop_sequences_criteria,
 )
+from lm_eval.utils import add_padding_if_needed
 
 
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
@@ -266,7 +267,9 @@ class HFMultimodalLM(HFLM):
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        images: List[List],  # TODO: images are pil.Image at the moment, update typehint
+        images: List[
+            List["PIL.Image.Image"]  # noqa: F821
+        ],  # TODO: images are pil.Image at the moment, update typehint
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
@@ -292,15 +295,25 @@ class HFMultimodalLM(HFLM):
         images = [img[: self.max_images] for img in images]
         if self.rgb:
             images = [[img.convert("RGB") for img in sublist] for sublist in images]
-
-        encoding = self.processor(
-            images=images,
-            text=strings,
-            truncation=truncation,
-            padding="longest",
-            return_tensors="pt",
-            # **add_special_tokens, # TODO: at least some Processors error out when passing this. How do we control whether text gets BOS added?
-        )
+        try:
+            encoding = self.processor(
+                images=images,
+                text=strings,
+                truncation=truncation,
+                padding="longest",
+                return_tensors="pt",
+                # **add_special_tokens, # TODO: at least some Processors error out when passing this. How do we control whether text gets BOS added?
+            )
+            # Qwen processor errors out if a dimension is too small (defaults to do_resize=True, and that requires a min dimension)
+        except Exception:
+            encoding = self.processor(
+                images=[add_padding_if_needed(image) for image in images],
+                text=strings,
+                truncation=truncation,
+                padding="longest",
+                return_tensors="pt",
+                # **add_special_tokens, # TODO: at least some Processors error out when passing this. How do we control whether text gets BOS added?
+            )
 
         encoding.to(  # TODO: our other tokenization methods in HFLM don't typically move to device. this breaks convention
             self.device, self.model.dtype
