@@ -101,6 +101,12 @@ def extract_answer(response: str, problem: dict) -> str:
     if response == "":
         return ""
 
+    ### This is not in the original code:
+    extract = re.findall(r"[tT]he answer is (\d+)", response)
+    if extract:
+        return str(extract[0])
+    ###
+
     if question_type == "multi_choice" and response in choices:
         return response
 
