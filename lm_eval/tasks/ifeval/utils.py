@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 from lm_eval.tasks.ifeval import instructions_registry
 from lm_eval.utils import eval_logger
@@ -8,18 +8,18 @@ from lm_eval.utils import eval_logger
 @dataclasses.dataclass
 class InputExample:
     key: int
-    instruction_id_list: list[str]
+    instruction_id_list: List[str]
     prompt: str
-    kwargs: list[Dict[str, Optional[Union[str, int]]]]
+    kwargs: List[Dict[str, Optional[Union[str, int]]]]
 
 
 @dataclasses.dataclass
 class OutputExample:
-    instruction_id_list: list[str]
+    instruction_id_list: List[str]
     prompt: str
     response: str
     follow_all_instructions: bool
-    follow_instruction_list: list[bool]
+    follow_instruction_list: List[bool]
 
 
 def test_instruction_following_strict(
