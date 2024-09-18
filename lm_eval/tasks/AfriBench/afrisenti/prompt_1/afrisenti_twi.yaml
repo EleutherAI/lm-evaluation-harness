@@ -1,0 +1,3 @@
+dataset_name: twi
+include: afrisenti
+task: afrisenti_twi_prompt_1
