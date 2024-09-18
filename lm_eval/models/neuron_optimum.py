@@ -31,40 +31,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def wrap_constant_batch_size(func):
-    def _decorator(self, input_ids):
-        """input_ids a 2D array with batch_size on dim=0
-
-        makes sure the func runs with self.batch_size
-        """
-        # access a from TestSample
-        batch_size = input_ids.shape[0]
-
-        if batch_size < self.batch_size:
-            # handle the event of input_ids.shape[0] != batch_size
-            # Neuron cores expect constant batch_size
-            input_ids = torch.concat(
-                (
-                    input_ids,
-                    # add missing_batch_size dummy
-                    torch.zeros(
-                        [self.batch_size - batch_size, *input_ids.size()[1:]],
-                        dtype=input_ids.dtype,
-                        device=input_ids.device,
-                    ),
-                ),
-                dim=0,
-            )
-        elif batch_size > self.batch_size:
-            raise ValueError(
-                f"The specified batch_size ({batch_size}) exceeds the model static batch size ({self.batch_size})"
-            )
-        # return the forward pass that requires constant batch size
-        return func(self, input_ids)[:batch_size]
-
-    return _decorator
-
-
 class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
     """NeuronModelForCausalLM with `stopping_criteria` in `generate`"""
 
@@ -361,34 +327,6 @@ class NEURON_HF(TemplateLM):
 
     def tok_decode(self, tokens):
         return self.tokenizer.decode(tokens)
-
-    @wrap_constant_batch_size
-    def _model_call(self, input_ids: torch.Tensor):
-        """
-        get logits for the entire sequence
-
-        :param input_ids: torch.Tensor
-            A torch tensor of shape [batch, sequence_cont]
-            the size of sequence may vary from call to call
-        :return
-            A torch tensor of shape [batch, sequence, vocab] with the
-            logits returned from the model's decoder-lm head
-        """
-        _, sequence_length = input_ids.shape
-
-        with torch.inference_mode():
-            cache_ids = torch.arange(0, sequence_length, dtype=torch.int32).split(1)
-            input_ids_split = input_ids.split(1, dim=1)
-
-            return torch.concat(
-                [
-                    self.model.forward(
-                        input_ids=input_id, cache_ids=cache_id, return_dict=False
-                    )[0]
-                    for input_id, cache_id in zip(input_ids_split, cache_ids)
-                ],
-                dim=1,
-            )
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # we require users to pass do_sample=True explicitly
