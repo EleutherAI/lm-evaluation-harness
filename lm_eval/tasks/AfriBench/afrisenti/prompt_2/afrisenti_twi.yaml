@@ -1,0 +1,4 @@
+dataset_name: twi
+include: afrisenti
+doc_to_text: 'Does this Twi statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_twi_prompt_2

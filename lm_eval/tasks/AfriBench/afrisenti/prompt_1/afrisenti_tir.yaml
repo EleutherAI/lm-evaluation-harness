@@ -1,0 +1,3 @@
+dataset_name: tir
+include: afrisenti
+task: afrisenti_tir_prompt_1

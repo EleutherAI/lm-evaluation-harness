@@ -1,0 +1,4 @@
+dataset_name: tso
+include: afrisenti
+doc_to_text: 'Does this Xithonga statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_tso_prompt_2

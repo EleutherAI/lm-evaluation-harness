@@ -1,0 +1,4 @@
+dataset_name: pcm
+include: afrisenti
+doc_to_text: 'Does this Nigerian Pidgin statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_pcm_prompt_2

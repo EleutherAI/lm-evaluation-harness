@@ -1,0 +1,4 @@
+dataset_name: hau
+include: afrisenti
+doc_to_text: 'Does this Hausa statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only'
+task: afrisenti_hau_prompt_2
