@@ -483,7 +483,11 @@ class HighlightSectionChecker(Instruction):
             if highlight.strip("*").strip():
                 num_highlights += 1
         for highlight in double_highlights:
-            if highlight.removeprefix("**").removesuffix("**").strip():
+            if highlight.startswith("**"):
+                highlight = highlight[2:]
+            if highlight.endswith("**"):
+                highlight = highlight[:-2]
+            if highlight.strip():
                 num_highlights += 1
 
         return num_highlights >= self._num_highlights
