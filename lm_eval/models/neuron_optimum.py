@@ -551,15 +551,41 @@ class NEURON_HF(TemplateLM):
                 cont_toks_list.append(continuation_enc)
                 inplens.append(inplen)
 
-            # create encoder attn mask and batched conts, if seq2seq
-            call_kwargs = {}
+            # Add dummy inputs up to the model static batch size
+            if len(inps) < self.batch_size:
+                inps = inps + [
+                    torch.zeros_like(inps[0]),
+                ] * (self.batch_size - len(inps))
+
+            masks = [torch.ones_like(inp) for inp in inps]
             batched_inps = lm_eval.models.utils.pad_and_concat(
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
-            multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1
-            )  # [batch, padding_length (inp or cont), vocab]
+            batched_masks = lm_eval.models.utils.pad_and_concat(
+                padding_len_inp, masks, padding_side="right"
+            )
+            if self.model.model.neuron_config.output_all_logits:
+                inputs = self.model.prepare_inputs_for_prefill(
+                    batched_inps, batched_masks
+                )
+                multi_logits = F.log_softmax(
+                    self.model.forward(**inputs).logits, dim=-1
+                )  # [batch, padding_length (inp or cont), vocab]
+            else:
+                # The model will only return the logits for the last input token, so we need
+                # to iterate over inputs to accumulate logits.
+                # To speed things up we use the KV cache as we would do when generating.
+                inputs = self.model.prepare_inputs_for_prefill(
+                    batched_inps[:, :1], batched_masks[:, :1]
+                )
+                outputs = [self.model.forward(**inputs).logits]
+                for i in range(1, padding_len_inp):
+                    inputs = self.model.prepare_inputs_for_decode(
+                        batched_inps[:, : i + 1], batched_masks[:, : i + 1]
+                    )
+                    outputs.append(self.model.forward(**inputs).logits)
+                multi_logits = F.log_softmax(torch.concat(outputs, dim=1), dim=-1)
 
             for (cache_key, _, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
