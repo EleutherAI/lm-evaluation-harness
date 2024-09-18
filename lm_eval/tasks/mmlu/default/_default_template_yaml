@@ -4,7 +4,7 @@ fewshot_split: dev
 fewshot_config:
   sampler: first_n
 output_type: multiple_choice
-doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
+doc_to_text: "{{question.strip()}}\n(A) {{choices[0]}}\n(B) {{choices[1]}}(C) {{choices[2]}}\n(D) {{choices[3]}}\nAnswer: ("
 doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: answer
 metric_list:
