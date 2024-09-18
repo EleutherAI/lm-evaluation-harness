@@ -191,6 +191,7 @@ class EvaluationTracker:
         self,
         results: dict,
         samples: dict,
+        serialize_model_source: bool = False,
     ) -> None:
         """
         Saves the aggregated results and samples to the output path and pushes them to the Hugging Face hub if requested.
@@ -215,6 +216,9 @@ class EvaluationTracker:
                         ]
                         task_hashes[task_name] = hash_string("".join(sample_hashes))
 
+                if not serialize_model_source:
+                    # remove model_source to avoid serialization issues
+                    self.general_config_tracker.model_source = None
                 # update initial results dict
                 results.update({"task_hashes": task_hashes})
                 results.update(asdict(self.general_config_tracker))
