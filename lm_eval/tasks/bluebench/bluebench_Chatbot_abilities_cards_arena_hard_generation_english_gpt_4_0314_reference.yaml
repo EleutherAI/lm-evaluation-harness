@@ -1,3 +1,5 @@
 task: bluebench_Chatbot_abilities_cards_arena_hard_generation_english_gpt_4_0314_reference
 include: unitxt
 recipe: card=cards.arena_hard.generation.english_gpt_4_0314_reference,metrics=[metrics.llm_as_judge.pairwise_comparative_rating.llama_3_70b_instruct_ibm_genai_template_arena_hard],template=templates.empty,demos_pool_size=0,demos_taken_from=train
+metadata:
+  version: 0

@@ -1,3 +1,5 @@
 task: bluebench_Bias_safety_bbq_Race_x_gender
 include: unitxt
 recipe: card=cards.safety.bbq.Race_x_gender,template=templates.qa.multiple_choice.with_context.match,demos_pool_size=20,demos_taken_from=test
+metadata:
+  version: 0

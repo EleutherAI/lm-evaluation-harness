@@ -1,3 +1,5 @@
 task: bluebench_Safety_attaq_500
 include: unitxt
 recipe: card=cards.attaq_500,demos_pool_size=0,template_card_index=0,demos_taken_from=train
+metadata:
+  version: 0

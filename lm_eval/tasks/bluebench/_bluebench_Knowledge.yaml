@@ -14,3 +14,5 @@ task:
   - "bluebench_Knowledge_mmlu_pro_chemistry"
   - "bluebench_Knowledge_mmlu_pro_computer_science"
   - "bluebench_Knowledge_mmlu_pro_engineering"
+metadata:
+  version: 0

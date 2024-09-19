@@ -80,9 +80,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.hellaswag",
             template=[
-                    "templates.completion.multiple_choice.simple",
-                    "templates.completion.multiple_choice.enumerated",
-                    "templates.completion.multiple_choice.standard"
+                    # "templates.completion.multiple_choice.simple",
+                    # "templates.completion.multiple_choice.enumerated",
+                    # "templates.completion.multiple_choice.standard"
+                    "templates.completion.multiple_choice.simple_enumerated_standard",
             ],
             # "templates.completion.multiple_choice.title",
             # ],
@@ -91,9 +92,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.openbook_qa",
             template=[
-                    "templates.qa.multiple_choice.open.helm",
-                    "templates.qa.multiple_choice.open.lm_eval_harness",
-                    "templates.qa.multiple_choice.open.mmlu"
+                    # "templates.qa.multiple_choice.open.helm",
+                    # "templates.qa.multiple_choice.open.lm_eval_harness",
+                    # "templates.qa.multiple_choice.open.mmlu"
+                    "templates.qa.multiple_choice.open.helm_lm_eval_harness_mmlu",
             ],
             num_demos=[5],
         ),
@@ -102,9 +104,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card=f"cards.mt.flores_101.{subset}",
             template=[
-                    "templates.translation.directed.simple",
-                    "templates.translation.directed.formal",
-                    "templates.translation.directed.casual"
+                    # "templates.translation.directed.simple",
+                    # "templates.translation.directed.formal",
+                    # "templates.translation.directed.casual"
+                    "templates.translation.directed.simple_formal_casual",
                 # "templates.translation.directed.playful",
                 # "templates.translation.directed.instructional",
                 # "templates.translation.directed.title",
@@ -129,10 +132,11 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.20_newsgroups",
             template=[
-                "templates.classification.multi_class.instruction",
-                "templates.classification.multi_class.instruct_question_selects",
-                "templates.classification.multi_class.instruct_question_select_i_think",
+                # "templates.classification.multi_class.instruction",
+                # "templates.classification.multi_class.instruct_question_selects",
+                # "templates.classification.multi_class.instruct_question_select_i_think",
                 # "templates.classification.multi_class.instruct_select_question",
+                "templates.classification.multi_class.instruction_instruct_question_selects_instruct_question_select_i_think",
             ],
             num_demos=[1],
         ),
@@ -153,10 +157,11 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card=f"cards.legalbench.{subset}",
             template=[
-                "templates.classification.multi_class.instruction",
-                "templates.classification.multi_class.instruct_question_selects",
-                "templates.classification.multi_class.instruct_question_select_i_think",
+                # "templates.classification.multi_class.instruction",
+                # "templates.classification.multi_class.instruct_question_selects",
+                # "templates.classification.multi_class.instruct_question_select_i_think",
                 # "templates.classification.multi_class.instruct_select_question",
+                "templates.classification.multi_class.instruction_instruct_question_selects_instruct_question_select_i_think",
             ],
             demos_pool_size=10,
             demos_taken_from="test",  # TODO: this is not cool but the train is super small
@@ -168,9 +173,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card=f"cards.CFPB.product.{subset}",
             template=[
-                "templates.classification.multi_class.instruct_question_selects",
-                "templates.classification.multi_class.instruct_question_select_i_think",
-                "templates.classification.multi_class.instruct_select_question",
+                # "templates.classification.multi_class.instruct_question_selects",
+                # "templates.classification.multi_class.instruct_question_select_i_think",
+                # "templates.classification.multi_class.instruct_select_question",
+                "templates.classification.multi_class.instruction_instruct_question_selects_instruct_question_select_i_think",
             ],
             num_demos=5,
         )
@@ -180,9 +186,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card=f"cards.mmlu_pro.{subset}",
             template=[
-                "templates.qa.multiple_choice.with_topic.fm_eval",
-                "templates.qa.multiple_choice.with_topic.mmlu",
-                "templates.qa.multiple_choice.with_topic.helm",
+                # "templates.qa.multiple_choice.with_topic.fm_eval",
+                # "templates.qa.multiple_choice.with_topic.mmlu",
+                # "templates.qa.multiple_choice.with_topic.helm",
+                "templates.qa.multiple_choice.with_topic.mmlu_helm_lm_eval_harness",
                 # "templates.qa.multiple_choice.with_topic.lm_eval_harness",
                 # "templates.qa.multiple_choice.with_topic.title",
                 # "templates.qa.multiple_choice.with_topic.match",
@@ -220,9 +227,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.billsum_document_filtered_to_6000_chars",
             template=[
-                "templates.summarization.abstractive.instruct_full",
-                "templates.summarization.abstractive.instruct_one_sentence",
-                "templates.summarization.abstractive.instruct_passive",
+                # "templates.summarization.abstractive.instruct_full",
+                # "templates.summarization.abstractive.instruct_one_sentence",
+                # "templates.summarization.abstractive.instruct_passive",
+                "templates.summarization.abstractive.instruct_full_one_sentence_passive_write_succinct_tldr",
                 # "templates.summarization.abstractive.instruct_write_succinct",
                 # "templates.summarization.abstractive.instruct_tldr",
             ],
@@ -231,9 +239,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.tldr_document_filtered_to_6000_chars",
             template=[
-                "templates.summarization.abstractive.instruct_full",
-                "templates.summarization.abstractive.instruct_one_sentence",
-                "templates.summarization.abstractive.instruct_passive",
+                # "templates.summarization.abstractive.instruct_full",
+                # "templates.summarization.abstractive.instruct_one_sentence",
+                # "templates.summarization.abstractive.instruct_passive",
+                "templates.summarization.abstractive.instruct_full_one_sentence_passive_write_succinct_tldr",
                 # "templates.summarization.abstractive.instruct_write_succinct",
                 # "templates.summarization.abstractive.instruct_tldr",
             ],
@@ -244,9 +253,10 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
         _DefaultUnitxtRecipeArgs(
             card="cards.rag.response_generation.clapnq",
             template=[
-                "templates.rag.response_generation.please_respond",
-                "templates.rag.response_generation.answer_based_on_context",
-                "templates.rag.response_generation.answer_based_on_context_inverted",
+                # "templates.rag.response_generation.please_respond",
+                # "templates.rag.response_generation.answer_based_on_context",
+                # "templates.rag.response_generation.answer_based_on_context_inverted",
+                "templates.rag.response_generation.please_respond_please_respond_chat_answer_based_on_context",
             ],
             num_demos=[1],
         )
@@ -287,9 +297,11 @@ if __name__ == "__main__":
 
     with open(BLUEBNECH_YAML, "w") as file:
         file.write("group: bluebench\ntask:\n")
-
+        # print("#### Groups\n")
+        print("#### Tasks\n")
         for group in unitxt_recipe_args_by_groupings:
             file.write(f'- group: "bluebench_{group}"\n  task:\n')
+            # print(f'* `bluebench_{group}`')
 
             group_file_name = os.path.join(os.path.dirname(__file__), f'_bluebench_{group}.yaml')
             with open(group_file_name, "w") as group_file:
@@ -305,6 +317,7 @@ if __name__ == "__main__":
                     group_file.write(f'  - "bluebench_{group}_{task_name}"\n')
 
                     current_file = os.path.join(os.path.dirname(__file__), f'bluebench_{group}_{task_name}.yaml')
+                    print(f'* `bluebench_{group}_{task_name}`')
                     with open(current_file, "w") as task_file:
                         task_file.write(f'task: bluebench_{group}_{task_name}\n')
                         task_file.write(f'include: unitxt\n')
@@ -319,6 +332,9 @@ if __name__ == "__main__":
                             task_file.write(f'train_refiner={task.train_refiner[0]},')
                         if len(task.template) == 0:
                             task_file.write(f'template_card_index={task.template_card_index[0] if type(task.template_card_index) == list else task.template_card_index},')
-                        task_file.write(f'demos_taken_from={task.demos_taken_from[0] if type(task.demos_taken_from) == list else task.demos_taken_from}')
+                        task_file.write(f'demos_taken_from={task.demos_taken_from[0] if type(task.demos_taken_from) == list else task.demos_taken_from}\n')
+                        task_file.write(f'metadata:\n  version: 0')
                         # task_file.write(f'system_prompt={task.system_prompt[0] if type(task.system_prompt) == list else task.system_prompt},')
                         # task_file.write(f'format={task.format[0] if type(task.format) == list else task.format}')
+                group_file.write(f'metadata:\n  version: 0')
+        file.write(f'metadata:\n  version: 0')

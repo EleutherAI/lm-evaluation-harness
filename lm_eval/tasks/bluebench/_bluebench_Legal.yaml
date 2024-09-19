@@ -5,3 +5,5 @@ task:
   - "bluebench_Legal_legalbench_function_of_decision_section"
   - "bluebench_Legal_legalbench_international_citizenship_questions"
   - "bluebench_Legal_legalbench_corporate_lobbying"
+metadata:
+  version: 0

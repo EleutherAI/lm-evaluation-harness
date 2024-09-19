@@ -1,3 +1,5 @@
 task: bluebench_Translation_mt_flores_101_ron_eng
 include: unitxt
-recipe: card=cards.mt.flores_101.ron_eng,template=[templates.translation.directed.simple,templates.translation.directed.formal,templates.translation.directed.casual],demos_pool_size=100,demos_taken_from=validation
+recipe: card=cards.mt.flores_101.ron_eng,template=templates.translation.directed.simple_formal_casual,demos_pool_size=100,demos_taken_from=validation
+metadata:
+  version: 0

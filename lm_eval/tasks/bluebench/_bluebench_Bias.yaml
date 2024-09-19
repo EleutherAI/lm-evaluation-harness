@@ -11,3 +11,5 @@ task:
   - "bluebench_Bias_safety_bbq_Religion"
   - "bluebench_Bias_safety_bbq_SES"
   - "bluebench_Bias_safety_bbq_Sexual_orientation"
+metadata:
+  version: 0

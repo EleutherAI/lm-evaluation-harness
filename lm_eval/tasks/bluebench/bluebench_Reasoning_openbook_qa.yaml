@@ -1,3 +1,5 @@
 task: bluebench_Reasoning_openbook_qa
 include: unitxt
-recipe: card=cards.openbook_qa,template=[templates.qa.multiple_choice.open.helm,templates.qa.multiple_choice.open.lm_eval_harness,templates.qa.multiple_choice.open.mmlu],demos_pool_size=100,demos_taken_from=train
+recipe: card=cards.openbook_qa,template=templates.qa.multiple_choice.open.helm_lm_eval_harness_mmlu,demos_pool_size=100,demos_taken_from=train
+metadata:
+  version: 0

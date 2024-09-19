@@ -1,3 +1,5 @@
 task: bluebench_Bias_safety_bbq_Physical_appearance
 include: unitxt
 recipe: card=cards.safety.bbq.Physical_appearance,template=templates.qa.multiple_choice.with_context.match,demos_pool_size=20,demos_taken_from=test
+metadata:
+  version: 0

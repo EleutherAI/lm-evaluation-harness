@@ -1,3 +1,5 @@
 task: bluebench_News_classification_20_newsgroups
 include: unitxt
-recipe: card=cards.20_newsgroups,template=[templates.classification.multi_class.instruction,templates.classification.multi_class.instruct_question_selects,templates.classification.multi_class.instruct_question_select_i_think],demos_pool_size=100,demos_taken_from=train
+recipe: card=cards.20_newsgroups,template=templates.classification.multi_class.instruction_instruct_question_selects_instruct_question_select_i_think,demos_pool_size=100,demos_taken_from=train
+metadata:
+  version: 0

@@ -15,3 +15,5 @@ task:
   - "bluebench_Translation_mt_flores_101_por_eng"
   - "bluebench_Translation_mt_flores_101_ron_eng"
   - "bluebench_Translation_mt_flores_101_spa_eng"
+metadata:
+  version: 0
