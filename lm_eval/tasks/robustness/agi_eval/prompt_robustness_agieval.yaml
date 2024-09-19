@@ -1,0 +1,45 @@
+group: prompt_robustness_agieval
+task:
+  - prompt_robustness_agieval_aqua_rat
+  - prompt_robustness_agieval_logiqa_en
+  - prompt_robustness_agieval_lsat_ar
+  - prompt_robustness_agieval_lsat_lr
+  - prompt_robustness_agieval_lsat_rc
+  - prompt_robustness_agieval_sat_en
+
+aggregate_metric_list:
+  - metric: prompt_0_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_1_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_2_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_3_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_4_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_5_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_6_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_7_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_8_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_9_macro_accuracy
+    aggregation: mean
+    weight_by_size: false
+  - metric: prompt_consistency_rate
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
