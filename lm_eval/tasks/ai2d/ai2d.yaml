@@ -3,8 +3,8 @@ dataset_path: lmms-lab/ai2d
 output_type: multiple_choice
 test_split: test
 doc_to_text: "<image> Question: {{question}}\nAnswer:"
-doc_to_target: "answer"
-doc_to_choice: "{{options}}"
+doc_to_target: "{{ answer | int }}"
+doc_to_choice: options
 doc_to_image:
   - image
 metric_list:
