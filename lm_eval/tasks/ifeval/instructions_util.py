@@ -18,7 +18,6 @@ import functools
 import os
 import random
 import re
-import time
 from importlib.metadata import version
 
 import immutabledict
@@ -47,8 +46,6 @@ def download_nltk_resources():
         if RANK == "0":
             nltk.download("punkt_tab")
             print("Downloaded punkt_tab")
-        else:
-            time.sleep(5)
 
 
 download_nltk_resources()
