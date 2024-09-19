@@ -12,9 +12,9 @@ import re
 import numpy as np
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
-PROMPT_ROBUSTNESS_TEMPLATE_KEY = "v0.4_templates"
-OPTION_FORMAT_ROBUSTNESS_TEMPLATE_KEY = "options_format_robustness"
-OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY = "same_options_prompt"
+PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
+OPTION_FORMAT_ROBUSTNESS_TEMPLATE_KEY = "option_format_robustness"
+OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY = "option_order_robustness"
 
 
 def __repeat_elements(lst, n):
@@ -90,7 +90,41 @@ def option_order_robustness_process_docs(doc: Dataset) -> Dataset:
         return new_batched_docs
     return doc.map(repeat_doc_swap_correct_answer, batched=True)
 
+def fewshot_order_robustness_process_docs(doc: Dataset) -> Dataset:
+    shots_by_category = {
+        "category1": [
+            {
+                "question": "q1",
+                "answer": "a",
+                "options": ["a", "b", "c", "d", "e"]},
+            {
+                "question": "q2",
+                "answer": "c",
+                "options": ["a", "b", "c", "d"]},
+        ]
+    }
+    def process_batch(batch):
+        try:
+            template_file = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
+            with open(template_file) as f:
+                prompt_templates = json.load(f)["same_options_prompt"] #todo
+        except FileNotFoundError:
+            eval_logger.error("Prompt templates not found")
+            sys.exit()
 
+        n = 4
+        initial_len = len(next(iter(batch.values())))
+
+        result = {key: __repeat_elements(values, n) for key, values in batch.items()}
+        for i in range(n*initial_len):
+            for j, shot in enumerate(shots_by_category[result["category"][i]]):
+                result[f"shot_{j+1}"] = shot
+        result["few_shot_order_id"] = list(range(n)) * initial_len
+        result["prompt"] = [prompt_templates["prompt"] for i in range(n)] * initial_len
+        result["options_format"] = [prompt_templates["options_format"] for i in range(n)] * initial_len
+
+        return result
+    return doc.map(process_batch, batched=True)
 
 def robustness_doc_to_text(doc: Dataset) -> str:
     upper_case = string.ascii_uppercase
@@ -106,6 +140,18 @@ def robustness_doc_to_text(doc: Dataset) -> str:
                                              lower_case_letter=lower_case[i]) for i in range(len(doc["options"]))])
     return prompt.format(question=doc["question"], options=options, category=doc["category"])
 
+def few_shot_order_robustness_doc_to_text(doc: Dataset) -> str:
+    for i in range(5):
+        shot = doc[f"shot_{i+1}"]
+        shot_text = robustness_doc_to_text({
+            "prompt": doc["prompt"], 
+            "options_format": doc["options_format"], 
+            "category": doc["category"],
+            "question": shot["question"],
+            "options": shot["options"]})
+        shot_answer = shot["answer"]
+        shot_text = f"{shot_text}\nThe best answer is: {shot_answer}\n"
+
 def __postprocess_pred(pred):
     if "the best answer is" not in pred.lower():
         return pred
@@ -114,9 +160,11 @@ def __postprocess_pred(pred):
     return pred_proc.upper()
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
+    labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+
     final_answer = __postprocess_pred(results[0])
     final_answer = translate_model_answer_to_labels(final_answer, option_format=doc["options_format"])
-    gt = doc["answer"]
+    gt = labels[doc["answer_index"]]
     prompt_id = doc["prompt_id"]
     question_id = doc["question_id"]
     category = doc["category"]
@@ -128,9 +176,10 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
 
 
 def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
+    labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
     final_answer = __postprocess_pred(results[0])
     final_answer = translate_model_answer_to_labels(final_answer, option_format=doc["options_format"])
-    gt = doc["answer"]
+    gt = labels[doc["answer_index"]]
     always_same_option = doc["always_same_option"]
     question_id = doc["question_id"]
     original_answer_index = doc["original_answer_index"]
