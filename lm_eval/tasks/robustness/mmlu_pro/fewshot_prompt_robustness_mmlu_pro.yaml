@@ -1,12 +1,17 @@
-task: option_format_robustness_mmlu_pro
+task: fewshot_prompt_robustness_mmlu_pro
 dataset_path: TIGER-Lab/MMLU-Pro
 dataset_name: default
 output_type: generate_until
 validation_split: validation
 test_split: test
-process_docs: !function utils.option_format_robustness_process_docs
+process_docs: !function utils.prompt_robustness_process_docs
 doc_to_text: !function utils.robustness_doc_to_text
-doc_to_target: answer
+doc_to_target: "The best answer is {{answer}}"
+fewshot_config: 
+    sampler: category_prompt_id_sampler
+
+num_fewshot: 5
+fewshot_split: validation
 generation_kwargs:
   max_gen_toks: 1024
   do_sample: False
@@ -32,6 +37,15 @@ metric_list:
     higher_is_better: true
   - metric: prompt_6_macro_accuracy
     aggregation:  !function utils.per_prompt_accuracy_6
+    higher_is_better: true
+  - metric: prompt_7_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_7
+    higher_is_better: true
+  - metric: prompt_8_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_8
+    higher_is_better: true
+  - metric: prompt_9_macro_accuracy
+    aggregation:  !function utils.per_prompt_accuracy_9
     higher_is_better: true
   - metric: per_prompt_accuracy_std
     aggregation:  !function utils.per_prompt_accuracy_std

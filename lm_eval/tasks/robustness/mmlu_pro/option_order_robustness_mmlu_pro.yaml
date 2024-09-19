@@ -1,6 +1,3 @@
-tag:
-  - robustness_mmlu_pro
-  - rubustness
 task: option_order_robustness_mmlu_pro
 dataset_path: TIGER-Lab/MMLU-Pro
 dataset_name: default
