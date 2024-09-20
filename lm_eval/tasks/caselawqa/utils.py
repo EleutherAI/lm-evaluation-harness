@@ -55,7 +55,7 @@ def process_docs(dataset):
 
 
 @register_filter("caselaw-default-filter")
-class UppercaseFilter(Filter):
+class DefaultCaselawFilter(Filter):
     def __init__(self) -> None:
         pass
 
@@ -68,10 +68,11 @@ class UppercaseFilter(Filter):
                 search = re.search(r'[A-Z]', inst)
                 inst = search.group() if search is not None else '[no match]'
             else:
-                inst = inst.strip()
+                raise ValueError(f"Target is neither digit nor uppercase letter: {target}")
             return inst
 
-        def filter_set(inst, doc):
-            return [filter_inst(inst, doc['target']) for inst in inst]
+        def filter_set(instances, doc):
+            assert len(instances) == 1, f"Expected 1 output response per example, got {len(instances)}"
+            return filter_inst(instances[0], doc['target'])
 
         return [filter_set(resp, doc) for resp, doc in zip(resps, docs)]
