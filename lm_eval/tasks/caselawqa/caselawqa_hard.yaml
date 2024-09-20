@@ -1,3 +1,0 @@
-include: _default_template.yaml
-dataset_name: hard
-task: caselawqa_hard
