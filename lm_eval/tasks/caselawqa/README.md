@@ -13,10 +13,6 @@ The majority of its 10,000 questions are multiple-choice, with 5,000 sourced fro
 The questions are randomly selected from the test sets of the [Lawma tasks](https://huggingface.co/datasets/ricdomolm/lawma-tasks).\
 From a technical machine learning perspective, these tasks provide highly non-trivial classification problems where even the best models leave much room for improvement. 
 From a substantive legal perspective, efficient solutions to such classification problems have rich and important applications in legal research.
-CaselawQA also includes two additional subsets: CaselawQA Tiny and CaselawQA Hard. 
-CaselawQA Tiny consists of 49 Lawma tasks with fewer than 150 training examples. 
-CaselawQA Hard comprises tasks where [Lawma 70B](https://huggingface.co/ricdomolm/lawma-70b) achieves less than 70% accuracy.
-
 Homepage: https://github.com/socialfoundations/lawma
 
 
@@ -42,14 +38,10 @@ Homepage: https://github.com/socialfoundations/lawma
 
 #### Tags
 
-* `caselawqa_lb`: tasks of the caselaw leaderboard
-
 #### Tasks
 
 * `caselawqa_sc`: 5,000 questions derived from the Supreme Court database
 * `caselaw_songer`: 5,000 questions derived from the Songer Court of Appeals database
-* `caselaw_tiny`: questions derived from Lawma tasks with fewer than 150 training examples
-* `caselaw_hard`: questions derived from tasks for which Lawma 70B achieves less than 70% accuracy
 
 ### Checklist
 
