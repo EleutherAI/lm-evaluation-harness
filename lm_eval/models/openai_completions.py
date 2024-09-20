@@ -69,11 +69,11 @@ class LocalCompletionsAPI(TemplateAPI):
             for choice, ctxlen in zip(out["choices"], ctxlens):
                 assert ctxlen > 0, "Context length must be greater than 0"
                 logprobs = sum(choice["logprobs"]["token_logprobs"][ctxlen:-1])
-                tokens = choice["logprobs"]["token_logprobs"][ctxlen:-1]
+                tokens_logprobs = choice["logprobs"]["token_logprobs"][ctxlen:-1]
                 top_logprobs = choice["logprobs"]["top_logprobs"][ctxlen:-1]
                 is_greedy = True
-                for tok, top in zip(tokens, top_logprobs):
-                    if tok != max(top, key=top.get):
+                for tok, top in zip(tokens_logprobs, top_logprobs):
+                    if tok != max(top.values()):
                         is_greedy = False
                         break
                 res.append((logprobs, is_greedy))
@@ -190,14 +190,15 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         key = os.environ.get("OPENAI_API_KEY", None)
         if key is None:
             raise ValueError(
-                "API key not found. Please set the OPENAI_API_KEY environment variable."
+                "API key not found. Please set the `OPENAI_API_KEY` environment variable."
             )
         return key
 
     def loglikelihood(self, requests, **kwargs):
-        assert (
-            self.model != "gpt-3.5-turbo"
-        ), "Loglikelihood is not supported for gpt-3.5-turbo"
+        assert self.model in [
+            "babbage-002",
+            "davinci-002",
+        ], f"LogLikelihoods are only supported for {['babbage-002', 'davinci-002']}"
         return super().loglikelihood(requests, **kwargs)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -226,6 +227,11 @@ class OpenAIChatCompletion(LocalChatCompletion):
         key = os.environ.get("OPENAI_API_KEY", None)
         if key is None:
             raise ValueError(
-                "API key not found. Please set the OPENAI_API_KEY environment variable."
+                "API key not found. Please set the `OPENAI_API_KEY` environment variable."
             )
         return key
+
+    def loglikelihood(self, requests, **kwargs):
+        raise NotImplementedError(
+            "Loglikelihood (and multiple-choice) is not supported for chat completions as OpenAI does not provide logprobs."
+        )
