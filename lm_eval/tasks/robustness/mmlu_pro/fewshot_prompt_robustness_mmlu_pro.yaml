@@ -1,3 +1,4 @@
+tag: robustness
 task: fewshot_prompt_robustness_mmlu_pro
 dataset_path: TIGER-Lab/MMLU-Pro
 dataset_name: default
@@ -9,7 +10,6 @@ doc_to_text: !function utils.robustness_doc_to_text
 doc_to_target: "The best answer is {{answer}}"
 fewshot_config: 
     sampler: category_prompt_id_sampler
-
 num_fewshot: 5
 fewshot_split: validation
 generation_kwargs:
