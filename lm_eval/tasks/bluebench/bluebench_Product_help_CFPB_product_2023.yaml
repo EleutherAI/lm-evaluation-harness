@@ -1,5 +1,5 @@
 task: bluebench_Product_help_CFPB_product_2023
 include: unitxt
-recipe: card=cards.CFPB.product.2023,template=templates.classification.multi_class.instruction_instruct_question_selects_instruct_question_select_i_think,demos_pool_size=100,demos_taken_from=train
+recipe: card=cards.CFPB.product.2023,template=templates.classification.multi_class.blue_bench,demos_pool_size=100,demos_taken_from=train
 metadata:
   version: 0

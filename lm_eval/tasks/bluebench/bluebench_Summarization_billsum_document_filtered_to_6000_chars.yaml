@@ -1,5 +1,5 @@
 task: bluebench_Summarization_billsum_document_filtered_to_6000_chars
 include: unitxt
-recipe: card=cards.billsum_document_filtered_to_6000_chars,template=templates.summarization.abstractive.instruct_full_one_sentence_passive_write_succinct_tldr,demos_pool_size=100,demos_taken_from=train
+recipe: card=cards.billsum_document_filtered_to_6000_chars,template=templates.summarization.abstractive.blue_bench,demos_pool_size=100,demos_taken_from=train
 metadata:
   version: 0
