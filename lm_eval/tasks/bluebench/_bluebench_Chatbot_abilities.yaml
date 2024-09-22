@@ -1,5 +1,0 @@
-group: bluebench_Chatbot_abilities
-task:
-  - "bluebench_Chatbot_abilities_cards_arena_hard_generation_english_gpt_4_0314_reference"
-metadata:
-  version: 0

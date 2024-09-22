@@ -300,6 +300,8 @@ if __name__ == "__main__":
         # print("#### Groups\n")
         print("#### Tasks\n")
         for group in unitxt_recipe_args_by_groupings:
+            group_keep = group
+            group = group.lower()
             file.write(f'- group: "bluebench_{group}"\n  task:\n')
             # print(f'* `bluebench_{group}`')
 
@@ -308,11 +310,12 @@ if __name__ == "__main__":
                 group_file.write(f'group: bluebench_{group}\n')
                 group_file.write(f'task:\n')
 
-                for task in unitxt_recipe_args_by_groupings[group]:
+                for task in unitxt_recipe_args_by_groupings[group_keep]:
                     task_name = task.card[len("cards."):]
                     if task.card.find(",") > 0:
                         task_name = task.card[:task.card.find(",")]
                     task_name = task_name.replace(".", "_")
+                    task_name = task_name.lower()
                     file.write(f'    - "bluebench_{group}_{task_name}"\n')
                     group_file.write(f'  - "bluebench_{group}_{task_name}"\n')
 

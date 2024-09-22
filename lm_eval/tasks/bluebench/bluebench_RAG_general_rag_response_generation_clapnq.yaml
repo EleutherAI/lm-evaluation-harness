@@ -1,5 +1,0 @@
-task: bluebench_RAG_general_rag_response_generation_clapnq
-include: unitxt
-recipe: card=cards.rag.response_generation.clapnq,template=templates.rag.response_generation.blue_bench,demos_pool_size=100,demos_taken_from=train
-metadata:
-  version: 0

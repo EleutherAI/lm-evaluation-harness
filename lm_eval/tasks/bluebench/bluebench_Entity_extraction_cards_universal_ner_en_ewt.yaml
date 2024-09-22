@@ -1,5 +1,0 @@
-task: bluebench_Entity_extraction_cards_universal_ner_en_ewt
-include: unitxt
-recipe: card=cards.universal_ner.en.ewt,metrics=[metrics.ner[zero_division=1.0]],template=templates.span_labeling.extraction.title,demos_pool_size=10000,demos_taken_from=train
-metadata:
-  version: 0

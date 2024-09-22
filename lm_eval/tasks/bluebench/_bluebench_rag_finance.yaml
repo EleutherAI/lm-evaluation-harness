@@ -1,0 +1,5 @@
+group: bluebench_rag_finance
+task:
+  - "bluebench_rag_finance_fin_qa"
+metadata:
+  version: 0

@@ -1,0 +1,5 @@
+group: bluebench_entity_extraction
+task:
+  - "bluebench_entity_extraction_cards_universal_ner_en_ewt"
+metadata:
+  version: 0

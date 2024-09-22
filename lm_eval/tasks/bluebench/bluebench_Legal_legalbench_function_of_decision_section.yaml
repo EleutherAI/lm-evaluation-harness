@@ -1,5 +1,0 @@
-task: bluebench_Legal_legalbench_function_of_decision_section
-include: unitxt
-recipe: card=cards.legalbench.function_of_decision_section,template=templates.classification.multi_class.blue_bench,demos_pool_size=10,demos_taken_from=test
-metadata:
-  version: 0

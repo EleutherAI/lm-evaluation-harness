@@ -1,0 +1,18 @@
+group: bluebench_knowledge
+task:
+  - "bluebench_knowledge_mmlu_pro_history"
+  - "bluebench_knowledge_mmlu_pro_law"
+  - "bluebench_knowledge_mmlu_pro_health"
+  - "bluebench_knowledge_mmlu_pro_physics"
+  - "bluebench_knowledge_mmlu_pro_business"
+  - "bluebench_knowledge_mmlu_pro_other"
+  - "bluebench_knowledge_mmlu_pro_philosophy"
+  - "bluebench_knowledge_mmlu_pro_psychology"
+  - "bluebench_knowledge_mmlu_pro_economics"
+  - "bluebench_knowledge_mmlu_pro_math"
+  - "bluebench_knowledge_mmlu_pro_biology"
+  - "bluebench_knowledge_mmlu_pro_chemistry"
+  - "bluebench_knowledge_mmlu_pro_computer_science"
+  - "bluebench_knowledge_mmlu_pro_engineering"
+metadata:
+  version: 0

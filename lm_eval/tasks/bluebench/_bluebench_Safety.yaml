@@ -1,5 +1,0 @@
-group: bluebench_Safety
-task:
-  - "bluebench_Safety_attaq_500"
-metadata:
-  version: 0

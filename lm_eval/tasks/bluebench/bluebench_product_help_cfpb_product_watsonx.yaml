@@ -1,0 +1,5 @@
+task: bluebench_product_help_cfpb_product_watsonx
+include: unitxt
+recipe: card=cards.CFPB.product.watsonx,template=templates.classification.multi_class.blue_bench,demos_pool_size=100,demos_taken_from=train
+metadata:
+  version: 0

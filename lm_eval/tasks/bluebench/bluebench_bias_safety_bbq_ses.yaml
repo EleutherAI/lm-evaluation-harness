@@ -1,0 +1,5 @@
+task: bluebench_bias_safety_bbq_ses
+include: unitxt
+recipe: card=cards.safety.bbq.SES,template=templates.qa.multiple_choice.with_context.match,demos_pool_size=20,demos_taken_from=test
+metadata:
+  version: 0

@@ -1,0 +1,5 @@
+task: bluebench_knowledge_mmlu_pro_history
+include: unitxt
+recipe: card=cards.mmlu_pro.history,template=templates.qa.multiple_choice.blue_bench,demos_pool_size=20,demos_taken_from=test
+metadata:
+  version: 0

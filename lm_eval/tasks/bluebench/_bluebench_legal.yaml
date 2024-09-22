@@ -1,0 +1,9 @@
+group: bluebench_legal
+task:
+  - "bluebench_legal_legalbench_abercrombie"
+  - "bluebench_legal_legalbench_proa"
+  - "bluebench_legal_legalbench_function_of_decision_section"
+  - "bluebench_legal_legalbench_international_citizenship_questions"
+  - "bluebench_legal_legalbench_corporate_lobbying"
+metadata:
+  version: 0

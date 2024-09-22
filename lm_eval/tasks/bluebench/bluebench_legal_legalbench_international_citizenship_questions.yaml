@@ -1,0 +1,5 @@
+task: bluebench_legal_legalbench_international_citizenship_questions
+include: unitxt
+recipe: card=cards.legalbench.international_citizenship_questions,template=templates.classification.multi_class.blue_bench,demos_pool_size=10,demos_taken_from=test
+metadata:
+  version: 0
