@@ -1,0 +1,3 @@
+dataset_name: zul
+include: afrimmlu
+task: afrimmlu_zul_prompt_1

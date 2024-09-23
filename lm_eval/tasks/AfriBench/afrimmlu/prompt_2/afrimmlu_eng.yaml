@@ -1,0 +1,3 @@
+dataset_name: eng
+include: afrimmlu
+task: afrimmlu_eng_prompt_2
