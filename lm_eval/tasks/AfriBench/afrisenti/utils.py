@@ -15,7 +15,7 @@ def prompt_func(mode, lang):
         "prompt_3": f"You are an assistant able to detect sentiments in tweets. \n\n"
                     f"Given the sentiment labels Neutral, Positive or Negative; what is "
                     f"the sentiment of the {lang} statement below? Return only the labels. "
-                    f"\n\ntext: {{tweet}} \nlabel:",
+                    "\n\ntext: {{tweet}} \nlabel:",
         "prompt_4": "Label the following text as Neutral, Positive, or Negative. Provide only the label as your "
                     "response. \n\ntext: {{tweet}} \nlabel: ",
         "prompt_5": f"You are tasked with performing sentiment classification on the following {lang} text. "
@@ -110,7 +110,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--mode",
-        default="prompt_5",
+        default="prompt_3",
         choices=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"],
         help="Prompt number",
     )
