@@ -1,0 +1,22 @@
+group: openai_mmlu
+task:
+  - openai_mmlu_ar_xy
+  - openai_mmlu_bn_bd
+  - openai_mmlu_de_de
+  - openai_mmlu_en_us
+  - openai_mmlu_es_la
+  - openai_mmlu_fr_fr
+  - openai_mmlu_hi_in
+  - openai_mmlu_id_id
+  - openai_mmlu_it_it
+  - openai_mmlu_ja_jp
+  - openai_mmlu_ko_kr
+  - openai_mmlu_pt_br
+  - openai_mmlu_sw_ke
+  - openai_mmlu_yo_ng
+  - openai_mmlu_zh_cn
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1.0.0
