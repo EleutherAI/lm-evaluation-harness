@@ -10,7 +10,8 @@ class FunctionTag:
 
 def prompt_func(mode, lang):
     prompt_map = {
-        "prompt_2": f'Does this {lang} statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only',
+        "prompt_2": f"Does this {lang} statement; "
+                    "'{{tweet}}' have a Neutral, Positive or Negative sentiment? Labels only",
         "prompt_3": f"You are an assistant able to detect sentiments in tweets. \n\n"
                     f"Given the sentiment labels Neutral, Positive or Negative; what is "
                     f"the sentiment of the {lang} statement below? Return only the labels",
@@ -57,7 +58,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
             file_name = f"afrisenti_{lang}.yaml"
             task_name = f"afrisenti_{lang}_{mode}"
             yaml_template = f"afrisenti"
-            if int(mode.split("_")[-1]) > 2:
+            if int(mode.split("_")[-1]) > 1:
                 yaml_details = {
                         "include": yaml_template,
                         "task": task_name,
@@ -107,7 +108,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--mode",
-        default="prompt_5",
+        default="prompt_2",
         choices=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"],
         help="Prompt number",
     )
