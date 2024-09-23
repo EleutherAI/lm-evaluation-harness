@@ -152,7 +152,7 @@ class ManualSampler(ContextSampler):
         pass
 
 
-class FlteringSampler(ContextSampler):
+class FilteringSampler(ContextSampler):
     def __init__(self, docs, task, fewshot_indices=None, rnd=None, filters=[]) -> None:
          super().__init__(docs, task, fewshot_indices, rnd)
          self.filters = filters
@@ -268,7 +268,7 @@ class FlteringSampler(ContextSampler):
 SAMPLER_REGISTRY = {
     "default": ContextSampler,
     "first_n": FirstNSampler,
-    "category_prompt_id_sampler": partial(FlteringSampler, filters=["category", "prompt_id"]),
+    "filtering": FilteringSampler,
 }
 
 

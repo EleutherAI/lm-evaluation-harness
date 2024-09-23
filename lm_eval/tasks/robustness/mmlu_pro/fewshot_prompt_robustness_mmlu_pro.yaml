@@ -9,7 +9,10 @@ process_docs: !function utils.prompt_robustness_process_docs
 doc_to_text: !function utils.robustness_doc_to_text
 doc_to_target: "The best answer is {{answer}}"
 fewshot_config: 
-    sampler: category_prompt_id_sampler
+    sampler: filtering
+    filters:
+        - prompt_id
+        - category
 num_fewshot: 5
 fewshot_split: validation
 generation_kwargs:
