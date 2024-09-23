@@ -6,6 +6,7 @@ task:
   - option_order_robustness_agieval_lsat_lr
   - option_order_robustness_agieval_lsat_rc
   - option_order_robustness_agieval_sat_en
+  - option_order_robustness_agieval_sat_math
 
 aggregate_metric_list:
   - metric: per_option_macro_accuracy_A

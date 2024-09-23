@@ -6,6 +6,7 @@ task:
   - prompt_robustness_agieval_lsat_lr
   - prompt_robustness_agieval_lsat_rc
   - prompt_robustness_agieval_sat_en
+  - prompt_robustness_agieval_sat_math
 
 aggregate_metric_list:
   - metric: prompt_0_macro_accuracy
