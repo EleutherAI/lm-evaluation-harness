@@ -6,6 +6,7 @@ task:
   - option_format_robustness_agieval_lsat_lr
   - option_format_robustness_agieval_lsat_rc
   - option_format_robustness_agieval_sat_en
+  - option_format_robustness_agieval_sat_math
 
 aggregate_metric_list:
   - metric: prompt_0_macro_accuracy
