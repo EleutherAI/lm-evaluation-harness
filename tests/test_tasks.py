@@ -12,7 +12,7 @@ from .utils import new_tasks
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
 # Default Task
-TASKS = ["glianorex_en"]
+TASKS = ["arc_easy"]
 
 
 def task_class():
