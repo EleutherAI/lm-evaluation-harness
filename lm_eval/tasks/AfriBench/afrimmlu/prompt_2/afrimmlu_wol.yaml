@@ -1,0 +1,3 @@
+dataset_name: wol
+include: afrimmlu
+task: afrimmlu_wol_prompt_2

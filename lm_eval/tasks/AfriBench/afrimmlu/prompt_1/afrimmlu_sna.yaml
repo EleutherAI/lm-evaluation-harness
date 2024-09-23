@@ -1,0 +1,3 @@
+dataset_name: sna
+include: afrimmlu
+task: afrimmlu_sna_prompt_1

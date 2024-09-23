@@ -1,0 +1,3 @@
+dataset_name: kin
+include: afrimmlu
+task: afrimmlu_kin_prompt_1

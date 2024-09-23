@@ -1,0 +1,3 @@
+dataset_name: sot
+include: afrimmlu
+task: afrimmlu_sot_prompt_1

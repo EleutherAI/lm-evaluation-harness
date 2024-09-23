@@ -1,0 +1,3 @@
+dataset_name: ibo
+include: afrimmlu
+task: afrimmlu_ibo_prompt_1

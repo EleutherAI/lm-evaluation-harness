@@ -1,0 +1,3 @@
+dataset_name: xho
+include: afrimmlu
+task: afrimmlu_xho_prompt_2
