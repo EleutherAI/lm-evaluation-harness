@@ -13,7 +13,7 @@ def prompt_func(mode, lang):
         "prompt_3": f"Given the following premise and hypothesis in {lang}, identify if the premise entails, contradicts, "
                     f"or is neutral towards the hypothesis. Please respond with exact 'entailment', 'contradiction', or 'neutral'. \n\n"
                     "Premise: {{premise}} \nHypothesis: {{hypothesis}}",
-        "prompt_4": f"You are an expert in Natural Language Inference (NLI) specializing in the {lang} language."
+        "prompt_4": f"You are an expert in Natural Language Inference (NLI) specializing in the {lang} language.\n"
                     f"Analyze the premise and hypothesis given in {lang}, and determine the relationship between them.\n "
                     f"Respond with one of the following options: 'entailment', 'contradiction', or 'neutral'. \n\n"
                     "Premise: {{premise}} \nHypothesis: {{hypothesis}}",
@@ -107,7 +107,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--mode",
-        default="prompt_3",
+        default="prompt_4",
         choices=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"],
         help="Prompt number",
     )
