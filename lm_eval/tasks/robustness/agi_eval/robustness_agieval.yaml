@@ -1,0 +1,7 @@
+group: robustness_agieval
+task:
+  - option_format_robustness_agieval
+  - prompt_robustness_agieval
+  - option_order_robustness_agieval
+metadata:
+  version: 1.0
