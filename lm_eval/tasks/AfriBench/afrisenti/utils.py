@@ -10,10 +10,12 @@ class FunctionTag:
 
 def prompt_func(mode, lang):
     prompt_map = {
-        "prompt_2": f'Does this {lang} statement; "{{tweet}}" have a Neutral, Positive or Negative sentiment? Labels only',
+        "prompt_2": f"Does this {lang} statement; "
+                    "'{{tweet}}' have a Neutral, Positive or Negative sentiment? Labels only",
         "prompt_3": f"You are an assistant able to detect sentiments in tweets. \n\n"
                     f"Given the sentiment labels Neutral, Positive or Negative; what is "
-                    f"the sentiment of the {lang} statement below? Return only the labels",
+                    f"the sentiment of the {lang} statement below? Return only the labels. "
+                    f"\n\ntext: {{tweet}} \nlabel:",
         "prompt_4": "Label the following text as Neutral, Positive, or Negative. Provide only the label as your "
                     "response. \n\ntext: {{tweet}} \nlabel: ",
         "prompt_5": f"You are tasked with performing sentiment classification on the following {lang} text. "
@@ -23,7 +25,8 @@ def prompt_func(mode, lang):
                     f"Negative: The text conveys disappointment, dissatisfaction, or pessimism. \n"
                     f"Neutral: The text is factual, objective, or without strong emotional undertones. \n\n"
                     f"If the text contains both positive and negative sentiments, choose the dominant sentiment. "
-                    f"For ambiguous or unclear sentiments, select the label that best reflects the overall tone. Please provide a single classification for each input."
+                    f"For ambiguous or unclear sentiments, select the label that best reflects the overall tone. "
+                    'Please provide a single classification for each input.\n\ntext: {{tweet}} \nlabel: '
     }
     return prompt_map[mode]
 
@@ -57,7 +60,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
             file_name = f"afrisenti_{lang}.yaml"
             task_name = f"afrisenti_{lang}_{mode}"
             yaml_template = f"afrisenti"
-            if int(mode.split("_")[-1]) > 2:
+            if int(mode.split("_")[-1]) > 1:
                 yaml_details = {
                         "include": yaml_template,
                         "task": task_name,

@@ -13,7 +13,7 @@ doc_to_choice:
     - "positive"
     - "neutral"
 should_decontaminate: true
-doc_to_decontamination_query: tweet
+doc_to_decontamination_query: 'Text: {{tweet}} \nlabel:'
 metric_list:
   - metric: f1
     aggregation: !function utils.weighted_f1_score
