@@ -1,5 +1,4 @@
-group:
-  - afribench
+tag: afrisenti_tasks
 task: null
 dataset_path: masakhane/afrisenti
 dataset_name: null
