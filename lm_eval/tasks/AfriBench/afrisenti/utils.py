@@ -65,7 +65,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                         "include": yaml_template,
                         "task": task_name,
                         "dataset_name": lang,
-                        "doc_to_text": prompt_func(mode, languages[lang])
+                        "doc_to_text": prompt_func(mode, languages[lang]),
                     }
             else:
                 yaml_details = {
@@ -110,7 +110,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--mode",
-        default="prompt_3",
+        default="prompt_1",
         choices=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"],
         help="Prompt number",
     )
