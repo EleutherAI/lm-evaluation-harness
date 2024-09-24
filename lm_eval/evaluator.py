@@ -433,12 +433,14 @@ def evaluate(
             )
     # end multimodality validation check
 
+    # Cache the limit arg.
+    limit_arg = limit
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        limit_int = get_sample_size(task, limit)
+        limit = get_sample_size(task, limit_arg)
         task.build_all_requests(
-            limit=limit_int,
+            limit=limit,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
