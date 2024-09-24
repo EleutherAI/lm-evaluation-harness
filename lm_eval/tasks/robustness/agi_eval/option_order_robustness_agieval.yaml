@@ -1,0 +1,31 @@
+group: option_order_robustness_agieval
+task:
+  - option_order_robustness_agieval_aqua_rat
+  - option_order_robustness_agieval_logiqa_en
+  - option_order_robustness_agieval_lsat_ar
+  - option_order_robustness_agieval_lsat_lr
+  - option_order_robustness_agieval_lsat_rc
+  - option_order_robustness_agieval_sat_en
+  - option_order_robustness_agieval_sat_math
+
+aggregate_metric_list:
+  - metric: per_option_macro_accuracy_A
+    aggregation: mean
+    weight_by_size: false
+  - metric: per_option_macro_accuracy_B
+    aggregation: mean
+    weight_by_size: false
+  - metric: per_option_macro_accuracy_C
+    aggregation: mean
+    weight_by_size: false
+  - metric: per_option_macro_accuracy_D
+    aggregation: mean
+    weight_by_size: false
+  - metric: per_option_macro_accuracy_E
+    aggregation: mean
+    weight_by_size: false
+  - metric: options_consistency_rate
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

@@ -121,8 +121,6 @@ class TaskConfig(dict):
                     self.generation_kwargs["temperature"]
                 )
 
-            if "until" not in self.generation_kwargs:
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
@@ -866,9 +864,19 @@ class ConfigurableTask(Task):
                 else "default"
             )
             if isinstance(config_sampler, str):
-                self.sampler = samplers.get_sampler(config_sampler)(
-                    list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
-                )
+                sampler_cls = samplers.get_sampler(config_sampler)
+                if sampler_cls == samplers.FilteringSampler:
+                    filters = self.config.fewshot_config.get("filters", [])
+                    self.sampler = sampler_cls(
+                        list(self.fewshot_docs()), 
+                        self, 
+                        rnd=self.fewshot_rnd, 
+                        filters=filters
+                    )
+                else:
+                    self.sampler = sampler_cls(
+                        list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
+                    )
             elif callable(config_sampler) and issubclass(
                 config_sampler, samplers.ContextSampler
             ):
