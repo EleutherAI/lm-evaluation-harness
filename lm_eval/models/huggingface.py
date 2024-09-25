@@ -457,12 +457,14 @@ class HFLM(TemplateLM):
 
         assert backend in ["default", "causal", "seq2seq"]
 
-        if self.backend != "default":
+        if backend != "default":
             # if we've settled on non-default backend, use that manually
-            if self.backend == "causal":
+            if backend == "causal":
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
-            elif self.backend == "seq2seq":
+                self.backend = backend
+            elif backend == "seq2seq":
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
+                self.backend = backend
             eval_logger.info(
                 f"Overrode HF model backend type, and using type '{backend}'"
             )
