@@ -6,6 +6,10 @@ import datasets
 from lm_eval.api.task import ConfigurableTask
 
 
+# TODO: multifilter tasks
+# TODO: should we have a standard structure (modelA, modelB etc)
+# TODO: what about parsing the doc (rather than just resps from json)
+# TODO: best way for chat-template doc_to_text?
 class JudgeTask(ConfigurableTask):
     def __init__(
         self,
@@ -34,7 +38,7 @@ class JudgeTask(ConfigurableTask):
         resps = []
         # load json
         if self.output_path is not None:
-            with open(self.output_path, "r", encoding='utf-8') as f:
+            with open(self.output_path, "r", encoding="utf-8") as f:
                 for line in f:
                     resp = json.loads(line)
                     resps.append({"resp": resp["resps"][0][0], "doc": resp["doc_id"]})
