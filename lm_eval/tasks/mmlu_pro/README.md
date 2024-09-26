@@ -60,5 +60,5 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 
-* (tasks, group) 2024-09-23 -- (ver 1, ver 2)
-  * Added one newline to task description(s) as per reference implementation
+* (tasks, group) 2024-09-23 -- (version 1 --> version 2)
+  * Added one newline to task description(s) as per [reference implementation](https://github.com/TIGER-AI-Lab/MMLU-Pro/blob/47b9891aacb8bd7cda29d5c5ba17b9434dd333bc/evaluate_from_local.py#L93)
