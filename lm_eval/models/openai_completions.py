@@ -195,10 +195,13 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         return key
 
     def loglikelihood(self, requests, **kwargs):
-        assert self.model in [
-            "babbage-002",
-            "davinci-002",
-        ], f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
+        assert (
+            self.model
+            in [
+                "babbage-002",
+                "davinci-002",
+            ]
+        ), f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
         return super().loglikelihood(requests, **kwargs)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
