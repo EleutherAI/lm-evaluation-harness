@@ -9,5 +9,6 @@ task: evalita-mp_ner_fic_p1
 # English
 #doc_to_text: "Given the following text, write the entity mentions in the text, indicating their type: [PER] (person), [LOC] (location), [ORG] (organization). Respond with the following format: Entity$Type. Separate each entity-type pair with the '%' character. Text: {{text}}"
 # Italian
-doc_to_text: "Dato il seguente testo, scrivi le menzioni di entità nel testo, indicandone il tipo: PER (persona), LOC (luogo), ORG (organizzazione). Rispondi con il seguente formato: Entità$Tipo%Entità$Tipo. Separa ogni coppia entità-tipo con il carattere '%' ad esempio:  Entità_2$Tipo%Entità_2$Tipo. In caso non ci siano entita' rispondi '&&NOENT&&'.
-Testo: {{text}}"
+#doc_to_text: "Dato il seguente testo, scrivi le menzioni di entità nel testo, indicandone il tipo: PER (persona), LOC (luogo), ORG (organizzazione). Rispondi con il seguente formato: Entità$Tipo%Entità$Tipo. Separa ogni coppia entità-tipo con il carattere '%' ad esempio:  Entità_2$Tipo%Entità_2$Tipo. In caso non ci siano entita' rispondi '&&NOENT&&'.
+#Testo: {{text}}"
+doc_to_text: "Estrai tutti i nomi di persone, luoghi e organizzazioni dal testo seguente. Riporta il risultato con una lista di coppie del tipo nome-persona$PER, nome-luogo$LOC, nome-organizzazione$ORG separando ciascuna coppia con '%'. Se non ci sono nomi da estrarre, rispondi con '&&NOENT&&'.\nTesto: '{{text}}'\nLista:"

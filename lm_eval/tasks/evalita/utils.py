@@ -49,7 +49,7 @@ def sa_doc_to_choice(x):
     """
     Function to return the choices from the dataset for sentiment analysis
     """
-    return ["positivo", "negativo", "neutrale", "misto"]
+    return ["Positivo", "Negativo", "Neutrale", "Misto"]
 
 
 # ---------------------- LEXICAL SUBSTITUTION ----------------------
