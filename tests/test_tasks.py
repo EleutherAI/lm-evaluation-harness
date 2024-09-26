@@ -101,7 +101,11 @@ class TestNewTasks:
         )
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
-            assert all(isinstance(label, int) for label in _array_target)
+            # TODO<baber>: label can be string or int; add better test conditions
+            assert all(
+                (isinstance(label, int) or isinstance(label, str))
+                for label in _array_target
+            )
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
