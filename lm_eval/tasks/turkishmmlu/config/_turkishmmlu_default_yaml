@@ -1,0 +1,21 @@
+tag: turkishmmlu
+task: null
+dataset_path: AYueksel/TurkishMMLU
+dataset_name: TurkishMMLU
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: "Soru: {{ question.strip() }}\nA. {{ choices[0] }}\nB. {{ choices[1] }}\nC. {{ choices[2] }}\nD. {{ choices[3] }}\nE. {{ choices[4] }}\nCevap:"
+doc_to_choice: ["A", "B", "C", "D", "E"]
+doc_to_target: "{{['A', 'B', 'C', 'D', 'E'].index(answer)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
