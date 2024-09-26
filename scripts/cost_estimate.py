@@ -22,6 +22,7 @@ class DryrunLM(LM):
         res = []
         for ctx, cont in [req.args for req in requests]:
             res.append((-random.random(), False))
+            # we do not generate for loglikelihood but
             # +1 for API models as they require at least on gen token
             self.tokencost += len(self.tokenizer.tokenize(ctx + cont)) + 1
 
