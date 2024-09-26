@@ -1,4 +1,4 @@
-tag: TurkishMMLU_Cot
+tag: turkishmmlu_cot
 task: null
 dataset_path: AYueksel/TurkishMMLU
 dataset_name: TurkishMMLU

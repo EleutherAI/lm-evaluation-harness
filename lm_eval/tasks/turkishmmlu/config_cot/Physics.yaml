@@ -1,5 +1,5 @@
-include: _default.yaml
-task: TurkishMMLU_Cot_Physics
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_physics
 description:
   "Soru: 20°C sıcaklığında R direncine sahip silindirik bakır tel eritilerek boyu ilk boyunun iki katı kadar ve yine\
   \ silindirik olacak biçimde yeni bir kalıba dökülüyor. Bu durumda yeni telin direnci kaç R olur?\nA)\

@@ -1,5 +1,5 @@
-include: _default.yaml
-task: TurkishMMLU_Cot_Chemistry
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_chemistry
 description:
   "Soru: 16 litre CO ve CO $_{2}$  gaz karışımını yakmak için aynı koşullarda 30 litre hava kullanılmaktadır.\
   \ Buna göre başlangıç karışımındaki VCO\/VCO$_{2}$ oranı aşağıdakilerden hangisidir?(Havanın 1\/5’i oksijen gazıdır.)\nA)\

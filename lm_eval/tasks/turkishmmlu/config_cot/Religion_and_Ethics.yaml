@@ -1,5 +1,5 @@
-include: _default.yaml
-task: TurkishMMLU_Cot_Religion_and_Ethics
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_religion_and_ethics
 description:
   "Soru: (I)  Allah’a (c.c.) inanmak insanın hayatında olumlu değişiklikler yapar. (II)  Bunun nedeni imanın; duygu, düşünce ve davranışlar üzerinde etkili olmasıdır.\
   \ (III)  İnsanın Allah (c.c.) ile irtibatı dua, ibadet, tövbe ve Kur’an okuma gibi yollarla gerçekleşir. (IV)  İnsan büyük oranda inancına göre görür, düşünür ve davranışlar sergiler.\

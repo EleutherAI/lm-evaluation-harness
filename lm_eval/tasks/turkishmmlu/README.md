@@ -66,18 +66,18 @@ url={https://arxiv.org/abs/2407.12402},
 
 #### Groups
 
-- `TurkishMMLU`: 'All 9 Subjects of Turkish MMLU namely:
+- `turkishmmlu`: 'All 9 Subjects of Turkish MMLU namely:
   Biology, Chemistry, Physics, Geography, Philosophy, History, Religion and Ethics, Turkish Language and Literature, and Mathematics
 
 #### Tasks
 
 The following tasks evaluate subjects in the TurkishMMLU dataset
 
-- `TurkishMMLU_{subject}`
+- `turkishmmlu_{subject}`
 
 The following task evaluate subjects in the TurkishMMLU dataset in Chain-of-Thought (COT)
 
-- `TurkishMMLU_Cot_{subject}`
+- `turkishmmlu_cot_{subject}`
 
 ### Checklist
 

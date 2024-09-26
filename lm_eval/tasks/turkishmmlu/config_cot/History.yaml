@@ -1,5 +1,5 @@
-include: _default.yaml
-task: TurkishMMLU_Cot_History
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_history
 description:
   "Soru: Denizcilikte öne çıkan ............. Beyliği Balıkesir bölgesinde kuruldu.\
   \ Osmanlı Devleti’ne .............. döneminde katıldı. Bu beyliğin Osmanlı Devletine katılmasıyla Osmanlı\
