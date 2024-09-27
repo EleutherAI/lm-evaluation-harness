@@ -28,6 +28,8 @@ Paper for SpanishBench coming soon.
 
 - `spanish_bench`: All tasks included in SpanishBench.
 - `flores_es`: All FLORES translation tasks from or to Spanish.
+
+#### Tags
 - `phrases_es`: Two Phrases_va tasks for language adaptation between Spanish and Valencian.
 
 #### Tasks
@@ -54,9 +56,6 @@ The following tasks evaluate tasks on SpanishBench dataset using various scoring
   - `mgsm_direct_es_v2` (`v2` is due to an existing open issue in the original task)
   - `paws_es`
   - `phrases_es`
-  - `veritasqa_gen_es`
-  - `veritasqa_mc1_es`
-  - `veritasqa_mc2_es`
   - `wnli_es`
   - `xlsum_es`
   - `xnli_es`
@@ -67,9 +66,6 @@ Some of these tasks are taken from benchmarks already available in LM Evaluation
 - `belebele_spa_Latn`: Belebele Spanish
 - `mgsm_direct_es`: MGSM Spanish (We fix an existing open issue in the original task)
 - `paws_es`: PAWS-X Spanish
-- `veritasqa_gen_es`: VeritasQA Spanish
-- `veritasqa_mc1_es`: VeritasQA Spanish
-- `veritasqa_mc2_es`: VeritasQA Spanish
 - `xnli_es`: XNLI Spanish
 - `xstorycloze_es`: XStoryCloze Spanish
 
