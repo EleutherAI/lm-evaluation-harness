@@ -1,4 +1,4 @@
-dataset_path: openai/mmmlu # a copy of `cais/mmlu` with no auxiliary_train split
+dataset_path: baber/multilingual_mmlu # a copy of `cais/mmlu` with no auxiliary_train split
 fewshot_split: null
 fewshot_config: null
 output_type: multiple_choice

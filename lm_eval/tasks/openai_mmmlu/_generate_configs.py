@@ -109,7 +109,7 @@ if __name__ == "__main__":
                     "tag": f"openai_mmmlu_{prompt_key}_{_langgode}_{category}",
                     "task": f"openai_mmmlu_{prompt_key}_{_langgode}_{subject}",
                     "task_alias": f'{_langgode} {subject.replace("_", " ")}',
-                    "dataset_name": "by_language",
+                    "dataset_name": subject,
                     "test_split": langgode,
                     "description": prompt_info["description"].format(subject),
                     "doc_to_text": prompt_info["prompt"]
