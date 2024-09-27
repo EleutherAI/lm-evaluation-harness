@@ -1,5 +1,3 @@
-group:
-  - xcopa
 task: xcopa_eu
 dataset_path: HiTZ/XCOPA-eu
 dataset_name: null

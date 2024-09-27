@@ -1,5 +1,3 @@
-group:
-  - mgsm_cot_native
 task: mgsm_native_cot_eu
 dataset_path: HiTZ/MGSM-eu
 dataset_name: null

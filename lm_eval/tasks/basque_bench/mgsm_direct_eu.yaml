@@ -1,5 +1,3 @@
-group:
-  - mgsm_direct
 task: mgsm_direct_eu
 dataset_path: HiTZ/MGSM-eu
 dataset_name: null
