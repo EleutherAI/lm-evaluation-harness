@@ -1,5 +1,3 @@
-group:
-    - pawsx
 task: paws_gl
 dataset_path: proxectonos/PAWS-gl
 dataset_name: null

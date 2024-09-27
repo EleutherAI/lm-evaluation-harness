@@ -1,5 +1,3 @@
-group:
-    - xnli
 task: xnli_gl
 dataset_path: proxectonos/xnli_gl
 dataset_name: null

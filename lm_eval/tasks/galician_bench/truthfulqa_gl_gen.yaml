@@ -1,5 +1,4 @@
-group:
-  - truthfulqa_gl
+tag: truthfulqa_gl
 task: truthfulqa_gl_gen
 dataset_path: proxectonos/truthfulqa_gl
 dataset_name: generation

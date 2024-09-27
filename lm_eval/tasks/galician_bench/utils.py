@@ -1,16 +1,19 @@
 import re
 from itertools import product
-import evaluate
-import transformers.data.metrics.squad_metrics as squad_metrics
-from lm_eval.utils import general_detokenize
+
 import datasets
+import evaluate
 import numpy as np
 import sacrebleu
+import transformers.data.metrics.squad_metrics as squad_metrics
 from rouge_score import rouge_scorer, scoring
+
+from lm_eval.utils import general_detokenize
 
 
 def lowercase_first_letter(text):
-	return text[0].lower() + text[1:]
+    return text[0].lower() + text[1:]
+
 
 def process_summarization(dataset):
     def _process_doc(doc):
@@ -18,11 +21,13 @@ def process_summarization(dataset):
         doc["text"] = re.sub(r" +", " ", doc["text"])
         doc["summary"] = re.sub(r" +", " ", doc["summary"])
         return doc
+
     return dataset.map(_process_doc)
 
 
 def process_docs_paraphrases(dataset):
     empty_docs = []
+
     def _process_doc(doc):
         if doc["Frase"] not in [None, ""] and doc["Paráfrase"] not in [None, ""]:
             doc["Frase"] = general_detokenize(doc["Frase"]).strip()
@@ -36,14 +41,21 @@ def process_docs_paraphrases(dataset):
         else:
             empty_docs.append(doc)
             return doc
+
     if empty_docs != []:
         len_empty_docs = len(empty_docs)
-        print(f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}")
-    return dataset.filter(lambda doc: doc["Frase"] not in [None, ""] and doc["Paráfrase"] not in [None, ""]).map(_process_doc)
+        print(
+            f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
+        )
+    return dataset.filter(
+        lambda doc: doc["Frase"] not in [None, ""]
+        and doc["Paráfrase"] not in [None, ""]
+    ).map(_process_doc)
 
 
 def process_docs_paws(dataset):
     empty_docs = []
+
     def _process_doc(doc):
         if doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]:
             doc["sentence1"] = general_detokenize(doc["sentence1"]).strip()
@@ -57,11 +69,16 @@ def process_docs_paws(dataset):
         else:
             empty_docs.append(doc)
             return doc
+
     if empty_docs != []:
         len_empty_docs = len(empty_docs)
-        print(f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}")
-    return dataset.filter(lambda doc: doc["sentence1"] not in [None, ""] and doc["sentence2"] not in [None, ""]).map(_process_doc)
-
+        print(
+            f"Found {len_empty_docs} empty documents out of the {len(dataset)} total docs in the dataset: {empty_docs}"
+        )
+    return dataset.filter(
+        lambda doc: doc["sentence1"] not in [None, ""]
+        and doc["sentence2"] not in [None, ""]
+    ).map(_process_doc)
 
 
 def rouge1(items):
@@ -78,9 +95,10 @@ def rouge1_agg(items):
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     rouge_scorer = evaluate.load("rouge")
-    #import code; code.interact(local=dict(globals(), **locals()))
+    # import code; code.interact(local=dict(globals(), **locals()))
     return rouge_scorer.compute(predictions=preds, references=refs)["rouge1"]
-    
+
+
 def process_results_mc2(doc, results):
     lls, is_greedy = zip(*results)
 
@@ -127,18 +145,28 @@ def process_doc_nli(dataset):
         # Detokenize(remove extra whitespaces)
         doc["sentence1"] = general_detokenize(doc["sentence1"]).strip()
         doc["sentence2"] = general_detokenize(doc["sentence2"]).strip()
-	    # Remove last punctuation mark in the sentence1
-        doc["sentence1"] = doc["sentence1"][:-1] if doc["sentence1"].endswith((".", ",", "!", "?")) else doc["sentence1"]
-	    # Lowercase the first letter in the sentence2
+        # Remove last punctuation mark in the sentence1
+        doc["sentence1"] = (
+            doc["sentence1"][:-1]
+            if doc["sentence1"].endswith((".", ",", "!", "?"))
+            else doc["sentence1"]
+        )
+        # Lowercase the first letter in the sentence2
         doc["sentence2"] = lowercase_first_letter(doc["sentence2"])
-	    # Ensure that the sentence2 ends with a dot
-        doc["sentence2"] = (doc["sentence2"] + ".") if not doc["sentence2"].endswith(".") else doc["sentence2"]
+        # Ensure that the sentence2 ends with a dot
+        doc["sentence2"] = (
+            (doc["sentence2"] + ".")
+            if not doc["sentence2"].endswith(".")
+            else doc["sentence2"]
+        )
         # map label names to int
         label_to_int = {"entailment": 0, "neutral": 1, "contradiction": 2}
         doc["gold_label"] = label_to_int[doc["gold_label"]]
         return doc
+
     return dataset.map(process_fn)
-    
+
+
 def process_results_gen(doc, results):
     completion = results[0]
     true_refs, false_refs = doc["correct_answers"], doc["incorrect_answers"]
@@ -259,4 +287,3 @@ def rouge(refs, preds):
         aggregator.add_scores(scorer.score(ref, pred))
     result = aggregator.aggregate()
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
-

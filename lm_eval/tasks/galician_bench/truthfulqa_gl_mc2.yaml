@@ -1,5 +1,4 @@
-group:                                              
-  - truthfulqa_gl
+tag: truthfulqa_gl
 include: truthfulqa_gl_mc1.yaml
 task: truthfulqa_gl_mc2
 doc_to_target: 0

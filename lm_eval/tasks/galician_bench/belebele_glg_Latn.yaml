@@ -1,5 +1,3 @@
-group:
-    - belebele
 task: belebele_glg_Latn
 include: ../belebele/_default_template_yaml
 dataset_path: proxectonos/belebele_gl

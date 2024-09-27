@@ -19,5 +19,6 @@ task:
 aggregate_metric_list:
   - metric: bleu
     aggregation: mean
+    weight_by_size: false
 metadata:
   version: 1.0

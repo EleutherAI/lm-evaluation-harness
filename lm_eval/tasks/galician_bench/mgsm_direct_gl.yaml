@@ -1,5 +1,3 @@
-group:
-    - mgsm_direct
 task: mgsm_direct_gl
 dataset_path: proxectonos/mgsm_gl
 doc_to_target: '{{answer_number|string}}'
