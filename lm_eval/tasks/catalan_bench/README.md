@@ -54,10 +54,11 @@ Paper for CatalanBench coming soon.
 #### Groups
 
 - `catalan_bench`: All tasks included in CatalanBench.
-- `cabreu`: Three CaBREU tasks for each type of summary (extractive, abstractive and extreme).
 - `flores_ca`: All FLORES translation tasks from or to Catalan.
-- `phrases_ca`: Two Phrases_va tasks for language adaptation between Catalan and Valencian.
 
+#### Tags
+- `cabreu`: Three CaBREU tasks for each type of summary (extractive, abstractive and extreme).
+- `phrases_va`: Two Phrases_va tasks for language adaptation between Catalan and Valencian.
 
 #### Tasks
 
@@ -105,9 +106,6 @@ The following tasks evaluate tasks on CatalanBench dataset using various scoring
 
 Some of these tasks are taken from benchmarks already available in LM Evaluation Harness. These are:
 - `belebele_cat_Latn`: Belebele Catalan
-- `veritasqa_gen_ca`: VeritasQA Catalan
-- `veritasqa_mc1_ca`: VeritasQA Catalan
-- `veritasqa_mc2_ca`: VeritasQA Catalan
 
 
 ### Checklist

@@ -8,7 +8,6 @@ validation_split: null
 test_split: test
 target_delimiter: ' '
 process_results: !function utils.process_results_qa
-test_split: test
 generation_kwargs:
   until:
     - "\n"

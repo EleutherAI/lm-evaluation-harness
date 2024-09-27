@@ -1,5 +1,3 @@
-group:
-    - xnli
 task: xnli_ca
 dataset_path: projecte-aina/xnli-ca
 dataset_name: null

@@ -1,5 +1,3 @@
-group:
-    - mgsm_direct
 task: mgsm_direct_ca
 dataset_path: projecte-aina/mgsm_ca
 doc_to_target: '{{answer_number|string}}'
