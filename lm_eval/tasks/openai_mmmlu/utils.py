@@ -85,6 +85,7 @@ LANGUAGES = {
     "ZH_CN": "Chinese (China)",
     "SW_KE": "Swahili (Kenya)",
     "YO_NG": "Yoruba (Nigeria)",
+    "EN_US": "English (United States)",
 }
 
 ANSWERS = {
@@ -102,6 +103,7 @@ ANSWERS = {
     "ZH_CN": "回答:",
     "SW_KE": "Jawabu:",
     "YO_NG": "Idahun:",
+    "EN_US": "Answer:",
 }
 
 
