@@ -9,7 +9,7 @@ task:
       - metric: acc
         weight_by_size: True
     metadata:
-      version: 1
+      version: 2
   - group: mmlusr_ao_other
     group_alias: Other (Answer Only)
     task:
@@ -18,7 +18,7 @@ task:
       - metric: acc
         weight_by_size: True
     metadata:
-      version: 1
+      version: 2
   - group: mmlusr_ao_social_sciences
     group_alias: Social Sciences (Answer Only)
     task:
@@ -27,7 +27,7 @@ task:
       - metric: acc
         weight_by_size: True
     metadata:
-      version: 1
+      version: 2
   - group: mmlusr_ao_humanities
     group_alias: Humanities (Answer Only)
     task:
@@ -36,9 +36,9 @@ task:
       - metric: acc
         weight_by_size: True
     metadata:
-      version: 1
+      version: 2
 aggregate_metric_list:
   - metric: acc
     weight_by_size: True
 metadata:
-  version: 1
+  version: 2

@@ -1,8 +1,6 @@
 dataset_name: ruin_names
 description: 'Select the humorous edit that ''ruins'' the input movie or musical artist
-  name.
-
-        '
+  name.'
 doc_to_choice: ["(A)","(B)","(C)","(D)","(E)","(F)"]
 fewshot_config:
   sampler: first_n
