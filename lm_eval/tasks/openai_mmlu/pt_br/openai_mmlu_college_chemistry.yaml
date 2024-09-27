@@ -1,8 +1,0 @@
-"dataset_name": "college_chemistry"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ chemistry in the Portuguese (Brazil) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_pt_br_stem"
-"task": "mmlu_pt_br_college_chemistry"
-"task_alias": "pt_br college chemistry"
-"test_split": "PT_BR"

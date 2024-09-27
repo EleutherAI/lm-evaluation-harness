@@ -1,8 +1,0 @@
-"dataset_name": "professional_law"
-"description": "The following are multiple choice questions (with answers) about professional\
-  \ law in the Portuguese (Brazil) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_pt_br_humanities"
-"task": "mmlu_pt_br_professional_law"
-"task_alias": "pt_br professional law"
-"test_split": "PT_BR"

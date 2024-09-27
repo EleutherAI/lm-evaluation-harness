@@ -1,8 +1,0 @@
-"dataset_name": "miscellaneous"
-"description": "The following are multiple choice questions (with answers) about miscellaneous\
-  \ in the Chinese (China) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_zh_cn_other"
-"task": "mmlu_zh_cn_miscellaneous"
-"task_alias": "zh_cn miscellaneous"
-"test_split": "ZH_CN"

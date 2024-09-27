@@ -1,8 +1,0 @@
-"dataset_name": "jurisprudence"
-"description": "The following are multiple choice questions (with answers) about jurisprudence\
-  \ in the Bengali (Bangladesh) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_bn_bd_humanities"
-"task": "mmlu_bn_bd_jurisprudence"
-"task_alias": "bn_bd jurisprudence"
-"test_split": "BN_BD"

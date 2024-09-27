@@ -1,8 +1,0 @@
-"dataset_name": "professional_psychology"
-"description": "The following are multiple choice questions (with answers) about professional\
-  \ psychology in the Bengali (Bangladesh) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_bn_bd_social_sciences"
-"task": "mmlu_bn_bd_professional_psychology"
-"task_alias": "bn_bd professional psychology"
-"test_split": "BN_BD"

@@ -1,8 +1,0 @@
-"dataset_name": "sociology"
-"description": "The following are multiple choice questions (with answers) about sociology\
-  \ in the French (France) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_fr_fr_social_sciences"
-"task": "mmlu_fr_fr_sociology"
-"task_alias": "fr_fr sociology"
-"test_split": "FR_FR"

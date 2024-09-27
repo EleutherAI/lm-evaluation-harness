@@ -1,8 +1,0 @@
-"dataset_name": "astronomy"
-"description": "The following are multiple choice questions (with answers) about astronomy\
-  \ in the Portuguese (Brazil) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_pt_br_stem"
-"task": "mmlu_pt_br_astronomy"
-"task_alias": "pt_br astronomy"
-"test_split": "PT_BR"

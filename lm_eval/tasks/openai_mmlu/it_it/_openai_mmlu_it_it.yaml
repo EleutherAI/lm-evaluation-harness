@@ -1,9 +1,0 @@
-aggregate_metric_list:
--   metric: acc
-    weight_by_size: true
-group: openai_mmlu_it_it
-group_alias: it_it
-metadata:
-    version: 1.0.0
-task:
-- mmlu_it_it_tasks

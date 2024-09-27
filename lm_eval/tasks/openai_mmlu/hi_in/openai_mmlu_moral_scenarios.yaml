@@ -1,8 +1,0 @@
-"dataset_name": "moral_scenarios"
-"description": "The following are multiple choice questions (with answers) about moral\
-  \ scenarios in the Hindi (India) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_hi_in_humanities"
-"task": "mmlu_hi_in_moral_scenarios"
-"task_alias": "hi_in moral scenarios"
-"test_split": "HI_IN"

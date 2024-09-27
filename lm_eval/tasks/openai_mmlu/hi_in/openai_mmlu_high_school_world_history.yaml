@@ -1,8 +1,0 @@
-"dataset_name": "high_school_world_history"
-"description": "The following are multiple choice questions (with answers) about high\
-  \ school world history in the Hindi (India) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_hi_in_humanities"
-"task": "mmlu_hi_in_high_school_world_history"
-"task_alias": "hi_in high school world history"
-"test_split": "HI_IN"

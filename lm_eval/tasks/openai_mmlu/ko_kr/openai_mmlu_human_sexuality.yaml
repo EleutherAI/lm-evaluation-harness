@@ -1,8 +1,0 @@
-"dataset_name": "human_sexuality"
-"description": "The following are multiple choice questions (with answers) about human\
-  \ sexuality in the Korean (South Korea) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_ko_kr_social_sciences"
-"task": "mmlu_ko_kr_human_sexuality"
-"task_alias": "ko_kr human sexuality"
-"test_split": "KO_KR"

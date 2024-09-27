@@ -1,8 +1,0 @@
-"dataset_name": "professional_accounting"
-"description": "The following are multiple choice questions (with answers) about professional\
-  \ accounting in the Spanish (Latin America) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_es_la_other"
-"task": "mmlu_es_la_professional_accounting"
-"task_alias": "es_la professional accounting"
-"test_split": "ES_LA"

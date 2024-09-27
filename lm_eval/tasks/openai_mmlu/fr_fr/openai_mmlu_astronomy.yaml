@@ -1,8 +1,0 @@
-"dataset_name": "astronomy"
-"description": "The following are multiple choice questions (with answers) about astronomy\
-  \ in the French (France) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_fr_fr_stem"
-"task": "mmlu_fr_fr_astronomy"
-"task_alias": "fr_fr astronomy"
-"test_split": "FR_FR"

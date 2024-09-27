@@ -1,8 +1,0 @@
-"dataset_name": "abstract_algebra"
-"description": "The following are multiple choice questions (with answers) about abstract\
-  \ algebra in the Indonesian (Indonesia) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_id_id_stem"
-"task": "mmlu_id_id_abstract_algebra"
-"task_alias": "id_id abstract algebra"
-"test_split": "ID_ID"

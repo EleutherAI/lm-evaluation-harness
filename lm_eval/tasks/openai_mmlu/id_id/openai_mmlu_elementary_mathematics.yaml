@@ -1,8 +1,0 @@
-"dataset_name": "elementary_mathematics"
-"description": "The following are multiple choice questions (with answers) about elementary\
-  \ mathematics in the Indonesian (Indonesia) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_id_id_stem"
-"task": "mmlu_id_id_elementary_mathematics"
-"task_alias": "id_id elementary mathematics"
-"test_split": "ID_ID"

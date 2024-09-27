@@ -1,8 +1,0 @@
-"dataset_name": "moral_scenarios"
-"description": "The following are multiple choice questions (with answers) about moral\
-  \ scenarios in the Bengali (Bangladesh) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_bn_bd_humanities"
-"task": "mmlu_bn_bd_moral_scenarios"
-"task_alias": "bn_bd moral scenarios"
-"test_split": "BN_BD"

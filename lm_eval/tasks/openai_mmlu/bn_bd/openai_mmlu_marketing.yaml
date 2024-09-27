@@ -1,8 +1,0 @@
-"dataset_name": "marketing"
-"description": "The following are multiple choice questions (with answers) about marketing\
-  \ in the Bengali (Bangladesh) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_bn_bd_other"
-"task": "mmlu_bn_bd_marketing"
-"task_alias": "bn_bd marketing"
-"test_split": "BN_BD"

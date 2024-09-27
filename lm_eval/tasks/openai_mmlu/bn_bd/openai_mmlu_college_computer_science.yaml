@@ -1,8 +1,0 @@
-"dataset_name": "college_computer_science"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ computer science in the Bengali (Bangladesh) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_bn_bd_stem"
-"task": "mmlu_bn_bd_college_computer_science"
-"task_alias": "bn_bd college computer science"
-"test_split": "BN_BD"

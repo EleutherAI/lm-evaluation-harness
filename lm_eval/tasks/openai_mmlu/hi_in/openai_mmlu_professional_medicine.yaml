@@ -1,8 +1,0 @@
-"dataset_name": "professional_medicine"
-"description": "The following are multiple choice questions (with answers) about professional\
-  \ medicine in the Hindi (India) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_hi_in_other"
-"task": "mmlu_hi_in_professional_medicine"
-"task_alias": "hi_in professional medicine"
-"test_split": "HI_IN"

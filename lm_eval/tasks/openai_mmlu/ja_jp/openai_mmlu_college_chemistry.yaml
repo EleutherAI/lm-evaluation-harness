@@ -1,8 +1,0 @@
-"dataset_name": "college_chemistry"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ chemistry in the Japanese (Japan) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_ja_jp_stem"
-"task": "mmlu_ja_jp_college_chemistry"
-"task_alias": "ja_jp college chemistry"
-"test_split": "JA_JP"

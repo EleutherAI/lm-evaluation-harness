@@ -1,8 +1,0 @@
-"dataset_name": "computer_security"
-"description": "The following are multiple choice questions (with answers) about computer\
-  \ security in the Spanish (Latin America) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_es_la_stem"
-"task": "mmlu_es_la_computer_security"
-"task_alias": "es_la computer security"
-"test_split": "ES_LA"

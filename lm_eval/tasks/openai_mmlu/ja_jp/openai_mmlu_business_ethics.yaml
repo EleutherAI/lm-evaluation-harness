@@ -1,8 +1,0 @@
-"dataset_name": "business_ethics"
-"description": "The following are multiple choice questions (with answers) about business\
-  \ ethics in the Japanese (Japan) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_ja_jp_other"
-"task": "mmlu_ja_jp_business_ethics"
-"task_alias": "ja_jp business ethics"
-"test_split": "JA_JP"

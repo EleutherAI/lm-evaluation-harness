@@ -1,8 +1,0 @@
-"dataset_name": "computer_security"
-"description": "The following are multiple choice questions (with answers) about computer\
-  \ security in the Korean (South Korea) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_ko_kr_stem"
-"task": "mmlu_ko_kr_computer_security"
-"task_alias": "ko_kr computer security"
-"test_split": "KO_KR"

@@ -1,8 +1,0 @@
-"dataset_name": "security_studies"
-"description": "The following are multiple choice questions (with answers) about security\
-  \ studies in the Japanese (Japan) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_ja_jp_social_sciences"
-"task": "mmlu_ja_jp_security_studies"
-"task_alias": "ja_jp security studies"
-"test_split": "JA_JP"

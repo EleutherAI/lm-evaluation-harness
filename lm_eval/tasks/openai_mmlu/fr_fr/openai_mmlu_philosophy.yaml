@@ -1,8 +1,0 @@
-"dataset_name": "philosophy"
-"description": "The following are multiple choice questions (with answers) about philosophy\
-  \ in the French (France) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_fr_fr_humanities"
-"task": "mmlu_fr_fr_philosophy"
-"task_alias": "fr_fr philosophy"
-"test_split": "FR_FR"

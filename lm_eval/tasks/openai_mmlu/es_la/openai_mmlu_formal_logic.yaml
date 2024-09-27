@@ -1,8 +1,0 @@
-"dataset_name": "formal_logic"
-"description": "The following are multiple choice questions (with answers) about formal\
-  \ logic in the Spanish (Latin America) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_es_la_humanities"
-"task": "mmlu_es_la_formal_logic"
-"task_alias": "es_la formal logic"
-"test_split": "ES_LA"

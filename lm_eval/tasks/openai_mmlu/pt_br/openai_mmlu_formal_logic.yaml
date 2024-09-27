@@ -1,8 +1,0 @@
-"dataset_name": "formal_logic"
-"description": "The following are multiple choice questions (with answers) about formal\
-  \ logic in the Portuguese (Brazil) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_pt_br_humanities"
-"task": "mmlu_pt_br_formal_logic"
-"task_alias": "pt_br formal logic"
-"test_split": "PT_BR"

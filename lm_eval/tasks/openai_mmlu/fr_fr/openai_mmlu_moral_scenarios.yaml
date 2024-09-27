@@ -1,8 +1,0 @@
-"dataset_name": "moral_scenarios"
-"description": "The following are multiple choice questions (with answers) about moral\
-  \ scenarios in the French (France) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_fr_fr_humanities"
-"task": "mmlu_fr_fr_moral_scenarios"
-"task_alias": "fr_fr moral scenarios"
-"test_split": "FR_FR"

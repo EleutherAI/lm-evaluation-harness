@@ -1,8 +1,0 @@
-"dataset_name": "high_school_computer_science"
-"description": "The following are multiple choice questions (with answers) about high\
-  \ school computer science in the Indonesian (Indonesia) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_id_id_stem"
-"task": "mmlu_id_id_high_school_computer_science"
-"task_alias": "id_id high school computer science"
-"test_split": "ID_ID"

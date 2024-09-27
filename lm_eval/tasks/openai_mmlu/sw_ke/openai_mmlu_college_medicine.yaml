@@ -1,8 +1,0 @@
-"dataset_name": "college_medicine"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ medicine in the Swahili (Kenya) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_sw_ke_other"
-"task": "mmlu_sw_ke_college_medicine"
-"task_alias": "sw_ke college medicine"
-"test_split": "SW_KE"

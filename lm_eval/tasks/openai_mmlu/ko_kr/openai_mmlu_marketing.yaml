@@ -1,8 +1,0 @@
-"dataset_name": "marketing"
-"description": "The following are multiple choice questions (with answers) about marketing\
-  \ in the Korean (South Korea) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_ko_kr_other"
-"task": "mmlu_ko_kr_marketing"
-"task_alias": "ko_kr marketing"
-"test_split": "KO_KR"

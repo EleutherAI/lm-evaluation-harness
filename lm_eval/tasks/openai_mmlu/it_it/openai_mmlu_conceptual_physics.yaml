@@ -1,8 +1,0 @@
-"dataset_name": "conceptual_physics"
-"description": "The following are multiple choice questions (with answers) about conceptual\
-  \ physics in the Italian (Italy) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_it_it_stem"
-"task": "mmlu_it_it_conceptual_physics"
-"task_alias": "it_it conceptual physics"
-"test_split": "IT_IT"

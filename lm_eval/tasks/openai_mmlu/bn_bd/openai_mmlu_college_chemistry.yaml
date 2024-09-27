@@ -1,8 +1,0 @@
-"dataset_name": "college_chemistry"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ chemistry in the Bengali (Bangladesh) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_bn_bd_stem"
-"task": "mmlu_bn_bd_college_chemistry"
-"task_alias": "bn_bd college chemistry"
-"test_split": "BN_BD"

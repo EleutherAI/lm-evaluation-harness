@@ -1,8 +1,0 @@
-"dataset_name": "jurisprudence"
-"description": "The following are multiple choice questions (with answers) about jurisprudence\
-  \ in the French (France) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_fr_fr_humanities"
-"task": "mmlu_fr_fr_jurisprudence"
-"task_alias": "fr_fr jurisprudence"
-"test_split": "FR_FR"

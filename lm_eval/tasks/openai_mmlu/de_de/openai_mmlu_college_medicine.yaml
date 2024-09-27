@@ -1,8 +1,0 @@
-"dataset_name": "college_medicine"
-"description": "The following are multiple choice questions (with answers) about college\
-  \ medicine in the German (Germany) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_de_de_other"
-"task": "mmlu_de_de_college_medicine"
-"task_alias": "de_de college medicine"
-"test_split": "DE_DE"

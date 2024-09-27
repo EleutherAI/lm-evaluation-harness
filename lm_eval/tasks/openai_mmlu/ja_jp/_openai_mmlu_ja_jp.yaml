@@ -1,9 +1,0 @@
-aggregate_metric_list:
--   metric: acc
-    weight_by_size: true
-group: openai_mmlu_ja_jp
-group_alias: ja_jp
-metadata:
-    version: 1.0.0
-task:
-- mmlu_ja_jp_tasks

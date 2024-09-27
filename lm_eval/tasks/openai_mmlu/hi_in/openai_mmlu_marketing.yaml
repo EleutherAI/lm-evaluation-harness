@@ -1,8 +1,0 @@
-"dataset_name": "marketing"
-"description": "The following are multiple choice questions (with answers) about marketing\
-  \ in the Hindi (India) language.\n\n"
-"include": "../_default_template.yaml"
-"tag": "mmlu_hi_in_other"
-"task": "mmlu_hi_in_marketing"
-"task_alias": "hi_in marketing"
-"test_split": "HI_IN"
