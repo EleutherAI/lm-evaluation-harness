@@ -1,4 +1,5 @@
-"fewshot_split": "tha_Thai"
-"include": "_default_template_yaml"
-"task": "belebele_tha_Thai"
-"test_split": "tha_Thai"
+dataset_name: tha_Thai
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_tha_Thai
+test_split: test

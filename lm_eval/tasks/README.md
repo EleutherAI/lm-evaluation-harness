@@ -11,6 +11,8 @@
 | [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. | Arabic |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. | English, Chinese |
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
+| [arabic_leaderboard_complete](arabic_leaderboard_complete/README.md) | A full version of the tasks in the Open Arabic LLM Leaderboard, focusing on the evaluation of models that reflect the characteristics of Arabic language understanding and comprehension, culture, and heritage. Note that some of these tasks are machine-translated. | Arabic (Some MT) |
+| [arabic_leaderboard_light](arabic_leaderboard_light/README.md) | A light version of the tasks in the Open Arabic LLM Leaderboard (i.e., 10% samples of the test set in the original benchmarks), focusing on the evaluation of models that reflect the characteristics of Arabic language understanding and comprehension, culture, and heritage. Note that some of these tasks are machine-translated. | Arabic (Some MT) |
 | [arabicmmlu](arabicmmlu/README.md) | Localized Arabic version of MMLU with multiple-choice questions from 40 subjects. | Arabic |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
@@ -26,7 +28,7 @@
 | [ceval](ceval/README.md) | Tasks that evaluate language understanding and reasoning in an educational context. | Chinese |
 | [cmmlu](cmmlu/README.md) | Multi-subject multiple choice question tasks for comprehensive academic assessment. | Chinese |
 | code_x_glue | Tasks that involve understanding and generating code across multiple programming languages. | Go, Java, JS, PHP, Python, Ruby |
-| [commonsense_qa](commmonsense_qa/README.md) | CommonsenseQA, a multiple-choice QA dataset for measuring commonsense knowledge. | English |
+| [commonsense_qa](commonsense_qa/README.md) | CommonsenseQA, a multiple-choice QA dataset for measuring commonsense knowledge. | English |
 | [copal_id](copal_id/README.md) | Indonesian causal commonsense reasoning dataset that captures local nuances. | Indonesian |
 | [coqa](coqa/README.md) | Conversational question answering tasks to test dialog understanding. | English |
 | [crows_pairs](crows_pairs/README.md) | Tasks designed to test model biases in various sociodemographic groups. | English, French |
@@ -58,6 +60,7 @@
 | [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. This is a legacy version of the multilingual dataset, and users should instead use `lambada_multilingual_stablelm`. | German, English, Spanish, French, Italian |
 | [lambada_multilingual_stablelm](lambada_multilingual_stablelm/README.md) | Multilingual LAMBADA dataset. Users should prefer evaluating on this version of the multilingual dataset instead of on `lambada_multilingual`. | German, English, Spanish, French, Italian, Dutch, Portuguese |
 | [leaderboard](leaderboard/README.md) | Task group used by Hugging Face's [Open LLM Leaderboard v2](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard). Those tasks are static and will not change through time | English |
+| [lingoly](lingoly/README.md) | Challenging logical reasoning benchmark in low-resource languages with controls for memorization | English, Multilingual |
 | [logiqa](logiqa/README.md) | Logical reasoning tasks requiring advanced inference and deduction. | English, Chinese |
 | [logiqa2](logiqa2/README.md) | Large-scale logical reasoning dataset adapted from the Chinese Civil Service Examination. | English, Chinese |
 | [mathqa](mathqa/README.md) | Question answering tasks involving mathematical reasoning and problem-solving. | English |
@@ -68,14 +71,14 @@
 | [mgsm](mgsm/README.md) | Benchmark of multilingual grade-school math problems. | Spanish, French, German, Russian, Chinese, Japanese, Thai, Swahili, Bengali, Telugu |
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
 | mmlu | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
-| [mmlusr](mmlusr/README.md) | Variation of MMLU designed to be more rigourous. | English |
+| [mmlusr](mmlusr/README.md) | Variation of MMLU designed to be more rigorous. | English |
 | model_written_evals | Evaluation tasks auto-generated for evaluating a collection of AI Safety concerns. | |
 | [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
 | [nq_open](nq_open/README.md) | Open domain question answering tasks based on the Natural Questions dataset. | English |
 | [okapi/arc_multilingual](okapi/arc_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) **Machine Translated.** |
-| [okapi/hellaswag_multilingual](okapi/hellaswag_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (30 languages) |
-| okapi/mmlu_multilingual | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (34 languages) |
-| [okapi/truthfulqa_multilingual](okapi/truthfulqa_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) |
+| [okapi/hellaswag_multilingual](okapi/hellaswag_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (30 languages) **Machine Translated.** |
+| okapi/mmlu_multilingual | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (34 languages) **Machine Translated.** |
+| [okapi/truthfulqa_multilingual](okapi/truthfulqa_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) **Machine Translated.** |
 | [openbookqa](openbookqa/README.md) | Open-book question answering tasks that require external knowledge and reasoning. | English |
 | [paloma](paloma/README.md) | Paloma is a comprehensive benchmark designed to evaluate open language models across a wide range of domains, ranging from niche artist communities to mental health forums on Reddit. | English |
 | [paws-x](paws-x/README.md) | Paraphrase Adversaries from Word Scrambling, focusing on cross-lingual capabilities. | English, French, Spanish, German, Chinese, Japanese, Korean |
@@ -104,6 +107,7 @@
 | [translation](translation/README.md) | Tasks focused on evaluating the language translation capabilities of models. | Arabic, English, Spanish, Basque, Hindi, Indonesian, Burmese, Russian, Swahili, Telugu, Chinese |
 | [triviaqa](triviaqa/README.md) | A large-scale dataset for trivia question answering to test general knowledge. | English |
 | [truthfulqa](truthfulqa/README.md) | A QA task aimed at evaluating the truthfulness and factual accuracy of model responses. | English |
+| [turkishmmlu](turkishmmlu/README.md) | A multiple-choice QA test modeled after MMLU, written in Turkish based on Turkish high-school level exams. | Turkish |
 | [unitxt](unitxt/README.md) | A number of tasks implemented using the unitxt library for flexible, shareable, and reusable data preparation and evaluation for generative AI. | English |
 | [unscramble](unscramble/README.md) | Tasks involving the rearrangement of scrambled sentences to test syntactic understanding. | English |
 | [webqs](webqs/README.md) | Web-based question answering tasks designed to evaluate internet search and retrieval. | English |
@@ -113,7 +117,7 @@
 | [wmt2016](wmt2016/README.md) | Tasks from the WMT 2016 shared task, focusing on translation between multiple languages. | English, Czech, German, Finnish, Russian, Romanian, Turkish |
 | [wsc273](wsc273/README.md) | The Winograd Schema Challenge, a test of commonsense reasoning and coreference resolution. | English |
 | [xcopa](xcopa/README.md) | Cross-lingual Choice of Plausible Alternatives, testing reasoning in multiple languages. | Estonian, Haitian, Indonesian, Italian, Quechua, Swahili, Tamil, Thai, Turkish, Vietnamese, Chinese |
-| [xnli](xnli/README.md) | Cross-Lingual Natural Language Inference to test understanding across different languages. | Arabic, Bulgarian, German, Greekm English, Spanish, French, Hindi, Russian, Swahili, Thai, Turkish, Urdu, Vietnamese, Chinese |
+| [xnli](xnli/README.md) | Cross-Lingual Natural Language Inference to test understanding across different languages. | Arabic, Bulgarian, German, Greek, English, Spanish, French, Hindi, Russian, Swahili, Thai, Turkish, Urdu, Vietnamese, Chinese |
 | [xnli_eu](xnli_eu/README.md) | Cross-lingual Natural Language Inference tasks in Basque. | Basque |
 | [xstorycloze](xstorycloze/README.md) | Cross-lingual narrative understanding tasks to predict story endings in multiple languages. | Russian, Simplified Chinese, Spanish, Arabic, Hindi, Indonesian, Telugu, Swahili, Basque, Burmese |
 | [xwinograd](xwinograd/README.md) | Cross-lingual Winograd schema tasks for coreference resolution in multiple languages. | English, French, Japanese, Portuguese, Russian, Chinese |

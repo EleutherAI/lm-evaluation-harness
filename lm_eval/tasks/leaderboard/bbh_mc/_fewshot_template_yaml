@@ -13,4 +13,4 @@ num_fewshot: 3
 fewshot_config:
   sampler: first_n
 metadata:
-  version: 0.0
+  version: 1.0

@@ -23,4 +23,4 @@ aggregate_metric_list:
     aggregation: mean
     weight_by_size: true
 metadata:
-  version: 0.0
+  version: 1.0

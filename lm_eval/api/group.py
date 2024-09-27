@@ -13,9 +13,9 @@ class AggMetricConfig(dict):
     filter_list: Optional[Union[str, list]] = "none"
 
     def __post_init__(self):
-        if self.aggregation != "mean":
+        if self.aggregation != "mean" and not callable(self.aggregation):
             raise ValueError(
-                f"Currently, only 'mean' is supported for automatically aggregating scores across groups' subtasks. Got '{self.aggregation}'."
+                f"Currently, 'mean' is the only pre-defined aggregation across groups' subtasks. Got '{self.aggregation}'."
             )
 
         if isinstance(self.filter_list, str):
