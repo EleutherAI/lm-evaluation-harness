@@ -1,8 +1,6 @@
 dataset_name: object_counting
 description: 'Questions that involve enumerating objects and asking the model to count
-  them.
-
-        '
+  them.'
 doc_to_choice: ["0","1","2","3","4","5","6","7","8","9","10", "11", "12", "13", "14", "15", "16", "17", "18"]
 fewshot_config:
   sampler: first_n

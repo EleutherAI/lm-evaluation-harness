@@ -438,12 +438,6 @@ class HFLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
-    @property
-    def chat_template(self) -> str:
-        if self.tokenizer.chat_template is not None:
-            return self.tokenizer.chat_template
-        return self.tokenizer.default_chat_template
-
     def _get_backend(
         self,
         config: Union[transformers.PretrainedConfig, transformers.AutoConfig],
@@ -454,7 +448,16 @@ class HFLM(TemplateLM):
         Helper method during initialization.
         Determines the backend ("causal" (decoder-only) or "seq2seq" (encoder-decoder))
         model type to be used.
+        sets `self.AUTO_MODEL_CLASS` appropriately if not already set.
         """
+        # escape hatch: if we're using a subclass that shouldn't follow
+        # the default _get_backend logic,
+        # then skip over the method.
+        # TODO: this seems very much undesirable in some cases--our code in HFLM
+        # references AutoModelForCausalLM at times to check for equality
+        if self.AUTO_MODEL_CLASS is not None:
+            return
+
         assert backend in ["default", "causal", "seq2seq"]
 
         if backend != "default":
@@ -602,10 +605,10 @@ class HFLM(TemplateLM):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
             if self._model.config.vocab_size != len(self.tokenizer):
                 # resize model for LoRAs with added tokens
-                self._model.resize_token_embeddings(len(self.tokenizer))
                 eval_logger.info(
                     f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
                 )
+                self._model.resize_token_embeddings(len(self.tokenizer))
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
@@ -932,6 +935,9 @@ class HFLM(TemplateLM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+
         return loglikelihoods
 
     def _batch_scheduler(self, pos, n_reordered_requests):
@@ -1160,7 +1166,13 @@ class HFLM(TemplateLM):
 
                     res.append(answer)
 
-                    self.cache_hook.add_partial("loglikelihood", request_str, answer)
+                    if request_str is not None:
+                        # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                        # all with cache key None. instead do add_partial on the per-example level
+                        # in the loglikelihood_rolling() function for those.
+                        self.cache_hook.add_partial(
+                            "loglikelihood", request_str, answer
+                        )
                     pbar.update(1)
 
         pbar.close()

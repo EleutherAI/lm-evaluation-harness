@@ -104,7 +104,9 @@ class TemplateAPI(TemplateLM):
         self._truncate = truncate
         self._max_gen_toks = int(max_gen_toks)
         self._seed = int(seed)
-        self.max_length = max_length
+        # max_length - 1 as we always have 1 token for generation
+        eval_logger.info(f"Using max length {max_length} - 1")
+        self.max_length = max_length - 1
         if int(num_concurrent) <= 1:
             eval_logger.info(
                 "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
@@ -222,14 +224,6 @@ class TemplateAPI(TemplateLM):
     def header(self) -> dict:
         """Override this property to return the headers for the API request."""
         return {"Authorization": f"Bearer {self.api_key}"}
-
-    @property
-    def chat_template(self) -> str:
-        """Must be defined for LM subclasses that implement Chat Templating.
-        Should return the structure of the chat template applied to user/assistant messages.
-        Only used for logging and reproducibility.
-        """
-        return ""
 
     @property
     def tokenizer_name(self) -> str:
@@ -417,6 +411,7 @@ class TemplateAPI(TemplateLM):
         cache_keys = []
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
+                # max_length - 1 as we always have 1 token for generation
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)
@@ -510,7 +505,7 @@ class TemplateAPI(TemplateLM):
                 ):
                     if answer_ is not None:
                         res.append(answer_)
-                        # partial caching
+                        # cache requests that aren't from a loglikelihood_rolling request
                         if cache_key is not None:
                             self.cache_hook.add_partial(
                                 "loglikelihood", cache_key, answer_
@@ -619,7 +614,8 @@ class TemplateAPI(TemplateLM):
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
                         prefix_token=self.prefix_token_id,
-                        max_seq_len=self.max_length,
+                        # max_seq_len - (1 for context)
+                        max_seq_len=self.max_length - 1,
                         context_len=1,
                     ),
                 )
@@ -638,4 +634,7 @@ class TemplateAPI(TemplateLM):
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
+
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         return loglikelihoods

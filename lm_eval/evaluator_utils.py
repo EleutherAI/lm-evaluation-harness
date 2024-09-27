@@ -474,6 +474,8 @@ def consolidate_group_results(
                         # compute group's pooled metric and stderr
                         if metric_config["aggregation"] == "mean":
                             aggregate_fn = aggregate_subtask_metrics
+                        elif callable(metric_config["aggregation"]):
+                            aggregate_fn = metric_config["aggregation"]
                         else:
                             raise ValueError(
                                 f"Currently, only 'mean' is supported for automatically aggregating scores across groups' subtasks. Got '{metric_config['aggregation']}' for group '{group_or_task}'"
