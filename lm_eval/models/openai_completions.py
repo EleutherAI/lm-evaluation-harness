@@ -24,11 +24,15 @@ class LocalCompletionsAPI(TemplateAPI):
         messages: Union[List[List[int]], List[dict], List[str], str],
         generate=False,
         gen_kwargs: Optional[dict] = None,
+        seed: int = 1234,
         **kwargs,
     ) -> dict:
         if generate:
             gen_kwargs.pop("do_sample", False)
-            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+            if "max_tokens" in gen_kwargs:
+                max_tokens = gen_kwargs.pop("max_tokens")
+            else:
+                max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
             stop = gen_kwargs.pop("until", ["<|endoftext|>"])
             return {
@@ -37,14 +41,17 @@ class LocalCompletionsAPI(TemplateAPI):
                 "max_tokens": max_tokens,
                 "temperature": temperature,
                 "stop": stop,
+                "seed": seed,
                 **gen_kwargs,
             }
         else:
             return {
                 "model": self.model,
                 "prompt": messages,
+                "temperature": 0,
                 "max_tokens": 1,
                 "logprobs": 1,
+                "seed": seed,
                 "echo": True,
             }
 
@@ -62,11 +69,11 @@ class LocalCompletionsAPI(TemplateAPI):
             for choice, ctxlen in zip(out["choices"], ctxlens):
                 assert ctxlen > 0, "Context length must be greater than 0"
                 logprobs = sum(choice["logprobs"]["token_logprobs"][ctxlen:-1])
-                tokens = choice["logprobs"]["token_logprobs"][ctxlen:-1]
+                tokens_logprobs = choice["logprobs"]["token_logprobs"][ctxlen:-1]
                 top_logprobs = choice["logprobs"]["top_logprobs"][ctxlen:-1]
                 is_greedy = True
-                for tok, top in zip(tokens, top_logprobs):
-                    if tok != max(top, key=top.get):
+                for tok, top in zip(tokens_logprobs, top_logprobs):
+                    if tok != max(top.values()):
                         is_greedy = False
                         break
                 res.append((logprobs, is_greedy))
@@ -96,6 +103,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
         tokenized_requests=False,
         **kwargs,
     ):
+        eval_logger.warning(
+            "chat-completions endpoint requires the `--apply_chat_template` flag."
+        )
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
@@ -109,10 +119,18 @@ class LocalChatCompletion(LocalCompletionsAPI):
             self._batch_size = 1
 
     def _create_payload(
-        self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
+        self,
+        messages: List[Dict],
+        generate=False,
+        gen_kwargs: dict = None,
+        seed=1234,
+        **kwargs,
     ) -> dict:
         gen_kwargs.pop("do_sample", False)
-        max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
+        if "max_tokens" in gen_kwargs:
+            max_tokens = gen_kwargs.pop("max_tokens")
+        else:
+            max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = gen_kwargs.pop("until", ["<|endoftext|>"])
         if not isinstance(stop, (list, tuple)):
@@ -123,6 +141,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             "max_tokens": max_tokens,
             "temperature": temperature,
             "stop": stop[:4],
+            "seed": seed,
             **gen_kwargs,
         }
 
@@ -171,15 +190,22 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         key = os.environ.get("OPENAI_API_KEY", None)
         if key is None:
             raise ValueError(
-                "API key not found. Please set the OPENAI_API_KEY environment variable."
+                "API key not found. Please set the `OPENAI_API_KEY` environment variable."
             )
         return key
 
     def loglikelihood(self, requests, **kwargs):
         assert (
-            self.model != "gpt-3.5-turbo"
-        ), "Loglikelihood is not supported for gpt-3.5-turbo"
+            self.model
+            in [
+                "babbage-002",
+                "davinci-002",
+            ]
+        ), f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
         return super().loglikelihood(requests, **kwargs)
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+        return ""
 
 
 @register_model("openai-chat-completions")
@@ -204,6 +230,11 @@ class OpenAIChatCompletion(LocalChatCompletion):
         key = os.environ.get("OPENAI_API_KEY", None)
         if key is None:
             raise ValueError(
-                "API key not found. Please set the OPENAI_API_KEY environment variable."
+                "API key not found. Please set the `OPENAI_API_KEY` environment variable."
             )
         return key
+
+    def loglikelihood(self, requests, **kwargs):
+        raise NotImplementedError(
+            "Loglikelihood (and therefore `multiple_choice`-type tasks) is not supported for chat completions as OpenAI does not provide prompt logprobs. See https://github.com/EleutherAI/lm-evaluation-harness/issues/942#issuecomment-1777836312 or https://github.com/EleutherAI/lm-evaluation-harness/issues/1196 for more background on this limitation."
+        )
