@@ -1,5 +1,5 @@
 group: mmlu_flan_cot_fewshot
-group_alias: mmlu_flan_cot_fewshot
+group_alias: mmlu (flan style, fewshot cot)
 task:
   - group: stem
     task:
