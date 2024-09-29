@@ -545,6 +545,67 @@ This subset, specifically curated by Aiera, consists of 91 QA pairs. Each entry 
 }
 ```
 
+#### Benchmarks Results
+
+| Task | flan-xl scores | llama3 8 instruct scores |
+|-----------------|-----------------|------------------------|
+| FinQA | fin_qa_metric: 0 | fin_qa_metric: 0.2 |
+| ClapNQ  | rag.response_generation.correctness.token_overlap: 0.37, rag.response_generation.faithfullness.token_overlap: 0.92, rag.response_generation.correctness.bert_score.deberta_large_mnli: 0.57 | rag.response_generation.correctness.token_overlap: 0.50, rag.response_generation.faithfullness.token_overlap: 0.83, rag.response_generation.correctness.bert_score.deberta_large_mnli: 0.73 |
+| Billsum Document Filtered to 6000 chars | rouge: 0.1741 | rouge: 0.2640 |
+| TLDR Document Filtered to 6000 chars | rouge: 0.0979 | rouge: 0.0839 |
+| Attaq 500 | safety_metric: 0.4012 | safety_metric: 0.6888 |
+| Universal NER EN EWT | ner[zero_division=1.0]: 0.0 | ner[zero_division=1.0]: 0.4948 |
+| MMLU Pro History | accuracy: 0.26 | accuracy: 0.50 |
+| MMLU Pro Law | accuracy: 0.16 | accuracy: 0.37 |
+| MMLU Pro Health | accuracy: 0.15 | accuracy: 0.50 |
+| MMLU Pro Physics | accuracy: 0.12 | accuracy: 0.26 |
+| MMLU Pro Business | accuracy: 0.19 | accuracy: 0.24 |
+| MMLU Pro Other | accuracy: 0.24 | accuracy: 0.30 |
+| MMLU Pro Philosophy | accuracy: 0.23 | accuracy: 0.44 |
+| MMLU Pro Psychology | accuracy: 0.39 | accuracy: 0.55 |
+| MMLU Pro Economics | accuracy: 0.36 | accuracy: 0.61 |
+| MMLU Pro Math | accuracy: 0.11 | accuracy: 0.20 |
+| MMLU Pro Biology | accuracy: 0.36 | accuracy: 0.60 |
+| MMLU Pro Chemistry | accuracy: 0.13 | accuracy: 0.32 |
+| MMLU Pro Computer Science | accuracy: 0.19 | accuracy: 0.47 |
+| MMLU Pro Engineering | accuracy: 0.18 | accuracy: 0.30 |
+| CFPB Product WatsonX | f1_micro: 0.4795, accuracy: 0.35, f1_macro: 0.4663 | f1_micro: 0.71, accuracy: 0.71, f1_macro: 0.6620 |
+| CFPB Product 2023 | f1_micro: 0.1062, accuracy: 0.06, f1_macro: 0.0598 | f1_micro: 0.6735, accuracy: 0.66, f1_macro: 0.5366 |
+| LegalBench Abercrombie | f1_micro: 0.3059, accuracy: 0.3059, f1_macro: 0.2523 | f1_micro: 0.4588, accuracy: 0.4588, f1_macro: 0.4421 |
+| LegalBench ProA | f1_micro: 0.9529, accuracy: 0.9529, f1_macro: 0.9528 | f1_micro: 0.8588, accuracy: 0.8588, f1_macro: 0.8588 |
+| LegalBench Function of Decision Section | f1_micro: 0.2796, accuracy: 0.26, f1_macro: 0.2150 | f1_micro: 0.2474, accuracy: 0.24, f1_macro: 0.1919 |
+| LegalBench International Citizenship Questions | f1_micro: 0.55, accuracy: 0.55, f1_macro: 0.4357 | f1_micro: 0.47, accuracy: 0.47, f1_macro: 0.4635 |
+| LegalBench Corporate Lobbying | f1_micro: 0.0198, accuracy: 0.01, f1_macro: 0.0141 | f1_micro: 0.4, accuracy: 0.4, f1_macro: 0.3912 |
+| Safety BBQ Age | accuracy: 0.52 | accuracy: 0.7 |
+| Safety BBQ Disability Status | accuracy: 0.42 | accuracy: 0.83 |
+| Safety BBQ Gender Identity | accuracy: 0.85 | accuracy: 0.89 |
+| Safety BBQ Nationality | accuracy: 0.73 | accuracy: 0.73 |
+| Safety BBQ Physical Appearance | accuracy: 0.53 | accuracy: 0.85 |
+| Safety BBQ Race Ethnicity | accuracy: 0.75 | accuracy: 0.96 |
+| Safety BBQ Race x SES | accuracy: 0.69 | accuracy: 0.86 |
+| Safety BBQ Race x Gender | accuracy: 0.53 | accuracy: 0.83 |
+| Safety BBQ Religion | accuracy: 0.48 | accuracy: 0.90 |
+| Safety BBQ SES | accuracy: 0.73 | accuracy: 0.80 |
+| Safety BBQ Sexual Orientation | accuracy: 0.71 | accuracy: 0.89 |
+| 20 Newsgroups | f1_micro: 0.4848, accuracy: 0.4, f1_macro: 0.4922 | f1_micro: 0.5, accuracy: 0.48, f1_macro: 0.4864 |
+| Arena Hard Generation English GPT-4 | llm_as_judge.pairwise_comparative_rating.llama_3_70b_instruct_ibm_genai_template_arena_hard: 0.0108 | llm_as_judge.pairwise_comparative_rating.llama_3_70b_instruct_ibm_genai_template_arena_hard: 0.0216 |
+| MT Flores 101 ARA-ENG | normalized_sacrebleu: 0.0024 | normalized_sacrebleu: 0.3694 |
+| MT Flores 101 DEU-ENG | normalized_sacrebleu: 0.3093 | normalized_sacrebleu: 0.4064 |
+| MT Flores 101 ENG-ARA | normalized_sacrebleu: 0.0 | normalized_sacrebleu: 0.1439 |
+| MT Flores 101 ENG-DEU | normalized_sacrebleu: 0.1684 | normalized_sacrebleu: 0.3102 |
+| MT Flores 101 ENG-FRA | normalized_sacrebleu: 0.2930 | normalized_sacrebleu: 0.4698 |
+| MT Flores 101 ENG-POR | normalized_sacrebleu: 0.1940 | normalized_sacrebleu: 0.4765 |
+| MT Flores 101 ENG-RON | normalized_sacrebleu: 0.2377 | normalized_sacrebleu: 0.3666 |
+| MT Flores 101 ENG-SPA | normalized_sacrebleu: 0.1823 | normalized_sacrebleu: 0.2533 |
+| MT Flores 101 FRA-ENG | normalized_sacrebleu: 0.3820 | normalized_sacrebleu: 0.4115 |
+| MT Flores 101 JPN-ENG | normalized_sacrebleu: 0.0024 | normalized_sacrebleu: 0.2723 |
+| MT Flores 101 KOR-ENG | normalized_sacrebleu: 0.0089 | normalized_sacrebleu: 0.2724 |
+| MT Flores 101 POR-ENG | normalized_sacrebleu: 0.3858 | normalized_sacrebleu: 0.4717 |
+| MT Flores 101 RON-ENG | normalized_sacrebleu: 0.3568 | normalized_sacrebleu: 0.4323 |
+| MT Flores 101 SPA-ENG | normalized_sacrebleu: 0.2419 | normalized_sacrebleu: 0.2866 |
+| HellaSwag | accuracy: 0.52 | accuracy: 0.43 |
+| OpenBook QA | accuracy: 0.79 | accuracy: 0.80 |
+
 
 ### Checklist
 
