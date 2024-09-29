@@ -4,15 +4,18 @@ In the dynamic landscape of generative NLP, traditional text processing pipeline
 Addressing this need, we present Unitxt, an innovative library for customizable textual data preparation and evaluation tailored to generative language models. Unitxt natively integrates with common libraries like HuggingFace and LM-eval-harness and deconstructs processing flows into modular components, enabling easy customization and sharing between practitioners. These components encompass model-specific formats, task prompts, and many other comprehensive dataset processing definitions. The Unitxt-Catalog centralizes these components, fostering collaboration and exploration in modern textual data workflows. Beyond being a tool, Unitxt is a community-driven platform, empowering users to build, share, and advance their pipelines collaboratively.
 """
 
-from functools import partial
-from typing import Optional
 import importlib.util
-import evaluate
+import re
+from functools import partial
+from typing import Any, Dict, Optional
+
 import datasets
+import evaluate
+
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
-import re
-from typing import Dict, Any
+
+
 _CITATION = """
 @misc{bandel2024unitxt,
       title={Unitxt: Flexible, Shareable and Reusable Data Preparation and Evaluation for Generative AI},
@@ -24,8 +27,10 @@ _CITATION = """
 }
 """
 
+
 def is_unitxt_installed() -> bool:
     return importlib.util.find_spec("unitxt") is not None
+
 
 def score(items, metric):
     predictions, references = zip(*items)
@@ -34,7 +39,6 @@ def score(items, metric):
         reference["metrics"] = [metric]
     results = evaluator.compute(predictions=predictions, references=references)
     return results[0]["score"]["global"]["score"]
-
 
 
 class Unitxt(ConfigurableTask):
@@ -59,6 +63,7 @@ class Unitxt(ConfigurableTask):
     def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
         if is_unitxt_installed():
             from unitxt import load_dataset
+
             self.dataset = load_dataset(self.DATASET_NAME)
         else:
             self.dataset = datasets.load_dataset(
@@ -158,8 +163,10 @@ class Unitxt(ConfigurableTask):
         """
         return {metric.replace("metrics.", ""): True for metric in self.metrics}
 
+
 images_regex = r'<img\s+src=["\'](.*?)["\']\s*/?>'
 image_source_regex = r'<img\s+src=["\'](.*?)["\']'
+
 
 def extract_images(text, instance):
     image_sources = re.findall(image_source_regex, text)
@@ -172,6 +179,7 @@ def extract_images(text, instance):
             current = current[key]
         images.append(current)
     return images
+
 
 class UnitxtMultiModal(Unitxt):
     MULTIMODAL = True
