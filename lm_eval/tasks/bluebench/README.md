@@ -547,7 +547,7 @@ This subset, specifically curated by Aiera, consists of 91 QA pairs. Each entry 
 
 #### Benchmarks Results
 
-| Task | flan-xl scores | llama3 8 instruct scores |
+| Task | flan-t5-xl scores | Llama-3.1-8B-Instruct scores |
 |-----------------|-----------------|------------------------|
 | FinQA | fin_qa_metric: 0 | fin_qa_metric: 0.2 |
 | ClapNQ  | rag.response_generation.correctness.token_overlap: 0.37, rag.response_generation.faithfullness.token_overlap: 0.92, rag.response_generation.correctness.bert_score.deberta_large_mnli: 0.57 | rag.response_generation.correctness.token_overlap: 0.50, rag.response_generation.faithfullness.token_overlap: 0.83, rag.response_generation.correctness.bert_score.deberta_large_mnli: 0.73 |
