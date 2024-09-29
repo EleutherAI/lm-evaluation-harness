@@ -1,5 +1,5 @@
 task: bluebench_bias_safety_bbq_race_x_ses
 include: unitxt
-recipe: card=cards.safety.bbq.Race_x_SES,template=templates.qa.multiple_choice.with_context.match,demos_pool_size=20,demos_taken_from=test
+recipe: recipes.bluebench.bias.safety_bbq_race_x_ses
 metadata:
   version: 0

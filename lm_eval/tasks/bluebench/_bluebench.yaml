@@ -11,7 +11,7 @@ task:
     - "bluebench_translation_mt_flores_101_eng_ara"
     - "bluebench_translation_mt_flores_101_eng_deu"
     - "bluebench_translation_mt_flores_101_eng_fra"
-    - "bluebench_translation_mt_flores_101_eng_kor"
+    # - "bluebench_translation_mt_flores_101_eng_kor"
     - "bluebench_translation_mt_flores_101_eng_por"
     - "bluebench_translation_mt_flores_101_eng_ron"
     - "bluebench_translation_mt_flores_101_eng_spa"
@@ -23,7 +23,7 @@ task:
     - "bluebench_translation_mt_flores_101_spa_eng"
 - group: "bluebench_chatbot_abilities"
   task:
-    - "bluebench_chatbot_abilities_cards_arena_hard_generation_english_gpt_4_0314_reference"
+    - "bluebench_chatbot_abilities_arena_hard_generation_english_gpt_4_0314_reference"
 - group: "bluebench_news_classification"
   task:
     - "bluebench_news_classification_20_newsgroups"
@@ -69,7 +69,7 @@ task:
     - "bluebench_knowledge_mmlu_pro_engineering"
 - group: "bluebench_entity_extraction"
   task:
-    - "bluebench_entity_extraction_cards_universal_ner_en_ewt"
+    - "bluebench_entity_extraction_universal_ner_en_ewt"
 - group: "bluebench_safety"
   task:
     - "bluebench_safety_attaq_500"
@@ -80,8 +80,8 @@ task:
 - group: "bluebench_rag_general"
   task:
     - "bluebench_rag_general_rag_response_generation_clapnq"
-- group: "bluebench_rag_finance"
+- group: "bluebench_qa_finance"
   task:
-    - "bluebench_rag_finance_fin_qa"
+    - "bluebench_qa_finance_fin_qa"
 metadata:
   version: 0

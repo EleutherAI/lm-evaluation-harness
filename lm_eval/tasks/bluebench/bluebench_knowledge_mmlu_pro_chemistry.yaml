@@ -1,5 +1,5 @@
 task: bluebench_knowledge_mmlu_pro_chemistry
 include: unitxt
-recipe: card=cards.mmlu_pro.chemistry,template=templates.qa.multiple_choice.blue_bench,demos_pool_size=20,demos_taken_from=test
+recipe: recipes.bluebench.knowledge.mmlu_pro_chemistry
 metadata:
   version: 0

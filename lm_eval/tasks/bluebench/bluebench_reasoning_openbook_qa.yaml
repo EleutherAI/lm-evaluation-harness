@@ -1,5 +1,5 @@
 task: bluebench_reasoning_openbook_qa
 include: unitxt
-recipe: card=cards.openbook_qa,template=templates.qa.multiple_choice.open.blue_bench,demos_pool_size=100,demos_taken_from=train
+recipe: recipes.bluebench.reasoning.openbook_qa
 metadata:
   version: 0

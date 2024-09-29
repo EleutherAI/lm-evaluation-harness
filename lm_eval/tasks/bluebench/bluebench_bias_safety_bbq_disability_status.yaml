@@ -1,5 +1,5 @@
 task: bluebench_bias_safety_bbq_disability_status
 include: unitxt
-recipe: card=cards.safety.bbq.Disability_status,template=templates.qa.multiple_choice.with_context.match,demos_pool_size=20,demos_taken_from=test
+recipe: recipes.bluebench.bias.safety_bbq_disability_status
 metadata:
   version: 0

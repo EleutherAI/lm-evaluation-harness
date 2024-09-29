@@ -14,6 +14,9 @@ class _DefaultUnitxtRecipeArgs():
     template_card_index: List[int] = field(default_factory=lambda: [1])  # TODO: consider
     system_prompt: List[str] = field(default_factory=lambda: ["system_prompts.empty"])
     format: List[str] = field(default_factory=lambda: ["formats.empty"])
+    max_train_instances: int = 1000
+    max_validation_instances: int = 1000
+    max_test_instances: int = 100
 
 
 subsets = {  # the key must appear in the card name
@@ -53,7 +56,7 @@ subsets = {  # the key must appear in the card name
         "SES",
         "Sexual_orientation",
     ],
-    "CFPB": ["watsonx", "2023"],
+    "CFPB.product": ["watsonx", "2023"],
     "universal_ner": ["en.ewt"],  # , "en.pud"],
 
     "flores_101": [
@@ -83,7 +86,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                     # "templates.completion.multiple_choice.simple",
                     # "templates.completion.multiple_choice.enumerated",
                     # "templates.completion.multiple_choice.standard"
-                    "templates.completion.multiple_choice.blue_bench",
+                    "templates.completion.multiple_choice.bluebench",
             ],
             # "templates.completion.multiple_choice.title",
             # ],
@@ -95,7 +98,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                     # "templates.qa.multiple_choice.open.helm",
                     # "templates.qa.multiple_choice.open.lm_eval_harness",
                     # "templates.qa.multiple_choice.open.mmlu"
-                    "templates.qa.multiple_choice.open.blue_bench",
+                    "templates.qa.multiple_choice.open.bluebench",
             ],
             num_demos=[5],
         ),
@@ -107,7 +110,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                     # "templates.translation.directed.simple",
                     # "templates.translation.directed.formal",
                     # "templates.translation.directed.casual"
-                    "templates.translation.directed.blue_bench",
+                    "templates.translation.directed.bluebench",
                 # "templates.translation.directed.playful",
                 # "templates.translation.directed.instructional",
                 # "templates.translation.directed.title",
@@ -136,7 +139,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.classification.multi_class.instruct_question_selects",
                 # "templates.classification.multi_class.instruct_question_select_i_think",
                 # "templates.classification.multi_class.instruct_select_question",
-                "templates.classification.multi_class.blue_bench",
+                "templates.classification.multi_class.bluebench",
             ],
             num_demos=[1],
         ),
@@ -161,7 +164,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.classification.multi_class.instruct_question_selects",
                 # "templates.classification.multi_class.instruct_question_select_i_think",
                 # "templates.classification.multi_class.instruct_select_question",
-                "templates.classification.multi_class.blue_bench",
+                "templates.classification.multi_class.bluebench",
             ],
             demos_pool_size=10,
             demos_taken_from="test",  # TODO: this is not cool but the train is super small
@@ -176,11 +179,11 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.classification.multi_class.instruct_question_selects",
                 # "templates.classification.multi_class.instruct_question_select_i_think",
                 # "templates.classification.multi_class.instruct_select_question",
-                "templates.classification.multi_class.blue_bench",
+                "templates.classification.multi_class.bluebench",
             ],
             num_demos=5,
         )
-        for subset in subsets["CFPB"]
+        for subset in subsets["CFPB.product"]
     ],
     "Knowledge": [
         _DefaultUnitxtRecipeArgs(
@@ -189,7 +192,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.qa.multiple_choice.with_topic.fm_eval",
                 # "templates.qa.multiple_choice.with_topic.mmlu",
                 # "templates.qa.multiple_choice.with_topic.helm",
-                "templates.qa.multiple_choice.blue_bench",
+                "templates.qa.multiple_choice.with_topic.bluebench",
                 # "templates.qa.multiple_choice.with_topic.lm_eval_harness",
                 # "templates.qa.multiple_choice.with_topic.title",
                 # "templates.qa.multiple_choice.with_topic.match",
@@ -230,7 +233,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.summarization.abstractive.instruct_full",
                 # "templates.summarization.abstractive.instruct_one_sentence",
                 # "templates.summarization.abstractive.instruct_passive",
-                "templates.summarization.abstractive.blue_bench",
+                "templates.summarization.abstractive.bluebench",
                 # "templates.summarization.abstractive.instruct_write_succinct",
                 # "templates.summarization.abstractive.instruct_tldr",
             ],
@@ -242,7 +245,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.summarization.abstractive.instruct_full",
                 # "templates.summarization.abstractive.instruct_one_sentence",
                 # "templates.summarization.abstractive.instruct_passive",
-                "templates.summarization.abstractive.blue_bench",
+                "templates.summarization.abstractive.bluebench",
                 # "templates.summarization.abstractive.instruct_write_succinct",
                 # "templates.summarization.abstractive.instruct_tldr",
             ],
@@ -256,12 +259,12 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
                 # "templates.rag.response_generation.please_respond",
                 # "templates.rag.response_generation.answer_based_on_context",
                 # "templates.rag.response_generation.answer_based_on_context_inverted",
-                "templates.rag.response_generation.blue_bench",
+                "templates.rag.response_generation.bluebench",
             ],
             num_demos=[1],
         )
     ],
-    "RAG_finance": [
+    "QA_finance": [
         _DefaultUnitxtRecipeArgs(
             card="cards.fin_qa",
             # template=[
@@ -272,7 +275,7 @@ unitxt_recipe_args_by_groupings: Dict[str, List[_DefaultUnitxtRecipeArgs]] = {
             # ],
             template_card_index=[0],
             num_demos=[2],  # TODO: add more
-            demos_pool_size=10,
+            # demos_pool_size=10,
         ),
     ],
 }
@@ -312,8 +315,8 @@ if __name__ == "__main__":
 
                 for task in unitxt_recipe_args_by_groupings[group_keep]:
                     task_name = task.card[len("cards."):]
-                    if task.card.find(",") > 0:
-                        task_name = task.card[:task.card.find(",")]
+                    if task_name.find(",") > 0:
+                        task_name = task_name[:task_name.find(",")]
                     task_name = task_name.replace(".", "_")
                     task_name = task_name.lower()
                     file.write(f'    - "bluebench_{group}_{task_name}"\n')
@@ -324,20 +327,102 @@ if __name__ == "__main__":
                     with open(current_file, "w") as task_file:
                         task_file.write(f'task: bluebench_{group}_{task_name}\n')
                         task_file.write(f'include: unitxt\n')
-                        task_file.write(f'recipe: card={task.card},')
-                        if len(task.template) > 1:
-                            task_file.write(f'template=[{",".join(task.template)}],')
-                            # task_file.write(f'template=[{task.template[0]}],')
-                        elif len(task.template) > 0:
-                            task_file.write(f'template={task.template[0] if type(task.template) == list and len(task.template) > 0 else ""},')
-                        task_file.write(f'demos_pool_size={task.demos_pool_size[0] if type(task.demos_pool_size) == list else task.demos_pool_size},')
-                        if type(task.train_refiner) == list and len(task.train_refiner) > 0:
-                            task_file.write(f'train_refiner={task.train_refiner[0]},')
-                        if len(task.template) == 0:
-                            task_file.write(f'template_card_index={task.template_card_index[0] if type(task.template_card_index) == list else task.template_card_index},')
-                        task_file.write(f'demos_taken_from={task.demos_taken_from[0] if type(task.demos_taken_from) == list else task.demos_taken_from}\n')
+                        task_file.write(f'recipe: recipes.bluebench.{group}.{task_name}\n')
+                        # task_file.write(f'recipe: card={task.card},')
+                        # if len(task.template) > 1:
+                        #     task_file.write(f'template=[{",".join(task.template)}],')
+                        #     # task_file.write(f'template=[{task.template[0]}],')
+                        # elif len(task.template) > 0:
+                        #     task_file.write(f'template={task.template[0] if type(task.template) == list and len(task.template) > 0 else ""},')
+                        # task_file.write(f'demos_pool_size={task.demos_pool_size[0] if type(task.demos_pool_size) == list else task.demos_pool_size},')
+                        # if type(task.train_refiner) == list and len(task.train_refiner) > 0:
+                        #     task_file.write(f'train_refiner={task.train_refiner[0]},')
+                        # if len(task.template) == 0:
+                        #     task_file.write(f'template_card_index={task.template_card_index[0] if type(task.template_card_index) == list else task.template_card_index},')
+                        
+                        # if task.max_train_instances:
+                        #     task_file.write(f'max_train_instances={task.max_train_instances},')
+                        # if task.max_validation_instances:
+                        #     task_file.write(f'max_validation_instances={task.max_validation_instances},')
+                        # if task.max_test_instances:
+                        #     task_file.write(f'max_test_instances={task.max_test_instances},')
+                        # task_file.write(f'demos_taken_from={task.demos_taken_from[0] if type(task.demos_taken_from) == list else task.demos_taken_from}\n')
                         task_file.write(f'metadata:\n  version: 0')
                         # task_file.write(f'system_prompt={task.system_prompt[0] if type(task.system_prompt) == list else task.system_prompt},')
                         # task_file.write(f'format={task.format[0] if type(task.format) == list else task.format}')
                 group_file.write(f'metadata:\n  version: 0')
         file.write(f'metadata:\n  version: 0')
+
+
+    default_args = {
+    "demos_pool_size": 100,
+    "num_demos": 1,
+    "demos_taken_from": "train",
+    "template_card_index": 1,
+    "max_train_instances": 1000,
+    "max_validation_instances": 1000,
+    "max_test_instances": 100
+    }
+
+    visited_subsets = set()
+
+    for group in unitxt_recipe_args_by_groupings:
+        print(f'### {group}\n')
+        for task in unitxt_recipe_args_by_groupings[group]:
+            is_subset = False
+            task_name = task.card[len("cards."):]
+            if task_name.find(",") > 0:
+                task_name = task_name[:task_name.find(",")]
+            task_name = task_name.replace(".", "_")
+
+            task_keys = task.__dict__
+
+            # handle subsets
+            if any([subset in task_name for subset in subsets]):
+                is_subset = True
+                subset_name = [subset for subset in subsets if subset in task_name][0]
+                if subset_name in visited_subsets:
+                    continue
+                visited_subsets.add(subset_name)
+                print(f"for subset in subsets[\"{subset_name}\"]:")   
+                task_name = task_name[:task_name.find(subset_name) + len(subset_name)] + "_{subset.replace(\".\", \"_\").lower()}"
+                task_keys["card"] = task_keys["card"][:task_keys["card"].find(subset_name) + len(subset_name)] + ".{subset}"
+
+            
+            # handle metrics
+            if "metrics" in task.card:
+                task_keys["metrics"] = [task_keys["card"][task_keys["card"].index(",metrics=") + len(",metrics=["):-1]]
+                task_keys["card"] = task_keys["card"][:task_keys["card"].index(",metrics=")]
+                
+            keys_to_remove = ['train_refiner', 'system_prompt', 'format']
+            for key in keys_to_remove:
+                del task_keys[key]
+            all_keys = [key for key in task_keys]
+            for key in all_keys:
+                if type(task_keys[key]) == list and len(task_keys[key]) == 1 and key != "metrics":
+                    task_keys[key] = task_keys[key][0]
+                elif type(task_keys[key]) == list and len(task_keys[key]) == 0:
+                    del task_keys[key]
+                if key in default_args and default_args[key] == task_keys[key]:
+                    del task_keys[key]
+
+            # print(f'bluebench.{group}.{task_name}'.lower())
+            if is_subset:
+                print("\t", end='')
+            print(f'ingridients =', "{")
+            for key in task_keys:
+                if is_subset:
+                    print("\t", end='')
+                print(f'               "{key}": {task_keys[key] if type(task_keys[key]) != str else "f\"" + task_keys[key] + "\""},')
+            if is_subset:
+                print("\t", end='')
+            print("}")
+            if is_subset:
+                print("\t", end='')
+            print('recipe = prepapre_recipe(default_args, ingridients)')
+            if is_subset:
+                print("\t", end='')
+            print(f'add_to_catalog(recipe, f"recipes.bluebench.{group.lower()}.{task_name.lower()}", overwrite=True)\n')
+            
+        print()
+            

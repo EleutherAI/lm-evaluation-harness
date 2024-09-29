@@ -1,5 +1,5 @@
 task: bluebench_news_classification_20_newsgroups
 include: unitxt
-recipe: card=cards.20_newsgroups,template=templates.classification.multi_class.blue_bench,demos_pool_size=100,demos_taken_from=train
+recipe: recipes.bluebench.news_classification.20_newsgroups
 metadata:
   version: 0

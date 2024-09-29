@@ -1,5 +1,0 @@
-task: bluebench_rag_finance_fin_qa
-include: unitxt
-recipe: card=cards.fin_qa,demos_pool_size=10,template_card_index=0,demos_taken_from=train
-metadata:
-  version: 0

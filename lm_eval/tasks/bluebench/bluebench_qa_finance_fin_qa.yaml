@@ -1,0 +1,5 @@
+task: bluebench_qa_finance_fin_qa
+include: unitxt
+recipe: recipes.bluebench.qa_finance.fin_qa
+metadata:
+  version: 0

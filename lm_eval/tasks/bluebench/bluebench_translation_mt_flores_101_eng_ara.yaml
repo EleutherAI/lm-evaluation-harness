@@ -1,5 +1,5 @@
 task: bluebench_translation_mt_flores_101_eng_ara
 include: unitxt
-recipe: card=cards.mt.flores_101.eng_ara,template=templates.translation.directed.blue_bench,demos_pool_size=100,demos_taken_from=validation
+recipe: recipes.bluebench.translation.mt_flores_101_eng_ara
 metadata:
   version: 0

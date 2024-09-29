@@ -1,5 +1,5 @@
 task: bluebench_knowledge_mmlu_pro_computer_science
 include: unitxt
-recipe: card=cards.mmlu_pro.computer_science,template=templates.qa.multiple_choice.blue_bench,demos_pool_size=20,demos_taken_from=test
+recipe: recipes.bluebench.knowledge.mmlu_pro_computer_science
 metadata:
   version: 0

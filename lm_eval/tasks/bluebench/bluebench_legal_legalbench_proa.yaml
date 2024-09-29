@@ -1,5 +1,5 @@
 task: bluebench_legal_legalbench_proa
 include: unitxt
-recipe: card=cards.legalbench.proa,template=templates.classification.multi_class.blue_bench,demos_pool_size=10,demos_taken_from=test
+recipe: recipes.bluebench.legal.legalbench_proa
 metadata:
   version: 0

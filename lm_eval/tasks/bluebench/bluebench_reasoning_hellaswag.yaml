@@ -1,5 +1,5 @@
 task: bluebench_reasoning_hellaswag
 include: unitxt
-recipe: card=cards.hellaswag,template=templates.completion.multiple_choice.blue_bench,demos_pool_size=100,demos_taken_from=train
+recipe: recipes.bluebench.reasoning.hellaswag
 metadata:
   version: 0
