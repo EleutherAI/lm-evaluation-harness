@@ -12,7 +12,7 @@ filter_list:
       - function: "take_first"
   - name: "flexible-extract"
     filter:
-      - function: !function utils.MultiChoiceRegexFilter
+      - function: "multi_choice_regex"
         group_select: 0
         regex_pattern: "(\\([A-Z]\\))"
         ignore_case: true
