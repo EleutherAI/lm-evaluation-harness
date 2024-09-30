@@ -1,0 +1,8 @@
+group: veryfIT
+task:
+  - veryfIT_raw
+  - veryfIT_clarified
+aggregate_metric_list:
+  - metric: acc
+metadata:
+  version: 1.0
