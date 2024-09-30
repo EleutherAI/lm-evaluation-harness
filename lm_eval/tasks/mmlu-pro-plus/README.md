@@ -4,7 +4,7 @@
 
 Title: `MMLU-Pro+: Evaluating Higher-Order Reasoning and Shortcut Learning in LLMs`
 
-Abstract: `xisting benchmarks for large language models (LLMs) increasingly struggle to differentiate between 
+Abstract: `Existing benchmarks for large language models (LLMs) increasingly struggle to differentiate between 
 top-performing models, underscoring the need for more challenging evaluation frameworks. 
 We introduce MMLU-Pro+, an enhanced benchmark building upon MMLU-Pro to assess shortcut 
 learning and higher-order reasoning in LLMs. By incorporating questions with multiple 
