@@ -1,0 +1,45 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_philosophy
+description:
+  "Soru: Aşağıdaki ifadelerden hangisi Kant'ın epistemolojik görüşünü yansıtan bir yargıdır?\nA)\
+  \ Bilginin kaynağı hem akıl hem deneyimdir.\nB) Doğru bilgi mümkün değildir.\nC) Sezgiye\
+  \ dayalı bilgi gerçektir.\nD) Akıl tek başına bilgi elde etmek için yeterlidir.\nE)\
+  \ Fenomenlerin bilgisi özseldir.\nÇözüm: Adım adım düşünelim.\
+  \ Kant'ın epistemolojik görüşü, bilginin kaynağı olarak hem akıl (yani a priori bilgi) hem de deneyim (a posteriori bilgi) olduğunu öne sürer.\
+  \ Doğru cevap A şıkkıdır.\n\nSoru: Bir argümanın ya da argümanı oluşturan önermelerin kendi içinde\
+  \ veya birbiriyle uygun olması o argümanın ya daönermenin .................. olduğunu gösterir. Parçadaki boşluğa aşağıdaki\
+  \ kavramlardan hangisi getirilmelidir?\nA) Çelişik\nB) Gerçek\nC) Doğru\nD)\
+  \ Tutarlı\nE) Geçerli\nÇözüm: Adım adım düşünelim.\
+  \ Boşluğa getirilmesi gereken kavram, bir argümanın veya argümanı oluşturan önermelerin kendi içinde veya\
+  \ birbiriyle uygun olmasını ifade eden bir kavram olmalıdır. Bu durumda, argümanın veya önermenin tutarlı olduğunu gösterir.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: Bir tek teoloji yoktur. Hemen her dinin kendi teolojisi vardır;\
+  \ Hristiyan ve İslam teolojisi gibi. Bunlardan hiçbiri açıklamalarında ait oldukları dinin inanç esaslarının dışına çıkmaz.\
+  \ Aşağıdakilerden hangisi bu durumun sebebi olamaz?\nA) Teolojilerin ait oldukları dini baştan doğru kabul\
+  \ etmeleri\nB) Teolojilerin din felsefesi gibi dine eleştirel olarak yaklaşmaları\nC) Teolojilerin ait oldukları\
+  \ dinin doğruluğunu ispat etme çabaları\nD) Teolojilerin belli bir dini görüşü savunmaya çalışmaları\nE)\
+  \ Teolojilerin din felsefesi gibi dinlere tarafsız yaklaşmamaları\nÇözüm: Adım adım düşünelim.\
+  \ Bu soruda, verilen ifadelerden hangisinin çeşitli dinlerin kendi teolojilerinin ait oldukları dinin inanç esaslarının dışına\
+  \ çıkmadığı durumu açıklamada bir sebep olamayacağı sorulmaktadır. Teolojinin temel amacı, bir dinin inanç esaslarını açıklamak ve yorumlamaktır.\
+  \ Dolayısıyla, teolojilerin ait oldukları dini baştan doğru kabul etmeleri A), belli bir dinin görüşünü savunmaya çalışmaları, D)\
+  \ ait oldukları dinin doğruluğunu ispat etme çabaları C) ve din felsefesi gibi dinlere tarafsız yaklaşmamaları E) bu durumun sebepleri olabilir.\
+  \ Ancak, din felsefesi gibi dine eleştirel olarak yaklaşmaları B) ise teolojik çalışmaların temel amaçlarından biri değildir.\
+  \ Doğru cevap B şıkkıdır. \n\nSoru: Konfüçyüs’a göre “Zenginlik ve şeref herkesin istediği şeylerdir. Eğer bunlar doğru bir yolda\
+  \ kazanılmazsa pek çabuk kaybedilir. Fakirlik ve düşkünlük insanların nefret ettiği şeylerdir. Eğer insanlar dürüst davranmazlarsa\
+  \ kendilerini bunlardan sıyırmalarının imkânı yoktur.” Bu açıklama ile Konfüçyüs, felsefenin hangi konusuna vurgu\
+  \ yapmıştır?\nA) Bilgi\nB) Spor\nC) Varlık\nD) Siyaset\nE) Ahlak\nÇözüm: Adım adım düşünelim.\
+  \ Konfüçyüs'ün bu açıklamasında vurgu yaptığı temel konu, insan davranışlarının doğruluğuyla ilgilidir.\
+  \ Konfüçyüs, zenginlik, şeref, fakirlik ve düşkünlük gibi dışsal değerlerin kazanılmasının doğru bir şekilde sağlanmaması durumunda\
+  \ hızlıca kaybedilebileceğini, ancak insanların dürüst davranışlar sergilemediği sürece bu tür olumsuzluklardan kaçmanın mümkün olmadığını vurgular.\
+  \ Dolayısıyla, Konfüçyüs'ün bu açıklamasıyla vurguladığı konu ahlaktır.\ Doğru cevap E şıkkıdır.\n\nSoru:\
+  \ İnancın temele alındığı MS 2- MS 15. yüzyıl felsefesi, kendinden önceki dönem felsefelerinden etkilenmiştir.\
+  \ Örneğin Hristiyan filozofları, Hristiyanlığı yaymak için diriliş inancını destekleyen ruhun ölmemesi hatta tekrar dirilmesi\
+  \ fikrini savunan Antik Yunan filozofunun görüşlerinden; İslam filozofları ise Tanrı’nın varlığı kanıtlamalarında\
+  \ başka bir Antik Yunan filozofunun geliştirdiği mantıktan yararlanmışlardır. Bu parçaya göre, MS 2- 15. yüzyıl\
+  \ felsefesini etkileyen filozoflar sırasıyla aşağıdaki seçeneklerden hangisinde verilmiştir?\nA)\
+  \ Epiküros, Aristoteles\nB) Epiküros, Platon\nC) Platon, Aristoteles\nD) Platon, Epiküros\nE)\
+  \ Aristoteles, Platon\nÇözüm: Adım adım düşünelim.\
+  \ Parçada belirtilenler doğrultusunda, Hristiyan filozoflarının diriliş inancını desteklemek için Antik Yunan filozoflarının ruhun ölmemesi\
+  \ ve hatta tekrar dirilmesi fikrini savunan görüşlerinden etkilendiği ifade edilmiştir. Bu görüşleri savunan Antik Yunan filozofunun Platon olduğu bilinmektedir.\
+  \ İslam filozoflarının ise Tanrı'nın varlığını kanıtlamada başka bir Antik Yunan filozofunun mantığından yararlandığı ifade edilmektedir\
+  \ ve bu filozofun da Aristoteles olduğu bilinmektedir. Doğru cevap C şıkkıdır."
+dataset_name: Philosophy
