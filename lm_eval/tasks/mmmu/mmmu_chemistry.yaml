@@ -1,0 +1,4 @@
+task: mmmu_val_chemistry
+include: _template_yaml
+task_alias: Chemistry
+dataset_name: Chemistry

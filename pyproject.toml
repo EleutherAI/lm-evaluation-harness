@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.3"
+version = "0.4.4"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -62,7 +62,7 @@ dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
-ifeval = ["langdetect", "immutabledict"]
+ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
