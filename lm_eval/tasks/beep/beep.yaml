@@ -5,7 +5,7 @@ dataset_name: null # the dataset configuration to use. Leave `null` if your data
 dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
 task: beep
 doc_to_text: !function utils.doc_to_text
-doc_to_choice: ['[A]', '[B]']
+doc_to_choice: ['A', 'B']
 doc_to_target: !function utils.doc_to_target
 training_split: null
 validation_split: null

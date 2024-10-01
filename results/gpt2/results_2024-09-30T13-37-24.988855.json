@@ -1,0 +1,112 @@
+{
+  "results": {
+    "beep": {
+      "alias": "beep",
+      "acc,none": 0.5191780821917809,
+      "acc_stderr,none": 0.009247689843527664
+    }
+  },
+  "group_subtasks": {
+    "beep": []
+  },
+  "configs": {
+    "beep": {
+      "task": "beep",
+      "tag": [
+        "multiple choice"
+      ],
+      "dataset_path": "Crisp-Unimib/BEEP_eval",
+      "test_split": "train",
+      "doc_to_text": "def doc_to_text(doc) -> str:\n    question = doc['Question Text']\n    doc_to_text = f\"Domanda: {question}\\n\"\n    doc_to_text += \"Opzioni: 'A. Vero' , 'B. Falso'\\nIstruzioni: Devi restituire la lettera corrispondente alla risposta esatta tra parentesi quadre.\\nFormato della risposta: [lettera]\\nRisposta:\"\n\n    return doc_to_text\n",
+      "doc_to_target": "def doc_to_target(doc) -> str:\n    if doc['Answer Type']:\n      return '[A]'\n    else:\n      return '[B]'\n",
+      "doc_to_choice": [
+        "[A]",
+        "[B]"
+      ],
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "beep": 1.0
+  },
+  "n-shot": {
+    "beep": 0
+  },
+  "higher_is_better": {
+    "beep": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "beep": {
+      "original": 2920,
+      "effective": 2920
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=gpt2",
+    "model_num_parameters": 124439808,
+    "model_dtype": "torch.float32",
+    "model_revision": "main",
+    "model_sha": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "batch_size": "8",
+    "batch_sizes": [],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "9126f613",
+  "date": 1727695748.1696951,
+  "pretty_env_info": "PyTorch version: 2.4.1+cu121\nIs debug build: False\nCUDA used to build PyTorch: 12.1\nROCM used to build PyTorch: N/A\n\nOS: Linux Mint 22 (x86_64)\nGCC version: (Ubuntu 13.2.0-23ubuntu4) 13.2.0\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.39\n\nPython version: 3.12.3 (main, Sep 11 2024, 14:17:37) [GCC 13.2.0] (64-bit runtime)\nPython platform: Linux-6.8.0-45-generic-x86_64-with-glibc2.39\nIs CUDA available: False\nCUDA runtime version: No CUDA\nCUDA_MODULE_LOADING set to: N/A\nGPU models and configuration: No CUDA\nNvidia driver version: No CUDA\ncuDNN version: No CUDA\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        39 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               16\nOn-line CPU(s) list:                  0-15\nVendor ID:                            GenuineIntel\nModel name:                           13th Gen Intel(R) Core(TM) i5-13400\nCPU family:                           6\nModel:                                183\nThread(s) per core:                   2\nCore(s) per socket:                   10\nSocket(s):                            1\nStepping:                             1\nCPU(s) scaling MHz:                   35%\nCPU max MHz:                          4600,0000\nCPU min MHz:                          800,0000\nBogoMIPS:                             4992,00\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize arch_lbr ibt flush_l1d arch_capabilities\nVirtualization:                       VT-x\nL1d cache:                            416 KiB (10 instances)\nL1i cache:                            448 KiB (10 instances)\nL2 cache:                             9,5 MiB (7 instances)\nL3 cache:                             20 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-15\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\nVulnerability Reg file data sampling: Mitigation; Clear Register File\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Not affected\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==2.1.1\n[pip3] torch==2.4.1\n[pip3] triton==3.0.0\n[conda] Could not collect",
+  "transformers_version": "4.45.1",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|endoftext|>",
+    "50256"
+  ],
+  "tokenizer_eos_token": [
+    "<|endoftext|>",
+    "50256"
+  ],
+  "tokenizer_bos_token": [
+    "<|endoftext|>",
+    "50256"
+  ],
+  "eot_token_id": 50256,
+  "max_length": 1024,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "gpt2",
+  "model_name_sanitized": "gpt2",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 4567.941777316,
+  "end_time": 5067.565331173,
+  "total_evaluation_time_seconds": "499.62355385699993"
+}
