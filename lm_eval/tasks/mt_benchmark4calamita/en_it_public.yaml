@@ -1,8 +1,8 @@
-tag:
-  - machine_translation
-  - english
-  - italian
-  - calamita
+# tag:
+#   - machine_translation
+#   - english
+#   - italian
+#   - calamita
 task: en_it_public
 dataset_path: FBK-MT/MT-benchmark4CALAMITA2024
 training_split: null
@@ -24,11 +24,11 @@ doc_to_text: "\
 # output model
 doc_to_target: "{{english}}"
 
-
+process_docs: !function utils.preprocess_dataset
 process_results: !function utils.process_results_gen
 
 metric_list:
-  - metric: blue
+  - metric: bleu
     aggregation: mean
     higher_is_better: true
   - metric: chrf
