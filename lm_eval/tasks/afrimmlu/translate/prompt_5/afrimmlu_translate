@@ -1,5 +1,5 @@
 tag: afrimmlu_tt_tasks
-dataset_path: masakhane/afrimgsm-translate-test
+dataset_path: masakhane/afrimmlu-translate-test
 dataset_name: null
 output_type: multiple_choice
 test_split: test
