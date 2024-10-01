@@ -1,4 +1,4 @@
-group: afrixnli_tt
+group: afrixnli_tt-irokobench
 task:
   - afrixnli_tt_tasks
 aggregate_metric_list:
