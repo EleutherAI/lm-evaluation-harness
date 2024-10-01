@@ -90,7 +90,6 @@ class HFLM(TemplateLM):
         **kwargs,
     ) -> None:
         super().__init__()
-        self.backend = backend
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
             eval_logger.warning(
@@ -101,8 +100,6 @@ class HFLM(TemplateLM):
             self._device = self._model.device
             self._config = self._model.config
             gpus = 0
-            # default backend to causal if not specified
-            self.backend = self.backend if self.backend != "default" else "causal"
 
         else:
             assert isinstance(device, str)
@@ -167,9 +164,9 @@ class HFLM(TemplateLM):
             )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
-            self._get_backend(
-                config=self.config, backend=backend, trust_remote_code=trust_remote_code
-            )
+        self._get_backend(
+            config=self.config, backend=backend, trust_remote_code=trust_remote_code
+        )
 
         # load tokenizer so we know tokenizer vocabulary size before loading model and PEFT
         self._create_tokenizer(
@@ -450,10 +447,7 @@ class HFLM(TemplateLM):
         Helper method during initialization.
         Determines the backend ("causal" (decoder-only) or "seq2seq" (encoder-decoder)) model type to be used.
         sets `self.AUTO_MODEL_CLASS` appropriately if not already set.
-        Should only be called if isinstance(pretrained, str)! otherwise pass `backend` appropriately
         """
-        if self.AUTO_MODEL_CLASS is not None:
-            return
 
         assert backend in ["default", "causal", "seq2seq"]
 
@@ -489,6 +483,7 @@ class HFLM(TemplateLM):
                     eval_logger.warning(
                         "HF model type is neither marked as CausalLM or Seq2SeqLM. \
                     This is expected if your model requires `trust_remote_code=True` but may be an error otherwise."
+                        "Setting backend to causal"
                     )
                 # if model type is neither in HF transformers causal or seq2seq model registries
                 # then we default to AutoModelForCausalLM
