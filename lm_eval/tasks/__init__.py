@@ -275,7 +275,7 @@ class TaskManager:
                     task_object = config["class"]()
                 if isinstance(task_object, ConfigurableTask):
                     # very scuffed: set task name here. TODO: fixme?
-                    task_object.config.task = config["task"]
+                    task_object.config.task = task
             else:
                 task_object = ConfigurableTask(config=config)
 
