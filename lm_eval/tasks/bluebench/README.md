@@ -93,9 +93,8 @@ Naming convention: 'bluebench_{scenario}_{sub-scenario}'
 
 #### Tasks Descriptions
 
-#### Hellaswag (`recipes.bluebench.reasoning.hellaswag`)
+#### Hellaswag (Reasoning)
 
-Commonsense natural language inference
 
 https://huggingface.co/datasets/Rowan/hellaswag
 
@@ -105,11 +104,11 @@ https://www.unitxt.ai/en/latest/catalog/catalog.cards.hellaswag.html
 
 ##### Task description
 
+Commonsense natural language inference
+
 given an event description such as "A woman sits at a piano," a machine must select the most likely followup: "She sets her fingers on the keys."
 
 Gatherd via Adversarial Filtering (AF), a data collection paradigm wherein a series of discriminators iteratively select an adversarial set of machine-generated wrong answers.
-
-Example:
 
 ```json
 {
@@ -126,9 +125,7 @@ Example:
 }
 ```
 
-#### Openbook QA (`recipes.bluebench.reasoning.openbook_qa`)
-
-Question answering dataset using open book exams
+#### Openbook QA (Reasoning)
 
 https://huggingface.co/datasets/allenai/openbookqa
 
@@ -138,9 +135,9 @@ https://www.unitxt.ai/en/latest/catalog/catalog.cards.openbook_qa.html
 
 ##### Task description
 
+Question answering dataset using open book exams.
+
 Comes with our questions is a set of 1326 elementary level science facts. Roughly 6000 questions probe an understanding of these facts and their application to novel situations. This requires combining an open book fact (e.g., metals conduct electricity) with broad common knowledge (e.g., a suit of armor is made of metal) obtained from other sources.
-
-
 
 ```json
 {
@@ -157,9 +154,7 @@ Comes with our questions is a set of 1326 elementary level science facts. Roughl
 
 
 
-#### Flores 101 (`recipes.bluebench.translation.mt_flores_101_{src}_{trg}`)
-
-Benchmark dataset for machine translation
+#### Flores 101 (Machine Translation)
 
 https://huggingface.co/datasets/gsarti/flores_101
 
@@ -168,6 +163,8 @@ https://arxiv.org/abs/2106.03193
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.mt.flores_101.__dir__.html
 
 ##### Task descriptions
+
+Benchmark dataset for machine translation.
 
 There are 101 lanugages in this dataset, each sentence appears in all languages, and all a total of `2k` sentences.
 
@@ -197,9 +194,7 @@ we use the following language pairs:  `["ara_eng", "deu_eng", "eng_ara", "eng_de
 }
 ```
 
-#### Arena Hard (`recipes.bluebench.chatbot_abilities.arena_hard_generation_english_gpt_4_0314_reference`)
-
-An automatic evaluation tool for instruction-tuned LLMs
+#### Arena Hard (Chatbot Abilities)
 
 https://huggingface.co/datasets/lmsys/arena-hard-auto-v0.1
 
@@ -208,6 +203,8 @@ https://arxiv.org/abs/2406.11939
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.arena_hard.generation.english_gpt_4_0314_reference.html
 
 ##### Task description
+
+An automatic evaluation tool for instruction-tuned LLMs.
 
 Contains 500 challenging user queries sourced from Chatbot Arena. We prompt GPT-4-Turbo as judge to compare the models" responses against a baseline model (default: GPT-4-0314 for here we are using `llama-3.1-70b`).
 
@@ -218,15 +215,15 @@ Contains 500 challenging user queries sourced from Chatbot Arena. We prompt GPT-
 }
 ```
 
-#### 20_newsgroups (`recipes.bluebench.news_classification.20_newsgroups`)
-
-News article classification: The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across 20 different newsgroups.
+#### 20_newsgroups (News classification)
 
 https://huggingface.co/datasets/SetFit/20_newsgroups
 
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.20_newsgroups.html
 
 ##### Task description
+
+News article classification: The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across 20 different newsgroups.
 
 The 20 newsgroups dataset comprises around 18000 newsgroups posts on 20 topics split in two subsets: one for training (or development) and the other one for testing (or for performance evaluation). The split between the train and test set is based upon a messages posted before and after a specific date.
 
@@ -239,9 +236,7 @@ The 20 newsgroups dataset comprises around 18000 newsgroups posts on 20 topics s
 ```
 
 
-#### BBQ (`recipes.bluebench.bias.safety_bbq_{subscenario}`)
-
-Question sets constructed to highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts.
+#### BBQ (Bias)
 
 https://huggingface.co/datasets/heegyu/bbq
 
@@ -250,6 +245,8 @@ https://arxiv.org/abs/2110.08193
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.safety.bbq.__dir__.html
 
 ##### Task description
+
+Question sets constructed to highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts.
 
 It is well documented that NLP models learn social biases, but little work has been done on how these biases manifest in model outputs for applied tasks like question answering (QA). We introduce the Bias Benchmark for QA (BBQ), a dataset of question sets constructed by the authors that highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts. Our task evaluates model responses at two levels: (i) given an under-informative context, we test how strongly responses refect social biases, and (ii) given an adequately informative context, we test whether the model's biases override a correct answer choice. We fnd that models often rely on stereotypes when the context is under-informative, meaning the model's outputs consistently reproduce harmful biases in this setting. Though models are more accurate when the context provides an informative answer, they still rely on stereotypes and average up to 3.4 percentage points higher accuracy when the correct answer aligns with a social bias than when it conficts, with this difference widening to over 5 points on examples targeting gender for most models tested.
 
@@ -266,9 +263,7 @@ It is well documented that NLP models learn social biases, but little work has b
 ```
 
 
-#### Legalbench (`recipes.bluebench.legal.legalbench_proa_{subscenario}`)
-
-Evaluating legal reasoning in English large language models (LLMs)
+#### Legalbench (Legal Ressoning)
 
 https://huggingface.co/datasets/nguha/legalbench
 
@@ -277,6 +272,8 @@ https://arxiv.org/abs/2308.11462
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.legalbench.__dir__.html
 
 ##### Task description
+
+Evaluating legal reasoning in English large language models (LLMs).
 
 LegalBench tasks span multiple types (binary classification, multi-class classification, extraction, generation, entailment), multiple types of text (statutes, judicial opinions, contracts, etc.), and multiple areas of law (evidence, contracts, civil procedure, etc.). For more information on tasks, we recommend visiting the website, where you can search through task descriptions, or the Github repository, which contains more granular task descriptions. We also recommend reading the paper, which provides more background on task significance and construction process.
 
@@ -290,17 +287,17 @@ Example for the `abercrombie` task
 }
 ```
 
-#### CFPB (`recipes.bluebench.product_help.cfpb_product_{subscenario}`)
-
-This database is a collection of complaints about consumer financial products and services that we sent to companies for response.
-
-Its is a special and high quality subset that was gathred and refined bu teams at IBM.
+#### CFPB (Product help)
 
 https://raw.githubusercontent.com/IBM/watson-machine-learning-samples/master/cloud/data/cfpb_complaints/cfpb_compliants.csv
 
 https://www.unitxt.ai/en/1.7.0_a/catalog.cards.CFPB.product.2023.html
 
 ##### Task description
+
+This database is a collection of complaints about consumer financial products and services that we sent to companies for response.
+
+Its is a special and high quality subset that was gathred and refined bu teams at IBM.
 
 The Consumer Complaint Database is a collection of complaints about consumer financial products and services that we sent to companies for response. Complaints are published after the company responds, confirming a commercial relationship with the consumer, or after 15 days, whichever comes first. Complaints referred to other regulators, such as complaints about depository institutions with less than $10 billion in assets, are not published in the Consumer Complaint Database. The database generally updates daily.
 
@@ -329,9 +326,7 @@ Complaints can give us insights into problems people are experiencing in the mar
 }
 ```
 
-#### MMLU Pro (`recipes.bluebench.knowledge.mmlu_pro_{subscenario}`)
-
-MMLU-Pro dataset is a more robust and challenging massive multi-task understanding dataset tailored to more rigorously benchmark large language models’ capabilities. This dataset contains 12K complex questions across various disciplines.
+#### MMLU Pro (General Knowledge)
 
 https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 
@@ -340,6 +335,8 @@ https://arxiv.org/abs/2406.01574
 https://www.unitxt.ai/en/1.11.0/catalog/catalog.cards.mmlu_pro.__dir__.html
 
 ##### Task description
+
+MMLU-Pro dataset is a more robust and challenging massive multi-task understanding dataset tailored to more rigorously benchmark large language models’ capabilities. This dataset contains 12K complex questions across various disciplines.
 
 MMLU-Pro, an enhanced dataset designed to extend the mostly knowledge-driven MMLU benchmark by integrating more challenging, reasoning-focused questions and expanding the choice set from four to ten options. Additionally, MMLU-Pro eliminates the trivial and noisy questions in MMLU.
 
@@ -357,9 +354,7 @@ MMLU-Pro, an enhanced dataset designed to extend the mostly knowledge-driven MML
 ```
 
 
-#### Universal NER (`recipes.bluebench.entity_extraction.universal_ner_{src}_{trg}`)
-
-Benchmarks for Named Entity Recognition (NER) across multiple languages
+#### Universal NER (Entity extraction)
 
 https://aclanthology.org/2024.naacl-long.243/
 
@@ -369,7 +364,11 @@ https://huggingface.co/datasets/universalner/universal_ner
 
 ##### Task description
 
+Benchmarks for Named Entity Recognition (NER) across multiple languages.
+
 Universal NER (UNER) is an open, community-driven initiative aimed at creating gold-standard benchmarks for Named Entity Recognition (NER) across multiple languages. The primary objective of UNER is to offer high-quality, cross-lingually consistent annotations, thereby standardizing and advancing multilingual NER research. UNER v1 includes 19 datasets with named entity annotations, uniformly structured across 13 diverse languages.
+
+In Bluebench, we only use the english subset ("en.ewt").
 
 ```json
 {
@@ -389,9 +388,7 @@ Universal NER (UNER) is an open, community-driven initiative aimed at creating g
 }
 ```
 
-#### Attaq 500 (`recipes.bluebench.safety.attaq_500`)
-
-Evaluate Large Language Models (LLMs) by assessing their tendency to generate harmful or undesirable responses.
+#### Attaq 500 (Safety)
 
 https://aclanthology.org/2023.gem-1.10/
 
@@ -400,6 +397,8 @@ https://huggingface.co/datasets/ibm/AttaQ
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.attaq_500.html
 
 ##### Task description
+
+Evaluate Large Language Models (LLMs) by assessing their tendency to generate harmful or undesirable responses.
 
 The AttaQ red teaming dataset, consisting of 1402 carefully crafted adversarial questions, is designed to evaluate Large Language Models (LLMs) by assessing their tendency to generate harmful or undesirable responses. It may serve as a benchmark to assess the potential harm of responses produced by LLMs. The dataset is categorized into seven distinct classes of questions: deception, discrimination, harmful information, substance abuse, sexual content, personally identifiable information (PII), and violence. Researchers and developers can use this dataset to assess the behavior of LLMs and explore the various factors that influence their responses, ultimately aiming to enhance their harmlessness and ethical usage.
 
@@ -411,9 +410,7 @@ The AttaQ red teaming dataset, consisting of 1402 carefully crafted adversarial 
 }
 ```
 
-### BillSUM (`recipes.bluebench.summarization.billsum_document_filtered_to_6000_chars`)
-
-Summarization of US Congressional and California state bills
+#### BillSUM (Bill Summarization)
 
 https://aclanthology.org/D19-5406/
 
@@ -421,7 +418,9 @@ https://huggingface.co/datasets/FiscalNote/billsum
 
 https://www.unitxt.ai/en/stable/catalog/catalog.cards.billsum.html
 
-#### Task description
+##### Task description
+
+Summarization of US Congressional and California state bills.
 
 The data consists of three parts: US training bills, US test bills and California test bills. The US bills were collected from the Govinfo service provided by the United States Government Publishing Office (GPO) under CC0-1.0 license. The California, bills from the 2015-2016 session are available from the legislature’s website.
 
@@ -433,9 +432,7 @@ The data consists of three parts: US training bills, US test bills and Californi
 }
 ```
 
-#### TL;DR (`recipes.bluebench.summarization.tldr_document_filtered_to_6000_chars`)
-
-Summarization dataset, A large Reddit crawl, taking advantage of the common practice of appending a “TL;DR” to long posts.
+#### TL;DR (Post Summarization)
 
 https://huggingface.co/datasets/webis/tldr-17
 
@@ -444,6 +441,8 @@ https://aclanthology.org/W17-4508/
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.tldr.html
 
 ##### Task description
+
+Summarization dataset, A large Reddit crawl, taking advantage of the common practice of appending a “TL;DR” to long posts.
 
 ```json
 {
@@ -458,9 +457,7 @@ https://www.unitxt.ai/en/latest/catalog/catalog.cards.tldr.html
 }
 ```
 
-#### ClapNQ (`recipes.bluebench.rag_general.rag_response_generation_clapnq`)
-
-A benchmark for Long-form Question Answering.
+#### ClapNQ (RAG Response Generation)
 
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.rag.response_generation.clapnq.html
 
@@ -469,6 +466,8 @@ https://arxiv.org/abs/2404.02103
 https://huggingface.co/datasets/PrimeQA/clapnq
 
 ##### Task description
+
+A benchmark for Long-form Question Answering.
 
 CLAP NQ includes long answers with grounded gold passages from Natural Questions (NQ) and a corpus to perform either retrieval, generation, or the full RAG pipeline. The CLAP NQ answers are concise, 3x smaller than the full passage, and cohesive, with multiple pieces of the passage that are not contiguous.
 
@@ -521,9 +520,7 @@ CLAP NQ is created from the subset of Natural Questions (NQ) that have a long an
 }
 ```
 
-#### FinQA (`recipes.bluebench.qa_finance.fin_qa`)
-
-A large-scale dataset with 2.8k financial reports for 8k Q&A pairs to study numerical reasoning with structured and unstructured evidence.
+#### FinQA (QA finance)
 
 https://arxiv.org/abs/2109.00122
 
@@ -532,6 +529,8 @@ https://huggingface.co/datasets/ibm/finqa
 https://www.unitxt.ai/en/latest/catalog/catalog.cards.fin_qa.html
 
 ##### Task description
+
+A large-scale dataset with 2.8k financial reports for 8k Q&A pairs to study numerical reasoning with structured and unstructured evidence.
 
 The FinQA dataset is designed to facilitate research and development in the area of question answering (QA) using financial texts. It consists of a subset of QA pairs from a larger dataset, originally created through a collaboration between researchers from the University of Pennsylvania, J.P. Morgan, and Amazon.The original dataset includes 8,281 QA pairs built against publicly available earnings reports of S&P 500 companies from 1999 to 2019 (FinQA: A Dataset of Numerical Reasoning over Financial Data.).
 
