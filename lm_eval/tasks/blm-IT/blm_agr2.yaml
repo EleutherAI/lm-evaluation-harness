@@ -1,3 +1,0 @@
-include: veryfIT_raw.yaml
-task: veryfIT_clarified
-doc_to_text: !function utils.doc_to_text_clarified
