@@ -112,7 +112,7 @@ Commonsense natural language inference
 
 given an event description such as "A woman sits at a piano," a machine must select the most likely followup: "She sets her fingers on the keys."
 
-Gatherd via Adversarial Filtering (AF), a data collection paradigm wherein a series of discriminators iteratively select an adversarial set of machine-generated wrong answers.
+Gathered via Adversarial Filtering (AF), a data collection paradigm wherein a series of discriminators iteratively select an adversarial set of machine-generated wrong answers.
 
 ```json
 {
