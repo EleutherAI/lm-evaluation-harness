@@ -1,6 +1,10 @@
 # BlueBench Benchmark
 
-BlueBench is an open-source benchmark developed by domain experts to represent required needs of Enterprise users. It is constructed using state-of-the-art benchmarking methodologies to ensure validity, robustness, and efficiency. As a dynamic and evolving benchmark, BlueBench currently encompasses diverse domains such as legal, finance, customer support, and news. It also evaluates a range of capabilities, including RAG, pro-social behavior, summarization, and chatbot performance, with additional tasks and domains to be integrated over time.
+BlueBench is an open-source benchmark developed by domain experts to represent required needs of Enterprise users. 
+
+It is constructed using state-of-the-art benchmarking methodologies to ensure validity, robustness, and [efficiency](https://arxiv.org/abs/2308.11696v5) by utilizing [unitxt](https://github.com/IBM/unitxt)'s abilities for dynamic and flexible text processing. 
+
+As a dynamic and evolving benchmark, BlueBench currently encompasses diverse domains such as legal, finance, customer support, and news. It also evaluates a range of capabilities, including RAG, pro-social behavior, summarization, and chatbot performance, with additional tasks and domains to be integrated over time.
 
 ### Groups, Tags, and Tasks
 
