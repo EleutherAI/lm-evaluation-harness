@@ -3,8 +3,5 @@ task:
   - agr_tasks
   - caus_tasks
   - od_tasks
-aggregate_metric_list:
-  - metric: f1
-    aggregation: mean
 metadata:
   version: 1.0
