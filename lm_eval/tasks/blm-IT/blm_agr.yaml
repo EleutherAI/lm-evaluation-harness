@@ -1,22 +1,21 @@
 tag:
-  - knowledge
-  - general knowledge
-  - concorsi pubblici
-  - standardised tests
-  - job
+  - Language Matrices
+  - Causative alternation,
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
     test: #
-task: multi-it
-doc_to_text: !function utils.doc_to_text
-doc_to_choice: !function utils.doc_to_choice
-doc_to_target: answer
+task: blm_agr
+doc_to_text: !function utils.agr_doc_to_text
+doc_to_choice: 
+doc_to_target: 
+few_shot_split: train
 training_split: null
 validation_split: null
 test_split: test
 output_type: multiple_choice
+num_fewshot: 1
 metric_list:
   - metric: acc
     aggregation: mean

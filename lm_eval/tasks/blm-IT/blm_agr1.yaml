@@ -1,18 +1,15 @@
 tag:
-  - knowledge
-  - general knowledge
-  - concorsi pubblici
-  - standardised tests
-  - job
+  - Language Matrices
+  - Causative alternation,
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: #
-task: multi-it
+    test: /home/jj/Downloads/subset_annotato.json
+task: veryfIT_raw
 doc_to_text: !function utils.doc_to_text
-doc_to_choice: !function utils.doc_to_choice
-doc_to_target: answer
+doc_to_choice: ['Vero', 'Falso']
+doc_to_target: verdict
 training_split: null
 validation_split: null
 test_split: test
