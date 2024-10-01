@@ -8,7 +8,6 @@ from functools import partial
 from typing import Optional
 
 import evaluate
-from unitxt.api import evaluate
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
@@ -28,12 +27,10 @@ _CITATION = """
 
 def score(items, metric):
     predictions, references = zip(*items)
-    # evaluator = evaluate.load("unitxt/metric", revision="1.12.2")
-    # evaluator = evaluate.load("unitxt/metric")
+    evaluator = evaluate.load("unitxt/metric")
     for reference in references:
         reference["metrics"] = [metric]
-    # results = evaluator.compute(predictions=predictions, references=references)
-    results = evaluate(predictions=predictions, data=references)
+    results = evaluator.compute(predictions=predictions, references=references)
     return results[0]["score"]["global"]["score"]
 
 
@@ -48,7 +45,6 @@ class Unitxt(ConfigurableTask):
         super().__init__(
             config={
                 "metadata": {"version": self.VERSION},
-                # "dataset_kwargs": {"trust_remote_code": True, "revision": "1.12.2"},
                 "dataset_kwargs": {"trust_remote_code": True},
                 "dataset_name": config["recipe"],
                 "dataset_path": "unitxt/data",
