@@ -10,7 +10,7 @@ As a dynamic and evolving benchmark, BlueBench currently encompasses diverse dom
 
 #### Groups
 
-The 13 BlueBench scenarios
+The 13 BlueBench Groups
 
 * `bluebench_reasoning`
 * `bluebench_translation`
