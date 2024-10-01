@@ -562,7 +562,8 @@ This subset, specifically curated by Aiera, consists of 91 QA pairs. Each entry 
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test? The unitxt implementation will always be different from the original implemetations due to different methods of templating and formating, we thus, prepended the _bluebench sign to all the new tasks.
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test? 
+    * The unitxt implementation will always be different from the original implemetations due to different methods of templating and formating, we thus, prepended the _bluebench sign to all the new tasks.
 
 
 If other tasks on this dataset are already supported:
