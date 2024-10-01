@@ -17,3 +17,4 @@ metadata:
   version: 1.0
 fewshot_config:
   sampler: first_n
+target_delimiter: ""
