@@ -571,4 +571,4 @@ If other tasks on this dataset are already supported:
     * Ours is marked in _bluebench so other users will not mix it for the original implementations in case there is one.
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
-    * The are not, see above
+    * They are not, see above
