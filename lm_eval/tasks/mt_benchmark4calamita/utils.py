@@ -1,33 +1,17 @@
-from evaluate import load
 import datasets
+import sacrebleu
 
 from typing import List
+from evaluate import load
 
 
 
 def preprocess_dataset(dataset: datasets.Dataset) -> datasets.Dataset:
-    # dataset['devtest'] = dataset['devtest'].select([0, 1])      # selecting two rows for DEBUG
-    dataset = dataset.select([0, 1])      # selecting two rows for DEBUG
+    dataset = dataset.select([i for i in range(4)])      # selecting 4 rows for DEBUG
     # print(dataset)
     # exit()
     return dataset
 
-
-# # OLD
-# def single_bluert(ref, pred):
-#     from bleurt import score
-#     checkpoint = "BLEURT-20"
-#     scorer = score.BleurtScorer(checkpoint)
-#     score = scorer.score(candidates=pred, references=ref)
-#     return score
-#
-# def single_comet(source, ref, pred):
-#     from comet import download_model, load_from_checkpoint
-#     model_path = download_model("Unbabel/wmt22-comet-da")
-#     model = load_from_checkpoint(model_path)
-#     data = [{"src": source, "mt": pred, "ref": ref}]
-#     comet_scores = model.predict(data, gpus=1)
-#     return comet_scores[1]*100
 
 def _search_delimiters(model_output: str) -> str:
     left_delimiter = '<'
@@ -42,16 +26,26 @@ def _search_delimiters(model_output: str) -> str:
     return model_output[start:end].replace('<', '').replace('>', '').strip()
 
 
-def single_bleurt(ref, pred):
+def single_bleurt(ref: str, pred: str) -> float:
     bleurt = load("bleurt", module_type="metric", checkpoint="BLEURT-20")
     result = bleurt.compute(predictions=[pred], references=[ref])
     return result["scores"][0]
 
 
-def single_comet(source, ref, pred):
+def single_comet(source: str, ref: str, pred: str) -> float:
     comet_metric = load("comet")
     comet_score = comet_metric.compute(predictions=[pred], references=[ref], sources=[source])
     return comet_score["scores"][0]
+
+def single_bleu(ref: str, pred: str) -> float:
+    bleu_metric = load("bleu")
+    bleu_score = bleu_metric.compute(predictions=[pred], references=[[ref]])
+    return bleu_score["bleu"]
+
+def sigle_chrf(ref: str, pred: str) -> float:
+    chrf_metric = load("chrf")
+    chrf_score = chrf_metric.compute(predictions=[pred], references=[[ref]])
+    return chrf_score["score"]
 
 
 def process_results_gen(doc, results):
@@ -61,20 +55,29 @@ def process_results_gen(doc, results):
     # clean completion
     completion = _search_delimiters(completion)
 
+    # BLEU
+    bleu_score = single_bleu(ref=reference_out, pred=completion)
+    # CHRF
+    chrf_score = sigle_chrf(ref=reference_out, pred=completion)
     # BLEURT
     bleurt_score = single_bleurt(ref=reference_out, pred=completion)
     # COMET
     comet_score = single_comet(source=model_input, ref=reference_out, pred=completion)
 
+
     print("========================================================")
     print("model_input: ", model_input)
     print("expected: ", reference_out)
     print("completion: ", completion)
+    print("BLEU: ", bleu_score)
+    print("CHRF: ", chrf_score)
     print("BLEURT: ", bleurt_score)
     print("COMET: ", comet_score)
     print("========================================================")
 
     return {
+        "bleu_score": bleu_score,
+        "chrf_score": chrf_score,
         "bleurt_score": bleurt_score,
         "comet_score": comet_score,
     }

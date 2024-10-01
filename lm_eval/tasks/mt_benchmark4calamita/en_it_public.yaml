@@ -28,18 +28,24 @@ process_docs: !function utils.preprocess_dataset
 process_results: !function utils.process_results_gen
 
 metric_list:
-  - metric: bleu
-    aggregation: mean
-    higher_is_better: true
-  - metric: chrf
-    aggregation: mean
-    higher_is_better: true
+  # - metric: bleu
+  #   aggregation: mean
+  #   higher_is_better: true
+  # - metric: chrf
+  #   aggregation: mean
+  #   higher_is_better: true
   # - metric: comet
   #   aggregation: mean
   #   higher_is_better: true
   # - metric: bleurt
   #   aggregation: mean
   #   higher_is_better: true
+  - metric: bleu_score    # my score
+    aggregation: mean
+    higher_is_better: true
+  - metric: chrf_score    # my score
+    aggregation: mean
+    higher_is_better: true
   - metric: bleurt_score    # my score
     aggregation: mean
     higher_is_better: true
