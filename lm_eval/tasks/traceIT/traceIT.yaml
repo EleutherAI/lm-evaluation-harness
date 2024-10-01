@@ -3,7 +3,7 @@ tag:
 dataset_path: 'DominiqueBrunato/TRACE-it_CALAMITA' # the name of the dataset on the HF Hub.
 dataset_name: null # the dataset configuration to use. Leave `null` if your dataset does not require a config to be passed. See https://huggingface.co/docs/datasets/load_hub#configurations for more info.
 dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
-task: beep
+task: traceIT
 doc_to_text: !function utils.doc_to_text
 doc_to_choice: ['si', 'no']
 doc_to_target: gold
