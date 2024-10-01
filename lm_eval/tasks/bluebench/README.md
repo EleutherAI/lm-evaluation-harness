@@ -170,7 +170,7 @@ https://www.unitxt.ai/en/latest/catalog/catalog.cards.mt.flores_101.__dir__.html
 
 Benchmark dataset for machine translation.
 
-There are 101 lanugages in this dataset, each sentence appears in all languages, and all a total of `2k` sentences.
+There are 101 lanuguages in this dataset, each sentence appears in all languages, and all a total of `2k` sentences.
 
 we use the following language pairs:  `["ara_eng", "deu_eng", "eng_ara", "eng_deu", "eng_fra", "eng_kor", "eng_por", "eng_ron", "eng_spa", "fra_eng", "jpn_eng", "kor_eng", "por_eng", "ron_eng", "spa_eng"]`
 
@@ -214,7 +214,7 @@ Contains 500 challenging user queries sourced from Chatbot Arena. We prompt GPT-
 
 ```json
 {
-  "turnes": [ { "content": "Use ABC notation to write a melody in the style of a folk tune." } ],
+  "turns": [ { "content": "Use ABC notation to write a melody in the style of a folk tune." } ],
   "cluster": "ABC Sequence Puzzles & Groups",
 }
 ```
@@ -252,7 +252,7 @@ https://www.unitxt.ai/en/latest/catalog/catalog.cards.safety.bbq.__dir__.html
 
 Question sets constructed to highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts.
 
-It is well documented that NLP models learn social biases, but little work has been done on how these biases manifest in model outputs for applied tasks like question answering (QA). We introduce the Bias Benchmark for QA (BBQ), a dataset of question sets constructed by the authors that highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts. Our task evaluates model responses at two levels: (i) given an under-informative context, we test how strongly responses refect social biases, and (ii) given an adequately informative context, we test whether the model's biases override a correct answer choice. We fnd that models often rely on stereotypes when the context is under-informative, meaning the model's outputs consistently reproduce harmful biases in this setting. Though models are more accurate when the context provides an informative answer, they still rely on stereotypes and average up to 3.4 percentage points higher accuracy when the correct answer aligns with a social bias than when it conficts, with this difference widening to over 5 points on examples targeting gender for most models tested.
+It is well documented that NLP models learn social biases, but little work has been done on how these biases manifest in model outputs for applied tasks like question answering (QA). We introduce the Bias Benchmark for QA (BBQ), a dataset of question sets constructed by the authors that highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts. Our task evaluates model responses at two levels: (i) given an under-informative context, we test how strongly responses reflect social biases, and (ii) given an adequately informative context, we test whether the model's biases override a correct answer choice. We fnd that models often rely on stereotypes when the context is under-informative, meaning the model's outputs consistently reproduce harmful biases in this setting. Though models are more accurate when the context provides an informative answer, they still rely on stereotypes and average up to 3.4 percentage points higher accuracy when the correct answer aligns with a social bias than when it conficts, with this difference widening to over 5 points on examples targeting gender for most models tested.
 
 
 ```json
@@ -475,7 +475,7 @@ A benchmark for Long-form Question Answering.
 
 CLAP NQ includes long answers with grounded gold passages from Natural Questions (NQ) and a corpus to perform either retrieval, generation, or the full RAG pipeline. The CLAP NQ answers are concise, 3x smaller than the full passage, and cohesive, with multiple pieces of the passage that are not contiguous.
 
-CLAP NQ is created from the subset of Natural Questions (NQ) that have a long answer but no short answer. NQ consists of ~380k examples. There are ~30k questions that are long answers without short answers excluding tables and lists. To increases the likelihood of longer answers we only explored ones that have more than 5 sentences in the passage. The subset that was annotated consists of ~12k examples. All examples where cohesion of non-consecutive sentences was required for the answer were annotated a second time. The final dataset is made up of all data that went through two rounds of annotation. (We provide the single round annotations as well - it is only training data) An equal amount of unanswerable questions have also been added from the original NQ train/dev sets. Details about the annotation task and unanswerables can be found here.
+CLAP NQ is created from the subset of Natural Questions (NQ) that have a long answer but no short answer. NQ consists of ~380k examples. There are ~30k questions that are long answers without short answers excluding tables and lists. To increase the likelihood of longer answers we only explored ones that have more than 5 sentences in the passage. The subset that was annotated consists of ~12k examples. All examples where cohesion of non-consecutive sentences was required for the answer were annotated a second time. The final dataset is made up of all data that went through two rounds of annotation. (We provide the single round annotations as well - it is only training data) An equal amount of unanswerable questions have also been added from the original NQ train/dev sets. Details about the annotation task and unanswerables can be found here.
 
 ```json
 {
