@@ -104,7 +104,7 @@ https://huggingface.co/datasets/Rowan/hellaswag
 
 https://arxiv.org/abs/1905.07830
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.hellaswag.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.reasoning.hellaswag.html
 
 ##### Task description
 
@@ -135,7 +135,7 @@ https://huggingface.co/datasets/allenai/openbookqa
 
 https://aclanthology.org/D18-1260/
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.openbook_qa.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.reasoning.openbook_qa.html
 
 ##### Task description
 
@@ -164,7 +164,7 @@ https://huggingface.co/datasets/gsarti/flores_101
 
 https://arxiv.org/abs/2106.03193
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.mt.flores_101.__dir__.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.translation.__dir__.html
 
 ##### Task descriptions
 
@@ -204,7 +204,7 @@ https://huggingface.co/datasets/lmsys/arena-hard-auto-v0.1
 
 https://arxiv.org/abs/2406.11939
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.arena_hard.generation.english_gpt_4_0314_reference.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.chatbot_abilities.arena_hard_generation_english_gpt_4_0314_reference.html
 
 ##### Task description
 
@@ -223,7 +223,7 @@ Contains 500 challenging user queries sourced from Chatbot Arena. We prompt GPT-
 
 https://huggingface.co/datasets/SetFit/20_newsgroups
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.20_newsgroups.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.news_classification.20_newsgroups.html
 
 ##### Task description
 
@@ -246,7 +246,7 @@ https://huggingface.co/datasets/heegyu/bbq
 
 https://arxiv.org/abs/2110.08193
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.safety.bbq.__dir__.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.bias.__dir__.html
 
 ##### Task description
 
@@ -273,7 +273,7 @@ https://huggingface.co/datasets/nguha/legalbench
 
 https://arxiv.org/abs/2308.11462
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.legalbench.__dir__.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.legal.__dir__.html
 
 ##### Task description
 
@@ -295,7 +295,7 @@ Example for the `abercrombie` task
 
 https://raw.githubusercontent.com/IBM/watson-machine-learning-samples/master/cloud/data/cfpb_complaints/cfpb_compliants.csv
 
-https://www.unitxt.ai/en/1.7.0_a/catalog.cards.CFPB.product.2023.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.product_help.__dir__.html
 
 ##### Task description
 
@@ -336,7 +336,7 @@ https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 
 https://arxiv.org/abs/2406.01574
 
-https://www.unitxt.ai/en/1.11.0/catalog/catalog.cards.mmlu_pro.__dir__.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.knowledge.__dir__.html
 
 ##### Task description
 
@@ -360,11 +360,11 @@ MMLU-Pro, an enhanced dataset designed to extend the mostly knowledge-driven MML
 
 #### Universal NER (Entity extraction)
 
+https://huggingface.co/datasets/universalner/universal_ner
+
 https://aclanthology.org/2024.naacl-long.243/
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.universal_ner.da.ddt.html
-
-https://huggingface.co/datasets/universalner/universal_ner
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.entity_extraction.universal_ner_en_ewt.html
 
 ##### Task description
 
@@ -398,7 +398,7 @@ https://aclanthology.org/2023.gem-1.10/
 
 https://huggingface.co/datasets/ibm/AttaQ
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.attaq_500.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.safety.attaq_500.html
 
 ##### Task description
 
@@ -420,7 +420,7 @@ https://aclanthology.org/D19-5406/
 
 https://huggingface.co/datasets/FiscalNote/billsum
 
-https://www.unitxt.ai/en/stable/catalog/catalog.cards.billsum.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.summarization.billsum_document_filtered_to_6000_chars.html
 
 ##### Task description
 
@@ -442,7 +442,7 @@ https://huggingface.co/datasets/webis/tldr-17
 
 https://aclanthology.org/W17-4508/
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.tldr.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.summarization.tldr_document_filtered_to_6000_chars.html
 
 ##### Task description
 
@@ -463,11 +463,11 @@ Summarization dataset, A large Reddit crawl, taking advantage of the common prac
 
 #### ClapNQ (RAG Response Generation)
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.rag.response_generation.clapnq.html
-
 https://arxiv.org/abs/2404.02103
 
 https://huggingface.co/datasets/PrimeQA/clapnq
+
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.rag_general.rag_response_generation_clapnq.html
 
 ##### Task description
 
@@ -530,7 +530,7 @@ https://arxiv.org/abs/2109.00122
 
 https://huggingface.co/datasets/ibm/finqa
 
-https://www.unitxt.ai/en/latest/catalog/catalog.cards.fin_qa.html
+https://www.unitxt.ai/en/latest/catalog/catalog.recipes.bluebench.qa_finance.fin_qa.html
 
 ##### Task description
 
