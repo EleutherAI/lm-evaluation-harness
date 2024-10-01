@@ -10,7 +10,7 @@ def doc_to_text(doc):
     output = """You are a subject matter expert in {subject}.
 
   Utilizing your expertise in {subject}, answer the following multiple-choice question
-  by picking ''A'', ''B'', ''C'', or ''D''.
+  by picking 'A', 'B', 'C', or 'D'.
 
 Question: {question}
 Choices:
