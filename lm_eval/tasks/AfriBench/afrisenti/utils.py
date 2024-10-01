@@ -10,6 +10,7 @@ class FunctionTag:
 
 def prompt_func(mode, lang):
     prompt_map = {
+        "prompt_1": "Does this statement; {{tweet}} have a Neutral, Positive or Negative sentiment? Labels only",
         "prompt_2": f"Does this {lang} statement; "
                     "'{{tweet}}' have a Neutral, Positive or Negative sentiment? Labels only",
         "prompt_3": f"You are an assistant able to detect sentiments in tweets. \n\n"

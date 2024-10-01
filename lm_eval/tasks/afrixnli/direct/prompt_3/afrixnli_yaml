@@ -1,6 +1,4 @@
-group:
-    - afrixnli
-    - afrixnli_manual_direct
+tag: afrixnli_tasks
 dataset_path: masakhane/afrixnli
 dataset_name: null
 output_type: multiple_choice
