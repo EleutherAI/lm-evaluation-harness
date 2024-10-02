@@ -1,3 +1,0 @@
-dataset_name: orm
-include: afrimmlu
-task: afrimmlu_orm_prompt_1

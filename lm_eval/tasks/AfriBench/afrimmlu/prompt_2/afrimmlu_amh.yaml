@@ -1,3 +1,0 @@
-dataset_name: amh
-include: afrimmlu
-task: afrimmlu_amh_prompt_2

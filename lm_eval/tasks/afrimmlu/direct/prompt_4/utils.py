@@ -1,7 +1,7 @@
 from lm_eval.utils import weighted_f1_score
 
 
-def doc_to_choice(doc):
+def doc_to_choice(doc, lang):
     choices = eval(doc["choices"])
     return choices
 
