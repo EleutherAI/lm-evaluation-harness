@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import yaml
 
@@ -10,24 +11,18 @@ class FunctionTag:
 
 def prompt_func(mode, lang):
     prompt_map = {
-        "prompt_1": "Does this statement; {{tweet}} have a Neutral, Positive or Negative sentiment? Labels only",
-        "prompt_2": f"Does this {lang} statement; "
-                    "'{{tweet}}' have a Neutral, Positive or Negative sentiment? Labels only",
-        "prompt_3": f"You are an assistant able to detect sentiments in tweets. \n\n"
-                    f"Given the sentiment labels Neutral, Positive or Negative; what is "
-                    f"the sentiment of the {lang} statement below? Return only the labels. "
-                    "\n\ntext: {{tweet}} \nlabel:",
-        "prompt_4": "Label the following text as Neutral, Positive, or Negative. Provide only the label as your "
-                    "response. \n\ntext: {{tweet}} \nlabel: ",
-        "prompt_5": f"You are tasked with performing sentiment classification on the following {lang} text. "
-                    f"For each input, classify the sentiment as positive, negative, or neutral. "
-                    f"Use the following guidelines: \n\n "
-                    f"Positive: The text expresses happiness, satisfaction, or optimism. \n"
-                    f"Negative: The text conveys disappointment, dissatisfaction, or pessimism. \n"
-                    f"Neutral: The text is factual, objective, or without strong emotional undertones. \n\n"
-                    f"If the text contains both positive and negative sentiments, choose the dominant sentiment. "
-                    f"For ambiguous or unclear sentiments, select the label that best reflects the overall tone. "
-                    'Please provide a single classification for each input.\n\ntext: {{tweet}} \nlabel: '
+        "prompt_1": "Please identify whether the premise entails or contradicts the hypothesis in the following premise "
+                    "and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {premise}\nHypothesis: {hypothesis}\n\n"
+                    "Is it entailment, contradiction, or neutral?",
+        "prompt_3": f"Given the following premise and hypothesis in {lang}, identify if the premise entails, contradicts, "
+                    f"or is neutral towards the hypothesis. Please respond with exact 'entailment', 'contradiction', or 'neutral'. \n\n"
+                    "Premise: {{premise}} \nHypothesis: {{hypothesis}}",
+        "prompt_4": f"You are an expert in Natural Language Inference (NLI) specializing in the {lang} language.\n"
+                    f"Analyze the premise and hypothesis given in {lang}, and determine the relationship between them.\n "
+                    f"Respond with one of the following options: 'entailment', 'contradiction', or 'neutral'. \n\n"
+                    "Premise: {{premise}} \nHypothesis: {{hypothesis}}",
+        "prompt_5": "Based on the given statement, is the following claim 'true', 'false', or 'inconclusive'. \n"
+                    "Statement: {{premise}} \nClaim: {{hypothesis}}"
     }
     return prompt_map[mode]
 
@@ -41,32 +36,41 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     """
     err = []
     languages = {
+        "eng": "English",
         "amh": "Amharic",
-        "arq": "Algerian Arabic",
-        "ary": "Moroccan Arabic",
-        "hau": "Hausa",
         "ibo": "Igbo",
+        "fra": "French",
+        "sna": "chiShona",
+        "wol": "Wolof",
+        "ewe": "Ewe",
+        "lin": "Lingala",
+        "lug": "Luganda",
+        "xho": "isiXhosa",
         "kin": "Kinyarwanda",
-        "orm": "Oromo",
-        "pcm": "Nigerian Pidgin",
-        "por": "Mozambique Portuguese",
-        "swa": "Swahili",
-        "tir": "Tigrinya",
-        "tso": "Xithonga",
         "twi": "Twi",
-        "yor": "Yoruba"
+        "zul": "Zulu",
+        "orm": "Oromo",
+        "yor": "Yoruba",
+        "hau": "Hausa",
+        "sot": "Sesotho",
+        "swa": "Swahili",
     }
+
     for lang in languages.keys():
         try:
-            file_name = f"afrisenti_{lang}.yaml"
-            task_name = f"afrisenti_{lang}_{mode}"
-            yaml_template = f"afrisenti"
-            if int(mode.split("_")[-1]) > 1:
+            file_name = f"afrixnli_{lang}.yaml"
+            task_name = f"afrixnli_{lang}_{mode}"
+            yaml_template = f"afrixnli_yaml"
+            if output_dir.split('/')[-1] == 'translate':
+                file_name = f"afrixnli_translate_{lang}.yaml"
+                task_name = f"afrixnli_translate_{lang}_{mode}"
+                yaml_template = f"afrixnli_translate_yaml"
+            if int(mode.split("_")[-1]) == 1 or int(mode.split("_")[-1]) > 2:
                 yaml_details = {
                         "include": yaml_template,
                         "task": task_name,
                         "dataset_name": lang,
-                        "doc_to_text": prompt_func(mode, languages[lang]),
+                        "doc_to_text": prompt_func(mode, languages[lang])
                     }
             else:
                 yaml_details = {
@@ -74,6 +78,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                         "task": task_name,
                         "dataset_name": lang,
                     }
+            os.makedirs(f"{output_dir}/{mode}", exist_ok=True)
             with open(
                     f"{output_dir}/{mode}/{file_name}",
                     "w" if overwrite else "x",
@@ -106,12 +111,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="./",
+        default="./translate",
         help="Directory to write yaml files to",
     )
     parser.add_argument(
         "--mode",
-        default="prompt_1",
+        default="prompt_5",
         choices=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"],
         help="Prompt number",
     )

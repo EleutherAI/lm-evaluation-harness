@@ -1,3 +1,0 @@
-dataset_name: sna
-include: afrimmlu_common_yaml
-task: afrimmlu_direct_sna
