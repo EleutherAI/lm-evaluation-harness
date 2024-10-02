@@ -8,45 +8,6 @@ class FunctionTag:
         self.value = value
 
 
-# def doc_to_text(doc, lang):
-#     output = """You are a subject matter expert in {subject} with professional working proficiency in {lang}.
-# Analyze each {lang} question critically and determine the most correct option based on your understanding of the subject matter
-#
-# Question: {question}
-# Choices:
-#         A: {choice1}
-#         B: {choice2}
-#         C: {choice3}
-#         D: {choice4}
-# Answer: """
-#
-#     choices = eval(doc["choices"])
-#     text = output.format(
-#         lang=lang,
-#         subject=doc["subject"],
-#         question=doc["question"],
-#         choice1=choices[0],
-#         choice2=choices[1],
-#         choice3=choices[2],
-#         choice4=choices[3],
-#     )
-#     return text
-
-
-# def prompt_func(mode, lang):
-#     prompt_map = {
-#         # "prompt_3": "You are a subject matter expert in {{subject}}.\n"
-#         #             "Utilizing your expertise in {{subject}}, answer the following multiple-choice question by picking "
-#         #             "'A', 'B', 'C', or 'D'.\nQuestion: {{question}}\nAnswer:",
-#         "prompt_4": f"You are a subject matter expert in {{subject}} with professional working proficiency in {lang}.\n"
-#                     f"Analyze each {lang} question critically and determine the most correct option based on your "
-#                     f"understanding of the subject matter.\nQuestion: {{question}}\nAnswer:",
-#         "prompt_5": f"Given your proficiency in {{subject}}, please answer the subsequent multiple-choice question "
-#                     "with 'A', 'B', 'C', or 'D'.\nQuestion: {{question}}\nAnswer:"
-#     }
-#     return prompt_map[mode]
-
-
 def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     """
     Generate a yaml file for each language.
@@ -85,15 +46,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 file_name = f"afrimmlu_translate_{lang}.yaml"
                 task_name = f"afrimmlu_translate_{lang}_{mode}"
                 yaml_template = f"afrimmlu_translate"
-            if int(mode.split("_")[-1]) == 4:
-                yaml_details = {
-                        "include": yaml_template,
-                        "task": task_name,
-                        "dataset_name": lang,
-                        "doc_to_text": doc_to_text(doc, lang)
-                    }
-            else:
-                yaml_details = {
+            yaml_details = {
                         "include": yaml_template,
                         "task": task_name,
                         "dataset_name": lang,
@@ -131,12 +84,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="./translate",
+        default="./direct",
         help="Directory to write yaml files to",
     )
     parser.add_argument(
         "--mode",
-        default="prompt_1",
+        default="prompt_4",
         choices=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"],
         help="Prompt number",
     )

@@ -6,11 +6,8 @@ def doc_to_choice(doc, lang):
     return choices
 
 
-def doc_to_text(doc, lang):
-    output = """You are a subject matter expert in {subject} with professional working proficiency in {lang}
-
-  Analyze each {lang} question critically and determine the most correct option based on your understanding of the s
-  ubject matter.
+def doc_to_text(doc):
+    output = """Analyze each question critically and determine the most correct option based on your understanding of the subject matter
 
 Question: {question}
 Choices:
@@ -22,8 +19,6 @@ Answer: """
 
     choices = eval(doc["choices"])
     text = output.format(
-        subject=doc["subject"],
-        lang=lang,
         question=doc["question"],
         choice1=choices[0],
         choice2=choices[1],
