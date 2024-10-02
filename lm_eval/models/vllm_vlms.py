@@ -1,3 +1,4 @@
+import ast
 import copy
 from typing import Dict, List, Optional
 
@@ -36,9 +37,10 @@ class VLLM_VLM(VLLM):
         interleave: bool = True,
         # TODO<baber>: handle max_images and limit_mm_per_prompt better
         max_images: int = 999,
-        limit_mm_per_prompt: str = "image=1",
+        limit_mm_per_prompt: str = "None",
         **kwargs,
     ):
+        limit_mm_per_prompt = ast.literal_eval(limit_mm_per_prompt)
         kwargs["limit_mm_per_prompt"] = simple_parse_args_string(limit_mm_per_prompt)
         super().__init__(
             pretrained=pretrained,
