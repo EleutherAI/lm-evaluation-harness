@@ -11,7 +11,7 @@ task:
     - "bluebench_translation_mt_flores_101_eng_ara"
     - "bluebench_translation_mt_flores_101_eng_deu"
     - "bluebench_translation_mt_flores_101_eng_fra"
-    # - "bluebench_translation_mt_flores_101_eng_kor"
+    - "bluebench_translation_mt_flores_101_eng_kor"
     - "bluebench_translation_mt_flores_101_eng_por"
     - "bluebench_translation_mt_flores_101_eng_ron"
     - "bluebench_translation_mt_flores_101_eng_spa"
