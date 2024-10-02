@@ -1,6 +1,9 @@
 group: afribench
 task:
   - afrisenti_tasks
+  - afrixnli_tasks
+  - afrimmlu_tasks
+  - afrimgsm_tasks
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
