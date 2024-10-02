@@ -9,6 +9,7 @@ from typing import Union
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
+from lm_eval.mlflow_log_results import log_to_mlflow
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
@@ -257,6 +258,18 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
+    parser.add_argument(
+        "--mlflow",
+        action="store_true",
+        help="Store results on MLFlow server",
+    )
+    parser.add_argument(
+        "--experiment_name",
+        type=str,
+        default=None,
+        help="If you are using MLFlow, you can use this flag to set the name of the MLFlow experiment",
+    )
+
     return parser
 
 
@@ -431,6 +444,18 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         evaluation_tracker.save_results_aggregated(
             results=results, samples=samples if args.log_samples else None
         )
+        # Add MLFlow logging
+        if args.mlflow:
+            try:
+                if args.experiment_name:
+                    log_to_mlflow(
+                        results, args=args, experiment_name=args.experiment_name
+                    )
+                else:
+                    log_to_mlflow(results, args=args)
+            except Exception as e:
+                eval_logger.info(f"Logging to MLFlow failed due to {e}")
+
 
         if args.log_samples:
             for task_name, config in results["configs"].items():
