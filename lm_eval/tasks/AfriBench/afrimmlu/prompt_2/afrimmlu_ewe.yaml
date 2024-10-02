@@ -1,3 +1,0 @@
-dataset_name: ewe
-include: afrimmlu
-task: afrimmlu_ewe_prompt_2

@@ -1,3 +1,0 @@
-dataset_name: swa
-include: afrimmlu
-task: afrimmlu_swa_prompt_1

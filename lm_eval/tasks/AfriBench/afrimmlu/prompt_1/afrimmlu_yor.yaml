@@ -1,3 +1,0 @@
-dataset_name: yor
-include: afrimmlu
-task: afrimmlu_yor_prompt_1

@@ -1,3 +1,0 @@
-dataset_name: twi
-include: afrimmlu
-task: afrimmlu_twi_prompt_1
