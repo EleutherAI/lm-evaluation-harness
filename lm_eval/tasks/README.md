@@ -42,6 +42,7 @@
 | [fda](fda/README.md) | Tasks for extracting key-value pairs from FDA documents to test information extraction. | English |
 | [fld](fld/README.md) | Tasks involving free-form and directed dialogue understanding. | English |
 | [french_bench](french_bench/README.md) | Set of tasks designed to assess language model performance in French. | French|
+| [galician_bench](galician_bench/README.md) | Collection of tasks in Galician encompassing various evaluation areas. | Galician |
 | [glue](glue/README.md) | General Language Understanding Evaluation benchmark to test broad language abilities. | English |
 | [gpqa](gpqa/README.md) | Tasks designed for general public question answering and knowledge verification. | English |
 | [gsm8k](gsm8k/README.md) | A benchmark of grade school math problems aimed at evaluating reasoning capabilities. | English |
