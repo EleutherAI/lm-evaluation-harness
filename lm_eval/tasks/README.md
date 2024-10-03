@@ -86,6 +86,7 @@
 | [pile_10k](pile_10k/README.md) | The first 10K elements of The Pile, useful for debugging models trained on it. | English |
 | [piqa](piqa/README.md) | Physical Interaction Question Answering tasks to test physical commonsense reasoning. | English |
 | [polemo2](polemo2/README.md) | Sentiment analysis and emotion detection tasks based on Polish language data. | Polish |
+| [portuguese_bench](portuguese_bench/README.md) | Collection of tasks in European Portuguese encompassing various evaluation areas. | Portuguese |
 | [prost](prost/README.md) | Tasks requiring understanding of professional standards and ethics in various domains. | English |
 | [pubmedqa](pubmedqa/README.md) | Question answering tasks based on PubMed research articles for biomedical understanding. | English |
 | [qa4mre](qa4mre/README.md) | Question Answering for Machine Reading Evaluation, assessing comprehension and reasoning. | English |
@@ -95,6 +96,7 @@
 | [sciq](sciq/README.md) | Science Question Answering tasks to assess understanding of scientific concepts. | English |
 | [scrolls](scrolls/README.md) | Tasks that involve long-form reading comprehension across various domains. | English |
 | [siqa](siqa/README.md) | Social Interaction Question Answering to evaluate common sense and social reasoning.  | English |
+| [spanish_bench](spanish_bench/README.md) | Collection of tasks in Spanish encompassing various evaluation areas. | Spanish |
 | [squad_completion](squad_completion/README.md) | A variant of the SQuAD question answering task designed for zero-shot evaluation of small LMs. | English |
 | [squadv2](squadv2/README.md) | Stanford Question Answering Dataset version 2, a reading comprehension benchmark. | English |
 | [storycloze](storycloze/README.md) | Tasks to predict story endings, focusing on narrative logic and coherence. | English |
@@ -121,4 +123,4 @@
 | [xnli_eu](xnli_eu/README.md) | Cross-lingual Natural Language Inference tasks in Basque. | Basque |
 | [xstorycloze](xstorycloze/README.md) | Cross-lingual narrative understanding tasks to predict story endings in multiple languages. | Russian, Simplified Chinese, Spanish, Arabic, Hindi, Indonesian, Telugu, Swahili, Basque, Burmese |
 | [xwinograd](xwinograd/README.md) | Cross-lingual Winograd schema tasks for coreference resolution in multiple languages. | English, French, Japanese, Portuguese, Russian, Chinese |
-| [portuguese_bench](portuguese_bench/README.md) | Collection of tasks in European Portuguese encompassing various evaluation areas. | Portuguese |
+
