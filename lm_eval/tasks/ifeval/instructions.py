@@ -483,7 +483,11 @@ class HighlightSectionChecker(Instruction):
             if highlight.strip("*").strip():
                 num_highlights += 1
         for highlight in double_highlights:
-            if highlight.removeprefix("**").removesuffix("**").strip():
+            if highlight.startswith("**"):
+                highlight = highlight[2:]
+            if highlight.endswith("**"):
+                highlight = highlight[:-2]
+            if highlight.strip():
                 num_highlights += 1
 
         return num_highlights >= self._num_highlights
@@ -930,15 +934,23 @@ class JsonFormat(Instruction):
         return []
 
     def check_following(self, value):
-        value = (
-            value.strip()
-            .removeprefix("```json")
-            .removeprefix("```Json")
-            .removeprefix("```JSON")
-            .removeprefix("```")
-            .removesuffix("```")
-            .strip()
-        )
+        value = value.strip()
+
+        # Remove prefixes manually
+        if value.startswith("```json"):
+            value = value[len("```json"):]
+        elif value.startswith("```Json"):
+            value = value[len("```Json"):]
+        elif value.startswith("```JSON"):
+            value = value[len("```JSON"):]
+        elif value.startswith("```"):
+            value = value[len("```"):]
+
+        # Remove suffix manually
+        if value.endswith("```"):
+            value = value[:-len("```")]
+
+        value = value.strip()
         try:
             json.loads(value)
         except ValueError:
