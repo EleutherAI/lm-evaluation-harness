@@ -43,6 +43,7 @@
 | [fda](fda/README.md) | Tasks for extracting key-value pairs from FDA documents to test information extraction. | English |
 | [fld](fld/README.md) | Tasks involving free-form and directed dialogue understanding. | English |
 | [french_bench](french_bench/README.md) | Set of tasks designed to assess language model performance in French. | French|
+| [galician_bench](galician_bench/README.md) | Collection of tasks in Galician encompassing various evaluation areas. | Galician |
 | [glue](glue/README.md) | General Language Understanding Evaluation benchmark to test broad language abilities. | English |
 | [gpqa](gpqa/README.md) | Tasks designed for general public question answering and knowledge verification. | English |
 | [gsm8k](gsm8k/README.md) | A benchmark of grade school math problems aimed at evaluating reasoning capabilities. | English |
@@ -97,6 +98,7 @@
 | [sciq](sciq/README.md) | Science Question Answering tasks to assess understanding of scientific concepts. | English |
 | [scrolls](scrolls/README.md) | Tasks that involve long-form reading comprehension across various domains. | English |
 | [siqa](siqa/README.md) | Social Interaction Question Answering to evaluate common sense and social reasoning.  | English |
+| [spanish_bench](spanish_bench/README.md) | Collection of tasks in Spanish encompassing various evaluation areas. | Spanish |
 | [squad_completion](squad_completion/README.md) | A variant of the SQuAD question answering task designed for zero-shot evaluation of small LMs. | English |
 | [squadv2](squadv2/README.md) | Stanford Question Answering Dataset version 2, a reading comprehension benchmark. | English |
 | [storycloze](storycloze/README.md) | Tasks to predict story endings, focusing on narrative logic and coherence. | English |
