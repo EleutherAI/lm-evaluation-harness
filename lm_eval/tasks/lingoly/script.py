@@ -98,7 +98,7 @@ def exact_match(references: list[str], predictions: list[str]):
             pred_dict = ast.literal_eval(
                 predictions[0][predictions[0].index("{") :] + "}"
             )
-    except (SyntaxError, AssertionError):
+    except (SyntaxError, ValueError, AssertionError):
         pred_dict = {}
         for k in ref_dict.keys():
             m = re.search(re.escape(str(k)) + """': ([^']+)'[,\\}]""", predictions[0])
