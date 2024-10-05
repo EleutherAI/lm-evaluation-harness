@@ -9,7 +9,7 @@ source ./eval/bin/activate
 export PYTHONPATH="$WORK/eval/lib64/python3.9/site-packages:$PYTHONPATH"
 
 # [Important] Import the Pool of Experts configuration here
-export PYTHONPATH="$WORK/Pool-of-Experts/utils:$PYTHONPATH"
+export PYTHONPATH="$WORK/Pool-of-Experts/poe-patch:$PYTHONPATH"
 
 # Configure transformer cache in $WORK area (so that it has larger space)
 export TRANSFORMERS_CACHE="$WORK/.cache"
