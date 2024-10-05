@@ -2,7 +2,9 @@
 
 > [!note]
 > This is the revised Language Model Evaluation Harness for our PoE architecture.
+> 
 > We've changed some codes in `lm_eval` folder, and add some codes under `eval_scripts` so that we can do evaluation easily.
+> 
 > To import the utils of our PoE, please refer to `eval_scripts/eval.sh`.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
