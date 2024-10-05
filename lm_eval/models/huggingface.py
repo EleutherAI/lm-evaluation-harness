@@ -22,9 +22,7 @@ from transformers.models.auto.modeling_auto import (
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
 
-# PoE import requirements
-import sys
-sys.path.insert(0, "/home/koios/poe_model")
+# Rather than import poe_utils here, we import at the very begin
 from poe_utils import *
 ACCEPT_MODEL_TYPES = [transformers.AutoModelForCausalLM]
 for model in backbone_config.keys():
@@ -42,7 +40,6 @@ from lm_eval.models.utils import (
     pad_and_concat,
     stop_sequences_criteria,
 )
-
 
 eval_logger = utils.eval_logger
 
@@ -346,7 +343,12 @@ class HFLM(TemplateLM):
                         ]
                     ), "Unsupported distributed type provided. Only DDP and FSDP are supported."
                     if accelerator.distributed_type == DistributedType.FSDP:
+                        # Enter
+                        print(self._model.__class__.__name__)
                         self._model = accelerator.prepare(self.model)
+                        print(self._model.__class__.__name__)
+            
+                        print("FSDP prepare done!")
                     else:
                         self._model = accelerator.prepare_model(
                             self.model, evaluation_mode=True
@@ -553,12 +555,18 @@ class HFLM(TemplateLM):
                     offload_folder,
                 )
             )
+        elif self.is_fsdp:
+            print("Set device map: auto.")
+            model_kwargs.update(
+                    {"device_map": "auto"}
+                )
         elif "device_map" not in model_kwargs:
             # set a device_map to initialize model on the right GPU.
             # this is needed because it seems that the default behavior
             # for quantized models now seems to be device_map="auto"
             # which breaks data-parallel mode.
             if hasattr(self, "accelerator"):
+                # Enter here!!
                 model_kwargs.update(
                     {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
                 )
@@ -587,11 +595,6 @@ class HFLM(TemplateLM):
                     trust_remote_code=trust_remote_code,
                     **model_kwargs,
                 )
-                # self._model = get_poe_model(
-                #     self.backbone,
-                #     config_path=self.config_path,
-                #     router_path=self.router_path,
-                # )
             else:    
                 self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                     pretrained,
@@ -601,19 +604,6 @@ class HFLM(TemplateLM):
                     **model_kwargs,
                 )
 
-            # Configuring model from fsdp checkpoint
-            if self.is_fsdp:
-                eval_logger.info(f"Loading FSDP model from {self.fsdp_path}.")
-                state_dict = {
-                    "model": self._model.state_dict(),
-                }
-                import torch.distributed.checkpoint as checkpoint
-                checkpoint.load(
-                    state_dict=state_dict,
-                    checkpoint_id=self.fsdp_path
-                )
-                self._model.load_state_dict(state_dict["model"])
-                eval_logger.info(f"Compeleted loading FSDP model.")
         else:
             try:
                 from auto_gptq import AutoGPTQForCausalLM
