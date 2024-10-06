@@ -46,6 +46,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "hau": "Hausa",
         "sot": "Sesotho",
         "swa": "Swahili",
+        "vai": "Vai"
     }
 
     for lang in languages.keys():
@@ -103,7 +104,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="./translate",
+        default="./direct",
         help="Directory to write yaml files to",
     )
     parser.add_argument(
