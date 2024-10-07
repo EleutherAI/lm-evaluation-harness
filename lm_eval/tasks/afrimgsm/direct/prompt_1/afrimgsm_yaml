@@ -12,8 +12,6 @@ generation_kwargs:
     - "\n"
   do_sample: false
   temperature: 0.0
-should_decontaminate: true
-doc_to_decontamination_query: "Answer: "
 filter_list:
   - name: remove_whitespace
     filter:
