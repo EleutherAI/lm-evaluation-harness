@@ -433,10 +433,14 @@ def evaluate(
             )
     # end multimodality validation check
 
+    # Cache the limit arg.
+    limit_arg = limit
+    limits = []
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        limit = get_sample_size(task, limit)
+        limit = get_sample_size(task, limit_arg)
+        limits.append(limit)
         task.build_all_requests(
             limit=limit,
             rank=lm.rank,
@@ -506,7 +510,7 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output in eval_tasks:
+    for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         task.apply_filters()
 
@@ -655,7 +659,7 @@ def evaluate(
                         len(task_output.task.eval_docs),
                     ),
                 }
-                for task_output in eval_tasks
+                for task_output, limit in zip(eval_tasks, limits)
             },
         }
         if log_samples:
