@@ -3,9 +3,6 @@ import os
 from typing import Any, Dict, Union, Tuple
 
 import mlflow
-from dotenv import load_dotenv
-
-load_dotenv()
 
 METRICS_TO_TRACK = [
     "acc",
@@ -1345,7 +1342,7 @@ def log_to_mlflow(
     model_name_str: Union[str, None] = None,
     experiment_name: Union[str, None] = None,
 ) -> None:
-    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_SERVER_URL"))
+    mlflow.set_tracking_uri("/gpfs/projects/bsc88/evaluation/mlflow")
     if model_name_str:
         model_name = model_name_str
     else:
