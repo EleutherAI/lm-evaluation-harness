@@ -453,6 +453,7 @@ class HFLM(TemplateLM):
         # then skip over the method after setting the appropriate backend.
         if self.AUTO_MODEL_CLASS is not None:
             if backend != "default":
+                self.backend = backend
                 return
             else:
                 if (
