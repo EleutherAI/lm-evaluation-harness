@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, undistribute
+from lm_eval.models.utils import Collator, replace_placeholders, undistribute
 from lm_eval.models.vllm_causallms import VLLM
 from lm_eval.utils import eval_logger
 
@@ -63,8 +63,18 @@ class VLLM_VLM(VLLM):
         left_truncate_len: int = None,
         truncation: bool = False,
     ):
-        # TODO<baber>: Should we let vllm deal with this?
         images = [img[: self.max_images] for img in images]
+        # TODO<baber>: is the default placeholder always <image>?
+        if self.chat_applied is False:
+            strings = [
+                replace_placeholders(
+                    string,
+                    DEFAULT_IMAGE_PLACEHOLDER,
+                    DEFAULT_IMAGE_PLACEHOLDER,
+                    self.max_images,
+                )
+                for string in strings
+            ]
 
         outputs = []
         for x, i in zip(strings, images):
