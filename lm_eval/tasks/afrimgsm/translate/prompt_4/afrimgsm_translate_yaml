@@ -3,15 +3,13 @@ dataset_path: masakhane/afrimgsm-translate-test
 output_type: generate_until
 test_split: test
 doc_to_target: '{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}'
-target_delimiter: " "
+target_delimiter: ""
 generation_kwargs:
-  until:
-    - "\n\n"
-    - "\n"
   do_sample: false
-  temperature: 0.0
-should_decontaminate: true
-doc_to_decontamination_query: "Answer: "
+  until:
+  - 'Question:'
+  - </s>
+  - <|im_end|>
 filter_list:
   - name: remove_whitespace
     filter:
