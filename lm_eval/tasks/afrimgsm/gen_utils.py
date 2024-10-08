@@ -11,10 +11,10 @@ class FunctionTag:
 
 def prompt_func(mode, lang):
     prompt_map = {
-        "prompt_4": "Answer the given question with the appropriate numerical value, ensuring that the response is "
-                    "clear and without any supplementary information. \n\nQuestion: {{question}} \nAnswer: ",
-        "prompt_5": f"For mathematical questions provided in {lang} language. Supply the accurate numeric answer to the "
-                    "provided question. \n\nQuestion: {{question}} \nAnswer: "
+        "prompt_4": "Answer the given question with the step by step solution appropriate numerical value, ensuring that the response is "
+                    "clear and without any supplementary information. \n\nQuestion: {{question}} \nStep by step answer: ",
+        "prompt_5": f"For mathematical questions provided in {lang} language. Supply the accurate step by step answer to the "
+                    "provided question. \n\nQuestion: {{question}} \nStep by step answer: "
     }
     return prompt_map[mode]
 
@@ -28,7 +28,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     """
     err = []
     languages = {
-        # "eng": "English",
+        "eng": "English",
         "amh": "Amharic",
         "ibo": "Igbo",
         "fra": "French",
@@ -51,13 +51,13 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
 
     for lang in languages.keys():
         try:
-            file_name = f"afrimgsm_{lang}.yaml"
-            task_name = f"afrimgsm_{lang}_{mode}"
-            yaml_template = f"afrimgsm_yaml"
-            if output_dir.split('/')[-1] == 'translate':
-                file_name = f"afrimgsm_translate_{lang}.yaml"
-                task_name = f"afrimgsm_translate_{lang}_{mode}"
-                yaml_template = f"afrimgsm_translate_yaml"
+            file_name = f"afrimgsm_cot_{lang}.yaml"
+            task_name = f"afrimgsm_cot_{lang}_{mode}"
+            yaml_template = f"afrimgsm_cot_yaml"
+            if 'translate' in output_dir.split('/')[-1]:
+                file_name = f"afrimgsm_cot_translate_{lang}.yaml"
+                task_name = f"afrimgsm_cot_translate_{lang}_{mode}"
+                yaml_template = f"afrimgsm_cot_translate_yaml"
             if int(mode.split("_")[-1]) > 3:
                 yaml_details = {
                         "include": yaml_template,
@@ -104,7 +104,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="./direct",
+        default="./translate_cot",
         help="Directory to write yaml files to",
     )
     parser.add_argument(
