@@ -23,7 +23,6 @@ please install sympy via pip install lm-eval[math] or pip install -e .[math]",
 def doc_to_text(doc: dict) -> str:
     return "Problem:" + "\n" + doc["problem"] + "\n\n" + "Solution:"
 
-
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
     def _process_doc(doc: dict) -> dict:
@@ -41,37 +40,22 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
-    # index = np.random.randint(0, 5) + 1
-    # def _process_doc(doc: dict) -> dict:
-    #     if doc.get("variation") == index or doc.get("variation") == 0:
-    #         out_doc = {
-    #             "problem": doc["problem"],
-    #             "solution": doc["solution"],
-    #             "answer": normalize_final_answer(
-    #                 remove_boxed(last_boxed_only_string(doc["solution"]))
-    #             ),
-    #         }
-    #         if getattr(doc, "few_shot", None) is not None:
-    #             out_doc["few_shot"] = True
-    #         return out_doc
-    #     return None
-    
-    # return dataset.map(_process_doc)
+
     index = np.random.randint(0, 5) + 1
     print("index", index)
     def filter_doc(doc: dict) -> bool:
-        return doc.get("variation") == index or doc.get("variation") == 0
+        return doc.get("variation") == index
 
     filtered_dataset = dataset.filter(filter_doc)
 
     # Further processing if needed
-    def _process_doc(doc: dict) -> dict:
+    def _process_doc(doc: dict) -> dict:   
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
             "answer": normalize_final_answer(
                 remove_boxed(last_boxed_only_string(doc["solution"]))
-            ),
+            )
         }
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
@@ -106,7 +90,7 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    id = None
+
     completion_output = results[0].outputs[0]
     candidates = completion_output.text
 
@@ -114,12 +98,10 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         answer = ground_truth_boxed_answer(candidates)
     except:
         answer = get_generated_answer(candidates)
-    
-    if answer == "[invalidanswer]":
-        print("invalid", doc['isOriginal'])
 
     if is_equiv(answer, doc["answer"]):
-        id = doc['year'] + '_' + doc['id']
+        print(answer)
+        print(doc['answer'])
         retval = 1
     else:
         retval = 0
@@ -127,9 +109,8 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     results = {
         "exact_match": retval,
     }
-    csv_append = {doc['year'] + '_' + doc['id']: [retval, candidates]}
 
-    return results, id, csv_append
+    return results, candidates
 
 def ground_truth_boxed_answer(solution: str) -> str:
     return normalize_final_answer(remove_boxed(last_boxed_only_string(solution)))
