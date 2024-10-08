@@ -1,0 +1,5 @@
+include: metabench_winogrande.yaml
+task: metabench_winogrande_secondary
+test_split: secondary
+metadata:
+  version: 0.0
