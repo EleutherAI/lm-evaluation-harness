@@ -1,0 +1,18 @@
+group: afrimmlu
+group_alias: AfriMMLU
+task:
+  - group: afrimmlu_direct
+    group_alias: AfriMMLU
+    task:
+      - afrimmlu_direct_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: False
+  - group: afrimmlu_translate
+    group_alias: AfriMMLU (Translate)
+    task:
+      - afrimmlu_translate_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: False
+num_fewshot: 5

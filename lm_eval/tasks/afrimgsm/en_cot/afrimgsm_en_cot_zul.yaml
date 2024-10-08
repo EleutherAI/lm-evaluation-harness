@@ -8,5 +8,5 @@ generation_kwargs:
   - 'Question:'
   - </s>
   - <|im_end|>
-include: cot_yaml
+include: _cot_yaml
 task: afrimgsm_en_cot_zul
