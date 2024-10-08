@@ -68,7 +68,9 @@ class GGUFLM(LM):
                 logger.error(f"RequestException: {e}")
                 time.sleep(delay)  # wait before retrying
         else:
-            raise Exception(f"Failed to get a valid response after {retries} retries.")
+            raise RuntimeError(
+                f"Failed to get a valid response after {retries} retries."
+            )
 
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         if not requests:
