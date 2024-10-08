@@ -451,6 +451,8 @@ class HFLM(TemplateLM):
         # escape hatch: if we're using a subclass that shouldn't follow
         # the default _get_backend logic,
         # then skip over the method after setting the appropriate backend.
+        assert backend in ["default", "causal", "seq2seq"]
+
         if self.AUTO_MODEL_CLASS is not None:
             if backend != "default":
                 self.backend = backend
@@ -467,8 +469,6 @@ class HFLM(TemplateLM):
                     self.backend = "causal"
                     eval_logger.info(f"Using model type '{self.backend}'")
                     return
-
-        assert backend in ["default", "causal", "seq2seq"]
 
         if backend != "default":
             # if we've settled on non-default backend, use that manually
