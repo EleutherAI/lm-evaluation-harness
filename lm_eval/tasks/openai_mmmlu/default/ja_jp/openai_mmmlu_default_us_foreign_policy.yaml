@@ -1,0 +1,16 @@
+"dataset_name": "us_foreign_policy"
+"description": "The following are multiple choice questions (with answers) about us_foreign_policy.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\n答え:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_ja_jp_social_sciences"
+"task": "openai_mmmlu_default_ja_jp_us_foreign_policy"
+"task_alias": "ja_jp us foreign policy"
+"test_split": "JA_JP"
