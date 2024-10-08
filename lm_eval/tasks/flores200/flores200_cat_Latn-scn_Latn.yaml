@@ -1,0 +1,7 @@
+"dataset_name": "cat_Latn-scn_Latn"
+"doc_to_target": "{{sentence_scn_Latn}}"
+"doc_to_text": "{{sentence_cat_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_cat_Latn-scn_Latn"
+"test_split": "dev"

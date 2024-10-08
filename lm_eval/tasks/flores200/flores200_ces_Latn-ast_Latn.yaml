@@ -1,0 +1,7 @@
+"dataset_name": "ces_Latn-ast_Latn"
+"doc_to_target": "{{sentence_ast_Latn}}"
+"doc_to_text": "{{sentence_ces_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ces_Latn-ast_Latn"
+"test_split": "dev"
