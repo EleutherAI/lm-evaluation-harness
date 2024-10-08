@@ -205,6 +205,19 @@ Note that it is recommended to substitute the `python` command by `torchrun --np
 
 Not supported yet: multi-node evaluation and combinations of data replication with tensor or pipeline parallelism.
 
+#### Multi-GPU evaluation with OpenVINO models
+
+Pipeline parallelizm during evaluation is supported with OpenVINO models
+
+To enable  pipeline parallelism, set the `model_args` of `pipeline_parallel`. In addition, you also have to set up `device` to value `HETERO:<GPU index1>,<GPU index2>` for example `HETERO:GPU.1,GPU.0` For example, the command to use pipeline paralelism of 2 is:
+
+```
+lm_eval --model openvino \
+    --tasks wikitext \
+    --model_args pretrained=<path_to_ov_model>,pipeline_parallel=True \
+    --device HETERO:GPU.1,GPU.0
+```
+
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html), especially faster when splitting a model across multiple GPUs. For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
