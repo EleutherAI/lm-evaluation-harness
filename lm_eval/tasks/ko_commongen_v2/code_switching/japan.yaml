@@ -1,0 +1,7 @@
+include: _default
+task: ko_commongen_v2_japan
+test_split: japan
+description: "次は、与えられた概念情報 concept set: に存在する形態素を組み合わせて、常識に合う文を作る作業です。 concept set: の形態素を組み合わせて作った4つの例の中から、最も常識的で妥当な文を含む選択肢の番号を選んでください。"
+doc_to_text: "{{query}}\n正答:"
+
+

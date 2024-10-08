@@ -1,0 +1,22 @@
+task: ko_commongen_v2
+dataset_path: nlpai-lab/ko_commongen_v2
+output_type: multiple_choice
+training_split: train
+test_split: test
+description: "다음은 주어진 개념정보인 concept set: 에 존재하는 형태소를 조합해서 상식에 부합하는 문장을 만드는 작업이다. concept set: 의 형태소를 조합하여 만든 4개의 예시 중에서 가장 상식적으로 타당한 문장을 포함한 선택지의 번호를 선택하라."
+process_docs: !function utils.process_docs
+doc_to_text: "{{query}}\n정답:"
+doc_to_target: "{{gold}}"
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+num_fewshot: 2
+metadata:
+  version: 0.0
+
+# Please set seed as 42
