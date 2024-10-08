@@ -9,7 +9,7 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, undistribute
 from lm_eval.models.vllm_causallms import VLLM
-from lm_eval.utils import simple_parse_args_string
+from lm_eval.utils import eval_logger
 
 
 try:
@@ -36,10 +36,11 @@ class VLLM_VLM(VLLM):
         interleave: bool = True,
         # TODO<baber>: handle max_images and limit_mm_per_prompt better
         max_images: int = 999,
-        limit_mm_per_prompt: str = "image=1",
         **kwargs,
     ):
-        kwargs["limit_mm_per_prompt"] = simple_parse_args_string(limit_mm_per_prompt)
+        if max_images != 999:
+            kwargs["limit_mm_per_prompt"] = {"image": max_images}
+            eval_logger.info(f"Setting limit_mm_per_prompt[image] to {max_images}")
         super().__init__(
             pretrained=pretrained,
             trust_remote_code=trust_remote_code,
@@ -62,6 +63,7 @@ class VLLM_VLM(VLLM):
         left_truncate_len: int = None,
         truncation: bool = False,
     ):
+        # TODO<baber>: Should we let vllm deal with this?
         images = [img[: self.max_images] for img in images]
 
         outputs = []
