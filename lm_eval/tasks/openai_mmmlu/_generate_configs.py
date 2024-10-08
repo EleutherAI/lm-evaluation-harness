@@ -159,7 +159,7 @@ if __name__ == "__main__":
                 )
         # (super)group for promptkey
         out_folder = Path(prompt_key)
-        supergroup_info_path = out_folder / f"_openai_mmmlu_{prompt_key}.yaml"
+        supergroup_info_path = out_folder / f"_{prompt_key}_group_info.yaml"
         with open(supergroup_info_path, "w", encoding="utf-8") as yaml_file:
             dct = {
                 "group": f"openai_mmmlu_{prompt_key}",
