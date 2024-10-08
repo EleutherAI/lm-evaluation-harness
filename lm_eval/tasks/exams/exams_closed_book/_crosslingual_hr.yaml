@@ -1,0 +1,5 @@
+"dataset_name": "crosslingual_hr"
+"fewshot_split": "validation"
+"include": "_default_template_yaml"
+"task": "exams_closed_book_crosslingual_hr"
+"test_split": "validation"
