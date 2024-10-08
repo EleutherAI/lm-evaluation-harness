@@ -460,9 +460,11 @@ class HFLM(TemplateLM):
                     in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
                 ):
                     self.backend = "seq2seq"
+                    eval_logger.info(f"Using model type '{self.backend}'")
                     return
                 else:
                     self.backend = "causal"
+                    eval_logger.info(f"Using model type '{self.backend}'")
                     return
 
         assert backend in ["default", "causal", "seq2seq"]
