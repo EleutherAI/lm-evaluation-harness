@@ -492,11 +492,13 @@ class HFLM(TemplateLM):
                 # these special cases should be treated as seq2seq models.
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
                 self.backend = "seq2seq"
+                eval_logger.info(f"Using model type '{backend}'")
             elif (
                 getattr(self.config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
             ):
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
                 self.backend = "causal"
+                eval_logger.info(f"Using model type '{backend}'")
             else:
                 if not trust_remote_code:
                     eval_logger.warning(
@@ -508,6 +510,9 @@ class HFLM(TemplateLM):
                 # then we default to AutoModelForCausalLM
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
                 self.backend = "causal"
+                eval_logger.info(
+                    f"Model type cannot be determined. Using default model type '{backend}'"
+                )
 
         assert self.AUTO_MODEL_CLASS in [
             transformers.AutoModelForCausalLM,
