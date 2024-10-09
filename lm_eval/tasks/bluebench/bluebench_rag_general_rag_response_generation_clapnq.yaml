@@ -1,0 +1,5 @@
+task: bluebench_rag_general_rag_response_generation_clapnq
+include: unitxt
+recipe: recipes.bluebench.rag_general.rag_response_generation_clapnq
+metadata:
+  version: 0

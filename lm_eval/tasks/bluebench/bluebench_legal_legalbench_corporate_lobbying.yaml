@@ -1,0 +1,5 @@
+task: bluebench_legal_legalbench_corporate_lobbying
+include: unitxt
+recipe: recipes.bluebench.legal.legalbench_corporate_lobbying
+metadata:
+  version: 0
