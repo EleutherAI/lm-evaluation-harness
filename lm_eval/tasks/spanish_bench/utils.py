@@ -82,6 +82,15 @@ def process_docs_paraphrases(dataset):
     ).map(_process_doc)
 
 
+def process_docs_copa_es(dataset):
+    def _process_doc(doc):
+        doc["choice1"] = lowercase_first_letter(doc["choice1"])
+        doc["choice2"] = lowercase_first_letter(doc["choice2"])
+        return doc
+
+    return dataset.map(_process_doc)
+
+
 def rouge1(items):
     """
     # passthrough for efficiency
