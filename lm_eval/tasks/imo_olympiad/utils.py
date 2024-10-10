@@ -26,44 +26,25 @@ def doc_to_text(doc: dict) -> str:
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
     def _process_doc(doc: dict) -> dict:
+        try: 
+            answer = normalize_final_answer(
+                    remove_boxed(last_boxed_only_string(doc["solution"]))
+                )
+        except:
+            print(doc)
+            answer = doc['final_answer'][0]
+
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
-            "answer": normalize_final_answer(
-                remove_boxed(last_boxed_only_string(doc["solution"]))
-            ),
+            "answer": answer
+
         }
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
         return out_doc
 
     return dataset.map(_process_doc)
-
-def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
-
-    index = np.random.randint(0, 5) + 1
-    print("index", index)
-    def filter_doc(doc: dict) -> bool:
-        return doc.get("variation") == index
-
-    filtered_dataset = dataset.filter(filter_doc)
-
-    # Further processing if needed
-    def _process_doc(doc: dict) -> dict:   
-        out_doc = {
-            "problem": doc["problem"],
-            "solution": doc["solution"],
-            "answer": normalize_final_answer(
-                remove_boxed(last_boxed_only_string(doc["solution"]))
-            )
-        }
-        if getattr(doc, "few_shot", None) is not None:
-            out_doc["few_shot"] = True
-        return out_doc
-
-    processed_dataset = filtered_dataset.map(_process_doc, batched=False)
-    return processed_dataset
-
 
 def list_fewshot_samples() -> list[dict]:
     return [
@@ -91,8 +72,10 @@ def list_fewshot_samples() -> list[dict]:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
-    completion_output = results[0].outputs[0]
-    candidates = completion_output.text
+    # completion_output = results[0].outputs[0]
+    # candidates = completion_output.text
+
+    candidates = results[0]
 
     try:
         answer = ground_truth_boxed_answer(candidates)
@@ -100,8 +83,6 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         answer = get_generated_answer(candidates)
 
     if is_equiv(answer, doc["answer"]):
-        print(answer)
-        print(doc['answer'])
         retval = 1
     else:
         retval = 0
@@ -110,7 +91,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         "exact_match": retval,
     }
 
-    return results, candidates
+    return results
 
 def ground_truth_boxed_answer(solution: str) -> str:
     return normalize_final_answer(remove_boxed(last_boxed_only_string(solution)))
@@ -185,6 +166,7 @@ def is_equiv(x1: str, x2: str) -> bool:
     """
     x1 and x2 are normalized latex string
     """
+    
     try:
         with timeout(seconds=5):
             try:
@@ -212,7 +194,7 @@ def is_equiv(x1: str, x2: str) -> bool:
             except ValueError:
                 eval_logger.debug(
                     f"Had some trouble simplifying when comparing {x1} and {x2}"
-                )
+                )    
     except TimeoutError:
         eval_logger.debug(f"Timed out comparing {x1} and {x2}")
         return False

@@ -1,4 +1,7 @@
-task: axiom
+group: olympiad
+task:
+  - olympiad_MM_maths
+  - olympiad_TO_maths
 dataset_path: json
 process_docs: !function utils.process_docs
 dataset_name: axiom
@@ -20,10 +23,7 @@ metric_list:
 num_fewshot: 4
 metadata:
   version: 1.0
-dataset_kwargs:
-  data_files: putnam-math/data/Putnam_AXIOM_original_11_09_2024/Putnam_AXIOM_boxed_problems_hard.json
-  # data_files: putnam-math/data/archive/original/Putnam_MATH_original_static_final/Putnam_MATH_one_question.json
-description: "Given a mathematics question, compose a detailed solution. Simplify your answer as much as possible. Always give the final answer inside a \\boxed{answer}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct. Here are some examples:"
+description: "Please calculate the answer according to the given requirements and the information provided. Please use LaTeX format to represent the variables and formulas used in the solution process and results. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct."
 fewshot_config:
   sampler: first_n
   samples: !function utils.list_fewshot_samples
