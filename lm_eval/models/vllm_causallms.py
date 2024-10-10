@@ -1,12 +1,23 @@
 import copy
 from importlib.metadata import version
 from importlib.util import find_spec
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+    overload,
+)
 
 import transformers
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
+from typing_extensions import TypedDict, Unpack
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
@@ -31,6 +42,34 @@ if TYPE_CHECKING:
     pass
 
 eval_logger = eval_logger
+
+
+class OptionalModelArgs(TypedDict, total=False):
+    skip_tokenizer_init: bool
+    cpu_offload_gb: float
+    enforce_eager: Optional[bool]
+    max_context_len_to_capture: Optional[int]
+    max_seq_len_to_capture: int
+    disable_custom_all_reduce: bool
+    disable_async_output_proc: bool
+    mm_processor_kwargs: Optional[Dict[str, Any]]
+    worker_use_ray: bool
+
+
+class ModelArgs(OptionalModelArgs):
+    model: str
+    tokenizer: Optional[str]
+    tokenizer_mode: Literal["auto", "slow"]
+    trust_remote_code: bool
+    tensor_parallel_size: int
+    dtype: Literal["float16", "bfloat16", "float32", "auto"]
+    gpu_memory_utilization: float
+    revision: Optional[str]
+    tokenizer_revision: Optional[str]
+    max_model_len: Optional[int]
+    swap_space: int
+    quantization: Optional[str]
+    seed: int
 
 
 @register_model("vllm")
@@ -61,7 +100,7 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: Optional[str] = None,
-        **kwargs,
+        **kwargs: Unpack[OptionalModelArgs],
     ):
         super().__init__()
 
@@ -81,7 +120,7 @@ class VLLM(TemplateLM):
         )
         self.tensor_parallel_size = int(tensor_parallel_size)
         self.data_parallel_size = int(data_parallel_size)
-        self.model_args = {
+        self.model_args: ModelArgs = {
             "model": pretrained,
             "gpu_memory_utilization": float(gpu_memory_utilization),
             "revision": revision,
@@ -195,6 +234,24 @@ class VLLM(TemplateLM):
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
+    @overload  # type: ignore[override]
+    def tok_encode(
+        self,
+        string: str,
+        left_truncate_len: Optional[int] = ...,
+        add_special_tokens: bool = ...,
+        truncation: bool = ...,
+    ) -> List[int]: ...
+
+    @overload
+    def tok_encode(
+        self,
+        string: List[str],
+        left_truncate_len: Optional[int],
+        add_special_tokens: bool,
+        truncation: bool = ...,
+    ) -> List[List[int]]: ...
+
     def tok_encode(
         self,
         string: Union[str, List[str]],
@@ -204,7 +261,7 @@ class VLLM(TemplateLM):
     ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+        encoding = self.tokenizer(
             string,
             add_special_tokens=add_special_tokens,
             truncation=truncation,
@@ -222,7 +279,7 @@ class VLLM(TemplateLM):
 
     def _model_generate(
         self,
-        requests: Optional[List[List[int]]] = None,
+        requests: List[List[int]],
         generate: bool = False,
         max_tokens: Optional[int] = None,
         stop: Optional[List[str]] = None,
@@ -243,7 +300,9 @@ class VLLM(TemplateLM):
             # but then tensor_parallel breaks
             @ray.remote
             def run_inference_one_model(
-                model_args: dict, sampling_params, requests: List[List[int]]
+                model_args: ModelArgs,
+                sampling_params: SamplingParams,
+                requests: List[List[int]],
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
@@ -252,8 +311,12 @@ class VLLM(TemplateLM):
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
-            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
-            inputs = ((self.model_args, sampling_params, req) for req in requests)
+            distributed_requests = [
+                list(x) for x in distribute(self.data_parallel_size, requests)
+            ]
+            inputs = (
+                (self.model_args, sampling_params, req) for req in distributed_requests
+            )
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
