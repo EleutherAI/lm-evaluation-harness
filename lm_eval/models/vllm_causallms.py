@@ -365,12 +365,14 @@ class VLLM(TemplateLM):
             )
 
             # discard is_greedy
-            string_nll = sum(x[0] for x in string_nll)
+            summed_loglikelihood = sum(x[0] for x in string_nll)
 
-            loglikelihoods.append(string_nll)
+            loglikelihoods.append(summed_loglikelihood)
 
             # cache this loglikelihood_rolling request
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string,), summed_loglikelihood
+            )
 
         return loglikelihoods
 
