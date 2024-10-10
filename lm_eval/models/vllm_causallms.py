@@ -3,6 +3,7 @@ from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
+import transformers
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -41,25 +42,25 @@ class VLLM(TemplateLM):
         pretrained: str,
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
         revision: Optional[str] = None,
-        trust_remote_code: Optional[bool] = False,
+        trust_remote_code: bool = False,
         tokenizer: Optional[str] = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
-        add_bos_token: Optional[bool] = False,
+        add_bos_token: bool = False,
         prefix_token_id: Optional[int] = None,
         tensor_parallel_size: int = 1,
         quantization: Optional[str] = None,
         max_gen_toks: int = 256,
         swap_space: int = 4,
         batch_size: Union[str, int] = 1,
-        max_batch_size=None,
-        max_length: int = None,
-        max_model_len: int = None,
+        max_batch_size: Optional[int] = None,
+        max_length: Optional[int] = None,
+        max_model_len: Optional[int] = None,
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
-        lora_local_path: str = None,
+        lora_local_path: Optional[str] = None,
         **kwargs,
     ):
         super().__init__()
@@ -75,7 +76,9 @@ class VLLM(TemplateLM):
             max_length is None or max_model_len is None
         ), "Either max_length or max_model_len may be provided, but not both"
 
-        self._max_length = max_model_len if max_model_len is not None else max_length
+        self._max_length: Optional[int] = (
+            max_model_len if max_model_len is not None else max_length
+        )
         self.tensor_parallel_size = int(tensor_parallel_size)
         self.data_parallel_size = int(data_parallel_size)
         self.model_args = {
@@ -114,7 +117,7 @@ class VLLM(TemplateLM):
             self._config = AutoConfig.from_pretrained(
                 pretrained, trust_remote_code=trust_remote_code, revision=revision
             )
-        self.tokenizer = get_tokenizer(
+        self.tokenizer: transformers.PreTrainedTokenizerBase = get_tokenizer(
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
@@ -136,6 +139,7 @@ class VLLM(TemplateLM):
 
         self._max_gen_toks = max_gen_toks
 
+        self.lora_request: Optional[LoRARequest]
         if lora_local_path is not None:
             assert parse_version(version("vllm")) > parse_version(
                 "0.3.0"
@@ -194,7 +198,7 @@ class VLLM(TemplateLM):
     def tok_encode(
         self,
         string: Union[str, List[str]],
-        left_truncate_len: int = None,
+        left_truncate_len: Optional[int] = None,
         add_special_tokens: bool = False,
         truncation: bool = False,
     ) -> Union[List[int], List[List[int]]]:
@@ -218,9 +222,9 @@ class VLLM(TemplateLM):
 
     def _model_generate(
         self,
-        requests: List[List[int]] = None,
+        requests: Optional[List[List[int]]] = None,
         generate: bool = False,
-        max_tokens: int = None,
+        max_tokens: Optional[int] = None,
         stop: Optional[List[str]] = None,
         **kwargs,
     ):
@@ -298,9 +302,8 @@ class VLLM(TemplateLM):
             )
 
             # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
+            string_nll = sum(x[0] for x in string_nll)
 
-            string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
             # cache this loglikelihood_rolling request
