@@ -1,0 +1,6 @@
+include: putnam_axiom_original.yaml
+dataset_name: putnam_axiom_variations
+task: putnam_axiom_variations
+process_docs: !function utils.process_variations
+dataset_kwargs:
+  data_files: putnam-axiom/data/Putnam-AXIOM_Variations/test.json
