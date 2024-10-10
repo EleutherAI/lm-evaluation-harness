@@ -90,10 +90,8 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-
-    completion_output = results[0].outputs[0]
-    candidates = completion_output.text
-
+    candidates = results[0]
+    
     try:
         answer = ground_truth_boxed_answer(candidates)
     except:
