@@ -8,8 +8,8 @@ dataset_name: null # the dataset configuration to use. Leave `null` if your data
 dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
 task: traceIT
 doc_to_text: !function utils.doc_to_text
-doc_to_choice: ['si', 'no']
-doc_to_target: gold
+doc_to_choice: ['sì', 'no']
+doc_to_target: Gold
 training_split: null
 validation_split: null
 test_split: train
