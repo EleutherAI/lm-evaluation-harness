@@ -169,6 +169,18 @@ def _ner_gold_to_target_v2(x: list) -> list:
     return res
 
 
+def ner_doc_to_target(doc):
+    ents = doc["entities"]
+    targ_str = ""
+    # Entità$Tipo%Entità$Tipo.
+    if ents == []:
+        return NO_ENT_STRING
+    else:
+        for e in ents:
+            targ_str += e["entity_text"] + "$" + e["type"] + "%"
+    return targ_str[:-1]
+
+
 def ner_process_results(doc, results):
     """
     Process the results of the Named Entity Recognition task
