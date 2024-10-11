@@ -246,15 +246,15 @@ class VLLM(TemplateLM):
     @overload
     def tok_encode(
         self,
-        string: List[str],
-        left_truncate_len: Optional[int],
-        add_special_tokens: bool,
+        string: Union[List[str], Tuple[str, ...]],
+        left_truncate_len: Optional[int] = ...,
+        add_special_tokens: bool = ...,
         truncation: bool = ...,
     ) -> List[List[int]]: ...
 
     def tok_encode(
         self,
-        string: Union[str, List[str]],
+        string: Union[str, List[str], Tuple[str, ...]],
         left_truncate_len: Optional[int] = None,
         add_special_tokens: bool = False,
         truncation: bool = False,
@@ -384,7 +384,7 @@ class VLLM(TemplateLM):
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
         context_encoding: List[List[int]] = self.tok_encode(
-            context, add_special_tokens=self.add_bos_token
+            list(context), add_special_tokens=self.add_bos_token
         )
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
@@ -473,7 +473,7 @@ class VLLM(TemplateLM):
         # reorder all group of results back to original unsorted form
         return re_ords.get_original(res)
 
-    def _loglikelihood_tokens(
+    def _loglikelihood_tokens(  # type: ignore[override]
         self,
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
