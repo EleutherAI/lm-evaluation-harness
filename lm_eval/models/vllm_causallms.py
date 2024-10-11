@@ -386,7 +386,7 @@ class VLLM(TemplateLM):
         context_encoding: List[List[int]] = self.tok_encode(
             list(context), add_special_tokens=self.add_bos_token
         )
-        requests = [
+        requests_grouped = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
 
@@ -402,13 +402,13 @@ class VLLM(TemplateLM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
+        re_ords = Collator(requests_grouped, _collate_gen, group_by="gen_kwargs")
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
 
         pbar = tqdm(
-            total=len(requests),
+            total=len(requests_grouped),
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
