@@ -1,5 +1,3 @@
-import datasets
-
 def verbalize_age_gender(generation, gender):
     if generation == "GenZ" and gender == "male":
         perspective = "un giovane uomo della generazione Z"
