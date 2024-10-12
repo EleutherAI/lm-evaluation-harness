@@ -9,8 +9,10 @@ def doc_to_text(doc) -> str:
         str: A formatted string containing the question and answer choices.
     """
     letters = ['A', 'B', 'C', 'D', 'E']
+    question = doc['question']
     doc_to_text = f"Di seguito è riportata una domanda a scelta multipla e le possibili risposte. Scegli la lettera che meglio risponde alla domanda. Mantieni la tua risposta il più breve possibile; indica solo la lettera corrispondente alla tua risposta senza spiegazioni."
-    doc_to_text += "\nDomanda {{question}}"
+    doc_to_text += f"\nDomanda: {question}"
+    doc_to_text += f"\nPossibili risposte:"
 
     for i in range(len(doc["choices"])):
       doc_to_text += f"\n{letters[i]}) {doc['choices'][i]}"

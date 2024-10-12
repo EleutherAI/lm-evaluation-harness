@@ -1,0 +1,22 @@
+tag:
+  - fact-checking
+  - factual knowledge
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/jj/Downloads/full_subset.json
+task: veryfIT_full
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: ['Vero', 'Falso']
+doc_to_target: verdict
+training_split: null
+validation_split: null
+test_split: test
+output_type: multiple_choice
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

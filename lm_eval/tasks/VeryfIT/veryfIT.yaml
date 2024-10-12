@@ -2,5 +2,6 @@ group: veryfIT
 task:
   - veryfIT_raw
   - veryfIT_clarified
+  - veryfIT_full
 metadata:
   version: 1.0
