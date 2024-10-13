@@ -5,4 +5,5 @@ dataset_kwargs:
     test: /home/jj/Downloads/BLM-It2/BLM-AgrIt_type-II/test.json
 task: blm_agr1_1shots
 
+fewshot_split: train
 num_fewshot: 1

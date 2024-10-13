@@ -5,4 +5,5 @@ dataset_kwargs:
     test: /home/jj/Downloads/BLM-It2/BLM-OdIt_type-II/test.json
 task: blm_od1_1shots
 
+fewshot_split: train
 num_fewshot: 1

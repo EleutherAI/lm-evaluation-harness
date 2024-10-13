@@ -5,4 +5,5 @@ dataset_kwargs:
     test: /home/jj/Downloads/BLM-It2/BLM-CausIt_type-II/test.json
 task: blm_caus1_1shots
 
+fewshot_split: train
 num_fewshot: 1
