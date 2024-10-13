@@ -13,6 +13,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import (
     Collator,
+    flatten_image_list,
     pad_and_concat,
     replace_placeholders,
     stop_sequences_criteria,
@@ -292,6 +293,10 @@ class HFMultimodalLM(HFLM):
         images = [img[: self.max_images] for img in images]
         if self.rgb:
             images = [[img.convert("RGB") for img in sublist] for sublist in images]
+
+        # certain models like llava expect a single-level image list even for bs>1, multi-image. TODO: port this over to loglikelihoods
+        if getattr(self.config, "model_type", "") == "llava":
+            images = flatten_image_list(images)
 
         encoding = self.processor(
             images=images,
