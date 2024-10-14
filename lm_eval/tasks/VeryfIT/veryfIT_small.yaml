@@ -6,7 +6,7 @@ dataset_name: null
 dataset_kwargs:
   data_files:
     test: /home/jj/Downloads/subset_annotato.json
-task: veryfIT_raw
+task: veryfIT_small
 doc_to_text: !function utils.doc_to_text
 doc_to_choice: ['Vero', 'Falso']
 doc_to_target: verdict
