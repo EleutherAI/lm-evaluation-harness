@@ -29,3 +29,6 @@ __pycache__/
 
 # Ignore the lm-eval-env folder
 lm-eval-env/
+
+results/
+output/
