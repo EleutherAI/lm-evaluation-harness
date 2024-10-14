@@ -4,9 +4,12 @@ In the dynamic landscape of generative NLP, traditional text processing pipeline
 Addressing this need, we present Unitxt, an innovative library for customizable textual data preparation and evaluation tailored to generative language models. Unitxt natively integrates with common libraries like HuggingFace and LM-eval-harness and deconstructs processing flows into modular components, enabling easy customization and sharing between practitioners. These components encompass model-specific formats, task prompts, and many other comprehensive dataset processing definitions. The Unitxt-Catalog centralizes these components, fostering collaboration and exploration in modern textual data workflows. Beyond being a tool, Unitxt is a community-driven platform, empowering users to build, share, and advance their pipelines collaboratively.
 """
 
+import importlib.util
+import re
 from functools import partial
-from typing import Optional
+from typing import Any, Dict, Optional
 
+import datasets
 import evaluate
 
 from lm_eval.api.instance import Instance
@@ -25,6 +28,10 @@ _CITATION = """
 """
 
 
+def is_unitxt_installed() -> bool:
+    return importlib.util.find_spec("unitxt") is not None
+
+
 def score(items, metric):
     predictions, references = zip(*items)
     evaluator = evaluate.load("unitxt/metric")
@@ -41,16 +48,29 @@ class Unitxt(ConfigurableTask):
         self,
         config: Optional[dict] = None,
     ) -> None:
+        if config is None:
+            config = {}
         assert "recipe" in config, "Unitxt task must have a 'recipe' string."
         super().__init__(
             config={
                 "metadata": {"version": self.VERSION},
-                "dataset_kwargs": {"trust_remote_code": True},
                 "dataset_name": config["recipe"],
-                "dataset_path": "unitxt/data",
             }
         )
+        self.image_decoder = datasets.Image()
         self.metrics = self.dataset["test"][0]["metrics"]
+
+    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
+        if is_unitxt_installed():
+            from unitxt import load_dataset
+
+            self.dataset = load_dataset(self.DATASET_NAME)
+        else:
+            self.dataset = datasets.load_dataset(
+                name=self.DATASET_NAME,
+                path="unitxt/data",
+                trust_remote_code=True,
+            )
 
     def has_training_docs(self):
         return "train" in self.dataset
@@ -79,6 +99,9 @@ class Unitxt(ConfigurableTask):
     def doc_to_target(self, doc):
         doc["target"]
 
+    def get_arguments(self, doc, ctx):
+        return (ctx, {"until": ["\n"]})
+
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -90,12 +113,11 @@ class Unitxt(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-
         return [
             Instance(
                 request_type="generate_until",
                 doc=doc,
-                arguments=(ctx, {"until": ["\n"]}),
+                arguments=self.get_arguments(doc, ctx),
                 idx=0,
                 **kwargs,
             )
@@ -140,3 +162,34 @@ class Unitxt(ConfigurableTask):
             whether a higher value of the submetric is better
         """
         return {metric.replace("metrics.", ""): True for metric in self.metrics}
+
+
+images_regex = r'<img\s+src=["\'](.*?)["\']\s*/?>'
+image_source_regex = r'<img\s+src=["\'](.*?)["\']'
+
+
+def extract_images(text, instance):
+    image_sources = re.findall(image_source_regex, text)
+    images = []
+    for image_source in image_sources:
+        current = instance
+        for key in image_source.split("/"):
+            if key.isdigit():
+                key = int(key)
+            current = current[key]
+        images.append(current)
+    return images
+
+
+class UnitxtMultiModal(Unitxt):
+    MULTIMODAL = True
+
+    def doc_to_text(self, doc):
+        return re.sub(images_regex, "<image>", doc["source"])
+
+    def doc_to_image(self, doc):
+        images = extract_images(doc["source"], doc)
+        return [self.image_decoder.decode_example(image) for image in images]
+
+    def get_arguments(self, doc, ctx):
+        return (ctx, {"until": ["\n"]}, {"visual": self.doc_to_image(doc)})

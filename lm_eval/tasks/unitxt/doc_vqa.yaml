@@ -1,0 +1,3 @@
+task: doc_vqa
+include: unitxt_multimodal
+recipe: card=cards.doc_vqa.en,template=templates.qa.with_context.title
