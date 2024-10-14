@@ -3,7 +3,7 @@
 #   - english
 #   - italian
 #   - calamita
-task: MT_CALAMITA_US_en_it_private
+task: MT_CALAMITA_US_it_en_private
 dataset_path: FBK-MT/MT-privateBenchmark4CALAMITA2024 #FBK-MT/MT-benchmark4CALAMITA2024
 training_split: null
 test_split: US
