@@ -5,7 +5,7 @@ test_split: train
 output_type: multiple_choice
 doc_to_text: !function utils.doc_to_text
 doc_to_target: "{{label}}"
-doc_to_choice: ["ironia", "non ironia"]
+doc_to_choice: ["non ironia", "ironia"]
 metric_list:
   - metric: f1
 metadata:
