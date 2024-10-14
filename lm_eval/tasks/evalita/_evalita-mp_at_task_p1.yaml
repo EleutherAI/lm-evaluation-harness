@@ -1,7 +1,7 @@
 tag: evalita-mp_at_tasks
 include: _at_template_yaml
-task: evalita-mp_at_prompt-5
-task_alias: prompt-5
+task: evalita-mp_at_prompt-1
+task_alias: prompt-1
 #doc_to_text: "Rispondi alla domanda a scelta multipla considerando le informazioni del testo seguente.\nTesto: {{background}}\nDomanda: {{domanda}}\nOpzioni: A: {{A}} B: {{B}} C: {{C}} D: {{D}}"
 doc_to_text: "Dato il seguente caso clinico: '{{background}}' qual è la risposta corretta alla domanda: '{{domanda}}'?"
 doc_to_choice: "{{[A,B,C,D,E]}}"
