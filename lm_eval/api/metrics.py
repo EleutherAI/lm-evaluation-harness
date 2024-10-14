@@ -457,6 +457,7 @@ class _bootstrap_internal:
 
 
 def bootstrap_stderr(f, xs, iters):
+    return 0
     import multiprocessing as mp
 
     pool = mp.Pool(mp.cpu_count())
