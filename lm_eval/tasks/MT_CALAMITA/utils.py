@@ -1,5 +1,4 @@
 import datasets
-import sacrebleu
 
 from typing import List
 from evaluate import load
@@ -7,12 +6,11 @@ from evaluate import load
 
 
 def preprocess_dataset(dataset: datasets.Dataset) -> datasets.Dataset:
-    dataset = dataset.select([i for i in range(4)])      # selecting 4 rows for DEBUG
-    # print(dataset)
-    # exit()
+    # dataset = dataset.select([i for i in range(4)])      # selecting 4 rows for DEBUG
     return dataset
 
 
+# post-processing the results
 def _search_delimiters(model_output: str) -> str:
     left_delimiter = '<'
     right_delimiter = '>'
@@ -26,17 +24,6 @@ def _search_delimiters(model_output: str) -> str:
     return model_output[start:end].replace('<', '').replace('>', '').strip()
 
 
-def single_bleurt(ref: str, pred: str) -> float:
-    bleurt = load("bleurt", module_type="metric", checkpoint="BLEURT-20")
-    result = bleurt.compute(predictions=[pred], references=[ref])
-    return result["scores"][0]
-
-
-def single_comet(source: str, ref: str, pred: str) -> float:
-    comet_metric = load("comet")
-    comet_score = comet_metric.compute(predictions=[pred], references=[ref], sources=[source])
-    return comet_score["scores"][0]
-
 def single_bleu(ref: str, pred: str) -> float:
     bleu_metric = load("bleu")
     bleu_score = bleu_metric.compute(predictions=[pred], references=[[ref]])
@@ -47,8 +34,27 @@ def sigle_chrf(ref: str, pred: str) -> float:
     chrf_score = chrf_metric.compute(predictions=[pred], references=[[ref]])
     return chrf_score["score"]
 
+def single_bleurt(ref: str, pred: str) -> float:
+    bleurt = load("bleurt", module_type="metric", checkpoint="BLEURT-20")
+    result = bleurt.compute(predictions=[pred], references=[ref])
+    return result["scores"][0]
+
+def single_comet(source: str, ref: str, pred: str) -> float:
+    comet_metric = load("comet")
+    comet_score = comet_metric.compute(predictions=[pred], references=[ref], sources=[source])
+    return comet_score["scores"][0]
+
 
 def process_results_gen(doc, results):
+    """
+    Process the results of the model and return the metrics
+    Args:
+        - doc: the document containing the input and output (keys are the variables from the prompt_template)
+        - results: the output of the model (still dunnow why its a list but it doesn't depend on the batchsize)
+    Returns:
+        - a dictionary containing the metrics (metric_name: metric_value)
+    """
+
     completion = results[0]
     model_input, reference_out = doc["italian"], doc["english"]
 
@@ -65,15 +71,15 @@ def process_results_gen(doc, results):
     comet_score = single_comet(source=model_input, ref=reference_out, pred=completion)
 
 
-    print("========================================================")
-    print("model_input: ", model_input)
-    print("expected: ", reference_out)
-    print("completion: ", completion)
-    print("BLEU: ", bleu_score)
-    print("CHRF: ", chrf_score)
-    print("BLEURT: ", bleurt_score)
-    print("COMET: ", comet_score)
-    print("========================================================")
+    # print("========================================================")
+    # print("model_input: ", model_input)
+    # print("expected: ", reference_out)
+    # print("completion: ", completion)
+    # print("BLEU: ", bleu_score)
+    # print("CHRF: ", chrf_score)
+    # print("BLEURT: ", bleurt_score)
+    # print("COMET: ", comet_score)
+    # print("========================================================")
 
     return {
         "bleu_score": bleu_score,

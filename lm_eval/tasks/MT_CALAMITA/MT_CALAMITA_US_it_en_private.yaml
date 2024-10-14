@@ -3,11 +3,11 @@
 #   - english
 #   - italian
 #   - calamita
-task: en_it_public
-dataset_path: FBK-MT/MT-benchmark4CALAMITA2024
+task: MT_CALAMITA_US_en_it_private
+dataset_path: FBK-MT/MT-privateBenchmark4CALAMITA2024 #FBK-MT/MT-benchmark4CALAMITA2024
 training_split: null
-test_split: devtest
-validation_split: devtest
+test_split: US
+validation_split: US
 
 num_fewshot: 0
 doc_to_text: "\
@@ -27,19 +27,8 @@ doc_to_target: "{{english}}"
 process_docs: !function utils.preprocess_dataset
 process_results: !function utils.process_results_gen
 
+# takes the value of the "metric" key from the dict returned by the "process_results" function
 metric_list:
-  # - metric: bleu
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: chrf
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: comet
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: bleurt
-  #   aggregation: mean
-  #   higher_is_better: true
   - metric: bleu_score    # my score
     aggregation: mean
     higher_is_better: true
@@ -52,10 +41,6 @@ metric_list:
   - metric: comet_score     # my score
     aggregation: mean
     higher_is_better: true
-
-  # - metric: !function utils.bleurt
-  #   aggregation: mean
-  #   higher_is_better: true
 
 
 metadata:
