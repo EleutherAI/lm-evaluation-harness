@@ -9,6 +9,13 @@ validation_split: test
 test_split: test
 fewshot_split: null
 
+generation_kwargs:
+  until:
+    - "}\n"
+  max_gen_toks: 512
+  do_sample: false
+  temperature: 0.0
+
 process_docs: !function utils.load_all_questions
 
 doc_to_text: nc_prompt

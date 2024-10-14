@@ -26,9 +26,9 @@ class DummyLM(LM):
     def generate_until(self, requests, disable_tqdm: bool = False):
         res = []
 
-        for ctx, _ in tqdm(requests, disable=disable_tqdm):
+        for request in tqdm(requests, disable=disable_tqdm):
             res.append("lol")
-            assert ctx.strip() != ""
+            assert request.arguments[0].strip() != ""
 
         return res
 

@@ -3,6 +3,7 @@ from . import (
     api_models,
     dummy,
     gguf,
+    hf_vlms,
     huggingface,
     mamba_lm,
     mlx_llms,
@@ -13,6 +14,7 @@ from . import (
     optimum_lm,
     textsynth,
     vllm_causallms,
+    vllm_vlms,
 )
 
 
