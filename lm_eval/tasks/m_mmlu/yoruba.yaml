@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_yoruba
+test_split: YO_NG
+fewshot_split: YO_NG

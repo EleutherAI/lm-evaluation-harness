@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_hindi
+test_split: HI_IN
+fewshot_split: HI_IN

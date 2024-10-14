@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_japanese
+test_split: JA_JP
+fewshot_split: JA_JP

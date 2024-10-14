@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_brazilian_portuguese
+test_split: PT_BR
+fewshot_split: PT_BR

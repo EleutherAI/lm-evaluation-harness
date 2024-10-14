@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_chinese
+test_split: ZH_CN
+fewshot_split: ZH_CN

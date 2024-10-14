@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_bengali
+test_split: BN_BD
+fewshot_split: BN_BD

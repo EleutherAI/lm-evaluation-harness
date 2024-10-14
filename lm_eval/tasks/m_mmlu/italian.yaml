@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_italian
+test_split: IT_IT
+fewshot_split: IT_IT

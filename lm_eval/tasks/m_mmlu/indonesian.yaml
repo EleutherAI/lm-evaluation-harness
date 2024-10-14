@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_indonesian
+test_split: ID_ID
+fewshot_split: ID_ID

@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_arabic
+test_split: AR_XY
+fewshot_split: AR_XY

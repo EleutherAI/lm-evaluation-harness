@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_spanish
+test_split: ES_LA
+fewshot_split: ES_LA

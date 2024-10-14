@@ -1,0 +1,4 @@
+include: _default_template_yaml
+task: mmmlu_korean
+test_split: KO_KR
+fewshot_split: KO_KR
