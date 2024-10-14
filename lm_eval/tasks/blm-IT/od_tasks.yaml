@@ -1,4 +1,4 @@
-group: ods_tasks
+group: od_tasks
 task:
   - blm_od1_0shots
   - blm_od2_0shots
