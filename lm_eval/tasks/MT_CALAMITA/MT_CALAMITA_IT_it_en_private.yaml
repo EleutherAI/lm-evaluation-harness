@@ -25,7 +25,7 @@ doc_to_text: "\
 doc_to_target: "{{english}}"
 
 process_docs: !function utils.preprocess_dataset
-process_results: !function utils.process_results_gen
+process_results: !function utils.process_results_it_en
 
 # takes the value of the "metric" key from the dict returned by the "process_results" function
 metric_list:

@@ -44,10 +44,38 @@ def single_comet(source: str, ref: str, pred: str) -> float:
     comet_score = comet_metric.compute(predictions=[pred], references=[ref], sources=[source])
     return comet_score["scores"][0]
 
-
-def process_results_gen(doc, results):
+def _get_metrics(
+    model_input: str,
+    reference_out: str,
+    completition: str
+    ) -> dict[str, float]:
     """
-    Process the results of the model and return the metrics
+    Compute the metrics for the MT_CALAMITA task
+    """
+
+    # clean completion
+    completition = _search_delimiters(completition)
+
+    # BLEU
+    bleu_score = single_bleu(ref=reference_out, pred=completition)
+    # CHRF
+    chrf_score = sigle_chrf(ref=reference_out, pred=completition)
+    # BLEURT
+    bleurt_score = single_bleurt(ref=reference_out, pred=completition)
+    # COMET
+    comet_score = single_comet(source=model_input, ref=reference_out, pred=completition)
+
+    return {
+        "bleu_score": bleu_score,
+        "chrf_score": chrf_score,
+        "bleurt_score": bleurt_score,
+        "comet_score": comet_score,
+    }
+
+
+def process_results_it_en(doc, results):
+    """
+    Process the results of the model and return the metrics. Implementation for the **italian to english** task
     Args:
         - doc: the document containing the input and output (keys are the variables from the prompt_template)
         - results: the output of the model (still dunnow why its a list but it doesn't depend on the batchsize)
@@ -58,35 +86,31 @@ def process_results_gen(doc, results):
     completion = results[0]
     model_input, reference_out = doc["italian"], doc["english"]
 
-    # clean completion
-    completion = _search_delimiters(completion)
+    return _get_metrics(
+        model_input=model_input, 
+        reference_out=reference_out, 
+        completition=completion,
+    )
 
-    # BLEU
-    bleu_score = single_bleu(ref=reference_out, pred=completion)
-    # CHRF
-    chrf_score = sigle_chrf(ref=reference_out, pred=completion)
-    # BLEURT
-    bleurt_score = single_bleurt(ref=reference_out, pred=completion)
-    # COMET
-    comet_score = single_comet(source=model_input, ref=reference_out, pred=completion)
+def process_results_en_it(doc, results):
+    """
+    Process the results of the model and return the metrics. Implementation for the **english to italian** task
+    Args:
+        - doc: the document containing the input and output (keys are the variables from the prompt_template)
+        - results: the output of the model (still dunnow why its a list but it doesn't depend on the batchsize)
+    Returns:
+        - a dictionary containing the metrics (metric_name: metric_value)
+    """
 
+    completion = results[0]
+    model_input, reference_out = doc["english"], doc["italian"]
 
-    # print("========================================================")
-    # print("model_input: ", model_input)
-    # print("expected: ", reference_out)
-    # print("completion: ", completion)
-    # print("BLEU: ", bleu_score)
-    # print("CHRF: ", chrf_score)
-    # print("BLEURT: ", bleurt_score)
-    # print("COMET: ", comet_score)
-    # print("========================================================")
+    return _get_metrics(
+        model_input=model_input, 
+        reference_out=reference_out, 
+        completition=completion,
+    )
 
-    return {
-        "bleu_score": bleu_score,
-        "chrf_score": chrf_score,
-        "bleurt_score": bleurt_score,
-        "comet_score": comet_score,
-    }
 
 
 
