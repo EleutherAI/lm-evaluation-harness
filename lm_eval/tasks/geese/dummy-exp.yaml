@@ -1,0 +1,15 @@
+tag: geese
+task: geese_dummy
+dataset_path: azaninello/geese-llama-3
+dataset_name: default
+output_type: multiple_choice
+test_split: test
+validation_split: test
+doc_to_text: "Sentence 1:{{text_t}}Sentence 2: {{text_h}}Hint: {{text_h}}.
+Entailment label:"
+doc_to_target: label
+doc_to_choice: ["YES", "NO", "UNKNOWN"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
