@@ -1,7 +1,8 @@
 include: _ner_template_yaml
 dataset_name: fic
 test_split: reduced_test
-
+fewshot_split: dev
+#process_docs: !function utils.process_docs
 task_alias: FIC prompt-1
 tag: evalita-mp_ner_tasks_fic
 task: evalita-mp_ner_fic_p1
