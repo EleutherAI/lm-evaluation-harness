@@ -1,10 +1,10 @@
 dataset_path: evalitahf/document_dating
 output_type: multiple_choice
 test_split: test_same
+fewshot_split: train
 #doc_to_target: label  
 #doc_to_choice: ["A", "B", "C", "D", "E"] # A. 1901-1918", "B. 1919-1926", "C. 1927-1942", "D. 1943-1947", "E. 1948-1954 
 doc_to_target: year_range
 doc_to_choice: ["1901-1905", "1906-1910", "1911-1915", "1916-1920", "1921-1925", "1926-1930", "1931-1935", "1936-1940", "1941-1945", "1946-1950", "1951-1955"]
 metadata:
   version: 0.0
-
