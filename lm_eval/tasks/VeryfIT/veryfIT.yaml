@@ -1,6 +1,6 @@
 group: veryfIT
 task:
-  - veryfIT_raw
+  - veryfIT_small
   - veryfIT_clarified
   - veryfIT_full
 metadata:
