@@ -1,0 +1,5 @@
+group: bluebench_qa_finance
+task:
+  - "bluebench_qa_finance_fin_qa"
+metadata:
+  version: 0

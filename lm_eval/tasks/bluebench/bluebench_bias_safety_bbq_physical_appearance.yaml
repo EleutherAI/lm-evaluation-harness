@@ -1,0 +1,5 @@
+task: bluebench_bias_safety_bbq_physical_appearance
+include: unitxt
+recipe: recipes.bluebench.bias.safety_bbq_physical_appearance
+metadata:
+  version: 0
