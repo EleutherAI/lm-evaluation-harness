@@ -1,4 +1,4 @@
-group: galician_bench
+tag: galician_bench
 task:
   - belebele_glg_Latn
   - flores_gl
