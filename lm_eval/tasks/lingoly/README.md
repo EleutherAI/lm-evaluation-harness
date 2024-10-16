@@ -1,5 +1,4 @@
-# Task-name
-LingOly
+# LingOly
 
 
 ### Paper
@@ -27,21 +26,11 @@ Homepage: `https://github.com/am-bean/lingOly`
 }
 ```
 
-### Groups, Tags, and Tasks
+### Tasks
 
-#### Groups
-
-* `group_name`: `Short description`
-
-#### Tags
-
-* `reasoning`: ``
-* `linguistics`: ``
-
-#### Tasks
-
-* `exact_match`: `exact match of generations to reference`
-* `delta_nc`: `improvement in score relative to no-context baseline`
+* `lingoly`: `runs both _context and _nocontext and computes the difference`
+* `lingoly_context`: `exact match of generations to reference answers`
+* `lingoly_nocontext`: `exact match of generations to reference answers, but with context removed`
 
 ### Checklist
 

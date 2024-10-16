@@ -157,6 +157,9 @@ def simple_evaluate(
         seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
         torch.manual_seed(torch_random_seed)
 
+    if fewshot_random_seed is not None:
+        seed_message.append(f"Setting fewshot manual seed to {fewshot_random_seed}")
+
     if seed_message:
         eval_logger.info(" | ".join(seed_message))
 
@@ -276,9 +279,6 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-                eval_logger.info(
-                    f"Setting fewshot random generator seed to {fewshot_random_seed}"
-                )
 
                 adjusted_task_dict[task_name] = task_obj
 
@@ -433,10 +433,14 @@ def evaluate(
             )
     # end multimodality validation check
 
+    # Cache the limit arg.
+    limit_arg = limit
+    limits = []
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        limit = get_sample_size(task, limit)
+        limit = get_sample_size(task, limit_arg)
+        limits.append(limit)
         task.build_all_requests(
             limit=limit,
             rank=lm.rank,
@@ -506,7 +510,7 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output in eval_tasks:
+    for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         task.apply_filters()
 
@@ -655,7 +659,7 @@ def evaluate(
                         len(task_output.task.eval_docs),
                     ),
                 }
-                for task_output in eval_tasks
+                for task_output, limit in zip(eval_tasks, limits)
             },
         }
         if log_samples:
