@@ -1,4 +1,4 @@
-group: spanish_bench
+tag: spanish_bench
 task:
   - belebele_spa_Latn
   - wnli_es

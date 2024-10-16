@@ -1,4 +1,4 @@
-group: portuguese_bench
+tag: portuguese_bench
 task:
   - belebele_por_Latn
   - flores_pt

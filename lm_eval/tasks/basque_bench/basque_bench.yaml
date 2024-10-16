@@ -1,4 +1,4 @@
-group: basque_bench
+tag: basque_bench
 task:
     - belebele_eus_Latn
     - xstorycloze_eu
