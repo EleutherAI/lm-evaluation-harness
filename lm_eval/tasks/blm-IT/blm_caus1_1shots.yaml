@@ -1,8 +1,8 @@
 include: base.yaml
 dataset_kwargs:
   data_files:
-    train: /home/jj/Downloads/BLM-It2/BLM-CausIt_type-II/train.json
-    test: /home/jj/Downloads/BLM-It2/BLM-CausIt_type-II/test.json
+    train: # add path to BLM-CausIt_type-II train set
+    test: # add path to BLM-CausIt_type-II test set
 task: blm_caus1_1shots
 
 fewshot_split: train
