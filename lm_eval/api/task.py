@@ -1557,11 +1557,18 @@ class ConfigurableTask(Task):
                             result_score = 0.0
                 else:
                     try:
-                        result_score = self._metric_fn_list[metric](
-                            references=[gold],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[metric],
-                        )
+                        if metric == "exact_match":
+                            result_score = self._metric_fn_list[metric](
+                                references=[str(gold)],
+                                predictions=[str(result)],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                        else:
+                            result_score = self._metric_fn_list[metric](
+                                references=[gold],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[metric],
+                            )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
