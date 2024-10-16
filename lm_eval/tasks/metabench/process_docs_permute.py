@@ -1,15 +1,18 @@
-import datasets
 import hashlib
 import random
 import re
 
+import datasets
+
+
 def hash_string(string: str) -> str:
     return hashlib.sha256(string.encode("utf-8")).hexdigest()
+
 
 def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
     def _subprocess(doc):
         long_prompt = ""
-        for shot in range(1,26):
+        for shot in range(1, 26):
             question = doc[f"arc_question_shot_{shot}"]
             doc.pop(f"arc_question_shot_{shot}")
             answer_lab = doc[f"arc_answerKey_shot_{shot}"]
@@ -18,12 +21,12 @@ def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
             answer = doc[f"arc_choices_shot_{shot}"]["text"][answer_idx]
             doc.pop(f"arc_choices_shot_{shot}")
             doc.pop(f"arc_idx_shot_{shot}")
-            long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n" #no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
+            long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n" # no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
         doc["twentyfive_shot_preprompt"] = long_prompt
         doc.pop("alltwentyfiveshot_longprompt")
         doc["original_hash"] = hash_string(doc["question"])
 
-        #permute choices randomly without replacement (the new answer label will never be the answer label recorded in the original benchmarks)
+        # permute choices randomly without replacement (the new answer label will never be the answer label recorded in the original benchmarks)
         original_answer_idx = doc["choices"]["label"].index(doc["answerKey"])
         correct_answer_text = doc["choices"]["text"][original_answer_idx]
         new_answer_idx = original_answer_idx
@@ -37,7 +40,7 @@ def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_subprocess)
 
 def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
-    def process_txt(text): #mirrored from hellaswag task
+    def process_txt(text): # mirrored from hellaswag task
         text = text.strip()
         # NOTE: Brackets are artifacts of the WikiHow dataset portion of HellaSwag.
         text = text.replace(" [title]", ". ")
@@ -52,7 +55,7 @@ def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
         doc.pop("ctx")
         doc["query"] = process_txt(doc["activity_label"] + ": " + ctx)
 
-        #permute choices randomly without replacement (the new answer label will never be the answer label recorded in the original benchmarks)
+        # permute choices randomly without replacement (the new answer label will never be the answer label recorded in the original benchmarks)
         original_answer_idx = int(doc["label"])
         correct_answer_text = doc["endings"][original_answer_idx]
         new_answer_idx = original_answer_idx
@@ -68,12 +71,22 @@ def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
 
         long_prompt = ""
         for shot in range(1, 11):
-            ctx = doc[f"hellaswag_ctx_a_shot_{shot}"] + " " + doc[f"hellaswag_ctx_b_shot_{shot}"].capitalize()
+            ctx = (
+                doc[f"hellaswag_ctx_a_shot_{shot}"] 
+                + " " 
+                + doc[f"hellaswag_ctx_b_shot_{shot}"].capitalize()
+            )
             doc.pop(f"hellaswag_ctx_a_shot_{shot}")
             doc.pop(f"hellaswag_ctx_b_shot_{shot}")
             doc.pop(f"hellaswag_ctx_shot_{shot}")
-            question = process_txt(doc[f"hellaswag_activity_labels_shot_{shot}"] + ": " + ctx)
-            ending = process_txt(doc[f"hellaswag_endings_shot_{shot}"][int(doc[f"hellaswag_label_shot_{shot}"])])
+            question = process_txt(
+                doc[f"hellaswag_activity_labels_shot_{shot}"] + ": " + ctx
+            )
+            ending = process_txt(
+                doc[f"hellaswag_endings_shot_{shot}"][
+                    int(doc[f"hellaswag_label_shot_{shot}"])
+                ]
+            )
             doc.pop(f"hellaswag_activity_labels_shot_{shot}")
             doc.pop(f"hellaswag_endings_shot_{shot}")
             doc.pop(f"hellaswag_label_shot_{shot}")
@@ -94,7 +107,7 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
     def _subprocess(doc):
         choices = ["A", "B", "C", "D"]
         long_prompt = f"The following are multiple choice questions (with answers) about {' '.join(doc['subject'].split('_'))}.\n\n"
-        for shot in range(1,6):
+        for shot in range(1, 6):
             question = doc[f"mmlu_question_shot_{shot}"].strip()
             doc.pop(f"mmlu_question_shot_{shot}")
             answer = choices[int(doc[f"mmlu_answers_shot_{shot}"])]
@@ -107,13 +120,13 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"mmlu_answers_shot_{shot}")
             doc.pop(f"mmlu_ind_shot_{shot}")
 
-            long_prompt = f"{long_prompt}{question}\nA. {choice_A}\nB. {choice_B}\nC. {choice_C}\nD. {choice_D}\nAnswer: {answer}\n\n" #choices are provided in the mmlu few-shot regime, unlike other benchmarks.
+            long_prompt = f"{long_prompt}{question}\nA. {choice_A}\nB. {choice_B}\nC. {choice_C}\nD. {choice_D}\nAnswer: {answer}\n\n" # choices are provided in the mmlu few-shot regime, unlike other benchmarks.
         
         doc["original_hash"] = hash_string(doc["question"])
         doc["five_shot_preprompt"] = long_prompt
         doc.pop("allfiveshot_longprompt")
 
-        #permute choices randomly without replacement (the new answer label will never be the answer label recorded in the original benchmarks)
+        # permute choices randomly without replacement (the new answer label will never be the answer label recorded in the original benchmarks)
         original_answer_idx = int(doc["answer"])
         correct_answer_text = doc["choices"][original_answer_idx]
         new_answer_idx = original_answer_idx
@@ -124,11 +137,14 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
         doc["answer"] = new_answer_idx
 
         return doc
+    
     return dataset.map(_subprocess)
 
 def process_truthfulqa(dataset: datasets.Dataset) -> datasets.Dataset:
-    def _subprocess(doc): #currently only permuting the mc1 targets as metabench does not use mc2 targets.
-        original_answer_idx = 0 #always 0 in truthfulqa
+    def _subprocess(
+            doc,
+            ): # currently only permuting the mc1 targets as metabench does not use mc2 targets.
+        original_answer_idx = 0 # always 0 in truthfulqa
         correct_answer_text = doc["mc1_targets"]["choices"][original_answer_idx]
         new_answer_idx = original_answer_idx
 
@@ -143,20 +159,21 @@ def process_truthfulqa(dataset: datasets.Dataset) -> datasets.Dataset:
         doc["answer"] = new_answer_idx
 
         return doc
+    
     return dataset.map(_subprocess)
 
 
-def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset: 
+def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
     def _subprocess(doc):
         long_prompt = ""
-        for shot in range(1,6):
+        for shot in range(1, 6):
             if doc[f"winogrande_answer_shot_{shot}"] == "1":
                 answer = doc[f"winogrande_option1_shot_{shot}"]
             elif doc[f"winogrande_answer_shot_{shot}"] == "2":
                 answer = doc[f"winogrande_option2_shot_{shot}"]
             else:
                 raise ValueError("Answer not recognised.")
-            
+                
             question = doc[f"winogrande_prompt_shot_{shot}"].replace("_", answer)
 
             doc.pop(f"winogrande_prompt_shot_{shot}")
@@ -171,7 +188,7 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
         doc["sentence"] = f"{long_prompt}{sentence}"
         doc.pop("allfiveshot_longprompt")
 
-        #permute choices by swapping them
+        # permute choices by swapping them
         option1 = doc["option1"]
         option2 = doc["option2"]
         answer = doc["answer"]
@@ -185,20 +202,21 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
             doc["answer"] = "1"
 
         return doc
+    
     return dataset.map(_subprocess)
 
-# Mirrored from the winogrande task
-def winogrande_doc_to_text(doc):
+
+def winogrande_doc_to_text(doc): # Mirrored from the winogrande task
     answer_to_num = {"1": 0, "2": 1}
     return answer_to_num[doc["answer"]]
 
 
-def winogrande_doc_to_target(doc):
+def winogrande_doc_to_target(doc): # Mirrored from the winogrande task
     idx = doc["sentence"].index("_") + 1
     return doc["sentence"][idx:].strip()
 
 
-def winogrande_doc_to_choice(doc):
+def winogrande_doc_to_choice(doc): # Mirrored from the winogrande task
     idx = doc["sentence"].index("_")
     options = [doc["option1"], doc["option2"]]
     return [doc["sentence"][:idx] + opt for opt in options]
