@@ -5,7 +5,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /home/jj/Downloads/subset_annotato.json
+    test: # path to veryfIT small dataset
 task: veryfIT_small
 doc_to_text: !function utils.doc_to_text
 doc_to_choice: ['Vero', 'Falso']
