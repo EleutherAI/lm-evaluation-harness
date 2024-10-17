@@ -1,0 +1,3 @@
+include: veryfIT_small.yaml
+task: veryfIT_enriched
+doc_to_text: !function utils.doc_to_text_clarified
