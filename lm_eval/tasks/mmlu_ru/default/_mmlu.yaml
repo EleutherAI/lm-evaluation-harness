@@ -1,0 +1,11 @@
+group: mmlu_ru
+task:
+  - mmlu_ru_stem
+  - mmlu_ru_other
+  - mmlu_ru_social_sciences
+  - mmlu_ru_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2
