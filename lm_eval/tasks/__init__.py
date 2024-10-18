@@ -489,7 +489,7 @@ class TaskManager:
                         )
                     elif self._config_is_group(config):
                         # This is a group config
-                        tasks_and_groups[config["tag"]] = {
+                        tasks_and_groups[config["group"]] = {
                             "type": "group",
                             "task": -1,  # This signals that
                             # we don't need to know
