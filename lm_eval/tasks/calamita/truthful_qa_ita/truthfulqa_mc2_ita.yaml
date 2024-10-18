@@ -1,0 +1,4 @@
+include: truthfulqa_mc1_ita.yaml
+task: truthfulqa_mc2_ita
+doc_to_choice: "{{mc2_targets.choices}}"
+process_results: !function utils.process_results_mc2
