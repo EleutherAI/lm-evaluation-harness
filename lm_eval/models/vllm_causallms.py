@@ -260,7 +260,7 @@ class VLLM(TemplateLM):
         truncation: bool = False,
     ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
-            add_special_tokens = False or self.add_bos_token
+            add_special_tokens = self.add_bos_token or False
         encoding = self.tokenizer(
             string,
             add_special_tokens=add_special_tokens,
