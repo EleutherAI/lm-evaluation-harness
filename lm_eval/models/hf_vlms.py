@@ -401,10 +401,6 @@ class HFMultimodalLM(HFLM):
     def loglikelihood(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
-        raise NotImplementedError(
-            "'loglikelihood' requests for model type `hf-multimodal` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
-        )
-
         new_reqs = []
         for context, continuation, aux_arguments in [req.args for req in requests]:
             if context == "":
