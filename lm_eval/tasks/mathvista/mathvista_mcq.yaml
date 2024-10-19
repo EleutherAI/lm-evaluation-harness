@@ -1,8 +1,12 @@
-include: mathvista.yaml
+dataset_path: AI4Math/MathVista
 task: mathvista_mcq
+test_split: testmini
 output_type: "multiple_choice"
+doc_to_image:
+  - decoded_image
+doc_to_text: "<image>{{query}}\n\nAnswer:"
 process_docs: !function utils.process_docs_mcq
-doc_to_choice: '{{ ["A", "B", "C", "D", "E", "F"][:choices.length] }}'
+doc_to_choice: '{{ ["A", "B", "C", "D", "E", "F", "G"][:choices|length] }}'
 doc_to_target: "{{choices.index(answer)}}"
 metric_list:
   - metric: acc
@@ -11,5 +15,7 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
+dataset_kwargs:
+  trust_remote_code: true
 metadata:
   version: 1.0
