@@ -1,0 +1,86 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_chemistry
+description:
+  "Soru: 16 litre CO ve CO $_{2}$  gaz karışımını yakmak için aynı koşullarda 30 litre hava kullanılmaktadır.\
+  \ Buna göre başlangıç karışımındaki VCO\/VCO$_{2}$ oranı aşağıdakilerden hangisidir?(Havanın 1\/5’i oksijen gazıdır.)\nA)\
+  \ 3\nB) 3\/8\nC) 2\/3\nD) 1\/5\nE) 1\/3\nÇözüm: Adım adım düşünelim.\
+  \ Yakma için kullanılan hava miktarının 1\/5'i oksijen olduğuna göre; 30 litre hava içinde 30*(1\/5) = 6 litre oksijen mevcuttur.\
+  \ CO ve CO$_2$ yakmak için gerekli oksijen miktarlarını inceleyelim:CO + 1\/2 O$_2$ → CO$_2$ (Her 1 mol CO için 1\/2 mol O$_2$ gerekir.)\
+  \ CO$_2$ yanmaz. Bu durumda, CO'nun yandığını ve tüm 6 litre oksijeni kullandığını varsayalım. 2 mol CO (her biri 22.4 litre/mol standart koşullarda)\
+  \ için 1 mol O$_2$ (22.4 litre/mol) gerekiyor. Bu nedenle, 6 litre O$_2$ ile 12 litre CO yakılabilir.\
+  \ Bu bilgiyle, başlangıçtaki CO miktarını hesaplayabiliriz. Ancak burada bir yanlış anlama var; zira yakma işlemi\
+  \ sonunda sadece CO kullanıldığını farzetmek, CO$_2$'nin başlangıçta orada olmadığını varsayar ki bu doğru değil.\
+  \ Soruda CO ve CO$_2$ karışımından bahsedilmektedir, bu nedenle direkt CO kullanımı üzerinden gitmemiz gerek.\
+  \ Yakma işlemi CO için geçerli olduğundan ve tüm oksijen CO'nun yanması için kullanıldığından, CO miktarı ve oranı\
+  \ direkt olarak hesaplanmalıdır. 6 litre O$_2$, 12 litre CO yakabilir düşüncesi yanlış olmuştur, çünkü her 1 litre CO için 1\/2 litre O$_2$ gerekmektedir.\
+  \ Doğru açıklamayla, \\(V_{CO}\\) miktarını \\(x\\) litre ve \\(V_{CO_2}\\) miktarını \\(16 - x\\) litre olarak alalım.\
+  \ CO yanmak için 1\/2 oranında O2 kullanır:\
+  \ $\\[x \\text{ litre CO} \\times \\frac{1}{2} = \\frac{x}{2} \\text{ litre O}_2\\]$\
+  \ Tüm işlemde 6 litre O$_2$ kullanıldığından ve bu O$_2$ yalnızca CO'nun yanması için kullanıldığından,\
+  \ $\\(\\frac{x}{2} = 6 \\rightarrow x = 12\\)$. Yani 12 litre CO ve dolayısıyla $\\(16 - 12 = 4\\)$ litre CO$_2$ vardır.\
+  \ Bu durumda VCO\/VCO$_2$ oranı $\\(12 / 4 = 3\\)$'tür. Doğru cevap A şıkkıdır.\n\nSoru:\
+  \ Aşağıda verilen çözeltilerden hangisinin bileşenlerinin fiziksel halleri doğru verilmiştir?\nÖrnek                                  Çözünen\
+  \           Çözücü\nA) Alkollü su                           Katı               Sıvı\nB)\
+  \ Tuzlu su                             Sıvı             Katı\nC)\
+  \ Gazoz                                 Gaz               Sıvı\nD)\
+  \ Lehim                                 Gaz               Katı\nE)\
+  \ Palladyumda hidrojen                Katı              Gaz\nÇözüm: Adım adım düşünelim.\
+  \ Doğru seçenek C şıkkıdır: Gazoz. Gazoz, çözüneni bir gaz (genellikle karbondioksit) ve çözücüsü bir sıvı (su) olan bir çözeltidir. Diğer seçeneklerde çözünen ve çözücü arasındaki fiziksel haller doğru verilmemiştir.\
+  \ A şıkkı: Alkollü su; çözünen etanol (alkol) katı değil, sıvı halde ve çözücü su, sıvı halde olmalıdır.\
+  \ B şıkkı: Tuzlu su; çözünen tuz (genellikle sodyum klorür) katı, çözücü su ise sıvı halde olmalıdır.\
+  \ D şıkkı: Lehim; çözünen katı bir madde (genellikle kalay ve kurşun alaşımı) ve çözücü katı halde olduğunda lehim olarak adlandırılmaz; ısındığında sıvı hale geçer.\
+  \ E şıkkı: Palladyumda hidrojen; çözünen hidrojen gazı ve çözücüsü katı bir metal olan palladyum doğru bir açıklamadır fakat soruda istenilen \"çözücü ve çözünenin fiziksel halleri\" açısından en uygun seçenek\
+  \ Gazozdur. Doğru cevap C şıkkıdır.\n\nSoru: $_{29}$X$^{2+}$ iyonu ve $_{27}$Y atomu ile ilgili,\
+  \ l.    s orbitallerindeki elektron sayısı farklıdır. ll.   İzoelektronik taneciklerdir. lll.  Yarı dolu orbital sayıları eşittir.\
+  \ yargılarından hangileri yanlıştır?\nA) l, ll ve lll\nB) ll ve lll\nC) l ve ll\nD) l ve lll\nE) Yalnız lll\nÇözüm: Adım adım düşünelim.\
+  \ Bu soruyu çözmek için her iki tanecik $(_{29} \\text{X}^{2+} \\text{ ve } _{27}\\text{Y})$ hakkında bazı bilgileri bilmek gerekmektedir.\
+  \ İlk olarak, periyodik cetveldeki yerlerine ve elektron konfigürasyonlarına bakalım.\
+  \ - $_{29}$X sembolü ile temsil edilen element Bakır (Cu)’dır ve onun +2 yüklü iyonu $_{29}\\text{Cu}^{2+}$, 29 protona\\
+  \ ve 27 elektrona sahip olacaktır. Bakır'ın temel hâli için elektron konfigürasyonu $[Ar] 3d^10 4s^1$ dir,\
+  \ ancak 2 elektron kaybettiğinde, 4s orbitalinden ve bir sonraki 3d orbitalinden elektronlar kaybolur ve son konfigürasyon $[Ar] 3d^9$ olur.\
+  \ - $_{27}$Y sembolü ile temsil edilen element Kobalt (Co)’dır ve Kobalt'ın nötr atomu, 27 elektrona sahiptir.\
+  \ Kobalt'ın elektron konfigürasyonu $[Ar] 3d^7 4s^2$ dir. Şimdi yargılara bakalım:\
+  \ l. s orbitallerindeki elektron sayısı farklıdır. Bu doğru, çünkü Cu^{2+} iyonunda 4s orbitali tamamen boşken,\
+  \ Co atomunda 4s orbitali 2 elektron içerir.\
+  \ ll. İzoelektronik taneciklerdir. Bu yanlış, çünkü izoelektronik tanecikler aynı sayıda elektrona ve\
+  \ elektron dizilimine sahiptir. Bu durumda, Cu^{2+} iyonu ve Co atomu izoelektronik değildir.\
+  \ lll. Yarı dolu orbital sayıları eşittir. Bu yanlış, çünkü Cu^{2+} yalnızca bir yarı dolu 3d orbitaline (3d^9) sahipken,\
+  \ Co atomunda birden fazla yarı dolu 3d orbitali bulunabilir.\
+  \ Dolayısıyla, ll ve lll yargıları yanlıştır. Doğru cevap B şıkkıdır.\n\nSoru:\
+  \ Elektrolitik metal kaplama, elektrokimyasal metotlar kullanılarak yüzeyde metalik film oluşturulmasıdır.\
+  \ Bu işlem malzemenin korozyondan korunması, güzel görünmesi ve yüksek sertlik kazanması gibi amaçlarla uygulanır.\
+  \ Aşağıda verilenlerden hangisinde bu yöntem kullanılmamıştır?\nA) Bakır kapların\
+  \ kalaylanması.\nB) Araba jantlarının nikel ile kaplanması.\nC) Çeliğin ısıya ve korozyona karşı dayanıklılığını artırmak\
+  \ için alüminyum ile kaplanması.\nD) Demir tavanın yüzeyinin teflon ile kaplanması.\nE) Kol saatinin altın\
+  \ ile kaplanması.Çözüm: Adım adım düşünelim. Elektrolitik metal kaplama yöntemi, bir metalin başka bir metal ile kaplanmasını içerir.\
+  \ Bu yöntem, genellikle elektrokimyasal süreçler kullanılarak yapılır ve metal yüzeyinin korunmasını,\
+  \ estetik görünüm kazanmasını veya belirli özellikler elde etmesini amaçlar. Seçenekler arasında bahsedilen\
+  \ uygulamalardan Teflon ile kaplama işlemi, elektrolitik bir süreç değildir. Teflon (PTFE),\
+  \ metal bir malzeme değil, sıcaklığa ve kimyasallara karşı dirençli bir polimer türüdür. Demir tavanın\
+  \ yüzeyinin Teflon ile kaplanması, elektrokimyasal bir yöntem değil, daha ziyade fiziksel veya kimyasal\
+  \ buhar biriktirme gibi farklı bir süreç gerektirir.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: Laboratuvarda deney yapan beş arkadaş ile ilgili aşağıdaki bilgiler veriliyor.\
+  \ Hasan: Asitler ile çalışılan bir deneyde asitin üzerine su ekliyor.\
+  \ İnci: Deney sonrası malzemeleri tezgâhın üzerinde bırakıp deney raporunu yazmaya koyuluyor.\
+  \ Nihal: Çözeltinin çökelmesini beklemek için yan masadaki arkadaşlarıyla sohbet ediyor.\
+  \ Gülsüm: Kimyasal malzemeler ile çalışırken eldiven giymiyor ve aynı bagetle iki farklı çözeltiyi karıştırıyor.\
+  \ Cenk: Sodyum metalinin su ile tepkimesini yaparken gözlerine koruyucu gözlük takıyor.\
+  \ Yukarıda verilen bilgilere göre hangi öğrencilerin laboratuvardaki davranışları doğrudur?\nA) Hasan ve Gülsüm\nB) Nihal,\
+  \ Gülsüm ve İnci\nC) Hasan ve İnci\nD) Nihal\nE) Cenk\nÇözüm: Adım adım düşünelim.\
+  \ Laboratuvarda güvenli çalışmanın bazı kuralları vardır, bu kurallar tehlikeleri azaltmak\
+  \ ve güvenli bir çalışma ortamı sağlamak için önemlidir. Öğrencilerin davranışlarını bu kurallar ışığında değerlendirelim:\
+  \ - Hasan, asitlerle çalışırken asidin üzerine su ekliyor. Bu işlem çok tehlikelidir çünkü asidin üzerine su eklemek\
+  \ yanma ya da patlamaya sebep olabilir. Doğru yöntem, suyun üzerine yavaşça asit eklemektir.\
+  \ - İnci, deney sonrası malzemeleri tezgâhın üzerinde bırakıyor ve deney raporuna geçiyor. Laboratuvar güvenliği\
+  \ açısından malzemelerin doğru şekilde temizlenmesi ve düzenlenmesi gerekmektedir. Bu yüzden İnci'nin davranışı yanlıştır.\
+  \ - Nihal, çözeltinin çökelmesini beklerken yan masadaki arkadaşlarıyla sohbet ediyor. Deney süresince dikkatin\
+  \ dağılmaması ve her zaman deney üzerinde kontrolün sağlanması önemli olduğundan, bu davranış doğru olmasa da,\
+  \ direkt olarak güvenlikle ilişkili bir hata içermiyor.\
+  \ - Gülsüm, kimyasal malzemeler ile çalışırken eldiven giymiyor ve aynı bağetle iki farklı çözeltiyi karıştırıyor.\
+  \ Kimyasallarla çalışırken kişisel koruyucu ekipman kullanmak çok önemlidir, bu nedenle eldiven giymemek ve çapraz\
+  \ kontaminasyona yol açacak şekilde aynı aracı kullanmak yanlıştır.\
+  \ - Cenk, sodyum metalinin su ile tepkimesini yaparken gözlerine koruyucu gözlük takıyor. Bu, doğru bir davranıştır\
+  \ çünkü bu tür bir deney sırasında gözleri korumak son derece önemlidir.\
+  \ Buna göre, laboratuvardaki doğru davranışları sergileyen öğrenci Cenk'tir. Doğru cevap E şıkkıdır."
+num_fewshot: 0
+dataset_name: Chemistry
