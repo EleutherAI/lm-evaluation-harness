@@ -143,3 +143,10 @@ def process_results(doc: dict, results: list[str]):
     )
     res = safe_equal(normalized_extraction, answer)
     return {"acc": 1.0} if res else {"acc": 0.0}
+
+
+### MathVista MCQ ###
+
+
+def process_docs_mcq(dataset):
+    return dataset.filter(lambda x: x["question_type"] == "multi_choice")
