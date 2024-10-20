@@ -1,0 +1,5 @@
+group: bluebench_rag_general
+task:
+  - "bluebench_rag_general_rag_response_generation_clapnq"
+metadata:
+  version: 0
