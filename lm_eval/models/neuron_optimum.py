@@ -144,7 +144,7 @@ class NEURON_HF(TemplateLM):
         add_bos_token: Optional[bool] = False,
     ) -> None:
         if not NEURON_AVAILABLE:
-            raise Exception(
+            raise ImportError(
                 "Tried to load neuron model, but neuron is not installed ",
                 "please install neuron via pip install transformers-neuron ",
                 "also make sure you are running on an AWS inf2 instance",
