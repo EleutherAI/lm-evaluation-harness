@@ -1,0 +1,20 @@
+dataset_path: NLPCoreTeam/mmlu_ru # a copy of `cais/mmlu_ru` with no auxiliary_train split
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: generate_until
+doc_to_text: "{{question_ru.strip()}}\nA. {{choices_ru[0]}}\nB. {{choices_ru[1]}}\nC. {{choices_ru[2]}}\nD. {{choices_ru[3]}}\nAnswer:"
+doc_to_target: "{{['A', 'B', 'C', 'D'][answer]}}"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "\n"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0
+dataset_kwargs:
+  trust_remote_code: true
