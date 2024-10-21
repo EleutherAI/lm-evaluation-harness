@@ -4,7 +4,6 @@ dataset_name: schwa_simple
 test_split: test
 validation_split: dev
 output_type: generate_until
-process_docs: !function utils.process_docs
 process_results: !function utils.process_results
 doc_to_text: !function utils.doc_to_text
 doc_to_target: "{{ANNOTATION}}"

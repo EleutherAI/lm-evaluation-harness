@@ -1,26 +1,21 @@
-PROMPT_TEMPLATE = """Traduci la seguente frase inglese in italiano usando il neomorfema "ə". Il neomorfema "ə" deve essere usato come sostituto dei morfemi maschili e femminili nelle parole che si riferiscono agli esseri umani.
+PROMPT_TEMPLATE = """Riformula la seguente frase usando il neomorfema "ə". Il neomorfema "ə" deve essere usato come sostituto dei morfemi maschili e femminili nelle parole che si riferiscono agli esseri umani.
 
-[Inglese]: The partner of a friend of mine invited us to dinner.
-[Italiano, genere marcato]: Il partner di un mio amico ci ha invitati a cena.
-[Italiano, neomorfema]: Lə partner di unə miə amicə ci ha invitatə a cena.
+[Genere marcato]: Il partner di un mio amico ci ha invitati a cena.
+[Neomorfema]: Lə partner di unə miə amicə ci ha invitatə a cena.
 
-[Inglese]: Many farmers, not to mention operators of slaughterhouses and meat businesses, are facing ruin.
-[Italiano, genere marcato]: Molti agricoltori, per non parlare degli operatori dei macelli e delle aziende di carne, stanno affrontando la rovina.
-[Italiano, neomorfema]: Moltə agricoltorə, per non parlare dellə operatorə dei macelli e delle aziende di carne, stanno affrontando la rovina.
+[Genere marcato]: Molti agricoltori, per non parlare degli operatori dei macelli e delle aziende di carne, stanno affrontando la rovina.
+[Neomorfema]: Moltə agricoltorə, per non parlare dellə operatorə dei macelli e delle aziende di carne, stanno affrontando la rovina.
 
-[Inglese]: The new teacher is a little heedless.
-[Italiano, genere marcato]: Il nuovo insegnante è un po' sventato.
-[Italiano, neomorfema]: Lə nuovə insegnante è un po' sventatə.
+[Genere marcato]: Il nuovo insegnante è un po' sventato.
+[Neomorfema]: Lə nuovə insegnante è un po' sventatə.
 
-[Inglese]: I never buy flowers for my friends.
-[Italiano, genere marcato]: Non compro mai fiori per i miei amici.
-[Italiano, neomorfema]: Non compro mai fiori per lə miə amicə.
+[Genere marcato]: Non compro mai fiori per i miei amici.
+[Neomorfema]: Non compro mai fiori per lə miə amicə.
 
-[Inglese]: {en_sentence}
-[Italiano, genere marcato]: {it_sentence}"""
+[Genere marcato]: {sentence}"""
 
 def doc_to_text(x):
-    return PROMPT_TEMPLATE.format(en_sentence=x["SOURCE"], it_sentence=x["REF-M"])
+    return PROMPT_TEMPLATE.format(sentence=x["REF-M"])
 
 def separate(model_output: str) -> str:
     separator = "]:"
