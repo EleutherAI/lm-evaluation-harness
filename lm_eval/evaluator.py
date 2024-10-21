@@ -300,6 +300,7 @@ def evaluate(
     bootstrap_iters: Optional[int] = 100000,
     write_out: bool = False,
     log_samples: bool = True,
+    log_frequency: bool = False,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -316,6 +317,8 @@ def evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param log_frequency: bool
+        If True, write out the frequency of each experts being used 
     :return
         Dictionary of results
     """
@@ -568,6 +571,13 @@ def evaluate(
         }
         if log_samples:
             results_dict["samples"] = dict(samples)
+        
+        if log_frequency:
+            assert callable(getattr(lm, "get_expert_frequency", None)), "The llm is not PoE supported."
+            expert_frequency = []
+            for distribution in lm.get_expert_frequency():
+                expert_frequency.append(distribution.detach().cpu().numpy().tolist())
+            results["expert_frequency"] = expert_frequency
 
         return results_dict
 
