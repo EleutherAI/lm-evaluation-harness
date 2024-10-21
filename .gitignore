@@ -8,11 +8,13 @@ build
 dist
 *.egg-info
 venv
+.venv/
 .vscode/
 temp
 __pycache__
 .ipynb_checkpoints
 temp
+test_logs/
 # IPython
 profile_default/
 ipython_config.py
