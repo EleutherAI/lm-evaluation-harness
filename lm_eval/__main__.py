@@ -399,8 +399,27 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
 
         if args.output_path:
+            path = Path(args.output_path)
+            # check if file or 'dir/results.json' exists
+            if path.is_file() and not args.overwrite_existing_result:
+                raise FileExistsError(f"File already exists at {path}")
+            output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
+            
+            if output_path_file.is_file():
+                eval_logger.warning(
+                    f"File {output_path_file} already exists. Results will be overwritten."
+                )
+            # if path json then get parent dir
+            elif path.suffix in (".json", ".jsonl"):
+                output_path_file = path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path = path.parent
+            else:
+                path.mkdir(parents=True, exist_ok=True)
+
             output_path_file.open("w", encoding="utf-8").write(dumped)
 
+            # Assume we don't use log_sample
             if args.log_samples:
                 for task_name, config in results["configs"].items():
                     output_name = "{}_{}".format(
