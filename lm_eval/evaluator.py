@@ -257,6 +257,7 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         write_out=write_out,
         log_samples=log_samples,
+        log_frequency=model_args["log_frequency"],
         verbosity=verbosity,
     )
 
