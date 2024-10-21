@@ -225,7 +225,6 @@ class HFLM(TemplateLM):
             else:
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
-        # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
         if getattr(self.config, "model_type", None) in ["gemma", "recurrentgemma", "gemma2"]:
             self.add_bos_token = True
@@ -473,9 +472,14 @@ class HFLM(TemplateLM):
 
     @property
     def chat_template(self) -> str:
-        if self.tokenizer.chat_template is not None:
+        if isinstance(self.tokenizer.chat_template, dict):
+            # Assuming "default" is a key in the dictionary
+            return self.tokenizer.chat_template.get("default", None)
+        elif self.tokenizer.chat_template is not None:
             return self.tokenizer.chat_template
-        return self.tokenizer.default_chat_template
+        
+        # If default_chat_template is not an attribute, return a fallback value
+        return getattr(self.tokenizer, "default_chat_template", "default_chat_template not found")
 
     def _get_backend(
         self,
