@@ -131,11 +131,11 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--examples",
         "-E",
-        nargs='+',
-        type=int,
         default=None,
+        type=str,
+        metavar="/path/to/json",
         help="Examples to test. "
-        "Should be in the format x1 x2 x3 ... xn, where xi is an integer number.",
+        "Should be a json file which loads into a Python dictionary. E.g., {'mmlu_anatomy':[0,1],'mmlu_astronomy':[1,2,3]}.",
     )
     parser.add_argument(
         "--use_cache",
@@ -325,9 +325,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
     if args.examples:
         assert args.limit is None, "If --examples is not None, then --limit must be None."
-        assert all(isinstance(x, int) and x >= 0 for x in args.examples), "Elements of the list given in --examples should be non-negative integers."
-        examples = args.examples 
-        limit = len(examples)
+        limit = None
+        with open(args.examples, 'r') as json_file:
+            examples = json.load(json_file)  
         
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
