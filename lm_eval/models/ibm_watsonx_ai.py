@@ -3,7 +3,7 @@ import os
 from configparser import ConfigParser
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Type, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, cast
 
 from tqdm import tqdm
 
@@ -282,7 +282,7 @@ class WatsonxLLM(LM):
 
         return results
 
-    def loglikelihood(self, requests: List[Instance]) -> List[tuple[float, bool]]:
+    def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         """
         Args:
             requests: Each request contains Instance.args : Tuple[str, str] containing:
@@ -350,9 +350,9 @@ class WatsonxLLM(LM):
                 )
             eval_logger.info("Cached batch")
 
-        return cast(List[tuple[float, bool]], results)
+        return cast(List[Tuple[float, bool]], results)
 
-    def loglikelihood_rolling(self, requests) -> List[tuple[float, bool]]:
+    def loglikelihood_rolling(self, requests) -> List[Tuple[float, bool]]:
         """
         Used to evaluate perplexity on a data distribution.
         Args:
@@ -412,4 +412,4 @@ class WatsonxLLM(LM):
 
             eval_logger.info("Cached batch")
 
-        return cast(List[tuple[float, bool]], results)
+        return cast(List[Tuple[float, bool]], results)
