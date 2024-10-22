@@ -1,7 +1,7 @@
 import json
 import os
 from configparser import ConfigParser
-from functools import cache
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, NamedTuple, Optional, Type, cast
 
@@ -21,7 +21,7 @@ class LogLikelihoodResult(NamedTuple):
     is_greedy: bool
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_watsonx_credentials(
     env_name: str = "YP_QA",
     config_path: str = "config.ini",
