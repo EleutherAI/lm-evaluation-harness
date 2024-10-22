@@ -17,6 +17,9 @@ please install sympy via pip install lm-eval[math] or pip install -e .[math]",
     )
 
 
+INVALID_ANSWER = "[invalidanswer]"
+
+
 # taken from
 # https://github.com/wellecks/lm-evaluation-harness/blob/master/lm_eval/tasks/minerva_math.py
 def doc_to_text(doc: dict) -> str:
@@ -70,7 +73,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     unnormalized_answer = get_unnormalized_answer(candidates)
     answer = normalize_final_answer(unnormalized_answer)
 
-    if answer == "[invalidanswer]":
+    if answer == INVALID_ANSWER:
         return {"exact_match": 0}
 
     if answer.strip() == doc["answer"].strip() or is_equiv(answer, doc["answer"]):
@@ -125,11 +128,9 @@ def remove_boxed(s: str) -> str:
 
         assert s[: len(left)] == left
         assert s[-1] == "}"
+        return s[len(left) : -1]
     except AssertionError:
-        print(s)
-        return s
-
-    return s[len(left) : -1]
+        return INVALID_ANSWER
 
 
 class timeout:
@@ -192,7 +193,6 @@ def is_equiv(x1: str, x2: str) -> bool:
 
 
 def get_unnormalized_answer(text: str) -> str:
-    INVALID_ANSWER = "[invalidanswer]"
     end_seq = "I hope it is correct."
     text += end_seq
     match = re.search(
