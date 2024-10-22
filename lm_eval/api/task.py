@@ -107,9 +107,6 @@ class TaskConfig(dict):
                 self.generation_kwargs["temperature"] = float(
                     self.generation_kwargs["temperature"]
                 )
-
-            if "until" not in self.generation_kwargs:
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
