@@ -1,0 +1,70 @@
+group: arabic_leaderboard_acva_light
+task:
+  - arabic_leaderboard_acva_Algeria_light
+  - arabic_leaderboard_acva_Ancient_Egypt_light
+  - arabic_leaderboard_acva_Arab_Empire_light
+  - arabic_leaderboard_acva_Arabic_Architecture_light
+  - arabic_leaderboard_acva_Arabic_Art_light
+  - arabic_leaderboard_acva_Arabic_Astronomy_light
+  - arabic_leaderboard_acva_Arabic_Calligraphy_light
+  - arabic_leaderboard_acva_Arabic_Ceremony_light
+  - arabic_leaderboard_acva_Arabic_Clothing_light
+  - arabic_leaderboard_acva_Arabic_Culture_light
+  - arabic_leaderboard_acva_Arabic_Food_light
+  - arabic_leaderboard_acva_Arabic_Funeral_light
+  - arabic_leaderboard_acva_Arabic_Geography_light
+  - arabic_leaderboard_acva_Arabic_History_light
+  - arabic_leaderboard_acva_Arabic_Language_Origin_light
+  - arabic_leaderboard_acva_Arabic_Literature_light
+  - arabic_leaderboard_acva_Arabic_Math_light
+  - arabic_leaderboard_acva_Arabic_Medicine_light
+  - arabic_leaderboard_acva_Arabic_Music_light
+  - arabic_leaderboard_acva_Arabic_Ornament_light
+  - arabic_leaderboard_acva_Arabic_Philosophy_light
+  - arabic_leaderboard_acva_Arabic_Physics_and_Chemistry_light
+  - arabic_leaderboard_acva_Arabic_Wedding_light
+  - arabic_leaderboard_acva_Bahrain_light
+  - arabic_leaderboard_acva_Comoros_light
+  - arabic_leaderboard_acva_Egypt_modern_light
+  - arabic_leaderboard_acva_InfluenceFromAncientEgypt_light
+  - arabic_leaderboard_acva_InfluenceFromByzantium_light
+  - arabic_leaderboard_acva_InfluenceFromChina_light
+  - arabic_leaderboard_acva_InfluenceFromGreece_light
+  - arabic_leaderboard_acva_InfluenceFromIslam_light
+  - arabic_leaderboard_acva_InfluenceFromPersia_light
+  - arabic_leaderboard_acva_InfluenceFromRome_light
+  - arabic_leaderboard_acva_Iraq_light
+  - arabic_leaderboard_acva_Islam_Education_light
+  - arabic_leaderboard_acva_Islam_branches_and_schools_light
+  - arabic_leaderboard_acva_Islamic_law_system_light
+  - arabic_leaderboard_acva_Jordan_light
+  - arabic_leaderboard_acva_Kuwait_light
+  - arabic_leaderboard_acva_Lebanon_light
+  - arabic_leaderboard_acva_Libya_light
+  - arabic_leaderboard_acva_Mauritania_light
+  - arabic_leaderboard_acva_Mesopotamia_civilization_light
+  - arabic_leaderboard_acva_Morocco_light
+  - arabic_leaderboard_acva_Oman_light
+  - arabic_leaderboard_acva_Palestine_light
+  - arabic_leaderboard_acva_Qatar_light
+  - arabic_leaderboard_acva_Saudi_Arabia_light
+  - arabic_leaderboard_acva_Somalia_light
+  - arabic_leaderboard_acva_Sudan_light
+  - arabic_leaderboard_acva_Syria_light
+  - arabic_leaderboard_acva_Tunisia_light
+  - arabic_leaderboard_acva_United_Arab_Emirates_light
+  - arabic_leaderboard_acva_Yemen_light
+  - arabic_leaderboard_acva_communication_light
+  - arabic_leaderboard_acva_computer_and_phone_light
+  - arabic_leaderboard_acva_daily_life_light
+  - arabic_leaderboard_acva_entertainment_light
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

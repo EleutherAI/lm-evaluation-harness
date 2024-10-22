@@ -78,7 +78,7 @@ _ENDING_OPTIONS = ("Any other questions?", "Is there anything else I can help wi
 # The number of highlighted sections.
 _NUM_HIGHLIGHTED_SECTIONS = 4
 
-# The section spliter.
+# The section splitter.
 _SECTION_SPLITER = ("Section", "SECTION")
 
 # The number of sections.
@@ -153,7 +153,7 @@ class ResponseLanguageChecker(Instruction):
         return self._description_pattern.format(language=_LANGUAGES[self._language])
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"language": self._language}
 
     def get_instruction_args_keys(self):
@@ -223,7 +223,7 @@ class NumberOfSentences(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {
             "num_sentences": self._num_sentences_threshold,
             "relation": self._comparison_relation,
@@ -276,7 +276,7 @@ class PlaceholderChecker(Instruction):
         return self._description_pattern.format(num_placeholders=self._num_placeholders)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"num_placeholders": self._num_placeholders}
 
     def get_instruction_args_keys(self):
@@ -323,7 +323,7 @@ class BulletListChecker(Instruction):
         return self._description_pattern.format(num_bullets=self._num_bullets)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"num_bullets": self._num_bullets}
 
     def get_instruction_args_keys(self):
@@ -362,7 +362,7 @@ class ConstrainedResponseChecker(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return None
 
     def get_instruction_args_keys(self):
@@ -393,7 +393,7 @@ class ConstrainedStartChecker(Instruction):
         """Build the instruction description.
 
         Args:
-          starter: A string representing the keyward that the response should start
+          starter: A string representing the keyword that the response should start
             with.
 
         Returns:
@@ -409,7 +409,7 @@ class ConstrainedStartChecker(Instruction):
         return self._description_pattern.format(starter=self._starter)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"starter": self._starter}
 
     def get_instruction_args_keys(self):
@@ -458,7 +458,7 @@ class HighlightSectionChecker(Instruction):
         return self._description_pattern.format(num_highlights=self._num_highlights)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"num_highlights": self._num_highlights}
 
     def get_instruction_args_keys(self):
@@ -469,12 +469,12 @@ class HighlightSectionChecker(Instruction):
         """Checks if the number of highlighted sections meets the requirement.
 
         Args:
-          value: a string repesenting the response. The response is expected to
+          value: a string representing the response. The response is expected to
             contain highlighted sections in the format of *highlighted*.
 
         Returns:
           True if the actual number of highlighted sections in the format of
-          *highlighed sections* meets the minimum requirement; otherwise False.
+          *highlighted sections* meets the minimum requirement; otherwise False.
         """
         num_highlights = 0
         highlights = re.findall(r"\*[^\n\*]*\*", value)
@@ -529,7 +529,7 @@ class SectionChecker(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {
             "section_spliter": self._section_spliter,
             "num_sections": self._num_sections,
@@ -582,7 +582,7 @@ class ParagraphChecker(Instruction):
         return self._description_pattern.format(num_paragraphs=self._num_paragraphs)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"num_paragraphs": self._num_paragraphs}
 
     def get_instruction_args_keys(self):
@@ -642,7 +642,7 @@ class PostscriptChecker(Instruction):
         return self._description_pattern.format(postscript=self._postscript_marker)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"postscript_marker": self._postscript_marker}
 
     def get_instruction_args_keys(self):
@@ -672,7 +672,7 @@ class PostscriptChecker(Instruction):
 
 
 class RephraseChecker(Instruction):
-    """Checks the repharse."""
+    """Checks the rephrase."""
 
     def build_description(self, *, original_message):
         """Build the instruction description.
@@ -701,7 +701,7 @@ class RephraseChecker(Instruction):
         return self._description
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"original_message": self._reference_without_change}
 
     def get_instruction_args_keys(self):
@@ -766,7 +766,7 @@ class KeywordChecker(Instruction):
         return self._description_pattern.format(keywords=self._keywords)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"keywords": self._keywords}
 
     def get_instruction_args_keys(self):
@@ -831,7 +831,7 @@ class KeywordFrequencyChecker(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {
             "keyword": self._keyword,
             "frequency": self._frequency,
@@ -894,7 +894,7 @@ class NumberOfWords(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"num_words": self._num_words, "relation": self._comparison_relation}
 
     def get_instruction_args_keys(self):
@@ -922,7 +922,7 @@ class JsonFormat(Instruction):
         return self._description_pattern
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return None
 
     def get_instruction_args_keys(self):
@@ -996,7 +996,7 @@ class ParagraphFirstWordCheck(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {
             "num_paragraphs": self._num_paragraphs,
             "nth_paragraph": self._nth_paragraph,
@@ -1089,7 +1089,7 @@ class KeySentenceChecker(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {
             "num_sentences": self._num_sentences,
             "key_sentences": list(self._key_sentences),
@@ -1117,7 +1117,7 @@ class ForbiddenWords(Instruction):
         """Build the instruction description.
 
         Args:
-          forbidden_words: A sequences of strings respresenting words that are not
+          forbidden_words: A sequences of strings representing words that are not
             allowed in the response.
 
         Returns:
@@ -1138,7 +1138,7 @@ class ForbiddenWords(Instruction):
         return self._description_pattern.format(forbidden_words=self._forbidden_words)
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {"forbidden_words": self._forbidden_words}
 
     def get_instruction_args_keys(self):
@@ -1188,7 +1188,7 @@ class RephraseParagraph(Instruction):
         )
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return {
             "original_paragraph": self._original_paragraph,
             "low": self._low,
@@ -1225,7 +1225,7 @@ class TwoResponsesChecker(Instruction):
         return self._description_pattern
 
     def get_instruction_args(self):
-        """Returns the keyward args of `build_description`."""
+        """Returns the keyword args of `build_description`."""
         return None
 
     def get_instruction_args_keys(self):

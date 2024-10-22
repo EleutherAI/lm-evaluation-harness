@@ -57,3 +57,8 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+
+* (tasks, group) 2024-09-23 -- (version 1 --> version 2)
+  * Added one newline to task description(s) as per [reference implementation](https://github.com/TIGER-AI-Lab/MMLU-Pro/blob/47b9891aacb8bd7cda29d5c5ba17b9434dd333bc/evaluate_from_local.py#L93)

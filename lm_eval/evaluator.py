@@ -157,6 +157,9 @@ def simple_evaluate(
         seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
         torch.manual_seed(torch_random_seed)
 
+    if fewshot_random_seed is not None:
+        seed_message.append(f"Setting fewshot manual seed to {fewshot_random_seed}")
+
     if seed_message:
         eval_logger.info(" | ".join(seed_message))
 
@@ -208,7 +211,9 @@ def simple_evaluate(
             )
     else:
         if not isinstance(model, lm_eval.api.model.LM):
-            raise TypeError
+            raise TypeError(
+                f"The value of `model` passed to simple_evaluate() was of type {type(model)}, but is required to be a subclass of lm_eval.api.model.LM . This may be because you are passing an initialized Hugging Face PreTrainedModel without having wrapped it in `lm_eval.models.huggingface.HFLM(pretrained=my_model)` first."
+            )
         eval_logger.info("Using pre-initialized model")
         lm = model
 
@@ -274,9 +279,6 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-                eval_logger.info(
-                    f"Setting fewshot random generator seed to {fewshot_random_seed}"
-                )
 
                 adjusted_task_dict[task_name] = task_obj
 
@@ -412,9 +414,33 @@ def evaluate(
             for task_output in eval_tasks
         ):
             raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
+
+    # validation check: are we running multimodal task <-> non-multimodal model class, or vice-versa.
+    incompatible_tasks = []
     for task_output in eval_tasks:
         task: Task = task_output.task
-        limit = get_sample_size(task, limit)
+
+        if getattr(lm, "MULTIMODAL", False) != getattr(task, "MULTIMODAL", False):
+            incompatible_tasks.append(task_output.task_name)
+    if len(incompatible_tasks) > 0:
+        if not getattr(lm, "MULTIMODAL", False):
+            raise ValueError(
+                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
+            )
+        else:
+            raise ValueError(
+                f"Attempted to run tasks: {incompatible_tasks} which are text-only, but used a model type which only currently supports multimodal tasks."
+            )
+    # end multimodality validation check
+
+    # Cache the limit arg.
+    limit_arg = limit
+    limits = []
+    for task_output in eval_tasks:
+        task: Task = task_output.task
+
+        limit = get_sample_size(task, limit_arg)
+        limits.append(limit)
         task.build_all_requests(
             limit=limit,
             rank=lm.rank,
@@ -484,7 +510,7 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output in eval_tasks:
+    for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         task.apply_filters()
 
@@ -633,7 +659,7 @@ def evaluate(
                         len(task_output.task.eval_docs),
                     ),
                 }
-                for task_output in eval_tasks
+                for task_output, limit in zip(eval_tasks, limits)
             },
         }
         if log_samples:

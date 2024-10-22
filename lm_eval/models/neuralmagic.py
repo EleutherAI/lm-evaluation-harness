@@ -321,6 +321,9 @@ class DeepSparseLM(LM):
                 res.append(answer)
 
                 if cache_key is not None:
+                    # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                    # all with cache key None. instead do add_partial on the per-example level
+                    # in the loglikelihood_rolling() function for those.
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
         return re_ord.get_original(res)

@@ -13,6 +13,15 @@ As we want to evaluate models across capabilities, the list currently contains:
 
 Details on the choice of those evals can be found [here](https://huggingface.co/spaces/open-llm-leaderboard/blog) !
 
+## Install
+To install the `lm-eval` package with support for leaderboard evaluations, run:
+
+```bash
+git clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e ".[math,ifeval,sentencepiece]"
+```
+
 ## BigBenchHard (BBH)
 
 A suite of 23 challenging BIG-Bench tasks which we call BIG-Bench Hard (BBH).
