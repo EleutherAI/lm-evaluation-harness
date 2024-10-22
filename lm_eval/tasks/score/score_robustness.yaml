@@ -1,0 +1,6 @@
+group: score_robustness
+task:
+  - score_robustness_agieval
+  - score_robustness_mmlu_pro
+metadata:
+  version: 1.0
