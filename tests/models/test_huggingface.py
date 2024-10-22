@@ -5,7 +5,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import tokenizers
 import torch
+from packaging.version import parse as parse_version
 
 from lm_eval import tasks
 from lm_eval.api.instance import Instance
@@ -145,4 +147,7 @@ class Test_HFLM:
         context = self.LM.tok_batch_encode([TEST_STRING])[0]
         res = self.LM._model_generate(context, max_length=10, stop=["\n\n"])
         res = self.LM.tok_decode(res[0])
-        assert res == "foo bar\n<bazhang>!info bar"
+        if parse_version(tokenizers.__version__) >= parse_version("0.20.0"):
+            assert res == "foo bar\n<bazhang> !info bar"
+        else:
+            assert res == "foo bar\n<bazhang>!info bar"
