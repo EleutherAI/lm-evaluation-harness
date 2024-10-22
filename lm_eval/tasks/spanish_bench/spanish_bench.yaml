@@ -1,6 +1,9 @@
 group: spanish_bench
 task:
   - belebele_spa_Latn
+  - copa_es
+  - escola
+  - openbookqa_es
   - wnli_es
   - xnli_es_spanish_bench
   - xstorycloze_es
