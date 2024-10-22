@@ -7,13 +7,10 @@ from typing import Any, Dict, NamedTuple, Optional, Type, cast
 
 from tqdm import tqdm
 
-import lm_eval.utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-
-
-eval_logger = lm_eval.utils.eval_logger
+from lm_eval.utils import eval_logger, simple_parse_args_string
 
 
 class LogLikelihoodResult(NamedTuple):
@@ -99,7 +96,7 @@ class WatsonxLLM(LM):
                 "Could not import ibm_watsonx_ai: Please install lm_eval[ibm_watsonx_ai] package."
             )
 
-        args = lm_eval.utils.simple_parse_args_string(arg_string)
+        args = simple_parse_args_string(arg_string)
         model_id = args.pop("model_id", None)
         if model_id is None:
             raise ValueError("'model_id' is required, please pass it in 'model_args'")
