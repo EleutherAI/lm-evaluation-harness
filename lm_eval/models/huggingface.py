@@ -580,7 +580,6 @@ class HFLM(TemplateLM):
                 **model_kwargs,
             )
         else:
-
             if autogptq and gptqmodel:
                 raise ValueError(
                     "Cannot use both 'autogptq' and 'gptqmodel' options at the same time."
@@ -615,9 +614,7 @@ class HFLM(TemplateLM):
                     )
 
                 self._model = GPTQModel.from_quantized(
-                    pretrained,
-                    trust_remote_code=trust_remote_code,
-                    **model_kwargs
+                    pretrained, trust_remote_code=trust_remote_code, **model_kwargs
                 )
 
         if peft and delta:
