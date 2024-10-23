@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.4"
+version = "0.4.5"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -93,6 +93,7 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[zeno]",
     "lm_eval[wandb]",
+    "lm_eval[ibm_watsonx_ai]"
 ]
 
 [tool.ruff.lint]

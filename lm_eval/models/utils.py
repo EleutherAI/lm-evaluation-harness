@@ -698,3 +698,14 @@ def replace_placeholders(
     # Add the last part of the string
     result.append(parts[-1])
     return "".join(result)
+
+
+def flatten_image_list(images: List[List]):
+    """
+    Takes in a list of lists of images, and returns a single list of all images in order.
+    Used for some multimodal models like Llava-1.5 which expects this flattened-list format for its image processor.
+
+    :param images: A list of lists of PIL images.
+    :return: a list of PIL images, via concatenating all the sub-lists in order.
+    """
+    return [image for image_list in images for image in image_list]

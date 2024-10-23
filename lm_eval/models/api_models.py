@@ -73,9 +73,12 @@ class TemplateAPI(TemplateLM):
         seed: int = 1234,
         max_length: Optional[int] = 2048,
         add_bos_token: bool = False,
-        custom_prefix_token_id=None,
+        custom_prefix_token_id: int = None,
         # send the requests as tokens or strings
-        tokenized_requests=True,
+        tokenized_requests: bool = True,
+        trust_remote_code: bool = False,
+        revision: Optional[str] = "main",
+        use_fast_tokenizer: bool = True,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -128,7 +131,10 @@ class TemplateAPI(TemplateLM):
                     import transformers
 
                     self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                        self.tokenizer if self.tokenizer else self.model
+                        self.tokenizer if self.tokenizer else self.model,
+                        trust_remote_code=trust_remote_code,
+                        revision=revision,
+                        use_fast=use_fast_tokenizer,
                     )
                     # Not used as the API will handle padding but to mirror the behavior of the HFLM
                     self.tokenizer = configure_pad_token(self.tokenizer)
@@ -138,7 +144,7 @@ class TemplateAPI(TemplateLM):
 
                         self.tokenizer = tiktoken.encoding_for_model(self.model)
                     except ModuleNotFoundError as e:
-                        raise Exception(
+                        raise ModuleNotFoundError(
                             "Attempted to use 'openai' LM type, but the package `tiktoken` is not installed. "
                             "Please install it via `pip install lm-eval[api]` or `pip install -e .[api]`."
                         ) from e
@@ -153,6 +159,9 @@ class TemplateAPI(TemplateLM):
                 assert isinstance(tokenizer, str), "tokenizer must be a string"
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                     tokenizer,
+                    trust_remote_code=trust_remote_code,
+                    revision=revision,
+                    use_fast=use_fast_tokenizer,
                 )
 
     @abc.abstractmethod

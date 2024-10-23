@@ -55,7 +55,7 @@ class HFLM(TemplateLM):
     def __init__(
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
-        backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
+        backend: Literal["default", "causal", "seq2seq"] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
@@ -90,7 +90,6 @@ class HFLM(TemplateLM):
         **kwargs,
     ) -> None:
         super().__init__()
-
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
             eval_logger.warning(
@@ -164,7 +163,7 @@ class HFLM(TemplateLM):
                 trust_remote_code=trust_remote_code,
             )
 
-        # determine which of 'causal' and 'seq2seq' backends to use
+            # determine which of 'causal' and 'seq2seq' backends to use for HF models
         self._get_backend(
             config=self.config, backend=backend, trust_remote_code=trust_remote_code
         )
@@ -287,7 +286,7 @@ class HFLM(TemplateLM):
 
     def _get_accelerate_args(
         self,
-        parallelize: bool = None,
+        parallelize: Optional[bool] = None,
         device_map: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -441,31 +440,26 @@ class HFLM(TemplateLM):
     def _get_backend(
         self,
         config: Union[transformers.PretrainedConfig, transformers.AutoConfig],
-        backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
+        backend: Literal["default", "causal", "seq2seq"] = "default",
         trust_remote_code: Optional[bool] = False,
     ) -> None:
         """
         Helper method during initialization.
-        Determines the backend ("causal" (decoder-only) or "seq2seq" (encoder-decoder))
-        model type to be used.
+        Determines the backend ("causal" (decoder-only) or "seq2seq" (encoder-decoder)) model type to be used.
         sets `self.AUTO_MODEL_CLASS` appropriately if not already set.
+
+        **If not calling HFLM.__init__() or HFLM._get_backend() within a subclass of HFLM,
+        user must set `self.backend` to be either "causal" or "seq2seq" manually!**
         """
-        # escape hatch: if we're using a subclass that shouldn't follow
-        # the default _get_backend logic,
-        # then skip over the method.
-        # TODO: this seems very much undesirable in some cases--our code in HFLM
-        # references AutoModelForCausalLM at times to check for equality
-        if self.AUTO_MODEL_CLASS is not None:
-            return
 
         assert backend in ["default", "causal", "seq2seq"]
 
         if backend != "default":
             # if we've settled on non-default backend, use that manually
             if backend == "causal":
-                self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+                self.backend = backend
             elif backend == "seq2seq":
-                self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
+                self.backend = backend
             eval_logger.info(
                 f"Overrode HF model backend type, and using type '{backend}'"
             )
@@ -478,26 +472,32 @@ class HFLM(TemplateLM):
                 # first check if model type is listed under seq2seq models, since some
                 # models like MBart are listed in both seq2seq and causal mistakenly in HF transformers.
                 # these special cases should be treated as seq2seq models.
-                self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
+                self.backend = "seq2seq"
+                eval_logger.info(f"Using model type '{backend}'")
             elif (
                 getattr(self.config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
             ):
-                self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+                self.backend = "causal"
+                eval_logger.info(f"Using model type '{backend}'")
             else:
                 if not trust_remote_code:
                     eval_logger.warning(
                         "HF model type is neither marked as CausalLM or Seq2SeqLM. \
                     This is expected if your model requires `trust_remote_code=True` but may be an error otherwise."
+                        "Setting backend to causal"
                     )
                 # if model type is neither in HF transformers causal or seq2seq model registries
-                # then we default to AutoModelForCausalLM
-                self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+                # then we default to assuming AutoModelForCausalLM
+                self.backend = "causal"
+                eval_logger.info(
+                    f"Model type cannot be determined. Using default model type '{backend}'"
+                )
 
-        assert self.AUTO_MODEL_CLASS in [
-            transformers.AutoModelForCausalLM,
-            transformers.AutoModelForSeq2SeqLM,
-        ]
-        return None
+        if self.AUTO_MODEL_CLASS is None:
+            if self.backend == "causal":
+                self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+            elif self.backend == "seq2seq":
+                self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
 
     def _get_config(
         self,
@@ -505,6 +505,7 @@ class HFLM(TemplateLM):
         revision: str = "main",
         trust_remote_code: bool = False,
     ) -> None:
+        """Return the model config for HuggingFace models"""
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,
             revision=revision,
@@ -578,8 +579,8 @@ class HFLM(TemplateLM):
         else:
             try:
                 from auto_gptq import AutoGPTQForCausalLM
-            except ModuleNotFoundError:
-                raise Exception(
+            except ModuleNotFoundError as exception:
+                raise type(exception)(
                     "Tried to load auto_gptq, but auto-gptq is not installed ",
                     "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
                 )
@@ -703,7 +704,7 @@ class HFLM(TemplateLM):
         # if OOM, then halves batch_size and tries again
         @find_executable_batch_size(starting_batch_size=self.max_batch_size)
         def forward_batch(batch_size):
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+            if self.backend == "seq2seq":
                 length = max(max_context_enc, max_cont_enc)
                 batched_conts = torch.ones(
                     (batch_size, length), device=self.device
@@ -754,7 +755,7 @@ class HFLM(TemplateLM):
 
         # by default for CausalLM - false or self.add_bos_token is set
         if add_special_tokens is None:
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            if self.backend == "causal":
                 special_tokens_kwargs = {
                     "add_special_tokens": False or self.add_bos_token
                 }
@@ -782,7 +783,7 @@ class HFLM(TemplateLM):
         self.tokenizer.padding_side = padding_side
 
         add_special_tokens = {}
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+        if self.backend == "causal":
             add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.tokenizer(
@@ -860,14 +861,14 @@ class HFLM(TemplateLM):
     def _select_cont_toks(
         self, logits: torch.Tensor, contlen: int = None, inplen: int = None
     ) -> torch.Tensor:
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+        if self.backend == "causal":
             assert (
                 contlen and inplen
             ), "Must pass input len and cont. len to select scored logits for causal LM"
             # discard right-padding.
             # also discard the input/context tokens. we'll only score continuations.
             logits = logits[inplen - contlen : inplen]
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+        elif self.backend == "seq2seq":
             assert (
                 contlen and not inplen
             ), "Selecting scored logits for Seq2SeqLM requires only cont. len"
@@ -990,8 +991,7 @@ class HFLM(TemplateLM):
             requests,
             sort_fn=_collate,
             group_by="contexts"
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
-            and self.logits_cache
+            if self.backend == "causal" and self.logits_cache
             else None,
             group_fn=_lookup_one_token_cont,
         )
@@ -1048,14 +1048,14 @@ class HFLM(TemplateLM):
                 # cont_toks      4 5 6 7 8 9      [:, -len(continuation_enc):, :self.vocab_size] slice
 
                 # when too long to fit in context, truncate from the left
-                if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                if self.backend == "causal":
                     inp = torch.tensor(
                         (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1],
                         dtype=torch.long,
                         device=self.device,
                     )
                     (inplen,) = inp.shape
-                elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+                elif self.backend == "seq2seq":
                     inp = torch.tensor(
                         (context_enc)[-self.max_length :],
                         dtype=torch.long,
@@ -1095,11 +1095,11 @@ class HFLM(TemplateLM):
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            if self.backend == "causal":
                 batched_inps = pad_and_concat(
                     padding_len_inp, inps, padding_side="right"
                 )  # [batch, padding_len_inp]
-            elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+            elif self.backend == "seq2seq":
                 # TODO: left-pad encoder inps and mask?
                 batched_inps = pad_and_concat(
                     padding_len_inp, inps
@@ -1130,7 +1130,7 @@ class HFLM(TemplateLM):
                 # from prompt/prefix tuning tokens, if applicable
                 ctx_len = (
                     inplen + (logits.shape[0] - padding_len_inp)
-                    if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                    if self.backend == "causal"
                     else None
                 )
                 logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
@@ -1265,10 +1265,10 @@ class HFLM(TemplateLM):
                 max_gen_toks = self.max_gen_toks
 
             # set the max length in tokens of inputs ("context_enc")
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            if self.backend == "causal":
                 # max len for inputs = max length, minus room to generate the max new tokens
                 max_ctx_len = self.max_length - max_gen_toks
-            elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+            elif self.backend == "seq2seq":
                 # max len for inputs = encoder's whole max_length
                 max_ctx_len = self.max_length
 
@@ -1295,7 +1295,7 @@ class HFLM(TemplateLM):
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts):
                 # discard context + left-padding toks if using causal decoder-only LM
-                if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
                 s = self.tok_decode(cont_toks)
