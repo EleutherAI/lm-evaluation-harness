@@ -1,8 +1,8 @@
 # BlueBench Benchmark
 
-BlueBench is an open-source benchmark developed by domain experts to represent required needs of Enterprise users. 
+BlueBench is an open-source benchmark developed by domain experts to represent required needs of Enterprise users.
 
-It is constructed using state-of-the-art benchmarking methodologies to ensure validity, robustness, and [efficiency](https://arxiv.org/abs/2308.11696v5) by utilizing [unitxt](https://github.com/IBM/unitxt)'s abilities for dynamic and flexible text processing. 
+It is constructed using state-of-the-art benchmarking methodologies to ensure validity, robustness, and [efficiency](https://arxiv.org/abs/2308.11696v5) by utilizing [unitxt](https://github.com/IBM/unitxt)'s abilities for dynamic and flexible text processing.
 
 As a dynamic and evolving benchmark, BlueBench currently encompasses diverse domains such as legal, finance, customer support, and news. It also evaluates a range of capabilities, including RAG, pro-social behavior, summarization, and chatbot performance, with additional tasks and domains to be integrated over time.
 
@@ -562,7 +562,7 @@ This subset, specifically curated by Aiera, consists of 91 QA pairs. Each entry 
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test? 
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
     * The BlueBench implementations, using unitxt may differ from original reference implementations due to variations in templating and formatting. we thus, prepended the `_bluebench` sign to all the new tasks.
 
 
