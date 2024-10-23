@@ -93,6 +93,7 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[zeno]",
     "lm_eval[wandb]",
+    "lm_eval[ibm_watsonx_ai]"
 ]
 
 [tool.ruff.lint]
