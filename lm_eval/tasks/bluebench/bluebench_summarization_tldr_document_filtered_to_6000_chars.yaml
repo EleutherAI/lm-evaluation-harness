@@ -1,0 +1,5 @@
+task: bluebench_summarization_tldr_document_filtered_to_6000_chars
+include: unitxt
+recipe: recipes.bluebench.summarization.tldr_document_filtered_to_6000_chars
+metadata:
+  version: 0

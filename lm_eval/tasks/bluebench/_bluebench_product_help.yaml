@@ -1,0 +1,6 @@
+group: bluebench_product_help
+task:
+  - "bluebench_product_help_cfpb_product_watsonx"
+  - "bluebench_product_help_cfpb_product_2023"
+metadata:
+  version: 0

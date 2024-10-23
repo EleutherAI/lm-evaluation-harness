@@ -1,0 +1,19 @@
+group: bluebench_translation
+task:
+  - "bluebench_translation_mt_flores_101_ara_eng"
+  - "bluebench_translation_mt_flores_101_deu_eng"
+  - "bluebench_translation_mt_flores_101_eng_ara"
+  - "bluebench_translation_mt_flores_101_eng_deu"
+  - "bluebench_translation_mt_flores_101_eng_fra"
+  - "bluebench_translation_mt_flores_101_eng_kor"
+  - "bluebench_translation_mt_flores_101_eng_por"
+  - "bluebench_translation_mt_flores_101_eng_ron"
+  - "bluebench_translation_mt_flores_101_eng_spa"
+  - "bluebench_translation_mt_flores_101_fra_eng"
+  - "bluebench_translation_mt_flores_101_jpn_eng"
+  - "bluebench_translation_mt_flores_101_kor_eng"
+  - "bluebench_translation_mt_flores_101_por_eng"
+  - "bluebench_translation_mt_flores_101_ron_eng"
+  - "bluebench_translation_mt_flores_101_spa_eng"
+metadata:
+  version: 0

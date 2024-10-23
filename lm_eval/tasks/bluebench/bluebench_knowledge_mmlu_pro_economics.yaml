@@ -1,0 +1,5 @@
+task: bluebench_knowledge_mmlu_pro_economics
+include: unitxt
+recipe: recipes.bluebench.knowledge.mmlu_pro_economics
+metadata:
+  version: 0

@@ -1,0 +1,5 @@
+task: bluebench_legal_legalbench_proa
+include: unitxt
+recipe: recipes.bluebench.legal.legalbench_proa
+metadata:
+  version: 0

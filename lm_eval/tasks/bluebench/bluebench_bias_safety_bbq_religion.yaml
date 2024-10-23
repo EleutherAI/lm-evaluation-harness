@@ -1,0 +1,5 @@
+task: bluebench_bias_safety_bbq_religion
+include: unitxt
+recipe: recipes.bluebench.bias.safety_bbq_religion
+metadata:
+  version: 0
