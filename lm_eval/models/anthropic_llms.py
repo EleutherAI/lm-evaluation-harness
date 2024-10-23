@@ -45,8 +45,8 @@ def anthropic_completion(
 
     try:
         import anthropic
-    except ModuleNotFoundError:
-        raise Exception(
+    except ModuleNotFoundError as exception:
+        raise type(exception)(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
         )
@@ -108,8 +108,8 @@ def anthropic_chat(
 
     try:
         import anthropic
-    except ModuleNotFoundError:
-        raise Exception(
+    except ModuleNotFoundError as exception:
+        raise type(exception)(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
         )
@@ -168,8 +168,8 @@ class AnthropicLM(LM):
 
         try:
             import anthropic
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
@@ -217,8 +217,8 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         try:
             import anthropic
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )

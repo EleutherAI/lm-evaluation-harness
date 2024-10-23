@@ -65,7 +65,7 @@ class VLLM(TemplateLM):
         super().__init__()
 
         if not find_spec("vllm"):
-            raise Exception(
+            raise ModuleNotFoundError(
                 "attempted to use 'vllm' LM type, but package `vllm` is not installed. "
                 "Please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
