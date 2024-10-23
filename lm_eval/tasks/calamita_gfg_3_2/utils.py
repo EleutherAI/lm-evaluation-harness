@@ -29,6 +29,7 @@ def get_label(entry):
 
 def process_docs(dataset: datasets.Dataset):
     dataset = dataset.map(lambda x: {"sentence": PROMPT_TEMPLATE.format(sentence=x["SRC"]), "label": get_label(x)})
+    print(dataset["label"])
     return dataset
 
 

@@ -18,11 +18,10 @@ PROMPT_TEMPLATE = """Traduci la seguente frase inglese in italiano usando il neo
 [Italiano, genere marcato]: Non compro mai fiori per i miei amici.
 [Italiano, neomorfema]: Non compro mai fiori per lə miə amicə.
 
-[Inglese]: {en_sentence}
-[Italiano, genere marcato]: {it_sentence}"""
+[Inglese]: {sentence}"""
 
 def doc_to_text(x):
-    return PROMPT_TEMPLATE.format(en_sentence=x["SOURCE"], it_sentence=x["REF-M"])
+    return PROMPT_TEMPLATE.format(sentence=x["SOURCE"])
 
 
 def separate(model_output: str) -> str:

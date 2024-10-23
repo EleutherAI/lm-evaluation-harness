@@ -5,12 +5,16 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, set_
 
 
 PROMPT_TEMPLATE = """Riformula la seguente frase utilizzando un linguaggio neutro rispetto al genere dei referenti umani, evitando l’uso di forme maschile e femminili.
+
 [Genere marcato]: - Il 79% dei laureati lavora (a un anno dalla laurea).
 [Neutro]: - Il 79% delle persone laureate lavora (a un anno dalla laurea).
+
 [Genere marcato]: È previsto, altresì, un rappresentante del Personale Tecnico-Amministrativo.
 [Neutro]: È prevista, altresì, una persona in rappresentanza del Personale Tecnico-Amministrativo.
+
 [Genere marcato]: Decreto Rettorale n. 235/2021 di nomina dei nuovi rappresentanti degli studenti
 [Neutro]: Decreto Rettorale n. 235/2021 di nomina dei nuovi membri di rappresentanza della comunità studentesca
+
 [Genere marcato]: {sentence}"""
 
 

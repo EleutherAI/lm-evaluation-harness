@@ -7,13 +7,17 @@ from evaluate import load
 
 
 PROMPT_TEMPLATE = """Identifica le espressioni che contengono dei marcatori di genere femminile o maschile. Se più di un'espressione è identificata, separale con ; . Se nessuna espressione è identificata restituisci 0.
-    [Genere marcato]: Quest’anno mi sono ammalata già due volte.
-    [Espressione]: ammalata
-    [Genere marcato]: La studentessa era preoccupata di andare fuori tema.
-    [Espressione]: La studentessa ; preoccupata
-    [Genere marcato]: Le altre giocatrici al tavolo da poker sono le tue avversarie.
-    [Espressione]: Le altre giocatrici ; le tue avversarie
-    [Genere marcato]: {sentence}"""
+
+[Genere marcato]: Quest’anno mi sono ammalata già due volte.
+[Espressione]: ammalata
+
+[Genere marcato]: La studentessa era preoccupata di andare fuori tema.
+[Espressione]: La studentessa ; preoccupata
+
+[Genere marcato]: Le altre giocatrici al tavolo da poker sono le tue avversarie.
+[Espressione]: Le altre giocatrici ; le tue avversarie
+
+[Genere marcato]: {sentence}"""
 
 
 def process_docs(dataset: datasets.Dataset):

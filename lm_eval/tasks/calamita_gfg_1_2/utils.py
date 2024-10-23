@@ -6,13 +6,17 @@ from evaluate import load
 
 
 PROMPT_TEMPLATE = """Identifica le espressioni che contengono dei marcatori di genere femminile o maschile. Se più di un'espressione è identificata, separale con ; . Se nessuna espressione è identificata restituisci 0.
-    [Genere marcato]: Sempre basso è il numero dei laureati in corso (7).
-    [Espressione]: dei laureati
-    [Genere marcato]: Le pubblicazioni dei ricercatori DIMI nell’archivio IRIS-OPENBS.
-    [Espressione]: dei ricercatori
-    [Genere marcato]: A livello di Ateneo ha partecipato il 76% degli  iscritti del 1° anno CdL e l ’81% di tutti gli altri studenti.
-    [Espressione]: degli iscritti ; di tutti gli altri studenti
-    [Genere marcato]: {sentence}"""
+
+[Genere marcato]: Sempre basso è il numero dei laureati in corso (7).
+[Espressione]: dei laureati
+
+[Genere marcato]: Le pubblicazioni dei ricercatori DIMI nell’archivio IRIS-OPENBS.
+[Espressione]: dei ricercatori
+
+[Genere marcato]: A livello di Ateneo ha partecipato il 76% degli  iscritti del 1° anno CdL e l ’81% di tutti gli altri studenti.
+[Espressione]: degli iscritti ; di tutti gli altri studenti
+
+[Genere marcato]: {sentence}"""
 
 
 def process_docs(dataset: datasets.Dataset):
