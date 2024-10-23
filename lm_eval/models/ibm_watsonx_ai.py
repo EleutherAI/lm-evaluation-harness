@@ -84,6 +84,7 @@ class WatsonxLLM(LM):
     def create_from_arg_string(
         cls: Type["WatsonxLLM"],
         arg_string: str,
+        args_dict: dict = {},
         config_path: Optional[str] = None,
     ) -> "WatsonxLLM":
         """
@@ -97,6 +98,13 @@ class WatsonxLLM(LM):
             )
 
         args = simple_parse_args_string(arg_string)
+
+        # these three are sometimes being added automatically and are not relevant
+        del args_dict["batch_size"]
+        del args_dict["max_batch_size"]
+        del args_dict["device"]
+        args.update(args_dict)
+
         model_id = args.pop("model_id", None)
         if model_id is None:
             raise ValueError("'model_id' is required, please pass it in 'model_args'")
