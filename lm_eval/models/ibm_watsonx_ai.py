@@ -158,7 +158,7 @@ class WatsonxLLM(LM):
         project_id = watsonx_credentials.get("project_id", None)
         deployment_id = watsonx_credentials.get("deployment_id", None)
         client.set.default_project(project_id)
-        self.generate_params = generate_params
+        self.generate_params = generate_params or {}
         self.model = ModelInference(
             model_id=model_id,
             deployment_id=deployment_id,
@@ -166,12 +166,6 @@ class WatsonxLLM(LM):
             project_id=project_id,
         )
         self._model_id = model_id
-
-    def dump_parameters(self):
-        """
-        Dumps the model's parameters into a serializable format.
-        """
-        return self._parameters.model_dump()
 
     @staticmethod
     def _has_stop_token(response_tokens: List[str], context_tokens: List[str]) -> bool:
