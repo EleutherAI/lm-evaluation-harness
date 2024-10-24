@@ -87,6 +87,7 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        gptqmodel: Optional[bool] = False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -192,6 +193,7 @@ class HFLM(TemplateLM):
                 peft=peft,
                 delta=delta,
                 autogptq=autogptq,
+                gptqmodel=gptqmodel,
                 **kwargs,
             )
 
@@ -530,6 +532,7 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        gptqmodel: Optional[bool] = False,
         **kwargs,
     ) -> None:
         """
@@ -557,7 +560,7 @@ class HFLM(TemplateLM):
             )
         )
 
-        if not autogptq:
+        if not autogptq and not gptqmodel:
             if model_kwargs.get("load_in_4bit", None):
                 assert (
                     transformers.__version__ >= "4.30.0"
@@ -577,23 +580,42 @@ class HFLM(TemplateLM):
                 **model_kwargs,
             )
         else:
-            try:
-                from auto_gptq import AutoGPTQForCausalLM
-            except ModuleNotFoundError as exception:
-                raise type(exception)(
-                    "Tried to load auto_gptq, but auto-gptq is not installed ",
-                    "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
+            if autogptq and gptqmodel:
+                raise ValueError(
+                    "Cannot use both 'autogptq' and 'gptqmodel' options at the same time."
                 )
 
-            self._model = AutoGPTQForCausalLM.from_quantized(
-                pretrained,
-                trust_remote_code=trust_remote_code,
-                model_basename=None if autogptq is True else Path(autogptq).stem,
-                use_safetensors=True
-                if autogptq is True
-                else autogptq.endswith(".safetensors"),
-                **model_kwargs,
-            )
+            if autogptq:
+                try:
+                    from auto_gptq import AutoGPTQForCausalLM
+                except ModuleNotFoundError as exception:
+                    raise type(exception)(
+                        "Tried to load auto_gptq, but auto-gptq is not installed ",
+                        "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
+                    )
+
+                self._model = AutoGPTQForCausalLM.from_quantized(
+                    pretrained,
+                    trust_remote_code=trust_remote_code,
+                    model_basename=None if autogptq is True else Path(autogptq).stem,
+                    use_safetensors=True
+                    if autogptq is True
+                    else autogptq.endswith(".safetensors"),
+                    **model_kwargs,
+                )
+
+            if gptqmodel:
+                try:
+                    from gptqmodel import GPTQModel
+                except ModuleNotFoundError as exception:
+                    raise type(exception)(
+                        "Tried to load gptqmodel, but gptqmodel is not installed ",
+                        "please install gptqmodel via `pip install gptqmodel --no-build-isolation` or `pip install lm-eval[gptqmodel] --no-build-isolation`",
+                    )
+
+                self._model = GPTQModel.from_quantized(
+                    pretrained, trust_remote_code=trust_remote_code, **model_kwargs
+                )
 
         if peft and delta:
             raise ValueError(
