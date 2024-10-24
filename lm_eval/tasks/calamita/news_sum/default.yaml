@@ -1,0 +1,34 @@
+group: news_sum
+training_split: train
+validation_split: null
+test_split: test
+
+fewshot_split: train
+num_fewshot: 1
+
+output_type: generate_until
+
+doc_to_text: "Riassumi il seguente articolo: {{source}}\nRiassunto: "
+doc_to_target: target
+
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+
+metric_list:
+  - metric: !function ../metrics.rouge1
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function ../metrics.rouge2
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function ../metrics.rougeL
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function ../metrics.bertscore
+    aggregation: mean
+    higher_is_better: true
