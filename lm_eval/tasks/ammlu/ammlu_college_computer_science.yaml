@@ -1,0 +1,4 @@
+"dataset_name": "college_computer_science"
+"description": "فم بعملية التقييم في مجال ألعلوم وتقنية المعلومات و الرياضيات \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_college_computer_science"
