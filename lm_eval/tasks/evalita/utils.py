@@ -1,7 +1,7 @@
 import logging
 
 from evaluate import load
-
+from sklearn.metrics import f1_score
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -56,7 +56,7 @@ def sa_doc_to_choice(x):
 NO_SYN_STRING = "&&NOSYN&&"
 
 
-def ls_doc_to_target(x):
+def _ls_gold_to_target(x):
     """
     Generate the target for the lexical similarity task
     """
@@ -67,6 +67,23 @@ def ls_doc_to_target(x):
     for i in x["answers"]:
         ans_str += i["word"] + "$$" + str(i["count"]) + "::"
     if len(ans_str) != 0 and ans_str[-2] == ":":
+        ans_str = ans_str[:-2]
+    # print(ans_str)
+
+    return ans_str
+
+
+def ls_doc_to_target(x):
+    """
+    Generate the target for the lexical similarity task
+    """
+    # all_answers = [(i["word"], i["count"]) for i in x["answers"]]
+    if len(x["answers"]) == 0:
+        return NO_SYN_STRING
+    ans_str = ""
+    for i in x["answers"]:
+        ans_str += i["word"] + ", "
+    if len(ans_str) != 0 and ans_str[-2] == ",":
         ans_str = ans_str[:-2]
     # print(ans_str)
 
@@ -99,15 +116,19 @@ def ls_process_results(doc, results):
     Process the results of the evaluation for the lexical substitution task
     look at coqa for another example
     """
-    gold_to_target = ls_doc_to_target(doc)
+    gold_to_target = _ls_gold_to_target(doc)
     words, freqs = _ls_split_gold(gold_to_target)
     prec = 0
 
     # eval_logger.debug(f"Result before processing {results}")
-
+    # Considering a maximum of the first 10 synonyms
+    #results = split_text_with_regex(results[0], LS_SPLIT_REGEX)
     results = split_text_with_regex(results[0], LS_SPLIT_REGEX)
-
+    results = results[:min(10, len(results))]
     # eval_logger.debug(f"Result after processing {results}")
+    
+    # Remove non-alphabetic characters from the word at the end of the list
+    results[-1] = ''.join(char for char in results[-1] if char.isalpha())
 
     has_answ = 0 if len(results) == 0 else 1  # so we can compute |A|
     has_annotation = 0 if len(words) == 0 else 1  # so we can compute |T|
@@ -121,8 +142,10 @@ def ls_process_results(doc, results):
             prec += freqs[idx]
             matching_res.append(r)
 
-    ai = len(results) if len(results) != 0 else 1
-    prec = prec / ai
+    # In the case of the OOT (out of ten) subtask, this normalization should not be applied
+    # ai = len(results) if len(results) != 0 else 1
+    # prec = prec / ai
+
     Hi = sum(freqs)
     if Hi != 0:
         prec = prec / Hi
@@ -392,6 +415,18 @@ def _rel_gold_to_target(x: list) -> list:
         return [1] * len(x)
 
 
+def rel_doc_to_target(doc):
+    rel = doc["relations"]
+    targ_str = ""
+    # misura1$result1%misure2$result2.
+    if rel == []:
+        return NO_REL_STRING
+    else:
+        for r in rel:
+            targ_str += r[0] + "$" + r[1] + "%"
+    return targ_str[:-1]
+
+
 def _extract_relations(results):
     relations = []
     for r in results:
@@ -407,6 +442,8 @@ def _extract_relations(results):
         relations.append((r_text1, r_text2))
     assert len(relations) == len(results)
     return relations
+
+
 
 
 # def rel_process_results(doc, results):
@@ -606,9 +643,11 @@ def split_text_with_regex(text, pattern):
     """
     import re
 
+    # Get text with model-generated words for comparison with the gold standard 
+    text = text.split("\n")[0]
+
     # Find all matches for the pattern
     matches = re.findall(pattern, text)
-
     # Split each matched segment further if it contains a comma and is quoted
     result = []
     for match in matches:
@@ -676,3 +715,5 @@ def ht_doc_to_target(x):
         eval_logger.warning(
             'WARNING: source not found or not in ["ilgiornale", "repubblica"]'
         )
+
+
