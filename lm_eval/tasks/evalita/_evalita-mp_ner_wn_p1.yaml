@@ -1,7 +1,7 @@
 include: _ner_template_yaml
 dataset_name: wn
 test_split: reduced_test
-fewshot_split: dev
+fewshot_split: trial
 task_alias: WN prompt-1
 tag: evalita-mp_ner_tasks_wn
 task: evalita-mp_ner_wn_p1
