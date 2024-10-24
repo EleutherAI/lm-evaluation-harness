@@ -269,3 +269,13 @@ def headline_score(items):
     # score = sum(is_neutral) / len(predictions)
     score = -1
     return score
+
+
+# ------------------------ DOCUMENT DATING ---------------------------
+
+def _aggreg_dd(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="macro")
+    return fscore
