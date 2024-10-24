@@ -1,0 +1,41 @@
+tag: moka
+task: Text2Code_ICF
+
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+ data_files: /path/to/ICF-processed.json
+
+process_docs: !function utils.process_doc
+
+output_type: multiple_choice
+
+test_split: train
+
+doc_to_text: "You will be presented with an excerpt from a medical document accompanied by four numerical codes.
+Each code represents a possible medical classification for the provided text. 
+Your task is to select the code that best matches the text by entering only the number of the appropriate code as your response. 
+It is imperative that your response consists strictly of a single number between 1 and 4.
+Text: {{Text}}
+Code 1: {{A1Code}}
+Code 2: {{A2Code}}
+Code 3: {{A3Code}}
+Code 4: {{A4Code}}
+Insert the number of the correct code here:"
+
+doc_to_target: Correct
+
+doc_to_choice: ['1','2','3','4']
+
+process_results: !function utils.process_results            
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: weighted_error
+    aggregation: mean
+    higher_is_better: false
+
+
+
