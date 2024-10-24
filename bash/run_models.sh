@@ -1,6 +1,6 @@
 #!/usr/bin/zsh
 
-#SBATCH --job-name=it_eval
+#SBATCH --job-name=test_calamita
 #SBATCH --output=logs/%A-%a.out
 #SBATCH --partition=boost_usr_prod
 #SBATCH --nodes=1
