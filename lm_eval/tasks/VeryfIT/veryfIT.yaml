@@ -1,0 +1,7 @@
+group: veryfIT
+task:
+  - veryfIT_small
+  - veryfIT_enriched
+  - veryfIT_full
+metadata:
+  version: 1.0

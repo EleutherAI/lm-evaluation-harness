@@ -1,0 +1,7 @@
+group: blm-IT
+task:
+  - agr_tasks
+  - od_tasks
+  - caus_tasks
+metadata:
+  version: 1.0
