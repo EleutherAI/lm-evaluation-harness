@@ -1,6 +1,10 @@
-# Language Model Evaluation Harness
+# CALAMITA's fork of Language Model Evaluation Harness
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
+<!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836) -->
+
+We forked at b2bf7bc4a601c643343757c92c1a51eb69caf1d7.
+
+All below is WIP! :)
 
 ---
 
