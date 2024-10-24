@@ -1,0 +1,12 @@
+task: perse_task_0
+dataset_path: Multilingual-Perspectivist-NLU/MultiPICo
+dataset_name: default
+test_split: train
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{label}}"
+doc_to_choice: ["non ironia", "ironia"]
+metric_list:
+  - metric: f1
+metadata:
+  version: 1.0
