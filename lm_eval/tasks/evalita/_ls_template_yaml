@@ -1,6 +1,7 @@
 dataset_path: evalitahf/lexical_substitution
 test_split: test
-validation_split: test
+validation_split: dev
+few_shot: dev
 output_type: generate_until
 generation_kwargs:
   until:
@@ -13,4 +14,3 @@ metric_list:
     aggregation: !function metrics._aggreg_ls
 metadata:
   version: 1.0
-
