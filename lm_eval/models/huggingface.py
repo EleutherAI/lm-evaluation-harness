@@ -3,8 +3,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
-import jinja2
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -144,13 +144,17 @@ class HFLM(TemplateLM):
                         if torch.cuda.is_available()
                         else torch.device("cpu")
                     )
-            else: # Parallelism managed by accelerate
+            else:  # Parallelism managed by accelerate
                 if device != "cuda":
                     eval_logger.info(
                         f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
                     )
                 # TODO: include in warning that `load_in_8bit` etc. affect this too
-                self._device = self.accelerator.device if self.accelerator is not None else torch.device(device)
+                self._device = (
+                    self.accelerator.device
+                    if self.accelerator is not None
+                    else torch.device(device)
+                )
 
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -226,7 +230,9 @@ class HFLM(TemplateLM):
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
         self.add_bos_token = add_bos_token
-        if getattr(self.config, "model_type", None) in ["gemma", "recurrentgemma", "gemma2"]:
+        model_type = getattr(self.config, "model_type", None)
+        gemma_variants = {"gemma", "recurrentgemma", "gemma2"}
+        if model_type in gemma_variants:
             self.add_bos_token = True
             eval_logger.info(
                 f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
@@ -250,7 +256,7 @@ class HFLM(TemplateLM):
             self.batch_size_per_gpu = int(batch_size)
 
         if isinstance(pretrained, str):
-            if (gpus >= 1 or str(self.device) == "mps"):
+            if gpus >= 1 or str(self.device) == "mps":
                 # TODO: can remove this whole snippet except in the mps case, perhaps?
                 if not (parallelize or autogptq or hasattr(self, "accelerator")):
                     # place model onto device requested manually,
@@ -334,14 +340,16 @@ class HFLM(TemplateLM):
         num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
         num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
         if gpus > 1 and num_machines == 0:
-            # Catching an edge case when launching with one process for DP and several for MP 
+            # Catching an edge case when launching with one process for DP and several for MP
             # is detected as all process for DP
             num_machines = 1
         if num_machines == 0:
-            eval_logger.info("We are not in a distributed setting. Setting model_parallel to False.")
+            eval_logger.info(
+                "We are not in a distributed setting. Setting model_parallel to False."
+            )
             parallelize = False
 
-        if parallelize is None: 
+        if parallelize is None:
             # If parallelism is unset by the user, we automatically assign model parallelism
             # if enough extra GPUs are available
             max_memory_all_gpus = get_max_memory()
@@ -356,18 +364,21 @@ class HFLM(TemplateLM):
             )
 
         args = {}
-        if parallelize: # Model parallelism will be used
+        if parallelize:  # Model parallelism will be used
             max_memory = {}
-            if max_memory_per_gpu is not None: # Using the provided memory requirements
-                max_memory_per_gpu_map = {device_idx: max_memory_per_gpu for device_idx in range(gpus)}
-            else: # Estimating the possible memory requirements
-                max_memory_all_gpus = get_max_memory() 
+            if max_memory_per_gpu is not None:  # Using the provided memory requirements
+                max_memory_per_gpu_map = {
+                    device_idx: max_memory_per_gpu for device_idx in range(gpus)
+                }
+            else:  # Estimating the possible memory requirements
+                max_memory_all_gpus = get_max_memory()
                 if "cpu" in max_memory_all_gpus:
                     del max_memory_all_gpus["cpu"]
                 max_memory_per_gpu_map = {
                     k: v
                     for k, v in max_memory_all_gpus.items()
-                    if k % num_local_processes == (self.accelerator.process_index % num_local_processes)
+                    if k % num_local_processes
+                    == (self.accelerator.process_index % num_local_processes)
                 }
             args["max_memory"] = max_memory_per_gpu_map
             args["device_map"] = "auto"
@@ -379,7 +390,9 @@ class HFLM(TemplateLM):
                 max_memory["cpu"] = max_cpu_memory
 
             args["offload_folder"] = offload_folder
-        elif device_map is None: # No model parallelism, we use the default provided device for our model
+        elif (
+            device_map is None
+        ):  # No model parallelism, we use the default provided device for our model
             if hasattr(self, "accelerator"):
                 device_map = {"": f"{self.accelerator.device}"}
             else:
@@ -428,13 +441,13 @@ class HFLM(TemplateLM):
         # If max length manually set, return it
         if self._max_length:
             return self._max_length
-        
+
         # Configuration attributes to check for max length
         length_source = [
             (self.model.config, "n_positions"),
             (self.model.config, "max_position_embeddings"),
             (self.model.config, "n_ctx"),
-            (self.tokenizer, "model_max_length")
+            (self.tokenizer, "model_max_length"),
         ]
 
         # Check each component's attribute and return the minimum found value
@@ -445,7 +458,7 @@ class HFLM(TemplateLM):
 
         # Fallback to the default maximum length
         return self._DEFAULT_MAX_LENGTH
-    
+
     @property
     def max_gen_toks(self) -> int:
         return 256
@@ -477,9 +490,11 @@ class HFLM(TemplateLM):
             return self.tokenizer.chat_template.get("default", None)
         elif self.tokenizer.chat_template is not None:
             return self.tokenizer.chat_template
-        
+
         # If default_chat_template is not an attribute, return a fallback value
-        return getattr(self.tokenizer, "default_chat_template", "default_chat_template not found")
+        return getattr(
+            self.tokenizer, "default_chat_template", "default_chat_template not found"
+        )
 
     def _get_backend(
         self,
@@ -722,17 +737,25 @@ class HFLM(TemplateLM):
         return None
 
     def _detect_batch_size(self, requests=None, pos: int = 0) -> int:
-        if len(requests[0]) == 3: # logprob evals
+        if len(requests[0]) == 3:  # logprob evals
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
                 (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
             )
             max_context_enc = len(context_enc[-(self.max_length + 1) :])
             max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
-            security_margin_factor = 4 # batch sizes for log prob evals sometimes generate OOMs
-        elif len(requests[0]) == 2: # generative evals
+            security_margin_factor = (
+                4  # batch sizes for log prob evals sometimes generate OOMs
+            )
+        elif len(requests[0]) == 2:  # generative evals
             # using rolling window with maximum context
-            longest_context = max([len(self.tok_encode(request[0])) + request[1].get("max_gen_toks", self.max_length) for request in requests[pos:]])
+            longest_context = max(
+                [
+                    len(self.tok_encode(request[0]))
+                    + request[1].get("max_gen_toks", self.max_length)
+                    for request in requests[pos:]
+                ]
+            )
             if longest_context > self.max_length:
                 eval_logger.warning(
                     f"Longest context length of {longest_context} exceeds max_length of {self.max_length}. Truncating to max_length."
@@ -743,7 +766,6 @@ class HFLM(TemplateLM):
             max_cont_enc = max_length
             security_margin_factor = 4
 
-
         # if OOM, then halves batch_size and tries again
         @find_executable_batch_size(starting_batch_size=self.max_batch_size)
         def forward_batch(batch_size):
@@ -753,7 +775,9 @@ class HFLM(TemplateLM):
                 batched_conts = torch.ones(
                     (batch_size + security_margin, length), device=self.device
                 ).long()
-                test_batch = torch.ones((batch_size + security_margin, length), device=self.device).long()
+                test_batch = torch.ones(
+                    (batch_size + security_margin, length), device=self.device
+                ).long()
                 call_kwargs = {
                     "attn_mask": test_batch,
                     "labels": batched_conts,
@@ -764,7 +788,7 @@ class HFLM(TemplateLM):
                     (batch_size + security_margin, max_length), device=self.device
                 ).long()
 
-            for _ in range(5*security_margin_factor):
+            for _ in range(5 * security_margin_factor):
                 logits = self._model_call(inps=test_batch, **call_kwargs).float()
                 scores = F.log_softmax(logits, dim=-1)  # noqa: F841
 
@@ -1242,16 +1266,8 @@ class HFLM(TemplateLM):
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
-        batch_size = (
-            self.batch_size
-            if self.batch_size != "auto"
-            else 0
-        )
-        batch_fn = (
-            self._batch_scheduler
-            if self.batch_size == "auto"
-            else None
-        )
+        batch_size = self.batch_size if self.batch_size != "auto" else 0
+        batch_fn = self._batch_scheduler if self.batch_size == "auto" else None
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
@@ -1263,7 +1279,9 @@ class HFLM(TemplateLM):
             group_by="gen_kwargs",
             group_fn=lambda x: x[1],
         )
-        chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn, reset_batch_fn=self._reset_batch_scheduler)
+        chunks = re_ords.get_batched(
+            n=batch_size, batch_fn=batch_fn, reset_batch_fn=self._reset_batch_scheduler
+        )
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)
             # we assume all gen kwargs in the batch are the same
@@ -1294,7 +1312,9 @@ class HFLM(TemplateLM):
 
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
-                if max_gen_toks > self.max_length: # some model have low max length limit
+                if (
+                    max_gen_toks > self.max_length
+                ):  # some model have low max length limit
                     max_gen_toks = self.max_gen_toks
             else:
                 max_gen_toks = self.max_gen_toks
