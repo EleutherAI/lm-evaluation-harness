@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Github
-.github/
-
 # Ruff
 .ruff_cache/
 
@@ -53,9 +50,6 @@ cover/
 
 # Pyenv version management
 .python-version
-
-# Lock files
-*.lock
 
 # PEP 582; Dependency management
 __pypackages__/
