@@ -5,7 +5,8 @@ output_type: generate_until
 generation_kwargs:
   until:
     - "</s>"
-doc_to_target: relations 
+#doc_to_target: relations 
+doc_to_target: !function utils.rel_doc_to_target
 process_results: !function utils.rel_process_results_v3
 metric_list: 
   - metric: f1 
