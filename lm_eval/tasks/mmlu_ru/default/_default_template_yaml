@@ -1,0 +1,17 @@
+dataset_path: NLPCoreTeam/mmlu_ru # a copy of `cais/mmlu_ru` with no auxiliary_train split
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: "{{question_ru.strip()}}\nA. {{choices_ru[0]}}\nB. {{choices_ru[1]}}\nC. {{choices_ru[2]}}\nD. {{choices_ru[3]}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true
