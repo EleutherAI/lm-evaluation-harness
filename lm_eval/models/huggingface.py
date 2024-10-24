@@ -588,8 +588,8 @@ class HFLM(TemplateLM):
             if autogptq:
                 try:
                     from auto_gptq import AutoGPTQForCausalLM
-                except ModuleNotFoundError:
-                    raise Exception(
+                except ModuleNotFoundError as exception:
+                    raise type(exception)(
                         "Tried to load auto_gptq, but auto-gptq is not installed ",
                         "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
                     )
@@ -607,8 +607,8 @@ class HFLM(TemplateLM):
             if gptqmodel:
                 try:
                     from gptqmodel import GPTQModel
-                except ModuleNotFoundError:
-                    raise Exception(
+                except ModuleNotFoundError as exception:
+                    raise type(exception)(
                         "Tried to load gptqmodel, but gptqmodel is not installed ",
                         "please install gptqmodel via `pip install gptqmodel --no-build-isolation` or `pip install lm-eval[gptqmodel] --no-build-isolation`",
                     )

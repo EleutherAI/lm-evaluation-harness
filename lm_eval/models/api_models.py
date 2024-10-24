@@ -144,7 +144,7 @@ class TemplateAPI(TemplateLM):
 
                         self.tokenizer = tiktoken.encoding_for_model(self.model)
                     except ModuleNotFoundError as e:
-                        raise Exception(
+                        raise ModuleNotFoundError(
                             "Attempted to use 'openai' LM type, but the package `tiktoken` is not installed. "
                             "Please install it via `pip install lm-eval[api]` or `pip install -e .[api]`."
                         ) from e
