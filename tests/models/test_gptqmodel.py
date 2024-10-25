@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 import lm_eval
@@ -12,19 +14,22 @@ def assert_less_than(value, threshold, desc):
 class Test_GPTQModel:
     gptqmodel = pytest.importorskip("gptqmodel", minversion="1.0.9")
     MODEL_ID = "ModelCloud/Opt-125-GPTQ-4bit-10-25-2024"
-    task = "arc_easy"
 
     def test_gptqmodel(self) -> None:
         acc = "acc"
         acc_norm = "acc_norm"
         acc_value = None
         acc_norm_value = None
+        task = "arc_easy"
 
         model_args = f"pretrained={self.MODEL_ID},gptqmodel=True"
+
+        tasks: List[str] = [task]
+
         results = lm_eval.simple_evaluate(
             model="hf",
             model_args=model_args,
-            tasks=[self.task],
+            tasks=tasks,
             device="cuda",
         )
 
