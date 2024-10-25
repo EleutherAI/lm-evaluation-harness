@@ -29,7 +29,7 @@ class Instance:
         self.task_name, self.doc_id, self.repeats = self.metadata
 
     @property
-    def args(self):
+    def args(self) -> Tuple[str, ...]:
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
