@@ -8,6 +8,7 @@ def assert_less_than(value, threshold, desc):
         assert float(value) < threshold, f"{desc} should be less than {threshold}"
 
 
+@pytest.mark.skip(reason="requires CUDA")
 class Test_GPTQModel:
     gptqmodel = pytest.importorskip("gptqmodel", minversion="1.0.9")
     MODEL_ID = "ModelCloud/Opt-125-GPTQ-4bit-10-25-2024"
