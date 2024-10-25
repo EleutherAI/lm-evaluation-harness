@@ -10,7 +10,7 @@ def assert_less_than(value, threshold, desc):
 
 class Test_GPTQModel:
     gptqmodel = pytest.importorskip("gptqmodel", minversion="1.0.9")
-    MODEL_ID = "ModelCloud/TinyLlama-1.1B-Chat-v1.0-GPTQ-4bit-10-25-2024"
+    MODEL_ID = "ModelCloud/Opt-125-GPTQ-4bit-10-25-2024"
     task = "arc_easy"
 
     def test_gptqmodel(self) -> None:
@@ -44,5 +44,5 @@ class Test_GPTQModel:
                 if m == acc_norm:
                     acc_norm_value = "%.4f" % v if isinstance(v, float) else v
 
-            assert_less_than(acc_value, 0.6, "acc")
-            assert_less_than(acc_norm_value, 0.52, "acc_norm")
+            assert_less_than(acc_value, 0.43, "acc")
+            assert_less_than(acc_norm_value, 0.39, "acc_norm")
