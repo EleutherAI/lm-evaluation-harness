@@ -319,19 +319,19 @@ lm_eval --model hf \
     --tasks hellaswag
 ```
 
-[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
+GPTQ quantized models can be loaded using [GPTQModel](https://github.com/ModelCloud/GPTQModel) (faster) or [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)
 
-```bash
-lm_eval --model hf \
-    --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
-    --tasks hellaswag
-```
-
-[GPTQModel](https://github.com/ModelCloud/GPTQModel) quantized models can be loaded by specifying their file names in `,gptqmodel=True` in the `model_args` argument:
-
+GPTQModel: add `,gptqmodel=True` to `model_args`
 ```bash
 lm_eval --model hf \
     --model_args pretrained=model-name-or-path,gptqmodel=True \
+    --tasks hellaswag
+```
+
+AutoGPTQ: add `,autogptq=True` to `model_args`:
+```bash
+lm_eval --model hf \
+    --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
 
