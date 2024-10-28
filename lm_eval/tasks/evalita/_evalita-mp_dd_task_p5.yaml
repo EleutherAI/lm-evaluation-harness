@@ -3,6 +3,6 @@ include: _dd_template_yaml
 task: evalita-mp_dd_prompt-5
 task_alias: prompt-5
 #doc_to_text: "Determina l'anno di pubblicazione del seguente testo scegliendo l'opzione corretta.\nTesto: {{text}}\nOpzioni: A. 1901-1918 B. 1919-1926 C. 1927-1942 D: 194.-1947 E. 1948-1954"
-doc_to_text: "Il seguente articolo: '{{text}}' è stato pubblicato nel periodo "
+doc_to_text: "Il seguente articolo: '{{text}}' è stato pubblicato nel periodo"
 metadata:
   version: 1.0
