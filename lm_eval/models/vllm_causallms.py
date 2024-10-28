@@ -239,7 +239,7 @@ class VLLM(TemplateLM):
             # but then tensor_parallel breaks
             @ray.remote
             def run_inference_one_model(
-                model_args: dict, sampling_params, requests: List[List[int]], lora_request
+                model_args: dict, sampling_params, requests: List[List[int]], lora_request: LoRARequest
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
