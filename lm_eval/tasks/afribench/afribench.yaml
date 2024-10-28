@@ -4,6 +4,7 @@ task:
   - afrixnli_tasks
   - afrimmlu_tasks
   - afrimgsm_tasks
+  - masakhapos_tasks
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
