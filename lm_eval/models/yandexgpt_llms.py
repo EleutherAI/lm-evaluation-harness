@@ -51,7 +51,7 @@ class YandexGPTAPI(LocalChatCompletion):
                 "temperature": temperature,
                 "maxTokens": str(max_tokens),
             },
-            "messages": [messages[0]],
+            "messages": messages,
         }
 
     def apply_chat_template(
