@@ -98,7 +98,7 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     prompt_id = doc["prompt_id"]
     question_id = doc["question_id"]
     return {
-                f"{prompt_id}_macro_accuracy": (question_id, prompt_id, final_answer, gt),
+                f"{prompt_id}_accuracy": (question_id, prompt_id, final_answer, gt),
                 "consistency_rate": (question_id, prompt_id, final_answer, gt)
             }
 
@@ -114,7 +114,7 @@ def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     original_answer_index = doc["original_answer_index"]
     answer_index = doc["answer_index"],
     return {
-                f"per_option_macro_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt),
+                f"per_option_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt),
                 "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
             }
 
@@ -159,10 +159,10 @@ def per_option_accuracy(results: List[Dict[str, Any]], always_opt='a') -> float:
     return np.round(accuracie, 4)
 
 
-per_option_macro_accuracy_a = partial(per_option_accuracy, always_opt='A')
-per_option_macro_accuracy_b = partial(per_option_accuracy, always_opt='B')
-per_option_macro_accuracy_c = partial(per_option_accuracy, always_opt='C')
-per_option_macro_accuracy_d = partial(per_option_accuracy, always_opt='D')
-per_option_macro_accuracy_e = partial(per_option_accuracy, always_opt='E')
+per_option_accuracy_a = partial(per_option_accuracy, always_opt='A')
+per_option_accuracy_b = partial(per_option_accuracy, always_opt='B')
+per_option_accuracy_c = partial(per_option_accuracy, always_opt='C')
+per_option_accuracy_d = partial(per_option_accuracy, always_opt='D')
+per_option_accuracy_e = partial(per_option_accuracy, always_opt='E')
 
 options_consistency_rate = partial(utils.options_consistency_rate, labels=LABELS)

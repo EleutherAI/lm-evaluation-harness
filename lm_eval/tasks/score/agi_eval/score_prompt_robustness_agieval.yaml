@@ -9,36 +9,36 @@ task:
   - prompt_robustness_agieval_sat_math
 
 aggregate_metric_list:
-  - metric: 0_macro_accuracy
+  - metric: 0_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 1_macro_accuracy
+    weight_by_size: true
+  - metric: 1_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 2_macro_accuracy
+    weight_by_size: true
+  - metric: 2_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 3_macro_accuracy
+    weight_by_size: true
+  - metric: 3_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 4_macro_accuracy
+    weight_by_size: true
+  - metric: 4_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 5_macro_accuracy
+    weight_by_size: true
+  - metric: 5_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 6_macro_accuracy
+    weight_by_size: true
+  - metric: 6_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 7_macro_accuracy
+    weight_by_size: true
+  - metric: 7_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 8_macro_accuracy
+    weight_by_size: true
+  - metric: 8_accuracy
     aggregation: mean
-    weight_by_size: false
-  - metric: 9_macro_accuracy
+    weight_by_size: true
+  - metric: 9_accuracy
     aggregation: mean
-    weight_by_size: false
+    weight_by_size: true
   - metric: consistency_rate
     aggregation: mean
     weight_by_size: true
