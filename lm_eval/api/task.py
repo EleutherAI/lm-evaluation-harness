@@ -56,8 +56,8 @@ class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None
+    tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
-    group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -97,6 +97,18 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
+        if self.group is not None:
+            eval_logger.warning(
+                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
+            )
+
+            if self.tag is None:
+                self.tag = self.group
+            else:
+                raise ValueError(
+                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
+                )
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -376,7 +388,8 @@ class Task(abc.ABC):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        lm=None,
+        chat_template: Optional[Callable] = None,
+        tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -391,7 +404,7 @@ class Task(abc.ABC):
             if system_instruction is not None
             else ""
         )
-        cache_key += f"-tokenizer{lm.tokenizer_name}" if apply_chat_template else ""
+        cache_key += f"-tokenizer{tokenizer_name}"
 
         cached_instances = load_from_cache(file_name=cache_key)
 
@@ -436,7 +449,7 @@ class Task(abc.ABC):
                 system_instruction,
                 apply_chat_template,
                 fewshot_as_multiturn,
-                lm,
+                chat_template,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -444,7 +457,7 @@ class Task(abc.ABC):
                 doc=doc,
                 ctx=fewshot_ctx,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
-                apply_chat_template=apply_chat_template
+                apply_chat_template=apply_chat_template,
             )
 
             if not isinstance(inst, list):
@@ -980,34 +993,12 @@ class ConfigurableTask(Task):
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
-                    f"Task '{self.config.task}': "
+                    f"[Task: {self.config.task}] "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
             return super().fewshot_docs()
 
-    @staticmethod
-    def append_target_question(
-        labeled_examples: List[Dict[str, str]],
-        question: str,
-        fewshot_as_multiturn: bool = False,
-    ) -> None:
-        """Adds a target question to the labeled examples list.
-        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
-        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
-        """
-        if not fewshot_as_multiturn:
-            # if no messages or last message is system, append as new user entry
-            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
-            # if last message is user, append to it to avoid two user messages in a row
-            else:
-                labeled_examples[-1]["content"] += question
-        else:
-            return self.sampler.fewshot_delimiter + "".join(
-                f"{s['role']}: {s['content']}" + self.sampler.fewshot_delimiter
-                for s in chat_history
-            )
     @staticmethod
     def append_target_question(
         labeled_examples: List[Dict[str, str]],
@@ -1037,7 +1028,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        lm=None,
+        chat_template: Optional[Callable] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1052,8 +1043,8 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param lm:
-            Language model with definition of the tokenizer/function to use for applying the chat template.
+        :param chat_template: Callable
+            Chat template to be applied to the fewshot context.
         :returns: str
             The fewshot context.
         """
@@ -1100,7 +1091,7 @@ class ConfigurableTask(Task):
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
-                return lm.apply_chat_template(labeled_examples)
+                return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
                     labeled_examples, example, fewshot_as_multiturn
@@ -1112,7 +1103,7 @@ class ConfigurableTask(Task):
                 for ex in example:
                     chat = deepcopy(labeled_examples)
                     self.append_target_question(chat, ex, fewshot_as_multiturn)
-                    labeled_examples_list.append(lm.apply_chat_template(chat))
+                    labeled_examples_list.append(chat_template(chat))
                 return labeled_examples_list
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
@@ -1126,7 +1117,7 @@ class ConfigurableTask(Task):
                         labeled_examples, str(example), fewshot_as_multiturn
                     )
                 # return lm.apply_chat_template(labeled_examples)
-            return lm.apply_chat_template(labeled_examples)
+            return chat_template(labeled_examples)
         else:
             if self.multiple_input:
                 return labeled_examples
@@ -1286,6 +1277,8 @@ class ConfigurableTask(Task):
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
+        apply_chat_template = kwargs.pop("apply_chat_template", False)
+
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
@@ -1293,7 +1286,7 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
-            if kwargs.get("apply_chat_template", False) is True:
+            if apply_chat_template:
                 target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
@@ -1304,7 +1297,6 @@ class ConfigurableTask(Task):
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
-            kwargs.pop("apply_chat_template")
 
             request_list = [
                 Instance(
@@ -1341,7 +1333,6 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
-        kwargs.pop("apply_chat_template")
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
         )
@@ -1546,10 +1537,13 @@ class ConfigurableTask(Task):
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
+    @property
+    def task_name(self) -> Any:
+        return getattr(self.config, "task", None)
+
     def __repr__(self):
         return (
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
-            f"group_name={getattr(self.config, 'group', None)},"
             f"output_type={self.OUTPUT_TYPE},"
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
             f"num_samples={len(self.eval_docs)})"

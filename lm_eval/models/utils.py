@@ -5,6 +5,7 @@ import itertools
 import time
 from functools import wraps
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -22,6 +23,11 @@ import torch
 import transformers
 
 from lm_eval.utils import eval_logger
+
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizerBase
+    from transformers.configuration_utils import PretrainedConfig
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -389,7 +395,7 @@ class Collator:
             self._arr_with_indices, fn=self._group_fn, group_by="contexts"
         )
 
-    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None, reset_batch_fn: Optional[Callable] = None) -> Iterator:
+    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
         """
         Generates and yields batches from the reordered array. The method of grouping and batching
         depends on the parameter `group_by`.
@@ -402,8 +408,6 @@ class Collator:
         - n (int): The size of each batch. Defaults to 1.
         - batch_fn ([Callable[[int, Iterable], int]] | None): A function to determine the size of
           each batch. Optional, defaults to None.
-        - reset_batch_fn ([Callable[[int, Iterable], int]] | None): A function to reset the scheduler of 
-          the batch_fn, if present, when we change group in generative mode.
 
         Returns:
         Iterator: An iterator over batches of reordered elements grouped as per the `group_by`
@@ -413,9 +417,10 @@ class Collator:
         List of batched elements according to the `group_by` attribute.
         """
         if self._group_by == "gen_kwargs":
-            for key, values in self._arr_with_indices.items():  # type: ignore
-                if reset_batch_fn is not None: # with each group change, we must recompute the batch size, so we restart the scheduler
-                    reset_batch_fn()
+            for (
+                key,
+                values,
+            ) in self._arr_with_indices.items():  # type: ignore
                 values = self._reorder(values)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
@@ -614,3 +619,48 @@ class Collator:
 
         if arr:
             yield arr
+
+
+def configure_pad_token(
+    tokenizer: "PreTrainedTokenizerBase",
+    model_config: Optional["PretrainedConfig"] = None,
+) -> "PreTrainedTokenizerBase":
+    """
+    This function checks if the (Hugging Face) tokenizer has a padding token and sets it if not present.
+    Some tokenizers require special handling.
+
+    Args:
+        tokenizer: The tokenizer for which the padding token is to be handled.
+        model_config: The configuration of the model. Default is None.
+
+    Returns:
+        The tokenizer after the padding token has been handled.
+
+    Raises:
+        AssertionError: If the tokenizer is of type RWKVWorldTokenizer or Rwkv5Tokenizer and the padding token id is not 0.
+    """
+    if tokenizer.pad_token:
+        pass
+    elif tokenizer.unk_token:
+        tokenizer.pad_token_id = tokenizer.unk_token_id
+    elif tokenizer.eos_token:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+    else:
+        # handle special cases
+        if model_config and getattr(model_config, "model_type", None) == "qwen":
+            # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
+            tokenizer.pad_token = "<|endoftext|>"
+        elif (
+            tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
+            or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
+        ):
+            # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
+            # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
+            # ---
+            # Note that the world tokenizer class name, might change in the future for the final huggingface merge
+            # https://github.com/huggingface/transformers/pull/26963
+            assert tokenizer.pad_token_id == 0
+        else:
+            tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+
+    return tokenizer

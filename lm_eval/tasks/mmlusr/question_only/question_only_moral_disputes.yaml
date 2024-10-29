@@ -1,0 +1,7 @@
+"dataset_name": "question_only_moral_disputes"
+"description": "The following are multiple choice questions (with answers) about moral\
+  \ disputes.\n\n"
+"tag": "mmlusr_question_only_humanities_tasks"
+"include": "_mmlusr_q_yml"
+"task": "mmlusr_question_only_moral_disputes"
+"task_alias": "moral disputes"

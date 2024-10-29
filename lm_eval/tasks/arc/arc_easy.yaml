@@ -1,4 +1,4 @@
-group:
+tag:
   - ai2_arc
 task: arc_easy
 dataset_path: allenai/ai2_arc

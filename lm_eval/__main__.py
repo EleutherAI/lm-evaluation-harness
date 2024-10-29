@@ -5,7 +5,6 @@ import os
 import sys
 from functools import partial
 from typing import Union
-from accelerate import Accelerator
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
@@ -74,7 +73,7 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         type=str,
         metavar="task1,task2",
-        help="To get full list of tasks, use the command lm-eval --tasks list",
+        help="Comma-separated list of task names or task groupings to evaluate on.\nTo get full list of tasks, use one of the commands `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above",
     )
     parser.add_argument(
         "--model_args",
@@ -293,6 +292,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
         )
 
+    if (
+        args.num_fewshot is None or args.num_fewshot == 0
+    ) and args.fewshot_as_multiturn:
+        raise ValueError(
+            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
+        )
+
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
@@ -312,9 +318,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
     elif args.tasks == "list":
-        eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
-        )
+        print(task_manager.list_all_tasks())
+        sys.exit()
+    elif args.tasks == "list_groups":
+        print(task_manager.list_all_tasks(list_subtasks=False, list_tags=False))
+        sys.exit()
+    elif args.tasks == "list_tags":
+        print(task_manager.list_all_tasks(list_groups=False, list_subtasks=False))
+        sys.exit()
+    elif args.tasks == "list_subtasks":
+        print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
     else:
         if os.path.isdir(args.tasks):
@@ -343,7 +356,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above, or pass '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
@@ -394,9 +407,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         **request_caching_args,
     )
 
-    accelerator = Accelerator()
-
-    if results is not None and accelerator.is_main_process:
+    if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(

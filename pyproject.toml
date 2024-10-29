@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.2"
+version = "0.4.3"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -76,7 +76,6 @@ testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
-unitxt = ["unitxt"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
@@ -95,7 +94,6 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[zeno]",
     "lm_eval[wandb]",
-    "lm_eval[unitxt]"
 ]
 
 [tool.ruff.lint]

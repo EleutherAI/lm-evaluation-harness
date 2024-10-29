@@ -58,6 +58,6 @@ fewshot_config:
       for help. Among the four transactions, only Proceeds from long-term debt belongs
       to the financing activities section of cashflow, hence the amount reported should
       be $100000. The answer is (D).'
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_professional_accounting
