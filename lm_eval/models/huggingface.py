@@ -152,8 +152,6 @@ class HFLM(TemplateLM):
 
             gpus = torch.cuda.device_count()
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
-            print(f"{gpus} GPUs available")
-            print(f"accelerator_kwargs: {accelerator_kwargs}")
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
             if accelerator.num_processes > 0:
                 self.accelerator = accelerator
