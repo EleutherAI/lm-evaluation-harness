@@ -1,7 +1,7 @@
 dataset_path: evalitahf/lexical_substitution
 test_split: test
 validation_split: dev
-few_shot: dev
+fewshot_split: dev
 output_type: generate_until
 generation_kwargs:
   until:
