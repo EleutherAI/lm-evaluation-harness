@@ -1,4 +1,4 @@
-# Task-name
+# Japanese Leaderboard
 
 ### Paper
 
@@ -19,18 +19,21 @@ BibTeX-formatted citation goes here
 
 ### Groups, Tags, and Tasks
 
-#### Groups
-
-* `group_name`: `Short description`
-
 #### Tags
 
-* `tag_name`: `Short description`
+* `japanese_leaderboard`: runs all tasks defined in this directory
+* `ja_leaderboard`: alias for `japanese_leaderboard`
 
 #### Tasks
 
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+* `ja_leaderboard_jaqket_v2`:
+* `ja_leaderboard_jcommonsenseqa`:
+* `ja_leaderboard_jnli`:
+* `ja_leaderboard_jsquad`:
+* `ja_leaderboard_marc_ja`:
+* `ja_leaderboard_mgsm`:
+* `ja_leaderboard_xlsum`:
+* `ja_leaderboard_xwinograd`:
 
 ### Checklist
 
