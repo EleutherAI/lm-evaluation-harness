@@ -137,6 +137,9 @@ The Japanese LLM Leaderboard evaluates language models based on a wide range of 
 }
 ```
 
+### Credit
+
+* Prompts: https://github.com/Stability-AI/lm-evaluation-harness/tree/jp-stable/lm_eval/tasks/ja
 
 ### Checklist
 
