@@ -143,7 +143,6 @@ class Test_HFLM:
 
     def test_model_generate(self) -> None:
         context = self.LM.tok_batch_encode([TEST_STRING])[0]
-        print(f"{context=}")
         res = self.LM._model_generate(context, max_length=10, stop=["\n\n"])
         res = self.LM.tok_decode(res[0])
         assert res == "foo bar\n<bazhang>!info bar"
