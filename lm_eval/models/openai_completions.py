@@ -256,7 +256,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
         stop = gen_kwargs.pop("until", ["<|endoftext|>"])
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
-        return {
+        output = {
             "messages": messages,
             "model": self.model,
             "max_completion_tokens": max_tokens,
@@ -265,3 +265,10 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "seed": seed,
             **gen_kwargs,
         }
+        if "o1" in self.model:
+            eval_logger.warning(
+                "o1 models do not support `stop` and only support temperature=1"
+            )
+            output.pop("stop")
+            output["temperature"] = 1
+        return output
