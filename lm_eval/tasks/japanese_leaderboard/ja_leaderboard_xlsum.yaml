@@ -1,6 +1,7 @@
 task: ja_leaderboard_xlsum
 tag:
   - japanese_leaderboard
+  - ja_leaderboard
 
 dataset_path: mkshing/xlsum_ja
 dataset_name: null

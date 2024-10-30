@@ -1,6 +1,7 @@
 task: ja_leaderboard_xwinograd
 tag:
   - japanese_leaderboard
+  - ja_leaderboard
 
 dataset_path: polm-stability/xwinograd-ja
 dataset_name: null
@@ -9,7 +10,7 @@ training_split: null
 validation_split: null
 test_split: test
 
-num_fewshot: 0
+num_fewshot: null
 
 process_docs: !function ja_leaderboard_xwinograd.process_docs
 doc_to_target: "label"

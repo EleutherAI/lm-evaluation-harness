@@ -1,6 +1,7 @@
 task: ja_leaderboard_jaqket_v2
 tag:
   - japanese_leaderboard
+  - ja_leaderboard
 
 dataset_path: kumapo/JAQKET
 dataset_name: v2.0

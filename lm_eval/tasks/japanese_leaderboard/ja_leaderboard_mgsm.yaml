@@ -1,6 +1,7 @@
 task: ja_leaderboard_mgsm
 tag:
   - japanese_leaderboard
+  - ja_leaderboard
 
 dataset_path: juletxara/mgsm
 dataset_name: ja
