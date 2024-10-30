@@ -1,19 +1,19 @@
-task: ja_leaderboard_jaqket_v2
+task: ja_leaderboard_jsquad
 tag:
   - japanese_leaderboard
 
-dataset_path: kumapo/JAQKET
-dataset_name: v2.0
+dataset_path: Rakuten/JGLUE
+dataset_name: JSQuAD
 
 training_split: train
 validation_split: validation
 test_split: null
 
 fewshot_split: train
-num_fewshot: 1
+num_fewshot: 2
 
 description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
-doc_to_text: "### 指示：\n与えられた文脈から、質問に対する答えを抜き出してください。\n\n### 入力：\n文脈：{{ ctxs['text'] | join('\n') }}\n質問：{{ question }}\n\n### 応答："
+doc_to_text: "### 指示：\n与えられた文脈から、質問に対する答えを抜き出してください。\n\n### 入力：\n文脈：{% set _context = context.split('[SEP]')[-1] %}{{ _context | trim }}\n質問：{{ question }}\n\n### 応答："
 doc_to_target: "{{ answers['text'][0] }}"
 target_delimiter: "\n"
 
@@ -33,4 +33,4 @@ metric_list:
     higher_is_better: true
 
 metadata:
-  version: 2.0
+  version: 1.0
