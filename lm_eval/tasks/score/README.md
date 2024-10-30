@@ -21,6 +21,7 @@ limitations under the License.
 
 [2] Zhong, Wanjun, et al. "Agieval: A human-centric benchmark for evaluating foundation models." arXiv preprint arXiv:2304.06364 (2023).
 
+[3] Hendrycks et al. "Measuring Mathematical Problem Solving With the MATH Dataset." arXic:2103.03874 (2021).
 
 ## Citation
 ```bib
@@ -29,21 +30,27 @@ limitations under the License.
 
 ## Groups
 
-- `score_robustness_mmlu_pro`: three 0-shot robutstness tasks on MMLU-PRO dataset
+- `score_robustness_mmlu_pro`: two 0-shot robutstness tasks on MMLU-PRO dataset
 
-- `score_robustness_agieval`: three 0-shot robutstness tasks on the AGIEVAL datasets multiple choice questions subsets:  `'agieval-sat-math'`, `'agieval-lsat-lr'`, `'agieval-lsat-rc'`, `'agieval-logiqa-en'`, `'agieval-aqua-rat'`, `'agieval-sat-en'`, `'agieval-lsat-ar'` 
+- `score_robustness_agieval`: two 0-shot robutstness tasks on the AGIEVAL datasets multiple choice questions subsets:  `'agieval-sat-math'`, `'agieval-lsat-lr'`, `'agieval-lsat-rc'`, `'agieval-logiqa-en'`, `'agieval-aqua-rat'`, `'agieval-sat-en'`, `'agieval-lsat-ar'` 
 
+- `score_robustness_math`: one 0-shot robutstness tasks on Hendryk's MATH dataset
 
 ## Tasks
 
 Both `score_robustness_mmlu_pro` and `score_robustness_agieval` contain the following 2 tasks:
 
 * Option order robustness: 
-`score_option_order_robustness_mmlu_pro`, `score_option_order_robustness_agieval`
+`score_option_order_robustness_mmlu_pro`, 
+`score_option_order_robustness_agieval`
 
 * Prompt robustness: 
 `score_prompt_robustness_mmlu_pro`, 
-`score_prompt_robustness_agieval`
+`score_prompt_robustness_agieval`,
+
+Whereas math contains only
+* Prompt robustness:
+`score_prompt_robustness_math`
 
 
 ### Option order robustness
