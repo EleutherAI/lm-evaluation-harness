@@ -1,5 +1,10 @@
 import re
 
+try:
+    from rouge_score import rouge_scorer, scoring
+except ImportError:
+    rouge_scorer, scoring = None, None
+
 
 class MecabTokenizer:
     def __init__(self) -> None:
@@ -44,7 +49,8 @@ def rouge2(items):
 
 
 def rouge2_agg(items):
-    from rouge_score import rouge_scorer, scoring
+    if rouge_scorer is None or scoring is None:
+        raise RuntimeError("rouge2 dependency is not available")
 
     tokenizer = MecabTokenizer()
 
