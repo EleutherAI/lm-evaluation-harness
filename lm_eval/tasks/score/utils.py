@@ -54,7 +54,8 @@ def process_docs_add_prompts(doc: Dataset,
         result = {key: __repeat_elements(values, n) for key, values in batch.items()}
         result["prompt_id"] = list(range(n)) * initial_len
         result["prompt"] = [prompt_templates[i]["prompt"] for i in result["prompt_id"]]
-        result["options_format"] = [prompt_templates[i]["options_format"] for i in result["prompt_id"]]
+        if "options_format" in prompt_templates[0]:
+            result["options_format"] = [prompt_templates[i]["options_format"] for i in result["prompt_id"]]
         return result
     return doc.map(process_batch, batched=True)
 
@@ -112,10 +113,12 @@ def robustness_doc_to_text(doc: Dataset) -> str:
     upper_case = string.ascii_uppercase
     lower_case = string.ascii_lowercase
     prompt = doc["prompt"]
-    options_format = doc["options_format"]
+    options_format = doc.get("options_format", "")
     question = doc["question"]
     catrgory = doc.get("category", "")
-    options = "".join([options_format.format(letter=upper_case[i], 
+    options = None
+    if options_format:
+        options = "".join([options_format.format(letter=upper_case[i], 
                                              option=doc['options'][i], 
                                              numeral=NUMERALS[i],
                                              roman_numeral=ROMAN_NUMERALS[i],

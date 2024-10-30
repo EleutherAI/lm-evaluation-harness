@@ -1,0 +1,46 @@
+group: score_prompt_robustness_math
+task:
+  - prompt_robustness_math_algebra
+  - prompt_robustness_math_counting_and_prob
+  - prompt_robustness_math_geometry
+  - prompt_robustness_math_intermediate_algebra
+  - prompt_robustness_math_num_theory
+  - prompt_robustness_math_prealgebra
+  - prompt_robustness_math_precalc
+
+aggregate_metric_list:
+  - metric: 0_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 1_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 2_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 3_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 4_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 5_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 6_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 7_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 8_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: 9_accuracy
+    aggregation: mean
+    weight_by_size: true
+  - metric: consistency_rate
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
