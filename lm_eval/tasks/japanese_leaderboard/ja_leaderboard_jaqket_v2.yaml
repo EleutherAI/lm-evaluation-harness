@@ -27,10 +27,16 @@ generation_kwargs:
 metric_list:
   - metric: exact_match
     regexes_to_ignore:
-      - '^\\s+'
-      - '\\s+$'
+      - '^\s+'
+      - '\s+$'
     aggregation: mean
     higher_is_better: true
+
+filter_list:
+  - name: whitespaces
+    filter:
+      - function: remove_whitespace
+      - function: take_first
 
 metadata:
   version: 2.0
