@@ -1,0 +1,4 @@
+include: crows_pairs_spanish.yaml
+task: crows_pairs_spanish_sexual_orientation
+dataset_name:
+process_docs: !function utils.filter_orientation

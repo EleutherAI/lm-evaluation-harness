@@ -1,0 +1,4 @@
+include: crows_pairs_german.yaml
+task: crows_pairs_german_age
+dataset_name:
+process_docs: !function utils.filter_age

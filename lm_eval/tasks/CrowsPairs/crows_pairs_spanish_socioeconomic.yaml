@@ -1,0 +1,4 @@
+include: crows_pairs_spanish.yaml
+task: crows_pairs_spanish_socioeconomic
+dataset_name:
+process_docs: !function utils.filter_socio
