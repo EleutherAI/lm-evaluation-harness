@@ -1,0 +1,3 @@
+fugashi[unidic-lite]
+emoji==2.14.0
+neologdn==0.5.3

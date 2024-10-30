@@ -1,4 +1,6 @@
 task: ja_leaderboard_xwinograd
+tag:
+  - japanese_leaderboard
 
 dataset_path: polm-stability/xwinograd-ja
 dataset_name: null
