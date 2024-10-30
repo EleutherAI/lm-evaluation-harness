@@ -126,6 +126,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
         seed=1234,
         **kwargs,
     ) -> dict:
+        assert (
+            type(messages) is not str
+        ), "chat-completions require the --apply_chat_template flag."
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
@@ -247,6 +250,9 @@ class OpenAIChatCompletion(LocalChatCompletion):
         seed=1234,
         **kwargs,
     ) -> dict:
+        assert (
+            type(messages) is not str
+        ), "chat-completions require the --apply_chat_template flag."
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
