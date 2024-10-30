@@ -20,7 +20,7 @@ aggregate_metric_list:
     weight_by_size: true
   - metric: per_option_accuracy_D
     aggregation: mean
-    weight_by_size: true
+    weight_by_size: truez
   - metric: options_consistency_rate
     aggregation: mean
     weight_by_size: true

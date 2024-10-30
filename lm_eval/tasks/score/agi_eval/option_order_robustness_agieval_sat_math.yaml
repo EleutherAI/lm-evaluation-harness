@@ -1,3 +1,3 @@
+include: option_order_robustness_agieval_aqua_rat.yaml
 task: option_order_robustness_agieval_sat_math
 dataset_path: hails/agieval-sat-math
-include: option_order_robustness_agieval_aqua_rat.yaml
