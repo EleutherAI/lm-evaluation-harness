@@ -1,9 +1,9 @@
-task: ja_leaderboard_jcommonsenseqa
+task: ja_leaderboard_jnli
 tag:
-  - japanese_leaderboard
+  - ja
 
 dataset_path: Rakuten/JGLUE
-dataset_name: JCommonsenseQA
+dataset_name: JNLI
 training_split: train
 validation_split: validation
 test_split: null
@@ -12,10 +12,10 @@ fewshot_split: train
 num_fewshot: 3
 
 description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
-process_docs: !function ja_leaderboard_jcommonsenseqa.process_docs
-doc_to_text: "### 指示:\n出力は以下から選択してください：\n{% for choice in choices %}- {{ choice }}\n{% endfor %}\n### 入力:\n{{ question }}\n\n### 応答:"
+
+doc_to_text: "### 指示:\n与えられた前提と仮説の関係を回答してください。\n\n出力は以下から選択してください：\n含意\n矛盾\n中立\n\n### 入力:{{ sentence1 }}\n前提：{{ sentence2 }}\n\n### 応答:"
 doc_to_target: label
-doc_to_choice: choices
+doc_to_choice: '["含意", "矛盾", "中立"]'
 target_delimiter: "\n"
 
 output_type: multiple_choice
