@@ -48,7 +48,10 @@ def initial_process_docs(doc: Dataset) -> Dataset:
     
     def __process(_doc, idx):
         if "question" not in _doc:
-            _doc["question"] = _doc[QUESTION_KEY].split(" Answer Choices:")[0]
+            question = _doc[QUESTION_KEY].split(" Answer Choices:")[0]
+            if question.startswith('Q: '):
+                question = question[3:]
+            _doc["question"] = question
         if "question_id" not in _doc:
             _doc["question_id"] = idx
         if "answer_index" not in _doc:
@@ -85,7 +88,7 @@ prompt_robustness_process_docs = partial(utils.process_docs_add_prompts,
 option_order_robustness_process_docs = partial(utils.option_order_robustness_process_docs,
                                                   template_file_path=TEMPLATE_FILE_PATH,
                                                     templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
-                                                    labels=LABELS,
+                                                    labels=LABELS[:-1],
                                                     dataset_specific_preprocess=initial_process_docs)
 
 
@@ -163,6 +166,5 @@ per_option_accuracy_a = partial(per_option_accuracy, always_opt='A')
 per_option_accuracy_b = partial(per_option_accuracy, always_opt='B')
 per_option_accuracy_c = partial(per_option_accuracy, always_opt='C')
 per_option_accuracy_d = partial(per_option_accuracy, always_opt='D')
-per_option_accuracy_e = partial(per_option_accuracy, always_opt='E')
 
 options_consistency_rate = partial(utils.options_consistency_rate, labels=LABELS)

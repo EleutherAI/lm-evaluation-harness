@@ -23,9 +23,6 @@ metric_list:
   - metric: per_option_accuracy_D
     aggregation:  !function utils_agieval.per_option_accuracy_d
     higher_is_better: true
-  - metric: per_option_accuracy_E
-    aggregation:  !function utils_agieval.per_option_accuracy_e
-    higher_is_better: true
   - metric: options_consistency_rate
     aggregation:  !function utils_agieval.options_consistency_rate
     higher_is_better: true
