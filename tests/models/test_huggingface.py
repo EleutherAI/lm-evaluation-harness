@@ -100,7 +100,7 @@ class Test_HFLM:
         -45969.47155761719,
         -7158.90625,
     ]
-    LM = HFLM(pretrained="EleutherAI/pythia-70m", device="cpu", dtype="bfloat16")
+    LM = HFLM(pretrained="EleutherAI/pythia-70m", device="cpu", dtype="float32")
 
     def test_logliklihood(self) -> None:
         res = self.LM.loglikelihood(self.MULTIPLE_CH)
