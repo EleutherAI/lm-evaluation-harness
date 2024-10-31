@@ -170,7 +170,6 @@ class HFLM(TemplateLM):
                 if device and device in device_list:
                     self._device = torch.device(device)
                     eval_logger.info(f"Using device '{device}'")
-                    print(f"Using device '{device}'")
                     if device in ("mps", "mps:0") and version.parse(
                         torch.__version__
                     ) < version.parse("2.1"):
