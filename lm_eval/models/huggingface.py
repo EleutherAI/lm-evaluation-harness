@@ -240,7 +240,9 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
-        if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) in ["mps", "cpu"]):
+        if isinstance(pretrained, str) and (
+            gpus >= 1 or str(self.device) in ["mps", "cpu"]
+        ):
             # TODO: can remove this whole snippet except in the mps case, perhaps?
             if not (parallelize or autogptq):
                 # place model onto device requested manually,
