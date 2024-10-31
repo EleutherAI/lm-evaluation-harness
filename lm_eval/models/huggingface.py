@@ -247,7 +247,7 @@ class HFLM(TemplateLM):
                 # or any other option that preloads model onto device
                 try:
                     self.model.to(self.device)
-                    print(f"Model placed onto device '{self.device}'")
+                    eval_logger.info(f"Model placed onto device '{self.device}'")
                 except ValueError:
                     eval_logger.debug(
                         "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
