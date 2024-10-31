@@ -79,6 +79,7 @@ class TemplateAPI(TemplateLM):
         trust_remote_code: bool = False,
         revision: Optional[str] = "main",
         use_fast_tokenizer: bool = True,
+        verify_certificate: bool = True,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -120,6 +121,7 @@ class TemplateAPI(TemplateLM):
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
+        self.verify_certificate = verify_certificate
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -342,6 +344,7 @@ class TemplateAPI(TemplateLM):
                     **kwargs,
                 ),
                 headers=self.header,
+                verify=self.verify_certificate,
             )
             if not response.ok:
                 eval_logger.warning(
