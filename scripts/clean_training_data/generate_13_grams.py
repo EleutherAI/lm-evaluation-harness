@@ -55,7 +55,7 @@ def yield_pile(start_offsets=None, checkpoint_offset=None):
         print(
             "We expect the pile archives to be in the 'pile' directory, but this was not found."
         )
-        raise Exception("Pile directory not found.")
+        raise FileNotFoundError("Pile directory not found.")
 
     files = list(sorted(glob.glob(os.path.join(directory, "*.jsonl.zst*"))))
 
