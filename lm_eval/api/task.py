@@ -1310,7 +1310,7 @@ class ConfigurableTask(Task):
             return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, multimodal_args: dict, **kwargs
+        self, doc: dict, ctx: str, multimodal_args: dict = {}, **kwargs
     ) -> Union[List[Instance], Instance]:
         aux_arguments = None
 
