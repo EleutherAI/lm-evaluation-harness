@@ -1,4 +1,4 @@
-include: base.yaml
+include: eureka_original.yaml
 task: eureka_hints
 doc_to_text: !function utils.doc_to_text_hints
 

@@ -265,7 +265,7 @@ def process_results(doc, results):
     except:
       solution_match = 0
   except:
-    raise("metrics error")
+    raise Exception("metrics error")
   return {"word_guesses_accuracy": word_guesses_accuracy, "first_pass_accuracy": first_pass_accuracy, "solution_words_accuracy": solution_words_accuracy, "solution_words_lengths_accuracy": solution_words_lengths_accuracy, "solution_match": solution_match}
 
 #  "word_guesses_accuracy",
@@ -273,3 +273,7 @@ def process_results(doc, results):
 #    "solution_words_accuracy",
 #    "solution_words_lengths_accuracy",
 #    "solution_match"
+
+def preprocess_dataset(dataset):
+    dataset = dataset.select([i for i in range(4)])      # selecting 4 rows for DEBUG
+    return dataset
