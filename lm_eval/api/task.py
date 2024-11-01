@@ -443,7 +443,6 @@ class Task(abc.ABC):
                 fewshot_as_multiturn,
                 chat_template,
             )
-            print(f"CTX: {fewshot_ctx}")
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(
@@ -452,8 +451,6 @@ class Task(abc.ABC):
                 multimodal_args=multimodal_args,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
             )
-            inst_tmp = inst.args
-            print(f"INST: {inst_tmp}")
 
             if not isinstance(inst, list):
                 inst = [inst]
