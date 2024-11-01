@@ -6,6 +6,7 @@ dataset_kwargs:
 output_type: generate_until
 training_split: null
 validation_split: null
+test_split: train
 doc_to_text: "Question: {{question}}?\nAnswer:"
 doc_to_target: "{{correct_answers}}"
 should_decontaminate: true
