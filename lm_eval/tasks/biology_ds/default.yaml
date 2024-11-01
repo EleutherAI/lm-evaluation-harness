@@ -1,13 +1,13 @@
 task: biology_ds
-dataset_path: queryList.json
+dataset_path: json
 dataset_name: null
 dataset_kwargs:
-  data_files: queryList.json
+  data_files: /projects/bcky/deema/research/lm-evaluation-harness/lm_eval/tasks/biology_ds/biology_ds.json
 output_type: generate_until
 training_split: null
 validation_split: null
 doc_to_text: "Question: {{question}}?\nAnswer:"
-doc_to_target: "{{answer.aliases}}"
+doc_to_target: "{{correct_answers}}"
 should_decontaminate: true
 doc_to_decontamination_query: question
 generation_kwargs:
