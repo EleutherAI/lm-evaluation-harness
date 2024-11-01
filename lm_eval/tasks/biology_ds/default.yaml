@@ -1,0 +1,38 @@
+task: biology_ds
+dataset_path: queryList.json
+dataset_name: null
+dataset_kwargs:
+  data_files: queryList.json
+output_type: generate_until
+training_split: null
+validation_split: null
+doc_to_text: "Question: {{question}}?\nAnswer:"
+doc_to_target: "{{answer.aliases}}"
+should_decontaminate: true
+doc_to_decontamination_query: question
+generation_kwargs:
+  until:
+    - "\n"
+    - "."
+  do_sample: false
+  temperature: 0.0
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+target_delimiter: " "
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
