@@ -435,7 +435,7 @@ class Task(abc.ABC):
             total=num_docs,
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
-            fewshot_ctx = self.fewshot_context(
+            fewshot_ctx, multimodal_args = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
                 system_instruction,
@@ -443,13 +443,17 @@ class Task(abc.ABC):
                 fewshot_as_multiturn,
                 chat_template,
             )
+            print(f"CTX: {fewshot_ctx}")
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
+                multimodal_args=multimodal_args,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
             )
+            inst_tmp = inst.args
+            print(f"INST: {inst_tmp}")
 
             if not isinstance(inst, list):
                 inst = [inst]
@@ -1044,6 +1048,9 @@ class ConfigurableTask(Task):
             The fewshot context.
         """
 
+        # empty dict by default
+        multimodal_args = {}
+
         if apply_chat_template:
             labeled_examples = []
         else:
@@ -1075,18 +1082,18 @@ class ConfigurableTask(Task):
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
-                labeled_examples.extend(
-                    self.sampler.get_chat_context(
-                        doc, num_fewshot, fewshot_as_multiturn
-                    )
+                fewshots, multimodal_args = self.sampler.get_chat_context(
+                    doc, num_fewshot, fewshot_as_multiturn
                 )
+                labeled_examples.extend(fewshots)
             else:
-                labeled_examples += self.sampler.get_context(doc, num_fewshot)
+                fewshots, multimodal_args = self.sampler.get_context(doc, num_fewshot)
+                labeled_examples += fewshots
 
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
-                return chat_template(labeled_examples)
+                return chat_template(labeled_examples), multimodal_args
             if isinstance(example, str):
                 self.append_target_question(
                     labeled_examples, example, fewshot_as_multiturn
@@ -1094,12 +1101,14 @@ class ConfigurableTask(Task):
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
                 labeled_examples_list = []
+                multimodal_args_list = []
                 # copy chat history for each example and append the answer
                 for ex in example:
                     chat = deepcopy(labeled_examples)
                     self.append_target_question(chat, ex, fewshot_as_multiturn)
                     labeled_examples_list.append(chat_template(chat))
-                return labeled_examples_list
+                    multimodal_args_list.extend([multimodal_args])
+                return labeled_examples_list, multimodal_args_list
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
@@ -1112,20 +1121,22 @@ class ConfigurableTask(Task):
                         labeled_examples, str(example), fewshot_as_multiturn
                     )
                 # return lm.apply_chat_template(labeled_examples)
-            return chat_template(labeled_examples)
+            return chat_template(labeled_examples), multimodal_args
         else:
             if self.multiple_input:
-                return labeled_examples
+                return labeled_examples, multimodal_args
             if isinstance(example, str):
-                return labeled_examples + example
+                return labeled_examples + example, multimodal_args
             elif isinstance(example, list):
-                return [labeled_examples + ex for ex in example]
+                return [labeled_examples + ex for ex in example], [
+                    multimodal_args for ex in example
+                ]
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example]
+                    return labeled_examples + choices[example], multimodal_args
                 else:
-                    return labeled_examples + str(example)
+                    return labeled_examples + str(example), multimodal_args
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
@@ -1299,7 +1310,7 @@ class ConfigurableTask(Task):
             return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
+        self, doc: dict, ctx: str, multimodal_args: dict, **kwargs
     ) -> Union[List[Instance], Instance]:
         aux_arguments = None
 
@@ -1335,20 +1346,16 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
-        multimodal_arg = {}
         if (
             self.config.doc_to_image
         ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
-            multimodal_arg = {
-                **multimodal_arg,
-                **{"visual": self.doc_to_image(doc)},
-            }
+            multimodal_args.setdefault("visual", []).extend(self.doc_to_image(doc))
 
-        if bool(multimodal_arg):
+        if bool(multimodal_args):
             if isinstance(arguments, list):
-                arguments = [arg + (multimodal_arg,) for arg in arguments]
+                arguments = [arg + (multimodal_args,) for arg in arguments]
             else:
-                arguments = arguments + (multimodal_arg,)
+                arguments = arguments + (multimodal_args,)
 
         if self.OUTPUT_TYPE == "multiple_choice":
             request_list = [

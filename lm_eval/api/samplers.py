@@ -17,6 +17,7 @@ class ContextSampler:
         self.target_delimiter = self.config.target_delimiter
         self.fewshot_delimiter = self.config.fewshot_delimiter
 
+        # TODO: repeat almost the same 3 times
         if (
             self.config.fewshot_config is not None
             and self.config.fewshot_config.get("doc_to_text", None) is not None
@@ -50,6 +51,17 @@ class ContextSampler:
         else:
             self.doc_to_choice = self.task.doc_to_choice
 
+        if (
+            self.config.fewshot_config is not None
+            and self.config.fewshot_config.get("doc_to_image", None) is not None
+        ):
+            self.doc_to_image = partial(
+                self.task.doc_to_image,
+                doc_to_image=self.config.fewshot_config.get("doc_to_image", None),
+            )
+        else:
+            self.doc_to_image = self.task.doc_to_image
+
         self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
         if fewshot_indices:  # subset few-shot docs from
             if not isinstance(self.docs, datasets.Dataset):
@@ -74,9 +86,16 @@ class ContextSampler:
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
 
         labeled_examples = ""
+
+        # keep files for fewshots
+        multimodal_args = {}
+
         for doc in selected_docs:
             doc_content = self.doc_to_text(doc)
             doc_target = self.doc_to_target(doc)
+            if self.config.doc_to_image:
+                doc_image = self.doc_to_image(doc)
+
             labeled_examples += (
                 doc_content
                 if self.config.doc_to_choice is None or isinstance(doc_content, str)
@@ -94,7 +113,10 @@ class ContextSampler:
                 )
                 labeled_examples += self.fewshot_delimiter
 
-        return labeled_examples
+            if self.config.doc_to_image:
+                multimodal_args.setdefault("visual", []).extend(doc_image)
+
+        return labeled_examples, multimodal_args
 
     def get_chat_context(
         self,
@@ -103,6 +125,10 @@ class ContextSampler:
         fewshot_as_multiturn: bool = False,
     ):
         chat_history = []
+
+        # keep files for fewshots
+        multimodal_args = {}
+
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
             num_fewshot + 1
@@ -120,6 +146,9 @@ class ContextSampler:
             for doc in selected_docs:
                 doc_content = self.doc_to_text(doc)
                 doc_target = self.doc_to_target(doc)
+                if self.config.doc_to_image:
+                    doc_image = self.doc_to_image(doc)
+
                 chat_history.append(
                     {
                         "role": "user",
@@ -140,13 +169,16 @@ class ContextSampler:
                         else str(self.doc_to_choice(doc)[doc_target]),
                     }
                 )
+                if self.config.doc_to_image:
+                    multimodal_args.setdefault("visual", []).extend(doc_image)
         else:
             # get fewshot context as one user turn
-            chat_history.append(
-                {"role": "user", "content": self.get_context(doc, num_fewshot)}
-            )
+            context, multimodal_args = self.get_context(doc, num_fewshot)
+            chat_history.append({"role": "user", "content": context})
+            if self.config.doc_to_image:
+                multimodal_args.setdefault("visual", []).extend(doc_image)
 
-        return chat_history
+        return chat_history, multimodal_args
 
     def sample(self, n):
         """
