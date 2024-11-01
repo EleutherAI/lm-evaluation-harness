@@ -1,0 +1,8 @@
+include: base.yaml
+task: eureka_original
+doc_to_text: !function utils.doc_to_text
+
+#num_fewshot: 2
+#fewshot_config:
+#  sampler: first_n
+#  samples: !function utils.list_fewshot_samples

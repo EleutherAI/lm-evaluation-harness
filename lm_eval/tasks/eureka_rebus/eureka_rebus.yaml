@@ -1,0 +1,6 @@
+group: eureka_rebus
+task:
+  - eureka_original
+  - eureka_hints
+metadata:
+  version: 1.0
