@@ -10,10 +10,5 @@ task:
   - ja_leaderboard_xlsum
   - ja_leaderboard_xwinograd
 
-aggregate_metric_list:
-  - metric: acc
-    aggregation: mean
-    weight_by_size: false
-
 metadata:
   version: 1.0
