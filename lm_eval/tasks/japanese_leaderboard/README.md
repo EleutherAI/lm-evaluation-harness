@@ -4,10 +4,9 @@ The Japanese LLM Leaderboard evaluates language models based on a wide range of 
 
 ### Groups, Tags, and Tasks
 
-#### Tags
+#### Groups
 
 * `japanese_leaderboard`: runs all tasks defined in this directory
-* `ja_leaderboard`: alias for `japanese_leaderboard`
 
 #### Tasks
 
@@ -24,8 +23,6 @@ The Japanese LLM Leaderboard evaluates language models based on a wide range of 
 * `ja_leaderboard_jnli`: JNLI is a Japanese version of the NLI (Natural Language Inference) dataset. The inference relations are entailment (含意), contradiction (矛盾), and neutral (中立). [Source](https://github.com/yahoojapan/JGLUE)
 * `ja_leaderboard_marc_ja`: MARC-ja is a text classification dataset based on the Japanese portion of Multilingual Amazon Reviews Corpus (MARC). [Source](https://github.com/yahoojapan/JGLUE)
 * `ja_leaderboard_xwinograd`: This is the Japanese portion of XWinograd. [Source](https://huggingface.co/datasets/polm-stability/xwinograd-ja)
-
-
 
 ### Citation
 

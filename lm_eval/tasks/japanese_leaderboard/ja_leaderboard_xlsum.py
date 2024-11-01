@@ -1,22 +1,25 @@
 import re
 
 
+def _missing_module_message(name):
+    return f"`{name}` is required for `japanese_leaderboard`, please install `{name}` via pip install lm_eval[japanese_leaderboard] or pip install -e .[japanese_leaderboard]"
+
+
 try:
+    import emoji
+    import neologdn
+    from fugashi import Tagger
     from rouge_score import rouge_scorer, scoring
-except ImportError:
-    rouge_scorer, scoring = None, None
+except ModuleNotFoundError as err:
+    raise ModuleNotFoundError(_missing_module_message(err.name)) from err
 
 
 class MecabTokenizer:
     def __init__(self) -> None:
-        from fugashi import Tagger
-
         self.tagger = Tagger("-Owakati")
 
     def normalize_answer(self, text):
         """Lower case text, remove punctuation and extra whitespace, etc."""
-        import emoji
-        import neologdn
 
         def white_space_fix(text):
             return " ".join(text.split())
@@ -50,9 +53,6 @@ def rouge2(items):
 
 
 def rouge2_agg(items):
-    if rouge_scorer is None or scoring is None:
-        raise RuntimeError("rouge2 dependency is not available")
-
     tokenizer = MecabTokenizer()
 
     refs = list(zip(*items))[0]
