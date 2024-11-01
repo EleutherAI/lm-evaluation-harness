@@ -1,7 +1,4 @@
 task: ja_leaderboard_jcommonsenseqa
-tag:
-  - japanese_leaderboard
-  - ja_leaderboard
 
 dataset_path: Rakuten/JGLUE
 dataset_name: JCommonsenseQA

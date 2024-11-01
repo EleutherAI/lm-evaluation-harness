@@ -1,7 +1,4 @@
 task: ja_leaderboard_marc_ja
-tag:
-  - japanese_leaderboard
-  - ja_leaderboard
 
 dataset_path: Rakuten/JGLUE
 dataset_name: MARC-ja
