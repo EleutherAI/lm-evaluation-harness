@@ -1,0 +1,7 @@
+group: gita
+task:
+  - physical_state
+  - conflict_detect
+  - story_class
+metadata:
+  version: 1.0

@@ -1,8 +1,8 @@
 include: base.yaml
 dataset_kwargs:
   data_files:
-    train: /home/jj/Downloads/BLM-It2/BLM-AgrIt_type-III/train.json
-    test: /home/jj/Downloads/BLM-It2/BLM-AgrIt_type-III/test.json
+    train: lm_eval/tasks/blm-IT/task_data/BLM-AgrIt_type-III/train.json
+    test: lm_eval/tasks/blm-IT/task_data/BLM-AgrIt_type-III/test.json
 task: blm_agr2_0shots
 
 num_fewshot: 0

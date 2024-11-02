@@ -5,7 +5,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: # path to full set
+    test: lm_eval/tasks/VeryfIT/task_data/veryfIT_full.json # path to full set
 task: veryfIT_full
 doc_to_text: !function utils.doc_to_text
 doc_to_choice: ['Vero', 'Falso']

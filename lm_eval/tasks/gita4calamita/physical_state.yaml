@@ -1,0 +1,18 @@
+task: physical_state
+dataset_path: juletxara/GITA4CALAMITA
+dataset_name: default
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+fewshot_split: test
+process_docs: !function utils.preprocess_dataset_physical
+doc_to_text: !function utils.doc_to_text_physical
+doc_to_target: states
+doc_to_choice: ["power", "location", "exist", "clean", "edible", "wet", "functional", "wearing", "open", "conscious", "temperature", "solid", "occupied", "in pieces"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
