@@ -128,7 +128,8 @@ def ls_process_results(doc, results):
     # eval_logger.debug(f"Result after processing {results}")
     
     # Remove non-alphabetic characters from the word at the end of the list
-    results[-1] = ''.join(char for char in results[-1] if char.isalpha())
+    if results:  # Check if results is not empty
+        results[-1] = ''.join(char for char in results[-1] if char.isalpha())
 
     has_answ = 0 if len(results) == 0 else 1  # so we can compute |A|
     has_annotation = 0 if len(words) == 0 else 1  # so we can compute |T|
