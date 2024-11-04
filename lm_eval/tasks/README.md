@@ -11,11 +11,14 @@
 | [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. | Arabic |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. | English, Chinese |
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
+| [arabic_leaderboard_complete](arabic_leaderboard_complete/README.md) | A full version of the tasks in the Open Arabic LLM Leaderboard, focusing on the evaluation of models that reflect the characteristics of Arabic language understanding and comprehension, culture, and heritage. Note that some of these tasks are machine-translated. | Arabic (Some MT) |
+| [arabic_leaderboard_light](arabic_leaderboard_light/README.md) | A light version of the tasks in the Open Arabic LLM Leaderboard (i.e., 10% samples of the test set in the original benchmarks), focusing on the evaluation of models that reflect the characteristics of Arabic language understanding and comprehension, culture, and heritage. Note that some of these tasks are machine-translated. | Arabic (Some MT) |
 | [arabicmmlu](arabicmmlu/README.md) | Localized Arabic version of MMLU with multiple-choice questions from 40 subjects. | Arabic |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
 | [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English |
 | [babi](babi/README.md) | Tasks designed as question and answering challenges based on simulated stories. | English |
+| [basque_bench](basque_bench/README.md) | Collection of tasks in Basque encompassing various evaluation areas. | Basque |
 | [basqueglue](basqueglue/README.md) | Tasks designed to evaluate language understanding in Basque language. | Basque |
 | [bbh](bbh/README.md) | Tasks focused on deep semantic understanding through hypothesization and reasoning. | English, German |
 | [belebele](belebele/README.md) | Language understanding tasks in a variety of languages and scripts. | Multiple (122 languages) |
@@ -23,6 +26,7 @@
 | [bertaqa](bertaqa/README.md) | Local Basque cultural trivia QA tests in English and Basque languages. | English, Basque, Basque (MT) |
 | [bigbench](bigbench/README.md) | Broad tasks from the BIG-bench benchmark designed to push the boundaries of large models. | Multiple |
 | [blimp](blimp/README.md) | Tasks testing grammatical phenomena to evaluate language model's linguistic capabilities. | English |
+| [catalan_bench](catalan_bench/README.md) | Collection of tasks in Catalan encompassing various evaluation areas. | Catalan |
 | [ceval](ceval/README.md) | Tasks that evaluate language understanding and reasoning in an educational context. | Chinese |
 | [cmmlu](cmmlu/README.md) | Multi-subject multiple choice question tasks for comprehensive academic assessment. | Chinese |
 | code_x_glue | Tasks that involve understanding and generating code across multiple programming languages. | Go, Java, JS, PHP, Python, Ruby |
@@ -40,6 +44,7 @@
 | [fda](fda/README.md) | Tasks for extracting key-value pairs from FDA documents to test information extraction. | English |
 | [fld](fld/README.md) | Tasks involving free-form and directed dialogue understanding. | English |
 | [french_bench](french_bench/README.md) | Set of tasks designed to assess language model performance in French. | French|
+| [galician_bench](galician_bench/README.md) | Collection of tasks in Galician encompassing various evaluation areas. | Galician |
 | [glue](glue/README.md) | General Language Understanding Evaluation benchmark to test broad language abilities. | English |
 | [gpqa](gpqa/README.md) | Tasks designed for general public question answering and knowledge verification. | English |
 | [gsm8k](gsm8k/README.md) | A benchmark of grade school math problems aimed at evaluating reasoning capabilities. | English |
@@ -68,7 +73,8 @@
 | medqa | Multiple choice question answering based on the United States Medical License Exams. | |
 | [mgsm](mgsm/README.md) | Benchmark of multilingual grade-school math problems. | Spanish, French, German, Russian, Chinese, Japanese, Thai, Swahili, Bengali, Telugu |
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
-| mmlu | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
+| [mmlu](mmlu/README.md) | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
+| [mmlu_pro](mmlu_pro/README.md) | A refined set of MMLU, integrating more challenging, reasoning-focused questions and expanding the choice set from four to ten options. | English |
 | [mmlusr](mmlusr/README.md) | Variation of MMLU designed to be more rigorous. | English |
 | model_written_evals | Evaluation tasks auto-generated for evaluating a collection of AI Safety concerns. | |
 | [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
@@ -84,6 +90,7 @@
 | [pile_10k](pile_10k/README.md) | The first 10K elements of The Pile, useful for debugging models trained on it. | English |
 | [piqa](piqa/README.md) | Physical Interaction Question Answering tasks to test physical commonsense reasoning. | English |
 | [polemo2](polemo2/README.md) | Sentiment analysis and emotion detection tasks based on Polish language data. | Polish |
+| [portuguese_bench](portuguese_bench/README.md) | Collection of tasks in European Portuguese encompassing various evaluation areas. | Portuguese |
 | [prost](prost/README.md) | Tasks requiring understanding of professional standards and ethics in various domains. | English |
 | [pubmedqa](pubmedqa/README.md) | Question answering tasks based on PubMed research articles for biomedical understanding. | English |
 | [qa4mre](qa4mre/README.md) | Question Answering for Machine Reading Evaluation, assessing comprehension and reasoning. | English |
@@ -93,6 +100,7 @@
 | [sciq](sciq/README.md) | Science Question Answering tasks to assess understanding of scientific concepts. | English |
 | [scrolls](scrolls/README.md) | Tasks that involve long-form reading comprehension across various domains. | English |
 | [siqa](siqa/README.md) | Social Interaction Question Answering to evaluate common sense and social reasoning.  | English |
+| [spanish_bench](spanish_bench/README.md) | Collection of tasks in Spanish encompassing various evaluation areas. | Spanish |
 | [squad_completion](squad_completion/README.md) | A variant of the SQuAD question answering task designed for zero-shot evaluation of small LMs. | English |
 | [squadv2](squadv2/README.md) | Stanford Question Answering Dataset version 2, a reading comprehension benchmark. | English |
 | [storycloze](storycloze/README.md) | Tasks to predict story endings, focusing on narrative logic and coherence. | English |
@@ -105,6 +113,7 @@
 | [translation](translation/README.md) | Tasks focused on evaluating the language translation capabilities of models. | Arabic, English, Spanish, Basque, Hindi, Indonesian, Burmese, Russian, Swahili, Telugu, Chinese |
 | [triviaqa](triviaqa/README.md) | A large-scale dataset for trivia question answering to test general knowledge. | English |
 | [truthfulqa](truthfulqa/README.md) | A QA task aimed at evaluating the truthfulness and factual accuracy of model responses. | English |
+| [turkishmmlu](turkishmmlu/README.md) | A multiple-choice QA test modeled after MMLU, written in Turkish based on Turkish high-school level exams. | Turkish |
 | [unitxt](unitxt/README.md) | A number of tasks implemented using the unitxt library for flexible, shareable, and reusable data preparation and evaluation for generative AI. | English |
 | [unscramble](unscramble/README.md) | Tasks involving the rearrangement of scrambled sentences to test syntactic understanding. | English |
 | [webqs](webqs/README.md) | Web-based question answering tasks designed to evaluate internet search and retrieval. | English |
@@ -116,5 +125,6 @@
 | [xcopa](xcopa/README.md) | Cross-lingual Choice of Plausible Alternatives, testing reasoning in multiple languages. | Estonian, Haitian, Indonesian, Italian, Quechua, Swahili, Tamil, Thai, Turkish, Vietnamese, Chinese |
 | [xnli](xnli/README.md) | Cross-Lingual Natural Language Inference to test understanding across different languages. | Arabic, Bulgarian, German, Greek, English, Spanish, French, Hindi, Russian, Swahili, Thai, Turkish, Urdu, Vietnamese, Chinese |
 | [xnli_eu](xnli_eu/README.md) | Cross-lingual Natural Language Inference tasks in Basque. | Basque |
+| [xquad](xquad/README.md) | Cross-lingual Question Answering Dataset in multiple languages. | Arabic, German, Greek, English, Spanish, Hindi, Romanian, Russian, Thai, Turkish, Vietnamese, Chinese |
 | [xstorycloze](xstorycloze/README.md) | Cross-lingual narrative understanding tasks to predict story endings in multiple languages. | Russian, Simplified Chinese, Spanish, Arabic, Hindi, Indonesian, Telugu, Swahili, Basque, Burmese |
 | [xwinograd](xwinograd/README.md) | Cross-lingual Winograd schema tasks for coreference resolution in multiple languages. | English, French, Japanese, Portuguese, Russian, Chinese |

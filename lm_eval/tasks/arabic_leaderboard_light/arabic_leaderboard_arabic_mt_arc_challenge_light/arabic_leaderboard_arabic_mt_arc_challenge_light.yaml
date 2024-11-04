@@ -1,0 +1,13 @@
+group: arabic_leaderboard_arabic_mt_arc_challenge_light
+task:
+  - arabic_mt_arc_challenge_light
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

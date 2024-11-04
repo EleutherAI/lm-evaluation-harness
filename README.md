@@ -6,6 +6,7 @@
 
 *Latest News 📣*
 
+- [2024/09] We are prototyping allowing users of LM Evaluation Harness to create and evaluate on text+image multimodal input, text output tasks, and have just added the `hf-multimodal` and `vllm-vlm` model types and `mmmu` task as a prototype feature. We welcome users to try out this in-progress feature and stress-test it for themselves, and suggest they check out [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval), a wonderful project originally forking off of the lm-evaluation-harness, for a broader range of multimodal tasks, models, and features.
 - [2024/07] [API model](docs/API_guide.md) support has been updated and refactored, introducing support for batched and async requests, and making it significantly easier to customize and use for your own purposes. **To run Llama 405B, we recommend using VLLM's OpenAI-compliant API to host the model, and use the `local-completions` model type to evaluate the model.**
 - [2024/07] New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.
 
@@ -38,7 +39,7 @@ This project provides a unified framework to test generative language models on 
 
 **Features:**
 - Over 60 standard academic benchmarks for LLMs, with hundreds of subtasks and variants implemented.
-- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
+- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [GPTQModel](https://github.com/ModelCloud/GPTQModel) and [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for fast and memory-efficient inference with [vLLM](https://github.com/vllm-project/vllm).
 - Support for commercial APIs including [OpenAI](https://openai.com), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRA) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
@@ -53,7 +54,7 @@ The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's pop
 To install the `lm-eval` package from the github repository, run:
 
 ```bash
-git clone https://github.com/EleutherAI/lm-evaluation-harness
+git clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
 pip install -e .
 ```
@@ -318,8 +319,16 @@ lm_eval --model hf \
     --tasks hellaswag
 ```
 
-[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
+GPTQ quantized models can be loaded using [GPTQModel](https://github.com/ModelCloud/GPTQModel) (faster) or [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)
 
+GPTQModel: add `,gptqmodel=True` to `model_args`
+```bash
+lm_eval --model hf \
+    --model_args pretrained=model-name-or-path,gptqmodel=True \
+    --tasks hellaswag
+```
+
+AutoGPTQ: add `,autogptq=True` to `model_args`:
 ```bash
 lm_eval --model hf \
     --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
