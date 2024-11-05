@@ -86,20 +86,20 @@ Let's create a python file in the directory where we're writing our YAML file:
 ```bash
 touch lm_eval/tasks/<dataset_name>/utils.py
 ```
-Now, in `utils.py` we'll write a function to process each split of our dataset:
-
-TODO: Change the example to one that's in the tasks/
+Now, in `utils.py` we'll write a function to process each split of our dataset (the following example is drawn from [the `hellaswag` task](../lm_eval/tasks/hellaswag/utils.py)):
 
 ```python
-def process_docs(dataset: datasets.Dataset):
-    def _helper(doc):
-      # modifies the contents of a single
-      # document in our dataset.
-      doc["choices"] = [doc["choice1"], doc["choice2"], doc["wrong_answer"]]
-      doc["gold"] = doc["label"]
-      return doc
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+    def _process_doc(doc):
+        ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
+        out_doc = {
+            "query": preprocess(doc["activity_label"] + ": " + ctx),
+            "choices": [preprocess(ending) for ending in doc["endings"]],
+            "gold": int(doc["label"]),
+        }
+        return out_doc
 
-    return dataset.map(_helper) # returns back a datasets.Dataset object
+    return dataset.map(_process_doc)
 ```
 
 Now, in our YAML config file we'll use the `!function` constructor, and tell the config where our imported Python function will come from. At runtime, before doing anything else we will preprocess our dataset according to this function!
