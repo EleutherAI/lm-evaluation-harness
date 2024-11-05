@@ -29,7 +29,6 @@ from lm_eval.tasks.score.math.math_grader import math_equal
 from lm_eval.tasks.score.utils import prompt_consistency_rate
 
 
-
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
@@ -97,7 +96,7 @@ def _fix_fracs(string):
             else:
                 try:
                     assert len(substr) >= 2
-                except:
+                except AssertionError:
                     return string
                 a = substr[0]
                 b = substr[1]
@@ -122,7 +121,7 @@ def _str_is_int(x: str) -> bool:
         x = _strip_properly_formatted_commas(x)
         x = float(x)
         return abs(x - int(round(x))) <= 1e-7
-    except:
+    except Exception:
         return False
 
 
@@ -141,7 +140,7 @@ def _inject_implicit_mixed_number(step: str):
     e.g. 7 3/4 => 7+3/4
     """
     p1 = re.compile("([0-9]) +([0-9])")
-    step = p1.sub("\\1+\\2", step)  ## implicit mults
+    step = p1.sub("\\1+\\2", step)  # implicit mults
     return step
 
 
@@ -154,6 +153,7 @@ def _strip_properly_formatted_commas(expr: str):
             break
         expr = next_expr
     return next_expr
+
 
 def _inject_implicit_mixed_fraction(step: str):
     """
@@ -246,9 +246,9 @@ def normalize_answer_string(expr: str) -> str:
                 break
 
         if not weekday_expressed:
-            expr = re.sub(f"day(s)?", "", expr)
+            expr = re.sub("day(s)?", "", expr)
 
-    expr = re.sub(f"\^ *\\\\circ", "", expr)
+    expr = re.sub("\^ *\\\\circ", "", expr)
 
     if len(expr) > 0 and expr[0] == "{" and expr[-1] == "}":
         expr = expr[1:-1]
@@ -268,6 +268,7 @@ def normalize_answer_string(expr: str) -> str:
         expr = str(_str_to_int(expr))
 
     return expr
+
 
 def find_boxed_entries(answer_str):
     stack = []
@@ -316,6 +317,7 @@ def find_boxed_entries(answer_str):
         else:
             return results
 
+
 def extract_answer(solution: str, problem: str, corrected_answers: list) -> str:
     entries = find_boxed_entries(solution)
 
@@ -343,19 +345,18 @@ def extract_answer(solution: str, problem: str, corrected_answers: list) -> str:
     return parsed_answer
 
 
-
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc: dict, idx, corrected_answer) -> dict:
         out_doc = {
-                "question": doc["problem"],
-                "question_id": idx,
-                "solution": doc["solution"],
-                "answer": extract_answer(doc["solution"], doc["problem"], corrected_answer),
-            }
+            "question": doc["problem"],
+            "question_id": idx,
+            "solution": doc["solution"],
+            "answer": extract_answer(doc["solution"], doc["problem"], corrected_answer),
+        }
         return out_doc
 
     corrected_answer_path = os.path.join(os.path.dirname(__file__), "to_be_fixed_questions.json")
-    
+
     with open(corrected_answer_path, "r") as f:
         corrected_answers = json.load(f)
 
@@ -382,7 +383,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         answer = None
     else:
         answer = entries[-1]
-        
+
     if math_equal(answer, doc["answer"]):
         retval = 1
     else:
@@ -395,6 +396,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     }
     return results
 
+
 def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
     accuracies = []
     for result in results:
@@ -402,10 +404,10 @@ def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
         if prompt_id != p_id:
             continue
         accuracies.append(retval)
-    
+
     accuracy = sum(accuracies) / len(accuracies)
     eval_logger.info(f"Prompt - {prompt_id} accuracy: {accuracy}")
-    
+
     return np.round(accuracy, 4)
 
 
@@ -419,5 +421,3 @@ per_prompt_accuracy_6 = partial(per_prompt_accuracy, p_id=6)
 per_prompt_accuracy_7 = partial(per_prompt_accuracy, p_id=7)
 per_prompt_accuracy_8 = partial(per_prompt_accuracy, p_id=8)
 per_prompt_accuracy_9 = partial(per_prompt_accuracy, p_id=9)
-
-

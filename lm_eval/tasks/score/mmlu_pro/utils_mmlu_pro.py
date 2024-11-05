@@ -15,7 +15,6 @@
 from functools import partial
 import os
 from typing import Any, Dict, List
-from lm_eval.utils import eval_logger
 import numpy as np
 
 from lm_eval.tasks.score import utils
@@ -33,14 +32,14 @@ QUESTION_KEY = "question"
 
 LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
 
-prompt_robustness_process_docs = partial(utils.process_docs_add_prompts, 
+prompt_robustness_process_docs = partial(utils.process_docs_add_prompts,
                                          templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY,
                                          template_file_path=TEMPLATE_FILE_PATH)
 
 option_order_robustness_process_docs = partial(utils.option_order_robustness_process_docs,
-                                                      template_file_path=TEMPLATE_FILE_PATH,
-                                                      templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
-                                                      labels=LABELS)
+                                               template_file_path=TEMPLATE_FILE_PATH,
+                                               templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
+                                               labels=LABELS)
 
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
@@ -53,14 +52,14 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     question_id = doc["question_id"]
     category = doc["category"]
     return {
-                f"{prompt_id}_macro_accuracy": (question_id, prompt_id, final_answer, gt, category),
-                "consistency_rate": (question_id, prompt_id, final_answer, gt)
-            }
+        f"{prompt_id}_macro_accuracy": (question_id, prompt_id, final_answer, gt, category),
+        "consistency_rate": (question_id, prompt_id, final_answer, gt)
+    }
 
 
 def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
-    final_answer = utils.translate_model_answer_to_labels(final_answer, 
+    final_answer = utils.translate_model_answer_to_labels(final_answer,
                                                           option_format=doc["options_format"],
                                                           labels=LABELS)
     gt = LABELS[doc["answer_index"]]
@@ -70,9 +69,9 @@ def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     answer_index = doc["answer_index"],
     category = doc["category"]
     return {
-                f"per_option_macro_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt, category),
-                "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
-            }
+        f"per_option_macro_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt, category),
+        "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
+    }
 
 
 def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
@@ -84,11 +83,11 @@ def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
         if category not in accuracies:
             accuracies[category] = []
         accuracies[category].append(final_answer == gt)
-    
+
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
         eval_logger.info(f"Prompt - {prompt_id}, category - {key} accuracy: {accuracies[key]}")
-    
+
     return np.round(np.mean([v for v in accuracies.values()]), 4)
 
 
@@ -113,11 +112,11 @@ def per_option_macro_accuracy(results: List[Dict[str, Any]], always_opt='a') -> 
         if category not in accuracies:
             accuracies[category] = []
         accuracies[category].append(int(final_answer == gt))
-    
+
     for key in accuracies:
         accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
         eval_logger.info(f"Prompt - {always_opt.upper()}, category - {key} accuracy: {accuracies[key]}")
-    
+
     return np.round(np.mean([v for v in accuracies.values()]), 4)
 
 

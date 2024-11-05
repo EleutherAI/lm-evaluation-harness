@@ -45,7 +45,7 @@ def initial_process_docs(doc: Dataset) -> Dataset:
     bracket_pattern = r'^\([A-E]\)'
     letter_space = r'^[A-E] '
     letter_question_space = r'^[A-E]\? '
-    
+
     def __process(_doc, idx):
         if "question" not in _doc:
             question = _doc[QUESTION_KEY].split(" Answer Choices:")[0]
@@ -73,53 +73,47 @@ def initial_process_docs(doc: Dataset) -> Dataset:
         return _doc
     return doc.map(__process, with_indices=True)
 
-def prompt_robustness_process_docs(doc: Dataset) -> Dataset:
-    doc = initial_process_docs(doc)
-    return utils.process_docs_add_prompts(doc,
-                                         template_file_path=TEMPLATE_FILE_PATH,
-                                         templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY)
 
-
-prompt_robustness_process_docs = partial(utils.process_docs_add_prompts, 
+prompt_robustness_process_docs = partial(utils.process_docs_add_prompts,
                                          templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY,
                                          template_file_path=TEMPLATE_FILE_PATH,
                                          dataset_specific_preprocess=initial_process_docs)
 
 option_order_robustness_process_docs = partial(utils.option_order_robustness_process_docs,
-                                                  template_file_path=TEMPLATE_FILE_PATH,
-                                                    templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
-                                                    labels=LABELS[:-1],
-                                                    dataset_specific_preprocess=initial_process_docs)
+                                               template_file_path=TEMPLATE_FILE_PATH,
+                                               templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
+                                               labels=LABELS[:-1],
+                                               dataset_specific_preprocess=initial_process_docs)
 
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
-    final_answer = utils.translate_model_answer_to_labels(final_answer, 
-                                                         option_format=doc["options_format"],
-                                                         labels=LABELS)
+    final_answer = utils.translate_model_answer_to_labels(final_answer,
+                                                          option_format=doc["options_format"],
+                                                          labels=LABELS)
     gt = LABELS[doc["answer_index"]]
     prompt_id = doc["prompt_id"]
     question_id = doc["question_id"]
     return {
-                f"{prompt_id}_accuracy": (question_id, prompt_id, final_answer, gt),
-                "consistency_rate": (question_id, prompt_id, final_answer, gt)
-            }
+        f"{prompt_id}_accuracy": (question_id, prompt_id, final_answer, gt),
+        "consistency_rate": (question_id, prompt_id, final_answer, gt)
+    }
 
 
 def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
-    final_answer = utils.translate_model_answer_to_labels(final_answer, 
-                                                    option_format=doc["options_format"],
-                                                    labels=LABELS)
+    final_answer = utils.translate_model_answer_to_labels(final_answer,
+                                                          option_format=doc["options_format"],
+                                                          labels=LABELS)
     gt = LABELS[doc["answer_index"]]
     always_same_option = doc["always_same_option"]
     question_id = doc["question_id"]
     original_answer_index = doc["original_answer_index"]
     answer_index = doc["answer_index"],
     return {
-                f"per_option_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt),
-                "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
-            }
+        f"per_option_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt),
+        "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
+    }
 
 
 def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
@@ -129,10 +123,10 @@ def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
         if prompt_id != p_id:
             continue
         accuracies.append(final_answer == gt)
-    
+
     accuracie = sum(accuracies) / len(accuracies)
     eval_logger.info(f"Prompt - {prompt_id} accuracy: {accuracie}")
-    
+
     return np.round(accuracie, 4)
 
 
@@ -155,10 +149,10 @@ def per_option_accuracy(results: List[Dict[str, Any]], always_opt='a') -> float:
         if always_opt != always_same_option:
             continue
         accuracies.append(int(final_answer == gt))
-    
+
     accuracie = sum(accuracies) / len(accuracies)
     eval_logger.info(f"Prompt - {always_opt.upper()} accuracy: {accuracie}")
-    
+
     return np.round(accuracie, 4)
 
 
