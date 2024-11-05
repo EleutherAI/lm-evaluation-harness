@@ -1,0 +1,23 @@
+group:
+  - paes
+task: paes_historia
+dataset_path: Fuentes149/Paes-historia
+dataset_name: default
+test_split: train
+output_type: multiple_choice
+doc_to_text: >
+  {{question.strip()}}
+  {{choices[0]}}
+  {{choices[1]}}
+  {{choices[2]}}
+  {{choices[3]}}
+  {% if choices | length > 4 %}{{choices[4]}}{% endif %}
+  Respuesta:
+doc_to_choice: ["A", "B", "C", "D", "E"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
