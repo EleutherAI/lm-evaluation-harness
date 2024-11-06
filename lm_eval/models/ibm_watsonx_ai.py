@@ -148,14 +148,14 @@ class WatsonxLLM(LM):
         # Get watsonx env config values
         watsonx_credentials = get_watsonx_credentials(
             env_name=args.get("env_name", None),
-            config_path=args.get("config_path", None)
+            config_path=args.get("config_path", None),
         )
 
         return cls(
             watsonx_credentials=watsonx_credentials,
             model_id=model_id,
             generate_params=generate_params,
-            batch_size=batch_size
+            batch_size=batch_size,
         )
 
     def __init__(
@@ -279,7 +279,7 @@ class WatsonxLLM(LM):
             range(0, len(requests), self._batch_size),
             desc=f"Running generate_until function with batch size {self._batch_size}",
         ):
-            batch = requests[i:i+self._batch_size]
+            batch = requests[i : i + self._batch_size]
             try:
                 responses = self.model.generate_text(batch, self.generate_params)
 
@@ -323,7 +323,7 @@ class WatsonxLLM(LM):
             range(0, len(requests), self._batch_size),
             desc=f"Running loglikelihood function with batch size {self._batch_size}",
         ):
-            batch = requests[i:i+self._batch_size]
+            batch = requests[i : i + self._batch_size]
             try:
                 tokenized_contexts = [
                     self.model.tokenize(prompt=context, return_tokens=True)["result"][
@@ -390,7 +390,7 @@ class WatsonxLLM(LM):
             range(0, len(requests), self._batch_size),
             desc=f"Running loglikelihood_rolling function with batch size {self._batch_size}",
         ):
-            batch = requests[i:i+self._batch_size]
+            batch = requests[i : i + self._batch_size]
 
             try:
                 responses = self.model.generate_text(
