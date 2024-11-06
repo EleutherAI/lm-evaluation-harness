@@ -19,6 +19,7 @@ from typing import Any, Dict, List
 import numpy as np
 
 from lm_eval.tasks.score import utils
+from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
 from lm_eval.utils import eval_logger
 
 
@@ -30,6 +31,10 @@ OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY = "option_order_robustness"
 QUESTION_KEY = "question"
 
 LABELS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+
+mmlu_pro_prompt_consistency_rate = prompt_consistency_rate
+mmlu_pro_robustness_doc_to_text = robustness_doc_to_text
+
 
 prompt_robustness_process_docs = partial(
     utils.process_docs_add_prompts,

@@ -23,12 +23,16 @@ import numpy as np
 
 from lm_eval.tasks.score import utils
 from lm_eval.tasks.score.math.math_grader import math_equal
+from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
 from lm_eval.utils import eval_logger
 
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
+
+math_prompt_consistency_rate = prompt_consistency_rate
+math_robustness_doc_to_text = robustness_doc_to_text
 
 
 def _remove_right_units(expr):

@@ -21,6 +21,7 @@ import numpy as np
 from datasets import Dataset
 
 from lm_eval.tasks.score import utils
+from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
 from lm_eval.utils import eval_logger
 
 
@@ -34,6 +35,9 @@ ANSWER_INDEX_KEY = "gold"
 OPTIONS_KEY = "choices"
 
 LABELS = ["A", "B", "C", "D", "E"]
+
+agi_eval_prompt_consistency_rate = prompt_consistency_rate
+agi_eval_robustness_doc_to_text = robustness_doc_to_text
 
 
 def initial_process_docs(doc: Dataset) -> Dataset:
