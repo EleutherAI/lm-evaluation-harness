@@ -80,11 +80,13 @@ class WatsonxLLM(LM):
     See https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/model_guide.md for reference.
     """
 
+    DEFAULT_BATCH_SIZE = 5
+
     @classmethod
     def create_from_arg_string(
         cls: Type["WatsonxLLM"],
         arg_string: str,
-        config_path: Optional[str] = None,
+        additional_config: Optional[dict] = None,
     ) -> "WatsonxLLM":
         """
         Allow the user to specify model parameters (TextGenerationParameters) in CLI arguments.
@@ -95,6 +97,9 @@ class WatsonxLLM(LM):
             raise ImportError(
                 "Could not import ibm_watsonx_ai: Please install lm_eval[ibm_watsonx_ai] package."
             )
+
+        if additional_config is None:
+            additional_config = {}
 
         args = simple_parse_args_string(arg_string)
         model_id = args.pop("model_id", None)
@@ -134,10 +139,23 @@ class WatsonxLLM(LM):
             k: v for k, v in cls.generate_params.items() if v is not None
         }
 
+        if isinstance(additional_config, str):
+            args["config_path"] = additional_config
+            additional_config = {}
+
+        batch_size = int(additional_config.get("batch_size", cls.DEFAULT_BATCH_SIZE))
+
+        # Get watsonx env config values
+        watsonx_credentials = get_watsonx_credentials(
+            env_name=args.get("env_name", None),
+            config_path=args.get("config_path", None)
+        )
+
         return cls(
-            watsonx_credentials=get_watsonx_credentials(config_path),
+            watsonx_credentials=watsonx_credentials,
             model_id=model_id,
             generate_params=generate_params,
+            batch_size=batch_size
         )
 
     def __init__(
@@ -145,6 +163,7 @@ class WatsonxLLM(LM):
         watsonx_credentials: Dict,
         model_id,
         generate_params: Optional[Dict[Any, Any]] = None,
+        batch_size: Optional[int] = None,
     ) -> None:
         try:
             from ibm_watsonx_ai import APIClient
@@ -166,6 +185,7 @@ class WatsonxLLM(LM):
             project_id=project_id,
         )
         self._model_id = model_id
+        self._batch_size = batch_size or self.DEFAULT_BATCH_SIZE
 
     @staticmethod
     def _has_stop_token(response_tokens: List[str], context_tokens: List[str]) -> bool:
@@ -254,13 +274,12 @@ class WatsonxLLM(LM):
         """
         requests = [request.args[0] for request in requests]
         results = []
-        batch_size = 5
 
         for i in tqdm(
-            range(0, len(requests), batch_size),
-            desc=f"Running generate_until function with batch size {batch_size}",
+            range(0, len(requests), self._batch_size),
+            desc=f"Running generate_until function with batch size {self._batch_size}",
         ):
-            batch = requests[i : i + batch_size]
+            batch = requests[i:i+self._batch_size]
             try:
                 responses = self.model.generate_text(batch, self.generate_params)
 
@@ -299,13 +318,12 @@ class WatsonxLLM(LM):
 
         requests = [request.args for request in requests]
         results: List[LogLikelihoodResult] = []
-        batch_size = 5
 
         for i in tqdm(
-            range(0, len(requests), batch_size),
-            desc=f"Running loglikelihood function with batch size {batch_size}",
+            range(0, len(requests), self._batch_size),
+            desc=f"Running loglikelihood function with batch size {self._batch_size}",
         ):
-            batch = requests[i : i + batch_size]
+            batch = requests[i:i+self._batch_size]
             try:
                 tokenized_contexts = [
                     self.model.tokenize(prompt=context, return_tokens=True)["result"][
@@ -367,13 +385,12 @@ class WatsonxLLM(LM):
 
         requests = [request.args[0] for request in requests]
         results: List[LogLikelihoodResult] = []
-        batch_size = 5
 
         for i in tqdm(
-            range(0, len(requests), batch_size),
-            desc=f"Running loglikelihood_rolling function with batch size {batch_size}",
+            range(0, len(requests), self._batch_size),
+            desc=f"Running loglikelihood_rolling function with batch size {self._batch_size}",
         ):
-            batch = requests[i : i + batch_size]
+            batch = requests[i:i+self._batch_size]
 
             try:
                 responses = self.model.generate_text(
