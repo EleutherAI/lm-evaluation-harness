@@ -80,7 +80,6 @@ This logic is largely copied from the Hendrycks' MATH release (math_equivalence)
 - https://github.com/openai/prm800k
 """
 
-
 import contextlib
 import re
 import signal
@@ -92,8 +91,8 @@ from typing import Union
 def _check_antlr_version():
     "Function for checking the antlr package version."
     # Check antlr version
-    PACKAGE_NAME = 'antlr4-python3-runtime'
-    REQUIRED_VERSION = '4.11.0'
+    PACKAGE_NAME = "antlr4-python3-runtime"
+    REQUIRED_VERSION = "4.11.0"
 
     try:
         installed_version = version(PACKAGE_NAME)
@@ -102,7 +101,9 @@ def _check_antlr_version():
                 f"Package {PACKAGE_NAME} version mismatch: {installed_version} (required: {REQUIRED_VERSION})"
             )
     except PackageNotFoundError:
-        raise RuntimeError(f"Package {PACKAGE_NAME} not found. Please install antlr4-python3-runtime==4.11.0.")
+        raise RuntimeError(
+            f"Package {PACKAGE_NAME} not found. Please install antlr4-python3-runtime==4.11.0."
+        )
 
 
 def _fix_fracs(string):
@@ -258,7 +259,13 @@ def normalize_answer_string(expr: str) -> str:
     expr = _process_and_or_inside_text(expr)
     expr = _remove_right_units(expr)
     expr = _fix_interval(expr)
-    for surround_str in ["\\\\text", "\\\\mathrm", "\\\\mathcal", "\\\\textbf", "\\\\textit"]:
+    for surround_str in [
+        "\\\\text",
+        "\\\\mathrm",
+        "\\\\mathcal",
+        "\\\\textbf",
+        "\\\\textit",
+    ]:
         expr = expr.replace(surround_str, "")
         pattern = f"^{surround_str}" + "\{(?P<text>.+?)\}$"
         m = re.search(pattern, expr)
@@ -355,12 +362,13 @@ def is_digit(s):
 
 def normalize(answer) -> str:
     # checking if answer is $<number> and removing $ in that case to compare
-    if isinstance(answer, str) and bool(re.match(r'\$\d+(\.\d+)?', answer)):
+    if isinstance(answer, str) and bool(re.match(r"\$\d+(\.\d+)?", answer)):
         return answer[1:]
 
     # checking if answer is <number>% or <number>\\% and removing %
     if isinstance(answer, str) and (
-        bool(re.match(r'^\d+(\.\d+)?%$', answer)) or bool(re.match(r'^\d+(\.\d+)?\\%$', answer))
+        bool(re.match(r"^\d+(\.\d+)?%$", answer))
+        or bool(re.match(r"^\d+(\.\d+)?\\%$", answer))
     ):
         return answer.replace("\\%", "").replace("%", "")
 
@@ -392,7 +400,9 @@ def math_equal(
     prediction = normalize_answer_string(prediction)
     reference = normalize_answer_string(reference)
 
-    if isinstance(prediction, str) and len(prediction) > 1000:  # handling weird corner-cases
+    if (
+        isinstance(prediction, str) and len(prediction) > 1000
+    ):  # handling weird corner-cases
         prediction = prediction[:1000]
 
     # 0. string comparison
@@ -432,8 +442,14 @@ def math_equal(
     prediction = format_intervals(prediction)
 
     pred_str, ref_str = prediction, reference
-    if (prediction.startswith("[") and prediction.endswith("]") and not reference.startswith("(")) or (
-        prediction.startswith("(") and prediction.endswith(")") and not reference.startswith("[")
+    if (
+        prediction.startswith("[")
+        and prediction.endswith("]")
+        and not reference.startswith("(")
+    ) or (
+        prediction.startswith("(")
+        and prediction.endswith(")")
+        and not reference.startswith("[")
     ):
         pred_str = pred_str.strip("[]()")
         ref_str = ref_str.strip("[]()")
@@ -470,7 +486,9 @@ def math_equal(
         if len(pred_parts) == len(ref_parts):
             if all(
                 [
-                    math_equal(pred_parts[i], ref_parts[i], include_percentage, tolerance)
+                    math_equal(
+                        pred_parts[i], ref_parts[i], include_percentage, tolerance
+                    )
                     for i in range(len(pred_parts))
                 ]
             ):
@@ -543,7 +561,11 @@ def symbolic_equal(a, b, tolerance, timeout=10.0):
     return False
 
 
-def extract_answer(string: str, extract_from_boxed: bool = True, extract_regex: str = r"The final answer is (.+)$"):
+def extract_answer(
+    string: str,
+    extract_from_boxed: bool = True,
+    extract_regex: str = r"The final answer is (.+)$",
+):
     """Extract Answer String from \\boxed expression or based on regex"""
     if not extract_from_boxed:
         match = re.search(extract_regex, string)

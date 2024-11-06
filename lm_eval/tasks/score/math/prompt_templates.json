@@ -31,5 +31,5 @@
             "prompt": "Please solve the math problem. For simple problems offer a quick solution with minimal details. For more challenging problems, explain your approach step-by-step. Finish with\nThe final answer is: $\\boxed{{answer}}$.\nwhere [answer] is just the final number or expression that solves the problem.\nProblem: {question}\nLets think step by step."
         }
     ]
-    
+
 }

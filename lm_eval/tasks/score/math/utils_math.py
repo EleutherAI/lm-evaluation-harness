@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import partial
 import json
 import os
 import re
-import signal
+from functools import partial
 from typing import Any, Dict, List
 
 import datasets
 import numpy as np
-from lm_eval.tasks.score import utils
-from lm_eval.tasks.score.utils import robustness_doc_to_text
 
-from lm_eval.utils import eval_logger
+from lm_eval.tasks.score import utils
 from lm_eval.tasks.score.math.math_grader import math_equal
-from lm_eval.tasks.score.utils import prompt_consistency_rate
+from lm_eval.utils import eval_logger
 
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
@@ -187,7 +184,13 @@ def normalize_answer_string(expr: str) -> str:
     expr = _process_and_or_inside_text(expr)
     expr = _remove_right_units(expr)
     expr = _fix_interval(expr)
-    for surround_str in ["\\\\text", "\\\\mathrm", "\\\\mathcal", "\\\\textbf", "\\\\textit"]:
+    for surround_str in [
+        "\\\\text",
+        "\\\\mathrm",
+        "\\\\mathcal",
+        "\\\\textbf",
+        "\\\\textit",
+    ]:
         expr = expr.replace(surround_str, "")
         pattern = f"^{surround_str}" + "\{(?P<text>.+?)\}$"
         m = re.search(pattern, expr)
@@ -276,14 +279,14 @@ def find_boxed_entries(answer_str):
     i = 0
 
     while i < len(answer_str):
-        if answer_str[i : i + 7] == '\\boxed{':
+        if answer_str[i : i + 7] == "\\boxed{":
             stack.append(i + 7)
             i += 7
-        elif answer_str[i] == '{':
+        elif answer_str[i] == "{":
             if stack:
                 stack.append(i + 1)
             i += 1
-        elif answer_str[i] == '}':
+        elif answer_str[i] == "}":
             if stack:
                 start = stack.pop()
                 if not stack:
@@ -355,12 +358,16 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         }
         return out_doc
 
-    corrected_answer_path = os.path.join(os.path.dirname(__file__), "to_be_fixed_questions.json")
+    corrected_answer_path = os.path.join(
+        os.path.dirname(__file__), "to_be_fixed_questions.json"
+    )
 
     with open(corrected_answer_path, "r") as f:
         corrected_answers = json.load(f)
 
-    return dataset.map(partial(_process_doc, corrected_answer=corrected_answers), with_indices=True)
+    return dataset.map(
+        partial(_process_doc, corrected_answer=corrected_answers), with_indices=True
+    )
 
 
 def prompt_robustness_process_docs(doc: datasets.Dataset) -> datasets.Dataset:

@@ -45,7 +45,7 @@
                 "prompt": "Read the question and options below, then determine the correct answer choice (A-J)\nQuestion: {question}{options}\n\nFor simple questions, provide a quick answer. For complicated ones, think step by step, break down the question into smaller problems and reach to a conclusion\nEnd your answer by stating:\nThe best answer is [the_answer_letter].\nwhere [the_answer_letter] is one of A, B, C, D, E, F, G, H, I, or J.",
                 "options_format": "\n{letter}: {option}"
         }
-       
+
     ]
-    
+
 }

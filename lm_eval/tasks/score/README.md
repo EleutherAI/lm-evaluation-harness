@@ -25,7 +25,7 @@ limitations under the License.
 
 - `score_robustness_mmlu_pro`: two 0-shot robutstness tasks on MMLU-PRO dataset [[1](#mmlu_pro)]
 
-- `score_robustness_agieval`: two 0-shot robutstness tasks on the AGIEVAL datasets [[2](#agi_eval)] multiple choice questions subsets:  `'agieval-sat-math'`, `'agieval-lsat-lr'`, `'agieval-lsat-rc'`, `'agieval-logiqa-en'`, `'agieval-aqua-rat'`, `'agieval-sat-en'`, `'agieval-lsat-ar'` 
+- `score_robustness_agieval`: two 0-shot robutstness tasks on the AGIEVAL datasets [[2](#agi_eval)] multiple choice questions subsets:  `'agieval-sat-math'`, `'agieval-lsat-lr'`, `'agieval-lsat-rc'`, `'agieval-logiqa-en'`, `'agieval-aqua-rat'`, `'agieval-sat-en'`, `'agieval-lsat-ar'`
 
 - `score_robustness_math`: one 0-shot robutstness tasks on Hendryk's MATH dataset [[3](#math)]
 
@@ -33,12 +33,12 @@ limitations under the License.
 
 Both `score_robustness_mmlu_pro` and `score_robustness_agieval` contain the following 2 tasks:
 
-* Option order robustness: 
-`score_option_order_robustness_mmlu_pro`, 
+* Option order robustness:
+`score_option_order_robustness_mmlu_pro`,
 `score_option_order_robustness_agieval`
 
-* Prompt robustness: 
-`score_prompt_robustness_mmlu_pro`, 
+* Prompt robustness:
+`score_prompt_robustness_mmlu_pro`,
 `score_prompt_robustness_agieval`,
 
 Whereas math contains only

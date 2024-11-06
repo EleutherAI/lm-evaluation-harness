@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import partial
 import os
-from datasets import Dataset
-from typing import Any, Dict, List
 import re
+from functools import partial
+from typing import Any, Dict, List
+
 import numpy as np
+from datasets import Dataset
 
 from lm_eval.tasks.score import utils
-from lm_eval.tasks.score.utils import prompt_consistency_rate
-from lm_eval.tasks.score.utils import robustness_doc_to_text
 from lm_eval.utils import eval_logger
 
 
@@ -34,7 +33,7 @@ QUESTION_KEY = "query"
 ANSWER_INDEX_KEY = "gold"
 OPTIONS_KEY = "choices"
 
-LABELS = ['A', 'B', 'C', 'D', 'E']
+LABELS = ["A", "B", "C", "D", "E"]
 
 
 def initial_process_docs(doc: Dataset) -> Dataset:
@@ -42,14 +41,14 @@ def initial_process_docs(doc: Dataset) -> Dataset:
     add question_id to the documents
     """
 
-    bracket_pattern = r'^\([A-E]\)'
-    letter_space = r'^[A-E] '
-    letter_question_space = r'^[A-E]\? '
+    bracket_pattern = r"^\([A-E]\)"
+    letter_space = r"^[A-E] "
+    letter_question_space = r"^[A-E]\? "
 
     def __process(_doc, idx):
         if "question" not in _doc:
             question = _doc[QUESTION_KEY].split(" Answer Choices:")[0]
-            if question.startswith('Q: '):
+            if question.startswith("Q: "):
                 question = question[3:]
             _doc["question"] = question
         if "question_id" not in _doc:
@@ -71,48 +70,64 @@ def initial_process_docs(doc: Dataset) -> Dataset:
                     prepared_options.append(option)
             _doc["options"] = prepared_options
         return _doc
+
     return doc.map(__process, with_indices=True)
 
 
-prompt_robustness_process_docs = partial(utils.process_docs_add_prompts,
-                                         templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY,
-                                         template_file_path=TEMPLATE_FILE_PATH,
-                                         dataset_specific_preprocess=initial_process_docs)
+prompt_robustness_process_docs = partial(
+    utils.process_docs_add_prompts,
+    templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY,
+    template_file_path=TEMPLATE_FILE_PATH,
+    dataset_specific_preprocess=initial_process_docs,
+)
 
-option_order_robustness_process_docs = partial(utils.option_order_robustness_process_docs,
-                                               template_file_path=TEMPLATE_FILE_PATH,
-                                               templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
-                                               labels=LABELS[:-1],
-                                               dataset_specific_preprocess=initial_process_docs)
+option_order_robustness_process_docs = partial(
+    utils.option_order_robustness_process_docs,
+    template_file_path=TEMPLATE_FILE_PATH,
+    templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
+    labels=LABELS[:-1],
+    dataset_specific_preprocess=initial_process_docs,
+)
 
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
-    final_answer = utils.translate_model_answer_to_labels(final_answer,
-                                                          option_format=doc["options_format"],
-                                                          labels=LABELS)
+    final_answer = utils.translate_model_answer_to_labels(
+        final_answer, option_format=doc["options_format"], labels=LABELS
+    )
     gt = LABELS[doc["answer_index"]]
     prompt_id = doc["prompt_id"]
     question_id = doc["question_id"]
     return {
         f"{prompt_id}_accuracy": (question_id, prompt_id, final_answer, gt),
-        "consistency_rate": (question_id, prompt_id, final_answer, gt)
+        "consistency_rate": (question_id, prompt_id, final_answer, gt),
     }
 
 
 def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
-    final_answer = utils.translate_model_answer_to_labels(final_answer,
-                                                          option_format=doc["options_format"],
-                                                          labels=LABELS)
+    final_answer = utils.translate_model_answer_to_labels(
+        final_answer, option_format=doc["options_format"], labels=LABELS
+    )
     gt = LABELS[doc["answer_index"]]
     always_same_option = doc["always_same_option"]
     question_id = doc["question_id"]
     original_answer_index = doc["original_answer_index"]
-    answer_index = doc["answer_index"],
+    answer_index = (doc["answer_index"],)
     return {
-        f"per_option_accuracy_{always_same_option}": (question_id, always_same_option, final_answer, gt),
-        "options_consistency_rate": (question_id, always_same_option, final_answer, original_answer_index, answer_index)
+        f"per_option_accuracy_{always_same_option}": (
+            question_id,
+            always_same_option,
+            final_answer,
+            gt,
+        ),
+        "options_consistency_rate": (
+            question_id,
+            always_same_option,
+            final_answer,
+            original_answer_index,
+            answer_index,
+        ),
     }
 
 
@@ -142,7 +157,7 @@ per_prompt_accuracy_8 = partial(per_prompt_accuracy, p_id=8)
 per_prompt_accuracy_9 = partial(per_prompt_accuracy, p_id=9)
 
 
-def per_option_accuracy(results: List[Dict[str, Any]], always_opt='a') -> float:
+def per_option_accuracy(results: List[Dict[str, Any]], always_opt="a") -> float:
     accuracies = []
     for result in results:
         question_id, always_same_option, final_answer, gt = result
@@ -156,9 +171,9 @@ def per_option_accuracy(results: List[Dict[str, Any]], always_opt='a') -> float:
     return np.round(accuracie, 4)
 
 
-per_option_accuracy_a = partial(per_option_accuracy, always_opt='A')
-per_option_accuracy_b = partial(per_option_accuracy, always_opt='B')
-per_option_accuracy_c = partial(per_option_accuracy, always_opt='C')
-per_option_accuracy_d = partial(per_option_accuracy, always_opt='D')
+per_option_accuracy_a = partial(per_option_accuracy, always_opt="A")
+per_option_accuracy_b = partial(per_option_accuracy, always_opt="B")
+per_option_accuracy_c = partial(per_option_accuracy, always_opt="C")
+per_option_accuracy_d = partial(per_option_accuracy, always_opt="D")
 
 options_consistency_rate = partial(utils.options_consistency_rate, labels=LABELS)
