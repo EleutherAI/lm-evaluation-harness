@@ -67,7 +67,7 @@ class TaskConfig(dict):
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
     fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
