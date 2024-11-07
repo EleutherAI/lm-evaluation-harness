@@ -346,9 +346,9 @@ class HFLM(TemplateLM):
                         == (self.accelerator.process_index % num_local_processes)
                     }
             args["max_memory"] = max_memory_per_gpu_map
-            args["device_map"] = device_map
+            args["device_map"] = "auto" if device_map is None else device_map
             eval_logger.info(
-                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to {device_map}"
+                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to {args["device_map"]}"
             )
 
             if max_cpu_memory is not None:
