@@ -499,3 +499,40 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def add_padding_if_needed(
+    images: List["PIL.Image.Image"],  # noqa: F821
+    min_width: int = 50,
+    min_height: int = 50,
+    color=(255, 255, 255),
+) -> List["PIL.Image.Image"]:  # noqa: F821
+    """Adds (default white) padding to images to make them at least min_width and min_height"""
+    from PIL import ImageOps
+
+    res = []
+    for image in images:
+        width, height = image.size
+
+        if width >= min_width and height >= min_height:
+            return image
+        image = image.convert("RGB")
+        new_width = max(width, min_width)
+        new_height = max(height, min_height)
+
+        delta_width = new_width - width
+        delta_height = new_height - height
+
+        padding_left = delta_width // 2
+        padding_right = delta_width - padding_left
+        padding_top = delta_height // 2
+        padding_bottom = delta_height - padding_top
+        res.append(
+            ImageOps.expand(
+                image,
+                (padding_left, padding_top, padding_right, padding_bottom),
+                fill=color,
+            )
+        )
+
+    return res
