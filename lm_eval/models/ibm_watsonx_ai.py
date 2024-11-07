@@ -1,7 +1,7 @@
 import copy
 import os
 from functools import lru_cache
-from typing import Any, Dict, NamedTuple, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, cast
 
 from tqdm import tqdm
 
@@ -9,7 +9,6 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.utils import eval_logger, simple_parse_args_string
-
 
 
 class LogLikelihoodResult(NamedTuple):
@@ -56,7 +55,7 @@ class WatsonxLLM(LM):
     def create_from_arg_string(
         cls: Type["WatsonxLLM"],
         arg_string: str,
-        additional_config: Optional[Dict] = None
+        additional_config: Optional[Dict] = None,
     ) -> "WatsonxLLM":
         """
         Allow the user to specify model parameters (TextGenerationParameters) in CLI arguments.
@@ -67,7 +66,7 @@ class WatsonxLLM(LM):
             raise ImportError(
                 "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
             )
-        
+
         args = simple_parse_args_string(arg_string)
         model_id = args.pop("model_id", None)
         if model_id is None:
@@ -102,9 +101,7 @@ class WatsonxLLM(LM):
             },
         }
 
-        generate_params = {
-            k: v for k, v in generate_params.items() if v is not None
-        }
+        generate_params = {k: v for k, v in generate_params.items() if v is not None}
 
         return cls(
             watsonx_credentials=get_watsonx_credentials(),
@@ -235,13 +232,13 @@ class WatsonxLLM(LM):
 
         for request in tqdm(
             requests,
-            desc=f"Running generate_until function ...",
+            desc="Running generate_until function ...",
         ):
             context, continuation = request
             try:
                 response = self.model.generate_text(context, self.generate_params)
             except Exception as exp:
-                eval_logger.error(f"Error while generating text.")
+                eval_logger.error("Error while generating text.")
                 raise exp
 
             results.append(response)
@@ -278,7 +275,7 @@ class WatsonxLLM(LM):
 
         for request in tqdm(
             requests,
-            desc=f"Running loglikelihood function ...",
+            desc="Running loglikelihood function ...",
         ):
             context, continuation = request
             try:
@@ -286,7 +283,7 @@ class WatsonxLLM(LM):
                     prompt=context, return_tokens=True
                 )["result"]["tokens"]
             except Exception as exp:
-                eval_logger.error(f"Error while model tokenize.")
+                eval_logger.error("Error while model tokenize.")
                 raise exp
 
             input_prompt = context + continuation
@@ -296,7 +293,7 @@ class WatsonxLLM(LM):
                     prompt=input_prompt, params=generate_params, raw_response=True
                 )
             except Exception as exp:
-                eval_logger.error(f"Error while model generate text.")
+                eval_logger.error("Error while model generate text.")
                 raise exp
 
             log_likelihood_response = self._get_log_likelihood(
@@ -324,6 +321,12 @@ class WatsonxLLM(LM):
             Tuple (loglikelihood,) for each request according to the input order:
                 loglikelihood: solely the probability of producing each piece of text given no starting input.
         """
+        try:
+            from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
+        except ImportError:
+            raise ImportError(
+                "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
+            )
         self._check_model_logprobs_support()
         generate_params = copy.deepcopy(self.generate_params)
         generate_params[GenParams.MAX_NEW_TOKENS] = 1
@@ -333,7 +336,7 @@ class WatsonxLLM(LM):
 
         for request in tqdm(
             requests,
-            desc=f"Running loglikelihood_rolling function ...",
+            desc="Running loglikelihood_rolling function ...",
         ):
             context, continuation = request
             try:
@@ -341,7 +344,7 @@ class WatsonxLLM(LM):
                     prompt=context, params=generate_params, raw_response=True
                 )
             except Exception as exp:
-                eval_logger.error(f"Error while model generate text.")
+                eval_logger.error("Error while model generate text.")
                 raise exp
 
             log_likelihood_response = self._get_log_likelihood(
