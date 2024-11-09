@@ -39,8 +39,8 @@ def _patch_pretrained_cfg(
 ):
     try:
         import omegaconf
-    except ModuleNotFoundError:
-        raise Exception(
+    except ModuleNotFoundError as exception:
+        raise type(exception)(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
             "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
             "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -79,8 +79,8 @@ def load_model(
             MegatronGPTModel,
         )
         from nemo.collections.nlp.parts.nlp_overrides import NLPSaveRestoreConnector
-    except ModuleNotFoundError:
-        raise Exception(
+    except ModuleNotFoundError as exception:
+        raise type(exception)(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
             "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
             "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -140,8 +140,8 @@ def load_model(
 def setup_distributed_environment(trainer):
     try:
         from nemo.utils.app_state import AppState
-    except ModuleNotFoundError:
-        raise Exception(
+    except ModuleNotFoundError as exception:
+        raise type(exception)(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
             "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
             "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -194,8 +194,8 @@ class NeMoLM(LM):
             from pytorch_lightning.trainer.trainer import Trainer
 
             self.generate = generate
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
                 "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
                 "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -386,6 +386,9 @@ class NeMoLM(LM):
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
+
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         return loglikelihoods
 
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
@@ -468,6 +471,9 @@ class NeMoLM(LM):
                 answer = (logprob, is_greedy)
 
                 if cache_key is not None:
+                    # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                    # all with cache key None. instead do add_partial on the per-example level
+                    # in the loglikelihood_rolling() function for those.
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
                 res.append(answer)

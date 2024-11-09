@@ -1,5 +1,4 @@
 dataset_path: cais/wmdp
-group: wmdp
 test_split: test
 training_split: null
 validation_split: null
@@ -13,4 +12,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 0
+  version: 1

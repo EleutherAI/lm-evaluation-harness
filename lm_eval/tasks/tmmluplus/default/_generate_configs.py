@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 # Copy from https://github.com/iKala/ievals/blob/main/ievals/settings.py
-# from TMMLU+ offical example
+# from TMMLU+ official example
 categories = {
     "STEM": [
         "physics",

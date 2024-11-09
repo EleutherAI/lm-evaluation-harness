@@ -1,6 +1,34 @@
 group: mmlu_flan_cot_fewshot
+group_alias: mmlu (flan style, fewshot cot)
 task:
-  - mmlu_flan_cot_fewshot_stem
-  - mmlu_flan_cot_fewshot_other
-  - mmlu_flan_cot_fewshot_social_sciences
-  - mmlu_flan_cot_fewshot_humanities
+  - group: stem
+    task:
+      - mmlu_flan_cot_fewshot_stem
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: other
+    task:
+      - mmlu_flan_cot_fewshot_other
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: social sciences
+    task:
+      - mmlu_flan_cot_fewshot_social_sciences
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: humanities
+    task:
+      - mmlu_flan_cot_fewshot_humanities
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: True
+    filter_list: get-answer
+metadata:
+  version: 2

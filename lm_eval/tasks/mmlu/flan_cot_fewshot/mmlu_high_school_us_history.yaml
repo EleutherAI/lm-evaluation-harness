@@ -151,6 +151,6 @@ fewshot_config:
       suspect Washington''s military response to Whiskey Rebellion. Bacon''s Rebellion
       and Pontiac''s Rebellion happen before the Revolution and they can be ruled
       out. The answer is (C).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_us_history

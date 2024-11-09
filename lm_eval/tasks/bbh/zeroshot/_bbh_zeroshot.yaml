@@ -1,0 +1,36 @@
+group: bbh_zeroshot
+task:
+  - bbh_zeroshot_boolean_expressions
+  - bbh_zeroshot_causal_judgement
+  - bbh_zeroshot_date_understanding
+  - bbh_zeroshot_disambiguation_qa
+  - bbh_zeroshot_dyck_languages
+  - bbh_zeroshot_formal_fallacies
+  - bbh_zeroshot_geometric_shapes
+  - bbh_zeroshot_hyperbaton
+  - bbh_zeroshot_logical_deduction_five_objects
+  - bbh_zeroshot_logical_deduction_seven_objects
+  - bbh_zeroshot_logical_deduction_three_objects
+  - bbh_zeroshot_movie_recommendation
+  - bbh_zeroshot_multistep_arithmetic_two
+  - bbh_zeroshot_navigate
+  - bbh_zeroshot_object_counting
+  - bbh_zeroshot_penguins_in_a_table
+  - bbh_zeroshot_reasoning_about_colored_objects
+  - bbh_zeroshot_ruin_names
+  - bbh_zeroshot_salient_translation_error_detection
+  - bbh_zeroshot_snarks
+  - bbh_zeroshot_sports_understanding
+  - bbh_zeroshot_temporal_sequences
+  - bbh_zeroshot_tracking_shuffled_objects_five_objects
+  - bbh_zeroshot_tracking_shuffled_objects_seven_objects
+  - bbh_zeroshot_tracking_shuffled_objects_three_objects
+  - bbh_zeroshot_web_of_lies
+  - bbh_zeroshot_word_sorting
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list: flexible-extract
+metadata:
+  version: 3.0

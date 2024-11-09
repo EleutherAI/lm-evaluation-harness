@@ -1,4 +1,5 @@
-"fewshot_split": "guj_Gujr"
-"include": "_default_template_yaml"
-"task": "belebele_guj_Gujr"
-"test_split": "guj_Gujr"
+dataset_name: guj_Gujr
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_guj_Gujr
+test_split: test

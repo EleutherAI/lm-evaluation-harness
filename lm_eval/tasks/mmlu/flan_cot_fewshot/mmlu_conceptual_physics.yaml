@@ -44,6 +44,6 @@ fewshot_config:
       \ orthogonal to the wind is the same as it would be in the absence of the wind.\
       \ The total speed, which is these two components added in quadrature, is thus\
       \ greater than the speed in still air. The answer is (B).\n\n"
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_conceptual_physics

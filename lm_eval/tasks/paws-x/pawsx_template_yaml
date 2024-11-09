@@ -1,7 +1,6 @@
 # This file will be included in the generated language-specific task configs.
 # It doesn't have a yaml file extension as it is not meant to be imported directly
 # by the harness.
-group: pawsx
 task: null
 dataset_path: paws-x
 dataset_name: null
@@ -17,4 +16,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 0.0
+  version: 1.0

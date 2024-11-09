@@ -1,7 +1,3 @@
-group:
-  - agieval
-  - agieval_en
-  - agieval_nous
 task: agieval_aqua_rat
 dataset_path: hails/agieval-aqua-rat
 dataset_name: null

@@ -1,6 +1,3 @@
-group:
-- bbh
-- bbh_cot_fewshot
 dataset_path: lukaemon/bbh
 output_type: generate_until
 test_split: test
@@ -27,4 +24,4 @@ filter_list:
       - function: "take_first"
 num_fewshot: 3
 metadata:
-  version: 2.0
+  version: 3.0
