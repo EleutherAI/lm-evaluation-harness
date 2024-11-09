@@ -220,6 +220,10 @@ class OpenAIChatCompletion(LocalChatCompletion):
         tokenized_requests=False,
         **kwargs,
     ):
+        if "o1" in kwargs.get("model", ""):
+            eval_logger.warning(
+                "o1 models do not support `stop` and only support temperature=1"
+            )
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
@@ -272,9 +276,6 @@ class OpenAIChatCompletion(LocalChatCompletion):
             **gen_kwargs,
         }
         if "o1" in self.model:
-            eval_logger.warning(
-                "o1 models do not support `stop` and only support temperature=1"
-            )
             output.pop("stop")
             output["temperature"] = 1
         return output
