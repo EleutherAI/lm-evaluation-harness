@@ -1,6 +1,7 @@
 import os
 from itertools import islice
 
+import datasets
 import pytest
 
 import lm_eval.tasks as tasks
@@ -10,6 +11,7 @@ from lm_eval.evaluator_utils import get_task_list
 from .utils import new_tasks
 
 
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
 # Default Task
