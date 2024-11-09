@@ -1,0 +1,15 @@
+"dataset_name": "driving_rule"
+"description": "以下為台灣駕駛規則的單選題，請提供正確答案的選項。\n\n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}{% if choices is defined and choices|length > 4 %}\nE. {{choices[4]}}{%\
+  \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
+  \ endif %}\nAnswer:"
+"tag": "tmlu_taiwan_specific"
+"include": "_default_template_yaml"
+"task": "tmlu_driving_rule"
+"task_alias": "driving rule"
