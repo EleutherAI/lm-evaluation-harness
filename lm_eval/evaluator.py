@@ -400,6 +400,11 @@ def evaluate(
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
+    if apply_chat_template:
+        eval_logger.warning(
+            "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
+        )
+
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
