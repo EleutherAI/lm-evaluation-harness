@@ -1,7 +1,5 @@
-from functools import lru_cache
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Tuple
 
-import jinja2
 import numpy as np
 from tqdm import tqdm
 
@@ -9,7 +7,7 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import eval_logger
-
+from .huggingface import HFLM
 
 eval_logger = eval_logger
 
@@ -26,7 +24,7 @@ class MLX(TemplateLM):
         max_tokens=2048,
         batch_size=4,
         max_gen_tokens=256,
-        ensure_bos_token=False,
+        add_bos_token=False,
     ):
         try:
             from mlx_lm.utils import load
@@ -40,141 +38,25 @@ class MLX(TemplateLM):
         if eos_token is not None:
             tokenizer_config["eos_token"] = eos_token
         self.model, self.tokenizer = load(
-            model, adapter_path=adapter_path, tokenizer_config=tokenizer_config
+            model, tokenizer_config=tokenizer_config
         )
         eval_logger.info(f"Model type is '{type(self.model)}")
+        if adapter_path is not None:
+            eval_logger.info(f"Loading pretrained adapters from {adapter_path}")
+            model.load_weights(adapter_path, strict=False)
         self.max_tokens = max_tokens
         self.top_p = top_p
         self.batch_size = int(batch_size)
         self.max_gen_tokens = max_gen_tokens
-        self.ensure_bos_token = ensure_bos_token
+        self.add_bos_token = add_bos_token
 
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
 
-    @lru_cache(maxsize=2000)
-    def tok_encode(self, string: str) -> List[int]:
-        encoding = self.tokenizer.encode(string)
-        if self.ensure_bos_token and encoding[0] != self.tokenizer.bos_token_id:
-            encoding = [self.tokenizer.bos_token_id] + encoding
-        return encoding
-
-    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
-        """
-        Get the appropriate chat template for the model based on configuration and input.
-        This method determines, and returns the correct chat template, ensuring reproducibility.
-
-        The template selection logic is adapted from the Transformers library's `apply_chat_template`
-        method in the Tokenizer class. The original implementation can be found at:
-        https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1687
-
-        This method ensures that the right template is chosen based on the following:
-        1. If the model's tokenizer has multiple templates:
-            a. Use the specified template if it exists in the dictionary.
-            b. Use the default template from the list if no specific template is provided.
-            c. Raise an error if no default template exists and no specific template is provided.
-        2. If the model's tokenizer has a single template or no template:
-            a. Use the tokenizer's chat template if available.
-            b. Fall back to the default chat template if no tokenizer chat template exists.
-
-        Args:
-            chat_template (Union[bool, str]): Specifies the chat template to use.
-                - If False or None, no template is applied.
-                - If True, the default or only available template is used.
-                - If a string, the template with the matching name is used.
-
-        Returns:
-            Optional[str]: The selected chat template, or None if no template is applied.
-        """
-        if chat_template is False or chat_template is None:
-            eval_logger.warning(
-                "model.chat_template was called with the chat_template set to False or None. "
-                "Therefore no chat template will be applied. Make sure this is an intended behavior."
-            )
-            return None
-
-        # Convert boolean chat_template to None to ensure compatibility with the adapted logic
-        if isinstance(chat_template, bool):
-            chat_template = None
-        using_default_template = False
-
-        # First, handle the cases when the model has a dict of multiple templates
-        template = self.tokenizer.chat_template or self.tokenizer.default_chat_template
-
-        if isinstance(template, dict):
-            using_default_dict = self.tokenizer.chat_template is None
-
-            if chat_template is not None:
-                if chat_template in template:
-                    selected_template = template[chat_template]
-                    if using_default_dict:
-                        using_default_template = True
-                else:
-                    raise ValueError(
-                        f"The specified chat template '{chat_template}' is not available. "
-                        f"Available template names are {sorted(template.keys())}."
-                    )
-            else:
-                # If user didn't pass a chat template, use the default template from the dict
-                if "default" in template:
-                    selected_template = template["default"]
-                    using_default_template = True
-                else:
-                    raise ValueError(
-                        "This model has multiple chat templates with no default specified! Please either pass a chat "
-                        "template or the name of the template you wish to use to the `chat_template` argument. Available "
-                        f"template names are {sorted(template.keys())}."
-                    )
-
-        # Cases when the model has a single template or no template
-        else:
-            # priority: `chat_template` argument > `tokenizer.chat_template` > `tokenizer.default_chat_template
-            if isinstance(chat_template, str):
-                eval_logger.warning(
-                    "Chat template name provided, but the tokenizer's chat template is not a dictionary. "
-                    "Using the tokenizer's chat template or the default template instead."
-                )
-            if self.tokenizer.chat_template is not None:
-                selected_template = self.tokenizer.chat_template
-            else:
-                selected_template = self.tokenizer.default_chat_template
-                using_default_template = True
-
-        if using_default_template:
-            eval_logger.warning(
-                "No chat template is set for this tokenizer, falling back to a default class-level template. This is "
-                "very error-prone, because models are often trained with templates different from the class default! "
-                "Default chat templates are a legacy feature and will be removed in Transformers v4.43, at which "
-                "point any code depending on them will stop working. We recommend setting a valid chat template before "
-                "then to ensure that this model continues working without issues."
-            )
-
-        return selected_template
-
-    @property
-    def tokenizer_name(self) -> str:
-        return self.tokenizer.name_or_path.replace("/", "__")
-
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
-        """
-        Method to apply a chat template to a list of chat history between user and model.
-        """
-        try:
-            chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-        except jinja2.exceptions.TemplateError:
-            eval_logger.warning(
-                "Failed to apply chat template. removing the system role in chat history."
-            )
-            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
-            chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-
-        return chat_templated
+    tokenizer_name = HFLM.tokenizer_name
+    apply_chat_template = HFLM.apply_chat_template
 
     def _loglikelihood_tokens(
         self,
@@ -198,6 +80,7 @@ class MLX(TemplateLM):
         """
         try:
             import mlx.core as mx
+            from mlx_lm.tuner.trainer import input_length
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install mlx "
@@ -251,19 +134,49 @@ class MLX(TemplateLM):
         for i in indices:
             context_batch = []
             continuation_batch = []
+            batch = []
+            prompt_lengths = []
 
             for j in batch_idx[i]:
-                context, continuation = requests[j].args
-                context_batch.append(context)
-                continuation_batch.append(continuation)
-            (
-                batch,
-                input_lengths,
-                target_lengths,
-                non_padding_lengths,
-            ) = self.delineated_batches(
-                self.batch_size, context_batch, continuation_batch
-            )
+                prompt, completion = requests[j].args
+                prompt_lengths.append(input_length(prompt, completion, self.tokenizer))
+                full_sequence = self.tokenizer.apply_chat_template(
+                    [
+                        {"role": "user", "content": prompt},
+                        {"role": "assistant", "content": completion},
+                    ],
+                    tokenize=True,
+                    add_generation_prompt=True,
+                )
+                if full_sequence[-1] != self.tokenizer.eos_token_id:
+                    full_sequence.append(self.tokenizer.eos_token_id)
+                batch.append(full_sequence)
+
+            lengths = [len(x) for x in batch]
+
+            if max(lengths) > self.max_tokens:
+                print(
+                    f"[WARNING] Some sequences are longer than {self.max_tokens} tokens. "
+                    f"The longest sentence {max(lengths)} will be truncated to {self.max_tokens}. "
+                    "Consider pre-splitting your data to save memory."
+                )
+
+            # Pad to the nearest multiple of 8 or the maximum length
+            pad_to = 8
+            max_length_in_batch = pad_to * ((max(lengths) + pad_to - 1) // pad_to)
+            max_length_in_batch = min(max_length_in_batch, self.max_tokens)
+
+            batch_arr = np.zeros((self.batch_size, max_length_in_batch), np.int32)
+
+            for j in range(self.batch_size):
+                truncated_length = min(lengths[j], self.max_tokens)
+                batch_arr[j, :truncated_length] = batch[j][:truncated_length]
+                lengths[j] = (
+                    truncated_length  # Update lengths to match truncated lengths
+                )
+            batch = mx.array(batch_arr)
+            lengths = mx.array(lengths)
+            # yield mx.array(batch_arr), mx.array(prompt_lengths), mx.array(lengths)
 
             shifted_padded_full_sequence = batch[
                 :, :-1
@@ -279,8 +192,8 @@ class MLX(TemplateLM):
             flattened_token_indices = mx.arange(mask_width)
             token_indices = flattened_token_indices[None, :]
             mask = mx.logical_and(
-                token_indices >= input_lengths[:, None],
-                token_indices < non_padding_lengths[:, None],
+                token_indices >= prompt_lengths[:, None],
+                token_indices < lengths[:, None],
             )
 
             batch_greedy_tokens = logits.argmax(axis=-1)
@@ -294,14 +207,14 @@ class MLX(TemplateLM):
             # target length
             batch_target_is_greedy_values = masked_indicator_values.sum(
                 axis=-1
-            ) == mx.array(target_lengths)
+            ) == mx.array(lengths)
 
             # Iterate over question, answer pairs, their log softmax logits, and their greedy values
             for idx, (is_greedy, log_prob) in enumerate(
                 zip(batch_target_is_greedy_values, log_probs)
             ):
-                input_length = input_lengths[idx].item()
-                target_length = target_lengths[idx]
+                input_length = prompt_lengths[idx].item()
+                target_length = lengths[idx]
                 context = context_batch[idx]
                 continuation = continuation_batch[idx]
 
