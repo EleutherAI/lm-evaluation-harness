@@ -1,0 +1,5 @@
+dataset_name: English
+include: _default_template_yaml
+tag: milu-core
+task: milu_English
+task_alias: milu_English
