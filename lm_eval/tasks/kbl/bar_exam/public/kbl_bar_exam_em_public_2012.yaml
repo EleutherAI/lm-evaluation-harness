@@ -1,0 +1,5 @@
+task: kbl_bar_exam_em_public_2012
+dataset_kwargs:
+  data_files:
+    test: bar_exam/public/public2012.json
+include: _base_em_yaml

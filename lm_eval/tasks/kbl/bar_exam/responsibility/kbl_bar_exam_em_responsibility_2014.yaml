@@ -1,0 +1,5 @@
+task: kbl_bar_exam_em_responsibility_2014
+dataset_kwargs:
+  data_files:
+    test: bar_exam/responsibility/responsibility2014.json
+include: _base_em_yaml

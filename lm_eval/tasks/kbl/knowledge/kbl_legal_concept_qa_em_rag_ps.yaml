@@ -1,0 +1,6 @@
+task: kbl_legal_concept_qa_em_rag_ps
+dataset_kwargs:
+  data_files: 
+    test: knowledge/rag_ps/kbl_legal_concept_qa_v0.1.rag.json
+doc_to_text: !function 'utils_knowledge.doc_to_text_q_rag_n4'
+include: _kbl_knowledge_rag_yaml
