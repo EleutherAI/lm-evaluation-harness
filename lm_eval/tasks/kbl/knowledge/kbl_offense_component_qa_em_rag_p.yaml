@@ -1,6 +1,6 @@
 task: kbl_offense_component_qa_em_rag_p
 dataset_kwargs:
-  data_files: 
+  data_files:
     test: knowledge/rag_p/kbl_offense_component_qa_v0.1.rag.json
 doc_to_text: !function 'utils_knowledge.doc_to_text_q_rag_n2'
 include: _kbl_knowledge_rag_yaml

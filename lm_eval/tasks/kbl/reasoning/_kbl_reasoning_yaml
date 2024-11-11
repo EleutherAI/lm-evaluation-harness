@@ -11,11 +11,10 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: false
- 
+
 filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
         regex_pattern: "([A-E]).*"
       - function: "take_first"
-

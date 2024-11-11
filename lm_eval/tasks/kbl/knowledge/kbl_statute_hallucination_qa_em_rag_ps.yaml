@@ -1,6 +1,6 @@
 task: kbl_statute_hallucination_qa_em_rag_ps
 dataset_kwargs:
-  data_files: 
+  data_files:
     test: knowledge/rag_ps/kbl_statute_hallucination_qa_v0.1.rag.json
 doc_to_text: !function 'utils_knowledge.doc_to_text_qa2_rag_shortest_doc'
 include: _kbl_knowledge_rag_yaml

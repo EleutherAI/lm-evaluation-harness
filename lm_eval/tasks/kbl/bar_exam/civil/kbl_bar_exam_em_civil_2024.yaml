@@ -1,5 +1,5 @@
 task: kbl_bar_exam_em_civil_2023
 dataset_kwargs:
-  data_files: 
+  data_files:
     test: bar_exam/civil/civil2023.json
 include: _base_em_yaml
