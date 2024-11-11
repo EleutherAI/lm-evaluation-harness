@@ -1,7 +1,0 @@
-task: kbl_bar_exam_em_civil_2024_rag_ps
-dataset_kwargs:
-  data_files:
-    test: bar_exam/civil/rag_ps/civil2024.rag.json
-test_split: test
-doc_to_text: !function 'utils_bar_exam.doc_to_text_q_rag_n3'
-include: _base_em_rag_yaml
