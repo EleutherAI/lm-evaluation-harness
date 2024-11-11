@@ -171,7 +171,7 @@ def ls_process_results(doc, results):
 # ---------------------- NER ----------------------
 
 NO_ENT_STRING = "&&NOENT&&"
-NER_ENTITY_SEPARATOR = "%"
+NER_ENTITY_SEPARATOR = ","
 NER_TYPE_SEPARATOR = "$"
 NER_MAPPING_V2 = {"PER": 0, "LOC": 1, "ORG": 2, NO_ENT_STRING: 3, "O": 4}
 NER_MAPPING = {"PER": 0, "LOC": 1, "ORG": 2, "O": 3}
@@ -201,8 +201,9 @@ def ner_doc_to_target(doc):
         return NO_ENT_STRING
     else:
         for e in ents:
-            targ_str += e["entity_text"] + "$" + e["type"] + "%"
+            targ_str += e["entity_text"] + NER_TYPE_SEPARATOR + e["type"] + NER_ENTITY_SEPARATOR
     return targ_str[:-1]
+
 
 
 def ner_process_results(doc, results):
@@ -382,6 +383,9 @@ def _ner_process_raw_output_v2(llm_result: str) -> list[tuple]:
 
 
 # ---------------------- RELATION EXTRACTION ----------------------
+
+
+
 def _rel_process_raw_output(llm_result: str) -> list[str]:
     if NO_REL_STRING in llm_result:
         return []
@@ -407,6 +411,17 @@ def _rel_process_raw_output(llm_result: str) -> list[str]:
 INTER_REL_SEPARATOR = "%"
 INTRA_REL_SEPARATOR = "$"
 NO_REL_STRING = "&&NOREL&&"
+
+def re_doc_to_target(doc):
+    ents = doc["relations"]
+    targ_str = ""
+    # Entità$Tipo%Entità$Tipo.
+    if ents == []:
+        return NO_ENT_STRING
+    else:
+        for e in ents:
+            targ_str += e[0] + INTRA_REL_SEPARATOR + e[1] + INTER_REL_SEPARATOR
+    return targ_str[:-1]
 
 
 def _rel_gold_to_target(x: list) -> list:

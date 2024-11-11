@@ -1,12 +1,10 @@
 dataset_path: evalitahf/relation_extraction
 test_split: test
-fewshot_split: train
 output_type: generate_until
 generation_kwargs:
   until:
     - "</s>"
-#doc_to_target: relations 
-doc_to_target: !function utils.rel_doc_to_target
+doc_to_target: !function utils.re_doc_to_target
 process_results: !function utils.rel_process_results_v3
 metric_list: 
   - metric: f1 

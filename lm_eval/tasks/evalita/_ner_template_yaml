@@ -3,10 +3,9 @@ output_type: generate_until
 generation_kwargs:
   until:
     - "</s>"
-#doc_to_target: entities 
+    - "\n"
 doc_to_target: !function utils.ner_doc_to_target
 process_results: !function utils.ner_process_results
-#doc_to_text: "Given the following text, write the entity mentions in the text, indicating their type: [PER] (person), [LOC] (location), [ORG] (organization). Respond with the following format: Entity$Type. Separate each entity-type pair with the '%' character. Text: {{text}}"
 metric_list: 
   - metric: f1 
     higher_is_better: True
