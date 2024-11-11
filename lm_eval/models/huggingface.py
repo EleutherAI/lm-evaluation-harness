@@ -1384,7 +1384,7 @@ class HFLM(TemplateLM):
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
             except Exception as e:
-                eval_logger.warn(
+                eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
                 return ""
