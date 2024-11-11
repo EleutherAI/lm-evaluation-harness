@@ -1,0 +1,5 @@
+task: bluebench_legal_legalbench_function_of_decision_section
+include: unitxt
+recipe: recipes.bluebench.legal.legalbench_function_of_decision_section
+metadata:
+  version: 0

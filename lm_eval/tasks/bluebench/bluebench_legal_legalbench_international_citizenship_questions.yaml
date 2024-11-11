@@ -1,0 +1,5 @@
+task: bluebench_legal_legalbench_international_citizenship_questions
+include: unitxt
+recipe: recipes.bluebench.legal.legalbench_international_citizenship_questions
+metadata:
+  version: 0

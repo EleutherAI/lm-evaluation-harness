@@ -1,0 +1,5 @@
+task: bluebench_translation_mt_flores_101_ron_eng
+include: unitxt
+recipe: recipes.bluebench.translation.mt_flores_101_ron_eng
+metadata:
+  version: 0

@@ -1,0 +1,5 @@
+task: bluebench_entity_extraction_universal_ner_en_ewt
+include: unitxt
+recipe: recipes.bluebench.entity_extraction.universal_ner_en_ewt
+metadata:
+  version: 0

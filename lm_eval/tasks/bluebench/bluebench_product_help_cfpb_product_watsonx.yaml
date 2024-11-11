@@ -1,0 +1,5 @@
+task: bluebench_product_help_cfpb_product_watsonx
+include: unitxt
+recipe: recipes.bluebench.product_help.cfpb_product_watsonx
+metadata:
+  version: 0

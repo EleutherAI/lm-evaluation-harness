@@ -1,0 +1,15 @@
+group: bluebench_bias
+task:
+  - "bluebench_bias_safety_bbq_age"
+  - "bluebench_bias_safety_bbq_disability_status"
+  - "bluebench_bias_safety_bbq_gender_identity"
+  - "bluebench_bias_safety_bbq_nationality"
+  - "bluebench_bias_safety_bbq_physical_appearance"
+  - "bluebench_bias_safety_bbq_race_ethnicity"
+  - "bluebench_bias_safety_bbq_race_x_ses"
+  - "bluebench_bias_safety_bbq_race_x_gender"
+  - "bluebench_bias_safety_bbq_religion"
+  - "bluebench_bias_safety_bbq_ses"
+  - "bluebench_bias_safety_bbq_sexual_orientation"
+metadata:
+  version: 0

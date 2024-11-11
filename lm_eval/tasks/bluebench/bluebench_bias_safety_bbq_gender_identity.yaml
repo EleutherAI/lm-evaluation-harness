@@ -1,0 +1,5 @@
+task: bluebench_bias_safety_bbq_gender_identity
+include: unitxt
+recipe: recipes.bluebench.bias.safety_bbq_gender_identity
+metadata:
+  version: 0

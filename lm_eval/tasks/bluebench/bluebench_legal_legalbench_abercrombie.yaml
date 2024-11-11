@@ -1,0 +1,5 @@
+task: bluebench_legal_legalbench_abercrombie
+include: unitxt
+recipe: recipes.bluebench.legal.legalbench_abercrombie
+metadata:
+  version: 0

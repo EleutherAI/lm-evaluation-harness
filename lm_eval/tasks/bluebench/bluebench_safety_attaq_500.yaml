@@ -1,0 +1,5 @@
+task: bluebench_safety_attaq_500
+include: unitxt
+recipe: recipes.bluebench.safety.attaq_500
+metadata:
+  version: 0

@@ -1,0 +1,6 @@
+group: bluebench_summarization
+task:
+  - "bluebench_summarization_billsum_document_filtered_to_6000_chars"
+  - "bluebench_summarization_tldr_document_filtered_to_6000_chars"
+metadata:
+  version: 0

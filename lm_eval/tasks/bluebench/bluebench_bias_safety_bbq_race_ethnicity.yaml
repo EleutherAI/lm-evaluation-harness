@@ -1,0 +1,5 @@
+task: bluebench_bias_safety_bbq_race_ethnicity
+include: unitxt
+recipe: recipes.bluebench.bias.safety_bbq_race_ethnicity
+metadata:
+  version: 0

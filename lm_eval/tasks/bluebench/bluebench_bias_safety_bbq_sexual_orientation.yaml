@@ -1,0 +1,5 @@
+task: bluebench_bias_safety_bbq_sexual_orientation
+include: unitxt
+recipe: recipes.bluebench.bias.safety_bbq_sexual_orientation
+metadata:
+  version: 0

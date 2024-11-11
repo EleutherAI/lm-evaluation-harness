@@ -1,0 +1,87 @@
+group: bluebench
+task:
+- group: "bluebench_reasoning"
+  task:
+    - "bluebench_reasoning_hellaswag"
+    - "bluebench_reasoning_openbook_qa"
+- group: "bluebench_translation"
+  task:
+    - "bluebench_translation_mt_flores_101_ara_eng"
+    - "bluebench_translation_mt_flores_101_deu_eng"
+    - "bluebench_translation_mt_flores_101_eng_ara"
+    - "bluebench_translation_mt_flores_101_eng_deu"
+    - "bluebench_translation_mt_flores_101_eng_fra"
+    - "bluebench_translation_mt_flores_101_eng_kor"
+    - "bluebench_translation_mt_flores_101_eng_por"
+    - "bluebench_translation_mt_flores_101_eng_ron"
+    - "bluebench_translation_mt_flores_101_eng_spa"
+    - "bluebench_translation_mt_flores_101_fra_eng"
+    - "bluebench_translation_mt_flores_101_jpn_eng"
+    - "bluebench_translation_mt_flores_101_kor_eng"
+    - "bluebench_translation_mt_flores_101_por_eng"
+    - "bluebench_translation_mt_flores_101_ron_eng"
+    - "bluebench_translation_mt_flores_101_spa_eng"
+- group: "bluebench_chatbot_abilities"
+  task:
+    - "bluebench_chatbot_abilities_arena_hard_generation_english_gpt_4_0314_reference"
+- group: "bluebench_news_classification"
+  task:
+    - "bluebench_news_classification_20_newsgroups"
+- group: "bluebench_bias"
+  task:
+    - "bluebench_bias_safety_bbq_age"
+    - "bluebench_bias_safety_bbq_disability_status"
+    - "bluebench_bias_safety_bbq_gender_identity"
+    - "bluebench_bias_safety_bbq_nationality"
+    - "bluebench_bias_safety_bbq_physical_appearance"
+    - "bluebench_bias_safety_bbq_race_ethnicity"
+    - "bluebench_bias_safety_bbq_race_x_ses"
+    - "bluebench_bias_safety_bbq_race_x_gender"
+    - "bluebench_bias_safety_bbq_religion"
+    - "bluebench_bias_safety_bbq_ses"
+    - "bluebench_bias_safety_bbq_sexual_orientation"
+- group: "bluebench_legal"
+  task:
+    - "bluebench_legal_legalbench_abercrombie"
+    - "bluebench_legal_legalbench_proa"
+    - "bluebench_legal_legalbench_function_of_decision_section"
+    - "bluebench_legal_legalbench_international_citizenship_questions"
+    - "bluebench_legal_legalbench_corporate_lobbying"
+- group: "bluebench_product_help"
+  task:
+    - "bluebench_product_help_cfpb_product_watsonx"
+    - "bluebench_product_help_cfpb_product_2023"
+- group: "bluebench_knowledge"
+  task:
+    - "bluebench_knowledge_mmlu_pro_history"
+    - "bluebench_knowledge_mmlu_pro_law"
+    - "bluebench_knowledge_mmlu_pro_health"
+    - "bluebench_knowledge_mmlu_pro_physics"
+    - "bluebench_knowledge_mmlu_pro_business"
+    - "bluebench_knowledge_mmlu_pro_other"
+    - "bluebench_knowledge_mmlu_pro_philosophy"
+    - "bluebench_knowledge_mmlu_pro_psychology"
+    - "bluebench_knowledge_mmlu_pro_economics"
+    - "bluebench_knowledge_mmlu_pro_math"
+    - "bluebench_knowledge_mmlu_pro_biology"
+    - "bluebench_knowledge_mmlu_pro_chemistry"
+    - "bluebench_knowledge_mmlu_pro_computer_science"
+    - "bluebench_knowledge_mmlu_pro_engineering"
+- group: "bluebench_entity_extraction"
+  task:
+    - "bluebench_entity_extraction_universal_ner_en_ewt"
+- group: "bluebench_safety"
+  task:
+    - "bluebench_safety_attaq_500"
+- group: "bluebench_summarization"
+  task:
+    - "bluebench_summarization_billsum_document_filtered_to_6000_chars"
+    - "bluebench_summarization_tldr_document_filtered_to_6000_chars"
+- group: "bluebench_rag_general"
+  task:
+    - "bluebench_rag_general_rag_response_generation_clapnq"
+- group: "bluebench_qa_finance"
+  task:
+    - "bluebench_qa_finance_fin_qa"
+metadata:
+  version: 0

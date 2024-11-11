@@ -1,0 +1,6 @@
+group: bluebench_reasoning
+task:
+  - "bluebench_reasoning_hellaswag"
+  - "bluebench_reasoning_openbook_qa"
+metadata:
+  version: 0

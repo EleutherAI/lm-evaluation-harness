@@ -1,0 +1,5 @@
+task: bluebench_knowledge_mmlu_pro_biology
+include: unitxt
+recipe: recipes.bluebench.knowledge.mmlu_pro_biology
+metadata:
+  version: 0

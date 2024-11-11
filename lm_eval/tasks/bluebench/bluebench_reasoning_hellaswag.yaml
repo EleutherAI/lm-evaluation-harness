@@ -1,0 +1,5 @@
+task: bluebench_reasoning_hellaswag
+include: unitxt
+recipe: recipes.bluebench.reasoning.hellaswag
+metadata:
+  version: 0

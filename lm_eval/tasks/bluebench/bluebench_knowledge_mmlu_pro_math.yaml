@@ -1,0 +1,5 @@
+task: bluebench_knowledge_mmlu_pro_math
+include: unitxt
+recipe: recipes.bluebench.knowledge.mmlu_pro_math
+metadata:
+  version: 0
