@@ -55,6 +55,7 @@
 | [hendrycks_math](hendrycks_math/README.md) | Mathematical problem-solving tasks to test numerical reasoning and problem-solving. | English |
 | [ifeval](ifeval/README.md) | Interactive fiction evaluation tasks for narrative understanding and reasoning. | English |
 | [inverse_scaling](inverse_scaling/README.md) | Multiple-choice tasks from the Inverse Scaling Prize, designed to find settings where larger language models perform worse. | English |
+| [japanese_leaderboard](japanese_leaderboard/README.md) | Japanese language understanding tasks to benchmark model performance on various linguistic aspects. | Japanese |
 | [kmmlu](kmmlu/README.md) | Knowledge-based multi-subject multiple choice questions for academic evaluation. | Korean |
 | [kobest](kobest/README.md) | A collection of tasks designed to evaluate understanding in Korean language. | Korean |
 | [kormedmcqa](kormedmcqa/README.md) | Medical question answering tasks in Korean to test specialized domain knowledge. | Korean |
@@ -73,7 +74,8 @@
 | medqa | Multiple choice question answering based on the United States Medical License Exams. | |
 | [mgsm](mgsm/README.md) | Benchmark of multilingual grade-school math problems. | Spanish, French, German, Russian, Chinese, Japanese, Thai, Swahili, Bengali, Telugu |
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
-| mmlu | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
+| [mmlu](mmlu/README.md) | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
+| [mmlu_pro](mmlu_pro/README.md) | A refined set of MMLU, integrating more challenging, reasoning-focused questions and expanding the choice set from four to ten options. | English |
 | [mmlusr](mmlusr/README.md) | Variation of MMLU designed to be more rigorous. | English |
 | model_written_evals | Evaluation tasks auto-generated for evaluating a collection of AI Safety concerns. | |
 | [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
@@ -124,5 +126,6 @@
 | [xcopa](xcopa/README.md) | Cross-lingual Choice of Plausible Alternatives, testing reasoning in multiple languages. | Estonian, Haitian, Indonesian, Italian, Quechua, Swahili, Tamil, Thai, Turkish, Vietnamese, Chinese |
 | [xnli](xnli/README.md) | Cross-Lingual Natural Language Inference to test understanding across different languages. | Arabic, Bulgarian, German, Greek, English, Spanish, French, Hindi, Russian, Swahili, Thai, Turkish, Urdu, Vietnamese, Chinese |
 | [xnli_eu](xnli_eu/README.md) | Cross-lingual Natural Language Inference tasks in Basque. | Basque |
+| [xquad](xquad/README.md) | Cross-lingual Question Answering Dataset in multiple languages. | Arabic, German, Greek, English, Spanish, Hindi, Romanian, Russian, Thai, Turkish, Vietnamese, Chinese |
 | [xstorycloze](xstorycloze/README.md) | Cross-lingual narrative understanding tasks to predict story endings in multiple languages. | Russian, Simplified Chinese, Spanish, Arabic, Hindi, Indonesian, Telugu, Swahili, Basque, Burmese |
 | [xwinograd](xwinograd/README.md) | Cross-lingual Winograd schema tasks for coreference resolution in multiple languages. | English, French, Japanese, Portuguese, Russian, Chinese |

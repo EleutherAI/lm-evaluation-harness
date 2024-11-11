@@ -431,7 +431,12 @@ class TemplateLM(LM):
         using_default_template = False
 
         # First, handle the cases when the model has a dict of multiple templates
-        template = self.tokenizer.chat_template or self.tokenizer.default_chat_template
+        try:
+            template = (
+                self.tokenizer.chat_template or self.tokenizer.default_chat_template
+            )
+        except AttributeError:
+            return None
 
         if isinstance(template, dict):
             using_default_dict = self.tokenizer.chat_template is None

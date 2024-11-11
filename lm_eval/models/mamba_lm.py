@@ -69,8 +69,8 @@ class MambaLMWrapper(HFLM):
     ) -> None:
         try:
             from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
 please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
             )
@@ -88,8 +88,8 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
     ) -> None:
         try:
             from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel  # noqa: F811
-        except ModuleNotFoundError:
-            raise Exception(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
 please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
             )
