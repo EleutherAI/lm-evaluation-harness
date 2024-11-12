@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 def get_wandb_printer() -> Literal["Printer"]:
     """Returns a wandb printer instance for pretty stdout."""
-    from wandb.sdk.lib.printer import get_printer
+    from wandb.sdk.lib.printer import new_printer
     from wandb.sdk.wandb_settings import Settings
 
-    printer = get_printer(Settings()._jupyter)
+    printer = new_printer(Settings()._jupyter)
     return printer
 
 
