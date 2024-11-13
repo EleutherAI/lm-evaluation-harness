@@ -1,4 +1,6 @@
-task: biology_ds
+tag:
+  - biology_ds
+task: biology_ds_gen
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
@@ -7,14 +9,17 @@ output_type: generate_until
 training_split: null
 validation_split: null
 test_split: train
+description: "Answer these questions:\n\n"
 doc_to_text: "Question: {{question}}?\nAnswer:"
-doc_to_target: "{{correct_answers}}"
+doc_to_target: "{{answer}}"
 should_decontaminate: true
 doc_to_decontamination_query: question
+fewshot_delimiter: "\n"
 generation_kwargs:
   until:
     - "\n"
     - "."
+    - ","
   do_sample: false
   temperature: 0.0
 filter_list:
@@ -29,11 +34,7 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
-    aggregation: mean
-    higher_is_better: true
+    regexes_to_ignore:
+    - "\\b(?:The |the |An |A |The |a |an )"
 metadata:
-  version: 1.0
+  version: 0.0
