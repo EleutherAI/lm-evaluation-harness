@@ -14,16 +14,20 @@
 
 import json
 import os
-import re
 from functools import partial
+from itertools import combinations
 from typing import Any, Dict, List
 
 import datasets
 import numpy as np
 
 from lm_eval.tasks.score import utils
-from lm_eval.tasks.score.math.math_grader import math_equal
-from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
+from lm_eval.tasks.score.math.math_grader import (
+    extract_answer,
+    math_equal,
+    normalize_answer_string,
+)
+from lm_eval.tasks.score.utils import robustness_doc_to_text
 from lm_eval.utils import eval_logger
 
 
@@ -31,250 +35,7 @@ TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.j
 
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
 
-math_prompt_consistency_rate = prompt_consistency_rate
 math_robustness_doc_to_text = robustness_doc_to_text
-
-
-def _remove_right_units(expr):
-    # "\\text{ " only ever occurs (at least in the val set) when describing units
-    if "\\text" in expr:
-        try:
-            splits = re.split(r"\\text\s*{\s*", expr)
-            # print(splits)
-            assert len(splits) == 2 and splits[0] not in ("", "(")
-            return splits[0]
-        except AssertionError:
-            pass
-
-    if "\\text{" in expr:
-        return re.sub(r"\\text{([^}]+)}", r"\1", expr)
-    elif "\\mbox{" in expr:
-        splits = expr.split("\\mbox{")
-        assert len(splits) == 2
-        return splits[0]
-    else:
-        return expr
-
-
-def _process_and_or_inside_text(string):
-    string = re.sub(r"\s*\\text{\s*(or|and)\s*}\s*", ",", string)
-    string = re.sub(r",\s*,", ",", string)
-    return string
-
-
-def _remove_left_and_right(expr):
-    """Remove the right and left latex commands."""
-    expr = re.sub(r"\\left", "", expr)
-    expr = re.sub(r"\\right", "", expr)
-    return expr
-
-
-def _fix_sqrt(string):
-    _string = re.sub(r"\\sqrt(\s*\w+)", r"\\sqrt{\1}", string)
-    return _string
-
-
-def _fix_interval(expr):
-    """Fix interval expression."""
-    if "\\in " in expr:
-        return expr.split("\\in ")[1].strip()
-
-    return expr
-
-
-def _fix_fracs(string):
-    # replacing all extra spaces
-    while "\\frac " in string:
-        string = string.replace("\\frac ", "\\frac")
-    substrs = string.split("\\frac")
-    new_str = substrs[0]
-    if len(substrs) > 1:
-        substrs = substrs[1:]
-        for substr in substrs:
-            new_str += "\\frac"
-            if len(substr) > 0 and substr[0] == "{":
-                new_str += substr
-            else:
-                try:
-                    assert len(substr) >= 2
-                except AssertionError:
-                    return string
-                a = substr[0]
-                b = substr[1]
-                if b != "{":
-                    if len(substr) > 2:
-                        post_substr = substr[2:]
-                        new_str += "{" + a + "}{" + b + "}" + post_substr
-                    else:
-                        new_str += "{" + a + "}{" + b + "}"
-                else:
-                    if len(substr) > 2:
-                        post_substr = substr[2:]
-                        new_str += "{" + a + "}" + b + post_substr
-                    else:
-                        new_str += "{" + a + "}" + b
-    string = new_str
-    return string
-
-
-def _str_is_int(x: str) -> bool:
-    try:
-        x = _strip_properly_formatted_commas(x)
-        x = float(x)
-        return abs(x - int(round(x))) <= 1e-7
-    except Exception:
-        return False
-
-
-def _str_to_int(x: str) -> bool:
-    x = x.replace(",", "")
-    if "_" in x:
-        # Due to base
-        x = x.split("_")[0]
-    x = float(x)
-    return int(x)
-
-
-def _inject_implicit_mixed_number(step: str):
-    """
-    Automatically make a mixed number evalable
-    e.g. 7 3/4 => 7+3/4
-    """
-    p1 = re.compile("([0-9]) +([0-9])")
-    step = p1.sub("\\1+\\2", step)  # implicit mults
-    return step
-
-
-def _strip_properly_formatted_commas(expr: str):
-    # We want to be careful because we don't want to strip tuple commas
-    p1 = re.compile("(\d)(,)(\d\d\d)($|\D)")
-    while True:
-        next_expr = p1.sub("\\1\\3\\4", expr)
-        if next_expr == expr:
-            break
-        expr = next_expr
-    return next_expr
-
-
-def _inject_implicit_mixed_fraction(step: str):
-    """
-    Automatically make a mixed number evalable
-    e.g. 7 \\frac{3}{4} => 7+3/4
-    """
-    p1 = re.compile(r"(\d+) *\\frac{(\d+)}{(\d+)}")
-
-    def replacer(match):
-        whole_part = match.group(1)
-        numerator = match.group(2)
-        denominator = match.group(3)
-
-        if whole_part:
-            return f"{whole_part} + {numerator}/{denominator}"
-        else:
-            return f"{numerator}/{denominator}"
-
-    step = p1.sub(replacer, step)
-    return step
-
-
-def normalize_answer_string(expr: str) -> str:
-    """Normalize answer expressions."""
-    if expr is None:
-        return None
-
-    # Remove enclosing `\text{}`.
-
-    expr = _remove_left_and_right(expr)
-    expr = _process_and_or_inside_text(expr)
-    expr = _remove_right_units(expr)
-    expr = _fix_interval(expr)
-    for surround_str in [
-        "\\\\text",
-        "\\\\mathrm",
-        "\\\\mathcal",
-        "\\\\textbf",
-        "\\\\textit",
-    ]:
-        expr = expr.replace(surround_str, "")
-        pattern = f"^{surround_str}" + "\{(?P<text>.+?)\}$"
-        m = re.search(pattern, expr)
-        if m is not None:
-            expr = m.group("text")
-
-    expr = expr.replace("\!", "")
-    expr = expr.replace("\\%", "%")
-    expr = expr.replace("\\$", "$")
-    expr = expr.replace("$", "")
-    expr = expr.replace("%", "")
-    expr = expr.replace("^{\\circ}", "")
-
-    expr = expr.replace(" or ", " , ")
-    expr = expr.replace(" and ", " , ")
-
-    expr = expr.replace("million", "*10^6")
-    expr = expr.replace("billion", "*10^9")
-    expr = expr.replace("trillion", "*10^12")
-
-    for unit in [
-        "degree",
-        "cm",
-        "centimeter",
-        "meter",
-        "mile",
-        "second",
-        "minute",
-        "hour",
-        "week",
-        "month",
-        "year",
-        "foot",
-        "feet",
-        "inch",
-        "yard",
-        "p.m.",
-        "PM",
-    ]:
-        expr = re.sub(f"{unit}(es)?(s)? *(\^[0-9]+)?", "", expr)
-
-    if "day" in expr:
-        days = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-        ]
-        weekday_expressed = False
-        for day in days:
-            if day in expr:
-                weekday_expressed = True
-                break
-
-        if not weekday_expressed:
-            expr = re.sub("day(s)?", "", expr)
-
-    expr = re.sub("\^ *\\\\circ", "", expr)
-
-    if len(expr) > 0 and expr[0] == "{" and expr[-1] == "}":
-        expr = expr[1:-1]
-
-    expr = _fix_sqrt(expr)
-
-    # \frac1b or \frac12 --> \frac{1}{b} and \frac{1}{2}, etc. Even works with \frac1{72} (but not \frac{72}1). Also does a/b --> \\frac{a}{b}
-    expr = _fix_fracs(expr)
-
-    # edge case with mixed numbers and negative signs
-    expr = re.sub("- *", "-", expr)
-    expr = _inject_implicit_mixed_number(expr)
-    expr = _inject_implicit_mixed_fraction(expr)
-    expr = expr.replace(" ", "")
-
-    if _str_is_int(expr):
-        expr = str(_str_to_int(expr))
-
-    return expr
 
 
 def find_boxed_entries(answer_str):
@@ -325,7 +86,7 @@ def find_boxed_entries(answer_str):
             return results
 
 
-def extract_answer(solution: str, problem: str, corrected_answers: list) -> str:
+def extract_answer_dataset(solution: str, problem: str, corrected_answers: list) -> str:
     entries = find_boxed_entries(solution)
 
     if len(entries) == 1:
@@ -358,7 +119,9 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "question": doc["problem"],
             "question_id": idx,
             "solution": doc["solution"],
-            "answer": extract_answer(doc["solution"], doc["problem"], corrected_answer),
+            "answer": extract_answer_dataset(
+                doc["solution"], doc["problem"], corrected_answer
+            ),
         }
         return out_doc
 
@@ -384,16 +147,7 @@ def prompt_robustness_process_docs(doc: datasets.Dataset) -> datasets.Dataset:
 
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    candidates = results[0]
-    try:
-        entries = find_boxed_entries(candidates)
-    except ValueError:
-        entries = []
-
-    if len(entries) == 0:
-        answer = None
-    else:
-        answer = entries[-1]
+    answer = extract_answer(results[0])
 
     if math_equal(answer, doc["answer"]):
         retval = 1
@@ -404,6 +158,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     results = {
         f"{prompt_id}_accuracy": (prompt_id, retval),
+        "consistency_rate": (doc["question_id"], doc["answer"]),
     }
     return results
 
@@ -432,3 +187,49 @@ per_prompt_accuracy_6 = partial(per_prompt_accuracy, p_id=6)
 per_prompt_accuracy_7 = partial(per_prompt_accuracy, p_id=7)
 per_prompt_accuracy_8 = partial(per_prompt_accuracy, p_id=8)
 per_prompt_accuracy_9 = partial(per_prompt_accuracy, p_id=9)
+
+
+def calculate_consistency_rate(responses: List[List[str]]) -> float:
+    """
+    Calculate the Consistency Rate (CR) for a given set of responses.
+
+    Args:
+    responses: List of lists, where each inner list contains responses to the same question.
+
+    Returns:
+    The consistency rate as a float.
+    """
+    total_similarity = 0
+    total_combinations = 0
+
+    for response_set in responses:
+        pairs = combinations(response_set, 2)
+        num_pairs = len(response_set) * (len(response_set) - 1) / 2
+        total_combinations += num_pairs
+        for answer1, answer2 in pairs:
+            total_similarity += int(math_equal(answer1, answer2))
+
+    return total_similarity / total_combinations if total_combinations > 0 else 0.0
+
+
+def math_prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
+    """
+    Calculate the Consistency Rate (CR) for a given set of responses.
+
+    Args:
+    responses: List of lists, where each inner list contains responses to the same question.
+
+    Returns:
+    The consistency rate as a float.
+    """
+    question_answers_dict = {}
+
+    for result in results:
+        question_id, answer = result
+        if question_id not in question_answers_dict:
+            question_answers_dict[question_id] = []
+        question_answers_dict[question_id].append(answer)
+
+    question_answers_list = [answers for answers in question_answers_dict.values()]
+
+    return calculate_consistency_rate(question_answers_list)
