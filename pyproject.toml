@@ -77,6 +77,7 @@ vllm = ["vllm>=0.4.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 gptqmodel = ["gptqmodel>=1.0.9"]
+japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
@@ -96,6 +97,7 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[zeno]",
     "lm_eval[wandb]",
+    "lm_eval[japanese_leaderboard]",
 ]
 
 [tool.ruff.lint]
