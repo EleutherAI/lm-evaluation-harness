@@ -4,7 +4,7 @@ task: biology_ds_gen
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
-  data_files: /projects/bcky/deema/research/lm-evaluation-harness/lm_eval/tasks/biology_ds/biology_ds.json
+  data_files: /lm-evaluation-harness/lm_eval/tasks/biology_ds/biology_ds.json
 output_type: generate_until
 training_split: null
 validation_split: null
