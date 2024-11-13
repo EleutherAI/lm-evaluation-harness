@@ -157,7 +157,9 @@ def robustness_doc_to_text(doc: Dataset) -> str:
 def __postprocess_pred(pred):
     if "the best answer is" not in pred.lower():
         return pred
-    pred_proc = pred.lower().split("the best answer is ")[-1].split(" ")[0]
+    pred_proc = (
+        pred.lower().split("the best answer is ")[-1].split("\n")[0].split(" ")[0]
+    )
     pred_proc = re.sub(r"[^a-zA-Z0-9]", "", pred_proc).strip()
     return pred_proc.upper()
 

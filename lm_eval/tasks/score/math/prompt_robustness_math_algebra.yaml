@@ -24,6 +24,7 @@ doc_to_target: answer
 generation_kwargs:
   do_sample: false
   temperature: 0
+  max_gen_toks: 1024
 metric_list:
   - metric: 0_accuracy
     aggregation:  !function utils_math.per_prompt_accuracy_0
