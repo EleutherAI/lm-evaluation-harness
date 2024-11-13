@@ -16,23 +16,39 @@ class LogLikelihoodResult(NamedTuple):
     is_greedy: bool
 
 
+def _verify_credentials(creds: Any) -> None:
+    """
+    Verifies that all required keys are present in the credentials dictionary.
+    Args:
+        creds (Any): A dictionary containing the credentials.
+    Raises:
+        ValueError: If any of the necessary credentials are missing, with guidance on which environment variables need to be set.
+    """
+    required_keys = ["apikey", "url", "project_id"]
+    env_var_mapping = {
+        "apikey": "WATSONX_API_KEY",
+        "url": "WATSONX_URL",
+        "project_id": "WATSONX_PROJECT_ID",
+    }
+    missing_keys = [key for key in required_keys if key not in creds or not creds[key]]
+
+    if missing_keys:
+        missing_env_vars = [env_var_mapping[key] for key in missing_keys]
+        raise ValueError(
+            f"Missing required credentials: {', '.join(missing_keys)}. Please set the following environment variables: {', '.join(missing_env_vars)}"
+        )
+
+
 @lru_cache(maxsize=None)
 def get_watsonx_credentials() -> Dict[str, str]:
     """
-    Retrieves Watsonx API credentials from environmental variables or from a configuration file.
-    Args:
-        env_name (str, optional): The name of the environment from which to retrieve credentials. Defaults to "YP_QA".
+    Retrieves Watsonx API credentials from environmental variables.
     Returns:
         Dict[str, str]: A dictionary containing the credentials necessary for authentication, including
                         keys such as `apikey`, `url`, and `project_id`.
     Raises:
-        AssertionError: If the credentials format is invalid.
+        AssertionError: If the credentials format is invalid or any of the necessary credentials are missing.
     """
-
-    def _verify_credentials(creds: Any) -> None:
-        assert isinstance(creds, Dict) and all(
-            key in creds.keys() for key in ["apikey", "url", "project_id"]
-        ), "Wrong configuration for credentials."
 
     credentials = {
         "apikey": os.getenv("WATSONX_API_KEY", None),
@@ -68,6 +84,8 @@ class WatsonxLLM(LM):
             )
 
         args = simple_parse_args_string(arg_string)
+        args.update(additional_config)
+
         model_id = args.pop("model_id", None)
         if model_id is None:
             raise ValueError("'model_id' is required, please pass it in 'model_args'")
@@ -120,7 +138,7 @@ class WatsonxLLM(LM):
             from ibm_watsonx_ai.foundation_models import ModelInference
         except ImportError:
             raise ImportError(
-                "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
+                "Could not import ibm_watsonx_ai: Please install lm_eval[ibm_watsonx_ai] package."
             )
         super().__init__()
         client = APIClient(watsonx_credentials)
@@ -135,12 +153,6 @@ class WatsonxLLM(LM):
             project_id=project_id,
         )
         self._model_id = model_id
-
-    def dump_parameters(self):
-        """
-        Dumps the model's parameters into a serializable format.
-        """
-        return self._parameters.model_dump()
 
     @staticmethod
     def _has_stop_token(response_tokens: List[str], context_tokens: List[str]) -> bool:
@@ -267,12 +279,13 @@ class WatsonxLLM(LM):
                 "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
             )
         self._check_model_logprobs_support()
-        generate_params = copy.deepcopy(self.generate_params)
+        generate_params = copy.copy(self.generate_params)
         generate_params[GenParams.MAX_NEW_TOKENS] = 1
 
         requests = [request.args for request in requests]
         results: List[LogLikelihoodResult] = []
 
+        # Note: We're not using batching due to (current) indeterminism of loglikelihood values when sending batch of requests
         for request in tqdm(
             requests,
             desc="Running loglikelihood function ...",
@@ -334,6 +347,7 @@ class WatsonxLLM(LM):
         requests = [request.args for request in requests]
         results: List[LogLikelihoodResult] = []
 
+        # Note: We're not using batching due to (current) indeterminism of loglikelihood values when sending batch of requests
         for request in tqdm(
             requests,
             desc="Running loglikelihood_rolling function ...",
