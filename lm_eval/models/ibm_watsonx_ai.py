@@ -80,7 +80,7 @@ class WatsonxLLM(LM):
             from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
         except ImportError:
             raise ImportError(
-                "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
+                "Could not import ibm_watsonx_ai: Please install lm_eval[ibm_watsonx_ai] package."
             )
 
         args = simple_parse_args_string(arg_string)
@@ -276,7 +276,7 @@ class WatsonxLLM(LM):
             from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
         except ImportError:
             raise ImportError(
-                "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
+                "Could not import ibm_watsonx_ai: Please install lm_eval[ibm_watsonx_ai] package."
             )
         self._check_model_logprobs_support()
         generate_params = copy.copy(self.generate_params)
@@ -338,7 +338,7 @@ class WatsonxLLM(LM):
             from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
         except ImportError:
             raise ImportError(
-                "Could not import ibm_watsonx_ai: Please install ibm_watsonx_ai package."
+                "Could not import ibm_watsonx_ai: Please install lm_eval[ibm_watsonx_ai] package."
             )
         self._check_model_logprobs_support()
         generate_params = copy.deepcopy(self.generate_params)
