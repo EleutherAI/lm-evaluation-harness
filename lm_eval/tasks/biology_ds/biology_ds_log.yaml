@@ -1,48 +1,3 @@
-# task: biology_ds
-# dataset_path: json
-# dataset_name: null
-# dataset_kwargs:
-#   data_files: /projects/bcky/deema/research/lm-evaluation-harness/lm_eval/tasks/biology_ds/biology_ds.json
-# output_type: loglikelihood
-# training_split: null
-# validation_split: null
-# test_split: train
-# description: "Answer these questions:\n\n"
-# doc_to_text: "Question: {{question}}?\nAnswer:"
-# doc_to_target: "{{answer}}"
-# should_decontaminate: true
-# doc_to_decontamination_query: question
-# fewshot_delimiter: "\n"
-# generation_kwargs:
-#   until:
-#     - "\n"
-#     - "."
-#     - ","
-#   do_sample: false
-#   temperature: 0.0
-# filter_list:
-#   - name: remove_whitespace
-#     filter:
-#       - function: remove_whitespace
-#       - function: take_first
-# target_delimiter: " "
-# metric_list:
-#   - metric: exact_match
-#     aggregation: mean
-#     higher_is_better: true
-#     ignore_case: true
-#     ignore_punctuation: true
-#     regexes_to_ignore:
-#     - "\\b(?:The |the |An |A |The |a |an )"
-#   - metric: acc
-#     aggregation: mean
-#     higher_is_better: true
-#   - metric: acc_norm
-#     aggregation: mean
-#     higher_is_better: true
-# metadata:
-#   version: 0.0
-
 tag:
   - biology_ds
 task: biology_ds_log
@@ -57,7 +12,7 @@ test_split: train
 description: "Answer these questions:\n\n"
 doc_to_text: "Question: {{question}}?\nAnswer:"
 doc_to_target: "{{answer}}"
-should_decontaminate: true
+should_decontaminate: True
 doc_to_decontamination_query: question
 fewshot_delimiter: "\n"
 target_delimiter: " "
@@ -67,6 +22,9 @@ metric_list:
     higher_is_better: true
   - metric: acc
     aggregation: mean
+    higher_is_better: true
+  - metric: perplexity
+    aggregation: perplexity
     higher_is_better: true
 metadata:
   version: 0.0
