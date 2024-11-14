@@ -15,6 +15,7 @@
 import json
 import os
 from functools import partial
+from itertools import combinations
 from typing import Any, Dict, List
 
 import datasets
@@ -26,7 +27,7 @@ from lm_eval.tasks.score.math.math_grader import (
     math_equal,
     normalize_answer_string,
 )
-from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
+from lm_eval.tasks.score.utils import robustness_doc_to_text
 from lm_eval.utils import eval_logger
 
 
@@ -34,7 +35,6 @@ TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.j
 
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
 
-math_prompt_consistency_rate = prompt_consistency_rate
 math_robustness_doc_to_text = robustness_doc_to_text
 
 
@@ -186,3 +186,49 @@ per_prompt_accuracy_6 = partial(per_prompt_accuracy, p_id=6)
 per_prompt_accuracy_7 = partial(per_prompt_accuracy, p_id=7)
 per_prompt_accuracy_8 = partial(per_prompt_accuracy, p_id=8)
 per_prompt_accuracy_9 = partial(per_prompt_accuracy, p_id=9)
+
+
+def calculate_consistency_rate(responses: List[List[str]]) -> float:
+    """
+    Calculate the Consistency Rate (CR) for a given set of responses.
+
+    Args:
+    responses: List of lists, where each inner list contains responses to the same question.
+
+    Returns:
+    The consistency rate as a float.
+    """
+    total_similarity = 0
+    total_combinations = 0
+
+    for response_set in responses:
+        pairs = combinations(response_set, 2)
+        num_pairs = len(response_set) * (len(response_set) - 1) / 2
+        total_combinations += num_pairs
+        for answer1, answer2 in pairs:
+            total_similarity += int(math_equal(answer1, answer2))
+
+    return total_similarity / total_combinations if total_combinations > 0 else 0.0
+
+
+def math_prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
+    """
+    Calculate the Consistency Rate (CR) for a given set of responses.
+
+    Args:
+    responses: List of lists, where each inner list contains responses to the same question.
+
+    Returns:
+    The consistency rate as a float.
+    """
+    question_answers_dict = {}
+
+    for result in results:
+        question_id, answer = result
+        if question_id not in question_answers_dict:
+            question_answers_dict[question_id] = []
+        question_answers_dict[question_id].append(answer)
+
+    question_answers_list = [answers for answers in question_answers_dict.values()]
+
+    return calculate_consistency_rate(question_answers_list)
