@@ -158,6 +158,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     results = {
         f"{prompt_id}_accuracy": (prompt_id, retval),
+        "consistency_rate": (doc["question_id"], doc["answer"]),
     }
     return results
 
