@@ -1,4 +1,5 @@
 task: kbl_statute_number_and_content_matching_qa_em
+dataset_name: kbl_knowledge_statute_number_and_content_matching_qa
 dataset_kwargs:
   data_files:
     test: knowledge/kbl_statute_matching_qa_number_and_content_matching_qa_v0.1.json

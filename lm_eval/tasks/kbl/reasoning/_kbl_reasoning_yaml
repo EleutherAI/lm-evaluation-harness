@@ -5,7 +5,6 @@ description: '당신은 사용자의 질문에 친절하고 논리적으로 답�
 dataset_path: lbox/kbl
 test_split: test
 output_type: generate_until
-doc_to_target: "{{label}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
