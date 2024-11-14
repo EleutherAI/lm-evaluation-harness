@@ -114,6 +114,18 @@ def join_iters(iters):
         yield from iter
 
 
+def chunks(iter, n=0, fn=None):
+    arr = []
+    for i, x in enumerate(iter):
+        arr.append(x)
+        if len(arr) == (fn(i) if fn else n):
+            yield arr
+            arr = []
+
+    if arr:
+        yield arr
+
+
 def group(arr, fn):
     res = collections.defaultdict(list)
 

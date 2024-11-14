@@ -74,6 +74,7 @@ def simple_evaluate(
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    tokenizer=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -132,6 +133,7 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param tokenizer: tokenizer object
 
     :return
         Dictionary of results
@@ -194,6 +196,8 @@ def simple_evaluate(
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
                     "device": device,
+                    "tokenizer": tokenizer,
+                    "trust_remote_code": True,
                 },
             )
 
@@ -207,6 +211,8 @@ def simple_evaluate(
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
                     "device": device,
+                    "tokenizer": tokenizer,
+                    "trust_remote_code": True,
                 },
             )
     else:

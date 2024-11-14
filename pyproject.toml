@@ -39,6 +39,10 @@ dependencies = [
     "dill",
     "word2number",
     "more_itertools",
+    "optimum-intel>=1.9.3",
+    "openvino>=2023.0.1",
+    "openvino-dev>=2023.0.1",
+    "onnx>=1.14.0,<=1.16.1",
 ]
 
 [tool.setuptools.packages.find]

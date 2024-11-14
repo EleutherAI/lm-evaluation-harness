@@ -83,6 +83,11 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
+        "--ov_tokenizer",
+        action="store_true",
+        help="OpenVino tokenizer.",
+    )
+    parser.add_argument(
         "--num_fewshot",
         "-f",
         type=int,

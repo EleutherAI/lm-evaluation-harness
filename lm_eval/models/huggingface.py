@@ -6,6 +6,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
+import openvino.torch
 import transformers
 from accelerate import (
     Accelerator,
@@ -88,6 +89,8 @@ class HFLM(TemplateLM):
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
+        torch_compile: Optional[bool]= False,
+        torch_compile_openvino_backend: Optional[bool]= False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -158,11 +161,22 @@ class HFLM(TemplateLM):
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-            self._get_config(
-                pretrained,
-                revision=revision,
-                trust_remote_code=trust_remote_code,
-            )
+            if pretrained.find("chatglm2-6b") != -1 or pretrained.find("chatglm-6b") != -1:
+                self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
+                self.model = transformers.AutoModel.from_pretrained(pretrained, trust_remote_code=True, device='cpu').eval()
+            else:
+                self._get_config(
+                    pretrained,
+                    revision=revision,
+                    trust_remote_code=trust_remote_code,
+                )
+
+            print(f"!!! torch_compile: {torch_compile}, torch_compile_openvino_backend: {torch_compile_openvino_backend}")
+            if torch_compile:
+                if torch_compile_openvino_backend:
+                    self.model = torch.compile(self.model, backend="openvino")
+                else:
+                    self.model = torch.compile(self.model)
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
         self._get_backend(

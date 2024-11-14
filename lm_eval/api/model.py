@@ -316,6 +316,10 @@ class TemplateLM(LM):
 
     tokenizer = None
 
+    def __init__(self):
+        self.batch_sizes = {}
+        self.batch_schedule = 1
+
     @property
     @abc.abstractmethod
     def eot_token_id(self):
@@ -363,6 +367,7 @@ class TemplateLM(LM):
         self, requests, disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
         new_reqs = []
+        name_or_path = str(self.model.model_save_dir) if hasattr(self.model, 'model_save_dir') else str(self.model.name_or_path)
         for context, continuation in [req.args for req in requests]:
             if context == "":
                 # BOS or EOS as context
@@ -370,6 +375,11 @@ class TemplateLM(LM):
                     [self.prefix_token_id],
                     self.tok_encode(continuation),
                 )
+            elif name_or_path.find('chatglm2-6b') != -1:
+                prompt = self.tokenizer.build_prompt(context)
+                _, continuation_enc = self._encode_pair(prompt, continuation)
+                inputs = self.tokenizer([prompt], return_tensors="pt")
+                context_enc = inputs['input_ids'].tolist()[0]
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
 

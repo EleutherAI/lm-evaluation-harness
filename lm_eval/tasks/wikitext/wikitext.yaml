@@ -1,5 +1,6 @@
 task: wikitext
-dataset_path: EleutherAI/wikitext_document_level
+# dataset_path: EleutherAI/wikitext_document_level
+dataset_path: lm-evaluation-harness/lm_eval/tasks/wikitext_workaround/wikitext_document_level
 dataset_name: wikitext-2-raw-v1
 output_type: loglikelihood_rolling
 training_split: train
