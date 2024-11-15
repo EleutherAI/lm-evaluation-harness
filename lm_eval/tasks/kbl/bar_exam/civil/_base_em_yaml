@@ -20,7 +20,7 @@ doc_to_text: '### 질문: {{question}}
 
   E. {{E}}
 
-  ### 답변: '
+  ### 답변:'
 doc_to_target: gt
 metric_list:
   - metric: exact_match
