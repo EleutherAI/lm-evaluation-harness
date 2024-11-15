@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -1344,9 +1345,20 @@ class HFLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        return self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
-        )
+        try:
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+        except jinja2.exceptions.TemplateError:
+            eval_logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+
+        return chat_templated
 
     def get_model_info(self) -> dict:
         """
@@ -1372,7 +1384,7 @@ class HFLM(TemplateLM):
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
             except Exception as e:
-                eval_logger.warn(
+                eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
                 return ""
