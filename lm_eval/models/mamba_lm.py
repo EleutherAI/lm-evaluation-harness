@@ -137,4 +137,17 @@ class MambaLMWrapper(HFLM):
                 **generation_kwargs,
             )
         else:
-            super()._model_generate(context, max_length, stop, **generation_kwargs)
+            stopping_criteria = lm_eval.models.utils.stop_sequences_criteria(
+                self.tokenizer,
+                stop,
+                context.shape[1],
+                context.shape[0],
+            )
+            return self.model.generate(
+                input_ids=context,
+                max_length=max_length,
+                stopping_criteria=stopping_criteria,
+                pad_token_id=self.tokenizer.pad_token_id,
+                use_cache=True,
+                **generation_kwargs,
+            )
