@@ -52,7 +52,7 @@ class MambaLMWrapper(HFLM):
         if "backend" in kwargs:
             # mamba currently only supports causal models
             assert kwargs["backend"] == "causal"
-        self.is_hf = True if not pretrained.endswith("hf") else False
+        self.is_hf = True if pretrained.endswith("hf") else False
         super().__init__(
             pretrained=pretrained,
             # set appropriate defaults for tokenizer, max length, etc
