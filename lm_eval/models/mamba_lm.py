@@ -143,6 +143,16 @@ class MambaLMWrapper(HFLM):
                 context.shape[1],
                 context.shape[0],
             )
+
+            generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
+            do_sample = generation_kwargs.get("do_sample", None)
+
+            # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
+            if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
+                generation_kwargs["do_sample"] = do_sample = False
+            if do_sample is False and generation_kwargs.get("temperature") == 0.0:
+                generation_kwargs.pop("temperature")
+
             return self.model.generate(
                 input_ids=context,
                 max_length=max_length,
