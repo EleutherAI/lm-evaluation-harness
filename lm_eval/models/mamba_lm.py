@@ -52,7 +52,7 @@ class MambaLMWrapper(HFLM):
         if "backend" in kwargs:
             # mamba currently only supports causal models
             assert kwargs["backend"] == "causal"
-
+        self.is_hf = True if not pretrained.endswith("hf") else False
         super().__init__(
             pretrained=pretrained,
             # set appropriate defaults for tokenizer, max length, etc
@@ -67,15 +67,18 @@ class MambaLMWrapper(HFLM):
         pretrained: str,
         **kwargs,
     ) -> None:
-        try:
-            from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
-        except ModuleNotFoundError as exception:
-            raise type(exception)(
-                "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
-please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
-            )
+        if self.is_hf:
+            super()._get_config(pretrained, **kwargs)
+        else:
+            try:
+                from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
+            except ModuleNotFoundError as exception:
+                raise type(exception)(
+                    "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
+    please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
+                )
 
-        self._config = load_config_hf(pretrained)
+            self._config = load_config_hf(pretrained)
 
     def _create_model(
         self,
@@ -86,24 +89,32 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
         # Mamba does not support arbitrary HF from_pretrained() args
         **kwargs,
     ) -> None:
-        try:
-            from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel  # noqa: F811
-        except ModuleNotFoundError as exception:
-            raise type(exception)(
-                "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
-please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
+        if self.is_hf:
+            super()._create_model(pretrained, dtype=dtype, **kwargs)
+        else:
+            try:
+                from mamba_ssm.models.mixer_seq_simple import (
+                    MambaLMHeadModel,  # noqa: F811
+                )
+            except ModuleNotFoundError as exception:
+                raise type(exception)(
+                    "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
+    please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
+                )
+
+            self._model = MambaLMHeadModel.from_pretrained(
+                pretrained,
+                device=self._device,
+                dtype=torch.float16
+                if dtype == "auto"
+                else lm_eval.models.utils.get_dtype(dtype),
             )
 
-        self._model = MambaLMHeadModel.from_pretrained(
-            pretrained,
-            device=self._device,
-            dtype=torch.float16
-            if dtype == "auto"
-            else lm_eval.models.utils.get_dtype(dtype),
-        )
-
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        for key in ("do_sample", "attention_mask"):
+        remove_arg = (
+            ["attention_mask"] if self.is_hf else ["do_sample", "attention_mask"]
+        )
+        for key in remove_arg:
             if key in generation_kwargs:
                 generation_kwargs.pop(key)
 
@@ -116,11 +127,14 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
         #     self.tokenizer, stop, 1, context.shape[0]
         # )
 
-        return self.model.generate(
-            input_ids=context,
-            max_length=max_length,
-            # stopping_criteria=stopping_criteria,
-            # pad_token_id=self.tokenizer.pad_token_id,
-            # use_cache=True,
-            **generation_kwargs,
-        )
+        if not self.is_hf:
+            return self.model.generate(
+                input_ids=context,
+                max_length=max_length,
+                # stopping_criteria=stopping_criteria,
+                # pad_token_id=self.tokenizer.pad_token_id,
+                # use_cache=True,
+                **generation_kwargs,
+            )
+        else:
+            super()._model_generate(context, max_length, stop, **generation_kwargs)
