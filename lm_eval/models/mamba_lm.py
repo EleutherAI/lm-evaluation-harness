@@ -12,6 +12,8 @@ class MambaLMWrapper(HFLM):
     def __init__(
         self,
         pretrained="state-spaces/mamba-130m",
+        # To use the HF compatible variant
+        is_hf: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -52,7 +54,7 @@ class MambaLMWrapper(HFLM):
         if "backend" in kwargs:
             # mamba currently only supports causal models
             assert kwargs["backend"] == "causal"
-        self.is_hf = True if pretrained.endswith("hf") else False
+        self.is_hf = is_hf or (True if pretrained.endswith("hf") else False)
         super().__init__(
             pretrained=pretrained,
             # set appropriate defaults for tokenizer, max length, etc
