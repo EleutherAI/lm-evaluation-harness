@@ -87,9 +87,3 @@ jobs:
         pip install -e '.[dev,optimum,deepsparse,sparseml,api]' --extra-index-url https://download.pytorch.org/whl/cpu
     - name: Test with pytest
       run: python -m pytest tests/models --showlocals -s -vv
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: output_testmodels
-        path: |
-          test_logs/*
