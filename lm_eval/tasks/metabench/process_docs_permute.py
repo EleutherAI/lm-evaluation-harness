@@ -21,7 +21,7 @@ def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
             answer = doc[f"arc_choices_shot_{shot}"]["text"][answer_idx]
             doc.pop(f"arc_choices_shot_{shot}")
             doc.pop(f"arc_idx_shot_{shot}")
-            long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n" # no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
+            long_prompt = f"{long_prompt}Question: {question}\nAnswer: {answer}\n\n"  # no choices are provided in the few-shot setting (per lines 602-610 of lm_eval.api.task)
         doc["twentyfive_shot_preprompt"] = long_prompt
         doc.pop("alltwentyfiveshot_longprompt")
         doc["original_hash"] = hash_string(doc["question"])
@@ -37,17 +37,19 @@ def process_arc(dataset: datasets.Dataset) -> datasets.Dataset:
         doc["answerKey"] = doc["choices"]["label"][new_answer_idx]
 
         return doc
+
     return dataset.map(_subprocess)
 
+
 def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
-    def process_txt(text): # mirrored from hellaswag task
+    def process_txt(text):  # mirrored from hellaswag task
         text = text.strip()
         # NOTE: Brackets are artifacts of the WikiHow dataset portion of HellaSwag.
         text = text.replace(" [title]", ". ")
         text = re.sub("\\[.*?\\]", "", text)
         text = text.replace("  ", " ")
         return text
-    
+
     def _preprocess(doc):
         ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
         doc.pop("ctx_a")
@@ -72,8 +74,8 @@ def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
         long_prompt = ""
         for shot in range(1, 11):
             ctx = (
-                doc[f"hellaswag_ctx_a_shot_{shot}"] 
-                + " " 
+                doc[f"hellaswag_ctx_a_shot_{shot}"]
+                + " "
                 + doc[f"hellaswag_ctx_b_shot_{shot}"].capitalize()
             )
             doc.pop(f"hellaswag_ctx_a_shot_{shot}")
@@ -95,11 +97,12 @@ def process_hellaswag(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"hellaswag_source_id_shot_{shot}")
             doc.pop(f"hellaswag_split_shot_{shot}")
             doc.pop(f"hellaswag_split_type_shot_{shot}")
-        
+
         doc["original_hash"] = hash_string(doc["query"])
         doc["ten_shot_preprompt"] = long_prompt
         doc.pop("alltenshot_longprompt")
         return doc
+
     return dataset.map(_preprocess)
 
 
@@ -115,13 +118,13 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
             choice_B = doc[f"mmlu_choices_shot_{shot}"][1]
             choice_C = doc[f"mmlu_choices_shot_{shot}"][2]
             choice_D = doc[f"mmlu_choices_shot_{shot}"][3]
-            
+
             doc.pop(f"mmlu_choices_shot_{shot}")
             doc.pop(f"mmlu_answers_shot_{shot}")
             doc.pop(f"mmlu_ind_shot_{shot}")
 
-            long_prompt = f"{long_prompt}{question}\nA. {choice_A}\nB. {choice_B}\nC. {choice_C}\nD. {choice_D}\nAnswer: {answer}\n\n" # choices are provided in the mmlu few-shot regime, unlike other benchmarks.
-        
+            long_prompt = f"{long_prompt}{question}\nA. {choice_A}\nB. {choice_B}\nC. {choice_C}\nD. {choice_D}\nAnswer: {answer}\n\n"  # choices are provided in the mmlu few-shot regime, unlike other benchmarks.
+
         doc["original_hash"] = hash_string(doc["question"])
         doc["five_shot_preprompt"] = long_prompt
         doc.pop("allfiveshot_longprompt")
@@ -137,21 +140,22 @@ def process_mmlu(dataset: datasets.Dataset) -> datasets.Dataset:
         doc["answer"] = new_answer_idx
 
         return doc
-    
+
     return dataset.map(_subprocess)
+
 
 def process_truthfulqa(dataset: datasets.Dataset) -> datasets.Dataset:
     def _subprocess(
-            doc,
-            ): # currently only permuting the mc1 targets as metabench does not use mc2 targets.
-        original_answer_idx = 0 # always 0 in truthfulqa
+        doc,
+    ):  # currently only permuting the mc1 targets as metabench does not use mc2 targets.
+        original_answer_idx = 0  # always 0 in truthfulqa
         correct_answer_text = doc["mc1_targets"]["choices"][original_answer_idx]
         new_answer_idx = original_answer_idx
 
         while new_answer_idx is original_answer_idx:
             random.shuffle(doc["mc1_targets"]["choices"])
             new_answer_idx = doc["mc1_targets"]["choices"].index(correct_answer_text)
-        
+
         labels = [0] * len(doc["mc1_targets"]["labels"])
         labels[new_answer_idx] = 1
         doc["original_hash"] = hash_string(doc["question"])
@@ -159,7 +163,7 @@ def process_truthfulqa(dataset: datasets.Dataset) -> datasets.Dataset:
         doc["answer"] = new_answer_idx
 
         return doc
-    
+
     return dataset.map(_subprocess)
 
 
@@ -173,7 +177,7 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
                 answer = doc[f"winogrande_option2_shot_{shot}"]
             else:
                 raise ValueError("Answer not recognised.")
-                
+
             question = doc[f"winogrande_prompt_shot_{shot}"].replace("_", answer)
 
             doc.pop(f"winogrande_prompt_shot_{shot}")
@@ -182,7 +186,7 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
             doc.pop(f"winogrande_option1_shot_{shot}")
             doc.pop(f"winogrande_option2_shot_{shot}")
 
-            long_prompt = f"{long_prompt}{question}\n\n" 
+            long_prompt = f"{long_prompt}{question}\n\n"
         sentence = doc["sentence"]
         doc["original_hash"] = hash_string(doc["sentence"])
         doc["sentence"] = f"{long_prompt}{sentence}"
@@ -202,21 +206,21 @@ def process_winogrande(dataset: datasets.Dataset) -> datasets.Dataset:
             doc["answer"] = "1"
 
         return doc
-    
+
     return dataset.map(_subprocess)
 
 
-def winogrande_doc_to_text(doc): # Mirrored from the winogrande task
+def winogrande_doc_to_text(doc):  # Mirrored from the winogrande task
     answer_to_num = {"1": 0, "2": 1}
     return answer_to_num[doc["answer"]]
 
 
-def winogrande_doc_to_target(doc): # Mirrored from the winogrande task
+def winogrande_doc_to_target(doc):  # Mirrored from the winogrande task
     idx = doc["sentence"].index("_") + 1
     return doc["sentence"][idx:].strip()
 
 
-def winogrande_doc_to_choice(doc): # Mirrored from the winogrande task
+def winogrande_doc_to_choice(doc):  # Mirrored from the winogrande task
     idx = doc["sentence"].index("_")
     options = [doc["option1"], doc["option2"]]
     return [doc["sentence"][:idx] + opt for opt in options]
