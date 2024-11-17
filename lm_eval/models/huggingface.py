@@ -464,7 +464,7 @@ class HFLM(TemplateLM):
             elif backend == "seq2seq":
                 self.backend = backend
             eval_logger.info(
-                f"Overrode HF model backend type, and using type '{backend}'"
+                f"Overrode HF model backend type, and using type '{self.backend}'"
             )
         else:
             # determine and use the default HF backend for this model, based on its config + metadata.
@@ -476,12 +476,12 @@ class HFLM(TemplateLM):
                 # models like MBart are listed in both seq2seq and causal mistakenly in HF transformers.
                 # these special cases should be treated as seq2seq models.
                 self.backend = "seq2seq"
-                eval_logger.info(f"Using model type '{backend}'")
+                eval_logger.debug(f"Using model type '{self.backend}'")
             elif (
                 getattr(self.config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
             ):
                 self.backend = "causal"
-                eval_logger.info(f"Using model type '{backend}'")
+                eval_logger.debug(f"Using model type '{self.backend}'")
             else:
                 if not trust_remote_code:
                     eval_logger.warning(
@@ -493,7 +493,7 @@ class HFLM(TemplateLM):
                 # then we default to assuming AutoModelForCausalLM
                 self.backend = "causal"
                 eval_logger.info(
-                    f"Model type cannot be determined. Using default model type '{backend}'"
+                    f"Model type cannot be determined. Using default model type '{self.backend}'"
                 )
 
         if self.AUTO_MODEL_CLASS is None:
