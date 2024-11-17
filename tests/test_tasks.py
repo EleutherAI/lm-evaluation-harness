@@ -123,5 +123,11 @@ class TestNewTasks:
             if task.has_test_docs()
             else list(islice(task.validation_docs(), limit))
         )
-        requests = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
+        # ctx is "" for multiple input tasks
+        requests = [
+            task.construct_requests(
+                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
+            )
+            for doc in arr
+        ]
         assert len(requests) == limit if limit else True
