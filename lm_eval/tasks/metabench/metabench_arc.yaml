@@ -1,0 +1,23 @@
+task: metabench_arc
+tag:
+  - metabench_arc_subset
+dataset_path: HCAI/metabench
+dataset_name: ARC
+process_docs: !function process_docs.process_arc
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: primary
+num_fewshot: 0
+doc_to_text: "{{twentyfive_shot_preprompt}}Question: {{question}}\nAnswer:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
