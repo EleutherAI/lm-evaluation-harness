@@ -1,7 +1,5 @@
-group:
-  - paes
-task: paes_lenguaje
-dataset_path: Fuentes149/Paes-lenguaje
+task: paes_historia
+dataset_path: Fuentes149/Paes-historia
 dataset_name: default
 test_split: train
 output_type: multiple_choice
