@@ -1,0 +1,22 @@
+task: paes_formacion_ciudadana
+dataset_path: ouhenio/paes
+dataset_name: default
+test_split: formación_ciudadana
+output_type: multiple_choice
+process_docs: !function utils.process_docs
+doc_to_text: >
+  {{question.strip()}}
+  {{choices[0]}}
+  {{choices[1]}}
+  {{choices[2]}}
+  {{choices[3]}}
+  {% if choices | length > 4 %}{{choices[4]}}{% endif %}
+  Respuesta:
+doc_to_choice: ["A", "B", "C", "D", "E"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

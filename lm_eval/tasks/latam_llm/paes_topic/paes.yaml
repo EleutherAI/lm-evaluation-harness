@@ -1,0 +1,12 @@
+group: paes_topic
+task:
+  - paes_sistema_economico
+  - paes_historia_chile
+  - paes_historia_america
+  - paes_historia_mundo
+  - paes_formacion_ciudadana
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+metadata:
+  version: 0.1
