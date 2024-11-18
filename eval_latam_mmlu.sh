@@ -1,5 +1,5 @@
 lm_eval --model hf \
---model_args pretrained=/workspace1/sebcif/es-checkpoints/tmp-checkpoint-42000/ \
+--model_args "pretrained=meta-llama/Llama-3.1-70B-Instruct,parallelize=True"  \
 --tasks latam_mmlu \
 --device cuda:0 \
 --batch_size 32 \
