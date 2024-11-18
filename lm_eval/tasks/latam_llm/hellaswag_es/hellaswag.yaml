@@ -1,5 +1,3 @@
-group:
-  - hellaswag_es
 task: latam_hellaswag
 dataset_path: alexandrainst/m_hellaswag
 dataset_name: es

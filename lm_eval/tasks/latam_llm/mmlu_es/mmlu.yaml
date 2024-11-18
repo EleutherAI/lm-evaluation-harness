@@ -1,5 +1,3 @@
-group:
-  - mmlu_es
 task: latam_mmlu
 dataset_path: alexandrainst/m_mmlu
 dataset_name: es

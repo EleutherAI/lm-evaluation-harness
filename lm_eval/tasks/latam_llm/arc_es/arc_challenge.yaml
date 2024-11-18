@@ -1,6 +1,4 @@
-group:
-  - latam_arc
-task: arc_challenge_es
+task: latam_arc
 dataset_path: alexandrainst/m_arc
 dataset_name: es
 output_type: multiple_choice
