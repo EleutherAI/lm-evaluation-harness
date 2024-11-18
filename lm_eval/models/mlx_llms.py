@@ -49,14 +49,12 @@ class MLX(TemplateLM):
         self.batch_size = int(batch_size)
         self.max_gen_tokens = max_gen_tokens
         self.add_bos_token = add_bos_token
+        self.backend = "causal"
 
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
-
-    tokenizer_name = HFLM.tokenizer_name
-    apply_chat_template = HFLM.apply_chat_template
 
     def _loglikelihood_tokens(
         self,
@@ -345,3 +343,7 @@ class MLX(TemplateLM):
                 )
             )
         return res
+
+    tokenizer_name = HFLM.tokenizer_name
+    apply_chat_template = HFLM.apply_chat_template
+    tok_encode = HFLM.apply_chat_template
