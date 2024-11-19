@@ -1,0 +1,12 @@
+group: AraDiCE_ArabicMMLU_language_lev
+task:
+- AraDiCE_ArabicMMLU_primary_language_arabic-language_lev
+- AraDiCE_ArabicMMLU_na_language_arabic-language-grammar_lev
+- AraDiCE_ArabicMMLU_na_language_arabic-language-general_lev
+- AraDiCE_ArabicMMLU_middle_language_arabic-language_lev
+- AraDiCE_ArabicMMLU_high_language_arabic-language_lev
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True

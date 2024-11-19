@@ -1,0 +1,12 @@
+group: AraDiCE_ArabicMMLU_other_lev
+task:
+- AraDiCE_ArabicMMLU_univ_other_management_lev
+- AraDiCE_ArabicMMLU_primary_other_general-knowledge_lev
+- AraDiCE_ArabicMMLU_na_other_general-knowledge_lev
+- AraDiCE_ArabicMMLU_na_other_driving-test_lev
+- AraDiCE_ArabicMMLU_middle_other_general-knowledge_lev
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
