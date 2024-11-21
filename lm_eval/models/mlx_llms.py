@@ -137,14 +137,9 @@ class MLX(TemplateLM):
                 context_batch.append(prompt)
                 continuation_batch.append(completion)
                 prompt_lengths.append(input_length(prompt, completion, self.tokenizer))
-                full_sequence = self.tokenizer.apply_chat_template(
-                    [
-                        {"role": "user", "content": prompt},
-                        {"role": "assistant", "content": completion},
-                    ],
-                    tokenize=True,
-                    add_generation_prompt=True,
-                )
+
+                add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+                full_sequence = self.tokenizer(prompt + completion, **add_special_tokens)
                 if full_sequence[-1] != self.tokenizer.eos_token_id:
                     full_sequence.append(self.tokenizer.eos_token_id)
                 full_sequences.append(full_sequence)
