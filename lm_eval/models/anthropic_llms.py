@@ -322,6 +322,10 @@ class AnthropicChat(LocalCompletionsAPI):
         max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = gen_kwargs.pop("until", ["\n\nHuman:"])
+        # anthropic doesn't allow whitespace stop sequences
+        stop = [x for x in stop if not x.isspace()]
+        if not stop:
+            stop = ["\n\nHuman:"]
         if not isinstance(stop, list):
             stop = [stop]
         out = {
