@@ -138,7 +138,7 @@ class MLX(TemplateLM):
                 continuation_batch.append(completion)
                 prompt_lengths.append(input_length(prompt, completion, self.tokenizer))
 
-                full_sequence = self.encode(prompt + completion, add_special_tokens = not self.add_bos_token)
+                full_sequence = self.tokenizer.encode(prompt + completion, add_special_tokens = not self.add_bos_token)
                 if full_sequence[-1] != self.tokenizer.eos_token_id:
                     full_sequence.append(self.tokenizer.eos_token_id)
                 full_sequences.append(full_sequence)
