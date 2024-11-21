@@ -51,6 +51,14 @@ class MLX(TemplateLM):
         self.add_bos_token = add_bos_token
         self.backend = "causal"
 
+    def _longest_common_prefix(self, list_of_strings):
+        for a in range(1, len(list_of_strings[0])):
+            try:
+                if not all(letter.startswith(list_of_strings[0][:a]) for letter in list_of_strings[1:]):
+                    return list_of_strings[0][:a - 1]
+            except IndexError:
+                return list_of_strings[0][:a - 1]
+
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
@@ -94,6 +102,9 @@ class MLX(TemplateLM):
                 [req.args for req in requests]
             )
         }
+
+        all_contexts = [req.args for req in requests]
+        common_prefix = self._longest_common_prefix(all_contexts)
 
         # sort the requests by their length (changes order)
         idx = sorted(
