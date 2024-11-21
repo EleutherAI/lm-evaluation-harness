@@ -15,7 +15,7 @@ datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
 # Default Task
-TASKS = ["metabench_winogrande"]
+TASKS = ["arc_easy"]
 
 
 def task_class():
