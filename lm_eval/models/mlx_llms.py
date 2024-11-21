@@ -95,8 +95,6 @@ class MLX(TemplateLM):
             )
         }
 
-        info = {req.args: None for req in requests}
-
         # sort the requests by their length (changes order)
         idx = sorted(
             range(len(requests)),
@@ -129,12 +127,11 @@ class MLX(TemplateLM):
             disable=(disable_tqdm or (self.rank != 0)),
             desc=f"Running loglikelihood requests ({len(batch_idx):,} batches)",
         )
-        for i in indices:
+        for batch_num, i in enumerate(indices):
             context_batch = []
             continuation_batch = []
-            batch = []
+            full_sequences = []
             prompt_lengths = []
-
             for j in batch_idx[i]:
                 prompt, completion = requests[j].args
                 context_batch.append(prompt)
@@ -150,9 +147,10 @@ class MLX(TemplateLM):
                 )
                 if full_sequence[-1] != self.tokenizer.eos_token_id:
                     full_sequence.append(self.tokenizer.eos_token_id)
-                batch.append(full_sequence)
+                full_sequences.append(full_sequence)
 
-            lengths = [len(x) for x in batch]
+            current_batch_size = len(full_sequences)
+            lengths = [len(x) for x in full_sequences]
 
             if max(lengths) > self.max_tokens:
                 print(
@@ -166,18 +164,17 @@ class MLX(TemplateLM):
             max_length_in_batch = pad_to * ((max(lengths) + pad_to - 1) // pad_to)
             max_length_in_batch = min(max_length_in_batch, self.max_tokens)
 
-            batch_arr = np.zeros((self.batch_size, max_length_in_batch), np.int32)
+            batch_arr = np.zeros((current_batch_size, max_length_in_batch), np.int32)
 
-            for j in range(self.batch_size):
+            for j in range(current_batch_size):
                 truncated_length = min(lengths[j], self.max_tokens)
-                batch_arr[j, :truncated_length] = batch[j][:truncated_length]
+                batch_arr[j, :truncated_length] = full_sequences[j][:truncated_length]
                 lengths[j] = (
                     truncated_length  # Update lengths to match truncated lengths
                 )
             batch = mx.array(batch_arr)
-            lengths = mx.array(lengths)
+            non_padding_lengths = mx.array(lengths)
             prompt_lengths = mx.array(prompt_lengths)
-            # yield mx.array(batch_arr), mx.array(prompt_lengths), mx.array(lengths)
 
             shifted_padded_full_sequence = batch[
                 :, :-1
@@ -194,7 +191,7 @@ class MLX(TemplateLM):
             token_indices = flattened_token_indices[None, :]
             mask = mx.logical_and(
                 token_indices >= prompt_lengths[:, None],
-                token_indices < lengths[:, None],
+                token_indices < non_padding_lengths[:, None],
             )
 
             batch_greedy_tokens = logits.argmax(axis=-1)
@@ -208,25 +205,21 @@ class MLX(TemplateLM):
             # target length
             batch_target_is_greedy_values = masked_indicator_values.sum(
                 axis=-1
-            ) == mx.array(lengths)
+            ) == mx.array(non_padding_lengths)
 
             # Iterate over question, answer pairs, their log softmax logits, and their greedy values
             for idx, (is_greedy, log_prob) in enumerate(
                 zip(batch_target_is_greedy_values, log_probs)
             ):
                 prompt_length = prompt_lengths[idx].item()
-                target_length = lengths[idx]
+                full_sequence_length = non_padding_lengths[idx].item()
+                target_length = full_sequence_length - prompt_length
                 context = context_batch[idx]
                 continuation = continuation_batch[idx]
 
-                del info[(context, continuation)]
-
-                # Extract log prob scores at token sequence positions in the logits
-                target_end_idx = (prompt_length + target_length).item()
-                target_sequence = batch[idx][prompt_length:target_end_idx + 1]
-                target_log_prob_scores = log_prob[
-                    prompt_length - 1 : target_end_idx - 1, :
-                ]
+                # Extract target sequence and log prob scores that correspond to the predicted probability for it
+                target_log_prob_scores = log_prob[-target_length:]
+                target_sequence = full_sequences[idx][prompt_length: full_sequence_length + 1]
 
                 # Use the target sequence for extracting log prob values from logits vocabulary distribution
                 reshaped_target_seq = mx.reshape(mx.array(target_sequence), (-1, 1))
@@ -244,9 +237,7 @@ class MLX(TemplateLM):
             pbar.update(1)
 
         pbar.close()
-        eval_logger.info(f"{len(res):,} response objects")
-        eval_logger.info(f"{len(info):,} unprocessed")
-        # Return the answers in the original order (lost by the batch creation process, which )
+        # Return the answers in the original order (lost by the batch creation process)
         return list(map(lambda i: i[1:], sorted(res, key=lambda i: i[0])))
 
 
