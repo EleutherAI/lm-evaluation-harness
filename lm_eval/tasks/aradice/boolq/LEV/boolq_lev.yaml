@@ -21,3 +21,5 @@ metric_list:
   - metric: f1
     higher_is_better: true
     aggregation: !function metrics.micro_f1_score
+metadata:
+  version: 1.0
