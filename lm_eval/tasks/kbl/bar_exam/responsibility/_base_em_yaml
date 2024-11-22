@@ -1,0 +1,34 @@
+tag:
+  - kbl
+  - kbl_bar_exam_em
+  - kbl_bar_exam_em_responsibility
+description: '당신은 사용자의 질문에 친절하고 논리적으로 답변해 주는 법률 전문가 챗봇 입니다.\n'
+dataset_path: lbox/kbl
+test_split: test
+output_type: generate_until
+doc_to_text: '### 질문: {{question}}
+
+  다음 각 선택지를 읽고 A, B, C, D 중 하나를 선택하여 ''답변: A'' 와 같이 단답식으로 답해 주세요.
+
+  A. {{A}}
+
+  B. {{B}}
+
+  C. {{C}}
+
+  D. {{D}}
+
+  ### 답변:'
+doc_to_target: gt
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+filter_list:
+  - name: get-answer
+    filter:
+    - function: regex
+      regex_pattern: ([A-D]).*
+    - function: take_first

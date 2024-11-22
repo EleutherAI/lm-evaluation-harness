@@ -63,9 +63,9 @@ jobs:
     - name: Test with pytest
       run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py
     - name: Archive artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: output_results
+        name: output_testcpu${{ matrix.python-version }}
         path: |
           test_logs/*
   testmodels:
@@ -87,9 +87,3 @@ jobs:
         pip install -e '.[dev,optimum,deepsparse,sparseml,api]' --extra-index-url https://download.pytorch.org/whl/cpu
     - name: Test with pytest
       run: python -m pytest tests/models --showlocals -s -vv
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: output_results
-        path: |
-          test_logs/*

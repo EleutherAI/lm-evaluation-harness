@@ -118,7 +118,7 @@ class VLLM(TemplateLM):
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
-            tokenizer_revision=tokenizer_revision,
+            revision=tokenizer_revision,
         )
         self.tokenizer = configure_pad_token(self.tokenizer)
         self.add_bos_token = add_bos_token

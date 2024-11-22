@@ -1,0 +1,5 @@
+task: kbl_causal_reasoning_qa_em
+dataset_name: kbl_reasoning_causal_reasoning_qa
+doc_to_text: "### 질문: {{question}}\n검사의 공소사실: {{facts_charged}}\n피고인의 주장: {{defendant_claim}}\n증거: {{facts_accepted}}\nX, Y를 각각\nX: {{cause}})\nY: {{effect}}\n라고 할 때 X와 Y 사이의 관계를\nA: {{A}}, B: {{B}}\n중 하나를 선택하여 '답변: A'과 같이 단답식으로 답해주세요."
+doc_to_target: label
+include: _kbl_reasoning_yaml

@@ -1,0 +1,5 @@
+task: kbl_case_relevance_qa_q_em
+dataset_name: kbl_reasoning_case_relevance_qa_q
+doc_to_text: "### 질문: {{question}}\n[의뢰인의 주장]\n{{query}}\n\n[판결문]\n- 상고인\n{{retrieved_case_appellant}}\n- 사실관계\n{{retrieved_case_fact}}\n- 당사자들의 주장\n{{retrieved_case_claim}}\n- 판사의 의견\n{{retrieved_case_judicial_opinion}}\n\nA: {{A}}, B: {{B}}\n중 하나를 선택하여 '답변: A'과 같이 단답식으로 답해주세요."
+doc_to_target: "{{label}}"
+include: _kbl_reasoning_yaml

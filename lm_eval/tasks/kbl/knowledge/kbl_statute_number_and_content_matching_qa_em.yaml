@@ -1,0 +1,4 @@
+task: kbl_statute_number_and_content_matching_qa_em
+dataset_name: kbl_knowledge_statute_number_and_content_matching_qa
+doc_to_text: "### 질문: {{question}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n A, B, C, D, E 중 하나를 선택하여 ''답변: A'' 와 같이 단답식으로 답해 주세요."
+include: _kbl_knowledge_yaml
