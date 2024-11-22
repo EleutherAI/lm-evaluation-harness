@@ -11,7 +11,6 @@ from .huggingface import HFLM
 
 eval_logger = eval_logger
 
-
 @register_model("mlx", "mlx_lm")
 class MLX(TemplateLM):
     def __init__(
@@ -78,7 +77,6 @@ class MLX(TemplateLM):
         """
         try:
             import mlx.core as mx
-            from mlx_lm.tuner.trainer import input_length
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install mlx "
@@ -133,12 +131,11 @@ class MLX(TemplateLM):
             full_sequences = []
             prompt_lengths = []
             for j in batch_idx[i]:
-                prompt, completion = requests[j].args
-                context_batch.append(prompt)
-                continuation_batch.append(completion)
-                prompt_lengths.append(input_length(prompt, completion, self.tokenizer))
-
-                full_sequence = self.tokenizer.encode(prompt + completion, add_special_tokens = not self.add_bos_token)
+                context, continuation = requests[j].args
+                context_batch.append(context)
+                continuation_batch.append(continuation)
+                prompt_lengths.append(len(self.tokenizer.encode(context, add_special_tokens = self.add_bos_token)))
+                full_sequence = self.tokenizer.encode(context + continuation, add_special_tokens = self.add_bos_token)
                 if full_sequence[-1] != self.tokenizer.eos_token_id:
                     full_sequence.append(self.tokenizer.eos_token_id)
                 full_sequences.append(full_sequence)
