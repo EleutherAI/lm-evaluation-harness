@@ -62,7 +62,7 @@ class TemplateAPI(TemplateLM):
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
         tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", None]
+            Literal["tiktoken", "huggingface", "None", "none"]
         ] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
@@ -116,7 +116,9 @@ class TemplateAPI(TemplateLM):
                 "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
             )
         self._concurrent = int(num_concurrent)
-        self.tokenizer_backend = tokenizer_backend
+        self.tokenizer_backend = (
+            None if tokenizer_backend in ("None", "none") else tokenizer_backend
+        )
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
