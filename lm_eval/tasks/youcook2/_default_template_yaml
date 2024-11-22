@@ -1,0 +1,5 @@
+dataset_path: lmms-lab/YouCook2
+dataset_kwargs:
+  token: True
+  video: True
+  cache_dir: YouCookIIVideos

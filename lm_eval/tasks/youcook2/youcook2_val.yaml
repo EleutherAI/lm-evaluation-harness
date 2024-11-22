@@ -1,0 +1,38 @@
+task: "youcook2_val"
+test_split: val
+output_type: generate_until
+doc_to_visual: !function utils.youcook2_doc_to_visual
+doc_to_text: !function utils.youcook2_doc_to_text
+doc_to_target: sentence
+process_results: !function utils.youcook2_process_results
+metric_list:
+  - metric: Bleu_4 
+    aggregation : !function utils.youcook2_bleu4
+    higher_is_better : true
+  - metric: Bleu_3
+    aggregation : !function utils.youcook2_bleu3
+    higher_is_better : true
+  - metric: Bleu_2
+    aggregation : !function utils.youcook2_bleu2
+    higher_is_better : true
+  - metric: Bleu_1
+    aggregation : !function utils.youcook2_bleu1
+    higher_is_better : true
+  - metric: METEOR
+    aggregation : !function utils.youcook2_meteor
+    higher_is_better : true
+  - metric: ROUGE_L
+    aggregation : !function utils.youcook2_rougel
+    higher_is_better : true
+  - metric: CIDEr
+    aggregation : !function utils.youcook2_cider
+    higher_is_better : true
+  #- metric: youcook2_SPICE
+  #  aggregation : !function utils.youcook2_spice
+  #  higher_is_better : true
+include: _default_template_yaml
+lmms_eval_specific_kwargs:
+  default:
+    prompt: Provide a one-sentence caption for the provided video.
+  gemini_api:
+    prompt: Provide a brief single-sentence caption for the last video below. Do not give any reasoning, just the caption. You must follow the captioning style of the preceding videos. Do not start your response with "Output:", just provide the caption.

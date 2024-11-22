@@ -1,0 +1,50 @@
+dataset_path: lmms-lab/Video-MME
+dataset_kwargs:
+  token: True
+  cache_dir: videomme
+  video: True
+  # From_YouTube: True
+task: videomme_w_subtitle
+test_split: test
+output_type: generate_until
+doc_to_visual: !function utils.videomme_doc_to_visual
+doc_to_text: !function utils.videomme_doc_to_text_subtitle
+doc_to_target: "answer"
+generation_kwargs:
+  max_new_tokens: 16
+  temperature: 0
+  top_p: 1.0
+  num_beams: 1
+  do_sample: false
+# The return value of process_results will be used by metrics
+process_results: !function utils.videomme_process_results
+# Note that the metric name can be either a registed metric function (such as the case for GQA) or a key name returned by process_results
+metric_list:
+  - metric: videomme_percetion_score
+    aggregation: !function utils.videomme_aggregate_results
+    higher_is_better: true
+lmms_eval_specific_kwargs:
+  default:
+    frame_num: 32
+    pre_prompt: ""
+    post_prompt: "\nAnswer the question using a single word or phrase."
+  gemini_api:
+    gemini_api_flag: "full subtitle"
+  llava_vid:
+    frame_num: 768
+    pre_prompt: ""
+    post_prompt: "\nAnswer the question using a single word or phrase."
+  # gpt4v:
+  #   pre_prompt: ""
+  #   post_prompt: 
+  # # qwen_vl:  
+  # #   pre_prompt: ""
+  # #   post_prompt: " Answer:"
+  # # otterhd:
+  # #   pre_prompt: ""
+  # #   post_prompt: " Answer:"
+  # xcomposer2_4khd:
+  #   pre_prompt: "[UNUSED_TOKEN_146]user\n"
+  #   post_prompt: " Answer this question with A, B, C, or D.[UNUSED_TOKEN_145]\n[UNUSED_TOKEN_146]assistant\n"
+metadata:
+  - version: 0.0

@@ -4,6 +4,7 @@ from . import (
     dummy,
     gguf,
     hf_vlms,
+    llava_hf,
     huggingface,
     ibm_watsonx_ai,
     mamba_lm,
@@ -15,6 +16,7 @@ from . import (
     textsynth,
     vllm_causallms,
     vllm_vlms,
+    video_llava,
 )
 
 
