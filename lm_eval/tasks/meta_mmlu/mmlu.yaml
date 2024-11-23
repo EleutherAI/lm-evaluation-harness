@@ -1,0 +1,28 @@
+task: meta_mmlu
+dataset_path: meta-llama/Llama-3.2-1B-evals
+dataset_name: Llama-3.2-1B-evals__mmlu__details
+test_split: latest
+output_type: multiple_choice
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+doc_to_choice: ["A", "B", "C", "D"]
+num_fewshot: 0
+#fewshot_config:
+#  sampler: first_n
+#metric_list:
+#  - metric: acc
+#    aggregation: mean
+#    higher_is_better: true
+#generation_kwargs:
+#  until: "\n\nQ: "
+#  do_sample: false
+#  temperature: 0
+#  max_gen_toks: 512
+#  - metric: exact_match
+#    aggregation: mean
+#    higher_is_better: true
+#    ignore_case: true
+#    ignore_punctuation: true
+metadata:
+  version: 1.0
