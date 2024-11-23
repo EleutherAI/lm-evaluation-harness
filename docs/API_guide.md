@@ -91,6 +91,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Custom token ID to use as a prefix for inputs.
   - If not provided, uses the model's default BOS or EOS token (if `add_bos_token` is True).
 
+- `verify_certificate` (bool, optional):
+  - Whether to validate the certificate of the API endpoint (if HTTPS).
+  - Default is True.
+
 
 Example usage:
 

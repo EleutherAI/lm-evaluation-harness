@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -87,6 +88,7 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        gptqmodel: Optional[bool] = False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -192,6 +194,7 @@ class HFLM(TemplateLM):
                 peft=peft,
                 delta=delta,
                 autogptq=autogptq,
+                gptqmodel=gptqmodel,
                 **kwargs,
             )
 
@@ -344,9 +347,9 @@ class HFLM(TemplateLM):
                         == (self.accelerator.process_index % num_local_processes)
                     }
             args["max_memory"] = max_memory_per_gpu_map
-            args["device_map"] = "auto"
+            args["device_map"] = "auto" if device_map is None else device_map
             eval_logger.info(
-                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to 'auto'"
+                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to {args.get('device_map')}"
             )
 
             if max_cpu_memory is not None:
@@ -461,7 +464,7 @@ class HFLM(TemplateLM):
             elif backend == "seq2seq":
                 self.backend = backend
             eval_logger.info(
-                f"Overrode HF model backend type, and using type '{backend}'"
+                f"Overrode HF model backend type, and using type '{self.backend}'"
             )
         else:
             # determine and use the default HF backend for this model, based on its config + metadata.
@@ -473,12 +476,12 @@ class HFLM(TemplateLM):
                 # models like MBart are listed in both seq2seq and causal mistakenly in HF transformers.
                 # these special cases should be treated as seq2seq models.
                 self.backend = "seq2seq"
-                eval_logger.info(f"Using model type '{backend}'")
+                eval_logger.debug(f"Using model type '{self.backend}'")
             elif (
                 getattr(self.config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
             ):
                 self.backend = "causal"
-                eval_logger.info(f"Using model type '{backend}'")
+                eval_logger.debug(f"Using model type '{self.backend}'")
             else:
                 if not trust_remote_code:
                     eval_logger.warning(
@@ -490,7 +493,7 @@ class HFLM(TemplateLM):
                 # then we default to assuming AutoModelForCausalLM
                 self.backend = "causal"
                 eval_logger.info(
-                    f"Model type cannot be determined. Using default model type '{backend}'"
+                    f"Model type cannot be determined. Using default model type '{self.backend}'"
                 )
 
         if self.AUTO_MODEL_CLASS is None:
@@ -530,6 +533,7 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        gptqmodel: Optional[bool] = False,
         **kwargs,
     ) -> None:
         """
@@ -557,7 +561,7 @@ class HFLM(TemplateLM):
             )
         )
 
-        if not autogptq:
+        if not autogptq and not gptqmodel:
             if model_kwargs.get("load_in_4bit", None):
                 assert (
                     transformers.__version__ >= "4.30.0"
@@ -577,23 +581,42 @@ class HFLM(TemplateLM):
                 **model_kwargs,
             )
         else:
-            try:
-                from auto_gptq import AutoGPTQForCausalLM
-            except ModuleNotFoundError as exception:
-                raise type(exception)(
-                    "Tried to load auto_gptq, but auto-gptq is not installed ",
-                    "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
+            if autogptq and gptqmodel:
+                raise ValueError(
+                    "Cannot use both 'autogptq' and 'gptqmodel' options at the same time."
                 )
 
-            self._model = AutoGPTQForCausalLM.from_quantized(
-                pretrained,
-                trust_remote_code=trust_remote_code,
-                model_basename=None if autogptq is True else Path(autogptq).stem,
-                use_safetensors=True
-                if autogptq is True
-                else autogptq.endswith(".safetensors"),
-                **model_kwargs,
-            )
+            if autogptq:
+                try:
+                    from auto_gptq import AutoGPTQForCausalLM
+                except ModuleNotFoundError as exception:
+                    raise type(exception)(
+                        "Tried to load auto_gptq, but auto-gptq is not installed ",
+                        "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
+                    )
+
+                self._model = AutoGPTQForCausalLM.from_quantized(
+                    pretrained,
+                    trust_remote_code=trust_remote_code,
+                    model_basename=None if autogptq is True else Path(autogptq).stem,
+                    use_safetensors=True
+                    if autogptq is True
+                    else autogptq.endswith(".safetensors"),
+                    **model_kwargs,
+                )
+
+            if gptqmodel:
+                try:
+                    from gptqmodel import GPTQModel
+                except ModuleNotFoundError as exception:
+                    raise type(exception)(
+                        "Tried to load gptqmodel, but gptqmodel is not installed ",
+                        "please install gptqmodel via `pip install gptqmodel --no-build-isolation` or `pip install lm-eval[gptqmodel] --no-build-isolation`",
+                    )
+
+                self._model = GPTQModel.from_quantized(
+                    pretrained, trust_remote_code=trust_remote_code, **model_kwargs
+                )
 
         if peft and delta:
             raise ValueError(
@@ -1322,9 +1345,20 @@ class HFLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        return self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
-        )
+        try:
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+        except jinja2.exceptions.TemplateError:
+            eval_logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+
+        return chat_templated
 
     def get_model_info(self) -> dict:
         """
@@ -1350,7 +1384,7 @@ class HFLM(TemplateLM):
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
             except Exception as e:
-                eval_logger.warn(
+                eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
                 return ""

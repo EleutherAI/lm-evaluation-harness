@@ -1,0 +1,37 @@
+task: ja_leaderboard_xlsum
+
+dataset_path: mkshing/xlsum_ja
+dataset_name: null
+
+training_split: train
+validation_split: validation
+test_split: test
+
+fewshot_split: train
+num_fewshot: 1
+
+description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
+doc_to_text: "### 指示：\n与えられたニュース記事を要約してください。\n\n### 入力：\nニュース記事：{{ text }}\n\n### 応答："
+doc_to_target: "{{ summary }}"
+target_delimiter: "\n"
+
+output_type: generate_until
+
+metric_list:
+  - metric: !function ja_leaderboard_xlsum.rouge2
+    aggregation: !function ja_leaderboard_xlsum.rouge2_agg
+    higher_is_better: true
+
+filter_list:
+  - name: whitespaces
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+
+metadata:
+  version: 1.0
