@@ -154,8 +154,6 @@ class MLX(TemplateLM):
                 full_sequence = self.tokenizer.encode(
                     context + continuation, add_special_tokens=self.add_bos_token
                 )
-                if full_sequence[-1] != self.tokenizer.eos_token_id:
-                    full_sequence.append(self.tokenizer.eos_token_id)
                 full_sequences.append(full_sequence)
 
             current_batch_size = len(full_sequences)
