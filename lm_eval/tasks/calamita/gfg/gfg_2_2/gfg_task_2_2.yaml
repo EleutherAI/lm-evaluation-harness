@@ -1,4 +1,5 @@
 task: gfg_task_2_2
+tag: calamita_gfg
 dataset_path: FBK-MT/Neo-GATE
 dataset_name: schwa_simple
 test_split: test

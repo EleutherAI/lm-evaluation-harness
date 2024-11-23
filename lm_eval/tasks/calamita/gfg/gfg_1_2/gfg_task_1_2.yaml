@@ -1,4 +1,5 @@
 task: gfg_task_1_2
+tag: calamita_gfg
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
