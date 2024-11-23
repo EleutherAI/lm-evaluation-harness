@@ -6,10 +6,13 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import eval_logger
+from lm_eval.models.utils import Collator, eval_logger
+
 from .huggingface import HFLM
 
+
 eval_logger = eval_logger
+
 
 @register_model("mlx", "mlx_lm")
 class MLX(TemplateLM):
@@ -36,9 +39,7 @@ class MLX(TemplateLM):
         tokenizer_config = {"trust_remote_code": trust_remote_code}
         if eos_token is not None:
             tokenizer_config["eos_token"] = eos_token
-        self.model, self.tokenizer = load(
-            model, tokenizer_config=tokenizer_config
-        )
+        self.model, self.tokenizer = load(model, tokenizer_config=tokenizer_config)
         eval_logger.info(f"Model type is '{type(self.model)}")
         if adapter_path is not None:
             eval_logger.info(f"Loading pretrained adapters from {adapter_path}")
@@ -61,11 +62,6 @@ class MLX(TemplateLM):
         disable_tqdm: bool = False,
         override_bs: int = None,
     ) -> List[Tuple[float, bool]]:
-        raise NotImplementedError("loglikelihood is implemented")
-
-    def loglikelihood(
-        self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
         """
         * Each request contains Instance.args : Tuple[str, str] containing 1. an input string to the LM and 2. a target
           string on which the loglikelihood of the LM producing this target, conditioned on the input, will be returned.
@@ -82,27 +78,41 @@ class MLX(TemplateLM):
                 "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install mlx "
                 "via `pip install 'lm-eval[mlx]'` or `pip install -e '.[mlx]'`"
             )
-        if not requests:
-            return []
-        res = []
-        # Keep order for later
-        original_order = {
-            (context, continuation): idx
-            for idx, (context, continuation) in enumerate(
-                [req.args for req in requests]
-            )
-        }
 
-        # sort the requests by their length (changes order)
-        idx = sorted(
-            range(len(requests)),
-            key=lambda i: len(requests[i].args[0]) + len(requests[i].args[1]),
+        res = []
+
+        def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
+            """Defines the key for the sorted method"""
+            # the negative sign on len(toks) sorts descending - this has a few advantages:
+            # - time estimates will always be over not underestimates, which is more useful for planning
+            # - to know the size of a batch when going through the list, you know the first one is always the batch
+            #   padded context length. this is useful to simplify the batching logic and more importantly to make
+            #   automatic adaptive batches much much easier to implement
+            # - any OOMs will happen right away rather than near the end
+
+            toks = req[1] + req[2]
+            return -len(toks), tuple(toks)
+
+        def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
+            """Defines the key to group and lookup one-token continuations"""
+            # Use with group_by="contexts" (optional)"
+            # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
+            # speeds up some multiple-choice tasks proportionally to the number of choices.
+            # groups requests by context+continuation[:-1] and infer on one request/group.
+            return req[-2] + req[-1][:-1]
+
+        re_ord = Collator(
+            requests,
+            sort_fn=_collate,
+            group_by="contexts"
+            if self.backend == "causal" and self.logits_cache
+            else None,
+            group_fn=_lookup_one_token_cont,
         )
-        if len(requests) < self.batch_size:
-            raise ValueError(
-                f"Dataset must have at least batch_size={self.batch_size}"
-                f" examples but only has {len(requests)}."
-            )
+
+        # requests = tuple[tuple[context_str, cont_str], context_enc, continuation_enc]
+        # sort the requests by their length (changes order)
+        idx = sorted(range(len(requests)), key=lambda req: len(req[1] + req[2]))
 
         # Make the batches:
         batch_idx = [
@@ -117,8 +127,7 @@ class MLX(TemplateLM):
             f"{len(requests):,} requests and {len(batch_idx):,} {self.batch_size:,}-or-less-item batches"
         )
 
-        # randomize the batches
-        indices = np.random.permutation(len(batch_idx))
+        indices = range(len(batch_idx))
 
         pbar = tqdm(
             total=len(indices),
@@ -131,11 +140,20 @@ class MLX(TemplateLM):
             full_sequences = []
             prompt_lengths = []
             for j in batch_idx[i]:
-                context, continuation = requests[j].args
+                # requests = tuple[tuple[context_str, cont_str], context_enc, continuation_enc]
+                (context, continuation), context_enc, continuation_enc = requests[j]
                 context_batch.append(context)
                 continuation_batch.append(continuation)
-                prompt_lengths.append(len(self.tokenizer.encode(context, add_special_tokens = self.add_bos_token)))
-                full_sequence = self.tokenizer.encode(context + continuation, add_special_tokens = self.add_bos_token)
+                prompt_lengths.append(
+                    len(
+                        self.tokenizer.encode(
+                            context, add_special_tokens=self.add_bos_token
+                        )
+                    )
+                )
+                full_sequence = self.tokenizer.encode(
+                    context + continuation, add_special_tokens=self.add_bos_token
+                )
                 if full_sequence[-1] != self.tokenizer.eos_token_id:
                     full_sequence.append(self.tokenizer.eos_token_id)
                 full_sequences.append(full_sequence)
@@ -150,10 +168,8 @@ class MLX(TemplateLM):
                     "Consider pre-splitting your data to save memory."
                 )
 
-            # Pad to the nearest multiple of 8 or the maximum length
-            pad_to = 8
-            max_length_in_batch = pad_to * ((max(lengths) + pad_to - 1) // pad_to)
-            max_length_in_batch = min(max_length_in_batch, self.max_tokens)
+            # Pad to the largest
+            max_length_in_batch = min(max(lengths), self.max_tokens)
 
             batch_arr = np.zeros((current_batch_size, max_length_in_batch), np.int32)
 
@@ -205,12 +221,12 @@ class MLX(TemplateLM):
                 prompt_length = prompt_lengths[idx].item()
                 full_sequence_length = non_padding_lengths[idx].item()
                 target_length = full_sequence_length - prompt_length
-                context = context_batch[idx]
-                continuation = continuation_batch[idx]
 
                 # Extract target sequence and log prob scores that correspond to the predicted probability for it
                 target_log_prob_scores = log_prob[-target_length:]
-                target_sequence = full_sequences[idx][prompt_length: full_sequence_length + 1]
+                target_sequence = full_sequences[idx][
+                    prompt_length : full_sequence_length + 1
+                ]
 
                 # Use the target sequence for extracting log prob values from logits vocabulary distribution
                 reshaped_target_seq = mx.reshape(mx.array(target_sequence), (-1, 1))
@@ -220,17 +236,13 @@ class MLX(TemplateLM):
                 # Sum over conditional log likelihood values for target sequences
                 answer_score = target_log_probs.squeeze(1).sum().item()
 
-                idx = original_order[(context, continuation)]
-
                 # Answer: (original index, log prob, is-exact-match)
                 answer = idx, answer_score, is_greedy.item()
                 res.append(answer)
             pbar.update(1)
 
         pbar.close()
-        # Return the answers in the original order (lost by the batch creation process)
-        return list(map(lambda i: i[1:], sorted(res, key=lambda i: i[0])))
-
+        return re_ord.get_original(res)
 
     def loglikelihood_rolling(
         self, requests: list[Instance]
@@ -262,10 +274,6 @@ class MLX(TemplateLM):
         res = []
         for request in tqdm([req.args for req in requests], disable=disable_tqdm):
             prompt, request_args = request
-            if "until" in request_args:
-                raise NotImplementedError(
-                    f"Support for until ({request_args['until']}) not implemented!"
-                )
             temperature = request_args.get("temperature", 0.0)
             verbose = request_args.get("verbose", False)
             res.append(
