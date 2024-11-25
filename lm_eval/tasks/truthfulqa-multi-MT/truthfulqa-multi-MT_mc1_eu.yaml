@@ -1,0 +1,3 @@
+include: truthfulqa-multi-MT_mc_common.yaml
+task: truthfulqa-multi-MT_mc1_eu
+dataset_name: eu
