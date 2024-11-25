@@ -1,6 +1,6 @@
 group:
   - truthfulqa
-dataset_path: Blanca/truthfulqa-multi
+dataset_path: HiTZ/truthfulqa-multi
 output_type: generate_until
 generation_kwargs:
   until:
