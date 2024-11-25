@@ -110,8 +110,7 @@ class Unitxt(ConfigurableTask):
         if isinstance(source, list):
             if (apply_chat_template):
                 formated_source=chat_template(self.doc_to_text(doc))
-                print(formated_source)
-                return(formated_source)
+                return formated_source
             else:
                 raise Exception("Got chat template format from Unitxt, but apply_chat_template is false. Add '--apply_chat_template' to command line.")
         else:
