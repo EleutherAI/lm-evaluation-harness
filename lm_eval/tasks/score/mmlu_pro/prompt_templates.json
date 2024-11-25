@@ -4,6 +4,11 @@
         "options_format": "\n{letter}: {option}"
     },
 
+    "non_greedy_robustness":{
+        "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
+        "options_format": "\n{letter}: {option}"
+    },
+
     "prompt_robustness": [
             {
                 "prompt": "{question}{options}\nExamine the question and choose the correct answer from the options 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'. End your answer with:\nThe best answer is [the_answer_letter].\nwhere the [the_answer_letter] is a letter from A to J.",
