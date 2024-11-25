@@ -14,7 +14,7 @@ import evaluate
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
-
+from collections.abc import Callable
 
 _CITATION = """
 @misc{bandel2024unitxt,
@@ -97,6 +97,26 @@ class Unitxt(ConfigurableTask):
     def get_arguments(self, doc, ctx):
         return (ctx, {"until": ["\n"]})
 
+    def fewshot_context(
+            self,
+            doc: str,
+            num_fewshot: int,
+            system_instruction: Optional[str] = None,
+            apply_chat_template: bool = False,
+            fewshot_as_multiturn: bool = False,
+            chat_template: Optional[Callable] = None,
+        ) -> str:
+        source = self.doc_to_text(doc)
+        if isinstance(source, list):
+            if (apply_chat_template):
+                formated_source=chat_template(self.doc_to_text(doc))
+                print(formated_source)
+                return(formated_source)
+            else:
+                raise Exception("Got chat template format from Unitxt, but apply_chat_template is false. Add '--apply_chat_template' to command line.")
+        else:
+            return source
+         
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
