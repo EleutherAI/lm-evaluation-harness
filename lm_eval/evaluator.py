@@ -504,7 +504,7 @@ def evaluate(
 
             for doc_id, doc in doc_iterator:
                 requests = instances_by_doc_id[doc_id]
-                metrics, id, = task.process_results(
+                metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                                 
