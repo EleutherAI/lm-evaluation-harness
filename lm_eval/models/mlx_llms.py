@@ -205,8 +205,8 @@ class MLX(TemplateLM):
         return re_ord.get_original(res)
 
     def loglikelihood_rolling(
-        self, requests: list[Instance]
-    ) -> list[tuple[float, bool]]:
+        self, requests: List[Instance]
+    ) -> List[Tuple[float, bool]]:
         raise NotImplementedError("loglikelihood_rolling is not implemented")
 
     def generate_until(
