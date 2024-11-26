@@ -324,11 +324,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
     if args.examples:
-        assert args.limit is None, "If --examples is not None, then --limit must be None."
+        assert (
+            args.limit is None
+        ), "If --examples is not None, then --limit must be None."
         limit = None
-        with open(args.examples, 'r') as json_file:
-            examples = json.load(json_file)  
-        
+        with open(args.examples, "r") as json_file:
+            examples = json.load(json_file)
+
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()

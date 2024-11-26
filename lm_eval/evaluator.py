@@ -58,7 +58,7 @@ def simple_evaluate(
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
     limit: Optional[Union[int, float]] = None,
-    examples: Optional[Dict] = None,
+    examples: Optional[dict] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     write_out: bool = False,
@@ -365,7 +365,7 @@ def evaluate(
     lm: "LM",
     task_dict,
     limit: Optional[int] = None,
-    examples: Optional[Dict] = None,
+    examples: Optional[dict] = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     bootstrap_iters: Optional[int] = 100000,
@@ -535,11 +535,16 @@ def evaluate(
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
             doc_iterator = task.doc_iterator(
-                rank=RANK, limit=limit, examples=examples[task_output.task_name], world_size=WORLD_SIZE
+                rank=RANK,
+                limit=limit,
+                examples=examples[task_output.task_name],
+                world_size=WORLD_SIZE,
             )
             for doc_id, doc in doc_iterator:
-                if examples: doc_id_true = examples[task_output.task_name][doc_id]
-                else: doc_id_true = doc_id
+                if examples:
+                    doc_id_true = examples[task_output.task_name][doc_id]
+                else:
+                    doc_id_true = doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
