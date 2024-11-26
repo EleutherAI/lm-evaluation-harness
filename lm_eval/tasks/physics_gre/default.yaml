@@ -1,0 +1,52 @@
+dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
+
+training_split: null
+validation_split: null
+test_split: test
+
+process_docs: !function utils.process_docs
+doc_to_text: "Question: {{input}}\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["A", "B", "C", "D", "E"]
+
+generation_kwargs:
+  do_sample: true
+  temperature: 0.2
+repeats: 32
+
+filter_list:
+  - name: "score-first" # pick only the first response, and report metrics on that
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "\\b(A|B|C|D|E)\\b"
+      - function: "take_first"
+
+  - name: "maj@8"
+    filter:
+      - function: "take_first_k"
+        k: 8
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "\\b(A|B|C|D|E)\\b"
+      - function: "majority_vote"
+      - function: "take_first"
+  - name: "maj@32"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "\\b(A|B|C|D|E)\\b"
+      - function: "majority_vote"
+      - function: "take_first"
+
+metric_list:
+  - metric: !function utils.raw_score
+    aggregation: !function utils.raw_score_agg
+    higher_is_better: true
+
+  - metric: !function utils.percentile
+    aggregation: !function utils.percentile_agg
+    higher_is_better: true
+
+metadata:
+  version: 1.0
