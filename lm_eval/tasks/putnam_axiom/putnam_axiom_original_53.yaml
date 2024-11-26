@@ -1,7 +1,7 @@
-task: putnam_axiom_variations
+task: putnam_axiom_53
 dataset_path: Putnam-AXIOM/putnam-axiom-dataset
-dataset_name: default # Use default since 'func_variations_265_10_30_2024' is a split, not a configuration.
-test_split: func_variations_265_11_23_2024 # Reference the specific split
+dataset_name: default # Use default as '53' is a split
+test_split: func_original_53_10_30_2024 # Reference the specific split name for this task
 output_type: generate_until
 training_split: null
 process_docs: !function utils.process_docs
