@@ -16,6 +16,10 @@ eval_logger = eval_logger
 
 @register_model("mlx", "mlx_lm")
 class MLX(TemplateLM):
+    tokenizer_name = HFLM.tokenizer_name
+    apply_chat_template = HFLM.apply_chat_template
+    tok_encode = HFLM.tok_encode
+
     def __init__(
         self,
         model,
@@ -27,6 +31,7 @@ class MLX(TemplateLM):
         batch_size=4,
         max_gen_tokens=256,
         add_bos_token=False,
+        verbose=False,
     ):
         try:
             from mlx_lm.utils import load
@@ -44,11 +49,12 @@ class MLX(TemplateLM):
         if adapter_path is not None:
             eval_logger.info(f"Loading pretrained adapters from {adapter_path}")
             model.load_weights(adapter_path, strict=False)
-        self.max_tokens = max_tokens
+        self.max_tokens = int(max_tokens)
         self.top_p = top_p
         self.batch_size = int(batch_size)
         self.max_gen_tokens = max_gen_tokens
         self.add_bos_token = add_bos_token
+        self.verbose = verbose
         self.backend = "causal"
 
     @property
@@ -93,68 +99,25 @@ class MLX(TemplateLM):
             toks = req[1] + req[2]
             return -len(toks), tuple(toks)
 
-        def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
-            """Defines the key to group and lookup one-token continuations"""
-            # Use with group_by="contexts" (optional)"
-            # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
-            # speeds up some multiple-choice tasks proportionally to the number of choices.
-            # groups requests by context+continuation[:-1] and infer on one request/group.
-            return req[-2] + req[-1][:-1]
-
         re_ord = Collator(
             requests,
             sort_fn=_collate,
-            group_by="contexts"
-            if self.backend == "causal" and self.logits_cache
-            else None,
-            group_fn=_lookup_one_token_cont,
+            group_by=None,
         )
-
-        # requests = tuple[tuple[context_str, cont_str], context_enc, continuation_enc]
-        # sort the requests by their length (changes order)
-        idx = sorted(range(len(requests)), key=lambda req: len(req[1] + req[2]))
-
-        # Make the batches:
-        batch_idx = [
-            idx[i : i + self.batch_size]
-            for i in range(0, len(idx) - self.batch_size + 1, self.batch_size)
-        ]
-        if len(idx) % self.batch_size != 0:
-            # If the total requests size is not a multiple of the batch size, there will be a final
-            # batch with the remainder
-            batch_idx.append(idx[self.batch_size * len(batch_idx) :])
-        eval_logger.info(
-            f"{len(requests):,} requests and {len(batch_idx):,} {self.batch_size:,}-or-less-item batches"
-        )
-
-        indices = range(len(batch_idx))
 
         pbar = tqdm(
-            total=len(indices),
+            total=len(requests),
             disable=(disable_tqdm or (self.rank != 0)),
-            desc=f"Running loglikelihood requests ({len(batch_idx):,} batches)",
+            desc=f"Running loglikelihood requests ({len(requests):,} batches)",
         )
-        for batch_num, i in enumerate(indices):
-            context_batch = []
-            continuation_batch = []
+        chunks = re_ord.get_batched(n=self.batch_size)
+        for chunk in chunks:
             full_sequences = []
             prompt_lengths = []
-            for j in batch_idx[i]:
-                # requests = tuple[tuple[context_str, cont_str], context_enc, continuation_enc]
-                (context, continuation), context_enc, continuation_enc = requests[j]
-                context_batch.append(context)
-                continuation_batch.append(continuation)
-                prompt_lengths.append(
-                    len(
-                        self.tokenizer.encode(
-                            context, add_special_tokens=self.add_bos_token
-                        )
-                    )
-                )
-                full_sequence = self.tokenizer.encode(
-                    context + continuation, add_special_tokens=self.add_bos_token
-                )
-                full_sequences.append(full_sequence)
+
+            for _, context_enc, continuation_enc in chunk:
+                full_sequences.append(context_enc + continuation_enc)
+                prompt_lengths.append(len(context_enc))
 
             current_batch_size = len(full_sequences)
             lengths = [len(x) for x in full_sequences]
@@ -234,9 +197,8 @@ class MLX(TemplateLM):
                 # Sum over conditional log likelihood values for target sequences
                 answer_score = target_log_probs.squeeze(1).sum().item()
 
-                # Answer: (original index, log prob, is-exact-match)
-                answer = idx, answer_score, is_greedy.item()
-                res.append(answer)
+                # Answer: (log prob, is-exact-match)
+                res.append((answer_score, is_greedy.item()))
             pbar.update(1)
 
         pbar.close()
@@ -272,21 +234,18 @@ class MLX(TemplateLM):
         res = []
         for request in tqdm([req.args for req in requests], disable=disable_tqdm):
             prompt, request_args = request
-            temperature = request_args.get("temperature", 0.0)
-            verbose = request_args.get("verbose", False)
+            temperature = request_args.pop("temperature", 0.0)
+            request_args.pop("do_sample", None)
+            request_args.pop("until", None)
             res.append(
                 generate(
-                    self.model,
-                    self.tokenizer,
-                    prompt,
-                    temperature,
-                    request_args.get(self.max_tokens),
-                    verbose,
-                    top_p=self.top_p,
+                    model=self.model,
+                    tokenizer=self.tokenizer,
+                    prompt=prompt,
+                    max_tokens=self.max_gen_tokens,
+                    verbose=self.verbose,
+                    temp=temperature,
+                    **request_args,
                 )
             )
         return res
-
-    tokenizer_name = HFLM.tokenizer_name
-    apply_chat_template = HFLM.apply_chat_template
-    tok_encode = HFLM.apply_chat_template
