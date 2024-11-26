@@ -188,8 +188,9 @@ def register_filter(name):
 def get_filter(filter_name: Union[str, Callable]) -> Callable:
     try:
         return FILTER_REGISTRY[filter_name]
-    except KeyError:
+    except KeyError as e:
         if callable(filter_name):
             return filter_name
         else:
             eval_logger.warning(f"filter `{filter_name}` is not registered!")
+            raise e
