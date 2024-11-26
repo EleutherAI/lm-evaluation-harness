@@ -22,16 +22,17 @@ class MLX(TemplateLM):
 
     def __init__(
         self,
-        model,
-        adapter_path=None,
-        trust_remote_code=False,
-        eos_token=None,
-        top_p=1,
-        max_tokens=2048,
-        batch_size=4,
-        max_gen_tokens=256,
-        add_bos_token=False,
-        verbose=False,
+        model: str = None,
+        pretrained: str = None,
+        adapter_path: str = None,
+        trust_remote_code: bool = False,
+        eos_token: str = None,
+        top_p: int = 1,
+        max_tokens: int = 2048,
+        batch_size: int = 4,
+        max_gen_tokens: int = 256,
+        add_bos_token: bool = False,
+        verbose: bool = False,
     ):
         try:
             from mlx_lm.utils import load
@@ -44,11 +45,12 @@ class MLX(TemplateLM):
         tokenizer_config = {"trust_remote_code": trust_remote_code}
         if eos_token is not None:
             tokenizer_config["eos_token"] = eos_token
+        model = model or pretrained
         self.model, self.tokenizer = load(model, tokenizer_config=tokenizer_config)
         eval_logger.info(f"Model type is '{type(self.model)}")
         if adapter_path is not None:
             eval_logger.info(f"Loading pretrained adapters from {adapter_path}")
-            model.load_weights(adapter_path, strict=False)
+            self.model.load_weights(adapter_path, strict=False)
         self.max_tokens = int(max_tokens)
         self.top_p = top_p
         self.batch_size = int(batch_size)
