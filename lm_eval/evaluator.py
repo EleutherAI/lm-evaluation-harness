@@ -553,6 +553,7 @@ def evaluate(
                             req.filtered_resps[filter_key] for req in requests
                         ],
                         "filter": filter_key,
+                        "metric": ",".join(metrics.keys()),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
