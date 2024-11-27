@@ -63,14 +63,6 @@ class GigaChatAPI(LocalChatCompletion):
                 )
                 gen_kwargs["repetition_penalty"] = 1.0
                 gen_kwargs["top_p"] = 0.0
-            print(
-                {
-                    "messages": messages,
-                    "model": self.model,
-                    "temperature": temperature,
-                    **gen_kwargs,
-                }
-            )
             return {
                 "messages": messages,
                 "model": self.model,
