@@ -552,6 +552,7 @@ def evaluate(
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
+                        "filter": filter_key,
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
