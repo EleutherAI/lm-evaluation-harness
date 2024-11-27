@@ -101,6 +101,7 @@
 | [race](race/README.md) | Reading comprehension assessment tasks based on English exams in China. | English |
 | realtoxicityprompts | Tasks to evaluate language models for generating text with potential toxicity. | |
 | [sciq](sciq/README.md) | Science Question Answering tasks to assess understanding of scientific concepts. | English |
+| [score](score/README.md) | Systematic consistency and robustness evaluation for LLMs on 3 datasets(MMLU-Pro, Agi Eval and MATH) | English |
 | [scrolls](scrolls/README.md) | Tasks that involve long-form reading comprehension across various domains. | English |
 | [siqa](siqa/README.md) | Social Interaction Question Answering to evaluate common sense and social reasoning.  | English |
 | [spanish_bench](spanish_bench/README.md) | Collection of tasks in Spanish encompassing various evaluation areas. | Spanish |
