@@ -9,6 +9,8 @@ from lm_eval.utils import eval_logger
 
 import numpy as np
 
+# from lm_eval.tasks.minerva_math.utils import *
+
 try:
     import sympy
     from sympy.parsing.latex import parse_latex
@@ -109,9 +111,9 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    # candidates = results[0]
-    completion_output = results[0].outputs[0]
-    candidates = completion_output.text
+    candidates = results[0]
+    # completion_output = results[0].outputs[0]
+    # candidates = completion_output.text
     
     try:
         answer = ground_truth_boxed_answer(candidates)
