@@ -1,0 +1,7 @@
+"dataset_name": "bak_Cyrl-kan_Knda"
+"doc_to_target": "{{sentence_kan_Knda}}"
+"doc_to_text": "{{sentence_bak_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_bak_Cyrl-kan_Knda"
+"test_split": "dev"

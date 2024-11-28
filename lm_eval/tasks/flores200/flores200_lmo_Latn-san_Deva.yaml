@@ -1,0 +1,7 @@
+"dataset_name": "lmo_Latn-san_Deva"
+"doc_to_target": "{{sentence_san_Deva}}"
+"doc_to_text": "{{sentence_lmo_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_lmo_Latn-san_Deva"
+"test_split": "dev"

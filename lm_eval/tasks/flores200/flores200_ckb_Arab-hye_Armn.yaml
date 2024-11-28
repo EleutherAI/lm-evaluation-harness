@@ -1,0 +1,7 @@
+"dataset_name": "ckb_Arab-hye_Armn"
+"doc_to_target": "{{sentence_hye_Armn}}"
+"doc_to_text": "{{sentence_ckb_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ckb_Arab-hye_Armn"
+"test_split": "dev"

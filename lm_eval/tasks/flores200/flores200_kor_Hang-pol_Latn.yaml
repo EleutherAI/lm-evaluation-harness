@@ -1,0 +1,7 @@
+"dataset_name": "kor_Hang-pol_Latn"
+"doc_to_target": "{{sentence_pol_Latn}}"
+"doc_to_text": "{{sentence_kor_Hang}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kor_Hang-pol_Latn"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "quy_Latn-gle_Latn"
+"doc_to_target": "{{sentence_gle_Latn}}"
+"doc_to_text": "{{sentence_quy_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_quy_Latn-gle_Latn"
+"test_split": "dev"

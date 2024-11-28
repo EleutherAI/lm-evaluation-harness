@@ -1,0 +1,7 @@
+"dataset_name": "khm_Khmr-nya_Latn"
+"doc_to_target": "{{sentence_nya_Latn}}"
+"doc_to_text": "{{sentence_khm_Khmr}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_khm_Khmr-nya_Latn"
+"test_split": "dev"
