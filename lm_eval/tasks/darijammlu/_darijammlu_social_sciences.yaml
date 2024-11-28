@@ -1,0 +1,9 @@
+group: darijammlu_social_sciences
+group_alias: Social Sciences
+task:
+  - darijammlu_social_sciences_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0

@@ -1,0 +1,9 @@
+group: darijammlu_other
+group_alias: Other
+task:
+  - darijammlu_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0

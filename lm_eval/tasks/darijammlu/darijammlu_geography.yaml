@@ -1,0 +1,7 @@
+"dataset_name": "geography"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_social_sciences_tasks"
+- "darijammlu_ar_mmlu_tasks"
+"task": "darijammlu_geography"
+"task_alias": "geography"

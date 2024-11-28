@@ -1,0 +1,7 @@
+"dataset_name": "global_facts"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_other_tasks"
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_global_facts"
+"task_alias": "global facts"
