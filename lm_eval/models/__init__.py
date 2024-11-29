@@ -4,7 +4,6 @@ from . import (
     dummy,
     gguf,
     ibm_watsonx_ai,
-    mamba_lm,
     nemo_lm,
     neuralmagic,
     neuron_optimum,
