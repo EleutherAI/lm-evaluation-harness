@@ -3,7 +3,6 @@ from . import (
     api_models,
     dummy,
     gguf,
-    hf_vlms,
     ibm_watsonx_ai,
     mamba_lm,
     nemo_lm,
@@ -32,6 +31,7 @@ import importlib
 
 
 for module_that_needs_torch in [
+    "hf_vlms",
     "huggingface",
     "mamba_lm",
     "nemo_lm",
