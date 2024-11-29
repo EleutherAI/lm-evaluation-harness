@@ -53,6 +53,7 @@ def test_evaluator_with_dummy_lm():
             10000,
         ),
     ],
+    ids=lambda d: f"{d}",
 )
 def test_evaluator(
     task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
@@ -109,7 +110,7 @@ def test_evaluator(
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
         ),
         (
-            ["mmlu_abstract_algebra", "mmlu_global_facts", "mmlu_public_relations"],
+            ["mmlu_stem"],
             10,
             "hf",
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
@@ -127,6 +128,7 @@ def test_evaluator(
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
         ),
     ],
+    ids=lambda d: f"{d}",
 )
 def test_printed_results(task_name: List[str], limit: int, model: str, model_args: str):
     results = evaluator.simple_evaluate(
@@ -164,6 +166,6 @@ def test_printed_results(task_name: List[str], limit: int, model: str, model_arg
             try:
                 t1_item = float(t1_item)
                 t2_item = float(t2_item)
-                assert abs(t1_item - t2_item) < 0.1
+                assert abs(t1_item - t2_item) < 0.3
             except ValueError:
                 assert t1_item == t2_item

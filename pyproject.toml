@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.2"
+version = "0.4.5"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -55,19 +55,20 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
+api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "accelerate>=0.26.0", "peft>=0.2.0"]
 torch = ["torch>=1.8"]
 hf = ["transformers", "torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0"]
 anthropic = ["anthropic"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "accelerate>=0.26.0", "peft>=0.2.0"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
-ifeval = ["langdetect", "immutabledict"]
+ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22"]
+ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
-openai = ["openai==1.3.9", "tiktoken"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
 sentencepiece = ["sentencepiece>=0.1.98"]
@@ -76,7 +77,8 @@ testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
-unitxt = ["unitxt"]
+gptqmodel = ["gptqmodel>=1.0.9"]
+japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 all = [
     "lm_eval[torch]",
     "lm_eval[hf]",
@@ -85,6 +87,7 @@ all = [
     "lm_eval[deepsparse]",
     "lm_eval[gptq]",
     "lm_eval[hf_transfer]",
+    "lm_eval[ibm_watsonx_ai]",
     "lm_eval[ifeval]",
     "lm_eval[mamba]",
     "lm_eval[math]",
@@ -97,7 +100,7 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[zeno]",
     "lm_eval[wandb]",
-    "lm_eval[unitxt]"
+    "lm_eval[japanese_leaderboard]",
 ]
 
 [tool.ruff.lint]
@@ -109,3 +112,4 @@ known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401","F402","F403"]
+"utils.py" = ["F401"]

@@ -2,11 +2,22 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
+---
+
+*Latest News 📣*
+
+- [2024/09] We are prototyping allowing users of LM Evaluation Harness to create and evaluate on text+image multimodal input, text output tasks, and have just added the `hf-multimodal` and `vllm-vlm` model types and `mmmu` task as a prototype feature. We welcome users to try out this in-progress feature and stress-test it for themselves, and suggest they check out [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval), a wonderful project originally forking off of the lm-evaluation-harness, for a broader range of multimodal tasks, models, and features.
+- [2024/07] [API model](docs/API_guide.md) support has been updated and refactored, introducing support for batched and async requests, and making it significantly easier to customize and use for your own purposes. **To run Llama 405B, we recommend using VLLM's OpenAI-compliant API to host the model, and use the `local-completions` model type to evaluate the model.**
+- [2024/07] New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.
+
+---
+
 ## Announcement
 **A new v0.4.0 release of lm-evaluation-harness is available** !
 
 New updates and features include:
 
+- **New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.**
 - Internal refactoring
 - Config-based task creation and configuration
 - Easier import and sharing of externally-defined task config YAMLs
@@ -20,13 +31,15 @@ Please see our updated documentation pages in `docs/` for more details.
 
 Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
 
+---
+
 ## Overview
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
 **Features:**
 - Over 60 standard academic benchmarks for LLMs, with hundreds of subtasks and variants implemented.
-- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
+- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [GPTQModel](https://github.com/ModelCloud/GPTQModel) and [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for fast and memory-efficient inference with [vLLM](https://github.com/vllm-project/vllm).
 - Support for commercial APIs including [OpenAI](https://openai.com), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRA) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
@@ -41,7 +54,7 @@ The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's pop
 To install the `lm-eval` package from the github repository, run:
 
 ```bash
-git clone https://github.com/EleutherAI/lm-evaluation-harness
+git clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
 pip install -e .
 ```
@@ -94,7 +107,7 @@ lm_eval --model hf \
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
-We support two main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
+We support three main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
 
 To perform *data-parallel evaluation* (where each GPU loads a **separate full copy** of the model), we leverage the `accelerate` launcher as follows:
 
@@ -111,7 +124,7 @@ For cases where your model can fit on a single GPU, this allows you to evaluate 
 
 The second way of using `accelerate` for multi-GPU evaluation is when your model is *too large to fit on a single GPU.*
 
-In this setting, run the library *outside of the `accelerate` launcher*, but passing `parallelize=True` to `--model_args` as follows:
+In this setting, run the library *outside the `accelerate` launcher*, but passing `parallelize=True` to `--model_args` as follows:
 
 ```
 lm_eval --model hf \
@@ -128,7 +141,19 @@ For more advanced users or even larger models, we allow for the following argume
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
 
-These two options (`accelerate launch` and `parallelize=True`) are mutually exclusive.
+The third option is to use both at the same time. This will allow you to take advantage of both data parallelism and model sharding, and is especially useful for models that are too large to fit on a single GPU.
+
+```
+accelerate launch --multi_gpu --num_processes {nb_of_copies_of_your_model} \
+    -m lm_eval --model hf \
+    --tasks lambada_openai,arc_easy \
+    --model_args parallelize=True \
+    --batch_size 16
+```
+
+To learn more about model parallelism and how to use it with the `accelerate` library, see the [accelerate documentation](https://huggingface.co/docs/transformers/v4.15.0/en/parallelism)
+
+**Warning: We do not natively support multi-node evaluation using the `hf` model type! Please reference [our GPT-NeoX library integration](https://github.com/EleutherAI/gpt-neox/blob/main/eval.py) for an example of code in which a custom multi-machine evaluation script is written.**
 
 **Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
 
@@ -216,26 +241,26 @@ lm_eval --model openai-completions \
 We also support using your own local inference server with servers that mirror the OpenAI Completions and ChatCompletions APIs.
 
 ```bash
-lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1
+lm_eval --model local-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1/completions,num_concurrent=1,max_retries=3,tokenized_requests=False,batch_size=16
 ```
-Note that for externally hosted models, configs such as `--device` and `--batch_size` should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
+Note that for externally hosted models, configs such as `--device` which relate to where to place a local model should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
 
-| API or Inference Server                                                                                                   | Implemented?                    | `--model <xxx>` name                                                | Models supported:                                                                             | Request Types:                                             |
-|---------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|------------------------------------------------------------|
-| OpenAI Completions                                                                                                        | :heavy_check_mark:              | `openai-completions`, `local-completions` | All OpenAI Completions API models                                            | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| OpenAI ChatCompletions                                                                                                    | :heavy_check_mark:        | `openai-chat-completions`, `local-chat-completions`                                                               | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
-| Anthropic                                                                                                                 | :heavy_check_mark:              | `anthropic`                                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
-| Anthropic Chat                                                                                                                | :heavy_check_mark:              | `anthropic-chat`, `anthropic-chat-completions`                                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/docs/models-overview)  | `generate_until` (no logprobs)                             |
-| Textsynth                                                                                                                 | :heavy_check_mark:                   | `textsynth`                                                         | [All supported engines](https://textsynth.com/documentation.html#engines)                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Cohere                                                                                                                    | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                 | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, (perplexity evaluation not yet implemented) |
-| vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
-| Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                 |     Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                           |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
-| Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                 |     Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
-| [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)    | ✔️         | `deepsparse`                                 |     Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                       |  `generate_until`, `loglikelihood`                         | ...                                                      |
-| [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)    | ✔️         | `sparseml`                                 |     Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
-| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions or ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
+| API or Inference Server                                                                                                   | Implemented?                    | `--model <xxx>` name                                | Models supported:                                                                                                                                                                                                                                                                                                                                          | Request Types:                                             |
+|---------------------------------------------------------------------------------------------------------------------------|---------------------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| OpenAI Completions                                                                                                        | :heavy_check_mark:              | `openai-completions`, `local-completions`           | All OpenAI Completions API models                                                                                                                                                                                                                                                                                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions                                                                                                    | :heavy_check_mark:        | `openai-chat-completions`, `local-chat-completions` | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                                                                                                                                                                                                                                                                              | `generate_until` (no logprobs)                             |
+| Anthropic                                                                                                                 | :heavy_check_mark:              | `anthropic`                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)                                                                                                                                                                                                                                                               | `generate_until` (no logprobs)                             |
+| Anthropic Chat                                                                                                                | :heavy_check_mark:              | `anthropic-chat`, `anthropic-chat-completions`      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/docs/models-overview)                                                                                                                                                                                                                                                                      | `generate_until` (no logprobs)                             |
+| Textsynth                                                                                                                 | :heavy_check_mark:                   | `textsynth`                                         | [All supported engines](https://textsynth.com/documentation.html#engines)                                                                                                                                                                                                                                                                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                                                                                                                    | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                 | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                                                                                                                                                                                                                                                                                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                                                                                                                                                                                                                                                                                | `generate_until`, `loglikelihood`, (perplexity evaluation not yet implemented) |
+| vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html)                                                                                                                                                                                                                                                              | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                         | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces)                                                                                                                                                                                                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
+| Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                          | Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                                                                                                                                                                                                                            |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                           | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                                                                                                                                                                                            |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)    | ✔️         | `deepsparse`                                        | Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                                                                                                                                                                                                       |  `generate_until`, `loglikelihood`                         | ...                                                      |
+| [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)    | ✔️         | `sparseml`                                          | Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized) |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions`     | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                                                                                                                                                                                                                         | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                                          |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 
@@ -294,8 +319,16 @@ lm_eval --model hf \
     --tasks hellaswag
 ```
 
-[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
+GPTQ quantized models can be loaded using [GPTQModel](https://github.com/ModelCloud/GPTQModel) (faster) or [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)
 
+GPTQModel: add `,gptqmodel=True` to `model_args`
+```bash
+lm_eval --model hf \
+    --model_args pretrained=model-name-or-path,gptqmodel=True \
+    --tasks hellaswag
+```
+
+AutoGPTQ: add `,autogptq=True` to `model_args`:
 ```bash
 lm_eval --model hf \
     --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
@@ -435,29 +468,27 @@ The best way to get support is to open an issue on this repo or join the [Eleuth
 ## Optional Extras
 Extras dependencies can be installed via `pip install -e ".[NAME]"`
 
-| Name          | Use                                   |
-|---------------|---------------------------------------|
-| anthropic     | For using Anthropic's models          |
-| deepsparse     | For running NM's DeepSparse models    |
-| dev           | For linting PRs and contributions     |
-| gptq          | For loading models with GPTQ          |
-| hf_transfer   | For speeding up HF Hub file downloads |
-| ifeval        | For running the IFEval task           |
-| neuronx       | For running on AWS inf2 instances     |
-| mamba         | For loading Mamba SSM models          |
-| math          | For running math task answer checking |
-| multilingual  | For multilingual tokenizers           |
-| openai        | For using OpenAI's models             |
-| optimum       | For running Intel OpenVINO models     |
-| promptsource  | For using PromptSource prompts        |
-| sentencepiece | For using the sentencepiece tokenizer |
-| sparseml      | For using NM's SparseML models        |
-| testing       | For running library test suite        |
-| unitxt        | For IBM's unitxt dataset tasks        |
-| vllm          | For loading models with vLLM          |
-| zeno          | For visualizing results with Zeno     |
-|---------------|---------------------------------------|
-| all           | Loads all extras (not recommended)    |
+| Name            | Use                                          |
+|-----------------|----------------------------------------------|
+| api             | For using api models (Anthropic, OpenAI API) |
+| deepsparse      | For running NM's DeepSparse models           |
+| dev             | For linting PRs and contributions            |
+| gptq            | For loading models with GPTQ                 |
+| hf_transfer     | For speeding up HF Hub file downloads        |
+| ifeval          | For running the IFEval task                  |
+| neuronx         | For running on AWS inf2 instances            |
+| mamba           | For loading Mamba SSM models                 |
+| math            | For running math task answer checking        |
+| multilingual    | For multilingual tokenizers                  |
+| optimum         | For running Intel OpenVINO models            |
+| promptsource    | For using PromptSource prompts               |
+| sentencepiece   | For using the sentencepiece tokenizer        |
+| sparseml        | For using NM's SparseML models               |
+| testing         | For running library test suite               |
+| vllm            | For loading models with vLLM                 |
+| zeno            | For visualizing results with Zeno            |
+| --------------- | ---------------------------------------      |
+| all             | Loads all extras (not recommended)           |
 
 ## Cite as
 
@@ -465,11 +496,11 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 @misc{eval-harness,
   author       = {Gao, Leo and Tow, Jonathan and Abbasi, Baber and Biderman, Stella and Black, Sid and DiPofi, Anthony and Foster, Charles and Golding, Laurence and Hsu, Jeffrey and Le Noac'h, Alain and Li, Haonan and McDonell, Kyle and Muennighoff, Niklas and Ociepa, Chris and Phang, Jason and Reynolds, Laria and Schoelkopf, Hailey and Skowron, Aviya and Sutawika, Lintang and Tang, Eric and Thite, Anish and Wang, Ben and Wang, Kevin and Zou, Andy},
   title        = {A framework for few-shot language model evaluation},
-  month        = 12,
-  year         = 2023,
+  month        = 07,
+  year         = 2024,
   publisher    = {Zenodo},
-  version      = {v0.4.0},
-  doi          = {10.5281/zenodo.10256836},
-  url          = {https://zenodo.org/records/10256836}
+  version      = {v0.4.3},
+  doi          = {10.5281/zenodo.12608602},
+  url          = {https://zenodo.org/records/12608602}
 }
 ```

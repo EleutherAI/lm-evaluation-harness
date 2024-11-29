@@ -1,4 +1,3 @@
-group: mmlu_flan_n_shot_generative
 dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
 test_split: test
 fewshot_split: dev
@@ -13,7 +12,7 @@ filter_list:
       - function: "take_first"
   - name: "flexible-extract"
     filter:
-      - function: !function utils.MultiChoiceRegexFilter
+      - function: "multi_choice_regex"
         group_select: 0
         regex_pattern: "(\\([A-Z]\\))"
         ignore_case: true
@@ -30,4 +29,6 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 2.0
+  version: 3.0
+dataset_kwargs:
+  trust_remote_code: true

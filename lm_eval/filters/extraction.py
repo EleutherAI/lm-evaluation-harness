@@ -37,16 +37,18 @@ class RegexFilter(Filter):
                 if match:
                     match = match[self.group_select]
                     if isinstance(match, tuple):
-                        match = [m for m in match if m][0]
+                        match = [m for m in match if m]
+                        if match:
+                            match = match[0]
+                        else:
+                            match = self.fallback
                     match = match.strip()
                 else:
                     match = self.fallback
                 filtered.append(match)
             return filtered
 
-        # print(resps)
         filtered_resps = list(map(lambda x: filter_set(x), resps))
-        # print(filtered_resps)
 
         return filtered_resps
 
@@ -62,11 +64,8 @@ class WhitespaceFilter(Filter):
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:
-                if resp.startswith(" "):
-                    resp = resp[1:]
-
+                resp = resp.lstrip()
                 filtered_resp.append(resp)
-
             return filtered_resp
 
         filtered_resps = [filter_set(resp) for resp in resps]

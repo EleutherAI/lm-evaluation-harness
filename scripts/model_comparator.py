@@ -4,7 +4,6 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
-import scipy.stats
 import torch
 
 import lm_eval.evaluator
@@ -23,11 +22,13 @@ def memory_stats():
 
 
 def calculate_z_value(res1: Dict, res2: Dict) -> Tuple[float, float]:
+    from scipy.stats.norm import sf
+
     acc1, acc2 = res1["acc,none"], res2["acc,none"]
     st_err1, st_err2 = res1["acc_stderr,none"], res2["acc_stderr,none"]
     Z = (acc1 - acc2) / np.sqrt((st_err1**2) + (st_err2**2))
     # Determining the p-value
-    p_value = 2 * scipy.stats.norm.sf(abs(Z))  # two-tailed test
+    p_value = 2 * sf(abs(Z))  # two-tailed test
     return Z, p_value
 
 

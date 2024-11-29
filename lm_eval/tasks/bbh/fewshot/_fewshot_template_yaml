@@ -1,4 +1,3 @@
-group: bbh_fewshot
 dataset_path: lukaemon/bbh
 output_type: generate_until
 test_split: test
@@ -18,4 +17,4 @@ generation_kwargs:
   temperature: 0.0
 num_fewshot: 3
 metadata:
-  version: 1.0
+  version: 2.0

@@ -1,0 +1,26 @@
+dataset_path: lighteval/MATH-Hard
+process_docs: !function utils.process_docs
+output_type: generate_until
+training_split: train
+test_split: test
+doc_to_text:  !function utils.doc_to_text
+process_results: !function utils.process_results
+doc_to_target: "{{answer if few_shot is undefined else solution}}"
+generation_kwargs:
+  until:
+    - "Problem:"
+  do_sample: false
+  temperature: 0
+  max_gen_toks: 1024
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+num_fewshot: 4
+metadata:
+  version: 2.0
+dataset_kwargs:
+  trust_remote_code: true
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples

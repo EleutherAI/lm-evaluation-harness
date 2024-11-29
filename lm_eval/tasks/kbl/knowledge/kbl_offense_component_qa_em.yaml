@@ -1,0 +1,4 @@
+task: kbl_offense_component_qa_em
+dataset_name: kbl_knowledge_offense_component_qa
+doc_to_text: "### 질문: {{question}}\n다음 각 선택지를 읽고 선택지 중 하나를 골라 ''답변: A'' 와 같이 단답식으로 답해 주세요. ### 선택지: A. {{A}}\nB. {{B}}."
+include: _kbl_knowledge_yaml

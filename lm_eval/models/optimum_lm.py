@@ -50,7 +50,7 @@ class OptimumLM(HFLM):
         **kwargs,
     ) -> None:
         if not find_spec("optimum"):
-            raise Exception(
+            raise ModuleNotFoundError(
                 "package `optimum` is not installed. Please install it via `pip install optimum[openvino]`"
             )
         else:

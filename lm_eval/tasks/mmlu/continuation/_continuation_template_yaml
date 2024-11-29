@@ -8,4 +8,6 @@ doc_to_text: "Question: {{question.strip()}}\nAnswer:"
 doc_to_choice: "{{choices}}"
 doc_to_target: "{{answer}}"
 metadata:
-  version: 0.0
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true

@@ -1,10 +1,18 @@
 from . import (
     anthropic_llms,
+    api_models,
     dummy,
     gguf,
+    hf_vlms,
+    ibm_watsonx_ai,
+    mamba_lm,
+    nemo_lm,
+    neuralmagic,
+    neuron_optimum,
     openai_completions,
     textsynth,
     vllm_causallms,
+    vllm_vlms,
 )
 
 
@@ -12,6 +20,7 @@ __all__ = [
     "anthropic_llms",
     "dummy",
     "gguf",
+    "ibm_watsonx_ai",
     "openai_completions",
     "textsynth",
     "vllm_causallms",
