@@ -224,11 +224,11 @@ class MLX(TemplateLM):
             logits = self.model(shifted_padded_full_sequence).astype(mx.float32)
             # [current_batch_size, max_length_in_batch-1, vocab]
 
-            all_greed_tokens = logits.argmax(axis=-1)
-            # [current_batch_size, max_length_in_batch-1]
-
             # log softmax probabilities
             log_probs = nn.log_softmax(logits, axis=-1)
+
+            all_greed_tokens = log_probs.argmax(axis=-1)
+            # [current_batch_size, max_length_in_batch-1]
 
             target_only_log_probs, target_masks = self._preserve_last_target_len_logits(
                 log_probs, prompt_lengths, lengths
