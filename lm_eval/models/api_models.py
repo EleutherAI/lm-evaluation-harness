@@ -80,6 +80,7 @@ class TemplateAPI(TemplateLM):
         revision: Optional[str] = "main",
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
+        eos_string: str = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -124,6 +125,7 @@ class TemplateAPI(TemplateLM):
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
+        self._eos_string = eos_string
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -176,6 +178,7 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         gen_kwargs: Optional[dict] = None,
         seed: int = 1234,
+        eos: str = None,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -269,6 +272,21 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eot_token
 
     @cached_property
+    def eos_string(self) -> Optional[str]:
+        if self._eos_string:
+            return self._eos_string
+        elif self.tokenizer is not None:
+            if self.tokenizer_backend == "huggingface":
+                return self.tokenizer.eos_token
+            elif self.tokenizer_backend == "tiktoken":
+                return self.tokenizer.decode([self.tokenizer.eot_token])
+        else:
+            eval_logger.warning(
+                "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
+            )
+            return None
+
+    @cached_property
     def prefix_token_id(self) -> Optional[int]:
         if self.tokenizer is None:
             return None
@@ -343,6 +361,7 @@ class TemplateAPI(TemplateLM):
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     seed=self._seed,
+                    eos=self.eos_string,
                     **kwargs,
                 ),
                 headers=self.header,
