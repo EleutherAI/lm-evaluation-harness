@@ -12,6 +12,10 @@ from .huggingface import HFLM
 
 
 eval_logger = eval_logger
+TOP_P_DEFAULT = 1
+MAX_TOKENS_DEFAULT = 2048
+DEFAULT_BATCH_SIZE = 4
+DEFAULT_MAX_GEN_TOKENS = 256
 
 
 @register_model("mlx", "mlx_lm")
@@ -23,14 +27,13 @@ class MLX(TemplateLM):
     def __init__(
         self,
         model: str = None,
-        pretrained: str = None,
         adapter_path: str = None,
         trust_remote_code: bool = False,
         eos_token: str = None,
-        top_p: int = 1,
-        max_tokens: int = 2048,
-        batch_size: int = 4,
-        max_gen_tokens: int = 256,
+        top_p: int = TOP_P_DEFAULT,
+        max_tokens: int = MAX_TOKENS_DEFAULT,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        max_gen_tokens: int = DEFAULT_MAX_GEN_TOKENS,
         add_bos_token: bool = False,
         verbose: bool = False,
     ):
@@ -45,7 +48,6 @@ class MLX(TemplateLM):
         tokenizer_config = {"trust_remote_code": trust_remote_code}
         if eos_token is not None:
             tokenizer_config["eos_token"] = eos_token
-        model = model or pretrained
         self.model, self.tokenizer = load(model, tokenizer_config=tokenizer_config)
         eval_logger.info(f"Model type is '{type(self.model)}")
         if adapter_path is not None:
@@ -65,8 +67,12 @@ class MLX(TemplateLM):
         return self.tokenizer.eos_token_id
 
     def _preserve_last_target_len_logits(
-        self, logits, prompt_lengths: List, non_padding_lengths: List
-    ):
+        self,
+        logits,
+        prompt_lengths: List,
+        non_padding_lengths: List,
+        dtype: np.dtype = np.float32,
+    ) -> Tuple:
         """
 
         :param logits: logits
@@ -76,29 +82,32 @@ class MLX(TemplateLM):
                                     for each such item
         :return: Return the logits where every item in the last 2 dimensions (i.e., for every item in the batch) is all
                  zero if it corresponds to anything other than the last n-logit vocabulary scores, the conditional
-                 probability of producing a continuation of n tokens given the input
+                 probability of producing a continuation of n tokens given the input, where n is the number of
+                 continuation tokens for the batch item
 
         Intuitively, it masks out all but the last n target tokens in the given logits from later calculations
+
+        also returns a mask for the logits sequence positions (the 2nd dimension) that correspond to the tokens of the
+        target
         """
         import mlx.core as mx
         import numpy as np
 
         batch_size, logits_seq_len, vocab_size = logits.shape
-        target_logits = np.zeros(
-            (logits.shape[0], logits_seq_len, vocab_size), np.int32
-        )
+        target_logits = np.zeros((logits.shape[0], logits_seq_len, vocab_size), dtype)
+        target_mask = np.zeros((logits.shape[0], logits_seq_len, vocab_size), np.int32)
         for i in range(batch_size):
             prompt_length = prompt_lengths[i]
             non_padding_length = non_padding_lengths[i]
             target_length = non_padding_length - prompt_length
             for j in range(logits_seq_len):
                 if (
-                    (min(non_padding_length, logits_seq_len) - j) < target_length
-                    if non_padding_length < logits_seq_len
-                    else (min(non_padding_length, logits_seq_len) - j) <= target_length
+                    j > (min(non_padding_length, logits_seq_len) - target_length)
+                    or (logits_seq_len - j) <= target_length
                 ):
                     target_logits[i][j] = logits[i][j]
-        return mx.array(target_logits)
+                    target_mask[i][j] = 1
+        return mx.array(target_logits), mx.array(target_mask)
 
     def _loglikelihood_tokens(
         self,
@@ -117,6 +126,7 @@ class MLX(TemplateLM):
         """
         try:
             import mlx.core as mx
+            import mlx.nn as nn
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install mlx "
@@ -148,7 +158,7 @@ class MLX(TemplateLM):
         re_ord = Collator(
             requests,
             sort_fn=_collate,
-            group_by="contexts",
+            group_by=None,  # "contexts",
             group_fn=_lookup_one_token_cont,
         )
 
@@ -170,7 +180,6 @@ class MLX(TemplateLM):
             else None
         )
         chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
-
         pbar = tqdm(
             total=len(requests),
             disable=(disable_tqdm or (self.rank != 0)),
@@ -188,7 +197,7 @@ class MLX(TemplateLM):
                 prompt_lengths.append(len(context_enc))
                 inplen = len(full_sequence[-(self.max_tokens + 1) :][:-1])
                 inplens.append(inplen)
-                cont_toks_list.append(context_enc)
+                cont_toks_list.append(continuation_enc)
 
             current_batch_size = len(full_sequences)
             lengths = [len(x) for x in full_sequences]
@@ -198,9 +207,10 @@ class MLX(TemplateLM):
 
             batch_arr = np.zeros((current_batch_size, max_length_in_batch), np.int32)
 
+            # Left-padded
             for j in range(current_batch_size):
                 truncated_length = min(lengths[j], self.max_tokens)
-                batch_arr[j, :truncated_length] = full_sequences[j][:truncated_length]
+                batch_arr[j, -truncated_length:] = full_sequences[j][:truncated_length]
                 lengths[j] = (
                     truncated_length  # Update lengths to match truncated lengths
                 )
@@ -214,55 +224,61 @@ class MLX(TemplateLM):
             logits = self.model(shifted_padded_full_sequence).astype(mx.float32)
             # [current_batch_size, max_length_in_batch-1, vocab]
 
-            target_only_logits = self._preserve_last_target_len_logits(
-                logits, prompt_lengths, lengths
-            )
-            # [current_batch_size, max_length_in_batch-1, vocab]
-
             # log softmax probabilities
-            log_probs = mx.log(mx.softmax(target_only_logits, axis=-1))
+            log_probs = nn.log_softmax(logits, axis=-1)
+
+            target_only_log_probs, target_masks = self._preserve_last_target_len_logits(
+                log_probs, prompt_lengths, lengths
+            )
+            # [current_batch_size, max_length_in_batch-1, vocab] and [current_batch_size, max_length_in_batch-1]
+
+            all_greed_tokens = target_only_log_probs.argmax(axis=-1)
+            # [current_batch_size, max_length_in_batch-1]
 
             for (
-                request_str,
-                ctx_tokens,
-                _,
-            ), answer_target_log_probs, inplen, cont_toks in zip(
-                chunk, log_probs, inplens, cont_toks_list
+                (
+                    request_str,
+                    ctx_tokens,
+                    _,
+                ),
+                answer_target_log_probs,
+                inplen,
+                cont_toks,
+                answer_greedy_tokens,
+                target_mask,
+            ) in zip(
+                chunk,
+                target_only_log_probs,
+                inplens,
+                cont_toks_list,
+                all_greed_tokens,
+                target_masks,
             ):
                 # Check if per-token argmax for final scores associated with length of cont_toks
                 # is exactly equal to cont_toks
-                greedy_tokens = answer_target_log_probs.argmax(axis=-1)[
-                    -len(cont_toks) :
+                greedy_target_tokens = answer_greedy_tokens[-len(cont_toks) :]
+                cont_toks = mx.array(cont_toks)
+                num_cont_toks = len(cont_toks)
+                max_equal = (greedy_target_tokens == cont_toks).all()
+
+                # Obtain log-probs at the corresponding continuation token indices
+                # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                # logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
+                #     -1
+                # )  # [1, seq]
+                answer_target_log_probs = answer_target_log_probs[
+                    mx.arange(num_cont_toks) - num_cont_toks, cont_toks
                 ]
 
-                # check for one-token continuation cache hits.
-                # noop in case group_by != "contexts" or no cache hit and returns the
-                # original args. Otherwise, expands the logits batch dimension and yields each
-                # batch along with matching continuation tokens and prompt strings.
-                for request_str, cont_toks, logits in re_ord.get_cache(
-                    req_str=request_str,
-                    cxt_toks=ctx_tokens,
-                    cont_toks=cont_toks,
-                    logits=answer_target_log_probs,
-                ):
-                    assert isinstance(ctx_tokens, list)
-                    max_equal = (greedy_tokens == mx.array(cont_toks)).all()
-
-                    # Answer: (log prob, is-exact-match)
-                    answer = (float(logits.sum()), bool(max_equal))
-                    res.append(answer)
-
-                    if request_str is not None:
-                        # special case: loglikelihood_rolling produces a number of loglikelihood requests
-                        # all with cache key None. instead do add_partial on the per-example level
-                        # in the loglikelihood_rolling() function for those.
-                        self.cache_hook.add_partial(
-                            "loglikelihood", request_str, answer
-                        )
-                    pbar.update(1)
+                # Answer: (log prob, is-exact-match)
+                # Sum over conditional log likelihood values for final n tokens, where n is the length of cont_toks)
+                answer_score = answer_target_log_probs.sum().item()
+                answer = (answer_score, bool(max_equal))
+                res.append(answer)
+                pbar.update(1)
 
         pbar.close()
-        return re_ord.get_original(res)
+        return res  # re_ord.get_original(res)
 
     def loglikelihood_rolling(
         self, requests: List[Instance]
