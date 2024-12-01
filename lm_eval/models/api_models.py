@@ -62,7 +62,7 @@ class TemplateAPI(TemplateLM):
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
         tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", None]
+            Literal["tiktoken", "huggingface", "None", "none"]
         ] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
@@ -80,6 +80,7 @@ class TemplateAPI(TemplateLM):
         revision: Optional[str] = "main",
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
+        eos_string: str = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -116,12 +117,15 @@ class TemplateAPI(TemplateLM):
                 "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
             )
         self._concurrent = int(num_concurrent)
-        self.tokenizer_backend = tokenizer_backend
+        self.tokenizer_backend = (
+            None if tokenizer_backend in ("None", "none") else tokenizer_backend
+        )
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
+        self._eos_string = eos_string
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -174,6 +178,7 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         gen_kwargs: Optional[dict] = None,
         seed: int = 1234,
+        eos: str = None,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -267,6 +272,21 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eot_token
 
     @cached_property
+    def eos_string(self) -> Optional[str]:
+        if self._eos_string:
+            return self._eos_string
+        elif self.tokenizer is not None:
+            if self.tokenizer_backend == "huggingface":
+                return self.tokenizer.eos_token
+            elif self.tokenizer_backend == "tiktoken":
+                return self.tokenizer.decode([self.tokenizer.eot_token])
+        else:
+            eval_logger.warning(
+                "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
+            )
+            return None
+
+    @cached_property
     def prefix_token_id(self) -> Optional[int]:
         if self.tokenizer is None:
             return None
@@ -341,6 +361,7 @@ class TemplateAPI(TemplateLM):
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     seed=self._seed,
+                    eos=self.eos_string,
                     **kwargs,
                 ),
                 headers=self.header,
