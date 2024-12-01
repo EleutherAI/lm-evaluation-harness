@@ -229,6 +229,8 @@ def prepare_print_tasks(
     Prepares the task hierarchy and aggregates the results for each task and group recursively for printing.
     """
 
+    print(task_dict)
+
     def _sort_task_dict(task_dict):
         """
         Helper utility. Sorts the task dict at the current level of the hierarchy based on alphabetized task name.
@@ -287,6 +289,7 @@ def prepare_print_tasks(
         if isinstance(task_or_group_obj, dict):
             task_depth += 1
             group_depth += 1
+            print(f"Recursing into {task_or_group_obj}")
             _task_agg, _group_agg = prepare_print_tasks(
                 task_or_group_obj, results, task_depth, group_depth
             )

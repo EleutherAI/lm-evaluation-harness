@@ -3,22 +3,43 @@ from . import (
     api_models,
     dummy,
     gguf,
-    hf_vlms,
-    huggingface,
     ibm_watsonx_ai,
-    mamba_lm,
-    nemo_lm,
-    neuralmagic,
-    neuron_optimum,
     openai_completions,
-    optimum_lm,
     textsynth,
     vllm_causallms,
     vllm_vlms,
 )
 
 
-# TODO: implement __all__
+__all__ = [
+    "anthropic_llms",
+    "dummy",
+    "gguf",
+    "ibm_watsonx_ai",
+    "openai_completions",
+    "textsynth",
+    "vllm_causallms",
+]
+
+
+# try importing all modules that need torch
+import importlib
+
+
+for module_that_needs_torch in [
+    "hf_vlms",
+    "huggingface",
+    "mamba_lm",
+    "nemo_lm",
+    "neuralmagic",
+    "neuron_optimum",
+    "optimum_lm",
+]:
+    try:
+        importlib.import_module(f".{module_that_needs_torch}", __name__)
+        __all__.append(module_that_needs_torch)
+    except ImportError:
+        pass
 
 
 try:
