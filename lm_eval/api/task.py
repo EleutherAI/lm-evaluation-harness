@@ -92,6 +92,7 @@ class TaskConfig(dict):
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
+    gen_prefix: str = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -1000,8 +1001,9 @@ class ConfigurableTask(Task):
         labeled_examples: List[Dict[str, str]],
         question: str,
         fewshot_as_multiturn: bool = False,
+        gen_prefix: str = None,
     ) -> None:
-        """Adds a target question to the labeled examples list.
+        """Adds a target question to the labeled examples list (in-place update)
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
         Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
         """
@@ -1016,16 +1018,21 @@ class ConfigurableTask(Task):
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
             labeled_examples.append({"role": "user", "content": question})
 
+        if gen_prefix:
+            labeled_examples.append(
+                {"role": "assistant", "content": gen_prefix.lstrip()}
+            )
+
     @utils.positional_deprecated
     def fewshot_context(
         self,
-        doc: str,
+        doc: Dict[str, str],
         num_fewshot: int,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
-    ) -> str:
+    ) -> Union[str, List[Dict[str, str]]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -1050,10 +1057,13 @@ class ConfigurableTask(Task):
         else:
             labeled_examples = ""
 
+        gen_prefix = "" if not self.config.gen_prefix else self.config.gen_prefix
+
         # get task description
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
+        ## [System prompt/Description] ##
         # create system prompt based on the provided system instruction and description
         if system_instruction is not None and description:
             system_prompt = (
@@ -1073,6 +1083,7 @@ class ConfigurableTask(Task):
             else:
                 labeled_examples = system_prompt
 
+        ## [Few-shot examples] ##
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
@@ -1084,16 +1095,22 @@ class ConfigurableTask(Task):
             else:
                 labeled_examples += self.sampler.get_context(doc, num_fewshot)
 
+        ## [Prompt] ##
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
+                # TODO<baber>: How to handle gen_prefix for multiple inputs?
                 return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
-                    labeled_examples, example, fewshot_as_multiturn
+                    labeled_examples,
+                    example,
+                    fewshot_as_multiturn,
+                    gen_prefix,
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
+                # TODO<baber>: when is example a list?
                 labeled_examples_list = []
                 # copy chat history for each example and append the answer
                 for ex in example:
@@ -1106,27 +1123,34 @@ class ConfigurableTask(Task):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
                     self.append_target_question(
-                        labeled_examples, choices[example], fewshot_as_multiturn
+                        labeled_examples,
+                        choices[example],
+                        fewshot_as_multiturn,
+                        gen_prefix,
                     )
                 else:
                     self.append_target_question(
-                        labeled_examples, str(example), fewshot_as_multiturn
+                        labeled_examples,
+                        str(example),
+                        fewshot_as_multiturn,
+                        gen_prefix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(labeled_examples)
         else:
             if self.multiple_input:
+                # TODO<baber>: How to handle gen_prefix for multiple inputs?
                 return labeled_examples
             if isinstance(example, str):
-                return labeled_examples + example
+                return labeled_examples + example + gen_prefix
             elif isinstance(example, list):
-                return [labeled_examples + ex for ex in example]
+                return [labeled_examples + ex + gen_prefix for ex in example]
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example]
+                    return labeled_examples + choices[example] + gen_prefix
                 else:
-                    return labeled_examples + str(example)
+                    return labeled_examples + str(example) + gen_prefix
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
@@ -1204,7 +1228,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
+    def doc_to_target(self, doc: Dict, doc_to_target=None) -> Union[int, str, list]:
         if self.prompt is not None:
             doc_to_target = self.prompt
         elif doc_to_target is not None:
