@@ -1003,6 +1003,7 @@ class ConfigurableTask(Task):
         labeled_examples: List[Dict[str, str]],
         question: str,
         fewshot_as_multiturn: bool = False,
+        assistant_prefix: Optional[str] = None,
     ) -> None:
         """Adds a target question to the labeled examples list.
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
@@ -1018,6 +1019,7 @@ class ConfigurableTask(Task):
         else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
             labeled_examples.append({"role": "user", "content": question})
+            labeled_examples.append({"role": "assistant", "content": assistant_prefix})
 
     @utils.positional_deprecated
     def fewshot_context(
