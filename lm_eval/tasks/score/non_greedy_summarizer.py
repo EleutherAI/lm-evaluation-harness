@@ -11,6 +11,9 @@ from lm_eval.tasks.score.math.math_grader import math_equal
 from lm_eval.utils import make_table
 
 
+N_SEEDS = 5
+
+
 def load_json_logs(file_paths, seed):
     """
     Loads JSON logs of jsonl format from file paths into a single DataFrame.
@@ -27,13 +30,18 @@ def load_json_logs(file_paths, seed):
         "gt": [],
         "category": [],
     }
+
+    _searh_key = None
     for file_path in file_paths:
         with open(file_path, "r") as f:
             for line in f:
                 datapoint = json.loads(line)
-                question_id, final_answer, gt, category = datapoint[
-                    "non_greedy_macro_accuracy"
-                ]
+                if _searh_key is None:
+                    if "non_greedy_macro_accuracy" in datapoint:
+                        _searh_key = "non_greedy_macro_accuracy"
+                    elif "non_greedy_accuracy" in datapoint:
+                        _searh_key = "non_greedy_accuracy"
+                question_id, final_answer, gt, category = datapoint[_searh_key]
                 per_seed_df["question_id"].append(question_id)
                 per_seed_df[f"final_answer_seed_{seed}"].append(final_answer)
                 per_seed_df["gt"].append(gt)
@@ -95,18 +103,18 @@ def main():
     parser.add_argument(
         "--log_dir", help="Path to the directory containing the JSON log files."
     )
-    parser.add_argument("--dataset", help="Dataset name: agi_eval, mmlu_pro or math")
+    parser.add_argument("--dataset", help="Dataset name: agieval, mmlu_pro or math")
     args = parser.parse_args()
 
-    for seed in range(1, 5):
+    for seed in range(1, N_SEEDS + 1):
         # Checking if directories exist
         seed_log_dir = os.path.join(args.log_dir, f"seed_{seed}")
         assert os.path.exists(
             seed_log_dir
         ), f"No logs found for seed={seed}. No directory found at {seed_log_dir}"
 
-        if args.dataset == "agi_eval":
-            agi_eval_subtasks = [
+        if args.dataset == "agieval":
+            agieval_subtasks = [
                 "agieval_aqua_rat",
                 "logiqa_en",
                 "lsat_ar",
@@ -116,7 +124,7 @@ def main():
                 "sat_math",
             ]
             file_paths = []
-            for subtask in agi_eval_subtasks:
+            for subtask in agieval_subtasks:
                 subtask_logs = glob.glob(
                     os.path.join(
                         seed_log_dir,
@@ -126,11 +134,11 @@ def main():
                 )
                 if len(subtask_logs) == 0:
                     raise FileNotFoundError(
-                        f"No logs found for agi_eval subtask {subtask} for seed={seed}."
+                        f"No logs found for agieval subtask {subtask} for seed={seed}."
                     )
                 elif len(subtask_logs) > 1:
                     raise FileExistsError(
-                        f"Multiple logs found for agi_eval subtask {subtask} for seed={seed}."
+                        f"Multiple logs found for agieval subtask {subtask} for seed={seed}."
                     )
                 file_paths.append(subtask_logs[0])
 
@@ -182,7 +190,7 @@ def main():
 
         else:
             raise ValueError(
-                "Invalid dataset name. only agi_eval, mmlu_pro and math are supported."
+                "Invalid dataset name. only agieval, mmlu_pro and math are supported."
             )
 
         df = load_json_logs(file_paths, seed)
@@ -194,7 +202,7 @@ def main():
             df_all = df_all.merge(df, on=["question_id", "category", "gt"])
 
     responses = df_all[
-        [f"final_answer_seed_{seed}" for seed in range(1, 5)]
+        [f"final_answer_seed_{seed}" for seed in range(1, N_SEEDS + 1)]
     ].values.tolist()
 
     # calculate per seed accuracy
@@ -202,7 +210,7 @@ def main():
     if args.dataset == "math":
         consistency_rate = calculate_math_consistency_rate(responses)
         results = {"consistency_rate": consistency_rate}
-        for seed in range(1, 5):
+        for seed in range(1, N_SEEDS + 1):
             df_all[f"accuracy_seed_{seed}"] = df_all[
                 [f"final_answer_seed_{seed}", "gt"]
             ].apply(lambda x: math_equal(*x), axis=1)
@@ -220,7 +228,7 @@ def main():
             }
         )
 
-        for seed in range(1, 5):
+        for seed in range(1, N_SEEDS + 1):
             df_all[f"accuracy_seed_{seed}"] = (
                 df_all[f"final_answer_seed_{seed}"] == df_all["gt"]
             )
@@ -228,7 +236,7 @@ def main():
             results[f"seed_{seed}_accuracy,none"] = accuracy
             results[f"seed_{seed}_accuracy_stderr,none"] = "N/A"
 
-        metrics = [f"seed_{seed}_accuracy" for seed in range(1, 5)] + [
+        metrics = [f"seed_{seed}_accuracy" for seed in range(1, N_SEEDS + 1)] + [
             "consistency_rate"
         ]
         higher_is_better = {metric: True for metric in metrics}
