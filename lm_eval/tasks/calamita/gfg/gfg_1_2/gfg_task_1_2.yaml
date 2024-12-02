@@ -3,7 +3,7 @@ tag: calamita_gfg
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
-  data_files: /path/to/data
+  data_files: /private_data/gfg/data
 test_split: train
 output_type: generate_until
 process_docs: !function utils.process_docs
