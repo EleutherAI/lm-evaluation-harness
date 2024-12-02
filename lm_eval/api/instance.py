@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Literal, Optional, Tuple
 
+from lm_eval.api.types import GenerateUntilRequest, LogLiklehoodRequest
+
 
 OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
@@ -34,5 +36,7 @@ class Instance:
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
         return (
-            self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
+            GenerateUntilRequest(*self.arguments)
+            if self.request_type != "generate_until"
+            else LogLiklehoodRequest(*self.arguments)
         )
