@@ -1,0 +1,51 @@
+include: _turkishmmlu_cot_default_yaml
+task: turkishmmlu_cot_religion_and_ethics
+description:
+  "Soru: (I)  Allah’a (c.c.) inanmak insanın hayatında olumlu değişiklikler yapar. (II)  Bunun nedeni imanın; duygu, düşünce ve davranışlar üzerinde etkili olmasıdır.\
+  \ (III)  İnsanın Allah (c.c.) ile irtibatı dua, ibadet, tövbe ve Kur’an okuma gibi yollarla gerçekleşir. (IV)  İnsan büyük oranda inancına göre görür, düşünür ve davranışlar sergiler.\
+  \ (V)  Bu durumu açıklayan birçok ayet ve hadis bulunmaktadır. Bu parçadaki numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?\nA)\
+  \ I\nB) II\nC) III\nD) IV\nE) V\nÇözüm: Adım adım düşünelim.\
+  \ Metinde düşüncenin akışını bozan cümle C) III'dür. Çünkü diğer cümleler imanın insan üzerindeki etkilerine odaklanırken,\
+  \ III numaralı cümle insanın Allah ile irtibatını nasıl gerçekleştirdiğine dair bir açıklama sunar, bu da ana fikrin akışını biraz keser. \
+  \ Doğru cevap C şıkkıdır.\n\nSoru: İslam ahlakının kaynağı aşağıdakilerden hangisidir?\nA)\
+  \ Kur’an ve sünnet\nB) Birey ve toplum\nC) Terbiye ve deneyim\nD)\
+  \ Akıl ve düşünce\nE) Vicdan ve bilgi\nÇözüm: Adım adım düşünelim.\
+  \ İslam ahlakının kaynağı \"Kur'an ve Sünnet\"tir. \
+  \ Kur'an, İslam'ın kutsal kitabıdır ve peygamberin sözleri, eylemleri ve onayladıkları olan sünnet, İslam ahlakının temelini oluşturur.\
+  \ Doğru cevap A şıkkıdır.\n\nSoru: Dinimizin ibadetler konusunda önem verdiği temel ilkelerden biri ihlastır.\
+  \ Dolayısıyla İslami açıdan ibadetlerin, sadece Yüce Allah’ın (c.c.) rızasını kazanmak amacıyla yapılması esastır.\
+  \ Mümin, her zaman bu bilinçte olmalıdır.\nİbadetlerini bu bilinçle, severek, isteyerek ve samimiyetle yapmalıdır.\
+  \ Nitekim bizler her gün namazlarda okuduğumuz Fâtiha suresinde, ---- diyerek bunu ifade ediyoruz.\
+  \ Verilen parçada boş bırakılan yere aşağıdaki ayetlerden hangisi getirilmelidir?\nA)\
+  \ “Rahmân ve rahîm olan Allah’ın adıyla.” (Fâtiha suresi, 1. ayet.) \nB)\
+  \ “Hamd (övme ve övülme), âlemlerin Rabbi Allah’a mahsustur. ” (Fâtiha suresi, 2. ayet.) \nC)\
+  \ “O, rahmândır ve rahîmdir. Ceza gününün malikidir. ” (Fâtiha suresi, 3-4. ayetler.) \nD)\
+  \ “Yalnız sana ibadet eder ve yalnız senden yardım dileriz.” (Fâtiha suresi, 5. ayet.) \nE)\
+  \ “Bize doğru yolu göster. ” (Fâtiha suresi, 6. ayet.)\nÇözüm: Adım adım düşünelim. \
+  \ Verilen parçada ifade edildiği gibi, İslami ibadetlerin temel amacı Allah'ın rızasını kazanmaktır ve bu amaçla ibadetlerin ihlas ile yapılması önemlidir. Namazlarda okunan Fatiha suresinde bu bilinci ifade eden bir ayet bulunmaktadır.\
+  \ Fatiha suresinin ayetleri şunlardır:\
+  \ Rahmân ve Rahîm olan Allah'ın adıyla.\
+  \ Hamd (övme ve övülme) âlemlerin Rabbi Allah'a mahsustur.\
+  \ O, Rahmân'dır ve Rahîm'dir.\
+  \ Ceza gününün malikidir. \
+  \ Yalnız sana ibadet eder ve yalnız senden yardım dileriz.\
+  \ Bize doğru yolu göster.\
+  \ İbadetlerin ihlas ile yapılması ve sadece Allah'ın rızasını gözeterek gerçekleştirilmesi kavramını ifade eden ayet ise D) Yalnız sana ibadet eder ve yalnız senden yardım dileriz. şeklindeki 5. ayettir.\
+  \ Doğru cevap D şıkkıdır.\n\nSoru: Müminler ancak kardeştirler. Öyleyse kardeşlerinizin arasını düzeltin.\
+  \ Allah’a karşı gelmekten sakının ki size merhamet edilsin.” (Hucurât suresi, 10. ayet.) Ayetin asıl konusu nedir?\nA)\
+  \ Adalet\nB) Kardeşlik\nC) İtaat\nD) Bağışlama\nE) Sorumluluk\nÇözüm: Adım adım düşünelim.\
+  \ Bu ayetin asıl konusu \"Kardeşlik\"tir. Çünkü ayette müminlerin birbirlerine kardeş oldukları\
+  \ ve aralarındaki ilişkilerin düzeltilmesi gerektiği vurgulanır. Doğru cevap B şıkkıdır.\n\nSoru:\
+  \ İslam medeniyeti, Emeviler döneminde oluşum sürecine girmiş, Abbasiler döneminde gelişmiş, Selçuklular döneminde bu gelişim devam etmiş, \
+  \ Osmanlı döneminde ise kurum ve kuruluşlarıyla en parlak devrini yaşamıştır. İslam medeniyetinin mimari, edebiyat, sanat, matematik, astronomi, tıp vb. \
+  \ alanlarda ortaya koyduğu örnekler oldukça fazladır. Farabi, İbn Sina, Biruni, Harezmî, İbn Rüşd, İbn Haldun gibi ilim adamları kendi dönemlerinde, felsefe, mantık, matematik,\
+  \ tıp, astronomi gibi alanlarda tüm dünyaya zengin ilmi ürünler sunmuşlardır. Bu parçanın ana konusu aşağıdakilerden hangisidir?\nA)\
+  \ Medeniyetin en önemli unsurları\nB) Medeniyete katkı sağlayan İslam âlimleri\nC)\
+  \ İslam medeniyetiyle ortaya çıkan kurumlar\nD) İslam medeniyetinin en parlak dönemleri\nE)\
+  \ İslam medeniyetinin oluşma süreci\nÇözüm: Adım adım düşünelim.\
+  \ Bu parçanın ana konusu, İslam medeniyetinin gelişimini ve etkisini tanımlayan bir açıklamadır.\
+  \ Parça, İslam medeniyetinin Emeviler, Abbasiler, Selçuklular ve Osmanlılar dönemlerindeki oluşumunu ve gelişimini kapsamlı bir şekilde ele alırken,\
+  \ İslam medeniyetinin farklı alanlardaki önemli katkılarını ve ilim adamlarının rollerini vurgular.\
+  \ Doğru cevap E şıkkıdır."
+dataset_name: Religion_and_Ethics
+num_fewshot: 0

@@ -57,7 +57,6 @@ class TaskConfig(dict):
     task: Optional[str] = None
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
-    group: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -68,13 +67,14 @@ class TaskConfig(dict):
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
     fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
+    doc_to_image: Union[Callable, str] = None
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
@@ -97,18 +97,6 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
-        if self.group is not None:
-            eval_logger.warning(
-                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
-            )
-
-            if self.tag is None:
-                self.tag = self.group
-            else:
-                raise ValueError(
-                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
-                )
-
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -377,6 +365,10 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
+    # not an abstractmethod because not every language-only task has to implement this
+    def doc_to_image(self, doc):
+        raise NotImplementedError
+
     def build_all_requests(
         self,
         *,
@@ -457,6 +449,7 @@ class Task(abc.ABC):
                 doc=doc,
                 ctx=fewshot_ctx,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
+                apply_chat_template=apply_chat_template,
             )
 
             if not isinstance(inst, list):
@@ -734,6 +727,10 @@ class ConfigurableTask(Task):
                     f"Got invalid output_type '{self.config.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
                 )
             self.OUTPUT_TYPE = self.config.output_type
+
+        if self.config.doc_to_image is not None:
+            # mark the task as requiring multimodality.
+            self.MULTIMODAL = True
 
         if self.config.dataset_path is not None:
             self.DATASET_PATH = self.config.dataset_path
@@ -1042,8 +1039,8 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param chat_template: Callable
-            Chat template to be applied to the fewshot context.
+        :param chat_template:
+            callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
         :returns: str
             The fewshot context.
         """
@@ -1171,9 +1168,11 @@ class ConfigurableTask(Task):
         """
         return doc
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, doc_to_text=None):
         if self.prompt is not None:
             doc_to_text = self.prompt
+        elif doc_to_text is not None:
+            doc_to_text = doc_to_text
         else:
             doc_to_text = self.config.doc_to_text
 
@@ -1205,9 +1204,11 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
+    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
         if self.prompt is not None:
             doc_to_target = self.prompt
+        elif doc_to_target is not None:
+            doc_to_target = doc_to_target
         else:
             doc_to_target = self.config.doc_to_target
 
@@ -1249,9 +1250,11 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc: Any) -> List[str]:
+    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> List[str]:
         if self.prompt is not None:
             doc_to_choice = self.prompt
+        elif doc_to_choice is not None:
+            doc_to_choice = doc_to_choice
         elif self.config.doc_to_choice is None:
             eval_logger.error("doc_to_choice was called but not set in config")
         else:
@@ -1273,9 +1276,36 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    def doc_to_image(self, doc: Any, doc_to_image=None) -> Union[int, str, list]:
+        if doc_to_image is not None:
+            doc_to_image = doc_to_image
+        elif self.config.doc_to_image is not None:
+            doc_to_image = self.config.doc_to_image
+        else:
+            return None
+
+        if isinstance(doc_to_image, list):
+            image_feature = [
+                self.doc_to_image(doc, feature) for feature in doc_to_image
+            ]
+            return [feature for feature in image_feature if feature is not None]
+        elif isinstance(doc_to_image, str):
+            if doc_to_image in self.features:
+                return doc[doc_to_image]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_image, doc))
+        elif callable(doc_to_image):
+            return doc_to_image(doc)
+        else:
+            return None
+
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
+        apply_chat_template = kwargs.pop("apply_chat_template", False)
+
+        aux_arguments = None
+
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
@@ -1283,6 +1313,8 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
+            if apply_chat_template:
+                target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
@@ -1293,6 +1325,37 @@ class ConfigurableTask(Task):
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
+            # TODO: we should raise a warning telling users this will at most ~2x runtime.
+            if "acc_mutual_info" in self._metric_fn_list.keys():
+                # if we are calculating multiple choice accuracy
+                # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
+
+                # here mutual info refers to calculating
+                # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
+                # in other words normalizing by subtracting the unconditional logprob of each choice.
+                aux_arguments = [("", f"{choice}") for choice in choices]
+
+                arguments.extend(aux_arguments)
+
+        elif self.OUTPUT_TYPE == "generate_until":
+            arguments = (ctx, deepcopy(self.config.generation_kwargs))
+
+        multimodal_arg = {}
+        if (
+            self.config.doc_to_image
+        ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
+            multimodal_arg = {
+                **multimodal_arg,
+                **{"visual": self.doc_to_image(doc)},
+            }
+
+        if bool(multimodal_arg):
+            if isinstance(arguments, list):
+                arguments = [arg + (multimodal_arg,) for arg in arguments]
+            else:
+                arguments = arguments + (multimodal_arg,)
+
+        if self.OUTPUT_TYPE == "multiple_choice":
             request_list = [
                 Instance(
                     request_type="loglikelihood",
@@ -1303,33 +1366,15 @@ class ConfigurableTask(Task):
                 )
                 for i, arg in enumerate(arguments)
             ]
-            # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in self._metric_fn_list.keys():
-                # if we are calculating multiple choice accuracy
-                # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
-                # here mutual info refers to calculating
-                # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
-                # in other words normalizing by subtracting the unconditional logprob of each choice.
-                request_list.extend(
-                    [
-                        Instance(
-                            request_type="loglikelihood",
-                            doc=doc,
-                            arguments=("", "{}".format(choice)),
-                            idx=i,
-                            **kwargs,
-                        )
-                        for i, choice in enumerate(choices)
-                    ]
-                )
             return request_list
 
-        elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, deepcopy(self.config.generation_kwargs))
-
         return Instance(
-            request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
+            request_type=self.OUTPUT_TYPE,
+            doc=doc,
+            arguments=arguments,
+            idx=0,
+            **kwargs,
         )
 
     def process_results(self, doc, results):
@@ -1458,7 +1503,10 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif type(gold) != type(result):
+            elif (
+                type(gold) is not type(result)
+                and "bypass" not in self._metric_fn_list.keys()
+            ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 

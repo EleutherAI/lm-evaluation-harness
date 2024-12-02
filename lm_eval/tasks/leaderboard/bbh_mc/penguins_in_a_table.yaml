@@ -1,7 +1,5 @@
 dataset_name: penguins_in_a_table
-description: 'Answer questions about a table of penguins and their attributes.
-
-        '
+description: 'Answer questions about a table of penguins and their attributes.'
 doc_to_choice: ["(A)","(B)","(C)","(D)","(E)"]
 fewshot_config:
   sampler: first_n

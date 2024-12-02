@@ -1,5 +1,4 @@
 group:
-    - xnli
     - afrixnli
     - afrixnli_manual_direct
 dataset_path: masakhane/afrixnli-translate-test

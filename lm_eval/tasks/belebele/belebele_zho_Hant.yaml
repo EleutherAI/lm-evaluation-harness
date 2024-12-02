@@ -1,4 +1,5 @@
-"fewshot_split": "zho_Hant"
-"include": "_default_template_yaml"
-"task": "belebele_zho_Hant"
-"test_split": "zho_Hant"
+dataset_name: zho_Hant
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_zho_Hant
+test_split: test
