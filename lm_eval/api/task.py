@@ -1028,6 +1028,7 @@ class ConfigurableTask(Task):
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
+        assistant_prefix: Optional[str] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1081,7 +1082,7 @@ class ConfigurableTask(Task):
             if apply_chat_template:
                 labeled_examples.extend(
                     self.sampler.get_chat_context(
-                        doc, num_fewshot, fewshot_as_multiturn
+                        doc, num_fewshot, fewshot_as_multiturn, assistant_prefix
                     )
                 )
             else:
