@@ -4,7 +4,7 @@ output_type: generate_until
 doc_to_image: !function utils.doc_to_image
 doc_to_text: "<image>{{question | capitalize}}
 {{% for option in options %}}
-{{loop.index | chr(64)}}.  {{option | capitalize}}
+{{loop.index | chr(64)}}. {{option | capitalize}}
 {{% endfor %}}"
 doc_to_target: "{{options[answer]}}"
 generation_kwargs:
