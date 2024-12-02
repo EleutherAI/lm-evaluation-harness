@@ -1096,7 +1096,10 @@ class ConfigurableTask(Task):
                 return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
-                    labeled_examples, example, fewshot_as_multiturn
+                    labeled_examples,
+                    example,
+                    fewshot_as_multiturn,
+                    self.config.assistant_prefix,
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
@@ -1104,7 +1107,9 @@ class ConfigurableTask(Task):
                 # copy chat history for each example and append the answer
                 for ex in example:
                     chat = deepcopy(labeled_examples)
-                    self.append_target_question(chat, ex, fewshot_as_multiturn)
+                    self.append_target_question(
+                        chat, ex, fewshot_as_multiturn, self.config.assistant_prefix
+                    )
                     labeled_examples_list.append(chat_template(chat))
                 return labeled_examples_list
             # if example is an integer, append the choice or convert to string
@@ -1112,11 +1117,17 @@ class ConfigurableTask(Task):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
                     self.append_target_question(
-                        labeled_examples, choices[example], fewshot_as_multiturn
+                        labeled_examples,
+                        choices[example],
+                        fewshot_as_multiturn,
+                        self.config.assistant_prefix,
                     )
                 else:
                     self.append_target_question(
-                        labeled_examples, str(example), fewshot_as_multiturn
+                        labeled_examples,
+                        str(example),
+                        fewshot_as_multiturn,
+                        self.config.assistant_prefix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(labeled_examples)
