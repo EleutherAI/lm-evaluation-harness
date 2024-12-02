@@ -101,6 +101,7 @@ class ContextSampler:
         doc,
         num_fewshot,
         fewshot_as_multiturn: bool = False,
+        assistant_prefix: str = None,
     ):
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
@@ -145,6 +146,8 @@ class ContextSampler:
             chat_history.append(
                 {"role": "user", "content": self.get_context(doc, num_fewshot)}
             )
+        if assistant_prefix:
+            chat_history.append({"role": "assistant", "content": assistant_prefix})
 
         return chat_history
 
