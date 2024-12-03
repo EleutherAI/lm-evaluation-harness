@@ -13,6 +13,7 @@ inference_decorator = (
 )
 
 GN_CLASSIFIER_ID = "FBK-MT/GeNTE-evaluator"
+TOKENIZER_ID = "Musixmatch/umberto-commoncrawl-cased-v1"
 
 
 class NeutralScorer:
@@ -28,7 +29,7 @@ class NeutralScorer:
         self.model = AutoModelForSequenceClassification.from_pretrained(
             model_name_or_path, torch_dtype=torch_dtype
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_ID)
         if not hasattr(self.tokenizer, "pad_token_id"):
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
             self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -67,7 +68,7 @@ class NeutralScorer:
             outputs = self.model(**batch)
             predictions = outputs.logits.argmax(dim=-1)
 
-            id2label = self.model.config.get("id2label", {0: "neutral", 1: "gendered"})
+            id2label = {0: "neutral", 1: "gendered"}
             predictions = [id2label[i.item()] for i in predictions]
             final_preds.extend(predictions)
 
