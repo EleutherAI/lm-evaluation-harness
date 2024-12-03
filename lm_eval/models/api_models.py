@@ -76,6 +76,8 @@ class TemplateAPI(TemplateLM):
         custom_prefix_token_id=None,
         # send the requests as tokens or strings
         tokenized_requests=True,
+        # timeout in seconds
+        timeout: int = 300,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -117,6 +119,7 @@ class TemplateAPI(TemplateLM):
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
+        self.timeout = int(timeout)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -434,7 +437,7 @@ class TemplateAPI(TemplateLM):
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(
-            connector=conn, timeout=ClientTimeout(total=6 * 60 * 60)
+            connector=conn, timeout=ClientTimeout(total=self.timeout)
         ) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
                 stop=stop_after_attempt(self.max_retries),
