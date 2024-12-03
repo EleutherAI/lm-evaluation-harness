@@ -62,6 +62,7 @@ dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
+ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
@@ -75,12 +76,15 @@ testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
+gptqmodel = ["gptqmodel>=1.0.9"]
+japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
     "lm_eval[deepsparse]",
     "lm_eval[gptq]",
     "lm_eval[hf_transfer]",
+    "lm_eval[ibm_watsonx_ai]",
     "lm_eval[ifeval]",
     "lm_eval[mamba]",
     "lm_eval[math]",
@@ -93,6 +97,7 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[zeno]",
     "lm_eval[wandb]",
+    "lm_eval[japanese_leaderboard]",
 ]
 
 [tool.ruff.lint]

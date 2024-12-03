@@ -22,6 +22,7 @@ doc_to_text:  !function utils_math.math_robustness_doc_to_text
 process_results: !function utils_math.process_results
 doc_to_target: answer
 generation_kwargs:
+  until: []
   do_sample: false
   temperature: 0
   max_gen_toks: 1024
