@@ -210,13 +210,22 @@ def main():
 
     if args.dataset == "math":
         consistency_rate = calculate_math_consistency_rate(responses)
-        results = {"consistency_rate": consistency_rate}
+        results = {"alias": f"score_non_greedy_robustness_{args.dataset}"}
+
+        results.update(
+            {
+                "consistency_rate,none": consistency_rate,
+                "consistency_rate_stderr,none": "N/A",
+            }
+        )
+
         for seed in range(1, N_SEEDS + 1):
             df_all[f"accuracy_seed_{seed}"] = df_all[
                 [f"final_answer_seed_{seed}", "gt"]
             ].apply(lambda x: math_equal(*x), axis=1)
             accuracy = df_all[f"accuracy_seed_{seed}"].mean()
-            results[f"seed_{seed}"] = accuracy
+            results[f"seed_{seed}_accuracy,none"] = accuracy
+            results[f"seed_{seed}_accuracy_stderr,none"] = "N/A"
 
     else:
         consistency_rate = calculate_consistency_rate(responses)
@@ -237,38 +246,36 @@ def main():
             results[f"seed_{seed}_accuracy,none"] = accuracy
             results[f"seed_{seed}_accuracy_stderr,none"] = "N/A"
 
-        metrics = [f"seed_{seed}_accuracy" for seed in range(1, N_SEEDS + 1)] + [
-            "consistency_rate"
-        ]
-        higher_is_better = {metric: True for metric in metrics}
+    metrics = [f"seed_{seed}_accuracy" for seed in range(1, N_SEEDS + 1)] + [
+        "consistency_rate"
+    ]
+    higher_is_better = {metric: True for metric in metrics}
 
-        results_dict = {
-            "results": {f"score_non_greedy_robustness_{args.dataset}": results},
-            "group_subtasks": {f"score_non_greedy_robustness_{args.dataset}": []},
-            "configs": None,
-            "versions": {f"score_non_greedy_robustness_{args.dataset}": 1},
-            "n-shot": {f"score_non_greedy_robustness_{args.dataset}": 0},
-            "higher_is_better": {
-                f"score_non_greedy_robustness_{args.dataset}": higher_is_better
-            },
-            "n-samples": None,
-        }
+    results_dict = {
+        "results": {f"score_non_greedy_robustness_{args.dataset}": results},
+        "group_subtasks": {f"score_non_greedy_robustness_{args.dataset}": []},
+        "configs": None,
+        "versions": {f"score_non_greedy_robustness_{args.dataset}": 1},
+        "n-shot": {f"score_non_greedy_robustness_{args.dataset}": 0},
+        "higher_is_better": {
+            f"score_non_greedy_robustness_{args.dataset}": higher_is_better
+        },
+        "n-samples": None,
+    }
 
-        dumped = json.dumps(
-            results,
-            indent=2,
-            default=handle_non_serializable,
-            ensure_ascii=False,
-        )
+    dumped = json.dumps(
+        results_dict,
+        indent=2,
+        default=handle_non_serializable,
+        ensure_ascii=False,
+    )
 
-        path = Path(args.log_dir)
-        path.mkdir(parents=True, exist_ok=True)
+    path = Path(args.log_dir)
+    path.mkdir(parents=True, exist_ok=True)
 
-        date_id = datetime.now().isoformat().replace(":", "-")
-        file_results_aggregated = path.joinpath(
-            f"{args.dataset}_results_{date_id}.json"
-        )
-        file_results_aggregated.open("w", encoding="utf-8").write(dumped)
+    date_id = datetime.now().isoformat().replace(":", "-")
+    file_results_aggregated = path.joinpath(f"{args.dataset}_results_{date_id}.json")
+    file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
     print(make_table(results_dict))
 

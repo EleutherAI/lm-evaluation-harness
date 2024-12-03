@@ -23,6 +23,7 @@ To run the evaluation of the Non-Greedy tasks with 5 different seeds you should:
    * fixing the seed with the run argument `--seed=1`
    * passing the `--log_samples` argument
    * specifying an output with `--output_path=SOME_OUTPUT_PATH/seed_1`
+   * if running with vllm it is important to set the seed in the `--model_args` as well buy jsut specifying the `seed` parameter
 
 2. Repeat the process for another 4 times by changing the seed to 2, 3, 4 and 5. Equivalantly adjusting the `--output_path` argument so that the directory is named as `seed_{SEED VALUE FOR THE RUN}`
 
