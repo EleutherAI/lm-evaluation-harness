@@ -24,6 +24,7 @@ generation_kwargs:
   max_gen_toks: 1024
   do_sample: true
   temperature: 0.7
+  until: []
 process_results: !function utils_math.non_greedy_robustness_process_results
 metric_list:
   - metric: non_greedy_accuracy
