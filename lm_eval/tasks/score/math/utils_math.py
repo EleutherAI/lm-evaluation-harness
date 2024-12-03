@@ -255,7 +255,7 @@ def math_prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
 def non_greedy_accuracy(results: List[Dict[str, Any]]) -> float:
     accuracies = []
     for result in results:
-        question_id, final_answer, gt = result
+        question_id, final_answer, gt, _ = result
         if math_equal(final_answer, gt):
             retval = 1
         else:
