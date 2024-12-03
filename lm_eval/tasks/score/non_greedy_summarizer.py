@@ -129,7 +129,6 @@ def main():
             for subtask in agieval_subtasks:
                 log_path = os.path.join(
                     seed_log_dir,
-                    f"seed_{seed}",
                     f"samples_non_greedy_robustness_agieval_{subtask}_*.jsonl",
                 )
                 subtask_logs = glob.glob(log_path)
