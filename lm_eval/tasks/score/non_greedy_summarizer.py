@@ -179,7 +179,7 @@ def main():
                     f"samples_non_greedy_robustness_math_{subtask}_*.jsonl",
                 )
 
-                subtask_logs = glob.glob()
+                subtask_logs = glob.glob(log_path)
                 if len(subtask_logs) == 0:
                     raise FileNotFoundError(
                         f"No logs found for math subtask {subtask} for seed={seed} in the path {log_path}."
