@@ -266,7 +266,9 @@ def main():
         path.mkdir(parents=True, exist_ok=True)
 
         date_id = datetime.now().isoformat().replace(":", "-")
-        file_results_aggregated = path.joinpath(f"results_{date_id}.json")
+        file_results_aggregated = path.joinpath(
+            f"{args.dataset}_results_{date_id}.json"
+        )
         file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
     print(make_table(results_dict))
