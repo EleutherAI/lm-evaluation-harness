@@ -130,7 +130,7 @@ def main():
                 log_path = os.path.join(
                     seed_log_dir,
                     f"seed_{seed}",
-                    f"*/samples_non_greedy_robustness_agieval_{subtask}_*.jsonl",
+                    f"samples_non_greedy_robustness_agieval_{subtask}_*.jsonl",
                 )
                 subtask_logs = glob.glob(log_path)
                 if len(subtask_logs) == 0:
@@ -147,7 +147,7 @@ def main():
             task_logs = glob.glob(
                 os.path.join(
                     seed_log_dir,
-                    "*/samples_score_non_greedy_robustness_mmlu_pro_*.jsonl",
+                    "samples_score_non_greedy_robustness_mmlu_pro_*.jsonl",
                 )
             )
             file_paths = []
@@ -176,7 +176,7 @@ def main():
             for subtask in math_subtasks:
                 log_path = os.path.join(
                     seed_log_dir,
-                    f"*/samples_non_greedy_robustness_math_{subtask}_*.jsonl",
+                    f"samples_non_greedy_robustness_math_{subtask}_*.jsonl",
                 )
 
                 subtask_logs = glob.glob()
