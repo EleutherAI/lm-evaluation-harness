@@ -131,7 +131,7 @@ def main():
                     os.path.join(
                         seed_log_dir,
                         f"seed_{seed}",
-                        f"*/samples_score_non_greedy_robustness_agieval_{subtask}_*.jsonl",
+                        f"*/samples_non_greedy_robustness_agieval_{subtask}_*.jsonl",
                     )
                 )
                 if len(subtask_logs) == 0:
@@ -177,7 +177,7 @@ def main():
                 subtask_logs = glob.glob(
                     os.path.join(
                         seed_log_dir,
-                        f"*/samples_score_non_greedy_robustness_math_{subtask}_*.jsonl",
+                        f"*/samples_non_greedy_robustness_math_{subtask}_*.jsonl",
                     )
                 )
                 if len(subtask_logs) == 0:
