@@ -21,7 +21,7 @@ from typing import (
 
 try:
     import requests
-    from aiohttp import ClientSession, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
@@ -81,6 +81,8 @@ class TemplateAPI(TemplateLM):
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
         eos_string: str = None,
+        # timeout in seconds
+        timeout: int = 300,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -126,6 +128,7 @@ class TemplateAPI(TemplateLM):
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
         self._eos_string = eos_string
+        self.timeout = int(timeout)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -466,7 +469,9 @@ class TemplateAPI(TemplateLM):
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
-        async with ClientSession(connector=conn) as session:
+        async with ClientSession(
+            connector=conn, timeout=ClientTimeout(total=self.timeout)
+        ) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
                 stop=stop_after_attempt(self.max_retries),
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),
