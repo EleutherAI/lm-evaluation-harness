@@ -2,19 +2,32 @@ import torch
 from tqdm import tqdm
 from datasets import concatenate_datasets, Dataset
 from peft import PeftModel, PeftConfig
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    DataCollatorWithPadding,
+)
 
 inference_decorator = (
     torch.inference_mode if torch.__version__ >= "2.0.0" else torch.no_grad
 )
 
-GN_CLASSIFIER_ID="RiTA-nlp/umberto-cased-v1-gn-classifier"
+GN_CLASSIFIER_ID = "FBK-MT/GeNTE-evaluator"
+
 
 class NeutralScorer:
-    def __init__(self, model_name_or_path: str, device="cuda", torch_dtype=torch.bfloat16, use_lora:bool=False):
+    def __init__(
+        self,
+        model_name_or_path: str,
+        device="cuda",
+        torch_dtype=torch.bfloat16,
+        use_lora: bool = False,
+    ):
         self.device = device
 
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name_or_path, torch_dtype=torch_dtype)
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            model_name_or_path, torch_dtype=torch_dtype
+        )
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         if not hasattr(self.tokenizer, "pad_token_id"):
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
@@ -23,9 +36,7 @@ class NeutralScorer:
 
         if use_lora:
             self.config = PeftConfig.from_pretrained(model_name_or_path)
-            self.model = PeftModel.from_pretrained(
-                self.model, model_name_or_path
-            )
+            self.model = PeftModel.from_pretrained(self.model, model_name_or_path)
 
         self.model.to(device).eval()
 
@@ -49,11 +60,15 @@ class NeutralScorer:
         )
 
         final_preds = list()
-        for step, batch in tqdm(enumerate(loader), desc="Batch", total=len(texts) // batch_size):
+        for _, batch in tqdm(
+            enumerate(loader), desc="Batch", total=len(texts) // batch_size
+        ):
             batch.to(self.device)
             outputs = self.model(**batch)
             predictions = outputs.logits.argmax(dim=-1)
-            predictions = [self.model.config.id2label[i.item()] for i in predictions]
+
+            id2label = self.model.config.get("id2label", {0: "neutral", 1: "gendered"})
+            predictions = [id2label[i.item()] for i in predictions]
             final_preds.extend(predictions)
 
         return final_preds
@@ -67,8 +82,8 @@ def neutrality_score(items):
     score = sum(is_neutral) / len(predictions)
     return score
 
+
 def process_docs(dataset):
     # We assume the GeNTE data files already contain Set-N only examples
-    #dataset = dataset.filter(lambda x: x["SET"] == "Set-N")
+    # dataset = dataset.filter(lambda x: x["SET"] == "Set-N")
     return dataset.rename_column("REF-N", "REF_N").rename_column("REF-G", "REF_G")
-
