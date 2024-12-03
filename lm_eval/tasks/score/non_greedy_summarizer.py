@@ -164,12 +164,13 @@ def main():
 
         elif args.dataset == "math":
             math_subtasks = [
-                "prompt_robustness_math_algebra",
+                "algebra",
                 "counting_and_prob",
                 "geometry",
                 "intermediate_algebra",
                 "num_theory",
-                "prealgebra" "," "precalc",
+                "prealgebra",
+                "precalc",
             ]
             file_paths = []
 
