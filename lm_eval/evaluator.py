@@ -157,6 +157,9 @@ def simple_evaluate(
         seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
         torch.manual_seed(torch_random_seed)
 
+    if fewshot_random_seed is not None:
+        seed_message.append(f"Setting fewshot manual seed to {fewshot_random_seed}")
+
     if seed_message:
         eval_logger.info(" | ".join(seed_message))
 
@@ -276,9 +279,6 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-                eval_logger.info(
-                    f"Setting fewshot random generator seed to {fewshot_random_seed}"
-                )
 
                 adjusted_task_dict[task_name] = task_obj
 
@@ -294,7 +294,9 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template),
+            chat_template=lm.chat_template(apply_chat_template)
+            if apply_chat_template
+            else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
@@ -400,6 +402,11 @@ def evaluate(
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
+    if apply_chat_template:
+        eval_logger.warning(
+            "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
+        )
+
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
@@ -433,10 +440,14 @@ def evaluate(
             )
     # end multimodality validation check
 
+    # Cache the limit arg.
+    limit_arg = limit
+    limits = []
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        limit = get_sample_size(task, limit)
+        limit = get_sample_size(task, limit_arg)
+        limits.append(limit)
         task.build_all_requests(
             limit=limit,
             rank=lm.rank,
@@ -506,7 +517,7 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output in eval_tasks:
+    for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         task.apply_filters()
 
@@ -541,6 +552,8 @@ def evaluate(
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
+                        "filter": filter_key,
+                        "metrics": list(metrics.keys()),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
@@ -655,7 +668,7 @@ def evaluate(
                         len(task_output.task.eval_docs),
                     ),
                 }
-                for task_output in eval_tasks
+                for task_output, limit in zip(eval_tasks, limits)
             },
         }
         if log_samples:

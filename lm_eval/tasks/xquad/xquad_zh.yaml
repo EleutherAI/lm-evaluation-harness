@@ -1,0 +1,4 @@
+include: xquad_common_yaml
+task: xquad_zh
+dataset_name: xquad.zh
+doc_to_text: "语境: {{context}}\n\n问题: {{question}}\n\n回答:"

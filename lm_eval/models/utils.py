@@ -698,3 +698,32 @@ def replace_placeholders(
     # Add the last part of the string
     result.append(parts[-1])
     return "".join(result)
+
+
+def flatten_image_list(images: List[List]):
+    """
+    Takes in a list of lists of images, and returns a single list of all images in order.
+    Used for some multimodal models like Llava-1.5 which expects this flattened-list format for its image processor.
+
+    :param images: A list of lists of PIL images.
+    :return: a list of PIL images, via concatenating all the sub-lists in order.
+    """
+    return [image for image_list in images for image in image_list]
+
+
+def handle_stop_sequences(
+    until: Union[str, List[str], None], eos: Optional[str]
+) -> List[str]:
+    """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token."""
+    if isinstance(until, str):
+        until = [until]
+    elif until is None:
+        until = []
+    elif not isinstance(until, list):
+        raise ValueError(
+            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+        )
+
+    if eos is not None and eos not in until:
+        until.append(eos)
+    return until

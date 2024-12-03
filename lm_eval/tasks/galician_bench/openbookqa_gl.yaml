@@ -1,0 +1,21 @@
+# Task configuration directly taken from Eleuther AI's implementation as of March 22, 2024
+task: openbookqa_gl
+dataset_path: proxectonos/openbookqa_gl
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+doc_to_text: question_stem
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
+doc_to_choice: "{{choices.text}}"
+should_decontaminate: true
+doc_to_decontamination_query: question_stem
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -39,7 +39,7 @@ This project provides a unified framework to test generative language models on 
 
 **Features:**
 - Over 60 standard academic benchmarks for LLMs, with hundreds of subtasks and variants implemented.
-- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
+- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [GPTQModel](https://github.com/ModelCloud/GPTQModel) and [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for fast and memory-efficient inference with [vLLM](https://github.com/vllm-project/vllm).
 - Support for commercial APIs including [OpenAI](https://openai.com), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRA) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
@@ -54,7 +54,7 @@ The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's pop
 To install the `lm-eval` package from the github repository, run:
 
 ```bash
-git clone https://github.com/EleutherAI/lm-evaluation-harness
+git clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
 pip install -e .
 ```
@@ -260,6 +260,7 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                           | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                                                                                                                                                                                            |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)    | ✔️         | `deepsparse`                                        | Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                                                                                                                                                                                                       |  `generate_until`, `loglikelihood`                         | ...                                                      |
 | [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)    | ✔️         | `sparseml`                                          | Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized) |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Watsonx.ai                                                                                                                 | :heavy_check_mark:              | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                                                                                                                                                                                                                                               | `generate_until` `loglikelihood`                         |
 | Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions`     | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                                                                                                                                                                                                                         | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                                          |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
@@ -319,8 +320,16 @@ lm_eval --model hf \
     --tasks hellaswag
 ```
 
-[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
+GPTQ quantized models can be loaded using [GPTQModel](https://github.com/ModelCloud/GPTQModel) (faster) or [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)
 
+GPTQModel: add `,gptqmodel=True` to `model_args`
+```bash
+lm_eval --model hf \
+    --model_args pretrained=model-name-or-path,gptqmodel=True \
+    --tasks hellaswag
+```
+
+AutoGPTQ: add `,autogptq=True` to `model_args`:
 ```bash
 lm_eval --model hf \
     --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
@@ -468,6 +477,8 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | gptq            | For loading models with GPTQ                 |
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
+| ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |
+
 | neuronx         | For running on AWS inf2 instances            |
 | mamba           | For loading Mamba SSM models                 |
 | math            | For running math task answer checking        |

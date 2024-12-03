@@ -57,7 +57,6 @@ class TaskConfig(dict):
     task: Optional[str] = None
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
-    group: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -68,7 +67,7 @@ class TaskConfig(dict):
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
     fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
@@ -98,18 +97,6 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
-        if self.group is not None:
-            eval_logger.warning(
-                "A task YAML file was found to contain a `group` key. Groups which provide aggregate scores over several subtasks now require a separate config file--if not aggregating, you may want to use the `tag` config option instead within your config. Setting `group` within a TaskConfig will be deprecated in v0.4.4. Please see https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md for more information."
-            )
-
-            if self.tag is None:
-                self.tag = self.group
-            else:
-                raise ValueError(
-                    "Got both a `group` and `tag` entry within a TaskConfig. Please use one or the other--`group` values will be deprecated in v0.4.4."
-                )
-
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -462,6 +449,7 @@ class Task(abc.ABC):
                 doc=doc,
                 ctx=fewshot_ctx,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
+                apply_chat_template=apply_chat_template,
             )
 
             if not isinstance(inst, list):
@@ -1314,6 +1302,8 @@ class ConfigurableTask(Task):
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
+        apply_chat_template = kwargs.pop("apply_chat_template", False)
+
         aux_arguments = None
 
         if self.OUTPUT_TYPE == "loglikelihood":
@@ -1323,6 +1313,8 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
+            if apply_chat_template:
+                target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
@@ -1511,7 +1503,10 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif type(gold) != type(result):
+            elif (
+                type(gold) is not type(result)
+                and "bypass" not in self._metric_fn_list.keys()
+            ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
@@ -1594,7 +1589,7 @@ class ConfigurableTask(Task):
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
             f"output_type={self.OUTPUT_TYPE},"
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
-            f"num_samples={len(self.eval_docs)})",
+            f"num_samples={len(self.eval_docs)})"
         )
 
 
