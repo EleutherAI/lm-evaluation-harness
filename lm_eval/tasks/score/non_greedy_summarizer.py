@@ -127,16 +127,15 @@ def main():
             ]
             file_paths = []
             for subtask in agieval_subtasks:
-                subtask_logs = glob.glob(
-                    os.path.join(
-                        seed_log_dir,
-                        f"seed_{seed}",
-                        f"*/samples_non_greedy_robustness_agieval_{subtask}_*.jsonl",
-                    )
+                log_path = os.path.join(
+                    seed_log_dir,
+                    f"seed_{seed}",
+                    f"*/samples_non_greedy_robustness_agieval_{subtask}_*.jsonl",
                 )
+                subtask_logs = glob.glob(log_path)
                 if len(subtask_logs) == 0:
                     raise FileNotFoundError(
-                        f"No logs found for agieval subtask {subtask} for seed={seed}."
+                        f"No logs found for agieval subtask {subtask} for seed={seed} in the path {log_path}."
                     )
                 elif len(subtask_logs) > 1:
                     raise FileExistsError(
@@ -175,15 +174,15 @@ def main():
             file_paths = []
 
             for subtask in math_subtasks:
-                subtask_logs = glob.glob(
-                    os.path.join(
-                        seed_log_dir,
-                        f"*/samples_non_greedy_robustness_math_{subtask}_*.jsonl",
-                    )
+                log_path = os.path.join(
+                    seed_log_dir,
+                    f"*/samples_non_greedy_robustness_math_{subtask}_*.jsonl",
                 )
+
+                subtask_logs = glob.glob()
                 if len(subtask_logs) == 0:
                     raise FileNotFoundError(
-                        f"No logs found for math subtask {subtask} for seed={seed}."
+                        f"No logs found for math subtask {subtask} for seed={seed} in the path {log_path}."
                     )
                 elif len(subtask_logs) > 1:
                     raise FileExistsError(

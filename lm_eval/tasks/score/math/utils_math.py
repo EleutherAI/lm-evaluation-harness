@@ -177,7 +177,7 @@ def non_greedy_robustness_process_results(
     doc: dict, results: List[str]
 ) -> Dict[str, int]:
     answer = extract_answer(results[0])
-    return {"non_greedy_accuracy": (doc["question_id"], answer, doc["answer"])}
+    return {"non_greedy_accuracy": (doc["question_id"], answer, doc["answer"], None)}
 
 
 def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
