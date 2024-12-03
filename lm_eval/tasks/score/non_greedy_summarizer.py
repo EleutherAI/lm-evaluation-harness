@@ -117,7 +117,7 @@ def main():
 
         if args.dataset == "agieval":
             agieval_subtasks = [
-                "agieval_aqua_rat",
+                "aqua_rat",
                 "logiqa_en",
                 "lsat_ar",
                 "lsat_lr",
