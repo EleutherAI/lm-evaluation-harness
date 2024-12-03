@@ -2,13 +2,15 @@ import argparse
 import glob
 import json
 import os
+from datetime import datetime
 from itertools import combinations
+from pathlib import Path
 from typing import List
 
 import pandas as pd
 
 from lm_eval.tasks.score.math.math_grader import math_equal
-from lm_eval.utils import make_table
+from lm_eval.utils import handle_non_serializable, make_table
 
 
 N_SEEDS = 5
@@ -252,6 +254,20 @@ def main():
             },
             "n-samples": None,
         }
+
+        dumped = json.dumps(
+            results,
+            indent=2,
+            default=handle_non_serializable,
+            ensure_ascii=False,
+        )
+
+        path = Path(args.log_dir)
+        path.mkdir(parents=True, exist_ok=True)
+
+        date_id = datetime.now().isoformat().replace(":", "-")
+        file_results_aggregated = path.joinpath(f"results_{date_id}.json")
+        file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
     print(make_table(results_dict))
 

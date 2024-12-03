@@ -142,8 +142,8 @@ def prompt_robustness_process_docs(doc: datasets.Dataset) -> datasets.Dataset:
     doc = process_docs(doc)
     return utils.process_docs_add_prompts(
         doc,
-        PROMPT_ROBUSTNESS_TEMPLATE_KEY,
-        TEMPLATE_FILE_PATH,
+        templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY,
+        template_file_path=TEMPLATE_FILE_PATH,
     )
 
 
@@ -151,8 +151,8 @@ def non_greedy_robustness_process_docs(doc: datasets.Dataset) -> datasets.Datase
     doc = process_docs(doc)
     return utils.non_greedy_robustness_process_docs(
         doc,
-        NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY,
-        TEMPLATE_FILE_PATH,
+        templates_key=NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY,
+        template_file_path=TEMPLATE_FILE_PATH,
     )
 
 

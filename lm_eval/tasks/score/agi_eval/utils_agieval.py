@@ -96,8 +96,8 @@ option_order_robustness_process_docs = partial(
 
 non_greedy_robustness_process_docs = partial(
     utils.non_greedy_robustness_process_docs,
-    template_file_path=TEMPLATE_FILE_PATH,
     templates_key=NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY,
+    template_file_path=TEMPLATE_FILE_PATH,
     dataset_specific_preprocess=initial_process_docs,
 )
 
@@ -149,10 +149,9 @@ def non_greedy_robustness_process_results(doc, results) -> Dict[str, float]:
         final_answer, option_format=doc["options_format"], labels=LABELS
     )
     question_id = doc["question_id"]
-    category = doc["category"]
     gt = LABELS[doc["answer_index"]]
 
-    return {"non_greedy_accuracy": (question_id, final_answer, gt, category)}
+    return {"non_greedy_accuracy": (question_id, final_answer, gt, None)}
 
 
 def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:

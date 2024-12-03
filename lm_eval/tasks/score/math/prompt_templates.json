@@ -1,7 +1,6 @@
 {
-    "non_greedy_robustness":{
-        "prompt": "For the multiple-choice question related to {category}, which option (A-J) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' or 'J'.",
-        "options_format": "\n{letter}: {option}"
+    "non_greedy_robustness":      {
+        "prompt": "Calculate the answer to this math problem\nProblem: {question}\nConclude your answer with:\nThe final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem."
     },
 
     "prompt_robustness": [

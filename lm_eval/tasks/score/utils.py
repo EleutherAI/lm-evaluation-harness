@@ -132,15 +132,15 @@ def option_order_robustness_process_docs(
 
 def non_greedy_robustness_process_docs(
     doc: Dataset,
-    template_file_path: str,
     templates_key: str,
+    template_file_path: str,
     dataset_specific_preprocess: callable = None,
 ) -> Dataset:
     try:
         with open(template_file_path) as f:
             prompt_template = json.load(f)[templates_key]
             prompt = prompt_template["prompt"]
-            options_format = prompt_template["options_format"]
+            options_format = prompt_template.get("options_format", None)
     except FileNotFoundError:
         eval_logger.error("Prompt templates not found")
         sys.exit()
@@ -152,7 +152,8 @@ def non_greedy_robustness_process_docs(
         initial_len = len(next(iter(batched_docs.values())))
         new_batched_docs = copy.deepcopy(batched_docs)
         new_batched_docs["prompt"] = [prompt] * initial_len
-        new_batched_docs["options_format"] = [options_format] * initial_len
+        if options_format is not None:
+            new_batched_docs["options_format"] = [options_format] * initial_len
 
         return new_batched_docs
 
