@@ -450,7 +450,7 @@ def evaluate(
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            examples=examples[task_output.task_name] if examples is None else examples,
+            examples=examples[task_output.task_name] if examples is not None else examples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -537,7 +537,7 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
-                examples=examples[task_output.task_name] if examples is None else examples,
+                examples=examples[task_output.task_name] if examples is not None else examples,
                 world_size=WORLD_SIZE,
             )
             for doc_id, doc in doc_iterator:
