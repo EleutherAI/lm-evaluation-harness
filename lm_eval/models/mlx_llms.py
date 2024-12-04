@@ -79,48 +79,55 @@ class MLX(TemplateLM):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
 
-    def _preserve_last_target_len_logits(
+    def _preserve_last_target_len_scores(
         self,
-        logits,
+        scores,
         prompt_lengths: List,
         non_padding_lengths: List,
         dtype: np.dtype = np.float32,
     ) -> Tuple:
         """
 
-        :param logits: logits
+        :param scores: logits (or log probs)
         :param prompt_lengths: a list of prompt token lengths for each input string that corresponded to an item in the
-                               first dimension of the logits (the batch item)
+                               first dimension of the scores (the batch item)
         :param non_padding_lengths: a list of the lengths of the tokenizations of input and label concatenations
                                     for each such item
-        :return: Return the logits where every item in the last 2 dimensions (i.e., for every item in the batch) is all
+        :return: Return the scores where every item in the last 2 dimensions (i.e., for every item in the batch) is all
                  zero if it corresponds to anything other than the last n-logit vocabulary scores, the conditional
                  probability of producing a continuation of n tokens given the input, where n is the number of
                  continuation tokens for the batch item
 
-        Intuitively, it masks out all but the last n target tokens in the given logits from later calculations
+        Intuitively, it masks out all but the last n target tokens in the given scores from later calculations
 
-        also returns a mask for the logits sequence positions (the 2nd dimension) that correspond to the tokens of the
+        also returns a mask for the score sequence positions (the 2nd dimension) that correspond to the tokens of the
         target
         """
         import mlx.core as mx
         import numpy as np
 
-        batch_size, logits_seq_len, vocab_size = logits.shape
-        target_logits = np.zeros((logits.shape[0], logits_seq_len, vocab_size), dtype)
-        target_mask = np.zeros((logits.shape[0], logits_seq_len, vocab_size), np.int32)
+        batch_size, logits_seq_len, vocab_size = scores.shape
+        target_logits = np.zeros((scores.shape[0], logits_seq_len, vocab_size), dtype)
+        target_seq_mask = np.zeros((scores.shape[0], logits_seq_len), np.int32)
+        assert all(
+            [
+                length - prompt_length <= logits_seq_len
+                for prompt_length, length in zip(prompt_lengths, non_padding_lengths)
+            ]
+        )
         for i in range(batch_size):
             prompt_length = prompt_lengths[i]
             non_padding_length = non_padding_lengths[i]
             target_length = non_padding_length - prompt_length
             for j in range(logits_seq_len):
+                min_length = min(non_padding_length, logits_seq_len)
                 if (
-                    j > (min(non_padding_length, logits_seq_len) - target_length)
+                    j >= (min_length - target_length)
                     or (logits_seq_len - j) <= target_length
                 ):
-                    target_logits[i][j] = logits[i][j]
-                    target_mask[i][j] = 1
-        return mx.array(target_logits), mx.array(target_mask)
+                    target_logits[i][j] = scores[i][j]
+                    target_seq_mask[i][j] = 1
+        return mx.array(target_logits), mx.array(target_seq_mask)
 
     def _loglikelihood_tokens(
         self,
@@ -223,15 +230,12 @@ class MLX(TemplateLM):
         for chunk in chunks:
             full_sequences = []
             prompt_lengths = []
-            inplens = []
             cont_toks_list = []
 
             for _, context_enc, continuation_enc in chunk:
                 full_sequence = context_enc + continuation_enc
                 full_sequences.append(full_sequence)
                 prompt_lengths.append(len(context_enc))
-                inplen = len(full_sequence[-(self.max_tokens + 1) :][:-1])
-                inplens.append(inplen)
                 cont_toks_list.append(continuation_enc)
 
             current_batch_size = len(full_sequences)
@@ -265,10 +269,39 @@ class MLX(TemplateLM):
             all_greed_tokens = log_probs.argmax(axis=-1)
             # [current_batch_size, max_length_in_batch-1]
 
-            target_only_log_probs, target_masks = self._preserve_last_target_len_logits(
+            target_only_log_probs, target_masks = self._preserve_last_target_len_scores(
                 log_probs, prompt_lengths, lengths
             )
             # [current_batch_size, max_length_in_batch-1, vocab] and [current_batch_size, max_length_in_batch-1]
+
+            _, full_seq_len, vocab_size = logits.shape
+            flattened_shape = current_batch_size, full_seq_len
+            cont_lengths = [len(i) for i in cont_toks_list]
+            assert all(i == cont_lengths[0] for i in cont_lengths)
+            target_seq_size = max(cont_lengths)
+            arr = mx.take_along_axis(
+                log_probs,
+                mx.array(
+                    [[0] * (log_probs.shape[1] - len(i)) + i for i in cont_toks_list]
+                )[..., None],
+                -1,
+            )
+            # Obtain log-probs at the corresponding continuation token indices
+            # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+            # logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
+            #     -1
+            # )  # [1, seq]
+            target_sequence_pos = (
+                mx.stack([mx.arange(full_seq_len)] * current_batch_size)
+                >= full_seq_len - target_seq_size
+            )
+            # print(log_probs.shape, target_sequence_pos.shape, flattened_shape, arr.shape)
+            # print(target_sequence_pos)
+            target_log_probs = mx.where(
+                target_sequence_pos,
+                arr.reshape(*flattened_shape),
+                mx.zeros(flattened_shape),
+            ).sum(1)[..., None]
 
             for (
                 (
@@ -277,43 +310,27 @@ class MLX(TemplateLM):
                     _,
                 ),
                 answer_target_log_probs,
-                inplen,
-                cont_toks,
                 answer_greedy_tokens,
                 target_mask,
+                cont_toks,
             ) in zip(
-                chunk,
-                target_only_log_probs,
-                inplens,
-                cont_toks_list,
-                all_greed_tokens,
-                target_masks,
+                chunk, target_log_probs, all_greed_tokens, target_masks, cont_toks_list
             ):
                 # Check if per-token argmax for final scores associated with length of cont_toks
                 # is exactly equal to cont_toks
                 greedy_target_tokens = answer_greedy_tokens[-len(cont_toks) :]
                 cont_toks = mx.array(cont_toks)
-                num_cont_toks = len(cont_toks)
                 max_equal = (greedy_target_tokens == cont_toks).all()
-
-                # Obtain log-probs at the corresponding continuation token indices
-                # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                # logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
-                #     -1
-                # )  # [1, seq]
-                answer_target_log_probs = answer_target_log_probs[
-                    mx.arange(num_cont_toks) - num_cont_toks, cont_toks
-                ]
 
                 # Answer: (log prob, is-exact-match)
                 # Sum over conditional log likelihood values for final n tokens, where n is the length of cont_toks)
-                answer_score = answer_target_log_probs.sum().item()
+                answer_score = answer_target_log_probs.item()
                 answer = (answer_score, bool(max_equal))
                 res.append(answer)
                 pbar.update(1)
 
         pbar.close()
-        return res  # re_ord.get_original(res)
+        return re_ord.get_original(res)
 
     def loglikelihood_rolling(
         self, requests: List[Instance]
