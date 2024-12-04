@@ -1,0 +1,5 @@
+include: _default
+task: ko_commongen_v2_china
+test_split: china
+description: "以下任务是结合给定概念信息 concept set: 中的形态素，创造出符合常识的句子。 以下任务是结合给定概念信息 concept set: 中的形态素，创造出符合常识的句子。"
+doc_to_text: "{{query}}\n请回答:"
