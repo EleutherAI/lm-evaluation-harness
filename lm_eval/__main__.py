@@ -129,6 +129,15 @@ def setup_parser() -> argparse.ArgumentParser:
         "If <1, limit is a percentage of the total number of examples.",
     )
     parser.add_argument(
+        "--examples",
+        "-E",
+        default=None,
+        type=str,
+        metavar="/path/to/json",
+        help="Examples to test. "
+        "Should be a json file which loads into a Python dictionary. E.g., {'mmlu_anatomy':[0,1],'mmlu_astronomy':[1,2,3]}.",
+    )
+    parser.add_argument(
         "--use_cache",
         "-c",
         type=str,
@@ -309,10 +318,18 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
     if args.limit:
+        limit = args.limit
         eval_logger.warning(
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+    if args.examples:
+        assert (
+            args.limit is None
+        ), "If --examples is not None, then --limit must be None."
+        limit = None
+        with open(args.examples, "r") as json_file:
+            examples = json.load(json_file)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -388,7 +405,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         max_batch_size=args.max_batch_size,
         device=args.device,
         use_cache=args.use_cache,
-        limit=args.limit,
+        limit=limit,
+        examples=examples,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
@@ -445,7 +463,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             evaluation_tracker.recreate_metadata_card()
 
         print(
-            f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
+            f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(make_table(results))

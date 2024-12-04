@@ -58,6 +58,7 @@ def simple_evaluate(
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
     limit: Optional[Union[int, float]] = None,
+    examples: Optional[dict] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     write_out: bool = False,
@@ -102,6 +103,8 @@ def simple_evaluate(
         Deletes all of the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
+    :param examples: dictionary, optional
+        Dictionary indicating which examples should be tested in each task, e.g., {'mmlu_astronomy':[0,3,6],'mmlu_anatomy':[1,4,7,10]}.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics, used when calculating stderrs. set to 0 for no stderr calculations to be performed.
     :param check_integrity: bool
@@ -304,6 +307,7 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         limit=limit,
+        examples=examples,
         cache_requests=cache_requests,
         rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
@@ -363,6 +367,7 @@ def evaluate(
     lm: "LM",
     task_dict,
     limit: Optional[int] = None,
+    examples: Optional[dict] = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     bootstrap_iters: Optional[int] = 100000,
@@ -381,6 +386,8 @@ def evaluate(
         Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
+    :param examples: dictionary, optional
+        Dictionary indicating which examples should be tested in each task, e.g., {'mmlu_astronomy':[0,3,6],'mmlu_anatomy':[1,4,7,10]}.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics, used when calculating stderr. Set to 0 for skipping all stderr calculations.
     :param write_out: bool
@@ -450,6 +457,7 @@ def evaluate(
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
+            examples=examples[task_output.task_name] if examples is not None else examples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -534,9 +542,16 @@ def evaluate(
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
             doc_iterator = task.doc_iterator(
-                rank=RANK, limit=limit, world_size=WORLD_SIZE
+                rank=RANK,
+                limit=limit,
+                examples=examples[task_output.task_name] if examples is not None else examples,
+                world_size=WORLD_SIZE,
             )
             for doc_id, doc in doc_iterator:
+                if examples:
+                    doc_id_true = examples[task_output.task_name][doc_id]
+                else:
+                    doc_id_true = doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
@@ -544,7 +559,7 @@ def evaluate(
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
-                        "doc_id": doc_id,
+                        "doc_id": doc_id_true,
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],
