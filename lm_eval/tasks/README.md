@@ -1,4 +1,3 @@
-
 # Tasks
 
  A list of supported tasks and task groupings can be viewed with `lm-eval --tasks list`.
