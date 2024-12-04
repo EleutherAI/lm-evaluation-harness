@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
+import jinja2
 import torch
 import torch.nn.functional as F
 import transformers
@@ -32,6 +33,7 @@ from lm_eval.models.utils import (
     clear_torch_cache,
     configure_pad_token,
     get_dtype,
+    handle_stop_sequences,
     pad_and_concat,
     stop_sequences_criteria,
 )
@@ -346,9 +348,9 @@ class HFLM(TemplateLM):
                         == (self.accelerator.process_index % num_local_processes)
                     }
             args["max_memory"] = max_memory_per_gpu_map
-            args["device_map"] = "auto"
+            args["device_map"] = "auto" if device_map is None else device_map
             eval_logger.info(
-                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to 'auto'"
+                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to {args.get('device_map')}"
             )
 
             if max_cpu_memory is not None:
@@ -463,7 +465,7 @@ class HFLM(TemplateLM):
             elif backend == "seq2seq":
                 self.backend = backend
             eval_logger.info(
-                f"Overrode HF model backend type, and using type '{backend}'"
+                f"Overrode HF model backend type, and using type '{self.backend}'"
             )
         else:
             # determine and use the default HF backend for this model, based on its config + metadata.
@@ -475,12 +477,12 @@ class HFLM(TemplateLM):
                 # models like MBart are listed in both seq2seq and causal mistakenly in HF transformers.
                 # these special cases should be treated as seq2seq models.
                 self.backend = "seq2seq"
-                eval_logger.info(f"Using model type '{backend}'")
+                eval_logger.debug(f"Using model type '{self.backend}'")
             elif (
                 getattr(self.config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
             ):
                 self.backend = "causal"
-                eval_logger.info(f"Using model type '{backend}'")
+                eval_logger.debug(f"Using model type '{self.backend}'")
             else:
                 if not trust_remote_code:
                     eval_logger.warning(
@@ -492,7 +494,7 @@ class HFLM(TemplateLM):
                 # then we default to assuming AutoModelForCausalLM
                 self.backend = "causal"
                 eval_logger.info(
-                    f"Model type cannot be determined. Using default model type '{backend}'"
+                    f"Model type cannot be determined. Using default model type '{self.backend}'"
                 )
 
         if self.AUTO_MODEL_CLASS is None:
@@ -1254,33 +1256,21 @@ class HFLM(TemplateLM):
             group_fn=lambda x: x[1],
         )
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
+        eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -1344,9 +1334,20 @@ class HFLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        return self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
-        )
+        try:
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+        except jinja2.exceptions.TemplateError:
+            eval_logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_history = [msg for msg in chat_history if msg["role"] != "system"]
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+
+        return chat_templated
 
     def get_model_info(self) -> dict:
         """
@@ -1372,7 +1373,7 @@ class HFLM(TemplateLM):
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
                 return model_info.sha
             except Exception as e:
-                eval_logger.warn(
+                eval_logger.debug(
                     f"Failed to get model SHA for {pretrained} at revision {revision}. Error: {e}"
                 )
                 return ""
