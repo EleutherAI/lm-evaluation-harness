@@ -142,6 +142,9 @@ def simple_evaluate(
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     start_date = time.time()
 
+    if limit is not None and examples is not None:
+        raise ValueError("Either 'limit' or 'examples' must be None, but both are not None.")
+        
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
         delete_cache()
@@ -407,6 +410,9 @@ def evaluate(
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
+    if limit is not None and examples is not None:
+        raise ValueError("Either 'limit' or 'examples' must be None, but both are not None.")
+        
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
