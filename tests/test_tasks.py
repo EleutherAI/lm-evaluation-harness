@@ -79,11 +79,15 @@ class TestNewTasks:
         )
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
+        target_delimiter: str = task.config.target_delimiter
         if not task.multiple_input:
-            assert all(
-                isinstance(x, str) and (x[-1] != " " if len(x) != 0 else True)
-                for x in _array
-            )
+            for x in _array:
+                assert isinstance(x, str)
+                assert (
+                    (x[-1].isspace() is False if len(x) > 0 else True)
+                    if target_delimiter.isspace()
+                    else True
+                ), "doc_to_text ends in a whitespace and target delimiter also a whitespace"
         else:
             pass
 
