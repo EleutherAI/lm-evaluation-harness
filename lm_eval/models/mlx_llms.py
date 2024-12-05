@@ -57,6 +57,7 @@ class MLX(TemplateLM):
         self.max_gen_tokens = max_gen_tokens
         self.add_bos_token = add_bos_token
         self.context_prefix_cache = context_prefix_cache
+        self.backend = "causal"
 
     def _longest_common_prefix(self, list_of_strings):
         for a in range(1, len(list_of_strings[0])):
