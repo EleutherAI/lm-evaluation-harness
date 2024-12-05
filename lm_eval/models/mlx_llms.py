@@ -75,11 +75,7 @@ class MLX(TemplateLM):
         return self.tokenizer.eos_token_id
 
     def _preserve_last_target_len_scores(
-        self,
-        scores,
-        prompt_lengths: List,
-        non_padding_lengths: List,
-        dtype: np.dtype = np.float32,
+        self, scores, prompt_lengths: List, non_padding_lengths: List
     ) -> Tuple:
         """
 
@@ -99,30 +95,26 @@ class MLX(TemplateLM):
         target
         """
         import mlx.core as mx
-        import numpy as np
 
         batch_size, logits_seq_len, vocab_size = scores.shape
-        target_logits = np.zeros((scores.shape[0], logits_seq_len, vocab_size), dtype)
-        target_seq_mask = np.zeros((scores.shape[0], logits_seq_len), np.int32)
         assert all(
             [
                 length - prompt_length <= logits_seq_len
                 for prompt_length, length in zip(prompt_lengths, non_padding_lengths)
             ]
         )
-        for i in range(batch_size):
-            prompt_length = prompt_lengths[i]
-            non_padding_length = non_padding_lengths[i]
-            target_length = non_padding_length - prompt_length
-            for j in range(logits_seq_len):
-                min_length = min(non_padding_length, logits_seq_len)
-                if (
-                    j >= (min_length - target_length)
-                    or (logits_seq_len - j) <= target_length
-                ):
-                    target_logits[i][j] = scores[i][j]
-                    target_seq_mask[i][j] = 1
-        return mx.array(target_logits), mx.array(target_seq_mask)
+        indices = mx.stack([mx.arange(logits_seq_len)] * batch_size)
+        target_pos = list(
+            map(
+                lambda i: logits_seq_len - (i[0] - i[1]),
+                zip(non_padding_lengths, prompt_lengths),
+            )
+        )
+        target_mask = indices >= mx.array(target_pos)[..., None]
+        zeros = mx.zeros_like(scores)
+        expanded_mask = mx.repeat(target_mask[..., None], vocab_size, axis=2)
+        result = mx.where(expanded_mask, scores, zeros)
+        return result, target_mask
 
     def _loglikelihood_tokens(
         self,
@@ -306,11 +298,8 @@ class MLX(TemplateLM):
                 ),
                 answer_target_log_probs,
                 answer_greedy_tokens,
-                target_mask,
                 cont_toks,
-            ) in zip(
-                chunk, target_log_probs, all_greed_tokens, target_masks, cont_toks_list
-            ):
+            ) in zip(chunk, target_log_probs, all_greed_tokens, cont_toks_list):
                 # Check if per-token argmax for final scores associated with length of cont_toks
                 # is exactly equal to cont_toks
                 greedy_target_tokens = answer_greedy_tokens[-len(cont_toks) :]
