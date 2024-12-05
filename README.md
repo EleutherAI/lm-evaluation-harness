@@ -492,7 +492,6 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
 | ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |
-
 | neuronx         | For running on AWS inf2 instances            |
 | mamba           | For loading Mamba SSM models                 |
 | math            | For running math task answer checking        |
