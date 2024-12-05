@@ -225,6 +225,31 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 > [!Tip]
 > Passing `max_model_len=4096` or some other reasonable default to vLLM through model args may cause speedups or prevent out-of-memory errors when trying to use auto batch size, such as for Mistral-7B-v0.1 which defaults to a maximum length of 32k.
 
+### MLX models
+
+To evaluate an mlx model (e.g. [mlx-community/Meta-Llama-3-8B-Instruct-4bit](https://github.com/ml-explore/mlx)) on
+`mmlu_clinical_knowledge` you can use the following command:
+
+```bash
+lm_eval --model mlx \
+    --model_args model=m42-health/Llama3-Med42-8B \
+    --tasks mmlu_clinical_knowledge
+```
+
+Note, you don't need to specify a device.  
+
+Additional arguments can be provided to the model constructor using the `--model_args` flag:
+
+* adapter_path (defaults to None):  A low-rank adapter to use with the model
+* trust_remote_code (defaults to False): used with tokenizer configuration
+* eos_token (defaults to None): specifies a special token representing the end of a sentence
+* max_tokens (defaults to 2024): The maximum width of the batches used for sampling answers
+* batch_size
+* max_gen_tokens (defaults to 256): Maximum tokens to generate via generate_until
+* add_bos_token (defaults to False): Whether or not to ensure the tokenizer's BOS token is added
+* context_prefix_cache (defaults to False): Whether or not to use [prompt caching](https://github.com/ml-explore/mlx-examples/tree/main/llms#long-prompts-and-generations) by creating a
+  context prefix from the common string prefix for all questions
+
 ### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.

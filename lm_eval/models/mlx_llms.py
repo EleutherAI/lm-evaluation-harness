@@ -30,12 +30,10 @@ class MLX(TemplateLM):
         adapter_path: str = None,
         trust_remote_code: bool = False,
         eos_token: str = None,
-        top_p: int = TOP_P_DEFAULT,
         max_tokens: int = MAX_TOKENS_DEFAULT,
         batch_size: int = DEFAULT_BATCH_SIZE,
         max_gen_tokens: int = DEFAULT_MAX_GEN_TOKENS,
         add_bos_token: bool = False,
-        verbose: bool = False,
         context_prefix_cache: bool = False,
     ):
         try:
@@ -55,12 +53,9 @@ class MLX(TemplateLM):
             eval_logger.info(f"Loading pretrained adapters from {adapter_path}")
             self.model.load_weights(adapter_path, strict=False)
         self.max_tokens = int(max_tokens)
-        self.top_p = top_p
         self.batch_size = int(batch_size)
         self.max_gen_tokens = max_gen_tokens
         self.add_bos_token = add_bos_token
-        self.verbose = verbose
-        self.backend = "causal"
         self.context_prefix_cache = context_prefix_cache
 
     def _longest_common_prefix(self, list_of_strings):
@@ -340,40 +335,4 @@ class MLX(TemplateLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        """
-        * Each request contains Instance.args : Tuple[str, dict] containing 1. an input string to the LM and 2. a
-          dictionary of keyword arguments used to control generation parameters.
-        * Using this input and these generation parameters, text will be sampled from the language model
-          (typically until a maximum output length or specific stopping string sequences--for example,
-          {"until": ["\n\n", "."], "max_gen_toks": 128}).
-        * The generated input+output text from the model will then be returned.
-        """
-        try:
-            from mlx_lm.utils import generate
-        except ModuleNotFoundError:
-            raise Exception(
-                "attempted to use 'mlx' LM type, but package `mlx` is not installed. Please install anthropic via "
-                "`pip install 'lm-eval[mlx]'` or `pip install -e '.[mlx]'`",
-            )
-
-        if not requests:
-            return []
-
-        res = []
-        for request in tqdm([req.args for req in requests], disable=disable_tqdm):
-            prompt, request_args = request
-            temperature = request_args.pop("temperature", 0.0)
-            request_args.pop("do_sample", None)
-            request_args.pop("until", None)
-            res.append(
-                generate(
-                    model=self.model,
-                    tokenizer=self.tokenizer,
-                    prompt=prompt,
-                    max_tokens=self.max_gen_tokens,
-                    verbose=self.verbose,
-                    temp=temperature,
-                    **request_args,
-                )
-            )
-        return res
+        raise NotImplementedError("generate_until is not implemented")
