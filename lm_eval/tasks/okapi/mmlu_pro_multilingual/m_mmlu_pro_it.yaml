@@ -1,0 +1,2 @@
+include: _default_template_yaml
+task: m_mmlu_pro_it
