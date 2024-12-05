@@ -75,48 +75,6 @@ class MLX(TemplateLM):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
 
-    def _preserve_last_target_len_scores(
-        self, scores, prompt_lengths: List, non_padding_lengths: List
-    ) -> Tuple:
-        """
-
-        :param scores: logits (or log probs)
-        :param prompt_lengths: a list of prompt token lengths for each input string that corresponded to an item in the
-                               first dimension of the scores (the batch item)
-        :param non_padding_lengths: a list of the lengths of the tokenizations of input and label concatenations
-                                    for each such item
-        :return: Return the scores where every item in the last 2 dimensions (i.e., for every item in the batch) is all
-                 zero if it corresponds to anything other than the last n-logit vocabulary scores, the conditional
-                 probability of producing a continuation of n tokens given the input, where n is the number of
-                 continuation tokens for the batch item
-
-        Intuitively, it masks out all but the last n target tokens in the given scores from later calculations
-
-        also returns a mask for the score sequence positions (the 2nd dimension) that correspond to the tokens of the
-        target
-        """
-        import mlx.core as mx
-
-        batch_size, logits_seq_len, vocab_size = scores.shape
-        assert all(
-            [
-                length - prompt_length <= logits_seq_len
-                for prompt_length, length in zip(prompt_lengths, non_padding_lengths)
-            ]
-        )
-        indices = mx.stack([mx.arange(logits_seq_len)] * batch_size)
-        target_pos = list(
-            map(
-                lambda i: logits_seq_len - (i[0] - i[1]),
-                zip(non_padding_lengths, prompt_lengths),
-            )
-        )
-        target_mask = indices >= mx.array(target_pos)[..., None]
-        zeros = mx.zeros_like(scores)
-        expanded_mask = mx.repeat(target_mask[..., None], vocab_size, axis=2)
-        result = mx.where(expanded_mask, scores, zeros)
-        return result, target_mask
-
     def _loglikelihood_tokens(
         self,
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
@@ -256,11 +214,6 @@ class MLX(TemplateLM):
 
             all_greed_tokens = log_probs.argmax(axis=-1)
             # [current_batch_size, max_length_in_batch-1]
-
-            target_only_log_probs, target_masks = self._preserve_last_target_len_scores(
-                log_probs, prompt_lengths, lengths
-            )
-            # [current_batch_size, max_length_in_batch-1, vocab] and [current_batch_size, max_length_in_batch-1]
 
             _, full_seq_len, vocab_size = logits.shape
             flattened_shape = current_batch_size, full_seq_len
