@@ -1,13 +1,13 @@
 tag:
-  - MT-CALAMITA_task
+  - MAGNET_task
 #   - english
 #   - italian
 #   - calamita
-task: MT_CALAMITA_en_it_public
-dataset_path: FBK-MT/MT-benchmark4CALAMITA2024
+task: MAGNET_US_en_it_private
+dataset_path: FBK-MT/MAGNETprivateBenchmark4CALAMITA24
 training_split: null
-test_split: devtest
-validation_split: devtest
+test_split: US
+validation_split: US
 
 num_fewshot: 0
 doc_to_text: "\
