@@ -27,3 +27,4 @@ examples/wandb
 private_data/*
 run*.sh
 __MACOSX/
+tests_calamita

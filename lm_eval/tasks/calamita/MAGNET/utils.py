@@ -4,6 +4,10 @@ from typing import List
 from evaluate import load
 
 
+# bleu_metric = load("bleu")
+# chrf_metric = load("chrf")
+# comet_metric = load("comet")
+# bleurt = load("bleurt", module_type="metric", checkpoint="BLEURT-20")
 
 def preprocess_dataset(dataset: datasets.Dataset) -> datasets.Dataset:
     # dataset = dataset.select([i for i in range(4)])      # selecting 4 rows for DEBUG
@@ -25,54 +29,71 @@ def _search_delimiters(model_output: str) -> str:
         return "---"  # empty string as a replacement
     return model_output[start:end].replace('<', '').replace('>', '').strip()
 
-def _check_error_input(ref, pred):
+def _check_error_input(whatever_str):
     """
     Returns True if the input is not valid (empty or None)
     """
-    if pred:
-        if len(pred) < 1:
-            print(f"{pred = }")
+    if whatever_str:
+        if len(whatever_str) < 1:
             return True
     else:
-        print(f"{pred = }")
         return True
-    if ref:
-        if len(ref) < 1:
-            print(f"{ref = }")
-            return True
-    else:
-        print(f"{ref = }")
-        return True
-    
     return False
 
+
 def single_bleu(ref: str, pred: str) -> float:
-    if _check_error_input(ref, pred):
-        return 0    # interrupt and return lowest score
+    # interrupt and return lowest score
+    if _check_error_input(ref):
+        print(f"Error with: {ref = }")
+        return 0
+    if _check_error_input(pred):
+        print(f"Error with: {pred = }")
+        return 0
+
     bleu_metric = load("bleu")
     bleu_score = bleu_metric.compute(predictions=[pred], references=[[ref]])
     return bleu_score["bleu"]
 
 def sigle_chrf(ref: str, pred: str) -> float:
-    if _check_error_input(ref, pred):
-        return 0    # interrupt and return lowest score
+    # interrupt and return lowest score
+    if _check_error_input(ref):
+        print(f"Error with: {ref = }")
+        return 0
+    if _check_error_input(pred):
+        print(f"Error with: {pred = }")
+        return 0
     chrf_metric = load("chrf")
     chrf_score = chrf_metric.compute(predictions=[pred], references=[[ref]])
     return chrf_score["score"]
 
 def single_bleurt(ref: str, pred: str) -> float:
-    if _check_error_input(ref, pred):
-        return 0    # interrupt and return lowest score
+    # interrupt and return lowest score
+    if _check_error_input(ref):
+        print(f"Error with: {ref = }")
+        return 0
+    if _check_error_input(pred):
+        print(f"Error with: {pred = }")
+        return 0
     bleurt = load("bleurt", module_type="metric", checkpoint="BLEURT-20")
     result = bleurt.compute(predictions=[pred], references=[ref])
     return result["scores"][0]
 
 def single_comet(source: str, ref: str, pred: str) -> float:
-    if _check_error_input(ref, pred):
-        return 0    # interrupt and return lowest score
+    # interrupt and return lowest score
+    if _check_error_input(source):
+        print(f"Error with: {source = }")
+        return 0
+    if _check_error_input(ref):
+        print(f"Error with: {ref = }")
+        return 0
+    if _check_error_input(pred):
+        print(f"Error with: {pred = }")
+        return 0
     comet_metric = load("comet")
     comet_score = comet_metric.compute(predictions=[pred], references=[ref], sources=[source])
     return comet_score["scores"][0]
+
+
 
 def _get_metrics(
     model_input: str,
