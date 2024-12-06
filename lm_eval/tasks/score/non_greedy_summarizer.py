@@ -30,7 +30,7 @@ from lm_eval.utils import handle_non_serializable, make_table
 N_SEEDS = 5
 
 
-def load_json_logs(file_paths, seed):
+def load_json_logs(file_paths, seed, subtasks):
     """
     Loads JSON logs of jsonl format from file paths into a single DataFrame.
 
@@ -47,17 +47,20 @@ def load_json_logs(file_paths, seed):
         "category": [],
     }
 
-    _searh_key = None
-    for file_path in file_paths:
+    _search_key = None
+    for i in range(len(file_paths)):
+        file_path = file_paths[i]
         with open(file_path, "r") as f:
             for line in f:
                 datapoint = json.loads(line)
-                if _searh_key is None:
+                if _search_key is None:
                     if "non_greedy_macro_accuracy" in datapoint:
-                        _searh_key = "non_greedy_macro_accuracy"
+                        _search_key = "non_greedy_macro_accuracy"
                     elif "non_greedy_accuracy" in datapoint:
-                        _searh_key = "non_greedy_accuracy"
-                question_id, final_answer, gt, category = datapoint[_searh_key]
+                        _search_key = "non_greedy_accuracy"
+                question_id, final_answer, gt, category = datapoint[_search_key]
+                if subtasks is not None:
+                    category = subtasks[i]
                 per_seed_df["question_id"].append(question_id)
                 per_seed_df[f"final_answer_seed_{seed}"].append(final_answer)
                 per_seed_df["gt"].append(gt)
@@ -128,7 +131,7 @@ def main():
         assert os.path.exists(
             seed_log_dir
         ), f"No logs found for seed={seed}. No directory found at {seed_log_dir}"
-
+        subtasks = None
         if args.dataset == "agieval":
             agieval_subtasks = [
                 "aqua_rat",
@@ -139,6 +142,7 @@ def main():
                 "sat_en",
                 "sat_math",
             ]
+            subtask = agieval_subtasks
             file_paths = []
             for subtask in agieval_subtasks:
                 log_path = os.path.join(
@@ -184,6 +188,7 @@ def main():
                 "prealgebra",
                 "precalc",
             ]
+            subtask = math_subtasks
             file_paths = []
 
             for subtask in math_subtasks:
@@ -208,7 +213,7 @@ def main():
                 "Invalid dataset name. only agieval, mmlu_pro and math are supported."
             )
 
-        df = load_json_logs(file_paths, seed)
+        df = load_json_logs(file_paths, seed, subtasks)
 
         # merge all dfs by question_id, category and gt
         if seed == 1:
