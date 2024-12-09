@@ -30,7 +30,7 @@ from lm_eval.utils import handle_non_serializable, make_table
 N_SEEDS = 5
 
 
-def load_json_logs(file_paths, seed, subtasks):
+def load_json_logs(file_paths, subtasks):
     """
     Loads JSON logs of jsonl format from file paths into a single DataFrame.
 
@@ -42,11 +42,10 @@ def load_json_logs(file_paths, seed, subtasks):
     """
     per_seed_df = {
         "question_id": [],
-        f"final_answer_seed_{seed}": [],
+        "final_answer_seed_": [],
         "gt": [],
         "category": [],
     }
-
     _search_key = None
     for i in range(len(file_paths)):
         file_path = file_paths[i]
@@ -62,7 +61,7 @@ def load_json_logs(file_paths, seed, subtasks):
                 if subtasks is not None:
                     category = subtasks[i]
                 per_seed_df["question_id"].append(question_id)
-                per_seed_df[f"final_answer_seed_{seed}"].append(final_answer)
+                per_seed_df["final_answer_seed_"].append(final_answer)
                 per_seed_df["gt"].append(gt)
                 per_seed_df["category"].append(category)
     df = pd.DataFrame(per_seed_df)
@@ -142,7 +141,7 @@ def main():
                 "sat_en",
                 "sat_math",
             ]
-            subtask = agieval_subtasks
+            subtasks = agieval_subtasks
             file_paths = []
             for subtask in agieval_subtasks:
                 log_path = os.path.join(
@@ -188,7 +187,7 @@ def main():
                 "prealgebra",
                 "precalc",
             ]
-            subtask = math_subtasks
+            subtasks = math_subtasks
             file_paths = []
 
             for subtask in math_subtasks:
@@ -213,13 +212,16 @@ def main():
                 "Invalid dataset name. only agieval, mmlu_pro and math are supported."
             )
 
-        df = load_json_logs(file_paths, seed, subtasks)
+        df = load_json_logs(file_paths, subtasks)
 
         # merge all dfs by question_id, category and gt
         if seed == 1:
             df_all = df
+            df_all[f"final_answer_seed_{seed}"] = df["final_answer_seed_"]
         else:
-            df_all = df_all.merge(df, on=["question_id", "category", "gt"])
+            df_all = df_all.merge(
+                df, on=["question_id", "category"], suffixes=("", seed)
+            )
 
     responses = df_all[
         [f"final_answer_seed_{seed}" for seed in range(1, N_SEEDS + 1)]
