@@ -37,7 +37,8 @@ from lm_eval.utils import (
     positional_deprecated,
     simple_parse_args_string,
 )
-
+from joblib import Parallel, delayed
+import os
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
@@ -514,7 +515,9 @@ def evaluate(
             lm.accelerator.wait_for_everyone()
 
     RANK = lm.rank
-    WORLD_SIZE = lm.world_size
+    WORLD_SIZE = lm.world_size                        
+        
+    
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output, limit in zip(eval_tasks, limits):
@@ -536,11 +539,26 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
-            for doc_id, doc in doc_iterator:
+            
+            def _process_doc(doc_id, doc):
                 requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
+                return task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
-                )
+                )      
+            
+            n_jobs = os.environ.get('T1_HARNESS_NJOBS', 10)
+            print(f'-----> Going Parallel! T1_HARNESS_NJOBS = {n_jobs}')            
+            res_metrics = Parallel(n_jobs=n_jobs)(
+                delayed(_process_doc)(doc_id, doc)
+                    for doc_id, doc in doc_iterator
+            )
+            
+            doc_iterator = task.doc_iterator(
+                rank=RANK, limit=limit, world_size=WORLD_SIZE
+            )
+            
+            for (doc_id, doc), metrics in zip( doc_iterator, res_metrics, strict=True): 
+                requests = instances_by_doc_id[doc_id]
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -567,8 +585,11 @@ def evaluate(
                     }
                     example.update(metrics)
                     task_output.logged_samples.append(example)
+                    
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)
+            
+                
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0

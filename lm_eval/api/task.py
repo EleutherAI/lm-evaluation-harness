@@ -95,6 +95,9 @@ class TaskConfig(dict):
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
+    group : Optional[str] = (
+        None  # fixes a wired error
+    )
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
