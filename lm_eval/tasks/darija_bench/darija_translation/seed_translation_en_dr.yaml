@@ -1,0 +1,12 @@
+"process_docs": !function utils.en_dr
+include:
+  - translation_common_yaml
+  - seed_common_yaml
+"tag":
+  - "darija_translation_tasks_seed"
+"task": "trasnlation_en_dr_seed"
+"task_alias": "en_dr_seed"
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.darijabert
+    higher_is_better: true
