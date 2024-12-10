@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.utils import handle_stop_sequences
 from lm_eval.utils import eval_logger
 
 
@@ -25,6 +26,7 @@ class LocalCompletionsAPI(TemplateAPI):
         generate=False,
         gen_kwargs: Optional[dict] = None,
         seed: int = 1234,
+        eos=None,
         **kwargs,
     ) -> dict:
         if generate:
@@ -34,7 +36,7 @@ class LocalCompletionsAPI(TemplateAPI):
             else:
                 max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
-            stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+            stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
             return {
                 "prompt": messages,
                 "model": self.model,
@@ -124,6 +126,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         generate=False,
         gen_kwargs: dict = None,
         seed=1234,
+        eos=None,
         **kwargs,
     ) -> dict:
         assert (
@@ -135,7 +138,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         else:
             max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
-        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
         return {
@@ -252,6 +255,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
         generate=False,
         gen_kwargs: dict = None,
         seed=1234,
+        eos="<|endoftext|>",
         **kwargs,
     ) -> dict:
         assert (
@@ -263,7 +267,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
         else:
             max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
-        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        stop = handle_stop_sequences(gen_kwargs.pop("until", ["<|endoftext|>"]), eos)
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
         output = {

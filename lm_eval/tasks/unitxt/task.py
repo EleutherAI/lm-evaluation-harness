@@ -6,11 +6,11 @@ Addressing this need, we present Unitxt, an innovative library for customizable 
 
 import importlib.util
 import re
+from collections.abc import Callable
 from functools import partial
 from typing import Any, Dict, Optional
 
 import datasets
-import evaluate
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
@@ -28,16 +28,21 @@ _CITATION = """
 """
 
 
-def is_unitxt_installed() -> bool:
-    return importlib.util.find_spec("unitxt") is not None
+def assert_unitxt_installed():
+    if importlib.util.find_spec("unitxt") is None:
+        raise Exception(
+            "Please install unitxt via 'pip install unitxt'. For more information see: https://www.unitxt.ai/"
+        )
 
 
 def score(items, metric):
     predictions, references = zip(*items)
-    evaluator = evaluate.load("unitxt/metric")
+    assert_unitxt_installed()
+    from unitxt import evaluate
+
     for reference in references:
         reference["metrics"] = [metric]
-    results = evaluator.compute(predictions=predictions, references=references)
+    results = evaluate(predictions, references)
     return results[0]["score"]["global"]["score"]
 
 
@@ -61,16 +66,10 @@ class Unitxt(ConfigurableTask):
         self.metrics = self.dataset["test"][0]["metrics"]
 
     def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
-        if is_unitxt_installed():
-            from unitxt import load_dataset
+        assert_unitxt_installed()
+        from unitxt import load_dataset
 
-            self.dataset = load_dataset(self.DATASET_NAME)
-        else:
-            self.dataset = datasets.load_dataset(
-                name=self.DATASET_NAME,
-                path="unitxt/data",
-                trust_remote_code=True,
-            )
+        self.dataset = load_dataset(self.DATASET_NAME, disable_cache=False)
 
     def has_training_docs(self):
         return "train" in self.dataset
@@ -102,6 +101,27 @@ class Unitxt(ConfigurableTask):
     def get_arguments(self, doc, ctx):
         return (ctx, {"until": ["\n"]})
 
+    def fewshot_context(
+        self,
+        doc: str,
+        num_fewshot: int,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable] = None,
+    ) -> str:
+        source = self.doc_to_text(doc)
+        if isinstance(source, list):
+            if apply_chat_template:
+                formated_source = chat_template(self.doc_to_text(doc))
+                return formated_source
+            else:
+                raise Exception(
+                    "Got chat template format from Unitxt, but apply_chat_template is false. Add '--apply_chat_template' to command line."
+                )
+        else:
+            return source
+
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -113,6 +133,7 @@ class Unitxt(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
+        kwargs.pop("apply_chat_template", False)  # Not used by unitxt
         return [
             Instance(
                 request_type="generate_until",

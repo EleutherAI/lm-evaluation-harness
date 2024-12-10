@@ -1,0 +1,57 @@
+[
+    {
+        "id": "test/prealgebra/1088.json",
+        "problem": "Simplify $(5x+3) - 2(2x-4)$.",
+        "answer": "x+11"
+    },
+    {
+        "id": "test/algebra/1197.json",
+        "problem": "Two positive numbers $p$ and $q$ have the property that their sum is equal to their product. If their difference is $7$, what is $\\frac{1}{\\frac{1}{p^2}+\\frac{1}{q^2}}$? Your answer will be of the form $\\frac{a+b\\sqrt{c}}{d}$, where $a$ and $b$ don't both share the same common factor with $d$ and $c$ has no square as a factor. Find $a+b+c+d$.",
+        "answer": "161"
+    },
+    {
+        "id": "test/geometry/66.json",
+        "problem": "Square $ABCD$ has side lengths of 13 units. Point $E$ lies in the interior of the square such that $AE = 5$ units and $BE = 12$ units. What is the distance from $E$ to side $AD$?",
+        "answer": "\\frac{25}{13}"
+    },
+    {
+        "id": "test/geometry/1125.json",
+        "problem": "An aquarium has a rectangular base that measures 100 cm by 40 cm and has a height of 50 cm. The aquarium is filled with water to a depth of 37 cm. A rock with volume $1000 \\text{cm}^3$ is then placed in the aquarium and completely submerged. By how many centimeters does the water level rise?  Express your answer as a decimal to the nearest 100th.",
+        "answer": "0.25\\text{ cm}"
+    },
+    {
+        "id": "test/prealgebra/1407.json",
+        "problem": "What number must be placed in the box in the equation below to produce an equation that has more than one solution: \\[4x + 6 + 7x - 9 = 12x - 7 - x + \\boxed{\\phantom{2}}?\\]",
+        "answer": "4"
+    },
+    {
+        "id": "test/prealgebra/224.json",
+        "problem": "I am going to buy exotic fruits.  Dragonfruit costs $x-4$ dollars.  Starfruit is five dollars less expensive than rambutan.  Rambutan costs $2x$ dollars more than dragonfruit.  How much does it cost to buy one rambutan, two starfruit, and three dragonfruit? Your answer will be an expression that depends on $x$.",
+        "answer": "-34 + 12x"
+    },
+    {
+        "id": "test/prealgebra/177.json",
+        "problem": "Let $\\boxed{N}$ mean the number of whole number divisors of $N$. For example, $\\boxed{3}=2$, because $3$ has two divisors, $1$ and $3.$ Find the value of \\[\\boxed{\\boxed{11}\\times\\boxed{20}}\\]",
+        "answer": "12"
+    },
+    {
+        "id": "test/number_theory/459.json",
+        "problem": "On a particular map, $3$ inches on the map equates to $10$ miles in real life. If you know that the real life distance between two buildings on the map is $53.25$ miles, what would the distance between the buildings be (in inches) on the map, expressed as a fraction?",
+        "answer": "\\frac{639}{40}"
+    },
+    {
+        "id": "test/intermediate_algebra/702.json",
+        "problem": "Find the coordinates of either of the vertices of the hyperbola \\[16x^2+16x-4y^2-20y-85=0.\\](Enter your answer as an ordered pair. Enter the coordinates of one of the vertices, not both.)",
+        "answer": "\\left(-\\tfrac52, -\\tfrac52\\right)"
+    },
+    {
+        "id": "test/intermediate_algebra/25.json",
+        "problem": "Find the coordinates of one of the foci of the hyperbola \\[x^2 - 10x = 4y^2 - 5.\\](Enter your answer as an ordered pair. Enter only one of the foci, not both.)",
+        "answer": "(0,0)"
+    },
+    {
+        "id": "test/intermediate_algebra/747.json",
+        "problem": "The graph of $y = f(x)$ passes through the point $(-3,5).$  If $f(x)$ is an odd function, then what other point must the graph pass through?  Enter your answer as an ordered pair.",
+        "answer": "(0,0)"
+    }
+]

@@ -10,7 +10,12 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, configure_pad_token, undistribute
+from lm_eval.models.utils import (
+    Collator,
+    configure_pad_token,
+    handle_stop_sequences,
+    undistribute,
+)
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -346,6 +351,7 @@ class VLLM(TemplateLM):
             desc="Running generate_until requests",
         )
         # for each different set of kwargs, we execute all requests, by batch.
+        eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
@@ -353,27 +359,14 @@ class VLLM(TemplateLM):
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tokenizer.decode(self.eot_token_id)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

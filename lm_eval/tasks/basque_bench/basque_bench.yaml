@@ -14,5 +14,6 @@ task:
     - xcopa_eu
     - mgsm_direct_eu
     - mgsm_native_cot_eu
+    - piqa_eu
 metadata:
   version: 1.0

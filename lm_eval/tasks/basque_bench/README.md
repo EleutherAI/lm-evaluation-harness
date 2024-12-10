@@ -8,6 +8,7 @@ The new evaluation datasets included in BasqueBench are:
 | Task          | Category       | Homepage  |
 |:-------------:|:-----:|:-----:|
 | MGSM_eu | Math | https://huggingface.co/datasets/HiTZ/MGSM-eu |
+| PIQA_eu | Question Answering | https://huggingface.co/datasets/HiTZ/PIQA-eu |
 | WNLI_eu | Natural Language Inference | https://huggingface.co/datasets/HiTZ/wnli-eu |
 | XCOPA_eu | Commonsense Reasoning | https://huggingface.co/datasets/HiTZ/XCOPA-eu |
 
@@ -63,6 +64,7 @@ The following tasks evaluate tasks on BasqueBench dataset using various scoring 
   - `flores_pt-eu`
   - `mgsm_direct_eu`
   - `mgsm_native_cot_eu`
+  - `piqa_eu`
   - `qnlieu`
   - `wnli_eu`
   - `xcopa_eu`

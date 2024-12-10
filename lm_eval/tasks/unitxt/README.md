@@ -6,6 +6,8 @@ The full Unitxt catalog can be viewed in an [online explorer](https://unitxt.rea
 
 Read more about Unitxt at [www.unitxt.ai](https://www.unitxt.ai/).
 
+To use Unitxt dataset with lm-eval, you should first install unitxt via 'pip install unitxt'.
+
 ### Paper
 
 Title: `Unitxt: Flexible, Shareable and Reusable Data Preparation and Evaluation for Generative AI`

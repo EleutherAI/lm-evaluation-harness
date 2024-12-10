@@ -50,6 +50,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
    - Useful for APIs that support parallel processing.
    - Default is 1 (sequential processing).
 
+- `timeout` (int, optional):
+   - Timeout for API requests in seconds.
+   - Default is 30.
+
 - `tokenized_requests` (bool):
   - Determines whether the input is pre-tokenized. Defaults to `True`.
   - Requests can be sent in either tokenized form (`list[list[int]]`) or as text (`list[str]`, or `str` for batch_size=1).

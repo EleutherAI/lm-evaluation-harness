@@ -14,6 +14,7 @@ from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import (
     Collator,
     flatten_image_list,
+    handle_stop_sequences,
     pad_and_concat,
     replace_placeholders,
     stop_sequences_criteria,
@@ -629,7 +630,7 @@ class HFMultimodalLM(HFLM):
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
 
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
-
+        eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
@@ -646,27 +647,14 @@ class HFMultimodalLM(HFLM):
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

@@ -21,7 +21,7 @@ from typing import (
 
 try:
     import requests
-    from aiohttp import ClientSession, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
@@ -62,7 +62,7 @@ class TemplateAPI(TemplateLM):
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
         tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", None]
+            Literal["tiktoken", "huggingface", "None", "none"]
         ] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
@@ -80,6 +80,9 @@ class TemplateAPI(TemplateLM):
         revision: Optional[str] = "main",
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
+        eos_string: str = None,
+        # timeout in seconds
+        timeout: int = 300,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -116,12 +119,16 @@ class TemplateAPI(TemplateLM):
                 "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
             )
         self._concurrent = int(num_concurrent)
-        self.tokenizer_backend = tokenizer_backend
+        self.tokenizer_backend = (
+            None if tokenizer_backend in ("None", "none") else tokenizer_backend
+        )
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
+        self._eos_string = eos_string
+        self.timeout = int(timeout)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -174,6 +181,7 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         gen_kwargs: Optional[dict] = None,
         seed: int = 1234,
+        eos: str = None,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -267,6 +275,21 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eot_token
 
     @cached_property
+    def eos_string(self) -> Optional[str]:
+        if self._eos_string:
+            return self._eos_string
+        elif self.tokenizer is not None:
+            if self.tokenizer_backend == "huggingface":
+                return self.tokenizer.eos_token
+            elif self.tokenizer_backend == "tiktoken":
+                return self.tokenizer.decode([self.tokenizer.eot_token])
+        else:
+            eval_logger.warning(
+                "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
+            )
+            return None
+
+    @cached_property
     def prefix_token_id(self) -> Optional[int]:
         if self.tokenizer is None:
             return None
@@ -341,6 +364,7 @@ class TemplateAPI(TemplateLM):
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     seed=self._seed,
+                    eos=self.eos_string,
                     **kwargs,
                 ),
                 headers=self.header,
@@ -424,9 +448,13 @@ class TemplateAPI(TemplateLM):
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
                 # max_length - 1 as we always have 1 token for generation
-                inp = (context_enc + continuation_enc)[-(self.max_length) :]
+                inp = (context_enc + continuation_enc)[-self.max_length :]
+                if len(inp) < len(context_enc + continuation_enc):
+                    eval_logger.warning(
+                        f"Context length ({len(context_enc)}) + continuation length ({len(continuation_enc)}) > max_length ({self.max_length}). Left truncating context."
+                    )
                 ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
+                    0, len(context_enc) + len(continuation_enc) - self.max_length
                 )
 
                 inputs.append(inp)
@@ -445,7 +473,9 @@ class TemplateAPI(TemplateLM):
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
-        async with ClientSession(connector=conn) as session:
+        async with ClientSession(
+            connector=conn, timeout=ClientTimeout(total=self.timeout)
+        ) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
                 stop=stop_after_attempt(self.max_retries),
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),
@@ -568,6 +598,24 @@ class TemplateAPI(TemplateLM):
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
+                if self.tokenized_requests:
+                    max_gen_toks = all_gen_kwargs[0].get(
+                        "max_gen_toks", self._max_gen_toks
+                    )
+                    max_context_len = self.max_length - max_gen_toks
+
+                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+
+                    if any(
+                        len(x) + max_gen_toks > self.max_length for x in encodings_list
+                    ):
+                        eval_logger.warning(
+                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks: ({max_gen_toks}). They were left truncated."
+                        )
+                else:
+                    eval_logger.info(
+                        "Tokenized requests are disabled. Context + generation length is not checked."
+                    )
                 req = encodings_list if self.tokenized_requests else contexts
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
@@ -599,6 +647,24 @@ class TemplateAPI(TemplateLM):
         else:
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
+                if self.tokenized_requests:
+                    max_gen_toks = all_gen_kwargs[0].get(
+                        "max_gen_toks", self._max_gen_toks
+                    )
+                    max_context_len = self.max_length - max_gen_toks
+
+                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+
+                    if any(
+                        len(x) + max_gen_toks > self.max_length for x in encodings_list
+                    ):
+                        eval_logger.warning(
+                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks ({max_gen_toks}). They were left truncated."
+                        )
+                else:
+                    eval_logger.info(
+                        "Tokenized requests are disabled. Context + generation length is not checked."
+                    )
                 req = encodings_list if self.tokenized_requests else contexts
                 results = itertools.chain.from_iterable(
                     asyncio.run(
