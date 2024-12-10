@@ -1,14 +1,18 @@
 tag:
-  - llama3
+  - llama
 task: llama_arc_challenge
-dataset_path: meta-llama/Llama-3.1-8B-evals
-dataset_name: Llama-3.1-8B-evals__arc_challenge__details
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Challenge
 output_type: multiple_choice
-test_split: latest
-process_docs: !function utils.process_arc_c_docs
-doc_to_text: "{{doc_to_text}}"
-doc_to_target: "{{doc_to_target}}"
-doc_to_choice: "{{doc_to_choice}}"
+training_split: train
+validation_split: validation
+test_split: test
+fewshot_split: train
+doc_to_text: "Question: {{question.strip()}}\nA. {{choices.text[0]}}\nB. {{choices.text[1]}}\nC. {{choices.text[2]}}{% if choices.text|length > 3 %}\nD. {{choices.text[3]}}{% endif %}\nAnswer:"
+fewshot_delimiter: "\n\n"
+doc_to_target: "{{ 'ABCD'[answerKey|int - 1] if answerKey|string in '1234' else answerKey }}"
+doc_to_choice: "{{ choices.label|map('replace', '1', 'A')|map('replace', '2', 'B')|map('replace', '3', 'C')|map('replace', '4', 'D')|list if choices.label[0] in '1234' else choices.label }}"
+num_fewshot: 25
 metric_list:
   - metric: acc
     aggregation: mean
