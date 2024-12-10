@@ -1,0 +1,20 @@
+tag:
+  - llama3
+task: llama_arc_challenge
+dataset_path: meta-llama/Llama-3.1-8B-evals
+dataset_name: Llama-3.1-8B-evals__arc_challenge__details
+output_type: multiple_choice
+test_split: latest
+process_docs: !function utils.process_arc_c_docs
+doc_to_text: "{{doc_to_text}}"
+doc_to_target: "{{doc_to_target}}"
+doc_to_choice: "{{doc_to_choice}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
