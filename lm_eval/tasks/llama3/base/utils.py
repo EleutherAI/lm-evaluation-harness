@@ -1,7 +1,7 @@
 import datasets
 
 
-def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+def process_arc_c_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     COLUMNS = dataset.column_names
 
     def map_(doc):
