@@ -16,5 +16,6 @@ group: score_robustness_agieval
 task:
   - score_prompt_robustness_agieval
   - score_option_order_robustness_agieval
+  - score_non_greedy_robustness_agieval
 metadata:
   version: 1.0

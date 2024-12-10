@@ -31,7 +31,7 @@ limitations under the License.
 
 ## Tasks
 
-Both `score_robustness_mmlu_pro` and `score_robustness_agieval` contain the following 2 tasks:
+Both `score_robustness_mmlu_pro` and `score_robustness_agieval` contain the following 3 tasks:
 
 * Option order robustness:
 `score_option_order_robustness_mmlu_pro`,
@@ -41,10 +41,14 @@ Both `score_robustness_mmlu_pro` and `score_robustness_agieval` contain the foll
 `score_prompt_robustness_mmlu_pro`,
 `score_prompt_robustness_agieval`,
 
-Whereas math contains only
+* Non greedy robustness
+`score_non_greedy_robustness_mmlu_pro`,
+`score_non_greedy_robustness_agieval`,
+
+Whereas math contains the following 2:
 * Prompt robustness:
 `score_prompt_robustness_math`
-
+`score_non_greedy_robustness_math`,
 
 ### Option order robustness
 
@@ -54,6 +58,10 @@ Measures the model's robustness to the placement of the correct answer in the op
 
 Measures the model's robustness to 10 different prompts. list of the prompts can be found in the `./prompt_templates.json` file under the key `prompt_robustness`.
 
+
+### Non greedy robustness
+
+Measures the model's robustness to 5 different seeds: seeds = \[1-5\]. For evaluating on the non greedy task, please, refer to [NON_GREEDY.md](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/score/NON_GREEDY.md)
 
 ## Metrics
 

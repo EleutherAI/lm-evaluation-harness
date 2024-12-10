@@ -12,9 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group: score_robustness_math
+group: score_non_greedy_robustness_agieval
 task:
-  - score_prompt_robustness_math
-  - score_non_greedy_robustness_math
+  - non_greedy_robustness_agieval_aqua_rat
+  - non_greedy_robustness_agieval_logiqa_en
+  - non_greedy_robustness_agieval_lsat_ar
+  - non_greedy_robustness_agieval_lsat_lr
+  - non_greedy_robustness_agieval_lsat_rc
+  - non_greedy_robustness_agieval_sat_en
+  - non_greedy_robustness_agieval_sat_math
+
+aggregate_metric_list:
+  - metric: non_greedy_accuracy
+    aggregation: mean
+    weight_by_size: true
+
 metadata:
   version: 1.0

@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group: score_robustness_math
-task:
-  - score_prompt_robustness_math
-  - score_non_greedy_robustness_math
-metadata:
-  version: 1.0
+include: non_greedy_robustness_agieval_aqua_rat.yaml
+task: non_greedy_robustness_agieval_sat_math
+dataset_path: hails/agieval-sat-math

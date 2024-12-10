@@ -1,9 +1,13 @@
 {
     "option_order_robustness":{
-        "prompt": "For the multiple-choice question, which option (A-E) is correct?.\n\nQuestion: {question}{options}\n\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D' or 'E'.",
+        "prompt": "For the multiple-choice question, which option (A-E) is correct?.\n\nQuestion:{question}{options}\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D' or 'E'.",
         "options_format": "\n{letter}: {option}"
     },
 
+    "non_greedy_robustness":{
+        "prompt": "For the multiple-choice question, which option (A-E) is correct?.\n\nQuestion:{question}{options}\nEnd the answer with the following:\nThe best answer is (the_answer_letter) where the (the_answer_letter) is one of 'A', 'B', 'C', 'D' or 'E'.",
+        "options_format": "\n{letter}: {option}"
+    },
 
     "prompt_robustness":[
             {
