@@ -905,8 +905,6 @@ class HFLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
-        loglikelihoods = []
-
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -937,7 +935,7 @@ class HFLM(TemplateLM):
                 )
             )
 
-            # Add None for seq2seq case
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
             windows = [(None,) + x for x in rolling_token_windows]
 
             # Store windows with their request index
@@ -953,7 +951,6 @@ class HFLM(TemplateLM):
             if pad_amnt > 0:
                 all_windows += pad_amnt * [all_windows[0]]
 
-        # Process all windows in batches
         all_nlls = []
         batch_size = adaptive_batch_size or self.batch_size
         for i in range(0, len(all_windows), batch_size):
@@ -984,7 +981,6 @@ class HFLM(TemplateLM):
             loglikelihoods.append(request_total)
             current_idx += window_count
 
-            # Cache this result
             string = requests[len(loglikelihoods) - 1].args[0]
             self.cache_hook.add_partial(
                 "loglikelihood_rolling", (string,), request_total
