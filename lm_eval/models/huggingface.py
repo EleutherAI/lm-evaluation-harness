@@ -984,7 +984,7 @@ class HFLM(TemplateLM):
 
     def _loglikelihood_tokens(
         self,
-        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        requests: List[Tuple[Union[Tuple[str, str], None], List[int], List[int]]],
         disable_tqdm: bool = False,
         override_bs: int = None,
     ) -> List[Tuple[float, bool]]:
