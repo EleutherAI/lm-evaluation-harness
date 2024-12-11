@@ -316,7 +316,7 @@ class VLLM(TemplateLM):
             request_window_counts.append(len(windows))
 
         all_nlls = []
-        batch_size = adaptive_batch_size or self.batch_size
+        batch_size = adaptive_batch_size or int(self.batch_size)
         for i in range(0, len(all_windows), batch_size):
             batch = all_windows[i : i + batch_size]
             # Extract just the windows for processing, keeping track of request indices
