@@ -10,7 +10,7 @@ import os
 import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from typing import Any, Callable, Generator, List, Tuple
+from typing import Any, Callable, List
 
 import numpy as np
 import yaml
@@ -201,9 +201,7 @@ def get_sample_results_filenames(filenames: List[str]) -> List[str]:
     return [f for f in filenames if "/samples_" in f and ".json" in f]
 
 
-def get_rolling_token_windows(
-    token_list: List[int], prefix_token: int, max_seq_len: int, context_len: int
-) -> Generator[Tuple[List[int], List[int]]]:
+def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len):
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
       condition on some context
@@ -230,7 +228,7 @@ def get_rolling_token_windows(
 
     # Special handling for first window: predict all tokens
     first_seq_len = min(max_seq_len, len(token_list))
-    yield [prefix_token] + token_list[: first_seq_len - 1], token_list[:first_seq_len]
+    yield ([prefix_token] + token_list[: first_seq_len - 1], token_list[:first_seq_len])
     predicted += first_seq_len
 
     while predicted < len(token_list):
@@ -244,9 +242,7 @@ def get_rolling_token_windows(
         predicted += window_pred_len
 
 
-def make_disjoint_window(
-    pair: Tuple[List[int], List[int]],
-) -> Tuple[List[int], List[int]]:
+def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
