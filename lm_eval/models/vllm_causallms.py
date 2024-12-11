@@ -102,7 +102,7 @@ class VLLM(TemplateLM):
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
-            else batch_size
+            else int(batch_size)
         )
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
