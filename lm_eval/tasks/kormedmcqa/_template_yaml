@@ -6,7 +6,7 @@ fewshot_config:
   doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답： {{['A', 'B', 'C', 'D', 'E'][answer-1]}}\n\n"
   doc_to_target: ""
 output_type: generate_until
-doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답： "
+doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답："
 doc_to_target: "{{['A', 'B', 'C', 'D', 'E'][answer-1]}}"
 metric_list:
   - metric: exact_match
