@@ -2,7 +2,7 @@ import datasets
 import yaml
 from tqdm import tqdm
 
-languages = ['am', 'ar', 'cs', 'de', 'el', 'en', 'es', 'fa', 'fil', 'fr', 'ha', 'he', 'hi', 'id', 'ig', 'it', 'ja', 'ko', 'ky', 'lt', 'mg', 'ms', 'ne', 'nl', 'ny', 'pl', 'pt', 'ro', 'ru', 'si', 'sn', 'so', 'sr', 'sv', 'te', 'tr', 'uk', 'vi', 'yo', 'zh']
+languages = ['en', 'ar', 'fr', 'es', 'hi', 'de', 'id',  'it', 'ja', 'ko', 'pt','zh', 'yo', 'bn', 'sw']
 
 def main() -> None:
     
