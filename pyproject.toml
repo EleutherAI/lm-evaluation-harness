@@ -19,26 +19,25 @@ classifiers = [
 requires-python = ">=3.8"
 license = { "text" = "MIT" }
 dependencies = [
-    "accelerate>=0.26.0",
     "evaluate",
     "datasets>=2.16.0",
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
-    "peft>=0.2.0",
     "pybind11>=2.6.2",
     "pytablewriter",
     "rouge-score>=0.0.4",
     "sacrebleu>=1.5.0",
     "scikit-learn>=0.24.1",
     "sqlitedict",
-    "torch>=1.8",
     "tqdm-multiprocess",
+    "tqdm-loggable",
     "transformers>=4.1",
     "zstandard",
     "dill",
     "word2number",
     "more_itertools",
+    "jinja2>=3.0.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -58,7 +57,10 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "accelerate>=0.26.0", "peft>=0.2.0"]
+torch = ["torch>=1.8"]
+hf = ["transformers", "torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0"]
+anthropic = ["anthropic"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
@@ -79,6 +81,8 @@ wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 all = [
+    "lm_eval[torch]",
+    "lm_eval[hf]",
     "lm_eval[anthropic]",
     "lm_eval[dev]",
     "lm_eval[deepsparse]",

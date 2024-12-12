@@ -6,7 +6,7 @@ import argparse
 import os
 
 import yaml
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.logger import eval_logger
 

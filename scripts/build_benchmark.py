@@ -3,7 +3,7 @@ import os
 
 import yaml
 from promptsource.templates import DatasetTemplates
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 # from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger

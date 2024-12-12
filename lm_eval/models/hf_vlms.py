@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn.functional as F
 import transformers
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 from transformers import BatchEncoding
 
 from lm_eval import utils

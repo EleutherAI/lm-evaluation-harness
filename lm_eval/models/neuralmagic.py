@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy
 import transformers
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 import lm_eval.models.utils
 from lm_eval import utils

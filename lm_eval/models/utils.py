@@ -19,7 +19,12 @@ from typing import (
     Union,
 )
 
-import torch
+
+try:
+    import torch
+except ImportError:
+    torch = None
+
 import transformers
 
 from lm_eval.utils import eval_logger
@@ -147,7 +152,7 @@ class Grouper:
 
 def pad_and_concat(
     max_length: int,
-    tensors: List[torch.Tensor],
+    tensors: List["torch.Tensor"],
     padding_side: Literal["right", "left"] = "right",
 ):
     """
@@ -198,10 +203,11 @@ def pad_and_concat(
 
 def clear_torch_cache() -> None:
     gc.collect()
-    torch.cuda.empty_cache()
+    if torch is not None:
+        torch.cuda.empty_cache()
 
 
-def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
+def get_dtype(dtype: Union[str, "torch.dtype"]) -> "torch.dtype":
     """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
     if isinstance(dtype, str) and dtype != "auto":
         # Convert `str` args torch dtype: `float16` -> `torch.float16`
@@ -441,8 +447,8 @@ class Collator:
         req_str: Tuple[str, str] = None,
         cxt_toks: List[int] = None,
         cont_toks: List[int] = None,
-        logits: torch.Tensor = None,
-    ) -> Iterator[Tuple[Tuple[str, str], List[int], torch.Tensor]]:
+        logits: "torch.Tensor" = None,
+    ) -> Iterator[Tuple[Tuple[str, str], List[int], "torch.Tensor"]]:
         """
         Retrieves cached single-token continuations and their associated arguments, updating indices as necessary.
 

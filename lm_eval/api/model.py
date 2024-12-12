@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import transformers
 from sqlitedict import SqliteDict
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval import utils
 

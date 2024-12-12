@@ -21,7 +21,7 @@ import re
 import shutil
 from pathlib import Path
 
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
 from tqdm_multiprocess.logger import setup_logger_tqdm
 

@@ -7,7 +7,7 @@ import os
 
 import pandas as pd
 import yaml
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 
 categories = {

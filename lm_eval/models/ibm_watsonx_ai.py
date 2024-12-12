@@ -4,7 +4,7 @@ import os
 from functools import lru_cache
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, cast
 
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM

@@ -7,7 +7,7 @@ import os
 
 import requests
 import yaml
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.utils import logging
 
