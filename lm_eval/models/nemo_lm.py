@@ -20,7 +20,7 @@ from typing import List, Literal
 import filelock
 import numpy as np
 import torch
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM

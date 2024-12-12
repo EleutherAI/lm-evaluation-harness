@@ -7,7 +7,7 @@ import os
 
 import pandas as pd
 import yaml
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 
 # Copy from https://github.com/iKala/ievals/blob/main/ievals/settings.py

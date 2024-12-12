@@ -16,7 +16,7 @@ import logging
 import os
 
 import requests as _requests
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model

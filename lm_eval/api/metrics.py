@@ -468,7 +468,7 @@ def bootstrap_stderr(f, xs, iters):
     # Thankfully, shouldn't matter because our samples are pretty big usually anyways
     res = []
     chunk_size = min(1000, iters)
-    from tqdm import tqdm
+    from tqdm_loggable.auto import tqdm
 
     print("bootstrapping for stddev:", f.__name__)
     for bootstrap in tqdm(

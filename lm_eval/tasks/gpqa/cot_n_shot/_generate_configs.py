@@ -1,5 +1,5 @@
 import yaml
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 
 def main() -> None:

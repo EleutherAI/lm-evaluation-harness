@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 
 import transformers
 from more_itertools import distribute
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model

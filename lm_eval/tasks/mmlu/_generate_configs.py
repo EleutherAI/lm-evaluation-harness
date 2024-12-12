@@ -7,7 +7,7 @@ import logging
 import os
 
 import yaml
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 
 eval_logger = logging.getLogger("lm-eval")

@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 from signal import SIGINT
 
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 from tqdm_multiprocess.logger import setup_logger_tqdm
 
 from lm_eval.decontamination.archiver import Reader, TextArchive

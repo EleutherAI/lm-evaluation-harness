@@ -23,8 +23,8 @@ try:
     import requests
     from aiohttp import ClientSession, TCPConnector
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
-    from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
+    from tqdm_loggable.auto import tqdm
 except ModuleNotFoundError:
     pass
 

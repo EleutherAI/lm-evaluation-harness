@@ -16,7 +16,7 @@ import signal
 import subprocess
 from signal import SIGINT
 
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 from tqdm_multiprocess.logger import setup_logger_tqdm
 
 

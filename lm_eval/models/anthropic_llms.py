@@ -2,7 +2,7 @@ import os
 from functools import cached_property
 from typing import Any, Dict, List, Tuple, Union
 
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval import utils
 from lm_eval.api.model import LM

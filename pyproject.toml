@@ -31,6 +31,7 @@ dependencies = [
     "scikit-learn>=0.24.1",
     "sqlitedict",
     "tqdm-multiprocess",
+    "tqdm-loggable",
     "transformers>=4.1",
     "zstandard",
     "dill",

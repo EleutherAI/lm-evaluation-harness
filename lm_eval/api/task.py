@@ -22,7 +22,7 @@ from typing import (
 
 import datasets
 import numpy as np
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers

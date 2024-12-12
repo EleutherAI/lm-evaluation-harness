@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 from more_itertools import distribute
 from packaging.version import parse as parse_version
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM

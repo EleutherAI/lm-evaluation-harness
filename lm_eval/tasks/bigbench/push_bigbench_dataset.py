@@ -11,7 +11,7 @@ and is included so that the bigbench dependency can be avoided.
 
 import bigbench.api.util as bb_utils
 import datasets
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 
 
 all_task_names = bb_utils.get_all_json_task_names()

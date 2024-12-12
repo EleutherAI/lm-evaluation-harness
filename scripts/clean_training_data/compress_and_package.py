@@ -5,7 +5,7 @@ import os
 import shutil
 import subprocess
 
-from tqdm import tqdm
+from tqdm_loggable.auto import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
 from tqdm_multiprocess.logger import setup_logger_tqdm
 
