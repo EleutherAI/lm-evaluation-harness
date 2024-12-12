@@ -209,7 +209,7 @@ Not supported yet: multi-node evaluation and combinations of data replication wi
 
 Pipeline parallelizm during evaluation is supported with OpenVINO models
 
-To enable  pipeline parallelism, set the `model_args` of `pipeline_parallel`. In addition, you also have to set up `device` to value `HETERO:<GPU index1>,<GPU index2>` for example `HETERO:GPU.1,GPU.0` For example, the command to use pipeline paralelism of 2 is:
+To enable  pipeline parallelism, set the `model_args` of `pipeline_parallel`. In addition, you also have to set up `device` to value `HETERO:<GPU index1>,<GPU index2>` for example `HETERO:GPU.1,GPU.0` For example, the command to use pipeline parallelism of 2 is:
 
 ```
 lm_eval --model openvino \
@@ -492,7 +492,6 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
 | ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |
-
 | neuronx         | For running on AWS inf2 instances            |
 | mamba           | For loading Mamba SSM models                 |
 | math            | For running math task answer checking        |
