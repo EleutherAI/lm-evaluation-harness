@@ -6,7 +6,7 @@ fewshot_split: dev
 fewshot_config:
   sampler: default
 output_type: multiple_choice
-doc_to_text: "{{question.strip()}}\nA. {{option_0}}\nB. {{option_1}}\nC. {{option_2}}\nD. {{option_3}}\nAnswer:"
+doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nAnswer:"
 doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: answer
 metric_list:

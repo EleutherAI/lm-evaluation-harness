@@ -1,11 +1,26 @@
-import datasets
 import yaml
-from tqdm import tqdm
 
-languages = ['en', 'ar', 'fr', 'es', 'hi', 'de', 'id',  'it', 'ja', 'ko', 'pt','zh', 'yo', 'bn', 'sw']
+
+languages = [
+    "en",
+    "ar",
+    "fr",
+    "es",
+    "hi",
+    "de",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "pt",
+    "zh",
+    "yo",
+    "bn",
+    "sw",
+]
+
 
 def main() -> None:
-    
     for language in languages:
         file_name = f"global_mmlu_{language}.yaml"
         try:
