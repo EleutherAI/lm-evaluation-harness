@@ -3,6 +3,7 @@ from importlib.util import find_spec
 from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
+from lm_eval.models.utils import get_dtype
 
 
 eval_logger = utils.eval_logger
@@ -72,6 +73,7 @@ class IPEXLM(HFLM):
         self._model = IPEXModelForCausalLM.from_pretrained(
             pretrained,
             revision=revision,
+            torch_dtype=get_dtype(dtype),
             trust_remote_code=trust_remote_code,
             **model_kwargs,
         )
