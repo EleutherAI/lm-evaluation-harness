@@ -1,6 +1,4 @@
-import json
 from importlib.util import find_spec
-from pathlib import Path
 
 from lm_eval import utils
 from lm_eval.api.registry import register_model
@@ -34,22 +32,22 @@ class IPEXLM(HFLM):
     def _create_model(
         self,
         pretrained: str,
-        revision = "main",
-        dtype = "auto",
-        trust_remote_code = False,
+        revision="main",
+        dtype="auto",
+        trust_remote_code=False,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         # (accelerate naive PP (device_map) options)
-        parallelize = False,
-        gpus = None,
-        max_memory_per_gpu = None,
-        max_cpu_memory = None,
-        offload_folder = "./offload",
+        parallelize=False,
+        gpus=None,
+        max_memory_per_gpu=None,
+        max_cpu_memory=None,
+        offload_folder="./offload",
         # PEFT, delta weights and quantization options
-        peft = None,
-        delta = None,
-        autogptq = False,
-        gptqmodel = False, 
+        peft=None,
+        delta=None,
+        autogptq=False,
+        gptqmodel=False,
         **kwargs,
     ) -> None:
         if not find_spec("optimum"):
