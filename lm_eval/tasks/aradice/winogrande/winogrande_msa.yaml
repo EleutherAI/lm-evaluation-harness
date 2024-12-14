@@ -1,5 +1,5 @@
 task: AraDiCE_winogrande_msa
-dataset_path: QCRI/AraDiCE-WinoGrande 
+dataset_path: QCRI/AraDiCE-WinoGrande
 dataset_name: Winogrande-msa
 training_split: null
 validation_split: null
