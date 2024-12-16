@@ -1,4 +1,5 @@
 task: gfg_task_3_2
+tag: calamita_gfg
 dataset_path: FBK-MT/GeNTE
 dataset_name: main
 test_split: test
