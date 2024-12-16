@@ -1,0 +1,6 @@
+include: _default
+task: ko_commongen_v2_english
+test_split: english
+description: "The following task involves combining morphemes from the concept set: to create a sentence that is consistent with commonsense. Choose the number of the option that contains the most logically valid sentence among the four examples created by combining morphemes from the concept set: "
+doc_to_text: "{{query}}\nAnswer:"
+
