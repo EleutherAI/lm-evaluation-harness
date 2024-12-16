@@ -2,9 +2,10 @@
 
 <!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836) -->
 
-![CALAMITA LOGO](/docs/img/logo_calamita_trasp.png)
+![CALAMITA LOGO](/docs/img/logo_calamita.png)
 
 [![Paper](https://img.shields.io/badge/Paper-CLiC%20IT-red)](https://clic2024.ilc.cnr.it/wp-content/uploads/2024/12/116_calamita_preface_long.pdf)
+[![Leaderboard](https://img.shields.io/badge/Leaderboard-live-yellow)](calamita-ailc.github.io/calamita2024/)
 
 This repository contains the evaluation code we used in CALAMITA.
 It is a fork of the lm-eval-harness. We forked at the main branch commit: **b2bf7bc4a601c643343757c92c1a51eb69caf1d7**.
