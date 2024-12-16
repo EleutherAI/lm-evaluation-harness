@@ -1,0 +1,5 @@
+dataset_name: Hindi
+include: _default_template_yaml
+tag: milu-core
+task: milu_Hindi
+task_alias: milu_Hindi
