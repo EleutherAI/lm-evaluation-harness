@@ -13,6 +13,7 @@ from . import (
     openai_completions,
     optimum_ipex,
     optimum_lm,
+    tensorrt_llm,
     textsynth,
     vllm_causallms,
     vllm_vlms,
