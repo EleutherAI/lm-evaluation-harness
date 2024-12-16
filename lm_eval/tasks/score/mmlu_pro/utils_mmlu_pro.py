@@ -27,6 +27,7 @@ TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.j
 
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
 OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY = "option_order_robustness"
+NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY = "non_greedy_robustness"
 
 QUESTION_KEY = "question"
 
@@ -48,6 +49,23 @@ option_order_robustness_process_docs = partial(
     templates_key=OPTION_ORDER_ROBUSTNESS_TEMPLATE_KEY,
     labels=LABELS,
 )
+non_greedy_robustness_process_docs = partial(
+    utils.non_greedy_robustness_process_docs,
+    template_file_path=TEMPLATE_FILE_PATH,
+    templates_key=NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY,
+)
+
+
+def non_greedy_robustness_process_results(doc, results) -> Dict[str, float]:
+    final_answer = utils.__postprocess_pred(results[0])
+    final_answer = utils.translate_model_answer_to_labels(
+        final_answer, option_format=doc["options_format"], labels=LABELS
+    )
+    question_id = doc["question_id"]
+    category = doc["category"]
+    gt = LABELS[doc["answer_index"]]
+
+    return {"non_greedy_macro_accuracy": (question_id, final_answer, gt, category)}
 
 
 def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
@@ -162,3 +180,18 @@ per_option_macro_accuracy_i = partial(per_option_macro_accuracy, always_opt="I")
 per_option_macro_accuracy_j = partial(per_option_macro_accuracy, always_opt="J")
 
 options_consistency_rate = partial(utils.options_consistency_rate, labels=LABELS)
+
+
+def non_greedy_macro_accuracy(results: List[Dict[str, Any]]) -> float:
+    accuracies = {}
+    for result in results:
+        question_id, final_answer, gt, category = result
+        if category not in accuracies:
+            accuracies[category] = []
+        accuracies[category].append(final_answer == gt)
+
+    for key in accuracies:
+        accuracies[key] = sum(accuracies[key]) / len(accuracies[key])
+        eval_logger.info(f"Non greedy, category - {key} accuracy: {accuracies[key]}")
+
+    return np.round(np.mean([v for v in accuracies.values()]), 4)
