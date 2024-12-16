@@ -23,7 +23,7 @@ def doc_to_text(doc):
 
     question = (
         doc["Question"]
-        if doc["Context"] == ""
+        if not doc["Context"]
         else f"{doc['Context']}\n\n{doc['Question']}"
     )
 
