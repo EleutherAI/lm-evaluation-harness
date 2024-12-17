@@ -6,7 +6,7 @@ Title: `Global MMLU: Understanding and Addressing Cultural and Linguistic Biases
 
 Abstract: `https://arxiv.org/abs/2412.03304`
 
-Global-MMLU-Lite is designed for efficient evaluation of multilingual models in 15 languages, including English. It includes 200 Culturally Sensitive (CS) and 200 Culturally Agnostic (CA) samples per language. The samples in Global-MMLU-Lite are corresponding to languages which are fully human translated or post-edited in the original [Global-MMLU dataset](https://huggingface.co/datasets/CohereForAI/Global-MMLU) 🌍.
+Global-MMLU-Lite is a balanced collection of culturally sensitive and culturally agnostic MMLU tasks. It is designed for efficient evaluation of multilingual models in 15 languages (including English). Only languages with human translations and post-edits in the original [Global-MMLU](https://huggingface.co/datasets/CohereForAI/Global-MMLU) 🌍 dataset have been included in the lite version. 
 
 Homepage: `https://huggingface.co/datasets/CohereForAI/Global-MMLU-Lite`
 
