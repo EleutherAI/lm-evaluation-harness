@@ -10,6 +10,7 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
+from lm_eval.truncation_utils import process_truncation_args
 from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
 
@@ -257,6 +258,28 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
+    parser.add_argument(
+        "--truncation_args",
+        type=str,
+        default="how=default,on=tokens,side=left,keep_first=False,max_symbols=2048,max_new_symbols=256",
+        help=(
+            "The truncation mode. Available options:"
+            "\n`how`:\n\t`no` - no predefined truncation, default option"
+            "\n\t`default` - regular harness truncation style, default option"
+            "\n\t`fewshots` - truncate only fewshots, for zero-shot does nothing"
+            "\n\t`user` - truncate only user-prompt"
+            "\n\t`transformers` - use transformers truncation"
+            "\n`on`:\n\t`tokens` - truncate by tokens, tokenizer required, uses models' max_length param, default option"
+            "\n\t`symbols` - truncate by symbols, does not use tokenizer, require max_symbols setting"
+            "\n`side`:\n\t`left` - truncate from the left side, default option"
+            "\n\t`right` - truncate from the right side, the test doc is preserved"
+            "\n`keep_first`:\n\t`true` - keep the first few-shot from the defined `side`,"
+            " ignored for `how` != `fewshots`"
+            "\n\t`false` - does not keep the first few-shot, default option"
+            "\n`max_symbols`:\n\tinteger, the maximum number of symbols in request, default is 2048"
+            "\n`max_new_symbols`:\n\tinteger, the maximum number of new symbols to subtract this value from `max_symbols`, default is 256"
+        ),
+    )
     return parser
 
 
@@ -313,6 +336,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+
+    # make it a valid dict with truncation params
+    truncation_args = process_truncation_args(args.truncation_args)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -404,6 +430,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
+        truncation_args=truncation_args,
         **request_caching_args,
     )
 
