@@ -905,8 +905,6 @@ class HFLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
-        loglikelihoods = []
-
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -915,10 +913,17 @@ class HFLM(TemplateLM):
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
 
-        for (string,) in tqdm(
-            [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
+        # First, collect all windows from all requests
+        all_windows = []  # List of (request_idx, window) tuples
+        request_window_counts = []  # Track number of windows per request
+
+        for req_idx, (string,) in enumerate(
+            tqdm(
+                [req.args for req in requests],
+                disable=(disable_tqdm or (self.rank != 0)),
+            )
         ):
-            rolling_token_windows = list(
+            rolling_token_windows: List[Tuple[List[int], List[int]]] = list(
                 map(
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
@@ -931,37 +936,55 @@ class HFLM(TemplateLM):
             )
 
             # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
-            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+            windows = [(None,) + x for x in rolling_token_windows]
 
-            pad_amnt = 0
-            if self.world_size > 1:
-                # We pad out the external document-level iterator so the inner iterator doesn't hang
-                mytensor = torch.tensor(len(rolling_token_windows), device=self.device)
-                gathered = (
-                    self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
-                )
+            # Store windows with their request index
+            all_windows.extend((req_idx, window) for window in windows)
+            request_window_counts.append(len(windows))
 
-                pad_amnt = max(gathered) - gathered[self.rank]
-                if pad_amnt > 0:
-                    rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
+        # Handle distributed case padding
+        pad_amnt = 0
+        if self.world_size > 1:
+            mytensor = torch.tensor(len(all_windows), device=self.device)
+            gathered = self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
+            pad_amnt = max(gathered) - gathered[self.rank]
+            if pad_amnt > 0:
+                all_windows += pad_amnt * [all_windows[0]]
 
-            string_nll = self._loglikelihood_tokens(
-                requests=rolling_token_windows,
-                disable_tqdm=True,
-                override_bs=adaptive_batch_size,
+        all_nlls = []
+        batch_size = adaptive_batch_size or self.batch_size
+        for i in range(0, len(all_windows), batch_size):
+            batch = all_windows[i : i + batch_size]
+            # Extract just the windows for processing, keeping track of request indices
+            batch_indices, batch_windows = zip(*batch)
+
+            batch_nlls = self._loglikelihood_tokens(
+                requests=batch_windows,
+                disable_tqdm=False,
+                override_bs=len(batch_windows),
             )
+            # Store results with their request indices
+            all_nlls.extend(zip(batch_indices, batch_nlls))
 
-            if (self.world_size > 1) and (pad_amnt > 0):
-                string_nll = [x[0] for x in string_nll[:-pad_amnt]]
-            else:
-                # discard is_greedy
-                string_nll = [x[0] for x in string_nll]
+        # Remove padding if necessary
+        if (self.world_size > 1) and (pad_amnt > 0):
+            all_nlls = all_nlls[:-pad_amnt]
 
-            string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
+        # Reconstruct per-request loglikelihoods
+        loglikelihoods = []
+        current_idx = 0
+        for window_count in request_window_counts:
+            # Get all nlls for this request
+            request_nlls = all_nlls[current_idx : current_idx + window_count]
+            # Sum up the nlls for this request (discarding is_greedy)
+            request_total = sum(nll[0] for _, nll in request_nlls)
+            loglikelihoods.append(request_total)
+            current_idx += window_count
 
-            # cache this loglikelihood_rolling request
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+            string = requests[len(loglikelihoods) - 1].args[0]
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string,), request_total
+            )
 
         return loglikelihoods
 
