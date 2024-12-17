@@ -1,0 +1,7 @@
+"dataset_name": "vec_Latn-bak_Cyrl"
+"doc_to_target": "{{sentence_bak_Cyrl}}"
+"doc_to_text": "{{sentence_vec_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_vec_Latn-bak_Cyrl"
+"test_split": "dev"

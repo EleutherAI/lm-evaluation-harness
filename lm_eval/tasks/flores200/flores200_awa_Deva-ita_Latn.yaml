@@ -1,0 +1,7 @@
+"dataset_name": "awa_Deva-ita_Latn"
+"doc_to_target": "{{sentence_ita_Latn}}"
+"doc_to_text": "{{sentence_awa_Deva}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_awa_Deva-ita_Latn"
+"test_split": "dev"

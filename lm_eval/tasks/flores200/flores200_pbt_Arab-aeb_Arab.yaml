@@ -1,0 +1,7 @@
+"dataset_name": "pbt_Arab-aeb_Arab"
+"doc_to_target": "{{sentence_aeb_Arab}}"
+"doc_to_text": "{{sentence_pbt_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_pbt_Arab-aeb_Arab"
+"test_split": "dev"
