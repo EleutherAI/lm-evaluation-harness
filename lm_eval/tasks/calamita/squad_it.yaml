@@ -1,0 +1,45 @@
+task: squad_it
+
+dataset_path: squad_it
+dataset_name: null
+dataset_kwargs: null
+
+training_split: train
+validation_split: null
+test_split: test
+
+fewshot_split: train
+num_fewshot: 5
+
+output_type: generate_until
+
+doc_to_text: "Contesto: {{context}}\nDomanda: {{question}}\nRisposta:"
+doc_to_target: "{{' ||| '.join(answers['text'])}}"
+doc_to_choice: null
+
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+
+metric_list:
+  - metric: !function metrics.squad_em
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function metrics.squad_f1
+    aggregation: mean
+    higher_is_better: true
+
+
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "^([^.]*)"
+      - function: "take_first"
+
+metadata:
+  version: 0

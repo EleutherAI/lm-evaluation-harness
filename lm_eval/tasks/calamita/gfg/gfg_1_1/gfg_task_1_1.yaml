@@ -1,0 +1,19 @@
+task: gfg_task_1_1
+tag: calamita_gfg
+dataset_path: FBK-MT/Neo-GATE
+dataset_name: main
+test_split: test
+validation_split: dev
+output_type: generate_until
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{list_spans}}"
+generation_kwargs:
+  max_gen_toks: 128
+  do_sample: False
+metric_list:
+  - metric: !function utils.bert_f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

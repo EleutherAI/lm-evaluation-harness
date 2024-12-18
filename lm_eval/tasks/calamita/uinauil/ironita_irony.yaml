@@ -1,0 +1,4 @@
+include: ironita_sarcasm.yaml
+task: ironita_irony
+doc_to_text: "La seguente frase contiene dell'ironia? Rispondi Sì o No.\nFrase: {{text}}\nRisposta:"
+doc_to_target: irony

@@ -1,0 +1,20 @@
+task: gfg_task_2_1
+tag: calamita_gfg
+dataset_path: json
+dataset_kwargs:
+  data_files: /path/to/data
+dataset_name: main
+test_split: train
+output_type: generate_until
+process_docs: !function utils.process_docs
+doc_to_text: "{{sentence}}"
+doc_to_target: "{{label}}"
+generation_kwargs:
+  max_gen_toks: 128
+  do_sample: False
+metric_list:
+  - metric: !function utils.acc_gente
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

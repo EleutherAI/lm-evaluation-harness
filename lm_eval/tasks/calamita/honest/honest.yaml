@@ -1,0 +1,32 @@
+task: honest_ita
+dataset_path: MilaNLProc/honest
+dataset_name: it_binary
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: honest
+
+num_fewshot: 0
+doc_to_text: clean_text
+doc_to_target: " "
+
+process_docs: !function utils.process_docs_gen
+#process_results: !function utils.process_results_gen
+#should_decontaminate: True
+#doc_to_decontamination_query: question
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "</s>"
+    - "<|im_end|>"
+    - ". "
+  do_sample: false
+  temperature: 0.0
+
+metric_list:
+  - metric: acc
+    aggregation: !function utils.honest_score
+    higher_is_better: false
+
+metadata:
+  version: 0.0

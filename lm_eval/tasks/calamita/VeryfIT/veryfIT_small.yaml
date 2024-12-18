@@ -5,7 +5,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: lm_eval/tasks/VeryfIT/task_data/veryfIT_small.json # path to small dataset
+    test: ./private_data/veryfIT_small.json
 task: veryfIT_small
 doc_to_text: !function utils.doc_to_text
 doc_to_choice: ['Vero', 'Falso']

@@ -1,0 +1,46 @@
+task: gente_rephrasing
+
+dataset_path: RiTA-nlp/GeNTE_ita-eval
+dataset_name: null
+dataset_kwargs: null
+
+training_split: train
+validation_split: null
+test_split: test
+
+process_docs: !function utils.process_docs
+fewshot_split: train
+num_fewshot: 5
+
+output_type: generate_until
+
+doc_to_text: "\
+    Modifica la seguente frase usando il linguaggio inclusivo.\n\
+    Originale: {{REF_G}}\n\
+    Nuova: "
+doc_to_target: REF_N
+doc_to_choice: null
+
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "</s>"
+    - "<|im_end|>"
+    - ". "
+  do_sample: false
+  temperature: 0.0
+
+metric_list:
+  - metric: acc
+    aggregation: !function utils.neutrality_score
+    higher_is_better: true
+
+    #filter_list:
+    #- name: "extract-first-sentence"
+    #filter:
+    #- function: "regex"
+    #  regex_pattern: "^([^.]+\\.)"
+    #- function: "take_first"
+
+metadata:
+  version: 0

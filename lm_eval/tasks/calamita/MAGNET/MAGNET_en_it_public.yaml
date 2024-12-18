@@ -1,0 +1,48 @@
+tag:
+  - MAGNET_task
+#   - english
+#   - italian
+#   - calamita
+task: MAGNET_en_it_public
+dataset_path: FBK-MT/MAGNETbenchmark4CALAMITA24
+training_split: null
+test_split: devtest
+validation_split: devtest
+
+num_fewshot: 0
+doc_to_text: "\
+  Translate the following sentence into Italian: <On Monday, scientists from the Stanford University School of Medicine announced the invention of a new diagnostic tool that can sort cells by type: a tiny printable chip that can be manufactured using standard inkjet printers for possibly about one U.S. cent each.>\n\
+  <Nella giornata di lunedì, alcuni scienziati della Scuola di Medicina dell'Università di Stanford hanno annunciato l'invenzione di un nuovo strumento diagnostico capace di ordinare le cellule in base al tipo: un chip minuscolo che può essere stampato utilizzando stampanti a getto di inchiostro al costo di circa 1 centesimo di dollaro l'uno.>\n\n\
+  Translate the following sentence into Italian: <Lead researchers say this may bring early detection of cancer, tuberculosis, HIV and malaria to patients in low-income countries, where the survival rates for illnesses such as breast cancer can be half those of richer countries.>\n\
+  <Secondo i responsabili della ricerca questo strumento potrebbe consentire diagnosi precoci di cancro, tubercolosi, HIV e malaria per i malati che vivono in Paesi a basso reddito. In alcuni di questi Paesi il tasso di sopravvivenza legati a patologie come il cancro al seno può essere addirittura la metà rispetto a quello registrato nei Paesi più abbienti.>\n\n\
+  Translate the following sentence into Italian: <The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights.>\n\
+  <Il JAS 39C Gripen è precipitato su una pista di atterraggio alle 9:30 circa, ora locale (02:30 UTC), ed è esploso, con la conseguente chiusura dell’aeroporto ai voli commerciali.>\n\n\
+  Translate the following sentence into Italian: <The pilot was identified as Squadron Leader Dilokrit Pattavee.>\n\
+  <L'identificazione del pilota ha rivelato che si trattava del capo squadriglia Dilokrit Pattavee.>\n\n\
+  Translate the following sentence into Italian: <{{english}}>"
+
+# output model
+doc_to_target: "{{italian}}"
+
+process_docs: !function utils.preprocess_dataset
+process_results: !function utils.process_results_en_it
+
+# takes the value of the "metric" key from the dict returned by the "process_results" function
+metric_list:
+  - metric: bleu_score    # my score
+    aggregation: mean
+    higher_is_better: true
+  - metric: chrf_score    # my score
+    aggregation: mean
+    higher_is_better: true
+  - metric: bleurt_score    # my score
+    aggregation: mean
+    higher_is_better: true
+  - metric: comet_score     # my score
+    aggregation: mean
+    higher_is_better: true
+
+
+metadata:
+  version: 1.0
+

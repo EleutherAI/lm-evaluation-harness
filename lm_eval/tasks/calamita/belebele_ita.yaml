@@ -1,0 +1,4 @@
+include: ../belebele/belebele_ita_Latn.yaml
+task: belebele_ita
+doc_to_text: "P: {{flores_passage}}\nQ: {{question.strip()}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\nRisposta："
+num_fewshot: 1

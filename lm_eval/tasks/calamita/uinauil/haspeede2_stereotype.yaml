@@ -1,0 +1,4 @@
+include: haspeede2_hs.yaml
+task: haspeede2_stereo
+doc_to_text: "La seguente frase contiene degli stereotipi? Rispondi Sì o No.\nFrase: {{full_text}}\nRisposta:"
+doc_to_target: stereotype
