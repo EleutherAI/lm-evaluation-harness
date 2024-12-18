@@ -7,13 +7,13 @@ from fuzzywuzzy import fuzz
 from rouge import Rouge
 
 
-def normalize_answer(s: str):
+def normalize_answer(s: str) -> str:
     """Lower text and remove punctuation, articles and extra whitespace."""
 
     def remove_articles(text):
         return re.sub(r"\b(a|an|the)\b", " ", text)
 
-    def white_space_fix(text: str):
+    def white_space_fix(text):
         return " ".join(text.split())
 
     def remove_punc(text):
@@ -26,7 +26,7 @@ def normalize_answer(s: str):
     return white_space_fix(remove_articles(remove_punc(lower(s))))
 
 
-def normalize_zh_answer(s: str):
+def normalize_zh_answer(s: str) -> str:
     """Lower text and remove punctuation, extra whitespace."""
 
     def white_space_fix(text):
@@ -43,7 +43,8 @@ def normalize_zh_answer(s: str):
     return white_space_fix(remove_punc(lower(s)))
 
 
-def count_score(prediction, ground_truth, **kwargs):
+def count_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     numbers = re.findall(r"\d+", prediction)
     right_num = 0
     for number in numbers:
@@ -53,7 +54,8 @@ def count_score(prediction, ground_truth, **kwargs):
     return float(final_score)
 
 
-def retrieval_score(prediction, ground_truth, **kwargs):
+def retrieval_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     pattern = r"Paragraph (\d+)"
     matches = re.findall(pattern, ground_truth)
     ground_truth_id = matches[0]
@@ -66,7 +68,10 @@ def retrieval_score(prediction, ground_truth, **kwargs):
     return float(final_score)
 
 
-def retrieval_zh_score(prediction, ground_truth, **kwargs):
+def retrieval_zh_score(
+    predictions: list[str], references: list[str], **kwargs
+) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     pattern = r"段落(\d+)"
     matches = re.findall(pattern, ground_truth)
     ground_truth_id = matches[0]
@@ -79,7 +84,8 @@ def retrieval_zh_score(prediction, ground_truth, **kwargs):
     return float(final_score)
 
 
-def code_sim_score(prediction, ground_truth, **kwargs):
+def code_sim_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     all_lines = prediction.lstrip("\n").split("\n")
     prediction = ""
     for line in all_lines:
@@ -89,7 +95,10 @@ def code_sim_score(prediction, ground_truth, **kwargs):
     return fuzz.ratio(prediction, ground_truth) / 100
 
 
-def classification_score(prediction, ground_truth, **kwargs):
+def classification_score(
+    predictions: list[str], references: list[str], **kwargs
+) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     em_match_list = []
     all_classes = kwargs["all_classes"]
     for class_name in all_classes:
@@ -105,7 +114,8 @@ def classification_score(prediction, ground_truth, **kwargs):
     return score
 
 
-def rouge_score(prediction, ground_truth, **kwargs):
+def rouge_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     rouge = Rouge()
     try:
         scores = rouge.get_scores([prediction], [ground_truth], avg=True)
@@ -115,14 +125,16 @@ def rouge_score(prediction, ground_truth, **kwargs):
     return scores["rouge-l"]["f"]
 
 
-def rouge_zh_score(prediction, ground_truth, **kwargs):
+def rouge_zh_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     prediction = " ".join(list(jieba.cut(prediction, cut_all=False)))
     ground_truth = " ".join(list(jieba.cut(ground_truth, cut_all=False)))
-    score = rouge_score(prediction, ground_truth)
+    score = rouge_score([prediction], [ground_truth])
     return score
 
 
-def f1_score(prediction, ground_truth, **kwargs):
+def f1_score(predictions: list[str], references: list[str], **kwargs):
+    prediction, ground_truth = predictions[0], references[0]
     common = Counter(prediction) & Counter(ground_truth)
     num_same = sum(common.values())
     if num_same == 0:
@@ -133,17 +145,18 @@ def f1_score(prediction, ground_truth, **kwargs):
     return f1
 
 
-def qa_f1_score(*args):
-    gold_answer, result = args
-    normalized_prediction = normalize_answer(result)
-    normalized_ground_truth = normalize_answer(gold_answer)
+def qa_f1_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
+    normalized_prediction = normalize_answer(prediction)
+    normalized_ground_truth = normalize_answer(ground_truth)
 
     prediction_tokens = normalized_prediction.split()
     ground_truth_tokens = normalized_ground_truth.split()
     return f1_score(prediction_tokens, ground_truth_tokens)
 
 
-def qa_f1_zh_score(prediction, ground_truth, **kwargs):
+def qa_f1_zh_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    prediction, ground_truth = predictions[0], references[0]
     prediction_tokens = list(jieba.cut(prediction, cut_all=False))
     ground_truth_tokens = list(jieba.cut(ground_truth, cut_all=False))
     prediction_tokens = [normalize_zh_answer(token) for token in prediction_tokens]
