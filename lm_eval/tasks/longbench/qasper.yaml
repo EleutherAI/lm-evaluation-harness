@@ -10,7 +10,7 @@ doc_to_target: '{{answers}}'
 generation_kwargs:
   max_gen_toks: 128
   temperature: 1
-  do_sample: False
+  do_sample: True
 metric_list:
   - metric: !function metrics.qa_f1_score
     aggregation: mean
