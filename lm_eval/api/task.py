@@ -322,10 +322,11 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            eval_logger.warning(
-                f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
-                ", using test_docs as fewshot_docs but this is not recommended."
-            )
+            if self.config.get("num_fewshot", 0) > 0:
+                eval_logger.warning(
+                    f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
+                    ", using test_docs as fewshot_docs but this is not recommended."
+                )
             return self.test_docs()
 
     def _process_doc(self, doc: dict) -> dict:
