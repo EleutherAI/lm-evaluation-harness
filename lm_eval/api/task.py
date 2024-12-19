@@ -60,6 +60,7 @@ class TaskConfig(dict):
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
+    download_dataset: Optional[bool] = None
     dataset_path: Optional[str] = None
     dataset_name: Optional[str] = None
     dataset_kwargs: Optional[dict] = None
@@ -817,7 +818,10 @@ class ConfigurableTask(Task):
                     )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
-        self.download(self.config.dataset_kwargs)
+        if self.config.download_dataset is None:
+            self.download(self.config.dataset_kwargs)
+        else:
+            self.dataset = self.config.download_dataset()
         self._training_docs = None
         self._fewshot_docs = None
 
