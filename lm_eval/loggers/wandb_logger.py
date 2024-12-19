@@ -48,6 +48,9 @@ class WandbLogger:
 
         self.wandb_args: Dict[str, Any] = kwargs
 
+        # pop the step key from the args to save for all logging calls
+        self.step = self.wandb_args.pop("step", None)
+
         # initialize a W&B run
         if wandb.run is None:
             self.run = wandb.init(**self.wandb_args)
@@ -152,11 +155,11 @@ class WandbLogger:
 
         # log the complete eval result to W&B Table
         table = make_table(["Tasks"] + columns, "results")
-        self.run.log({"evaluation/eval_results": table})
+        self.run.log({"evaluation/eval_results": table}, step=self.step)
 
         if "groups" in self.results.keys():
             table = make_table(["Groups"] + columns, "groups")
-            self.run.log({"evaluation/group_eval_results": table})
+            self.run.log({"evaluation/group_eval_results": table}, step=self.step)
 
     def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
@@ -174,13 +177,13 @@ class WandbLogger:
         """Log evaluation results to W&B."""
         # Log configs to wandb
         configs = self._get_config()
-        self.run.config.update(configs)
+        self.run.config.update(configs, allow_val_change=self.step is not None)
 
         wandb_summary, self.wandb_results = self._sanitize_results_dict()
         # update wandb.run.summary with items that were removed
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
-        self.run.log(self.wandb_results)
+        self.run.log(self.wandb_results, step=self.step)
         # Log the evaluation metrics as W&B Table
         self._log_results_as_table()
         # Log the results dict as json to W&B Artifacts
@@ -329,7 +332,7 @@ class WandbLogger:
 
             # log the samples as a W&B Table
             df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
-            self.run.log({f"{task_name}_eval_results": df})
+            self.run.log({f"{task_name}_eval_results": df}, step=self.step)
 
             # log the samples as a json file as W&B Artifact
             self._log_samples_as_artifact(eval_preds, task_name)
@@ -348,4 +351,4 @@ class WandbLogger:
                 # log the samples as a json file as W&B Artifact
                 self._log_samples_as_artifact(eval_preds, task_name)
 
-            self.run.log({f"{group}_eval_results": grouped_df})
+            self.run.log({f"{group}_eval_results": grouped_df}, step=self.step)
