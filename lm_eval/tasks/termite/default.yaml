@@ -1,0 +1,15 @@
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: queries.json
+test_split: train
+task: ita-text-to-sql
+process_docs: !function utils.debug
+doc_to_text: !function utils.generate_prompt
+doc_to_target: output
+process_results: !function utils.process_results
+metric_list:
+  - metric: execution_accuracy
+    aggregation: mean
+metadata:
+  version: 1.0
