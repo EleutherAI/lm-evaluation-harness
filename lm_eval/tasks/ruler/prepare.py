@@ -210,7 +210,7 @@ def generate_samples(
     TOKENIZER=None,
 ):
     assert TOKENIZER is not None, "TOKENIZER is not defined."
-    print("using tokenizer ", TOKENIZER)
+    print("using tokenizer ", TOKENIZER.name_or_path)
     num_needle_k = max(num_needle_k, num_needle_q)
     write_jsons = []
     tokens_to_generate = tokens_to_generate
