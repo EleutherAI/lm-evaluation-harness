@@ -257,6 +257,7 @@ class TaskManager:
         name_or_config: Optional[Union[str, dict]] = None,
         parent_name: Optional[str] = None,
         update_config: Optional[dict] = None,
+        metadata: Optional[dict] = None,
     ) -> Mapping:
         def _load_task(config, task):
             if "include" in config:
@@ -268,6 +269,7 @@ class TaskManager:
                     ),
                     **config,
                 }
+                print("hello")
             if self._config_is_python_task(config):
                 if self._class_has_config_in_constructor(config["class"]):
                     task_object = config["class"](config=config)
@@ -277,6 +279,7 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = task
             else:
+                config["metadata"] = config.get("metadata", {}) | metadata
                 task_object = ConfigurableTask(config=config)
 
             return {task: task_object}
@@ -398,7 +401,9 @@ class TaskManager:
             group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
         }
 
-    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
+    def load_task_or_group(
+        self, task_list: Optional[Union[str, list]] = None, metadata=None
+    ) -> dict:
         """Loads a dictionary of task objects from a list
 
         :param task_list: Union[str, list] = None
@@ -411,12 +416,19 @@ class TaskManager:
             task_list = [task_list]
 
         all_loaded_tasks = dict(
-            collections.ChainMap(*map(self._load_individual_task_or_group, task_list))
+            collections.ChainMap(
+                *map(
+                    lambda task: self._load_individual_task_or_group(
+                        task, metadata=metadata
+                    ),
+                    task_list,
+                )
+            )
         )
         return all_loaded_tasks
 
-    def load_config(self, config: Dict):
-        return self._load_individual_task_or_group(config)
+    def load_config(self, config: Dict, metadata=None | dict):
+        return self._load_individual_task_or_group(config, metadata=metadata)
 
     def _get_task_and_group(self, task_dir: str):
         """Creates a dictionary of tasks index with the following metadata,
@@ -576,6 +588,7 @@ def _check_duplicates(task_dict: dict) -> List[str]:
 def get_task_dict(
     task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
+    metadata=None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
@@ -616,7 +629,7 @@ def get_task_dict(
             task_manager = TaskManager()
 
         task_name_from_string_dict = task_manager.load_task_or_group(
-            string_task_name_list
+            string_task_name_list, metadata=metadata
         )
 
     for task_element in others_task_name_list:

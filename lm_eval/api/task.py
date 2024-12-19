@@ -821,7 +821,11 @@ class ConfigurableTask(Task):
         if self.config.download_dataset is None:
             self.download(self.config.dataset_kwargs)
         else:
-            self.dataset = self.config.download_dataset()
+            self.dataset = self.config.download_dataset(
+                self.config.metadata.get(
+                    "tokenizer", self.config.metadata.get("pretrained")
+                )
+            )
         self._training_docs = None
         self._fewshot_docs = None
 
