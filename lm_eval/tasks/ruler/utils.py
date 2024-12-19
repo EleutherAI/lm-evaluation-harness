@@ -21,7 +21,7 @@ def get_tokenizer():
 
 
 # TOKENIZER = AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
-TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""
+TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text? The special magic {type_needle_v} for {query} mentioned in the provided text are"""
 
 SEQ_LENGTHS = (
     131072,
