@@ -13,7 +13,12 @@ from lm_eval.tasks.ruler.essays import get_essays, get_all_essays
 from lm_eval.tasks.ruler.prepare import generate_samples
 
 
-TOKENIZER = AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
+@cache
+def get_tokenizer():
+    return AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
+
+
+# TOKENIZER = AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
 TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""
 
 SEQ_LENGTHS = (
@@ -64,6 +69,7 @@ niah_single_1 = lambda: flatten(
         type_haystack="repeat",
         type_needle_k="words",
         type_needle_v="numbers",
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -76,6 +82,7 @@ niah_single_2 = lambda: flatten(
         type_haystack="essay",
         type_needle_k="words",
         type_needle_v="numbers",
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -88,6 +95,7 @@ niah_single_3 = lambda: flatten(
         type_haystack="essay",
         type_needle_k="words",
         type_needle_v="uuids",
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -101,6 +109,7 @@ niah_multikey_1 = lambda: flatten(
         type_needle_k="words",
         type_needle_v="numbers",
         num_needle_k=4,
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -113,6 +122,7 @@ niah_multikey_2 = lambda: flatten(
         type_haystack="needle",
         type_needle_k="words",
         type_needle_v="numbers",
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -125,6 +135,7 @@ niah_multikey_3 = lambda: flatten(
         type_haystack="needle",
         type_needle_k="uuids",
         type_needle_v="uuids",
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -138,6 +149,7 @@ niah_multivalue = lambda: flatten(
         type_needle_k="words",
         type_needle_v="numbers",
         num_needle_v=4,
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )
@@ -151,6 +163,7 @@ niah_multiquery = lambda: flatten(
         type_needle_k="words",
         type_needle_v="numbers",
         num_needle_q=4,
+        TOKENIZER=get_tokenizer(),
     )
     for seq in SEQ_LENGTHS
 )

@@ -13,10 +13,8 @@ from packaging.version import parse as parse_version
 from importlib.metadata import version
 
 from tqdm import tqdm
-from transformers import AutoTokenizer
 
 
-TOKENIZER = AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
 COUNT = 0
 
 NUM_SAMPLES = 500
@@ -209,8 +207,10 @@ def generate_samples(
     incremental: int = 500,
     remove_newline_tab: bool = False,
     random_seed: int = 42,
+    TOKENIZER=None,
 ):
-    global COUNT
+    assert TOKENIZER is not None, "TOKENIZER is not defined."
+    print("using tokenizer ", TOKENIZER)
     num_needle_k = max(num_needle_k, num_needle_q)
     write_jsons = []
     tokens_to_generate = tokens_to_generate
