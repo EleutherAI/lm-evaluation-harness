@@ -1,0 +1,27 @@
+tag:
+  - understanding
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: ../private_data/ita-sense/with_translation/test-it-tt.data.gen.jsonl
+test_split: train
+task: ita-sense-gen-with-translation
+doc_to_text: "{{instruction}} Input\u0003 '{{input}}'"
+doc_to_target: output
+process_results: !function utils.process_results_gen
+filter_list:
+  - name: lowercase
+    filter:
+      - function: lowercase
+metric_list:
+  - metric: rougeBertScore
+    aggregation: mean
+    higher_is_better: true
+  - metric: rougeL
+    aggregation: mean
+    higher_is_better: true
+  - metric: bertScore
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

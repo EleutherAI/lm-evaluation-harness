@@ -1,0 +1,24 @@
+tag:
+  - understanding
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: ../private_data/pejorativity/pejorative_dataset_it_final.jsonl
+test_split: train
+task: pejorativITy-standard
+doc_to_text: "
+Di seguito è riportata un'istruzione che descrive un task. Scrivete una risposta che completi adeguatamente la richiesta. Istruzione La parola '{{word}}' è usata in modo peggiorativo in questa frase '{{text}}'?  Rispondi solo con 1 per sì, 0 per no. Risposta: "
+doc_to_choice: ['0','1']
+doc_to_target: pejorative
+output_type: multiple_choice
+metric_list:
+  - metric: f1
+    aggregation: !function utils.macro_f1_score_p
+    average: macro
+    hf_evaluate: true
+    higher_is_better: True
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,0 +1,25 @@
+tag:
+  - knowledge
+  - general knowledge
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: ../private_data/gattina/galileo.jsonl
+test_split: train
+task: gattina-galileo
+process_docs: !function utils.preprocess_docs
+doc_to_text: !function utils.genera_prompt
+doc_to_target: title
+process_results: !function utils.process_results
+metric_list:
+  - metric: sbert_score
+    aggregation: mean
+    higher_is_better: true
+  - metric: ns_score
+    aggregation: mean
+    higher_is_better: true
+  - metric: ha_score
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

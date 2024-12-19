@@ -1,0 +1,6 @@
+group: ita-sense
+task:
+   - ita-sense-ml-no-translation
+   - ita-sense-gen-no-translation
+   - ita-sense-ml-with-translation
+   - ita-sense-gen-with-translation

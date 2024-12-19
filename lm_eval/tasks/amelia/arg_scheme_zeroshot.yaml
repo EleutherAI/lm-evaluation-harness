@@ -1,0 +1,34 @@
+tag:
+  - argument mining
+  - legal
+dataset_path: nlp-unibo/AMELIA
+dataset_name: default
+test_split: train
+validation_split: null
+process_docs: !function utils.preprocess_scheme
+task: amelia-arg-scheme-zeroshot
+doc_to_text: "Classifica la seguente premessa legale in uno o più dei seguenti schemi argomentativi: Rule, Prec, Class, Itpr, Princ. 
+Rule: se esiste un riferimento esplicito o implicito a un articolo di legge o la citazione del testo di una norma.
+Prec: se esiste un riferimento ad una precedente pronuncia della Corte di Cassazione o della Corte di Giustizia dell'Unione Europea.
+Class: se c'è la definizone di un concetto giuridico o degli elementi costitutivi dello stesso.
+Itpr: se c'è il riferimento a uno dei criteri interpretativi contenuti all'art. 12 delle preleggi (letterale, teleologica, psicologica, sistematica) al codice civile.
+Princ: se c'è un riferimento espresso a un prinicpio generale del diritto (es. principio di proporzionalità).
+L'output atteso è una lista con tutte le label applicabili. Ad esempio: ['Prec', 'Princ', 'Rule']. 
+Testo: {{Text}} Lista: "
+doc_to_target: Scheme
+filter_list:
+  - name: lowercase
+    filter:
+      - function: lowercase
+metric_list:
+  - metric: !function utils.macro_f1_score
+    aggregation: !function utils.macro_f1_score_agg_MC_scheme
+    higher_is_better: true
+  - metric: !function utils.f1_classes
+    aggregation: !function utils.f1_classes_agg_MC_scheme
+    higher_is_better: true
+  - metric: !function utils.MC_accuracy
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
