@@ -503,8 +503,6 @@ class HFLM(TemplateLM):
             elif self.backend == "seq2seq":
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
 
-    print("mean accuracy: {sum(all_accuries) / len(all_accuries)}")
-
     def _get_config(
         self,
         pretrained: str,
