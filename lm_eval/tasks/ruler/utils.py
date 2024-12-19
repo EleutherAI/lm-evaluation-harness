@@ -181,16 +181,27 @@ def postprocess_pred(predict_str: str) -> str:
     return predict_str
 
 
+def string_match_all(preds: list[str], refs: list[list[str]]) -> float:
+    score = sum(
+        [
+            sum([1.0 if r.lower() in pred.lower() else 0.0 for r in ref]) / len(ref)
+            for pred, ref in zip(preds, refs)
+        ]
+    ) / len(preds)
+    return score
+
+
 def process_results(doc: dict, results: list[str]) -> dict[str, float]:
     # hacky: set all other lengths to -1
     metrics = {str(length): -1.0 for length in SEQ_LENGTHS}
     input_len = doc["max_length"]
-    acc = 1.0 if postprocess_pred(results[0]) in doc["input"] else 0.0
-    metrics[str(input_len)] = acc
+    pred = postprocess_pred(results[0])
+    score = string_match_all([pred], [doc["outputs"]])
+    metrics[str(input_len)] = score
     return metrics
 
 
-def aggregate_metrics(metrics: list[int]) -> float:
+def aggregate_metrics(metrics: list[float]) -> float:
     res = [x for x in metrics if x != -1]
     if not res:
         # we don't have any samples with this length
