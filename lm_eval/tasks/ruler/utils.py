@@ -15,7 +15,9 @@ from lm_eval.tasks.ruler.prepare import generate_samples
 
 @cache
 def get_tokenizer():
-    return AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
+    return AutoTokenizer.from_pretrained(
+        os.environ.get("TOKENIZER"), trust_remote_code=True
+    )
 
 
 # TOKENIZER = AutoTokenizer.from_pretrained(os.environ.get("TOKENIZER"))
