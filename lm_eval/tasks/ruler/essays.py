@@ -11,21 +11,56 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
+import asyncio
 import glob
 import os
 import shutil
-import urllib.request
-from functools import cache
+from typing import Dict
 
 import html2text
-import requests
+import httpx
 from bs4 import BeautifulSoup
-from tqdm import tqdm
+from tqdm.asyncio import tqdm as async_tqdm
 
 
-@cache
-def get_essays():
+async def fetch_url(client: httpx.AsyncClient, url: str) -> str:
+    response = await client.get(url)
+    response.raise_for_status()
+    return response.text
+
+
+async def process_html_essay(
+    client: httpx.AsyncClient, url: str, h: html2text.HTML2Text, temp_folder: str
+) -> None:
+    filename = url.split("/")[-1].replace(".html", ".txt")
+    try:
+        content = await fetch_url(client, url)
+        soup = BeautifulSoup(content, "html.parser")
+        specific_tag = soup.find("font")
+        if specific_tag:
+            parsed = h.handle(str(specific_tag))
+
+            with open(
+                os.path.join(temp_folder, filename), "w", encoding="utf-8"
+            ) as file:
+                file.write(parsed)
+    except Exception as e:
+        print(f"Failed to download {filename}: {str(e)}")
+
+
+async def process_text_essay(
+    client: httpx.AsyncClient, url: str, temp_folder: str
+) -> None:
+    filename = url.split("/")[-1]
+    try:
+        content = await fetch_url(client, url)
+        with open(os.path.join(temp_folder, filename), "w", encoding="utf-8") as file:
+            file.write(content)
+    except Exception as e:
+        print(f"Failed to download {filename}: {str(e)}")
+
+
+async def get_essays() -> Dict[str, str]:
     temp_folder_repo = "essay_repo"
     temp_folder_html = "essay_html"
     os.makedirs(temp_folder_repo, exist_ok=True)
@@ -38,62 +73,126 @@ def get_essays():
     h.reference_links = False
     h.mark_code = False
 
-    url = "https://raw.githubusercontent.com/NVIDIA/RULER/main/scripts/data/synthetic/json/PaulGrahamEssays_URLs.txt"
-    response = requests.get(url)
-    response.raise_for_status()
+    url_list = "https://raw.githubusercontent.com/NVIDIA/RULER/main/scripts/data/synthetic/json/PaulGrahamEssays_URLs.txt"
 
-    # The content is now in memory as a string
-    content = response.text
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        # Fetch URL list
+        content = await fetch_url(client, url_list)
+        urls = content.splitlines()
 
-    # If you want to process it line by line:
-    urls = content.splitlines()
+        # Separate HTML and text URLs
+        html_urls = [url for url in urls if ".html" in url]
+        text_urls = [url for url in urls if ".html" not in url]
 
-    for url in tqdm(urls):
-        if ".html" in url:
-            filename = url.split("/")[-1].replace(".html", ".txt")
-            try:
-                with urllib.request.urlopen(url) as website:
-                    content = website.read().decode("unicode_escape", "utf-8")
-                    soup = BeautifulSoup(content, "html.parser")
-                    specific_tag = soup.find("font")
-                    parsed = h.handle(str(specific_tag))
+        # Process HTML essays
+        html_tasks = [
+            process_html_essay(client, url, h, temp_folder_html) for url in html_urls
+        ]
+        await async_tqdm.gather(*html_tasks, desc="Downloading HTML essays")
 
-                    with open(os.path.join(temp_folder_html, filename), "w") as file:
-                        file.write(parsed)
+        # Process text essays
+        text_tasks = [
+            process_text_essay(client, url, temp_folder_repo) for url in text_urls
+        ]
+        await async_tqdm.gather(*text_tasks, desc="Downloading text essays")
 
-            except Exception as e:
-                print(f"Fail download {filename}, ({e})")
-
-        else:
-            filename = url.split("/")[-1]
-            try:
-                with urllib.request.urlopen(url) as website:
-                    content = website.read().decode("utf-8")
-
-                with open(os.path.join(temp_folder_repo, filename), "w") as file:
-                    file.write(content)
-
-            except Exception as e:
-                print(f"Fail download {filename}, ({e})")
-
+    # Collect results
     files_repo = sorted(glob.glob(os.path.join(temp_folder_repo, "*.txt")))
     files_html = sorted(glob.glob(os.path.join(temp_folder_html, "*.txt")))
-    print(
-        f"Download {len(files_repo)} essays from `https://github.com/gkamradt/LLMTest_NeedleInAHaystack/`"
-    )
-    print(f"Download {len(files_html)} essays from `http://www.paulgraham.com/`")
 
+    # print(
+    #     f"Downloaded {len(files_repo)} essays from `https://github.com/gkamradt/LLMTest_NeedleInAHaystack/`"
+    # )
+    # print(f"Downloaded {len(files_html)} essays from `http://www.paulgraham.com/`")
+
+    # Combine all texts
     text = ""
     for file in files_repo + files_html:
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             text += f.read()
 
+    # Cleanup
     shutil.rmtree(temp_folder_repo)
     shutil.rmtree(temp_folder_html)
+
     return {"text": text}
 
-    # with open('PaulGrahamEssays.json', 'w') as f:
-    #     json.dump({"text": text}, f)
-    #
-    # shutil.rmtree(temp_folder_repo)
-    # shutil.rmtree(temp_folder_html)
+
+def get_all_essays() -> Dict[str, str]:
+    """Synchronous wrapper for get_essays()"""
+    return asyncio.run(get_essays())
+
+
+# @cache
+# def get_essays():
+#     temp_folder_repo = "essay_repo"
+#     temp_folder_html = "essay_html"
+#     os.makedirs(temp_folder_repo, exist_ok=True)
+#     os.makedirs(temp_folder_html, exist_ok=True)
+#
+#     h = html2text.HTML2Text()
+#     h.ignore_images = True
+#     h.ignore_tables = True
+#     h.escape_all = True
+#     h.reference_links = False
+#     h.mark_code = False
+#
+#     url = "https://raw.githubusercontent.com/NVIDIA/RULER/main/scripts/data/synthetic/json/PaulGrahamEssays_URLs.txt"
+#     response = requests.get(url)
+#     response.raise_for_status()
+#
+#     # The content is now in memory as a string
+#     content = response.text
+#
+#     # If you want to process it line by line:
+#     urls = content.splitlines()
+#
+#     for url in tqdm(urls):
+#         if ".html" in url:
+#             filename = url.split("/")[-1].replace(".html", ".txt")
+#             try:
+#                 with urllib.request.urlopen(url) as website:
+#                     content = website.read().decode("unicode_escape", "utf-8")
+#                     soup = BeautifulSoup(content, "html.parser")
+#                     specific_tag = soup.find("font")
+#                     parsed = h.handle(str(specific_tag))
+#
+#                     with open(os.path.join(temp_folder_html, filename), "w") as file:
+#                         file.write(parsed)
+#
+#             except Exception as e:
+#                 print(f"Fail download {filename}, ({e})")
+#
+#         else:
+#             filename = url.split("/")[-1]
+#             try:
+#                 with urllib.request.urlopen(url) as website:
+#                     content = website.read().decode("utf-8")
+#
+#                 with open(os.path.join(temp_folder_repo, filename), "w") as file:
+#                     file.write(content)
+#
+#             except Exception as e:
+#                 print(f"Fail download {filename}, ({e})")
+#
+#     files_repo = sorted(glob.glob(os.path.join(temp_folder_repo, "*.txt")))
+#     files_html = sorted(glob.glob(os.path.join(temp_folder_html, "*.txt")))
+#     print(
+#         f"Download {len(files_repo)} essays from `https://github.com/gkamradt/LLMTest_NeedleInAHaystack/`"
+#     )
+#     print(f"Download {len(files_html)} essays from `http://www.paulgraham.com/`")
+#
+#     text = ""
+#     for file in files_repo + files_html:
+#         with open(file, "r") as f:
+#             text += f.read()
+#
+#     shutil.rmtree(temp_folder_repo)
+#     shutil.rmtree(temp_folder_html)
+#     return {"text": text}
+#
+#     # with open('PaulGrahamEssays.json', 'w') as f:
+#     #     json.dump({"text": text}, f)
+#     #
+#     # shutil.rmtree(temp_folder_repo)
+#     # shutil.rmtree(temp_folder_html)

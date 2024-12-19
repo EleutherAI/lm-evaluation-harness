@@ -1,6 +1,9 @@
 import os
 import random
 import uuid
+from linecache import cache
+from functools import lru_cache
+from typing import List
 
 import numpy as np
 import wonderwords
@@ -38,6 +41,11 @@ DEPTHS = list(np.round(np.linspace(0, 100, num=40, endpoint=True)).astype(int))
 
 NLTK_MIN_VERSION = "3.9.1"
 RANK = os.environ.get("LOCAL_RANK", "0")
+
+
+@lru_cache(maxsize=1024)
+def cached_sent_tokenize(text: str) -> List[str]:
+    return sent_tokenize(text)
 
 
 def download_nltk_resources():
@@ -119,7 +127,7 @@ def generate_input_output(
     if type_haystack == "essay":
         assert isinstance(haystack, list)
         text = " ".join(haystack[:num_haystack])
-        document_sents = sent_tokenize(text.strip())
+        document_sents = cached_sent_tokenize(text.strip())
         insertion_positions = (
             [0]
             + sorted(
@@ -288,7 +296,9 @@ def generate_samples(
             "max_length": max_seq_length,
         }
         if formatted_output["outputs"][0] not in formatted_output["input"]:
-            COUNT += 1
+            assert (
+                False
+            ), f"Needle not in input: {formatted_output}. Something went wrong."
         write_jsons.append(formatted_output)
     print(COUNT)
     return write_jsons

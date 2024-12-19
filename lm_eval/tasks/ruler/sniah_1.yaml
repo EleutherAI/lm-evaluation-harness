@@ -7,7 +7,7 @@ output_type: generate_until
 test_split: test
 download_dataset: !function utils.niah_single_1
 doc_to_text: "{{input}}"
-doc_to_target: "{{outputs[0]}}" #" {{answer.split('### ')[-1].rstrip()}}"
+doc_to_target: "{{outputs[0]}}"
 process_results: !function utils.process_results
 
 metric_list:
@@ -36,4 +36,4 @@ generation_kwargs:
   until: []
 repeats: 1
 metadata:
-  version: 3.0
+  version: 1.0

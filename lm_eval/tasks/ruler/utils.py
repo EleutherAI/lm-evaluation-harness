@@ -3,13 +3,13 @@ import itertools
 import json
 import os
 import re
-from functools import partial
+from functools import partial, cache
 from typing import Literal
 
 import datasets
 from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.essays import get_essays
+from lm_eval.tasks.ruler.essays import get_essays, get_all_essays
 from lm_eval.tasks.ruler.prepare import generate_samples
 
 
@@ -31,10 +31,11 @@ STOP_WORDS = ""
 RANDOM_SEED = 42
 
 
+@cache
 def get_haystack(type_haystack: Literal["essay", "repeat", "needle"]):
     NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
     if type_haystack == "essay":
-        essay = get_essays()["text"]
+        essay = get_all_essays()["text"]
         # essay = json.load(open(essay))["text"]
         haystack = re.sub(r"\s+", " ", essay).split(" ")
     elif type_haystack == "repeat":
@@ -155,7 +156,7 @@ niah_multiquery = lambda: flatten(
 )
 
 
-def postprocess_pred(predict_str: str):
+def postprocess_pred(predict_str: str) -> str:
     predict_str = predict_str.strip()
 
     # Remove all non-printable characters
@@ -165,16 +166,18 @@ def postprocess_pred(predict_str: str):
     return predict_str
 
 
-def process_results(doc, results):
+def process_results(doc: dict, results: list[str]) -> dict[str, float]:
+    # hacky: set all other lengths to -1
     metrics = {str(length): -1.0 for length in SEQ_LENGTHS}
     input_len = doc["max_length"]
     acc = 1.0 if postprocess_pred(results[0]) in doc["input"] else 0.0
-    metrics[str(next(length for length in SEQ_LENGTHS if input_len <= length))] = acc
+    metrics[str(input_len)] = acc
     return metrics
 
 
-def aggregate_metrics(metrics):
-    return {
-        length: sum(metric[length] for metric in metrics) / len(metrics)
-        for length in SEQ_LENGTHS
-    }
+def aggregate_metrics(metrics: list[int]) -> float:
+    res = [x for x in metrics if x != -1]
+    if not res:
+        # we don't have any samples with this length
+        return 0.0
+    return sum(res) / len(res)
