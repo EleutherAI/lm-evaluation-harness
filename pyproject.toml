@@ -20,7 +20,6 @@ requires-python = ">=3.9"
 license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
-    "evaluate",
     "datasets>=2.16.0",
     "evaluate>=0.4.0",
     "jsonlines",
@@ -57,6 +56,7 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
+anthropic = ["anthropic"]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
@@ -68,6 +68,7 @@ neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
+openai = ["openai"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
 sentencepiece = ["sentencepiece>=0.1.98"]
