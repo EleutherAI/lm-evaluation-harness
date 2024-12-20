@@ -1,7 +1,7 @@
 include: base.yaml
 dataset_kwargs:
   data_files:
-    train: /home/jj/Downloads/BLM-It2/BLM-OdIt_type-II/train.json
-    test: /home/jj/Downloads/BLM-It2/BLM-OdIt_type-II/test.json
+    train: ./private_data/blm-IT/task_data/BLM-OdIt_type-II/train.json
+    test: ./private_data/blm-IT/task_data/BLM-OdIt_type-II/test.json
 task: blm_od1_0shots
 num_fewshot: 0

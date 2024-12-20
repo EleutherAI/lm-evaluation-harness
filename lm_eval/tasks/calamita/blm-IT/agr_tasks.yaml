@@ -4,8 +4,5 @@ task:
   - blm_agr2_0shots
   - blm_agr1_1shots
   - blm_agr2_1shots
-aggregate_metric_list:
-  - metric: f1
-    aggregation: mean
 metadata:
   version: 1.0

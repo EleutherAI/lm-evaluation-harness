@@ -8,7 +8,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /home/jj/Downloads/Multi-IT/Multi-IT-A/quiz.json
+    test: ./private_data/Multi-IT/Multi-IT-A/quiz.json
 task: multi-it-a
 doc_to_text: !function utils.doc_to_text
 doc_to_choice: !function utils.doc_to_choice

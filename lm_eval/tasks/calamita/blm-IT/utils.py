@@ -1,3 +1,5 @@
+from sklearn.metrics import f1_score
+
 def doc_to_text(doc) -> str:
   Context_concatenated= doc['Context_concatenated']
   Answer_concatenated = doc['Answer_concatenated']
@@ -12,3 +14,14 @@ def doc_to_text(doc) -> str:
   doc_to_text += f"\n{Answer_concatenated}"
   doc_to_text += f"\n**La tua scelta**\n"
   return doc_to_text
+
+def preprocess_dataset(dataset):
+    dataset = dataset.select([i for i in range(1)])      # selecting 4 rows for DEBUG
+    return dataset
+
+def macro_f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="macro")
+    return fscore

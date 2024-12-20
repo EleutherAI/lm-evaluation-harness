@@ -1,0 +1,35 @@
+tag:
+  - rebus
+  - logic
+dataset_path: gsarti/eureka-rebus-calamita-2024
+dataset_name: null 
+dataset_kwargs: null
+task: eureka_original
+doc_to_text: !function utils.doc_to_text
+training_split: train
+validation_split: null
+test_split: test
+output_type: generate_until
+doc_to_target: solution
+#process_docs: !function utils.preprocess_dataset
+process_results: !function utils.parse_generation_elements
+num_fewshot: 0
+metric_list:
+  - metric: word_guesses_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: first_pass_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: solution_words_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: solution_words_lengths_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: solution_match
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
