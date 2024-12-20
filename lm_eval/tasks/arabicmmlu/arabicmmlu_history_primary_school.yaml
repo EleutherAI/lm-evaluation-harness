@@ -1,0 +1,5 @@
+"dataset_name": "History (Primary School)"
+"include": "_default_arabicmmlu_template_yaml"
+"tag": "arabicmmlu_humanities_tasks"
+"task": "arabicmmlu_history_primary_school"
+"task_alias": "History (Primary School)"
