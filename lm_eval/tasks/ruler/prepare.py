@@ -21,14 +21,14 @@ NUM_SAMPLES = 500
 REMOVE_NEWLINE_TAB = ""
 STOP_WORDS = ""
 RANDOM_SEED = 42
-SEQ_LENGTHS = (
-    # 131072,
-    # 65536,
-    # 32768,
-    16384,
-    8192,
-    4096,
-)
+# SEQ_LENGTHS = (
+#     # 131072,
+#     # 65536,
+#     # 32768,
+#     16384,
+#     8192,
+#     4096,
+# )
 
 # # Define Needle/Haystack Format
 NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
