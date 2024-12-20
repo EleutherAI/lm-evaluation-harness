@@ -1,0 +1,3 @@
+task: niah_7
+include: niah_1.yaml
+download_dataset: !function vt_utils.get_vt_dataset

@@ -14,12 +14,12 @@ metric_list:
   - metric: "4096"
     aggregation: !function utils.aggregate_metrics
     higher_is_better: true
-#  - metric: "8192"
-#    aggregation: !function utils.aggregate_metrics
-#    higher_is_better: true
-#  - metric: "16384"
-#    aggregation: !function utils.aggregate_metrics
-#    higher_is_better: true
+  - metric: "8192"
+    aggregation: !function utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "16384"
+    aggregation: !function utils.aggregate_metrics
+    higher_is_better: true
 #  - metric: "32768"
 #    aggregation: !function utils.aggregate_metrics
 #    higher_is_better: true

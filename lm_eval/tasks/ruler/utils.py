@@ -1,15 +1,13 @@
 # noqa
 import itertools
-import json
-import os
 import re
-from functools import partial, cache
+from functools import cache
 from typing import Literal
 
 import datasets
 from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.essays import get_essays, get_all_essays
+from lm_eval.tasks.ruler.essays import get_all_essays
 from lm_eval.tasks.ruler.prepare import generate_samples
 
 
@@ -25,8 +23,8 @@ SEQ_LENGTHS = (
     # 131072,
     # 65536,
     # 32768,
-    # 16384,
-    # 8192,
+    16384,
+    8192,
     4096,
 )
 
