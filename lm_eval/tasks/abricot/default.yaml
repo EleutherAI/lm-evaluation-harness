@@ -1,0 +1,4 @@
+group: abricot
+task:
+      - abricot_abs
+      - abricot_inc

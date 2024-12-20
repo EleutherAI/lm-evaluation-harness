@@ -1,0 +1,20 @@
+task: abricot_abs
+dataset_path: gpucce/abricot
+dataset_name: abs
+dataset_kwargs:
+  trust_remote_code: True # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
+output_type: multiple_choice
+training_split: null
+validation_split: "validation"
+test_split: null
+process_docs: !function utils.process_docs_abs
+doc_to_text: prompt
+doc_to_target: label
+doc_to_choice: choices
+metric_list:
+  - metric: pearson
+    aggregation: pearson
+    higher_is_better: true
+# fewshot_config:
+#   sampler: first_n
+#   samples: !function utils.list_fewshot_samples

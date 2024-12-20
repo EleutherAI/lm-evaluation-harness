@@ -1,0 +1,50 @@
+tag:
+  - argument mining
+  - legal
+dataset_path: nlp-unibo/AMELIA
+dataset_name: default
+test_split: train
+validation_split: null
+process_docs: !function utils.preprocess_premisetype
+task: amelia-arg-premisetype-fewshot
+doc_to_text: "Classifica la seguente premessa come di fatto 'F', legale 'L' o entrambe. Le premesse di fatto (F) descrivono situazioni ed eventi fattuali relativi al caso di specie. Le premesse legali (L) specificano il contenuto giuridico (norme giuridiche, precedenti, interpretazione delle leggi e dei principi applicabili). L'output atteso è una lista con tutte le label applicabili. Ad esempio: ['F', 'L']. 
+
+Esempi:
+
+Testo: Per i primi giudici nel caso di specie questa esenzione non poteva essere applicata perché la complessiva attività di 'A' srl era un'attività commerciale svolta in concorrenza con altre imprese operanti nel settore
+Risposta: ['F']
+
+Testo: In assenza di siffatti elementi, che in via presuntiva avrebbero potuto fare giungere questo giudice a conclusioni diverse in via logica, si deve confermare l’esito cui è giunta la commissione provinciale
+Risposta: ['F']
+
+Testo: Su questo si osserva che si deve condividere la circostanza dedotta dal giudice di prime cure per cui deve essere il contribuente, ove sia contestata la inerenza e verità della rappresentazione ricavabile dal documento contabile, a dare la dimostrazione della fondatezza e della correttezza del comportamento tenuto
+Risposta: ['L']
+
+Testo: L'Ufficio non potrà impedire ad un imprenditore, per esempio, di cedere immobili con prezzi bassi onulli per ricavare liquidità a fronte di nuovi impegni, ma dovrà rilevare la condotta antieconomica dello stesso sulla base dell’utile di esercizio
+Risposta: ['L']
+
+Testo: Invero l'avviso di accertamento è fondato sul mancato rispetto, da parte del contribuente, nel calcolo del ROL, delle disposizioni dell'articolo 96, secondo comma, del TUIR, che ne definisce le modalità
+Risposta: ['F', 'L']
+
+Testo: La società 'A', per quanto previsto dall'art. 4, comma 18 del Regolamento CEE n. 2913/1992, riveste il ruolo di 'dichiarante in Dogana', soggetto passivo della obbligazione
+Risposta: ['F', 'L']
+
+Testo: {{Text}}
+Lista: "
+doc_to_target: Type
+filter_list:
+  - name: lowercase
+    filter:
+      - function: lowercase
+metric_list:
+  - metric: !function utils.macro_f1_score
+    aggregation: !function utils.macro_f1_score_agg_MC_premisetype
+    higher_is_better: true
+  - metric: !function utils.f1_classes
+    aggregation: !function utils.f1_classes_agg_MC_premisetype
+    higher_is_better: true
+  - metric: !function utils.MC_accuracy
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
