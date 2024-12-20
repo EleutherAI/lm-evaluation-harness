@@ -15,6 +15,7 @@ import asyncio
 import glob
 import os
 import shutil
+from functools import cache
 from typing import Dict
 
 import html2text
@@ -118,6 +119,7 @@ async def get_essays() -> Dict[str, str]:
     return {"text": text}
 
 
+@cache
 def get_all_essays() -> Dict[str, str]:
     """Synchronous wrapper for get_essays()"""
     return asyncio.run(get_essays())
