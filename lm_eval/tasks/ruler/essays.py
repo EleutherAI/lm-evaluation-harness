@@ -14,7 +14,6 @@
 import asyncio
 import glob
 import os
-import shutil
 from functools import cache
 from typing import Dict
 
@@ -34,6 +33,8 @@ async def process_html_essay(
     client: httpx.AsyncClient, url: str, h: html2text.HTML2Text, temp_folder: str
 ) -> None:
     filename = url.split("/")[-1].replace(".html", ".txt")
+    if os.path.exists(os.path.join(temp_folder, filename)):
+        return None
     try:
         content = await fetch_url(client, url)
         soup = BeautifulSoup(content, "html.parser")
@@ -53,6 +54,8 @@ async def process_text_essay(
     client: httpx.AsyncClient, url: str, temp_folder: str
 ) -> None:
     filename = url.split("/")[-1]
+    if os.path.exists(os.path.join(temp_folder, filename)):
+        return None
     try:
         content = await fetch_url(client, url)
         with open(os.path.join(temp_folder, filename), "w", encoding="utf-8") as file:
@@ -113,8 +116,8 @@ async def get_essays() -> Dict[str, str]:
             text += f.read()
 
     # Cleanup
-    shutil.rmtree(temp_folder_repo)
-    shutil.rmtree(temp_folder_html)
+    # shutil.rmtree(temp_folder_repo)
+    # shutil.rmtree(temp_folder_html)
 
     return {"text": text}
 

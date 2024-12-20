@@ -15,8 +15,6 @@ from importlib.metadata import version
 from tqdm import tqdm
 
 
-COUNT = 0
-
 NUM_SAMPLES = 500
 REMOVE_NEWLINE_TAB = ""
 STOP_WORDS = ""
@@ -217,7 +215,6 @@ def generate_samples(
     TOKENIZER=None,
 ):
     assert TOKENIZER is not None, "TOKENIZER is not defined."
-    print("using tokenizer ", TOKENIZER.name_or_path)
     num_needle_k = max(num_needle_k, num_needle_q)
     write_jsons = []
     tokens_to_generate = tokens_to_generate
@@ -263,10 +260,13 @@ def generate_samples(
 
         num_haystack += incremental
 
-    print("Num haystack:", num_haystack)
+    # print("Num haystack:", num_haystack)
 
     # Generate samples
-    for index in tqdm(range(num_samples)):
+    for index in tqdm(
+        range(num_samples),
+        desc=f"Generating synthetic samples: {type_haystack} | {max_seq_length}",
+    ):
         used_haystack = num_haystack
         while True:
             try:
@@ -307,5 +307,4 @@ def generate_samples(
                 False
             ), f"Needle not in input: {formatted_output}. Something went wrong."
         write_jsons.append(formatted_output)
-    print(COUNT)
     return write_jsons

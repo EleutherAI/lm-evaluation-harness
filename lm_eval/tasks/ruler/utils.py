@@ -13,6 +13,7 @@ from lm_eval.tasks.ruler.prepare import generate_samples
 
 @cache
 def get_tokenizer(pretrained):
+    print("using tokenizer ", pretrained)
     return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
