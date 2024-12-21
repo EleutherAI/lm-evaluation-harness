@@ -2,7 +2,7 @@ task: AraDiCE_boolq_lev
 dataset_path: QCRI/AraDiCE-BoolQ
 dataset_name: BoolQ-lev
 output_type: multiple_choice
-training_split: null 
+training_split: null
 validation_split: null
 test_split: test
 process_docs: !function utils.process_docs

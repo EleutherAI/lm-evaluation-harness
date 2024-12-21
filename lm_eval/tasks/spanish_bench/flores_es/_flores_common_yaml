@@ -1,4 +1,3 @@
-group: flores
 dataset_path: facebook/flores
 dataset_name: all
 output_type: generate_until
