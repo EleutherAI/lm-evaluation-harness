@@ -12,3 +12,7 @@ def doc_to_target(doc):
 def doc_to_choice(doc):
     texts = [c['text'] for c in doc['question']['choices']]
     return texts
+
+
+def doc_to_text(doc): 
+    return doc["question"]["stem"].strip()

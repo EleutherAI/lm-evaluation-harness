@@ -5,7 +5,7 @@ training_split: null
 validation_split: null
 test_split: test
 output_type: multiple_choice
-doc_to_text: "{{question.stem}}"
+doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
 doc_to_choice: !function utils.doc_to_choice
 should_decontaminate: true
