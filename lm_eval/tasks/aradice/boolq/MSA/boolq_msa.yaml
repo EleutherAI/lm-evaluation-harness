@@ -1,0 +1,25 @@
+task: AraDiCE_boolq_msa
+dataset_path: QCRI/AraDiCE-BoolQ
+dataset_name: BoolQ-msa
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "{{passage}}\nسؤال: {{question}}؟\nجواب:"
+doc_to_target: target
+doc_to_choice: ["لا", "نعم"]
+should_decontaminate: true
+doc_to_decontamination_query: passage
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    higher_is_better: true
+    aggregation: !function metrics.micro_f1_score
+metadata:
+  version: 1.0
