@@ -1,0 +1,6 @@
+"dataset_name": "economics"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_ar_mmlu_tasks"
+"task": "darijammlu_economics"
+"task_alias": "economics"
