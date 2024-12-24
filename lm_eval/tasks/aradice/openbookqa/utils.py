@@ -14,5 +14,5 @@ def doc_to_choice(doc):
     return texts
 
 
-def doc_to_text(doc): 
+def doc_to_text(doc):
     return doc["question"]["stem"].strip()
