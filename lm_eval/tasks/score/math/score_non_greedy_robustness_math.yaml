@@ -12,9 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group: score_robustness_math
+group: score_non_greedy_robustness_math
 task:
-  - score_prompt_robustness_math
-  - score_non_greedy_robustness_math
+  - non_greedy_robustness_math_algebra
+  - non_greedy_robustness_math_counting_and_prob
+  - non_greedy_robustness_math_geometry
+  - non_greedy_robustness_math_intermediate_algebra
+  - non_greedy_robustness_math_num_theory
+  - non_greedy_robustness_math_prealgebra
+  - non_greedy_robustness_math_precalc
+
+aggregate_metric_list:
+  - metric: non_greedy_accuracy
+    aggregation: mean
+    weight_by_size: true
 metadata:
   version: 1.0

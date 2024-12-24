@@ -164,7 +164,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             fallback_regex = re.compile("|".join(fallback_regexes))
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
-                f":[\s]*({without_paren_fallback_regex})"
+                rf":[\s]*({without_paren_fallback_regex})"
             )
 
             filtered = []
