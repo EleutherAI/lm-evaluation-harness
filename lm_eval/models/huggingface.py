@@ -90,6 +90,7 @@ class HFLM(TemplateLM):
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
+        gguf_file: Optional[str] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -164,6 +165,7 @@ class HFLM(TemplateLM):
                 pretrained,
                 revision=revision,
                 trust_remote_code=trust_remote_code,
+                gguf_file=gguf_file,
             )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
@@ -178,6 +180,7 @@ class HFLM(TemplateLM):
             revision=revision,
             trust_remote_code=trust_remote_code,
             use_fast_tokenizer=use_fast_tokenizer,
+            gguf_file=gguf_file,
         )
 
         # if we passed `pretrained` as a string, initialize our model now
@@ -196,6 +199,7 @@ class HFLM(TemplateLM):
                 delta=delta,
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
+                gguf_file=gguf_file,
                 **kwargs,
             )
 
@@ -508,12 +512,14 @@ class HFLM(TemplateLM):
         pretrained: str,
         revision: str = "main",
         trust_remote_code: bool = False,
+        gguf_file: Optional[str] = None,
     ) -> None:
         """Return the model config for HuggingFace models"""
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,
             revision=revision,
             trust_remote_code=trust_remote_code,
+            gguf_file=gguf_file,
         )
 
     def _create_model(
@@ -535,6 +541,7 @@ class HFLM(TemplateLM):
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
+        gguf_file: Optional[str] = None,
         **kwargs,
     ) -> None:
         """
@@ -579,6 +586,7 @@ class HFLM(TemplateLM):
                 revision=revision,
                 torch_dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
+                gguf_file=gguf_file,
                 **model_kwargs,
             )
         else:
@@ -676,6 +684,7 @@ class HFLM(TemplateLM):
         revision: Optional[str] = "main",
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
+        gguf_file: Optional[str] = None,
     ) -> None:
         """
         Helper method during initialization.
@@ -691,6 +700,7 @@ class HFLM(TemplateLM):
                     revision=revision,
                     trust_remote_code=trust_remote_code,
                     use_fast=use_fast_tokenizer,
+                    gguf_file=gguf_file,
                 )
             else:
                 assert isinstance(
@@ -709,6 +719,7 @@ class HFLM(TemplateLM):
                 revision=revision,
                 trust_remote_code=trust_remote_code,
                 use_fast=use_fast_tokenizer,
+                gguf_file=gguf_file,
             )
         return None
 
