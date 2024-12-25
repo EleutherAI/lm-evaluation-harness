@@ -693,15 +693,20 @@ class HFLM(TemplateLM):
         tokenizer for value of `pretrained`, or use the pre-initialized tokenizer passed.
         """
         use_fast_tokenizer = True if gguf_file is not None else use_fast_tokenizer
+        kwargs = {
+            "revision": revision,
+            "trust_remote_code": trust_remote_code,
+        }
+
+        if gguf_file is not None:
+            kwargs["gguf_file"] = gguf_file
+        else:
+            kwargs["use_fast"] = use_fast_tokenizer
 
         if tokenizer:
             if isinstance(tokenizer, str):
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                    tokenizer,
-                    revision=revision,
-                    trust_remote_code=trust_remote_code,
-                    use_fast=use_fast_tokenizer,
-                    gguf_file=gguf_file,
+                    tokenizer, **kwargs
                 )
             else:
                 assert isinstance(
@@ -716,11 +721,7 @@ class HFLM(TemplateLM):
                 # get the HF hub name via accessor on model
                 model_name = self.model.name_or_path
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                model_name,
-                revision=revision,
-                trust_remote_code=trust_remote_code,
-                use_fast=use_fast_tokenizer,
-                gguf_file=gguf_file,
+                model_name, **kwargs
             )
         return None
 
