@@ -70,7 +70,7 @@ class LocalCompletionsAPI(TemplateAPI):
             outputs = [outputs]
         for out in outputs:
             for choice, ctxlen in zip(
-                sorted(out["choices"], key=itemgetter("id")), ctxlens
+                sorted(out["choices"], key=itemgetter("index")), ctxlens
             ):
                 assert ctxlen > 0, "Context length must be greater than 0"
                 logprobs = sum(choice["logprobs"]["token_logprobs"][ctxlen:-1])
