@@ -697,6 +697,7 @@ class HFLM(TemplateLM):
             "trust_remote_code": trust_remote_code,
         }
 
+        # gguf format embeds tokenizer and is not compatible with hf tokenizer `use_fast` param
         if gguf_file is not None:
             kwargs["gguf_file"] = gguf_file
         else:
