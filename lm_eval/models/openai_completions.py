@@ -87,8 +87,10 @@ class LocalCompletionsAPI(TemplateAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
+            tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                res.append(choices["text"])
+                tmp[choices["index"]] = choices["text"]
+            res = res + tmp
         return res
 
     @property
@@ -157,8 +159,10 @@ class LocalChatCompletion(LocalCompletionsAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
+            tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                res.append(choices["message"]["content"])
+                tmp[choices["index"]] = choices["message"]["content"]
+            res = res + tmp
         return res
 
     def tok_encode(
