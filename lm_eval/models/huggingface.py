@@ -692,6 +692,7 @@ class HFLM(TemplateLM):
         Create a tokenizer object corresponding to the correct
         tokenizer for value of `pretrained`, or use the pre-initialized tokenizer passed.
         """
+        use_fast_tokenizer = True if gguf_file is not None else use_fast_tokenizer
 
         if tokenizer:
             if isinstance(tokenizer, str):
