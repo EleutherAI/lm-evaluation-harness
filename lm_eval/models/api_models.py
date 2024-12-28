@@ -1,3 +1,4 @@
+import aiohttp
 import abc
 import asyncio
 import copy
@@ -402,26 +403,46 @@ class TemplateAPI(TemplateLM):
             seed=self._seed,
             **kwargs,
         )
+        if not generate:
+            raise ValueError(
+                "This branch of lm-eval only supports generate() since it "
+                "is intended to be used for testing of VLLM streaming."
+            )
         cache_method = "generate_until" if generate else "loglikelihood"
         try:
-            async with session.post(
-                self.base_url,
-                json=payload,
-                headers=self.header,
-            ) as response:
-                if not response.ok:
-                    error_text = await response.text()
-                    eval_logger.warning(
-                        f"API request failed with error message: {error_text}. Retrying..."
-                    )
-                # raising exception will retry the request
-                response.raise_for_status()
-                outputs = await response.json()
+            AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
+            async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:    
+                generated_text = ""
+                async with session.post(url=self.base_url, json=payload, headers=self.header) as response:
+                    if response.status == 200:
+                        async for chunk_bytes in response.content:
+                            chunk_bytes = chunk_bytes.strip()
+                            if not chunk_bytes:
+                                continue
+
+                            chunk = chunk_bytes.decode("utf-8").removeprefix("data: ")
+                            if chunk == "[DONE]":
+                                pass
+                            else:
+                                data = json.loads(chunk)
+                                # NOTE: Some completion API might have a last
+                                # usage summary response without a token so we
+                                # want to check a token was generated
+                                if data["choices"][0]["text"]:
+                                    generated_text += data["choices"][0]["text"]
+
+            outputs = {
+                "choices": [
+                    {
+                        "index": 0,
+                        "text": generated_text,
+                    }
+                ]
+            }
             answers = (
                 self.parse_generations(
                     outputs=outputs,
-                )
-                if generate
+                )if generate
                 else self.parse_logprobs(
                     outputs=outputs,
                     tokens=messages,

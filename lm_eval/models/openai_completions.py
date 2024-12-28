@@ -45,6 +45,7 @@ class LocalCompletionsAPI(TemplateAPI):
                 "temperature": temperature,
                 "stop": stop,
                 "seed": seed,
+                "stream": True,
                 **gen_kwargs,
             }
         else:
@@ -55,6 +56,7 @@ class LocalCompletionsAPI(TemplateAPI):
                 "max_tokens": 1,
                 "logprobs": 1,
                 "seed": seed,
+                "stream": True,
                 "echo": True,
             }
 
@@ -86,14 +88,16 @@ class LocalCompletionsAPI(TemplateAPI):
 
     @staticmethod
     def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
-        res = []
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        for out in outputs:
-            tmp = [None] * len(out["choices"])
-            for choices in out["choices"]:
-                tmp[choices["index"]] = choices["text"]
-            res = res + tmp
+        if isinstance(outputs, list):
+            raise ValueError(
+                "This branch of lm-eval only supports batch 1 since it "
+                "is intended to be used for testing of VLLM streaming."
+            )
+        out = outputs
+
+        res = [None] * len(out["choices"])
+        for choices in out["choices"]:
+            res[choices["index"]] = choices["text"]
         return res
 
     @property
@@ -153,6 +157,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
             "temperature": temperature,
             "stop": stop[:4],
             "seed": seed,
+            "stream": True,
             **gen_kwargs,
         }
 
@@ -284,6 +289,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "temperature": temperature,
             "stop": stop[:4],
             "seed": seed,
+            "stream": True,
             **gen_kwargs,
         }
         if "o1" in self.model:
