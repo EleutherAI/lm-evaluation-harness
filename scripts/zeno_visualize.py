@@ -109,13 +109,14 @@ def main():
             if model_index == 0:  # Only need to assemble data for the first model
                 metrics = []
                 for metric in config["metric_list"]:
-                    metrics.append(
-                        ZenoMetric(
-                            name=metric["metric"],
-                            type="mean",
-                            columns=[metric["metric"]],
+                    if metric.get("aggregation") == "mean":
+                        metrics.append(
+                            ZenoMetric(
+                                name=metric["metric"],
+                                type="mean",
+                                columns=[metric["metric"]],
+                            )
                         )
-                    )
                 project = client.create_project(
                     name=args.project_name + (f"_{task}" if len(tasks) > 1 else ""),
                     view="text-classification",
@@ -232,11 +233,7 @@ def generate_system_df(data, config):
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
         system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
-    metrics = {}
-    for metric in config["metric_list"]:
-        if "aggregation" in metric and metric["aggregation"] == "mean":
-            metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
-
+    metrics = {metric["metric"]: [x[metric["metric"]] for x in data] for metric in config["metric_list"]}
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df
