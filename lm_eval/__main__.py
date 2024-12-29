@@ -189,13 +189,17 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--multiple_choice_generate",
-        action="store_true",
+        type=str,
+        nargs="?",
+        const=True,
         default=False,
         help=(
             "If True, multiple choice problems are not evaluated based on lowest logprob continuation, "
             "but asking the model to generate the choice letter.  This departs from the traditional evaluation "
             "methodology, but allows evaluation with popular chat-completion APIs and evaluates each multiple choice "
-            "problem only once rather than #choice times."
+            "problem only once rather than #choice times.  Without additional argument, choices must be reproduced "
+            "verbatim by the model; with additional argument 'abcd', choices will be lettered and the model has to "
+            "produce only the corresponding letter."
         ),
     )
     parser.add_argument(

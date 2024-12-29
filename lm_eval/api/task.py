@@ -81,6 +81,7 @@ class TaskConfig(dict):
     description: str = ""
     target_delimiter: str = " "
     choice_delimiter: str = " / "
+    option_delimiter: str = "\n"
     fewshot_delimiter: str = "\n\n"
     fewshot_config: Optional[dict] = None
     # runtime configuration options
@@ -380,7 +381,7 @@ class Task(abc.ABC):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        multiple_choice_generate: bool = False,
+        multiple_choice_generate: Union[bool, str] = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
     ) -> None:
@@ -438,10 +439,13 @@ class Task(abc.ABC):
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             doc_system_instruction = system_instruction or ""
-            if multiple_choice_generate:
+            if self.OUTPUT_TYPE == "multiple_choice" and multiple_choice_generate:
                 if doc_system_instruction:
                     doc_system_instruction += " "
-                doc_system_instruction += "Please answer with the letter of the correct answer."
+                if multiple_choice_generate == "abcd":
+                    doc_system_instruction += "Please include \"ANSWER: <letter>\" in your response with the letter of the correct last answer."
+                else:
+                    doc_system_instruction += "Please answer with the letter of the correct last answer."
 
             fewshot_ctx = self.fewshot_context(
                 doc,
@@ -1034,7 +1038,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        multiple_choice_generate: bool = False,
+        multiple_choice_generate: Union[bool, str] = False,
         chat_template: Optional[Callable] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
@@ -1050,7 +1054,7 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param multiple_choice_generate: bool
+        :param multiple_choice_generate: Union[bool, str]
             Whether to generate multiple choice answer from scratch rather than pick by logprobs.
         :param chat_template:
             callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
@@ -1101,8 +1105,13 @@ class ConfigurableTask(Task):
         if self.config.doc_to_choice is not None and multiple_choice_generate:
             if not isinstance(example, str):
                 raise NotImplementedError("--multiple_choice_generate is implemented only for simple text docs")
-            example += self.config.target_delimiter
-            example += "(" + self.config.choice_delimiter.join(self.doc_to_choice(doc)) + ")"
+            if multiple_choice_generate == "abcd":
+                choices = self.doc_to_choice(doc)
+                for label, choice in zip(list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")[:len(choices)], choices):
+                    example += f"{self.config.option_delimiter}({label}) {choice}"
+            else:
+                example += self.config.target_delimiter
+                example += "(" + self.config.choice_delimiter.join(self.doc_to_choice(doc)) + ")"
 
         if apply_chat_template:
             if self.multiple_input:
@@ -1319,7 +1328,7 @@ class ConfigurableTask(Task):
             return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, multiple_choice_generate: bool, **kwargs
+        self, doc: dict, ctx: str, multiple_choice_generate: Union[bool, str], **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
 
@@ -1526,6 +1535,14 @@ class ConfigurableTask(Task):
                 # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
+                if self.multiple_choice_generate == "abcd":
+                    try:
+                        result_label = re.findall(r"ANSWER: ([A-Z])", result)[-1]
+                        result_i = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ").index(result_label)
+                        result = choices[result_i]
+                    except (AttributeError, ValueError, IndexError):
+                        eval_logger.warning(f"[{self}] LLM did not pick a valid result ('{result}')")
+                        result = choices[0]  # XXX guess "randomly"
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)

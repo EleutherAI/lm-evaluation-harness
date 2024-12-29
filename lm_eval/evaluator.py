@@ -66,7 +66,7 @@ def simple_evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
-    multiple_choice_generate: bool = False,
+    multiple_choice_generate: Union[bool, str] = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity: str = "INFO",
@@ -120,7 +120,7 @@ def simple_evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param multiple_choice_generate: bool
+    :param multiple_choice_generate: Union[bool, str]
         Whether to generate multiple choice answer from scratch rather than pick by logprobs.
     :param gen_kwargs: str
         String arguments for model generation
@@ -376,7 +376,7 @@ def evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
-    multiple_choice_generate: bool = False,
+    multiple_choice_generate: Union[bool, str] = False,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -402,7 +402,7 @@ def evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param multiple_choice_generate: bool
+    :param multiple_choice_generate: Union[bool, str]
         Whether to generate multiple choice answer from scratch rather than pick by logprobs.
     :return
         Dictionary of results
