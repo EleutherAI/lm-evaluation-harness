@@ -66,6 +66,7 @@ def simple_evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
+    multiple_choice_generate: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity: str = "INFO",
@@ -119,6 +120,8 @@ def simple_evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
+    :param multiple_choice_generate: bool
+        Whether to generate multiple choice answer from scratch rather than pick by logprobs.
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
@@ -246,7 +249,7 @@ def simple_evaluate(
                 }
 
             else:
-                if task_obj.get_config("output_type") == "generate_until":
+                if task_obj.get_config("output_type") == "generate_until" or multiple_choice_generate:
                     if gen_kwargs is not None:
                         task_obj.set_config(
                             key="generation_kwargs", value=gen_kwargs, update=True
@@ -298,6 +301,7 @@ def simple_evaluate(
             if apply_chat_template
             else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
+            multiple_choice_generate=multiple_choice_generate,
         )
 
     results = evaluate(
@@ -312,6 +316,7 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
+        multiple_choice_generate=multiple_choice_generate,
         verbosity=verbosity,
     )
 
@@ -371,6 +376,7 @@ def evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
+    multiple_choice_generate: bool = False,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -396,6 +402,8 @@ def evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
+    :param multiple_choice_generate: bool
+        Whether to generate multiple choice answer from scratch rather than pick by logprobs.
     :return
         Dictionary of results
     """
@@ -457,6 +465,7 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=bool(apply_chat_template),
             fewshot_as_multiturn=fewshot_as_multiturn,
+            multiple_choice_generate=multiple_choice_generate,
             chat_template=getattr(lm, "apply_chat_template")
             if apply_chat_template
             else None,

@@ -188,6 +188,17 @@ def setup_parser() -> argparse.ArgumentParser:
         help="If True, uses the fewshot as a multi-turn conversation",
     )
     parser.add_argument(
+        "--multiple_choice_generate",
+        action="store_true",
+        default=False,
+        help=(
+            "If True, multiple choice problems are not evaluated based on lowest logprob continuation, "
+            "but asking the model to generate the choice letter.  This departs from the traditional evaluation "
+            "methodology, but allows evaluation with popular chat-completion APIs and evaluates each multiple choice "
+            "problem only once rather than #choice times."
+        ),
+    )
+    parser.add_argument(
         "--show_config",
         action="store_true",
         default=False,
@@ -396,6 +407,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         system_instruction=args.system_instruction,
         apply_chat_template=args.apply_chat_template,
         fewshot_as_multiturn=args.fewshot_as_multiturn,
+        multiple_choice_generate=args.multiple_choice_generate,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         verbosity=args.verbosity,
