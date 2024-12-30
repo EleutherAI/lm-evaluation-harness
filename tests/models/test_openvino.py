@@ -16,7 +16,7 @@ SUPPORTED_ARCHITECTURES_TASKS = {
 }
 
 
-@pytest.skip("Test failing due to PEFT import error")
+@pytest.mark.skip("Test failing due to PEFT import error")
 @pytest.mark.parametrize("model_id,task", SUPPORTED_ARCHITECTURES_TASKS.items())
 def test_evaluator(model_id, task):
     from optimum.intel import OVModelForCausalLM
@@ -77,7 +77,7 @@ def test_evaluator(model_id, task):
         )
 
 
-@pytest.skip("Test failing due to PEFT import error")
+@pytest.mark.skip("Test failing due to PEFT import error")
 def test_ov_config():
     from optimum.intel import OVModelForCausalLM
 
