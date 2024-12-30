@@ -292,6 +292,7 @@ class _SCROLLSSummaryTask(_SCROLLSTask):
         }
 
     def construct_requests(self, doc, ctx, **kwargs):
+        kwargs.pop("apply_chat_template", False)
         return Instance(
             request_type="generate_until",
             doc=doc,
@@ -334,19 +335,22 @@ class Qasper(_SCROLLSTask):
         return {"f1": (prediction, doc["outputs"])}
 
     def construct_requests(self, doc, ctx, **kwargs):
+        apply_chat_template = kwargs.pop("apply_chat_template", False)
         if doc["is_yes_no"]:
             return [
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
-                    arguments=(ctx, " yes"),
+                    arguments=(ctx, " yes")
+                    if not apply_chat_template
+                    else (ctx, "yes"),
                     idx=0,
                     **kwargs,
                 ),
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
-                    arguments=(ctx, " no"),
+                    arguments=(ctx, " no") if not apply_chat_template else (ctx, "no"),
                     idx=1,
                     **kwargs,
                 ),
@@ -413,6 +417,7 @@ class NarrativeQA(_SCROLLSTask):
         return {"f1": (results[0], doc["outputs"])}
 
     def construct_requests(self, doc, ctx, **kwargs):
+        kwargs.pop("apply_chat_template", False)
         return Instance(
             request_type="generate_until",
             doc=doc,
