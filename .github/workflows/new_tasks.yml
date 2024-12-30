@@ -11,14 +11,14 @@ on:
 # comment/edit out the above to stop/change the triggers
 jobs:
   changed_files:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # windows-latest || macos-latest
     timeout-minutes: 120
     name: Scan for changed tasks
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
 
       # Uses the tj-actions/changed-files action to check for changes.
       # Outputs provided here: https://github.com/tj-actions/changed-files#outputs
@@ -36,6 +36,8 @@ jobs:
               - lm_eval/api/**
           write_output_files: true
 
+    # The next step is optional; the files are written to the workspace by default (above).
+    # so it's just for debugging
       - name: Run Tests
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         run: |
@@ -43,28 +45,28 @@ jobs:
           echo "One or more test file(s) has changed."
           echo "List of all the files that have changed: ${{ steps.changed-tasks.outputs.tasks_all_modified_files }}"
 
-      - name: Install uv
+      - name: Set up Python 3.9
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
-        uses: astral-sh/setup-uv@v5
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
-          enable-cache: true
-          cache-dependency-glob: "setup.py"
-
+          python-version: 3.9
+          cache: 'pip'
+          cache-dependency-path: setup.py
       - name: Install dependencies
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
-        env:
-          UV_SYSTEM_PYTHON: 1
         run: |
-          uv pip install -e '.[dev,ifeval]' --extra-index-url https://download.pytorch.org/whl/cpu
-
+            python -m pip install --upgrade pip
+            pip install -e '.[dev,ifeval]' --extra-index-url https://download.pytorch.org/whl/cpu
+    #   Install optional git dependencies
+    #       pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
+    #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with pytest
         # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
-        run: uv run pytest tests/test_tasks.py -s -vv
+        run: python -m pytest tests/test_tasks.py -s -vv
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
           API: true
         if: steps.changed-tasks.outputs.api_any_modified == 'true'
-        run: uv run pytest tests/test_tasks.py -s -vv
+        run: python -m pytest tests/test_tasks.py -s -vv
