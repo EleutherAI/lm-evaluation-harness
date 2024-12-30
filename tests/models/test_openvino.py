@@ -4,14 +4,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
-
-pytestmark = pytest.mark.skip(
-    allow_module_level=True,
-    reason="openvivo tests failing due to `ImportError: cannot import name 'EncoderDecoderCache' from 'transformers'`",
-)
-
 from transformers import AutoTokenizer
+from optimum.intel import OVModelForCausalLM
 
 from lm_eval import evaluator
 from lm_eval.api.registry import get_model
@@ -25,8 +19,6 @@ SUPPORTED_ARCHITECTURES_TASKS = {
 
 @pytest.mark.parametrize("model_id,task", SUPPORTED_ARCHITECTURES_TASKS.items())
 def test_evaluator(model_id, task):
-    from optimum.intel import OVModelForCausalLM
-
     with tempfile.TemporaryDirectory() as tmpdirname:
         model = OVModelForCausalLM.from_pretrained(
             model_id, export=True, use_cache=True
@@ -85,8 +77,6 @@ def test_evaluator(model_id, task):
 
 def test_ov_config():
     """Test that if specified, a custom OpenVINO config is loaded correctly"""
-    from optimum.intel import OVModelForCausalLM
-
     model_id = "hf-internal-testing/tiny-random-gpt2"
     with tempfile.TemporaryDirectory() as tmpdirname:
         config_file = str(Path(tmpdirname) / "ov_config.json")
