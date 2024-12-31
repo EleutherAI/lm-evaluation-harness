@@ -1,0 +1,7 @@
+"dataset_name": "min_Latn-kas_Arab"
+"doc_to_target": "{{sentence_kas_Arab}}"
+"doc_to_text": "{{sentence_min_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_min_Latn-kas_Arab"
+"test_split": "dev"

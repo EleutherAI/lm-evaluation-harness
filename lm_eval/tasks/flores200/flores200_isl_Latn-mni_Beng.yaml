@@ -1,0 +1,7 @@
+"dataset_name": "isl_Latn-mni_Beng"
+"doc_to_target": "{{sentence_mni_Beng}}"
+"doc_to_text": "{{sentence_isl_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_isl_Latn-mni_Beng"
+"test_split": "dev"
