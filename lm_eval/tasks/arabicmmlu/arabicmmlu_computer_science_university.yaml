@@ -1,0 +1,5 @@
+"dataset_name": "Computer Science (University)"
+"include": "_default_arabicmmlu_template_yaml"
+"tag": "arabicmmlu_stem_tasks"
+"task": "arabicmmlu_computer_science_university"
+"task_alias": "Computer Science (University)"
