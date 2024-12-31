@@ -1,0 +1,4 @@
+group: afrimgsm_en_cot
+group_alias: AfriMGSM Eng CoT
+task:
+  - afrimgsm_en_cot_tasks
