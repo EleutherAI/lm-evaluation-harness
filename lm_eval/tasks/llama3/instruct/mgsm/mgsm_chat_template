@@ -26,6 +26,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
+        group_select: -1
         regex_pattern: "(?:Answer|Réponse|Antwort|Ответ|Respuesta|答え|Jibu|答案|คำตอบ|సమాధానం|উত্তর): (\\-?[0-9\\.\\,]+)"
       - function: remove_whitespace
       - function: take_first

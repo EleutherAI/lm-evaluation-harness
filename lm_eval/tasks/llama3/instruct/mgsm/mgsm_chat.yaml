@@ -1,5 +1,5 @@
 group: mgsm_chat
-group_alias: mmlu (llama)
+group_alias: mgsm (llama)
 task:
     - mgsm_chat_bn
     - mgsm_chat_de
@@ -14,6 +14,8 @@ task:
     - mgsm_chat_zh
 aggregate_metric_list:
   - metric: exact_match
+    aggregation: mean
     weight_by_size: True
+    filter_list: [flexible-extract, strict-match]
 metadata:
   version: 0
