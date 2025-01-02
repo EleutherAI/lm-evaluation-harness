@@ -76,7 +76,7 @@ def number_variations(n):
 def process_docs(lang: str, df: datasets.Dataset) -> datasets.Dataset:
     def map_(doc: dict):
         suffix = [x for x in PROMPTS if x["subtask_name"] == lang][0]["rep"]
-        doc["question"] = suffix + r"\n\n" + doc["question"].split(":", 1)[-1]
+        doc["question"] = suffix + "\n\n" + doc["question"].split(":", 1)[-1]
         doc["answers"] = number_variations(doc["answer_number"])
         return doc
 
@@ -97,7 +97,7 @@ process_docs_zh = partial(process_docs, "zh")
 
 
 def process_results(doc, prediction):
-    gold: List = doc["input_correct_responses"]
+    gold: List = doc["answers"]
     return {
         "exact_match": int(
             exact_match_fn(
