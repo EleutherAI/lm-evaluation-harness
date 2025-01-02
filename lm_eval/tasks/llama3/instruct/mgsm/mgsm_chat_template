@@ -1,20 +1,16 @@
+# This file will be included in the generated language-specific task configs.
+# It doesn't have a yaml file extension as it is not meant to be imported directly
+# by the harness.
 tag: llama3
-task: mgsm_chat
 dataset_path: juletxara/mgsm
 dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until
 training_split: train
 test_split: test
 target_delimiter: ""
-doc_to_text: "{{
-    input_final_prompts
-    |first
-    |replace('<|start_header_id|>user<|end_header_id|>', '')
-    |replace('<|eot_id|><|start_header_id|>assistant<|end_header_id|>', '')
-    |trim
-}}"
-doc_to_target: "input_correct_responses"
-process_results: !function utils.process_results_mgsm
+doc_to_text: "{{question}}"
+doc_to_target: answers # list
+process_results: !function utils.process_results
 generation_kwargs:
   until: []
   do_sample: false
