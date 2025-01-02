@@ -112,7 +112,7 @@ def process_results(doc: dict, prediction: List[str]) -> Dict[str, int]:
                 * len(gold),
                 references=gold,
                 ignore_case=True,
-                ignore_punctuation=True,
+                ignore_punctuation=False,
             )["exact_match"]
             > 0
         )
