@@ -1,3 +1,4 @@
+import string
 from functools import partial
 from typing import TYPE_CHECKING, Dict, List
 
@@ -8,6 +9,10 @@ if TYPE_CHECKING:
 from lm_eval.api.metrics import exact_match_fn
 
 
+TRANSLATE_TABLE = str.maketrans(
+    "", "", string.punctuation.replace(".", "")
+)  # decimals are handled by the number_variations function
+# extracted from https://huggingface.co/datasets/meta-llama/Llama-3.2-3B-Instruct-evals/viewer/Llama-3.2-3B-Instruct-evals__mgsm__details
 PROMPTS = [
     {
         "rep": 'Solve this math problem. Give the reasoning steps before giving the final answer on the last line by itself in the format of "Answer:". Do not add anything other than the integer answer after "Answer:".',
@@ -103,7 +108,8 @@ def process_results(doc: dict, prediction: List[str]) -> Dict[str, int]:
     return {
         "exact_match": int(
             exact_match_fn(
-                predictions=[x.strip() for x in prediction] * len(gold),
+                predictions=[x.strip().translate(TRANSLATE_TABLE) for x in prediction]
+                * len(gold),
                 references=gold,
                 ignore_case=True,
                 ignore_punctuation=True,
