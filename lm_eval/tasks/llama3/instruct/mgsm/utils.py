@@ -1,7 +1,9 @@
 from functools import partial
-from typing import List
+from typing import TYPE_CHECKING, Dict, List
 
-import datasets
+
+if TYPE_CHECKING:
+    import datasets
 
 from lm_eval.api.metrics import exact_match_fn
 
@@ -54,7 +56,7 @@ PROMPTS = [
 ]
 
 
-def number_variations(n):
+def number_variations(n: int) -> List[str]:
     formats = []
     # Generate each pattern twice
     for _ in range(2):
@@ -73,7 +75,7 @@ def number_variations(n):
     return formats
 
 
-def process_docs(lang: str, df: datasets.Dataset) -> datasets.Dataset:
+def process_docs(lang: str, df: "datasets.Dataset") -> "datasets.Dataset":
     def map_(doc: dict):
         suffix = [x for x in PROMPTS if x["subtask_name"] == lang][0]["rep"]
         doc["question"] = suffix + "\n\n" + doc["question"].split(":", 1)[-1]
@@ -96,7 +98,7 @@ process_docs_th = partial(process_docs, "th")
 process_docs_zh = partial(process_docs, "zh")
 
 
-def process_results(doc, prediction):
+def process_results(doc: dict, prediction: List[str]) -> Dict[str, int]:
     gold: List = doc["answers"]
     return {
         "exact_match": int(
@@ -104,6 +106,7 @@ def process_results(doc, prediction):
                 predictions=[x.strip() for x in prediction] * len(gold),
                 references=gold,
                 ignore_case=True,
+                ignore_punctuation=True,
             )["exact_match"]
             > 0
         )

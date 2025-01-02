@@ -16,6 +16,6 @@ aggregate_metric_list:
   - metric: exact_match
     aggregation: mean
     weight_by_size: True
-    filter_list: [flexible-extract, strict-match]
+    filter_list: [flexible-extract]
 metadata:
   version: 0
