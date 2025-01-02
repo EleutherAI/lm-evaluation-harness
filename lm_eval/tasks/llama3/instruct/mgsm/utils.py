@@ -1,3 +1,4 @@
+import re
 import string
 from functools import partial
 from typing import TYPE_CHECKING, Dict, List
@@ -83,7 +84,12 @@ def number_variations(n: int) -> List[str]:
 def process_docs(lang: str, df: "datasets.Dataset") -> "datasets.Dataset":
     def map_(doc: dict):
         suffix = [x for x in PROMPTS if x["subtask_name"] == lang][0]["rep"]
-        doc["question"] = suffix + "\n\n" + doc["question"].split(":", 1)[-1]
+
+        doc["question"] = (
+            suffix
+            + "\n\n"
+            + re.split("[:|：]", doc["question"], maxsplit=1)[-1].strip()
+        )
         doc["answers"] = number_variations(doc["answer_number"])
         return doc
 
