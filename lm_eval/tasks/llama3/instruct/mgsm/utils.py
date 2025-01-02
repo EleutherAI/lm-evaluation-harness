@@ -1,3 +1,4 @@
+from functools import partial
 from typing import List
 
 import datasets
@@ -82,7 +83,20 @@ def process_docs(lang: str, df: datasets.Dataset) -> datasets.Dataset:
     return df.map(map_)
 
 
-def process_results_mgsm(doc, prediction):
+process_docs_bn = partial(process_docs, "bn")
+process_docs_de = partial(process_docs, "de")
+process_docs_en = partial(process_docs, "en")
+process_docs_es = partial(process_docs, "es")
+process_docs_fr = partial(process_docs, "fr")
+process_docs_ja = partial(process_docs, "ja")
+process_docs_ru = partial(process_docs, "ru")
+process_docs_sw = partial(process_docs, "sw")
+process_docs_te = partial(process_docs, "te")
+process_docs_th = partial(process_docs, "th")
+process_docs_zh = partial(process_docs, "zh")
+
+
+def process_results(doc, prediction):
     gold: List = doc["input_correct_responses"]
     return {
         "exact_match": int(

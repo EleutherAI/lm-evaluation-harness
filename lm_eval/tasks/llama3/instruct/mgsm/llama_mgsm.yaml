@@ -1,9 +1,11 @@
 tag: llama3
 task: mgsm_chat
-dataset_path: meta-llama/Llama-3.2-3B-Instruct-evals
-dataset_name: Llama-3.2-3B-Instruct-evals__mgsm__details
+dataset_path: juletxara/mgsm
+dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until
-test_split: latest
+training_split: train
+test_split: test
+target_delimiter: ""
 doc_to_text: "{{
     input_final_prompts
     |first
