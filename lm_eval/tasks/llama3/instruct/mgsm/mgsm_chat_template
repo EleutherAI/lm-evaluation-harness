@@ -21,7 +21,7 @@ metric_list:
     aggregation: mean
     higher_is_better: true
     ignore_case: true
-    ignore_punctuation: true
+    ignore_punctuation: true # not used here, but set manually in the process_results function
 filter_list:
   - name: "flexible-extract"
     filter:
