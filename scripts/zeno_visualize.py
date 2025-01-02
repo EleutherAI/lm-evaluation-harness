@@ -84,12 +84,13 @@ def main():
             latest_sample_results = get_latest_filename(
                 [Path(f).name for f in model_sample_filenames if task in f]
             )
+            results = json.load(
+                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
+                )
             model_args = re.sub(
                 r"[\"<>:/\|\\?\*\[\]]+",
                 "__",
-                json.load(
-                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
-                )["config"]["model_args"],
+                results["config"]["model_args"],
             )
             print(model_args)
             data = []
@@ -105,17 +106,19 @@ def main():
                 open(Path(args.data_path, model, latest_results), encoding="utf-8")
             )["configs"]
             config = configs[task]
+            config["multiple_choice_generate"] = results.get("multiple_choice_generate", False)
 
             if model_index == 0:  # Only need to assemble data for the first model
                 metrics = []
                 for metric in config["metric_list"]:
-                    metrics.append(
-                        ZenoMetric(
-                            name=metric["metric"],
-                            type="mean",
-                            columns=[metric["metric"]],
+                    if metric.get("aggregation") == "mean":
+                        metrics.append(
+                            ZenoMetric(
+                                name=metric["metric"],
+                                type="mean",
+                                columns=[metric["metric"]],
+                            )
                         )
-                    )
                 project = client.create_project(
                     name=args.project_name + (f"_{task}" if len(tasks) > 1 else ""),
                     view="text-classification",
@@ -168,14 +171,14 @@ def generate_dataset(
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    ids = [x["doc_id"] for x in data]
+    ids = [x["doc_id"] for x in data] if not config.get("filter_list") else [f"{x['doc_id']}.{x['filter']}" for x in data]
     labels = [x["target"] for x in data]
     instance = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
         instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
         labels = [x["arguments"]["gen_args_0"]["arg_1"] for x in data]
-    elif config["output_type"] == "multiple_choice":
+    elif config["output_type"] == "multiple_choice" and not config["multiple_choice_generate"]:
         instance = [
             x["arguments"]["gen_args_0"]["arg_0"]
             + "\n\n"
@@ -184,12 +187,13 @@ def generate_dataset(
         ]
     elif config["output_type"] == "loglikelihood_rolling":
         instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
-    elif config["output_type"] == "generate_until":
+    elif config["output_type"] == "generate_until" or config["multiple_choice_generate"]:
         instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
 
     return pd.DataFrame(
         {
             "id": ids,
+            "doc_id": [x["doc_id"] for x in data],
             "data": instance,
             "input_len": [len(x) for x in instance],
             "labels": labels,
@@ -208,8 +212,11 @@ def generate_system_df(data, config):
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
-    ids = [x["doc_id"] for x in data]
+    ids = [x["doc_id"] for x in data] if not config.get("filter_list") else [f"{x['doc_id']}.{x['filter']}" for x in data]
     system_dict = {"id": ids}
+    system_dict["doc_id"] = [x["doc_id"] for x in data]
+    if config.get("filter_list"):
+        system_dict["filter"] = [x["filter"] for x in data]
     system_dict["output"] = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
@@ -217,22 +224,18 @@ def generate_system_df(data, config):
             "correct" if x["filtered_resps"][0][1] is True else "incorrect"
             for x in data
         ]
-    elif config["output_type"] == "multiple_choice":
+    elif config["output_type"] == "multiple_choice" and not config["multiple_choice_generate"]:
         system_dict["output"] = [
             ", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data
         ]
         system_dict["num_answers"] = [len(x["filtered_resps"]) for x in data]
     elif config["output_type"] == "loglikelihood_rolling":
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
-    elif config["output_type"] == "generate_until":
+    elif config["output_type"] == "generate_until" or config["multiple_choice_generate"]:
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
         system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
-    metrics = {}
-    for metric in config["metric_list"]:
-        if "aggregation" in metric and metric["aggregation"] == "mean":
-            metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
-
+    metrics = {metric["metric"]: [x[metric["metric"]] for x in data] for metric in config["metric_list"]}
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df

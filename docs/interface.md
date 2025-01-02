@@ -54,6 +54,8 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
 
+- `--multiple_choice_generate` : If True, multiple choice problems are not evaluated based on lowest logprob continuation, but asking the model to generate the choice letter.  This departs from the traditional evaluation methodology, but allows evaluation with popular chat-completion APIs and evaluates each multiple choice problem only once rather than #choice times.  Without additional argument, choices must be reproduced verbatim by the model; with additional argument 'abcd' (RECOMMENDED), choices will be lettered and the model has to produce only the corresponding letter.
+
 - `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
 
 * `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
