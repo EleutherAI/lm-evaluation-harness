@@ -1,0 +1,4 @@
+include: mgsm_chat_template
+dataset_name: de  # Overridden by language-specific config.
+process_docs: !function utils.process_docs_de
+task: mgsm_chat_de
