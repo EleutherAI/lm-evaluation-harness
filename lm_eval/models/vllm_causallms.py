@@ -65,6 +65,8 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
+        kv_cache_dtype: str = "auto",
+        quantization_param_path: str = None,
         **kwargs,
     ):
         super().__init__()
@@ -96,6 +98,8 @@ class VLLM(TemplateLM):
             "max_model_len": int(self._max_length) if self._max_length else None,
             "swap_space": int(swap_space),
             "quantization": quantization,
+            "kv_cache_dtype": kv_cache_dtype,
+            "quantization_param_path": quantization_param_path,
             "seed": int(seed),
         }
         self.model_args.update(kwargs)
