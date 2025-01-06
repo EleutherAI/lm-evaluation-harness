@@ -548,7 +548,7 @@ def evaluate(
             
             n_jobs = os.environ.get('T1_HARNESS_NJOBS', 10)
             print(f'-----> Going Parallel! T1_HARNESS_NJOBS = {n_jobs}')            
-            res_metrics = Parallel(n_jobs=n_jobs)(
+            res_metrics = Parallel(n_jobs=n_jobs, prefer="threads")(
                 delayed(_process_doc)(doc_id, doc)
                     for doc_id, doc in doc_iterator
             )
