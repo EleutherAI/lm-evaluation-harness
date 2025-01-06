@@ -634,9 +634,18 @@ class HFLM(TemplateLM):
                     f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
                 )
                 self._model.resize_token_embeddings(len(self.tokenizer))
-            self._model = PeftModel.from_pretrained(
-                self._model, peft, revision=revision
-            )
+
+            # check if peft contains peft revision according to "adapter_id@revision" format (f.e. used in TGI endpoints)
+            if "@" in peft:
+                peft = peft.split("@")[0]
+                peft_revision = peft.split("@")[1]
+                self._model = PeftModel.from_pretrained(
+                    self._model, peft, revision=peft_revision
+                )    
+            else:
+                self._model = PeftModel.from_pretrained(
+                    self._model, peft, revision=revision
+                )
         elif delta:
             if autogptq:
                 eval_logger.warning(
