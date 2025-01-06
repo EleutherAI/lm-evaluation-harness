@@ -637,8 +637,7 @@ class HFLM(TemplateLM):
 
             # check if peft contains peft revision according to "adapter_id@revision" format (f.e. used in [TGI endpoints](https://huggingface.co/docs/text-generation-inference/main/en/conceptual/lora#specifying-lora-models))
             if "@" in peft:
-                peft = peft.split("@")[0]
-                peft_revision = peft.split("@")[1]
+                peft, peft_revision = peft.split("@", 1)
                 self._model = PeftModel.from_pretrained(
                     self._model, peft, revision=peft_revision
                 )    
