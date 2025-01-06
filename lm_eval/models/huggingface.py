@@ -640,7 +640,7 @@ class HFLM(TemplateLM):
                 peft, peft_revision = peft.split("@", 1)
                 self._model = PeftModel.from_pretrained(
                     self._model, peft, revision=peft_revision
-                )    
+                )
             else:
                 self._model = PeftModel.from_pretrained(
                     self._model, peft, revision=revision
