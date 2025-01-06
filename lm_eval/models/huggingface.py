@@ -1369,7 +1369,9 @@ class HFLM(TemplateLM):
 
         return res
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], assistant_prefix: Optional[str] = None
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
@@ -1385,7 +1387,8 @@ class HFLM(TemplateLM):
             chat_templated = self.tokenizer.apply_chat_template(
                 chat_history, tokenize=False, add_generation_prompt=True
             )
-
+        if assistant_prefix is not None:
+            chat_templated = chat_templated + assistant_prefix
         return chat_templated
 
     def get_model_info(self) -> dict:

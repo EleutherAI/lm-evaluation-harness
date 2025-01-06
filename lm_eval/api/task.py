@@ -92,6 +92,7 @@ class TaskConfig(dict):
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
+    assistant_prefix: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -442,6 +443,7 @@ class Task(abc.ABC):
                 apply_chat_template,
                 fewshot_as_multiturn,
                 chat_template,
+                assistant_prefix=self.config.assistant_prefix,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -1019,12 +1021,13 @@ class ConfigurableTask(Task):
     @utils.positional_deprecated
     def fewshot_context(
         self,
-        doc: str,
+        doc: dict,
         num_fewshot: int,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
+        assistant_prefix: Optional[str] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1087,6 +1090,7 @@ class ConfigurableTask(Task):
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
+                # TODO: append prefix?
                 return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
@@ -1099,6 +1103,7 @@ class ConfigurableTask(Task):
                 for ex in example:
                     chat = deepcopy(labeled_examples)
                     self.append_target_question(chat, ex, fewshot_as_multiturn)
+                    # TODO: append prefix?
                     labeled_examples_list.append(chat_template(chat))
                 return labeled_examples_list
             # if example is an integer, append the choice or convert to string
@@ -1113,7 +1118,7 @@ class ConfigurableTask(Task):
                         labeled_examples, str(example), fewshot_as_multiturn
                     )
                 # return lm.apply_chat_template(labeled_examples)
-            return chat_template(labeled_examples)
+            return chat_template(labeled_examples, assistant_prefix=assistant_prefix)
         else:
             if self.multiple_input:
                 return labeled_examples
