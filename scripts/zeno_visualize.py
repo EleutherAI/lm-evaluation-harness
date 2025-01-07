@@ -169,7 +169,11 @@ def generate_dataset(
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    ids = [x["doc_id"] for x in data] if not config.get("filter_list") else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    ids = (
+        [x["doc_id"] for x in data]
+        if not config.get("filter_list")
+        else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    )
     labels = [x["target"] for x in data]
     instance = [""] * len(ids)
 
@@ -210,7 +214,11 @@ def generate_system_df(data, config):
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
-    ids = [x["doc_id"] for x in data] if not config.get("filter_list") else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    ids = (
+        [x["doc_id"] for x in data]
+        if not config.get("filter_list")
+        else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    )
     system_dict = {"id": ids}
     system_dict["doc_id"] = [x["doc_id"] for x in data]
     if config.get("filter_list"):
@@ -233,7 +241,10 @@ def generate_system_df(data, config):
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
         system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
-    metrics = {metric["metric"]: [x[metric["metric"]] for x in data] for metric in config["metric_list"]}
+    metrics = {
+        metric["metric"]: [x[metric["metric"]] for x in data]
+        for metric in config["metric_list"]
+    }
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df
