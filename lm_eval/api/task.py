@@ -1081,7 +1081,10 @@ class ConfigurableTask(Task):
             if apply_chat_template:
                 labeled_examples.extend(
                     self.sampler.get_chat_context(
-                        doc, num_fewshot, fewshot_as_multiturn
+                        doc,
+                        num_fewshot,
+                        fewshot_as_multiturn,
+                        assistant_prefix=assistant_prefix,
                     )
                 )
             else:
