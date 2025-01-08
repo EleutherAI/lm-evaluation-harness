@@ -21,6 +21,7 @@ metric_list:
 generation_kwargs:
   until:
     - "."
+  max_gen_toks: 10
 filter_list:
   - name: strict_match
     filter:
