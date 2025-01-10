@@ -1503,9 +1503,9 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif (
-                type(gold) is not type(result)
-                and "bypass" not in self._metric_fn_list.keys()
+            # TODO: handle this better
+            elif type(gold) is not type(result) and not (
+                "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
             ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
