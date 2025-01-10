@@ -1,0 +1,10 @@
+"include": "_default_eu20_gsm8k_template_yaml"
+"task": "eu20_gsm8k_sl"
+"dataset_name": "SL"
+"doc_to_text": "Vprašanje: {{question}}\nOdgovor:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Vprašanje:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

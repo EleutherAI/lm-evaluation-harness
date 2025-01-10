@@ -1,0 +1,9 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "high_school_government_and_politics_SL"
+"task": "eu20_mmlu_sl-high_school_government_and_politics"
+"tag": "eu20_mmlu_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdgovor:"
+"description": "V nadaljevanju so vprašanja (z odgovori) o vladi in politiki v srednji\
+  \ šoli."

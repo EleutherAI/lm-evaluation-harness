@@ -1,0 +1,3 @@
+"include": "_default_eu20_hellaswag_template_yaml"
+"dataset_name": "ES"
+"task": "eu20_hellaswag_es"

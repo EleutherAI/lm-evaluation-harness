@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_challenge_de"
+"dataset_name": "challenge_DE"
+"doc_to_text": "Frage: {{question}}\nAntwort:"
+"doc_to_decontamination_query": "Frage: {{question}}\nAntwort:"

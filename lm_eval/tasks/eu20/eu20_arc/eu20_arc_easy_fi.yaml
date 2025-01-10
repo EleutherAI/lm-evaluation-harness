@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_easy_fi"
+"dataset_name": "easy_FI"
+"doc_to_text": "Kysymys: {{question}}\nVastaa:"
+"doc_to_decontamination_query": "Kysymys: {{question}}\nVastaa:"

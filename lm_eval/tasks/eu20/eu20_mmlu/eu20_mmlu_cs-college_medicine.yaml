@@ -1,0 +1,8 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "college_medicine_CS"
+"task": "eu20_mmlu_cs-college_medicine"
+"tag": "eu20_mmlu_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdpověď:"
+"description": "Následují otázky s výběrem odpovědí o vysokoškolské medicíně."

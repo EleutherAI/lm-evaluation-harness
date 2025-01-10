@@ -1,0 +1,10 @@
+"include": "_default_eu20_gsm8k_template_yaml"
+"task": "eu20_gsm8k_nl"
+"dataset_name": "NL"
+"doc_to_text": "Vraag: {{question}}\nAntwoord:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Vraag:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

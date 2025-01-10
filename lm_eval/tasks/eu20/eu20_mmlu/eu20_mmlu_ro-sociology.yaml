@@ -1,0 +1,9 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "sociology_RO"
+"task": "eu20_mmlu_ro-sociology"
+"tag": "eu20_mmlu_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRăspuns:"
+"description": "Următoarele sunt întrebări cu variante multiple de răspuns (cu răspunsuri)\
+  \ despre sociologie."

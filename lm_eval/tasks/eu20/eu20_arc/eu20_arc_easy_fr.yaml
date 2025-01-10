@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_easy_fr"
+"dataset_name": "easy_FR"
+"doc_to_text": "Question: {{question}}\nRéponse:"
+"doc_to_decontamination_query": "Question: {{question}}\nRéponse:"
