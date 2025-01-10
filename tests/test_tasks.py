@@ -1,14 +1,17 @@
 import os
 from itertools import islice
 
+import datasets
 import pytest
 
 import lm_eval.tasks as tasks
 from lm_eval.api.task import ConfigurableTask
+from lm_eval.evaluator_utils import get_task_list
 
 from .utils import new_tasks
 
 
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
 # Default Task
@@ -20,10 +23,11 @@ def task_class():
     # CI: new_tasks checks if any modifications have been made
     task_classes = new_tasks()
     # Check if task_classes is empty
-    if task_classes:
-        return list(task_manager.load_task_or_group(task_classes).values())
-    else:
-        return list(task_manager.load_task_or_group(TASKS).values())
+    task_classes = task_classes if task_classes else TASKS
+    res = tasks.get_task_dict(task_classes, task_manager)
+    res = [x.task for x in get_task_list(res)]
+
+    return res
 
 
 @pytest.fixture()
@@ -75,10 +79,17 @@ class TestNewTasks:
         )
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
-        assert all(
-            isinstance(x, str) and (x[-1] != " " if len(x) != 0 else True)
-            for x in _array
-        )
+        target_delimiter: str = task.config.target_delimiter
+        if not task.multiple_input:
+            for x in _array:
+                assert isinstance(x, str)
+                assert (
+                    (x[-1].isspace() is False if len(x) > 0 else True)
+                    if target_delimiter.isspace()
+                    else True
+                ), "doc_to_text ends in a whitespace and target delimiter also a whitespace"
+        else:
+            pass
 
     def test_create_choices(self, task_class, limit):
         task = task_class
@@ -101,7 +112,11 @@ class TestNewTasks:
         )
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
-            assert all(isinstance(label, int) for label in _array_target)
+            # TODO<baber>: label can be string or int; add better test conditions
+            assert all(
+                (isinstance(label, int) or isinstance(label, str))
+                for label in _array_target
+            )
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
@@ -115,5 +130,11 @@ class TestNewTasks:
             if task.has_test_docs()
             else list(islice(task.validation_docs(), limit))
         )
-        requests = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
+        # ctx is "" for multiple input tasks
+        requests = [
+            task.construct_requests(
+                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
+            )
+            for doc in arr
+        ]
         assert len(requests) == limit if limit else True

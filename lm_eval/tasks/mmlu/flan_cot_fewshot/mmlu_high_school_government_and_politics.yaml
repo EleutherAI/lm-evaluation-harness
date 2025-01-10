@@ -56,6 +56,6 @@ fewshot_config:
     target: 'Let''s think step by step. We refer to Wikipedia articles on government
       and politics for help. The US Constitution is not very specific about the powers
       of the president, leading to uncertainty over its limits. The answer is (A).'
-group: mmlu_flan_cot_fewshot_social_sciences
+tag: mmlu_flan_cot_fewshot_social_sciences
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_government_and_politics

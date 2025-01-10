@@ -1,4 +1,5 @@
-"fewshot_split": "bul_Cyrl"
-"include": "_default_template_yaml"
-"task": "belebele_bul_Cyrl"
-"test_split": "bul_Cyrl"
+dataset_name: bul_Cyrl
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_bul_Cyrl
+test_split: test

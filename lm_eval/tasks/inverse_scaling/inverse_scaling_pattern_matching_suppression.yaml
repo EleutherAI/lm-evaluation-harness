@@ -1,0 +1,3 @@
+include: _inverse_scaling_mc_yaml
+task: inverse_scaling_pattern_matching_suppression
+dataset_path: Albertmade/pattern-matching-suppression

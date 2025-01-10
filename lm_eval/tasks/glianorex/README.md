@@ -18,3 +18,8 @@ All tasks are multiple choice questions with 4 options, only one correct option.
 
 - `glianorex_en`: Evaluates the accuracy on 264 questions in English.
 - `glianorex_fr`: Evaluates the accuracy on 264 questions in French.
+
+#### Change Log
+
+* (all tasks) 2024-09-23 -- 1.0
+  * Switched the `test_split` from `train` to `test`.

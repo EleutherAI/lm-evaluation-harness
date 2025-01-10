@@ -1,0 +1,7 @@
+"dataset_name": "answer_only_machine_learning"
+"description": "The following are multiple choice questions (with answers) about machine\
+  \ learning.\n\n"
+"tag": "mmlusr_answer_only_stem_tasks"
+"include": "_mmlusr_a_yml"
+"task": "mmlusr_answer_only_machine_learning"
+"task_alias": "machine learning"
