@@ -4,7 +4,7 @@ import logging
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 import torch
@@ -74,6 +74,7 @@ def simple_evaluate(
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    truncation_args: Optional[Dict[str, Union[str, bool, int]]] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -132,6 +133,8 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param truncation_args: Dict[str, Union[str, bool, int]]
+        The mode of truncation applied to sequences.
 
     :return
         Dictionary of results
@@ -313,6 +316,7 @@ def simple_evaluate(
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
+        truncation_args=truncation_args,
     )
 
     if lm.rank == 0:
@@ -347,6 +351,7 @@ def simple_evaluate(
                 "numpy_seed": numpy_random_seed,
                 "torch_seed": torch_random_seed,
                 "fewshot_seed": fewshot_random_seed,
+                "truncation_args": truncation_args,
             }
         )
         results["git_hash"] = get_git_commit_hash()
@@ -372,6 +377,7 @@ def evaluate(
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
+    truncation_args: Optional[Dict[str, Union[str, bool, int]]] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -396,6 +402,9 @@ def evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
+    :param truncation_args: Dict[str, Union[str, bool, int]]
+        The mode of truncation applied to sequences.
+
     :return
         Dictionary of results
     """
@@ -463,6 +472,8 @@ def evaluate(
             tokenizer_name=getattr(lm, "tokenizer_name", "")
             if apply_chat_template
             else "",
+            truncation_args=truncation_args,
+            lm=lm,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
