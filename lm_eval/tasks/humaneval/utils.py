@@ -20,9 +20,7 @@ def pass_at_1(references: list[str], predictions: list[list[str]], k: list[int] 
         k=k,
     )[0]
 
-    return {
-        key: val for key, val in res.items() if key in map(lambda x: f"pass@{x}", k)
-    }
+    return res
 
 
 def build_references(doc):
