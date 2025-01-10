@@ -102,6 +102,7 @@
 | [qasper](qasper/README.md) | Question Answering dataset based on academic papers, testing in-depth scientific knowledge. | English |
 | [race](race/README.md) | Reading comprehension assessment tasks based on English exams in China. | English |
 | realtoxicityprompts | Tasks to evaluate language models for generating text with potential toxicity. | |
+| [redlite](redlite/README.md) | Suite of tasks designed to red-team a model and evaluate its safety from various angles. | English |
 | [sciq](sciq/README.md) | Science Question Answering tasks to assess understanding of scientific concepts. | English |
 | [score](score/README.md) | Systematic consistency and robustness evaluation for LLMs on 3 datasets(MMLU-Pro, Agi Eval and MATH) | English |
 | [scrolls](scrolls/README.md) | Tasks that involve long-form reading comprehension across various domains. | English |
