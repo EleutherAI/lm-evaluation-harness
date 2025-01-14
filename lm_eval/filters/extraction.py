@@ -37,16 +37,18 @@ class RegexFilter(Filter):
                 if match:
                     match = match[self.group_select]
                     if isinstance(match, tuple):
-                        match = [m for m in match if m][0]
+                        match = [m for m in match if m]
+                        if match:
+                            match = match[0]
+                        else:
+                            match = self.fallback
                     match = match.strip()
                 else:
                     match = self.fallback
                 filtered.append(match)
             return filtered
 
-        # print(resps)
         filtered_resps = list(map(lambda x: filter_set(x), resps))
-        # print(filtered_resps)
 
         return filtered_resps
 
@@ -162,7 +164,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             fallback_regex = re.compile("|".join(fallback_regexes))
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
-                f":[\s]*({without_paren_fallback_regex})"
+                rf":[\s]*({without_paren_fallback_regex})"
             )
 
             filtered = []

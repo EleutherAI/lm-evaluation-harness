@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
 
 import evaluate as hf_evaluate
 
@@ -185,8 +185,12 @@ def register_filter(name):
     return decorate
 
 
-def get_filter(filter_name: str) -> type:
+def get_filter(filter_name: Union[str, Callable]) -> Callable:
     try:
         return FILTER_REGISTRY[filter_name]
-    except KeyError:
-        eval_logger.warning(f"filter `{filter_name}` is not registered!")
+    except KeyError as e:
+        if callable(filter_name):
+            return filter_name
+        else:
+            eval_logger.warning(f"filter `{filter_name}` is not registered!")
+            raise e

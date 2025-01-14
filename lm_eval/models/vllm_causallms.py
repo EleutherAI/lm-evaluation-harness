@@ -10,7 +10,12 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, configure_pad_token, undistribute
+from lm_eval.models.utils import (
+    Collator,
+    configure_pad_token,
+    handle_stop_sequences,
+    undistribute,
+)
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -97,7 +102,7 @@ class VLLM(TemplateLM):
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
-            else batch_size
+            else int(batch_size)
         )
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
@@ -118,7 +123,7 @@ class VLLM(TemplateLM):
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
-            tokenizer_revision=tokenizer_revision,
+            revision=tokenizer_revision,
         )
         self.tokenizer = configure_pad_token(self.tokenizer)
         self.add_bos_token = add_bos_token
@@ -239,17 +244,25 @@ class VLLM(TemplateLM):
             # but then tensor_parallel breaks
             @ray.remote
             def run_inference_one_model(
-                model_args: dict, sampling_params, requests: List[List[int]]
+                model_args: dict,
+                sampling_params,
+                requests: List[List[int]],
+                lora_request: LoRARequest,
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
-                    prompt_token_ids=requests, sampling_params=sampling_params
+                    prompt_token_ids=requests,
+                    sampling_params=sampling_params,
+                    lora_request=lora_request,
                 )
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
             requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
-            inputs = ((self.model_args, sampling_params, req) for req in requests)
+            inputs = (
+                (self.model_args, sampling_params, req, self.lora_request)
+                for req in requests
+            )
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
@@ -257,28 +270,32 @@ class VLLM(TemplateLM):
             # flatten results
             return undistribute(results)
 
-        if self.lora_request is not None:
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=sampling_params,
-                use_tqdm=True if self.batch_size == "auto" else False,
-                lora_request=self.lora_request,
-            )
-        else:
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=sampling_params,
-                use_tqdm=True if self.batch_size == "auto" else False,
-            )
+        outputs = self.model.generate(
+            prompt_token_ids=requests,
+            sampling_params=sampling_params,
+            use_tqdm=True if self.batch_size == "auto" else False,
+            lora_request=self.lora_request,
+        )
         return outputs
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
-        loglikelihoods = []
+        adaptive_batch_size = None
+        if self.batch_size == "auto":
+            adaptive_batch_size = len(requests)
 
-        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
-            rolling_token_windows = list(
+        # First, collect all windows from all requests
+        all_windows = []  # List of (request_idx, window) tuples
+        request_window_counts = []  # Track number of windows per request
+
+        for req_idx, (string,) in enumerate(
+            tqdm(
+                [req.args for req in requests],
+                disable=(disable_tqdm or (self.rank != 0)),
+            )
+        ):
+            rolling_token_windows: List[Tuple[List[int], List[int]]] = list(
                 map(
                     make_disjoint_window,
                     get_rolling_token_windows(
@@ -291,20 +308,42 @@ class VLLM(TemplateLM):
                 )
             )
 
-            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
+            windows = [(None,) + x for x in rolling_token_windows]
 
-            string_nll = self._loglikelihood_tokens(
-                rolling_token_windows,
+            # Store windows with their request index
+            all_windows.extend((req_idx, window) for window in windows)
+            request_window_counts.append(len(windows))
+
+        all_nlls = []
+        batch_size = adaptive_batch_size or int(self.batch_size)
+        for i in range(0, len(all_windows), batch_size):
+            batch = all_windows[i : i + batch_size]
+            # Extract just the windows for processing, keeping track of request indices
+            batch_indices, batch_windows = zip(*batch)
+
+            batch_nlls = self._loglikelihood_tokens(
+                requests=batch_windows,
+                disable_tqdm=False,
             )
+            # Store results with their request indices
+            all_nlls.extend(zip(batch_indices, batch_nlls))
 
-            # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
+        # Reconstruct per-request loglikelihoods
+        loglikelihoods = []
+        current_idx = 0
+        for window_count in request_window_counts:
+            # Get all nlls for this request
+            request_nlls = all_nlls[current_idx : current_idx + window_count]
+            # Sum up the nlls for this request (discarding is_greedy)
+            request_total = sum(nll[0] for _, nll in request_nlls)
+            loglikelihoods.append(request_total)
+            current_idx += window_count
 
-            string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
-
-            # cache this loglikelihood_rolling request
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+            string = requests[len(loglikelihoods) - 1].args[0]
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string,), request_total
+            )
 
         return loglikelihoods
 
@@ -345,6 +384,7 @@ class VLLM(TemplateLM):
             desc="Running generate_until requests",
         )
         # for each different set of kwargs, we execute all requests, by batch.
+        eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
@@ -352,27 +392,14 @@ class VLLM(TemplateLM):
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tokenizer.decode(self.eot_token_id)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

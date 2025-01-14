@@ -50,6 +50,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
    - Useful for APIs that support parallel processing.
    - Default is 1 (sequential processing).
 
+- `timeout` (int, optional):
+   - Timeout for API requests in seconds.
+   - Default is 30.
+
 - `tokenized_requests` (bool):
   - Determines whether the input is pre-tokenized. Defaults to `True`.
   - Requests can be sent in either tokenized form (`list[list[int]]`) or as text (`list[str]`, or `str` for batch_size=1).
@@ -90,6 +94,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
 - `custom_prefix_token_id` (int, optional):
   - Custom token ID to use as a prefix for inputs.
   - If not provided, uses the model's default BOS or EOS token (if `add_bos_token` is True).
+
+- `verify_certificate` (bool, optional):
+  - Whether to validate the certificate of the API endpoint (if HTTPS).
+  - Default is True.
 
 
 Example usage:

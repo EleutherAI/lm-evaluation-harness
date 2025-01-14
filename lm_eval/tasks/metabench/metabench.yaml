@@ -1,0 +1,14 @@
+group: metabench
+task:
+  - metabench_arc
+  - metabench_gsm8k
+  - metabench_hellaswag
+  - metabench_mmlu
+  - metabench_truthfulqa
+  - metabench_winogrande
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 0.0
