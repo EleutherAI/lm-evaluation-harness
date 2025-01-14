@@ -58,7 +58,13 @@ class ContextSampler:
                 )
             self.docs = self.docs.select(fewshot_indices)
 
-    def get_context(self, doc, num_fewshot):
+    def get_context(
+        self,
+        doc,
+        num_fewshot,
+        chat_template: bool = False,
+        assistant_prefix: str = None,
+    ):
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
             num_fewshot + 1
@@ -80,11 +86,16 @@ class ContextSampler:
             labeled_examples += (
                 doc_content
                 if self.config.doc_to_choice is None or isinstance(doc_content, str)
-                else self.doc_to_choice(doc)[doc_content]
+                # TODO: which one?
+                else assistant_prefix + self.doc_to_choice(doc)[doc_content]
             )
 
             if doc_target != "":
-                labeled_examples += self.target_delimiter
+                if chat_template and assistant_prefix:
+                    # TODO: allow delimiters other than space for assistant prefix?
+                    labeled_examples += self.target_delimiter + assistant_prefix + " "
+                else:
+                    labeled_examples += self.target_delimiter
                 labeled_examples += (
                     str(doc_target[0])
                     if isinstance(doc_target, list)
@@ -147,10 +158,16 @@ class ContextSampler:
         else:
             # get fewshot context as one user turn
             chat_history.append(
-                {"role": "user", "content": self.get_context(doc, num_fewshot)}
+                {
+                    "role": "user",
+                    "content": self.get_context(
+                        doc,
+                        num_fewshot,
+                        chat_template=True,
+                        assistant_prefix=assistant_prefix,
+                    ),
+                }
             )
-            if assistant_prefix:
-                chat_history.append({"role": "assistant", "content": assistant_prefix})
 
         return chat_history
 
