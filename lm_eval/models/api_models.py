@@ -261,6 +261,7 @@ class TemplateAPI(TemplateLM):
                 chat_history,
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
         else:
             # bit of a hack. We'll load back before sending to the API

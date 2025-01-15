@@ -196,7 +196,9 @@ class VLLM_VLM(VLLM):
                     )
 
         return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=add_generation_prompt
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
     def generate_until(

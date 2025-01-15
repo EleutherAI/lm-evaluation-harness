@@ -1380,6 +1380,7 @@ class HFLM(TemplateLM):
                 chat_history,
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
         except jinja2.exceptions.TemplateError:
             eval_logger.warning(
@@ -1390,6 +1391,7 @@ class HFLM(TemplateLM):
                 chat_history,
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
 
         return chat_templated
