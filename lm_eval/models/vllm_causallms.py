@@ -185,17 +185,14 @@ class VLLM(TemplateLM):
         return self._max_gen_toks
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]], assistant_prefix: Optional[str] = None
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
     ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
         chat_templated = self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
+            chat_history, tokenize=False, add_generation_prompt=add_generation_prompt
         )
-
-        if assistant_prefix is not None:
-            chat_templated = chat_templated + assistant_prefix
 
         return chat_templated
 

@@ -58,14 +58,13 @@ class ContextSampler:
                 )
             self.docs = self.docs.select(fewshot_indices)
 
-    def get_context(
-        self,
-        doc,
-        num_fewshot,
-        chat_template: bool = False,
-        assistant_prefix: str = None,
-    ):
+    def get_context(self, doc, num_fewshot, assistant_prefill: str = None):
         # draw an extra fewshot sample if using same split as evaluating on
+        prefix = (
+            assistant_prefill + " "
+            if (assistant_prefill is not None and assistant_prefill != "")
+            else ""
+        )
         n_samples = (
             num_fewshot + 1
             if self.config.fewshot_split == self.config.test_split
@@ -83,19 +82,14 @@ class ContextSampler:
         for doc in selected_docs:
             doc_content = self.doc_to_text(doc)
             doc_target = self.doc_to_target(doc)
-            labeled_examples += (
-                doc_content
-                if self.config.doc_to_choice is None or isinstance(doc_content, str)
-                # TODO: which one?
-                else assistant_prefix + self.doc_to_choice(doc)[doc_content]
-            )
+            if self.config.doc_to_choice is None or isinstance(doc_content, str):
+                labeled_examples += doc_content
+            else:
+                labeled_examples += self.doc_to_choice(doc)[doc_content]
 
             if doc_target != "":
-                if chat_template and assistant_prefix:
-                    # TODO: allow delimiters other than space for assistant prefix?
-                    labeled_examples += self.target_delimiter + assistant_prefix + " "
-                else:
-                    labeled_examples += self.target_delimiter
+                labeled_examples += self.target_delimiter
+                labeled_examples += prefix
                 labeled_examples += (
                     str(doc_target[0])
                     if isinstance(doc_target, list)
@@ -112,8 +106,10 @@ class ContextSampler:
         doc,
         num_fewshot,
         fewshot_as_multiturn: bool = False,
-        assistant_prefix: str = None,
+        assistant_prefill: str = None,
     ):
+        # TODO: Do we need any other delimiter
+        prefix = assistant_prefill + " " if assistant_prefill is not None else ""
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
@@ -131,10 +127,7 @@ class ContextSampler:
         if fewshot_as_multiturn:
             for doc in selected_docs:
                 doc_content = self.doc_to_text(doc)
-                # TODO: allow delimiters other than space for assistant prefix
-                doc_target = (
-                    f"{assistant_prefix} " if assistant_prefix else ""
-                ) + self.doc_to_target(doc)
+                doc_target = self.doc_to_target(doc)
                 chat_history.append(
                     {
                         "role": "user",
@@ -147,12 +140,12 @@ class ContextSampler:
                 chat_history.append(
                     {
                         "role": "assistant",
-                        "content": str(doc_target[0])
+                        "content": prefix + str(doc_target[0])
                         if isinstance(doc_target, list)
-                        else doc_target
+                        else prefix + doc_target
                         if self.config.doc_to_choice is None
                         or isinstance(doc_target, str)
-                        else str(self.doc_to_choice(doc)[doc_target]),
+                        else prefix + str(self.doc_to_choice(doc)[doc_target]),
                     }
                 )
         else:
@@ -161,10 +154,7 @@ class ContextSampler:
                 {
                     "role": "user",
                     "content": self.get_context(
-                        doc,
-                        num_fewshot,
-                        chat_template=True,
-                        assistant_prefix=assistant_prefix,
+                        doc, num_fewshot, assistant_prefill=assistant_prefill
                     ),
                 }
             )
