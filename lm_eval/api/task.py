@@ -1031,7 +1031,7 @@ class ConfigurableTask(Task):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         assistant_prefill: Optional[str] = None,
-    ) -> str:
+    ) -> Union[str, List[str]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -1167,7 +1167,7 @@ class ConfigurableTask(Task):
                 else:
                     return labeled_examples + str(example) + prefix
 
-    def apply_filters(self):
+    def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
@@ -1179,7 +1179,7 @@ class ConfigurableTask(Task):
     def should_decontaminate(self):
         return self.config.should_decontaminate
 
-    def doc_to_decontamination_query(self, doc):
+    def doc_to_decontamination_query(self, doc: dict):
         if self.config.should_decontaminate:
             if self.config.doc_to_decontamination_query is None:
                 return self.doc_to_text(doc)
