@@ -1,12 +1,15 @@
 import evaluate as hf_evaluate
 
 
-pass_at_k = hf_evaluate.load("code_eval")
+try:
+    pass_at_k = hf_evaluate.load("code_eval")
 
-# run simple test to check code execution is enabled before model generation
-test_cases = ["assert add(2, 3)==5"]
-candidates = [["def add(a,b): return a*b"]]
-results = pass_at_k.compute(references=test_cases, predictions=candidates, k=[1])
+    # run simple test to check code execution is enabled before model generation
+    test_cases = ["assert add(2, 3)==5"]
+    candidates = [["def add(a,b): return a*b"]]
+    results = pass_at_k.compute(references=test_cases, predictions=candidates, k=[1])
+except Exception as e:
+    raise e
 
 
 def pass_at_1(references, predictions):
