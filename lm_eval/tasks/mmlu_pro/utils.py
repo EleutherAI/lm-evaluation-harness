@@ -50,7 +50,7 @@ def process_docs(dataset, subject):
 process_biology = partial(process_docs, subject="biology")
 process_business = partial(process_docs, subject="business")
 process_chemistry = partial(process_docs, subject="chemistry")
-process_computer_science = partial(process_docs, subject="computer_science")
+process_computer_science = partial(process_docs, subject="computer science")
 process_economics = partial(process_docs, subject="economics")
 process_engineering = partial(process_docs, subject="engineering")
 process_health = partial(process_docs, subject="health")

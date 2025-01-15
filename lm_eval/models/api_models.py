@@ -21,7 +21,7 @@ from typing import (
 
 try:
     import requests
-    from aiohttp import ClientSession, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
@@ -58,11 +58,11 @@ class TemplateAPI(TemplateLM):
         pretrained: str = None,  # `model` takes precedence over `pretrained` when passed.
         base_url: str = None,
         tokenizer: Optional[str] = None,
-        # Logliklehood tasks require a tokenizer to calculate context lengths,
+        # Loglikelihood tasks require a tokenizer to calculate context lengths,
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
         tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", None]
+            Literal["tiktoken", "huggingface", "None", "none"]
         ] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
@@ -73,9 +73,16 @@ class TemplateAPI(TemplateLM):
         seed: int = 1234,
         max_length: Optional[int] = 2048,
         add_bos_token: bool = False,
-        custom_prefix_token_id=None,
+        custom_prefix_token_id: int = None,
         # send the requests as tokens or strings
-        tokenized_requests=True,
+        tokenized_requests: bool = True,
+        trust_remote_code: bool = False,
+        revision: Optional[str] = "main",
+        use_fast_tokenizer: bool = True,
+        verify_certificate: bool = True,
+        eos_string: str = None,
+        # timeout in seconds
+        timeout: int = 300,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -104,17 +111,24 @@ class TemplateAPI(TemplateLM):
         self._truncate = truncate
         self._max_gen_toks = int(max_gen_toks)
         self._seed = int(seed)
-        self.max_length = max_length
+        # max_length - 1 as we always have 1 token for generation
+        eval_logger.info(f"Using max length {max_length} - 1")
+        self.max_length = max_length - 1
         if int(num_concurrent) <= 1:
             eval_logger.info(
                 "Concurrent requests are disabled. To enable concurrent requests, set `num_concurrent` > 1."
             )
         self._concurrent = int(num_concurrent)
-        self.tokenizer_backend = tokenizer_backend
+        self.tokenizer_backend = (
+            None if tokenizer_backend in ("None", "none") else tokenizer_backend
+        )
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
+        self.verify_certificate = verify_certificate
+        self._eos_string = eos_string
+        self.timeout = int(timeout)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -126,7 +140,10 @@ class TemplateAPI(TemplateLM):
                     import transformers
 
                     self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                        self.tokenizer if self.tokenizer else self.model
+                        self.tokenizer if self.tokenizer else self.model,
+                        trust_remote_code=trust_remote_code,
+                        revision=revision,
+                        use_fast=use_fast_tokenizer,
                     )
                     # Not used as the API will handle padding but to mirror the behavior of the HFLM
                     self.tokenizer = configure_pad_token(self.tokenizer)
@@ -136,7 +153,7 @@ class TemplateAPI(TemplateLM):
 
                         self.tokenizer = tiktoken.encoding_for_model(self.model)
                     except ModuleNotFoundError as e:
-                        raise Exception(
+                        raise ModuleNotFoundError(
                             "Attempted to use 'openai' LM type, but the package `tiktoken` is not installed. "
                             "Please install it via `pip install lm-eval[api]` or `pip install -e .[api]`."
                         ) from e
@@ -151,6 +168,9 @@ class TemplateAPI(TemplateLM):
                 assert isinstance(tokenizer, str), "tokenizer must be a string"
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                     tokenizer,
+                    trust_remote_code=trust_remote_code,
+                    revision=revision,
+                    use_fast=use_fast_tokenizer,
                 )
 
     @abc.abstractmethod
@@ -161,6 +181,7 @@ class TemplateAPI(TemplateLM):
         generate: bool = True,
         gen_kwargs: Optional[dict] = None,
         seed: int = 1234,
+        eos: str = None,
         **kwargs,
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
@@ -183,7 +204,7 @@ class TemplateAPI(TemplateLM):
         if not self.tokenized_requests:
             # if messages are tokenized:
             if isinstance(messages[0][0], int):
-                # assuming decoding is lossless. However, this is only for logliklehood requests
+                # assuming decoding is lossless. However, this is only for loglikelihood requests
                 # as we need to compute the context length. For generations, we don't need to tokenize.
                 messages = self.decode_batch(messages)
             if self._batch_size <= 1:
@@ -224,14 +245,6 @@ class TemplateAPI(TemplateLM):
         return {"Authorization": f"Bearer {self.api_key}"}
 
     @property
-    def chat_template(self) -> str:
-        """Must be defined for LM subclasses that implement Chat Templating.
-        Should return the structure of the chat template applied to user/assistant messages.
-        Only used for logging and reproducibility.
-        """
-        return ""
-
-    @property
     def tokenizer_name(self) -> str:
         """Must be defined for LM subclasses which implement Chat Templating.
         Should return the name of the tokenizer or chat template used.
@@ -260,6 +273,21 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eos_token_id
             elif self.tokenizer_backend == "tiktoken":
                 return self.tokenizer.eot_token
+
+    @cached_property
+    def eos_string(self) -> Optional[str]:
+        if self._eos_string:
+            return self._eos_string
+        elif self.tokenizer is not None:
+            if self.tokenizer_backend == "huggingface":
+                return self.tokenizer.eos_token
+            elif self.tokenizer_backend == "tiktoken":
+                return self.tokenizer.decode([self.tokenizer.eot_token])
+        else:
+            eval_logger.warning(
+                "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
+            )
+            return None
 
     @cached_property
     def prefix_token_id(self) -> Optional[int]:
@@ -336,9 +364,11 @@ class TemplateAPI(TemplateLM):
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     seed=self._seed,
+                    eos=self.eos_string,
                     **kwargs,
                 ),
                 headers=self.header,
+                verify=self.verify_certificate,
             )
             if not response.ok:
                 eval_logger.warning(
@@ -409,7 +439,7 @@ class TemplateAPI(TemplateLM):
             )
             return None
 
-    def batch_logliklehood_requests(
+    def batch_loglikelihood_requests(
         self, chunks: Iterable[List[LogLikelihoodInputs]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
         inputs = []
@@ -417,9 +447,14 @@ class TemplateAPI(TemplateLM):
         cache_keys = []
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
-                inp = (context_enc + continuation_enc)[-(self.max_length) :]
+                # max_length - 1 as we always have 1 token for generation
+                inp = (context_enc + continuation_enc)[-self.max_length :]
+                if len(inp) < len(context_enc + continuation_enc):
+                    eval_logger.warning(
+                        f"Context length ({len(context_enc)}) + continuation length ({len(continuation_enc)}) > max_length ({self.max_length}). Left truncating context."
+                    )
                 ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
+                    0, len(context_enc) + len(continuation_enc) - self.max_length
                 )
 
                 inputs.append(inp)
@@ -438,7 +473,9 @@ class TemplateAPI(TemplateLM):
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
-        async with ClientSession(connector=conn) as session:
+        async with ClientSession(
+            connector=conn, timeout=ClientTimeout(total=self.timeout)
+        ) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
                 stop=stop_after_attempt(self.max_retries),
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),
@@ -493,7 +530,7 @@ class TemplateAPI(TemplateLM):
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
-                inputs, ctxlens, cache_keys = self.batch_logliklehood_requests([chunk])
+                inputs, ctxlens, cache_keys = self.batch_loglikelihood_requests([chunk])
 
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
@@ -510,14 +547,14 @@ class TemplateAPI(TemplateLM):
                 ):
                     if answer_ is not None:
                         res.append(answer_)
-                        # partial caching
+                        # cache requests that aren't from a loglikelihood_rolling request
                         if cache_key is not None:
                             self.cache_hook.add_partial(
                                 "loglikelihood", cache_key, answer_
                             )
                         pbar.update(1)
         else:
-            inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunked)
+            inputs, ctxlens, cache_keys = self.batch_loglikelihood_requests(chunked)
             res = itertools.chain.from_iterable(
                 asyncio.run(
                     self.get_batched_requests(
@@ -561,6 +598,24 @@ class TemplateAPI(TemplateLM):
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
+                if self.tokenized_requests:
+                    max_gen_toks = all_gen_kwargs[0].get(
+                        "max_gen_toks", self._max_gen_toks
+                    )
+                    max_context_len = self.max_length - max_gen_toks
+
+                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+
+                    if any(
+                        len(x) + max_gen_toks > self.max_length for x in encodings_list
+                    ):
+                        eval_logger.warning(
+                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks: ({max_gen_toks}). They were left truncated."
+                        )
+                else:
+                    eval_logger.info(
+                        "Tokenized requests are disabled. Context + generation length is not checked."
+                    )
                 req = encodings_list if self.tokenized_requests else contexts
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
@@ -592,6 +647,24 @@ class TemplateAPI(TemplateLM):
         else:
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
+                if self.tokenized_requests:
+                    max_gen_toks = all_gen_kwargs[0].get(
+                        "max_gen_toks", self._max_gen_toks
+                    )
+                    max_context_len = self.max_length - max_gen_toks
+
+                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+
+                    if any(
+                        len(x) + max_gen_toks > self.max_length for x in encodings_list
+                    ):
+                        eval_logger.warning(
+                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks ({max_gen_toks}). They were left truncated."
+                        )
+                else:
+                    eval_logger.info(
+                        "Tokenized requests are disabled. Context + generation length is not checked."
+                    )
                 req = encodings_list if self.tokenized_requests else contexts
                 results = itertools.chain.from_iterable(
                     asyncio.run(
@@ -619,7 +692,8 @@ class TemplateAPI(TemplateLM):
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
                         prefix_token=self.prefix_token_id,
-                        max_seq_len=self.max_length,
+                        # max_seq_len - (1 for context)
+                        max_seq_len=self.max_length - 1,
                         context_len=1,
                     ),
                 )
@@ -638,4 +712,7 @@ class TemplateAPI(TemplateLM):
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
+
+            # cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         return loglikelihoods

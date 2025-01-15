@@ -1,0 +1,4 @@
+task: mmmu_val_computer_science
+include: _template_yaml
+task_alias: Computer Science
+dataset_name: Computer_Science
