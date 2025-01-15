@@ -1382,13 +1382,18 @@ class HFLM(TemplateLM):
 
         return res
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
         try:
             chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
+                chat_history,
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
         except jinja2.exceptions.TemplateError:
             eval_logger.warning(
@@ -1396,7 +1401,10 @@ class HFLM(TemplateLM):
             )
             chat_history = [msg for msg in chat_history if msg["role"] != "system"]
             chat_templated = self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
+                chat_history,
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
 
         return chat_templated

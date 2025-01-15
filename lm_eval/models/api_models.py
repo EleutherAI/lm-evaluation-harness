@@ -253,12 +253,15 @@ class TemplateAPI(TemplateLM):
         return ""
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]]
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
     ) -> Union[str, JsonChatStr]:
         """Applies a chat template to a list of chat history between user and model."""
         if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
             return self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
+                chat_history,
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
         else:
             # bit of a hack. We'll load back before sending to the API

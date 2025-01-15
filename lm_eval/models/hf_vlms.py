@@ -200,7 +200,9 @@ class HFMultimodalLM(HFLM):
 
         return context_enc, continuation_enc, image_enc
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         self.chat_applied = True
         if not self.interleave:
             for content in chat_history:
@@ -250,7 +252,9 @@ class HFMultimodalLM(HFLM):
                     )
 
         return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=True
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
