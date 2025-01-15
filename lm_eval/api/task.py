@@ -1565,7 +1565,7 @@ class ConfigurableTask(Task):
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
-                        # result_score = result_score[metric]
+                        # This allows for multiple metrics to be returned from the same function
                         for k, v in result_score.items():
                             result_dict[k] = v
                         return result_dict
