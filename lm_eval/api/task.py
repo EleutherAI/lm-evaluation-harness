@@ -75,6 +75,7 @@ class TaskConfig(dict):
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
+    unsafe_code: bool = False
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
@@ -731,6 +732,9 @@ class ConfigurableTask(Task):
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
+
+        if self.config.unsafe_code is not False:
+            self.UNSAFE_CODE = True
 
         if self.config.dataset_path is not None:
             self.DATASET_PATH = self.config.dataset_path
@@ -1503,9 +1507,9 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            elif (
-                type(gold) is not type(result)
-                and "bypass" not in self._metric_fn_list.keys()
+            # TODO: handle this better
+            elif type(gold) is not type(result) and not (
+                "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
             ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
@@ -1561,7 +1565,10 @@ class ConfigurableTask(Task):
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
-                        result_score = result_score[metric]
+                        # This allows for multiple metrics to be returned from the same function
+                        for k, v in result_score.items():
+                            result_dict[k] = v
+                        return result_dict
                 result_dict[metric] = result_score
         else:
             raise ValueError(
