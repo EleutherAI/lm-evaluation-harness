@@ -37,7 +37,7 @@ def main() -> None:
 
             # Manually writing the YAML-like content inside files to avoid tagging issues
             f.write("include: mlqa_common_yaml\n")
-            f.write(f"task: {task.replace('.', '_')}.yaml\n")
+            f.write(f"task: {task.replace('.', '_')}\n")
             f.write(f"dataset_name: {task}\n")
             f.write(
                 f"process_results: !function utils.process_results_{context_lang}\n"
