@@ -733,7 +733,7 @@ class ConfigurableTask(Task):
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
 
-        if self.config.unsafe_code is not None:
+        if self.config.unsafe_code is not False:
             self.UNSAFE_CODE = True
 
         if self.config.dataset_path is not None:
