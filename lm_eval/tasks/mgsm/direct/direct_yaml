@@ -32,4 +32,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 2.0
+  version: 3.0
