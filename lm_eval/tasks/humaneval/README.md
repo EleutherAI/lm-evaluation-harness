@@ -29,7 +29,8 @@ Homepage: https://github.com/openai/human-eval
 
 #### Tasks
 
-- `humaneval`
+- `humaneval` pass@1
+- `humaneval_64` pass@64 variant
 
 ### Checklist
 

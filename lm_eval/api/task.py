@@ -75,6 +75,7 @@ class TaskConfig(dict):
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
+    unsafe_code: bool = False
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
@@ -731,6 +732,9 @@ class ConfigurableTask(Task):
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
+
+        if self.config.unsafe_code is not None:
+            self.UNSAFE_CODE = True
 
         if self.config.dataset_path is not None:
             self.DATASET_PATH = self.config.dataset_path
