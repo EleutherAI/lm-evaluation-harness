@@ -26,10 +26,7 @@ from lm_eval.evaluator_utils import (
 )
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
-from lm_eval.tasks import (
-    TaskManager,
-    get_task_dict,
-)
+from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
     handle_non_serializable,
@@ -143,8 +140,10 @@ def simple_evaluate(
     start_date = time.time()
 
     if limit is not None and examples is not None:
-        raise ValueError("Either 'limit' or 'examples' must be None, but both are not None.")
-        
+        raise ValueError(
+            "Either 'limit' or 'examples' must be None, but both are not None."
+        )
+
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
         delete_cache()
@@ -413,7 +412,9 @@ def evaluate(
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     if limit is not None and examples is not None:
-        raise ValueError("Either 'limit' or 'examples' must be None, but both are not None.")
+        raise ValueError(
+            "Either 'limit' or 'examples' must be None, but both are not None."
+        )
     if apply_chat_template:
         eval_logger.warning(
             "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
@@ -461,7 +462,9 @@ def evaluate(
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            examples=examples[task_output.task_name] if examples is not None else examples,
+            examples=examples[task_output.task_name]
+            if examples is not None
+            else examples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -548,7 +551,9 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
-                examples=examples[task_output.task_name] if examples is not None else examples,
+                examples=examples[task_output.task_name]
+                if examples is not None
+                else examples,
                 world_size=WORLD_SIZE,
             )
             for doc_id, doc in doc_iterator:
