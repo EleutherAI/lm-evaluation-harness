@@ -1,16 +1,30 @@
+import re
 from typing import Dict, List
 
 
 def doc_to_text(doc):
-    text = f"Question: {doc['original'].strip()}\nAnswer:"
+    text = (
+        "Solve the given question.\n"
+        "After solving the problem, state your final answer in the following format: $\\boxed{N}$.\n\n"
+        f"Question: {doc['original'].strip()}\nAnswer:"
+    )
+    return text
+
+
+def doc_to_text_mmmlu(doc):
+    text = (
+        "Solve the given question.\n"
+        "After solving the problem, state your final choice among the choices (1, 2, 3, 4) in the following format: $\\boxed{N}$.\n\n"
+        f"Question: {doc['original'].strip()}\nAnswer:"
+    )
     return text
 
 
 def doc_to_target(doc):
-    return preprocess(doc["answer"])
+    return postprocess(doc["answer"])
 
 
-def preprocess(s):
+def postprocess(s):
     s = str(s).strip()
     try:
         float_value = float(s)
@@ -20,12 +34,16 @@ def preprocess(s):
 
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    retval = 0
-    response = preprocess(results[0])
-    gold = preprocess(doc["answer"])
+    candidate = results[0]
 
-    if is_equiv(response, gold):
+    gold = postprocess(doc["answer"])
+
+    if not gold:
+        print(doc, candidate, gold)
+    if is_equiv(candidate, gold):
         retval = 1
+    else:
+        retval = 0
 
     results = {
         "exact_match": retval,
@@ -33,7 +51,6 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     return results
 
 
-# string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
 def is_equiv(str1, str2, verbose=False):
     if str1 is None and str2 is None:
         print("WARNING: Both None")
@@ -41,9 +58,12 @@ def is_equiv(str1, str2, verbose=False):
     if str1 is None or str2 is None:
         return False
 
+    str1, str2 = parse_math_answer(str1), parse_math_answer(str2)
+
     try:
-        ss1 = strip_string(str1)
-        ss2 = strip_string(str2)
+        ss1 = _strip_string(str1)
+        ss1 = postprocess(ss1)
+        ss2 = _strip_string(str2)
         if verbose:
             print(ss1, ss2)
         return ss1 == ss2
@@ -51,51 +71,79 @@ def is_equiv(str1, str2, verbose=False):
         return str1 == str2
 
 
-def remove_boxed(s):
-    if "\\boxed " in s:
-        left = "\\boxed "
-        assert s[: len(left)] == left
-        return s[len(left) :]
-
-    left = "\\boxed{"
-
-    assert s[: len(left)] == left
-    assert s[-1] == "}"
-
-    return s[len(left) : -1]
-
-
-def last_boxed_only_string(string):
-    idx = string.rfind("\\boxed")
-    if "\\boxed " in string:
-        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
-    if idx < 0:
-        idx = string.rfind("\\fbox")
-        if idx < 0:
+def parse_math_answer(raw_string):
+    def remove_boxed(s):
+        left = "\\boxed{"
+        try:
+            assert s[: len(left)] == left
+            assert s[-1] == "}"
+            answer = s[len(left) : -1]
+            if "=" in answer:
+                answer = answer.split("=")[-1].lstrip(" ")
+            return answer
+        except Exception:
             return None
 
-    i = idx
-    right_brace_idx = None
-    num_left_braces_open = 0
-    while i < len(string):
-        if string[i] == "{":
-            num_left_braces_open += 1
-        if string[i] == "}":
-            num_left_braces_open -= 1
-            if num_left_braces_open == 0:
-                right_brace_idx = i
-                break
-        i += 1
+    def last_boxed_only_string(string):
+        idx = string.rfind("\\boxed")
+        if idx < 0:
+            idx = string.rfind("\\fbox")
+            if idx < 0:
+                return None
+        i = idx
+        right_brace_idx = None
+        num_left_braces_open = 0
+        while i < len(string):
+            if string[i] == "{":
+                num_left_braces_open += 1
+            if string[i] == "}":
+                num_left_braces_open -= 1
+                if num_left_braces_open == 0:
+                    right_brace_idx = i
+                    break
+            i += 1
 
-    if right_brace_idx is None:
-        retval = None
+        if right_brace_idx is None:
+            retval = None
+        else:
+            retval = string[idx : right_brace_idx + 1]
+
+        return retval
+
+    def get_answer_with_dollar_sign(s):
+        first_pattern = "\$(.*)\$"
+        last_match = None
+        matches = re.findall(first_pattern, s)
+        if matches:
+            last_match = matches[-1]
+            if "=" in last_match:
+                last_match = last_match.split("=")[-1].lstrip(" ")
+        return last_match
+
+    def get_answer_without_dollar_sign(s):
+        last_match = None
+        if "=" in s:
+            last_match = s.split("=")[-1].lstrip(" ").rstrip(".")
+            if "\\n" in last_match:
+                last_match = last_match.split("\\n")[0]
+        else:
+            pattern = "(?:\\$)?\d+(?:\.\d+)?(?![\w\d])"
+            matches = re.findall(pattern, s)
+            if matches:
+                last_match = matches[-1]
+        return last_match
+
+    if "\\boxed" in raw_string:
+        answer = remove_boxed(last_boxed_only_string(raw_string))
     else:
-        retval = string[idx : right_brace_idx + 1]
+        answer = get_answer_with_dollar_sign(raw_string)
+        if not answer:
+            answer = get_answer_without_dollar_sign(raw_string)
+    return answer
 
-    return retval
 
-
-def fix_fracs(string):
+# code from https://github.com/hendrycks/math/blob/main/modeling/math_equivalence.py
+def _fix_fracs(string):
     substrs = string.split("\\frac")
     new_str = substrs[0]
     if len(substrs) > 1:
@@ -107,7 +155,7 @@ def fix_fracs(string):
             else:
                 try:
                     assert len(substr) >= 2
-                except AssertionError:
+                except Exception:
                     return string
                 a = substr[0]
                 b = substr[1]
@@ -127,7 +175,7 @@ def fix_fracs(string):
     return string
 
 
-def fix_a_slash_b(string):
+def _fix_a_slash_b(string):
     if len(string.split("/")) != 2:
         return string
     a = string.split("/")[0]
@@ -138,11 +186,11 @@ def fix_a_slash_b(string):
         assert string == "{}/{}".format(a, b)
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
-    except AssertionError:
+    except Exception:
         return string
 
 
-def remove_right_units(string):
+def _remove_right_units(string):
     # "\\text{ " only ever occurs (at least in the val set) when describing units
     if "\\text{ " in string:
         splits = string.split("\\text{ ")
@@ -152,7 +200,7 @@ def remove_right_units(string):
         return string
 
 
-def fix_sqrt(string):
+def _fix_sqrt(string):
     if "\\sqrt" not in string:
         return string
     splits = string.split("\\sqrt")
@@ -167,23 +215,28 @@ def fix_sqrt(string):
     return new_string
 
 
-def strip_string(string):
+def _strip_string(string):
     # linebreaks
     string = string.replace("\n", "")
+    # print(string)
 
     # remove inverse spaces
     string = string.replace("\\!", "")
+    # print(string)
 
     # replace \\ with \
     string = string.replace("\\\\", "\\")
+    # print(string)
 
     # replace tfrac and dfrac with frac
     string = string.replace("tfrac", "frac")
     string = string.replace("dfrac", "frac")
+    # print(string)
 
     # remove \left and \right
     string = string.replace("\\left", "")
     string = string.replace("\\right", "")
+    # print(string)
 
     # Remove circ (degrees)
     string = string.replace("^{\\circ}", "")
@@ -193,11 +246,11 @@ def strip_string(string):
     string = string.replace("\\$", "")
 
     # remove units (on the right)
-    string = remove_right_units(string)
+    string = _remove_right_units(string)
 
     # remove percentage
     string = string.replace("\\%", "")
-    string = string.replace("\%", "")  # noqa: W605
+    string = string.replace("\%", "")
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
     string = string.replace(" .", " 0.")
@@ -214,19 +267,19 @@ def strip_string(string):
             string = string.split("=")[1]
 
     # fix sqrt3 --> sqrt{3}
-    string = fix_sqrt(string)
+    string = _fix_sqrt(string)
 
     # remove spaces
     string = string.replace(" ", "")
 
     # \frac1b or \frac12 --> \frac{1}{b} and \frac{1}{2}, etc. Even works with \frac1{72} (but not \frac{72}1). Also does a/b --> \\frac{a}{b}
-    string = fix_fracs(string)
+    string = _fix_fracs(string)
 
     # manually change 0.5 --> \frac{1}{2}
     if string == "0.5":
         string = "\\frac{1}{2}"
 
     # NOTE: X/Y changed to \frac{X}{Y} in dataset, but in simple cases fix in case the model output is X/Y
-    string = fix_a_slash_b(string)
+    string = _fix_a_slash_b(string)
 
     return string
