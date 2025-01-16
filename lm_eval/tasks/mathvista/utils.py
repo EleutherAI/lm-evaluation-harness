@@ -1,9 +1,15 @@
 import re
 from typing import Optional
 
+import requests
+
 # from api_model import make_concurrent_requests
 from Levenshtein import distance
 
+
+API_KEY = "your_openai_api_key"
+
+API_URL = "https://api.openai.com/v1/chat/completions"
 
 # required for external LM call
 
@@ -45,6 +51,30 @@ Model response: The correct answer is (B) 8/11.
 
 Extracted answer: B
 """
+
+
+# Function to send a single request to the OpenAI API
+def send_request(prompt: str):
+    try:
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "model": "gpt-4",
+            "messages": [
+                {"role": "user", "content": prompt},
+            ],
+            "max_tokens": 1024,
+        }
+        response = requests.post(API_URL, headers=headers, json=data)
+        response.raise_for_status()
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
+
+    except Exception as e:
+        print(f"An error occurred while requesting: {e}")
+        return None
 
 
 def create_test_prompt(demo_prompt, query, response):
@@ -152,8 +182,8 @@ def extract_answer(response: str, problem: dict, quick_extract=True) -> str:
     question_type = problem["question_type"]
     answer_type = problem["answer_type"]
     choices = problem["choices"]
-    # query = problem["query"]
-    # pid = problem["pid"]
+    query = problem["query"]
+    pid = problem["pid"]
 
     if response == "":
         return ""
@@ -187,16 +217,14 @@ def extract_answer(response: str, problem: dict, quick_extract=True) -> str:
             pass
 
     # general extraction
-    # try:
-    #     full_prompt = create_test_prompt(DEMO_PROMPT, query, response)
-    #     extraction = make_concurrent_requests(full_prompt)
-    #     return extraction
-    # except Exception:
-    #     print(
-    #         f"Error in extracting answer for problem: {pid} with response: {response}"
-    #     )
-    #     # logging.info(f"Error in extracting answer for problem: {pid} with response: {response}")
-    #     # logging.info(e)
+    try:
+        full_prompt = create_test_prompt(DEMO_PROMPT, query, response)
+        extraction = send_request(full_prompt)
+        return extraction
+    except Exception:
+        print(
+            f"Error in extracting answer for problem: {pid} with response: {response}"
+        )
 
     return ""
 
