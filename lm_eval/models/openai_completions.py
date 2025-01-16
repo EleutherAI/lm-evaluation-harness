@@ -5,8 +5,8 @@ import itertools
 import json
 import os
 from functools import cached_property
-from operator import itemgetter
 from io import BytesIO
+from operator import itemgetter
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from PIL import Image
@@ -15,10 +15,8 @@ from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateAPI
-from lm_eval.models.utils import handle_stop_sequences
 from lm_eval.models.api_models import JsonChatStr, TemplateAPI
-from lm_eval.models.utils import Collator
+from lm_eval.models.utils import Collator, handle_stop_sequences
 from lm_eval.utils import eval_logger
 
 

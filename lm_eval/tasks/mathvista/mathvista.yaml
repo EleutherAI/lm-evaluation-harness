@@ -6,7 +6,6 @@ output_type: "generate_until"
 doc_to_image:
   - decoded_image
 doc_to_text: "<image>{{query}}"
-#doc_to_choice: '{{ ["A", "B", "C", "D", "E", "F"][:choices.length] }}'
 doc_to_target: answer
 process_results: !function utils.process_results
 generation_kwargs:
@@ -15,6 +14,11 @@ generation_kwargs:
   temperature: 0.0
   do_sample: false
   max_gen_toks: 1024
+filter_list:
+  - name: "extract_answer"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions
 metric_list:
   - metric: acc
     aggregation: mean
