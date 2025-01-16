@@ -3,15 +3,19 @@ from . import (
     api_models,
     dummy,
     gguf,
+    hf_vlms,
     huggingface,
+    ibm_watsonx_ai,
     mamba_lm,
     nemo_lm,
     neuralmagic,
     neuron_optimum,
     openai_completions,
+    optimum_ipex,
     optimum_lm,
     textsynth,
     vllm_causallms,
+    vllm_vlms,
 )
 
 

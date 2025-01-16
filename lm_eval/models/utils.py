@@ -664,3 +664,66 @@ def configure_pad_token(
             tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
     return tokenizer
+
+
+def replace_placeholders(
+    string: str, default_placeholder: str, image_token: str, max_images: int
+):
+    """
+    A utility function used for local multimodal models. It locates all `placeholder` string
+    occurrences in the given input `string_` and replaces the first `max_count` instances with
+    `replacement`, and all subsequent occurrences with the empty string.
+
+    This is used to replace <image> placeholder tags by model-specific image tokens like <|image_pad|>
+    and to allow for only the first `max_count` images to be passed to a model if desired.
+
+    :param string: The original string containing placeholders.
+    :param default_placeholder: The placeholder text to be replaced.
+    :param image_token: The token to replace the placeholder with.
+    :param max_images: The maximum number of replacements to make.
+    :return: The string with placeholders replaced.
+    """
+    count = 0
+    result = []
+
+    parts = string.split(default_placeholder)
+    for part in parts[:-1]:  # Iterate through all but the last part
+        result.append(part)
+        if count < max_images:
+            result.append(image_token)
+            count += 1
+        elif default_placeholder != image_token:
+            result.append(default_placeholder)
+
+    # Add the last part of the string
+    result.append(parts[-1])
+    return "".join(result)
+
+
+def flatten_image_list(images: List[List]):
+    """
+    Takes in a list of lists of images, and returns a single list of all images in order.
+    Used for some multimodal models like Llava-1.5 which expects this flattened-list format for its image processor.
+
+    :param images: A list of lists of PIL images.
+    :return: a list of PIL images, via concatenating all the sub-lists in order.
+    """
+    return [image for image_list in images for image in image_list]
+
+
+def handle_stop_sequences(
+    until: Union[str, List[str], None], eos: Optional[str]
+) -> List[str]:
+    """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token."""
+    if isinstance(until, str):
+        until = [until]
+    elif until is None:
+        until = []
+    elif not isinstance(until, list):
+        raise ValueError(
+            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+        )
+
+    if eos is not None and eos not in until:
+        until.append(eos)
+    return until

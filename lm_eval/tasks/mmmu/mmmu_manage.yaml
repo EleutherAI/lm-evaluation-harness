@@ -1,0 +1,4 @@
+task: mmmu_val_manage
+include: _template_yaml
+task_alias: Manage
+dataset_name: Manage
