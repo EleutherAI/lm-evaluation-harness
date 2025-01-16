@@ -7,9 +7,9 @@ import requests
 from Levenshtein import distance
 
 
-API_KEY = "your_openai_api_key"
-
+API_KEY = "API KEY"
 API_URL = "https://api.openai.com/v1/chat/completions"
+MODEL = "gpt-4"
 
 # required for external LM call
 
@@ -61,7 +61,7 @@ def send_request(prompt: str):
             "Content-Type": "application/json",
         }
         data = {
-            "model": "gpt-4",
+            "model": MODEL,
             "messages": [
                 {"role": "user", "content": prompt},
             ],
@@ -248,7 +248,7 @@ def process_results(doc: dict, results: list[str]):
     answer = doc["answer"]
     # step 1: extract the answer from the model response
     # extracted_answer = extract_answer(response, doc)
-    extracted_answer = response[0]
+    extracted_answer = response
     if verify_extraction(extracted_answer):
         normalized_extraction = normalize_extracted_answer(
             extracted_answer, choices, question_type, answer_type, precision
