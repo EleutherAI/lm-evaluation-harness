@@ -18,7 +18,7 @@ filter_list:
   - name: "extract_answer"
     filter:
       - function: "custom"
-        filter_fn: !function utils.build_predictions
+        filter_fn: !function utils.extract_all_answers
 metric_list:
   - metric: acc
     aggregation: mean
