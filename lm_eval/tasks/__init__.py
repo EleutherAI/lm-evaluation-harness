@@ -427,7 +427,7 @@ class TaskManager:
         )
         return all_loaded_tasks
 
-    def load_config(self, config: Dict, metadata=None | dict):
+    def load_config(self, config: Dict, metadata=Optional[dict]):
         return self._load_individual_task_or_group(config, metadata=metadata)
 
     def _get_task_and_group(self, task_dir: str):
