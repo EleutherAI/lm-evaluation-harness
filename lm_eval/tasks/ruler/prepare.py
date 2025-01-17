@@ -3,7 +3,7 @@ import random
 import uuid
 from linecache import cache
 from functools import lru_cache
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import wonderwords
@@ -97,7 +97,7 @@ def generate_random(type_needle: str):
 
 def generate_input_output(
     num_haystack: int,
-    haystack: list[str] | str,
+    haystack: Union[list[str], str],
     *,
     type_haystack: str,
     num_needle_k: int,
