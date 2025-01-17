@@ -279,7 +279,10 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = task
             else:
-                config["metadata"] = config.get("metadata", {}) | metadata
+                if metadata is not None:
+                    config["metadata"] = config.get("metadata", {}) | metadata
+                else:
+                    config["metadata"] = config.get("metadata", {})
                 task_object = ConfigurableTask(config=config)
 
             return {task: task_object}
