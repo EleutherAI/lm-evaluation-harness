@@ -371,6 +371,9 @@ class Task(abc.ABC):
     def doc_to_image(self, doc):
         raise NotImplementedError
 
+    def doc_to_prefix(self, doc):
+        return ""
+
     def build_all_requests(
         self,
         *,
@@ -444,7 +447,7 @@ class Task(abc.ABC):
                 apply_chat_template,
                 fewshot_as_multiturn,
                 chat_template,
-                gen_prefix=self.config.gen_prefix,
+                gen_prefix=self.doc_to_prefix(doc),
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -1081,7 +1084,7 @@ class ConfigurableTask(Task):
                 labeled_examples.append({"role": "system", "content": system_prompt})
             else:
                 labeled_examples = system_prompt
-
+        gen_prefix = self.doc_to_prefix(doc)
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
@@ -1341,6 +1344,14 @@ class ConfigurableTask(Task):
             return doc_to_image(doc)
         else:
             return None
+
+    def doc_to_prefix(self, doc):
+        if (gen_prefix := self.config.gen_prefix) is not None:
+            if gen_prefix in self.features:
+                return doc[gen_prefix]
+            else:
+                return utils.apply_template(gen_prefix, doc)
+        return None
 
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
