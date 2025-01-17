@@ -114,7 +114,7 @@ def sys_word_pair_random(
                 length = len(TOKENIZER.text_to_tokens(input_text)) + tokens_to_generate
                 assert length <= max_seq_length, f"{length} exceeds max_seq_length."
                 break
-            except:
+            except:  # noqa: E722
                 if used_words > incremental:
                     used_words -= incremental
 
