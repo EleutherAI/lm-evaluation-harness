@@ -822,8 +822,12 @@ class ConfigurableTask(Task):
             self.download(self.config.dataset_kwargs)
         else:
             self.dataset = self.config.download_dataset(
-                self.config.metadata.get(
-                    "tokenizer", self.config.metadata.get("pretrained")
+                metadata=self.config.metadata.get(
+                    "tokenizer",
+                    self.config.metadata.get("pretrained"),
+                    **self.config.dataset_kwargs
+                    if self.config.dataset_kwargs is not None
+                    else {},
                 )
             )
         self._training_docs = None
@@ -931,7 +935,9 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
-    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
+    def download(
+        self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> None:
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
