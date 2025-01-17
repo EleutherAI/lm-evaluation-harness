@@ -10,7 +10,7 @@ import os
 import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from typing import Any, Callable, Generator, List, Tuple
+from typing import Any, Callable, Generator, List, Optional, Tuple
 
 import numpy as np
 import yaml
@@ -93,12 +93,14 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string):
+def simple_parse_args_string(args_string: Optional[str]) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
     Into a dictionary
     """
+    if args_string is None:
+        return {}
     args_string = args_string.strip()
     if not args_string:
         return {}
