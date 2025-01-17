@@ -8,6 +8,7 @@ test_split: test
 download_dataset: !function utils.niah_single_1
 doc_to_text: "{{input}}"
 doc_to_target: "{{outputs[0]}}"
+gen_prefix: "{{gen_prefix}}"
 process_results: !function utils.process_results
 
 metric_list:

@@ -298,7 +298,9 @@ def generate_samples(
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": f"The special magic {type_needle_v} for {query} mentioned in the provided text are",
+            "gen_prefix": f"The special magic {type_needle_v[:-1]} for {query} mentioned in the provided text is"
+            if num_needle_q * num_needle_v == 1
+            else f"The special magic {type_needle_v} for {query} mentioned in the provided text are",
         }
         if formatted_output["outputs"][0] not in formatted_output["input"]:
             assert (
