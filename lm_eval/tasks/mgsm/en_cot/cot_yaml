@@ -33,4 +33,4 @@ filter_list:
     - function: take_first
     name: flexible-extract
 metadata:
-  version: 2.0
+  version: 3.0

@@ -14,6 +14,7 @@
 | [arabic_leaderboard_complete](arabic_leaderboard_complete/README.md) | A full version of the tasks in the Open Arabic LLM Leaderboard, focusing on the evaluation of models that reflect the characteristics of Arabic language understanding and comprehension, culture, and heritage. Note that some of these tasks are machine-translated. | Arabic (Some MT) |
 | [arabic_leaderboard_light](arabic_leaderboard_light/README.md) | A light version of the tasks in the Open Arabic LLM Leaderboard (i.e., 10% samples of the test set in the original benchmarks), focusing on the evaluation of models that reflect the characteristics of Arabic language understanding and comprehension, culture, and heritage. Note that some of these tasks are machine-translated. | Arabic (Some MT) |
 | [arabicmmlu](arabicmmlu/README.md) | Localized Arabic version of MMLU with multiple-choice questions from 40 subjects. | Arabic |
+| [AraDICE](aradice/README.md) | A collection of multiple tasks carefully designed to evaluate dialectal and cultural capabilities in large language models (LLMs). | Arabic |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
 | [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English |
@@ -54,6 +55,7 @@
 | [hellaswag](hellaswag/README.md) | Tasks to predict the ending of stories or scenarios, testing comprehension and creativity. | English |
 | [hendrycks_ethics](hendrycks_ethics/README.md)     | Tasks designed to evaluate the ethical reasoning capabilities of models. | English |
 | [hendrycks_math](hendrycks_math/README.md) | Mathematical problem-solving tasks to test numerical reasoning and problem-solving. | English |
+| [humaneval](humaneval/README.md) | Code generation task that measure functional correctness for synthesizing programs from docstrings. | Python |
 | [ifeval](ifeval/README.md) | Interactive fiction evaluation tasks for narrative understanding and reasoning. | English |
 | [inverse_scaling](inverse_scaling/README.md) | Multiple-choice tasks from the Inverse Scaling Prize, designed to find settings where larger language models perform worse. | English |
 | [japanese_leaderboard](japanese_leaderboard/README.md) | Japanese language understanding tasks to benchmark model performance on various linguistic aspects. | Japanese |
@@ -70,6 +72,7 @@
 | [logiqa](logiqa/README.md) | Logical reasoning tasks requiring advanced inference and deduction. | English, Chinese |
 | [logiqa2](logiqa2/README.md) | Large-scale logical reasoning dataset adapted from the Chinese Civil Service Examination. | English, Chinese |
 | [mathqa](mathqa/README.md) | Question answering tasks involving mathematical reasoning and problem-solving. | English |
+| [mbpp](mbpp/README.md) | A benchmark designed to measure the ability to synthesize short Python programs from natural language descriptions. | Python |
 | [mc_taco](mc_taco/README.md) | Question-answer pairs that require temporal commonsense comprehension. | English |
 | [med_concepts_qa](med_concepts_qa/README.md) | Benchmark for evaluating LLMs on their abilities to interpret medical codes and distinguish between medical concept. | English |
 | [metabench](metabench/README.md) | Distilled versions of six popular benchmarks which are highly predictive of overall benchmark performance and of a single general ability latent trait. | English |
@@ -77,6 +80,7 @@
 | medqa | Multiple choice question answering based on the United States Medical License Exams. | |
 | [mgsm](mgsm/README.md) | Benchmark of multilingual grade-school math problems. | Spanish, French, German, Russian, Chinese, Japanese, Thai, Swahili, Bengali, Telugu |
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
+| [mlqa](mlqa/README.md) | MultiLingual Question Answering benchmark dataset for evaluating cross-lingual question answering performance. | English, Arabic, German, Spanish, Hindi, Vietnamese, Simplified Chinese |
 | [mmlu](mmlu/README.md) | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
 | [mmlu_pro](mmlu_pro/README.md) | A refined set of MMLU, integrating more challenging, reasoning-focused questions and expanding the choice set from four to ten options. | English |
 | [mmlusr](mmlusr/README.md) | Variation of MMLU designed to be more rigorous. | English |

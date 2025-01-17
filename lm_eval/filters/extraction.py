@@ -8,12 +8,17 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("regex")
 class RegexFilter(Filter):
-    """ """
+    """A filter that extracts values from text using regex pattern matching.
+
+    This filter applies a regex pattern to each model response and extracts matched values.
+    If no match is found, returns a fallback value. Useful for extracting structured data
+    (like numbers) from unstructured model outputs.
+    """
 
     def __init__(
         self,
         regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
-        group_select=0,
+        group_select: int = 0,
         fallback: str = "[invalid]",
     ) -> None:
         """
@@ -25,7 +30,7 @@ class RegexFilter(Filter):
         self.group_select = group_select
         self.fallback = fallback
 
-    def apply(self, resps, docs):
+    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)
@@ -55,12 +60,9 @@ class RegexFilter(Filter):
 
 @register_filter("remove_whitespace")
 class WhitespaceFilter(Filter):
-    """ """
+    """Filters out leading whitespace from responses."""
 
-    def __init__(self) -> None:
-        pass
-
-    def apply(self, resps, docs):
+    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:
@@ -105,7 +107,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         self.ignore_punctuation = ignore_punctuation
         self.regexes_to_ignore = regexes_to_ignore
 
-    def apply(self, resps, docs):
+    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)

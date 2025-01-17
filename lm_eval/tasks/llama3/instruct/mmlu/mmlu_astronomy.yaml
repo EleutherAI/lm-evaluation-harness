@@ -1,0 +1,5 @@
+"dataset_name": "astronomy"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_stem_tasks"
+"task": "mmlu_llama_astronomy"
+"task_alias": "astronomy"

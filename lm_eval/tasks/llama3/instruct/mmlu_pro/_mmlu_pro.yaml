@@ -1,0 +1,23 @@
+group: mmlu_pro_llama
+task:
+  - mmlu_pro_llama_biology
+  - mmlu_pro_llama_business
+  - mmlu_pro_llama_chemistry
+  - mmlu_pro_llama_computer_science
+  - mmlu_pro_llama_economics
+  - mmlu_pro_llama_engineering
+  - mmlu_pro_llama_health
+  - mmlu_pro_llama_history
+  - mmlu_pro_llama_law
+  - mmlu_pro_llama_math
+  - mmlu_pro_llama_other
+  - mmlu_pro_llama_philosophy
+  - mmlu_pro_llama_physics
+  - mmlu_pro_llama_psychology
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+    filter_list: custom-extract
+metadata:
+  version: 1.0
