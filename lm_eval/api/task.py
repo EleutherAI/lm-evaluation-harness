@@ -1084,7 +1084,6 @@ class ConfigurableTask(Task):
                 labeled_examples.append({"role": "system", "content": system_prompt})
             else:
                 labeled_examples = system_prompt
-        gen_prefix = self.doc_to_prefix(doc)
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
