@@ -24,8 +24,7 @@ import numpy as np
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.prepare import SEQ_LENGTHS
-
+from lm_eval.tasks.ruler.utils import SEQ_LENGTHS
 
 TASKS = {
     "variable_tracking": {

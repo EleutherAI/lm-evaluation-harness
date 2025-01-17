@@ -2,7 +2,7 @@
 import itertools
 import re
 from functools import cache
-from typing import Literal
+from typing import Literal, Generator, Union, TYPE_CHECKING
 
 import datasets
 from transformers import AutoTokenizer
@@ -10,9 +10,16 @@ from transformers import AutoTokenizer
 from lm_eval.tasks.ruler.essays import get_all_essays
 from lm_eval.tasks.ruler.prepare import generate_samples
 
+if TYPE_CHECKING:
+    import transformers
 
-@cache
-def get_tokenizer(pretrained):
+
+def get_tokenizer(
+    **kwargs,
+) -> Union["transformers.PreTrainedTokenizer", "transformers.PreTrainedTokenizerFast"]:
+    kwargs = kwargs.get("metadata", {})
+    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
+    assert pretrained, "No tokenizer or pretrained provided."
     print("using tokenizer ", pretrained)
     return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
@@ -36,7 +43,9 @@ RANDOM_SEED = 42
 
 
 @cache
-def get_haystack(type_haystack: Literal["essay", "repeat", "needle"]):
+def get_haystack(
+    type_haystack: Literal["essay", "repeat", "needle"],
+) -> Union[list[str], str]:
     NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
     if type_haystack == "essay":
         essay = get_all_essays()["text"]
@@ -51,7 +60,7 @@ def get_haystack(type_haystack: Literal["essay", "repeat", "needle"]):
     return haystack
 
 
-def flatten(df):
+def flatten(df: Generator) -> dict[str, datasets.Dataset]:
     return {
         "test": datasets.Dataset.from_list(
             list(itertools.chain.from_iterable(df)), split=datasets.Split.TEST
@@ -60,7 +69,7 @@ def flatten(df):
 
 
 # ruff: noqa
-niah_single_1 = lambda x: flatten(
+niah_single_1 = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="repeat"),
         max_seq_length=seq,
@@ -68,7 +77,7 @@ niah_single_1 = lambda x: flatten(
         type_haystack="repeat",
         type_needle_k="words",
         type_needle_v="numbers",
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
@@ -86,7 +95,7 @@ niah_single_2 = lambda x: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_single_3 = lambda x: flatten(
+niah_single_3 = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -94,12 +103,12 @@ niah_single_3 = lambda x: flatten(
         type_haystack="essay",
         type_needle_k="words",
         type_needle_v="uuids",
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multikey_1 = lambda x: flatten(
+niah_multikey_1 = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -108,12 +117,12 @@ niah_multikey_1 = lambda x: flatten(
         type_needle_k="words",
         type_needle_v="numbers",
         num_needle_k=4,
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multikey_2 = lambda x: flatten(
+niah_multikey_2 = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="needle"),
         max_seq_length=seq,
@@ -121,12 +130,12 @@ niah_multikey_2 = lambda x: flatten(
         type_haystack="needle",
         type_needle_k="words",
         type_needle_v="numbers",
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multikey_3 = lambda x: flatten(
+niah_multikey_3 = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="needle"),
         max_seq_length=seq,
@@ -134,12 +143,12 @@ niah_multikey_3 = lambda x: flatten(
         type_haystack="needle",
         type_needle_k="uuids",
         type_needle_v="uuids",
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multivalue = lambda x: flatten(
+niah_multivalue = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -148,12 +157,12 @@ niah_multivalue = lambda x: flatten(
         type_needle_k="words",
         type_needle_v="numbers",
         num_needle_v=4,
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multiquery = lambda x: flatten(
+niah_multiquery = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -162,7 +171,7 @@ niah_multiquery = lambda x: flatten(
         type_needle_k="words",
         type_needle_v="numbers",
         num_needle_q=4,
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )

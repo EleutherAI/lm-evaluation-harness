@@ -193,7 +193,7 @@ def generate_input_output(
         query=query,
     )
 
-    return input_text, answers
+    return input_text, answers, query
 
 
 def generate_samples(
@@ -213,7 +213,7 @@ def generate_samples(
     remove_newline_tab: bool = False,
     random_seed: int = 42,
     TOKENIZER=None,
-):
+) -> list[dict]:
     assert TOKENIZER is not None, "TOKENIZER is not defined."
     num_needle_k = max(num_needle_k, num_needle_q)
     write_jsons = []
@@ -233,7 +233,7 @@ def generate_samples(
 
     total_tokens = 0  # Track the total tokens generated for the first example
     while total_tokens + tokens_to_generate < max_seq_length:
-        input_text, answer = generate_input_output(
+        input_text, answer, query = generate_input_output(
             num_haystack,
             haystack,
             type_haystack=type_haystack,
@@ -247,9 +247,6 @@ def generate_samples(
         )
         # Calculate the number of tokens in the example
         total_tokens = len(TOKENIZER(input_text + " ".join(answer)).input_ids)
-        # print(
-        #     f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate} | Haystack: {num_haystack}"
-        # )
         if total_tokens + tokens_to_generate > max_seq_length:
             num_haystack -= incremental
             break
@@ -270,7 +267,7 @@ def generate_samples(
         used_haystack = num_haystack
         while True:
             try:
-                input_text, answer = generate_input_output(
+                input_text, answer, query = generate_input_output(
                     used_haystack,
                     haystack,
                     type_haystack=type_haystack,
@@ -301,6 +298,7 @@ def generate_samples(
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
+            "gen_prefix": f"The special magic {type_needle_v} for {query} mentioned in the provided text are",
         }
         if formatted_output["outputs"][0] not in formatted_output["input"]:
             assert (
