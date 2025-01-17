@@ -83,7 +83,7 @@ niah_single_1 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # ruff: noqa
-niah_single_2 = lambda x: flatten(
+niah_single_2 = lambda **kwargs: flatten(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -91,7 +91,7 @@ niah_single_2 = lambda x: flatten(
         type_haystack="essay",
         type_needle_k="words",
         type_needle_v="numbers",
-        TOKENIZER=get_tokenizer(x),
+        TOKENIZER=get_tokenizer(**kwargs),
     )
     for seq in SEQ_LENGTHS
 )
