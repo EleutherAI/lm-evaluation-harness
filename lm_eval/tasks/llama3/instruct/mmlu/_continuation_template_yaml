@@ -5,7 +5,7 @@ fewshot_split: dev
 fewshot_config:
   sampler: first_n
 doc_to_text: "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\nQuestion: {{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nYour response should end with \"The best answer is [the_answer_letter]\" where the [the_answer_letter] is one of A, B, C or D."
-assistant_prefill: "The best answer is"
+gen_prefix: "The best answer is"
 doc_to_target: "{{['A.','B.','C.','D.'][answer]}}"
 num_fewshot: 5
 metric_list:

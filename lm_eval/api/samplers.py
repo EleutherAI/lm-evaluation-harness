@@ -71,9 +71,9 @@ class ContextSampler:
                 )
             self.docs = self.docs.select(fewshot_indices)
 
-    def get_context(self, doc: dict, num_fewshot: int, assistant_prefill: str = None):
+    def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str = None):
         # draw an extra fewshot sample if using same split as evaluating on
-        prefix = assistant_prefill + " " if assistant_prefill else ""
+        prefix = gen_prefix + " " if gen_prefix else ""
         n_samples = (
             num_fewshot + 1
             if self.config.fewshot_split == self.config.test_split
@@ -115,10 +115,10 @@ class ContextSampler:
         doc: dict,
         num_fewshot: int,
         fewshot_as_multiturn: bool = False,
-        assistant_prefill: Optional[str] = None,
+        gen_prefix: Optional[str] = None,
     ):
         # TODO: Do we need any other delimiter
-        prefix = assistant_prefill + " " if assistant_prefill else ""
+        prefix = gen_prefix + " " if gen_prefix else ""
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
@@ -163,7 +163,7 @@ class ContextSampler:
                 {
                     "role": "user",
                     "content": self.get_context(
-                        doc, num_fewshot, assistant_prefill=assistant_prefill
+                        doc, num_fewshot, gen_prefix=gen_prefix
                     ),
                 }
             )
