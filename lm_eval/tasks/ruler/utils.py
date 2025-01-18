@@ -32,8 +32,8 @@ SEQ_LENGTHS = (
     # 131072,
     # 65536,
     # 32768,
-    16384,
-    8192,
+    # 16384,
+    # 8192,
     4096,
 )
 
@@ -61,7 +61,7 @@ def get_haystack(
     return haystack
 
 
-def flatten(df: Generator) -> dict[str, datasets.Dataset]:
+def download_dataset(df: Generator) -> dict[str, datasets.Dataset]:
     return {
         "test": datasets.Dataset.from_list(
             list(itertools.chain.from_iterable(df)), split=datasets.Split.TEST
@@ -70,7 +70,7 @@ def flatten(df: Generator) -> dict[str, datasets.Dataset]:
 
 
 # ruff: noqa
-niah_single_1 = lambda **kwargs: flatten(
+niah_single_1 = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="repeat"),
         max_seq_length=seq,
@@ -83,7 +83,7 @@ niah_single_1 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # ruff: noqa
-niah_single_2 = lambda **kwargs: flatten(
+niah_single_2 = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -96,7 +96,7 @@ niah_single_2 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_single_3 = lambda **kwargs: flatten(
+niah_single_3 = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -109,7 +109,7 @@ niah_single_3 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multikey_1 = lambda **kwargs: flatten(
+niah_multikey_1 = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -123,7 +123,7 @@ niah_multikey_1 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multikey_2 = lambda **kwargs: flatten(
+niah_multikey_2 = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="needle"),
         max_seq_length=seq,
@@ -136,7 +136,7 @@ niah_multikey_2 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multikey_3 = lambda **kwargs: flatten(
+niah_multikey_3 = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="needle"),
         max_seq_length=seq,
@@ -149,7 +149,7 @@ niah_multikey_3 = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multivalue = lambda **kwargs: flatten(
+niah_multivalue = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,
@@ -163,7 +163,7 @@ niah_multivalue = lambda **kwargs: flatten(
     for seq in SEQ_LENGTHS
 )
 # noqa
-niah_multiquery = lambda **kwargs: flatten(
+niah_multiquery = lambda **kwargs: download_dataset(
     generate_samples(
         get_haystack(type_haystack="essay"),
         max_seq_length=seq,

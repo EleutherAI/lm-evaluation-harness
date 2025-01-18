@@ -149,7 +149,10 @@ def sys_vartrack_w_noise_random(
     example_tokens = 0
     if add_fewshot and (icl_example is not None):
         icl_example_out = " ".join(icl_example["outputs"])
-        icl_example = icl_example["input"] + " " + icl_example_out + "\n\n"
+        prefix = icl_example["gen_prefix"]
+        icl_example = (
+            icl_example["input"] + " " + prefix + " " + icl_example_out + "\n\n"
+        )
         example_tokens = len(TOKENIZER(icl_example).input_ids)
 
     while total_tokens + tokens_to_generate + example_tokens < max_seq_length:
@@ -204,12 +207,16 @@ def sys_vartrack_w_noise_random(
                 input_text.replace("\n", " ").replace("\t", " ").strip().split()
             )
 
+        gen_prefix_index = input_text.rfind(" Answer")
+        gen_prefix = input_text[gen_prefix_index:].strip()
+        input_text = input_text[:gen_prefix_index]
         formatted_output = {
             "index": index,
             "input": input_text,
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
+            "gen_prefix": gen_prefix,
         }
         write_jsons.append(formatted_output)
 
@@ -230,7 +237,9 @@ def get_dataset(pretrained, seq=None, **kwargs):
     return write_jsons
 
 
-def get_vt_dataset(pretrained=None):
+def get_vt_dataset(**kwargs):
+    kwargs = kwargs.get("metadata", {})
+    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
     df = (get_dataset(pretrained, seq=seq) for seq in SEQ_LENGTHS)
 
     return {
