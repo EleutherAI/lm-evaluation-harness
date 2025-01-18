@@ -1,0 +1,8 @@
+include: niah_1.yaml
+task: ruler_cwe
+download_dataset: !function cwe_utils.get_cw_dataset
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 30
+  until: []
