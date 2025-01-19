@@ -201,7 +201,7 @@ def generate_samples(
     return write_jsons
 
 
-def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs):
+def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs) -> list[dict]:
     tokenizer = get_tokenizer(pretrained)
     write_jsons = generate_samples(
         tokenizer=tokenizer,
@@ -214,7 +214,7 @@ def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs):
     return write_jsons
 
 
-def get_qa_dataset(ds, **kwargs):
+def get_qa_dataset(ds, **kwargs) -> dict[str, datasets.Dataset]:
     kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
     if ds == "squad":
