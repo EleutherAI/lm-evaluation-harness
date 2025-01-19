@@ -223,7 +223,7 @@ def get_qa_dataset(ds, **kwargs) -> dict[str, datasets.Dataset]:
         qas, docs = read_hotpotqa()
     df = (
         get_dataset(pretrained=pretrained, docs=docs, qas=qas, max_seq_length=seq)
-        for seq in DEFAULT_SEQ_LENGTHS
+        for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 
     return {

@@ -239,7 +239,10 @@ def get_dataset(pretrained, seq=None, **kwargs) -> list[dict]:
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
     kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
-    df = (get_dataset(pretrained, seq=seq) for seq in DEFAULT_SEQ_LENGTHS)
+    df = (
+        get_dataset(pretrained, seq=seq)
+        for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
+    )
 
     return {
         "test": datasets.Dataset.from_list(
