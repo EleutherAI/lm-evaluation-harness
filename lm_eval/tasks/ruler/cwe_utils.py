@@ -83,7 +83,7 @@ def sys_word_pair_random(
     tokenizer=None,
     incremental: int = 10,
     remove_newline_tab=False,
-    tokens_to_generate=30,
+    tokens_to_generate=120,
 ):
     assert tokenizer is not None, "Tokenizer is not provided."
     write_jsons = []

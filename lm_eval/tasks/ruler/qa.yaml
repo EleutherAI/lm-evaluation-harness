@@ -1,7 +1,9 @@
 include: niah_1.yaml
 task: ruler_qa
-dataset_path: rajpurkar/squad_v2
-dataset_name: main
-process_docs: !function qa_utils.process_squad_docs
-test_split: validation
-download_dataset: ""
+download_dataset: !function qa_utils.get_qa_dataset
+test_split: test
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 32
+  until: []
