@@ -14,7 +14,7 @@ categories = {
     "STEM": [
         "biology",
         "chemistry",
-        "mathematics" "physics",
+        "mathematicsphysics",
         "earth science",
     ],
     "humanities": ["Chinese", "history", "Tour", "law"],
