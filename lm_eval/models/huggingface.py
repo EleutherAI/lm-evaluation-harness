@@ -99,7 +99,9 @@ class HFLM(TemplateLM):
             eval_logger.warning(
                 "`pretrained` model kwarg is not of type `str`. Many other model arguments may be ignored. Please do not launch via accelerate or use `parallelize=True` if passing an existing model this way."
             )
-            assert not parallelize, "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
+            assert not parallelize, (
+                "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
+            )
             self._model = pretrained
             self._device = self._model.device
             self._config = self._model.config
@@ -571,9 +573,9 @@ class HFLM(TemplateLM):
 
         if not autogptq and not gptqmodel:
             if model_kwargs.get("load_in_4bit", None):
-                assert (
-                    transformers.__version__ >= "4.30.0"
-                ), "load_in_4bit requires transformers >= 4.30.0"
+                assert transformers.__version__ >= "4.30.0", (
+                    "load_in_4bit requires transformers >= 4.30.0"
+                )
             if transformers.__version__ >= "4.30.0":
                 if model_kwargs.get("load_in_4bit", None):
                     if model_kwargs.get("bnb_4bit_compute_dtype", None):
@@ -905,16 +907,16 @@ class HFLM(TemplateLM):
         self, logits: torch.Tensor, contlen: int = None, inplen: int = None
     ) -> torch.Tensor:
         if self.backend == "causal":
-            assert (
-                contlen and inplen
-            ), "Must pass input len and cont. len to select scored logits for causal LM"
+            assert contlen and inplen, (
+                "Must pass input len and cont. len to select scored logits for causal LM"
+            )
             # discard right-padding.
             # also discard the input/context tokens. we'll only score continuations.
             logits = logits[inplen - contlen : inplen]
         elif self.backend == "seq2seq":
-            assert (
-                contlen and not inplen
-            ), "Selecting scored logits for Seq2SeqLM requires only cont. len"
+            assert contlen and not inplen, (
+                "Selecting scored logits for Seq2SeqLM requires only cont. len"
+            )
             # only discard right-padding.
             # the logits input to this fn only contain decoder-side tokens.
             logits = logits[:contlen]
@@ -1329,9 +1331,9 @@ class HFLM(TemplateLM):
             if self.backend == "causal":
                 # max len for inputs = max length, minus room to generate the max new tokens
                 max_ctx_len = self.max_length - max_gen_toks
-                assert (
-                    max_ctx_len > 0
-                ), f"Invalid configuration: requested max tokens to generate ({max_gen_toks}) must be less than model's maximum sequence length ({self.max_length})."
+                assert max_ctx_len > 0, (
+                    f"Invalid configuration: requested max tokens to generate ({max_gen_toks}) must be less than model's maximum sequence length ({self.max_length})."
+                )
             elif self.backend == "seq2seq":
                 # max len for inputs = encoder's whole max_length
                 max_ctx_len = self.max_length

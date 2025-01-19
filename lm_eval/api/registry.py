@@ -17,13 +17,13 @@ def register_model(*names):
 
     def decorate(cls):
         for name in names:
-            assert issubclass(
-                cls, LM
-            ), f"Model '{name}' ({cls.__name__}) must extend LM class"
+            assert issubclass(cls, LM), (
+                f"Model '{name}' ({cls.__name__}) must extend LM class"
+            )
 
-            assert (
-                name not in MODEL_REGISTRY
-            ), f"Model named '{name}' conflicts with existing model! Please register with a non-conflicting alias instead."
+            assert name not in MODEL_REGISTRY, (
+                f"Model named '{name}' conflicts with existing model! Please register with a non-conflicting alias instead."
+            )
 
             MODEL_REGISTRY[name] = cls
         return cls
@@ -48,9 +48,9 @@ func2task_index = {}
 
 def register_task(name):
     def decorate(fn):
-        assert (
-            name not in TASK_REGISTRY
-        ), f"task named '{name}' conflicts with existing registered task!"
+        assert name not in TASK_REGISTRY, (
+            f"task named '{name}' conflicts with existing registered task!"
+        )
 
         TASK_REGISTRY[name] = fn
         ALL_TASKS.add(name)
@@ -104,9 +104,9 @@ def register_metric(**args):
         ]:
             if key in args:
                 value = args[key]
-                assert (
-                    value not in registry
-                ), f"{key} named '{value}' conflicts with existing registered {key}!"
+                assert value not in registry, (
+                    f"{key} named '{value}' conflicts with existing registered {key}!"
+                )
 
                 if key == "metric":
                     registry[name] = fn
@@ -140,9 +140,9 @@ def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
 
 def register_aggregation(name: str):
     def decorate(fn):
-        assert (
-            name not in AGGREGATION_REGISTRY
-        ), f"aggregation named '{name}' conflicts with existing registered aggregation!"
+        assert name not in AGGREGATION_REGISTRY, (
+            f"aggregation named '{name}' conflicts with existing registered aggregation!"
+        )
 
         AGGREGATION_REGISTRY[name] = fn
         return fn
