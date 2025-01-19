@@ -1,6 +1,6 @@
 include: niah_1.yaml
-task: ruler_qa
-download_dataset: !function qa_utils.get_qa_dataset
+task: ruler_qa_squad
+download_dataset: !function qa_utils.get_squad
 test_split: test
 generation_kwargs:
   do_sample: false

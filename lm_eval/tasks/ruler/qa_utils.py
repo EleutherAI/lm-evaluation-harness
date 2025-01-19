@@ -1,6 +1,6 @@
 import itertools  # noqa: I001
 import random
-from functools import cache
+from functools import cache, partial
 
 import datasets
 import requests
@@ -27,6 +27,7 @@ def download_json(url):
     return data
 
 
+@cache
 def read_squad(url="https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json"):
     data = download_json(url)
     total_docs = [p["context"] for d in data["data"] for p in d["paragraphs"]]
@@ -51,6 +52,30 @@ def read_squad(url="https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.
                             ],
                         }
                     )
+
+    return total_qas, total_docs
+
+
+@cache
+def read_hotpotqa(
+    url="http://curtis.ml.cmu.edu/datasets/hotpot/hotpot_dev_distractor_v1.json",
+):
+    data = download_json(url)
+    total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
+    total_docs = sorted(list(set(total_docs)))
+    total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
+
+    total_qas = []
+    for d in data:
+        total_qas.append(
+            {
+                "query": d["question"],
+                "outputs": [d["answer"]],
+                "context": [
+                    total_docs_dict[f"{t}\n{''.join(p)}"] for t, p in d["context"]
+                ],
+            }
+        )
 
     return total_qas, total_docs
 
@@ -176,10 +201,13 @@ def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs):
     return write_jsons
 
 
-def get_qa_dataset(**kwargs):
+def get_qa_dataset(ds, **kwargs):
     kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
-    qas, docs = read_squad()
+    if ds == "squad":
+        qas, docs = read_squad()
+    else:
+        qas, docs = read_hotpotqa()
     df = (
         get_dataset(pretrained, docs=docs, qas=qas, max_seq_length=seq)
         for seq in SEQ_LENGTHS
@@ -190,3 +218,7 @@ def get_qa_dataset(**kwargs):
             list(itertools.chain.from_iterable(df)), split=datasets.Split.TEST
         )
     }
+
+
+get_squad = partial(get_qa_dataset, "squad")
+get_hotpotqa = partial(get_qa_dataset, "hotpotqa")
