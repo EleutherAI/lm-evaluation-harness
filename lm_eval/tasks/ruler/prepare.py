@@ -1,3 +1,18 @@
+# Copyright (c) 2024, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+
 import os
 import random
 import uuid
@@ -29,9 +44,6 @@ r = wonderwords.RandomWord()
 nouns = r._categories["nouns"]
 adjs = r._categories["adjectives"]
 verbs = r._categories["verbs"]
-# nouns = wonderwords.random_word._get_words_from_text_file("nounlist.txt")
-# adjs = wonderwords.random_word._get_words_from_text_file("adjectivelist.txt")
-# verbs = wonderwords.random_word._get_words_from_text_file("verblist.txt")
 words = [f"{adj}-{noun}" for adj in adjs for noun in nouns]
 WORDS = sorted(list(set(words)))
 
