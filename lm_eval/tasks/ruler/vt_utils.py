@@ -81,9 +81,9 @@ def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
             for n in [x for noise in sentences for x in noise.split(".")]
         ]
         try:
-            assert len(sentences) > len(
-                chains[0]
-            ), "Noises too short, unable to generate data"
+            assert len(sentences) > len(chains[0]), (
+                "Noises too short, unable to generate data"
+            )
         # ruff: noqa
         except:
             print("reduces chain length for not enough noises")

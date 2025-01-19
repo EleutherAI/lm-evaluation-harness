@@ -53,10 +53,11 @@ def cached_sent_tokenize(text: str) -> List[str]:
 
 def download_nltk_resources():
     """Download 'punkt' if not already installed"""
-    assert (
-        (nltk_version := parse_version(version("nltk")))
-        >= parse_version(NLTK_MIN_VERSION)
-    ), f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
+        NLTK_MIN_VERSION
+    ), (
+        f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    )
 
     try:
         nltk.data.find("tokenizers/punkt_tab")
@@ -303,8 +304,8 @@ def generate_samples(
             else f"The special magic {type_needle_v} for {query} mentioned in the provided text are",
         }
         if formatted_output["outputs"][0] not in formatted_output["input"]:
-            assert (
-                False
-            ), f"Needle not in input: {formatted_output}. Something went wrong."
+            assert False, (
+                f"Needle not in input: {formatted_output}. Something went wrong."
+            )
         write_jsons.append(formatted_output)
     return write_jsons
