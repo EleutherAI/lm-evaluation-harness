@@ -259,7 +259,7 @@ def doc_to_text(src: str, tgt: str) -> str:
     src_name, tgt_name = map(code_to_language_name, [src, tgt])
 
     return f"""\
-{src_name} sentence: {jinja_var('sentence_' + src)}
+{src_name} sentence: {jinja_var("sentence_" + src)}
 {tgt_name} sentence:"""
 
 

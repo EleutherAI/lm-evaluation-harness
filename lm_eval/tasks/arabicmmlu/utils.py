@@ -41,4 +41,4 @@ def doc_to_text(doc):
 
 
 def doc_to_choice(doc):
-    return [alpa[i][0] for i in range(5) if doc[f"Option {i+1}"]]
+    return [alpa[i][0] for i in range(5) if doc[f"Option {i + 1}"]]
