@@ -20,9 +20,8 @@ from functools import cache
 import datasets
 import requests
 from tqdm import tqdm
-from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.utils import SEQ_LENGTHS
+from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
 
 config = {
     "tokens_to_generate": 32,
@@ -154,9 +153,9 @@ def generate_samples(
         input_text, answer = generate_input_output(0, num_docs, qas=qas, docs=docs)
         # Calculate the number of tokens in the example
         total_tokens = len(tokenizer(input_text + f" {answer}").input_ids)
-        print(
-            f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate} | Docs: {num_docs}"
-        )
+        # print(
+        #     f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate} | Docs: {num_docs}"
+        # )
         if total_tokens + tokens_to_generate > max_seq_length:
             num_docs -= incremental
             break
@@ -165,10 +164,12 @@ def generate_samples(
         if num_docs > len(docs):
             num_docs = len(docs)
             break
-    print("Number of documents:", num_docs)
+    # print("Number of documents:", num_docs)
 
     # Generate samples
-    for index in tqdm(range(num_samples)):
+    for index in tqdm(
+        range(num_samples), desc=f"Generating QA Samples | {max_seq_length}"
+    ):
         used_docs = num_docs
         while True:
             try:
@@ -192,17 +193,12 @@ def generate_samples(
             "input": input_text,
             "outputs": answer,
             "length": length,
-            "max_seq_length": max_seq_length,
+            "max_length": max_seq_length,
             "gen_prefix": "Answer:",
         }
         write_jsons.append(formatted_output)
 
     return write_jsons
-
-
-@cache
-def get_tokenizer(pretrained):
-    return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
 def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs):
@@ -226,7 +222,7 @@ def get_qa_dataset(ds, **kwargs):
     else:
         qas, docs = read_hotpotqa()
     df = (
-        get_dataset(pretrained, docs=docs, qas=qas, max_seq_length=seq)
+        get_dataset(pretrained=pretrained, docs=docs, qas=qas, max_seq_length=seq)
         for seq in SEQ_LENGTHS
     )
 
@@ -243,7 +239,3 @@ def get_squad(**kwargs):
 
 def get_hotpotqa(**kwargs):
     return get_qa_dataset("hotpotqa", **kwargs)
-
-
-# get_squad = lambda **kwargs: partial(get_qa_dataset, "squad")(**kwargs)
-# get_hotpotqa = lambda **kwargs: partial(get_qa_dataset, "hotpotqa")(**kwargs)

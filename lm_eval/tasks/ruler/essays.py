@@ -23,12 +23,14 @@ from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm as async_tqdm
 
 
+@cache
 async def fetch_url(client: httpx.AsyncClient, url: str) -> str:
     response = await client.get(url)
     response.raise_for_status()
     return response.text
 
 
+@cache
 async def process_html_essay(
     client: httpx.AsyncClient, url: str, h: html2text.HTML2Text, temp_folder: str
 ) -> None:
@@ -50,6 +52,7 @@ async def process_html_essay(
         print(f"Failed to download {filename}: {str(e)}")
 
 
+@cache
 async def process_text_essay(
     client: httpx.AsyncClient, url: str, temp_folder: str
 ) -> None:
@@ -64,6 +67,7 @@ async def process_text_essay(
         print(f"Failed to download {filename}: {str(e)}")
 
 
+@cache
 async def get_essays() -> Dict[str, str]:
     temp_folder_repo = "essay_repo"
     temp_folder_html = "essay_html"

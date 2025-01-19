@@ -17,14 +17,12 @@
 import itertools
 import random
 import string
-from functools import cache
 
 import datasets
 import numpy as np
 from tqdm import tqdm
-from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.utils import SEQ_LENGTHS
+from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
 
 TASKS = {
     "variable_tracking": {
@@ -38,11 +36,6 @@ TEMPLATE = (
     """Memorize and track the chain(s) of variable assignment hidden in the following text.\n\n{context}\nQuestion: Find all variables that are assigned the value {query} in the text above."""
     + TASKS["variable_tracking"]["answer_prefix"]
 )
-
-
-@cache
-def get_tokenizer(pretrained):
-    return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
 def generate_chains(num_chains, num_hops, is_icl=False):
@@ -161,17 +154,19 @@ def sys_vartrack_w_noise_random(
         )
         # Calculate the number of tokens in the example
         total_tokens = len(TOKENIZER(input_text + f" {answer}").input_ids)
-        print(
-            f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate + example_tokens} | Noises: {num_noises}"
-        )
+        # print(
+        #     f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate + example_tokens} | Noises: {num_noises}"
+        # )
         if total_tokens + tokens_to_generate + example_tokens > max_seq_length:
             num_noises -= incremental
             break
         num_noises += incremental
-    print("Num noises:", num_noises)
+    # print("Num noises:", num_noises)
 
     # Generate samples
-    for index in tqdm(range(num_samples)):
+    for index in tqdm(
+        range(num_samples), desc=f"Generating VT Samples| {max_seq_length}"
+    ):
         used_noises = num_noises
         while True:
             try:

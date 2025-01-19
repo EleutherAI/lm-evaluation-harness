@@ -15,10 +15,10 @@
 
 import os
 import random
+import re
 import uuid
-from linecache import cache
-from functools import lru_cache
-from typing import List, Union
+from functools import lru_cache, cache
+from typing import List, Union, Literal
 
 import numpy as np
 import wonderwords
@@ -29,6 +29,7 @@ from importlib.metadata import version
 
 from tqdm import tqdm
 
+from lm_eval.tasks.ruler.essays import get_all_essays
 
 NUM_SAMPLES = 500
 REMOVE_NEWLINE_TAB = ""
@@ -317,3 +318,21 @@ def generate_samples(
             )
         write_jsons.append(formatted_output)
     return write_jsons
+
+
+@cache
+def get_haystack(
+    type_haystack: Literal["essay", "repeat", "needle"],
+) -> Union[list[str], str]:
+    NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
+    if type_haystack == "essay":
+        essay = get_all_essays()["text"]
+        # essay = json.load(open(essay))["text"]
+        haystack = re.sub(r"\s+", " ", essay).split(" ")
+    elif type_haystack == "repeat":
+        haystack = "The grass is green. The sky is blue. The sun is yellow. Here we go. There and back again."
+    elif type_haystack == "needle":
+        haystack = NEEDLE
+    else:
+        raise NotImplementedError(f"{type_haystack} is not implemented.")
+    return haystack

@@ -1,3 +1,3 @@
 task: niah_multivalue
 include: niah_single_1.yaml
-download_dataset: !function utils.niah_multivalue
+download_dataset: !function niah_utils.niah_multivalue

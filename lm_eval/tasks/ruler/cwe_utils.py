@@ -13,14 +13,12 @@
 # limitations under the License
 import itertools
 import random
-from functools import cache
 
 import datasets
 import wonderwords
 from tqdm import tqdm
-from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.utils import SEQ_LENGTHS
+from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
 
 
 RNG = random.Random(42)
@@ -107,9 +105,9 @@ def sys_word_pair_random(
                 + " ".join([f"{i + 1}. {word}" for i, word in enumerate(answer)])
             ).input_ids
         )
-        print(
-            f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate} | Words: {num_words}"
-        )
+        # print(
+        #     f"Max length {max_seq_length} | Current length {total_tokens + tokens_to_generate} | Words: {num_words}"
+        # )
         if total_tokens + tokens_to_generate > max_seq_length:
             num_words -= incremental
             break
@@ -119,10 +117,12 @@ def sys_word_pair_random(
             num_words = len(WORDS)
             break
 
-    print("num_words:", num_words)
+    # print("num_words:", num_words)
 
     # Generate samples
-    for index in tqdm(range(num_samples)):
+    for index in tqdm(
+        range(num_samples), desc=f"Generating CWE Samples | {max_seq_length}"
+    ):
         used_words = num_words
         while True:
             try:
@@ -159,11 +159,6 @@ def sys_word_pair_random(
         write_jsons.append(formatted_output)
 
     return write_jsons
-
-
-@cache
-def get_tokenizer(pretrained):
-    return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
 def get_dataset(pretrained, seq=None, **kwargs):

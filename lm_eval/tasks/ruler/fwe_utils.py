@@ -14,16 +14,14 @@
 import itertools
 import random
 import string
-from functools import cache
 
 import datasets
 import numpy as np
 import transformers
 from scipy.special import zeta
 from tqdm import tqdm
-from transformers import AutoTokenizer
 
-from lm_eval.tasks.ruler.utils import SEQ_LENGTHS
+from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
 
 
 config = (
@@ -112,9 +110,11 @@ def sys_kwext(
         incremental=input_max_len // 32,
         alpha=alpha,
     )
-    print("num_example_words:", num_example_words)
+    # print("num_example_words:", num_example_words)
     # Generate samples
-    for index in tqdm(range(num_samples)):
+    for index in tqdm(
+        range(num_samples), desc=f"Generating FWE Samples | {max_seq_length}"
+    ):
         # construct input
         input_max_len = max_seq_length
         input_text, answer, _ = generate_input_output(
@@ -139,17 +139,12 @@ def sys_kwext(
             "input": input_text,
             "outputs": answer,
             "length": length,
-            "max_seq_length": max_seq_length,
+            "max_length": max_seq_length,
             "gen_prefix": "Answer: According to the coded text above, the three most frequently appeared words are:",
         }
         write_jsons.append(formatted_output)
 
     return write_jsons
-
-
-@cache
-def get_tokenizer(pretrained):
-    return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
 def get_dataset(pretrained, max_seq_length=None, **kwargs):
