@@ -1,9 +1,9 @@
 import itertools
-from typing import Literal, Union, Generator
+from typing import Generator
 
 import datasets
 
-from lm_eval.tasks.ruler.prepare import generate_samples, get_haystack
+from lm_eval.tasks.ruler.prepare_niah import generate_samples, get_haystack
 from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
 
 TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""
