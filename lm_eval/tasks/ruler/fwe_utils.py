@@ -21,7 +21,7 @@ import transformers
 from scipy.special import zeta
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 
 config = (
@@ -159,7 +159,7 @@ def get_dataset(pretrained, max_seq_length=None, **kwargs):
 def fwe_download(**kwargs):
     kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
-    df = (get_dataset(pretrained, max_seq_length=seq) for seq in SEQ_LENGTHS)
+    df = (get_dataset(pretrained, max_seq_length=seq) for seq in DEFAULT_SEQ_LENGTHS)
 
     return {
         "test": datasets.Dataset.from_list(

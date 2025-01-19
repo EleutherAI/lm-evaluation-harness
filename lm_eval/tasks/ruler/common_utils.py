@@ -9,12 +9,12 @@ if TYPE_CHECKING:
     import transformers
 
 
-SEQ_LENGTHS = (
+DEFAULT_SEQ_LENGTHS = (
     # 131072,
     # 65536,
     # 32768,
-    # 16384,
-    # 8192,
+    16384,
+    8192,
     4096,
 )
 
@@ -61,7 +61,7 @@ def string_match_part(preds: list[str], refs: list[list[str]]) -> float:
 
 def process_results(doc: dict, results: list[str]) -> dict[str, float]:
     # hacky: set all other lengths to -1
-    metrics = {str(length): -1.0 for length in SEQ_LENGTHS}
+    metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
     input_len = doc["max_length"]
     pred = postprocess_pred(results[0])
     score = string_match_all([pred], [doc["outputs"]])
@@ -71,7 +71,7 @@ def process_results(doc: dict, results: list[str]) -> dict[str, float]:
 
 def process_results_part(doc: dict, results: list[str]) -> dict[str, float]:
     # hacky: set all other lengths to -1
-    metrics = {str(length): -1.0 for length in SEQ_LENGTHS}
+    metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
     input_len = doc["max_length"]
     pred = postprocess_pred(results[0])
     score = string_match_part([pred], [doc["outputs"]])

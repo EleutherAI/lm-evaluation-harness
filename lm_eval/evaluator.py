@@ -75,6 +75,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
+    metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -98,9 +99,9 @@ def simple_evaluate(
     :param cache_requests: bool, optional
         Speed up evaluation by caching the building of dataset requests. `None` if not caching.
     :param rewrite_requests_cache: bool, optional
-        Rewrites all of the request cache if set to `True`. `None` if not desired.
+        Rewrites all the request cache if set to `True`. `None` if not desired.
     :param delete_requests_cache: bool, optional
-        Deletes all of the request cache if set to `True`. `None` if not desired.
+        Deletes all the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
@@ -134,7 +135,7 @@ def simple_evaluate(
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
 
-    :return
+    return
         Dictionary of results
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
@@ -235,7 +236,10 @@ def simple_evaluate(
 
     # TODO fix this. hack to get around the fact that we can't pass model to task config
     task_dict = get_task_dict(
-        tasks, task_manager, metadata=simple_parse_args_string(model_args)
+        tasks,
+        task_manager,
+        metadata=simple_parse_args_string(model_args)
+        | simple_parse_args_string(metadata),
     )
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.

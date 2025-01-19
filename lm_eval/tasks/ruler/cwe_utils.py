@@ -18,7 +18,7 @@ import datasets
 import wonderwords
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 
 RNG = random.Random(42)
@@ -172,7 +172,7 @@ def get_dataset(pretrained, seq=None, **kwargs):
 def get_cw_dataset(**kwargs):
     kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
-    df = (get_dataset(pretrained, seq=seq) for seq in SEQ_LENGTHS)
+    df = (get_dataset(pretrained, seq=seq) for seq in DEFAULT_SEQ_LENGTHS)
 
     return {
         "test": datasets.Dataset.from_list(

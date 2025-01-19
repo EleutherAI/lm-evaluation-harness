@@ -21,7 +21,7 @@ import datasets
 import requests
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 config = {
     "tokens_to_generate": 32,
@@ -223,7 +223,7 @@ def get_qa_dataset(ds, **kwargs) -> dict[str, datasets.Dataset]:
         qas, docs = read_hotpotqa()
     df = (
         get_dataset(pretrained=pretrained, docs=docs, qas=qas, max_seq_length=seq)
-        for seq in SEQ_LENGTHS
+        for seq in DEFAULT_SEQ_LENGTHS
     )
 
     return {

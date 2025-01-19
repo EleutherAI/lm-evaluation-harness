@@ -262,6 +262,12 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Confirm that you understand the risks of running unsafe code for tasks that require it",
     )
+    parser.add_argument(
+        "--metadata",
+        type=str,
+        default=None,
+        help="Comma separated string argument metadata to pass to task configs, for example max_context_len=4096,8192 etc.",
+    )
     return parser
 
 
@@ -410,6 +416,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
         confirm_run_unsafe_code=args.confirm_run_unsafe_code,
+        metadata=args.metadata,
         **request_caching_args,
     )
 

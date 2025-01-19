@@ -22,7 +22,7 @@ import datasets
 import numpy as np
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 TASKS = {
     "variable_tracking": {
@@ -239,7 +239,7 @@ def get_dataset(pretrained, seq=None, **kwargs) -> list[dict]:
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
     kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
-    df = (get_dataset(pretrained, seq=seq) for seq in SEQ_LENGTHS)
+    df = (get_dataset(pretrained, seq=seq) for seq in DEFAULT_SEQ_LENGTHS)
 
     return {
         "test": datasets.Dataset.from_list(
