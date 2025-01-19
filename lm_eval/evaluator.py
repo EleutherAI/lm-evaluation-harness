@@ -234,12 +234,15 @@ def simple_evaluate(
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    # TODO fix this. hack to get around the fact that we can't pass model to task config
     task_dict = get_task_dict(
         tasks,
         task_manager,
-        metadata=simple_parse_args_string(model_args)
-        | simple_parse_args_string(metadata),
+        metadata=(
+            simple_parse_args_string(model_args)
+            if isinstance(model_args, str)
+            else model_args
+        )
+        | (metadata or {}),
     )
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.

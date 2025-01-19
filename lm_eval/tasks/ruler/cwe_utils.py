@@ -170,7 +170,6 @@ def get_dataset(pretrained, seq=None, **kwargs):
 
 
 def get_cw_dataset(**kwargs):
-    kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
     df = (
         get_dataset(pretrained, seq=seq)

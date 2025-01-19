@@ -10,7 +10,12 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
+from lm_eval.utils import (
+    handle_non_serializable,
+    make_table,
+    parse_keyed_list_string,
+    simple_parse_args_string,
+)
 
 
 def _int_or_none_list_arg_type(
@@ -266,7 +271,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--metadata",
         type=str,
         default=None,
-        help="Comma separated string argument metadata to pass to task configs, for example max_context_len=4096,8192 etc.",
+        help="Comma separated string argument metadata to pass to task configs, for example max_context_len=4096,8192. Will be parsed as a dictionary with all values as lists.",
     )
     return parser
 
@@ -416,7 +421,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
         confirm_run_unsafe_code=args.confirm_run_unsafe_code,
-        metadata=args.metadata,
+        metadata=parse_keyed_list_string(args.metadata),
         **request_caching_args,
     )
 

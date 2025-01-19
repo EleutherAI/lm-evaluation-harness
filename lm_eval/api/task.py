@@ -821,15 +821,7 @@ class ConfigurableTask(Task):
                     )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
-        if self.config.download_dataset is None:
-            self.download(self.config.dataset_kwargs)
-        else:
-            self.dataset = self.config.download_dataset(
-                metadata=self.config.metadata,
-                **self.config.dataset_kwargs
-                if self.config.dataset_kwargs is not None
-                else {},
-            )
+        self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -938,11 +930,19 @@ class ConfigurableTask(Task):
     def download(
         self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
     ) -> None:
-        self.dataset = datasets.load_dataset(
-            path=self.DATASET_PATH,
-            name=self.DATASET_NAME,
-            **dataset_kwargs if dataset_kwargs is not None else {},
-        )
+        if isinstance(self.config.download_dataset, Callable):
+            self.dataset = self.config.download_dataset(
+                **self.config.metadata,
+                **self.config.dataset_kwargs
+                if self.config.dataset_kwargs is not None
+                else {},
+            )
+        else:
+            self.dataset = datasets.load_dataset(
+                path=self.DATASET_PATH,
+                name=self.DATASET_NAME,
+                **dataset_kwargs if dataset_kwargs is not None else {},
+            )
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:

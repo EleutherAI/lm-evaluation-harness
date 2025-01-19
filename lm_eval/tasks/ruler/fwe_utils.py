@@ -157,7 +157,6 @@ def get_dataset(pretrained, max_seq_length=None, **kwargs):
 
 
 def fwe_download(**kwargs):
-    kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
     df = (
         get_dataset(pretrained, max_seq_length=seq)

@@ -112,6 +112,33 @@ def simple_parse_args_string(args_string: Optional[str]) -> dict:
     return args_dict
 
 
+def parse_keyed_list_string(s: str) -> dict[str, list]:
+    """Parse a string of key-value pairs into a dictionary where all values are lists."""
+    result = {}
+    current_key = None
+    values = []
+
+    parts = s.split(",")
+
+    for part in parts:
+        if "=" in part:
+            # Save previous key's values
+            if current_key is not None:
+                result[current_key] = values
+
+            # Start new key-value pair
+            current_key, value = part.split("=")
+            values = [handle_arg_string(value)]
+        else:
+            values.append(handle_arg_string(part))
+
+    # Add the last key-value pair
+    if current_key is not None:
+        result[current_key] = values
+
+    return result
+
+
 def join_iters(iters):
     for iter in iters:
         yield from iter

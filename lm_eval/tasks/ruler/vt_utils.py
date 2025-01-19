@@ -237,7 +237,6 @@ def get_dataset(pretrained, seq=None, **kwargs) -> list[dict]:
 
 
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
-    kwargs = kwargs.get("metadata", {})
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
     df = (
         get_dataset(pretrained, seq=seq)
