@@ -14,7 +14,7 @@ task:
   - ruler_qa_squad
   - ruler_qa_hotpot
 aggregate_metric_list:
-  - metric: acc
+  - metric: "4096"
     weight_by_size: False
 metadata:
   version: 1
