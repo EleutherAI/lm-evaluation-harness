@@ -127,9 +127,9 @@ def main():
     for seed in range(1, N_SEEDS + 1):
         # Checking if directories exist
         seed_log_dir = os.path.join(args.log_dir, f"seed_{seed}")
-        assert os.path.exists(
-            seed_log_dir
-        ), f"No logs found for seed={seed}. No directory found at {seed_log_dir}"
+        assert os.path.exists(seed_log_dir), (
+            f"No logs found for seed={seed}. No directory found at {seed_log_dir}"
+        )
         subtasks = None
         if args.dataset == "agieval":
             agieval_subtasks = [

@@ -195,9 +195,9 @@ class TemplateAPI(TemplateLM):
         """Helper method to transform the prompt into the expected API input format. messages consist of batched requests"""
         if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
-            assert (
-                self._batch_size == 1
-            ), "non-tokenized chat requests are only supported with batch_size=1"
+            assert self._batch_size == 1, (
+                "non-tokenized chat requests are only supported with batch_size=1"
+            )
             # list[dict["role":..., "content":...],...]
             return json.loads(messages[0].prompt)
 
@@ -506,9 +506,9 @@ class TemplateAPI(TemplateLM):
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
-        assert (
-            self.tokenizer is not None
-        ), "Tokenizer is required for loglikelihood tasks to compute context lengths."
+        assert self.tokenizer is not None, (
+            "Tokenizer is required for loglikelihood tasks to compute context lengths."
+        )
         res = []
 
         def _collate(req: LogLikelihoodInputs):

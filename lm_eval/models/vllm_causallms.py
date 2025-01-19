@@ -76,9 +76,9 @@ class VLLM(TemplateLM):
             )
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        assert (
-            max_length is None or max_model_len is None
-        ), "Either max_length or max_model_len may be provided, but not both"
+        assert max_length is None or max_model_len is None, (
+            "Either max_length or max_model_len may be provided, but not both"
+        )
 
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -142,9 +142,9 @@ class VLLM(TemplateLM):
         self._max_gen_toks = max_gen_toks
 
         if lora_local_path is not None:
-            assert parse_version(version("vllm")) > parse_version(
-                "0.3.0"
-            ), "lora adapters only compatible with vllm > v0.3.0."
+            assert parse_version(version("vllm")) > parse_version("0.3.0"), (
+                "lora adapters only compatible with vllm > v0.3.0."
+            )
             self.lora_request = LoRARequest("finetuned", 1, lora_local_path)
         else:
             self.lora_request = None
