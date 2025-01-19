@@ -15,7 +15,7 @@
 
 import itertools  # noqa: I001
 import random
-from functools import cache, partial
+from functools import cache
 
 import datasets
 import requests
@@ -237,5 +237,13 @@ def get_qa_dataset(ds, **kwargs):
     }
 
 
-get_squad = partial(get_qa_dataset, "squad")
-get_hotpotqa = partial(get_qa_dataset, "hotpotqa")
+def get_squad(**kwargs):
+    return get_qa_dataset("squad", **kwargs)
+
+
+def get_hotpotqa(**kwargs):
+    return get_qa_dataset("hotpotqa", **kwargs)
+
+
+# get_squad = lambda **kwargs: partial(get_qa_dataset, "squad")(**kwargs)
+# get_hotpotqa = lambda **kwargs: partial(get_qa_dataset, "hotpotqa")(**kwargs)

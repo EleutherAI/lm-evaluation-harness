@@ -1,4 +1,4 @@
-include: niah_1.yaml
+include: niah_single_1.yaml
 task: ruler_vt
 download_dataset: !function vt_utils.get_vt_dataset
 generation_kwargs:
