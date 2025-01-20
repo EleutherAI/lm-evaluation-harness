@@ -187,11 +187,11 @@ class NeMoLM(LM):
         **kwargs,
     ):
         try:
+            from lightning.pytorch.trainer.trainer import Trainer
             from nemo.collections.nlp.modules.common.text_generation_utils import (
                 generate,
             )
             from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
-            from pytorch_lightning.trainer.trainer import Trainer
 
             self.generate = generate
         except ModuleNotFoundError as exception:

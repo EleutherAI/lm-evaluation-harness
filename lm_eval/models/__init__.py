@@ -11,6 +11,7 @@ from . import (
     neuralmagic,
     neuron_optimum,
     openai_completions,
+    optimum_ipex,
     optimum_lm,
     textsynth,
     vllm_causallms,

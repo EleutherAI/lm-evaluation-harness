@@ -206,7 +206,7 @@ class NEURON_HF(TemplateLM):
                     "Only float16/bfloat16/float32 are supported."
                 )
 
-            print(f"{'='*20} \n exporting model to neuron")
+            print(f"{'=' * 20} \n exporting model to neuron")
             self.model = CustomNeuronModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision,
@@ -220,19 +220,17 @@ class NEURON_HF(TemplateLM):
             )
             neuron_config = self.model.config.neuron
             print(
-                f"SUCCESS: neuron model exported with config {neuron_config}. \n {'='*20}"
+                f"SUCCESS: neuron model exported with config {neuron_config}. \n {'=' * 20}"
             )
         else:
-            print(
-                f"{'='*20} \n loading neuron model with config" f" {neuron_config}..."
-            )
+            print(f"{'=' * 20} \n loading neuron model with config {neuron_config}...")
             self.model = CustomNeuronModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision,
                 trust_remote_code=trust_remote_code,
                 low_cpu_mem_usage=low_cpu_mem_usage,
             )
-            print(f"SUCCESS: neuron model loaded. \n {'='*20}")
+            print(f"SUCCESS: neuron model loaded. \n {'=' * 20}")
 
         self.truncation = truncation
 
@@ -353,9 +351,9 @@ class NEURON_HF(TemplateLM):
             )
 
     def _select_cont_toks(self, logits, contlen=None, inplen=None):
-        assert (
-            contlen and inplen
-        ), "Must pass input len and cont. len to select scored logits for causal LM"
+        assert contlen and inplen, (
+            "Must pass input len and cont. len to select scored logits for causal LM"
+        )
         # discard right-padding.
         # also discard the input/context tokens. we'll only score continuations.
         logits = logits[inplen - contlen : inplen]
