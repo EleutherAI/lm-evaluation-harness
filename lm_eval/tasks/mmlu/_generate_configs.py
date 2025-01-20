@@ -1,3 +1,4 @@
+# noqa
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
