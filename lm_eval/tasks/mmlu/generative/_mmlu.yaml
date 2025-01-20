@@ -41,8 +41,5 @@ aggregate_metric_list:
   - aggregation: mean
     metric: exact_match
     weight_by_size: true
-    ignore_punctuation: true
-    ignore_case: true
-    filter_list: get_response
 metadata:
   version: 3
