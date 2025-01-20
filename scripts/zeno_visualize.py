@@ -66,9 +66,9 @@ def main():
                 f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
             )
 
-    assert (
-        len(tasks) > 0
-    ), "Must provide at least one task in common amongst models to compare."
+    assert len(tasks) > 0, (
+        "Must provide at least one task in common amongst models to compare."
+    )
 
     for task in tasks:
         # Upload data for all models
