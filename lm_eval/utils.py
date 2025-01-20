@@ -48,9 +48,9 @@ def escaped_split(text, sep_char, maxsplit=-1):
     is not specified or less than 0, then there is no limit on the
     number of splits (all possible splits are made).
     """
-    assert (
-        len(sep_char) == 1
-    ), "separation string must be a single character for escaped splitting"
+    assert len(sep_char) == 1, (
+        "separation string must be a single character for escaped splitting"
+    )
 
     if maxsplit == 0:
         return text
@@ -104,7 +104,8 @@ def simple_parse_args_string(args_string):
         return {}
     arg_list = [arg for arg in args_string.split(",") if arg]
     args_dict = {
-        k: handle_arg_string(v) for k, v in [arg.split("=") for arg in arg_list]
+        kv[0]: handle_arg_string("=".join(kv[1:]))
+        for kv in [arg.split("=") for arg in arg_list]
     }
     return args_dict
 
