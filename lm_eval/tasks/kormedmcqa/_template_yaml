@@ -1,10 +1,10 @@
-task : kormedmcqa_nurse
 dataset_path : sean0042/KorMedMCQA
-dataset_name : nurse
 test_split : test
-fewshot_split : dev
+fewshot_split : fewshot
 fewshot_config:
   sampler: first_n
+  doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답： {{['A', 'B', 'C', 'D', 'E'][answer-1]}}\n\n"
+  doc_to_target: ""
 output_type: generate_until
 doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답："
 doc_to_target: "{{['A', 'B', 'C', 'D', 'E'][answer-1]}}"
@@ -15,12 +15,19 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
     regexes_to_ignore:
-          - " "
+      - " "
+      - "\n"
 generation_kwargs:
   until:
     - "Q:"
-    - "\n\n"
     - "</s>"
+    - "<|im_end|>"
     - "."
+    - "\n\n"
   do_sample: false
   temperature: 0.0
+  max_gen_toks: 1024
+metadata:
+  version: 2.0
+dataset_kwargs:
+  trust_remote_code: true
