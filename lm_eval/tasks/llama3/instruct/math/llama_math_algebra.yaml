@@ -11,7 +11,7 @@ doc_to_target: "{{answer if few_shot is undefined else solution}}"
 generation_kwargs:
   until:
     - "Problem:"
-  max_gen_toks: 10
+  max_gen_toks: 5120
   do_sample: false
   temperature: 0
 metric_list:
