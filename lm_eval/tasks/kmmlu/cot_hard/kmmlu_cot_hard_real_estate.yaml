@@ -88,4 +88,5 @@ fewshot_config:
       따르면 개업공인중개사는 등록한 관할구역 외의 지역에 있는 중개대상물을 중개할 수 있습니다.   이 내용은 잘못된 내용입니다. 따라서, 정답은
       (D) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_real_estate
+task: kmmlu_cot_hard_real_estate
+tag: kmmlu_cot_hard_other_tasks
