@@ -63,21 +63,39 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 #     ]
 
 
+def filter_final_answer(resps: list[list[str]], docs) -> list[list[str]]:
+    answer = []
+    for resp in resps:
+        answer.append(
+            [
+                normalize_final_answer(remove_boxed(last_boxed_only_string(r[0])))
+                for r in resp
+            ]
+        )
+    return answer
+
+def process_results(docs: dict, resps: list[dict]) -> dict:
+    return resps[0]
+
 # calculate pass@1 for all results
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    candidates = results[0]
+def get_metric(predictions: list[list[str]], references: list[dict]) -> Dict[str, int]:
+    res = []
+    for reference, candidates in zip(references, predictions):
+        for candidate in candidates:
+            answer = normalize_final_answer(
+                remove_boxed(last_boxed_only_string(candidate))
+            )
+            if is_equiv(answer, reference["answer"]):
+                retval = 1
 
-    answer = normalize_final_answer(remove_boxed(last_boxed_only_string(candidates)))
-
-    if is_equiv(answer, doc["answer"]):
-        retval = 1
-    else:
-        retval = 0
-
-    results = {
-        "exact_match": retval,
-    }
-    return results
+                results = {
+                    "accuracy": retval,
+                }
+                res.append(results)
+                break
+        else:
+            res.append({"accuracy": 0})
+    return res
 
 
 def last_boxed_only_string(string: str) -> Optional[str]:
