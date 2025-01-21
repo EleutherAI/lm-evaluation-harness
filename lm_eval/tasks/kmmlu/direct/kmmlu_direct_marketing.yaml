@@ -1,3 +1,4 @@
 dataset_name: Marketing
 include: _direct_kmmlu_yaml
 task: kmmlu_direct_marketing
+tag: kmmlu_direct_other_tasks
