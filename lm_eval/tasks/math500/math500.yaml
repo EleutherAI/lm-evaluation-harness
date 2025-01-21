@@ -7,10 +7,10 @@ doc_to_text: "Solve the following math problem efficiently and clearly:\n\n- For
 #process_results: !function utils.process_results
 doc_to_target: "{{answer if few_shot is undefined else solution}}"
 process_results: !function utils.process_results
-repeats: 2
+repeats: 64
 generation_kwargs:
   until: []
-  max_gen_toks: 1024
+  max_gen_toks: 32768
   do_sample: true
   top_p: 0.95
   temperature: 0.6

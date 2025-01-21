@@ -78,7 +78,7 @@ def process_results(docs: dict, resps: list[dict]) -> dict:
     return resps[0]
 
 # calculate pass@1 for all results
-def get_metric(predictions: list[list[str]], references: list[dict]) -> Dict[str, int]:
+def get_metric(predictions: list[list[str]], references: list[dict]) -> list[dict]:
     res = []
     for reference, candidates in zip(references, predictions):
         for candidate in candidates:
@@ -89,12 +89,12 @@ def get_metric(predictions: list[list[str]], references: list[dict]) -> Dict[str
                 retval = 1
 
                 results = {
-                    "accuracy": retval,
+                    "acc": retval,
                 }
                 res.append(results)
                 break
         else:
-            res.append({"accuracy": 0})
+            res.append({"acc": 0})
     return res
 
 
