@@ -1,5 +1,5 @@
 task: math500
-dataset_path: EleutherAI/hendrycks_math
+dataset_path: HuggingFaceH4/MATH-500
 process_docs: !function utils.process_docs
 output_type: generate_until
 training_split: train
@@ -8,8 +8,7 @@ doc_to_text: "Solve the following math problem efficiently and clearly:\n\n- For
 process_results: !function utils.process_results
 doc_to_target: "{{answer if few_shot is undefined else solution}}"
 generation_kwargs:
-#  until:
-#    - "Problem:"
+  until: []
   max_gen_toks: 5120
   do_sample: false
   temperature: 0
