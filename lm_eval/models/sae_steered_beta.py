@@ -63,11 +63,22 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
         # Read steering configurations
         df = pd.read_csv(csv_path)
         # Create hooks for each row in the CSV
+        sae_cache = {}
         hooks = []
+
+        def get_sae(sae_release, sae_id):
+            cache_key = (sae_release, sae_id)
+            if cache_key not in sae_cache:
+                sae_cache[cache_key] = SAE.from_pretrained(
+                    sae_release, sae_id, device=str(device)
+                )[0]
+            return sae_cache[cache_key]
+
         for _, row in df.iterrows():
-            sae = SAE.from_pretrained(
-                row["sae_release"], row["sae_id"], device=str(device)
-            )[0]
+            sae_release = row["sae_release"]
+            sae_id = row["sae_id"]
+
+            sae = get_sae(sae_release=sae_release, sae_id=sae_id)
             sae.eval()
             hook = partial(
                 steering_hook,
