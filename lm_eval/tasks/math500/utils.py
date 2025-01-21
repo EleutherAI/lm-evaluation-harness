@@ -63,6 +63,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 #     ]
 
 
+# calculate pass@1 for all results
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidates = results[0]
 
@@ -184,18 +185,18 @@ def is_equiv(x1: str, x2: str) -> bool:
         return False
 
 
-def get_unnormalized_answer(text: str) -> str:
-    INVALID_ANSWER = "[invalidanswer]"
-    end_seq = "I hope it is correct."
-    text += end_seq
-    match = re.search(
-        r"Final Answer: The final answer is(.*?). I hope it is correct.",
-        text,
-    )
-    if match:
-        return match.group(1).strip()
-    else:
-        return INVALID_ANSWER
+# def get_unnormalized_answer(text: str) -> str:
+#     INVALID_ANSWER = "[invalidanswer]"
+#     end_seq = "I hope it is correct."
+#     text += end_seq
+#     match = re.search(
+#         r"Final Answer: The final answer is(.*?). I hope it is correct.",
+#         text,
+#     )
+#     if match:
+#         return match.group(1).strip()
+#     else:
+#         return INVALID_ANSWER
 
 
 SUBSTITUTIONS = [
