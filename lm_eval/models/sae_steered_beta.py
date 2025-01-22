@@ -12,9 +12,8 @@ from transformer_lens.hook_points import HookPoint
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
-
-def steering_hook(
-    activations: Float[Tensor],  # Float[Tensor, "batch pos d_in"],
+def steering_hook_add_scaled_one_hot(
+    activations,#: Float[Tensor],  # Float[Tensor, "batch pos d_in"], Either jaxtyping or lm-evaluation-harness' precommit git script hate a type hint here.
     hook: HookPoint,
     sae: SAE,
     latent_idx: int,
@@ -26,16 +25,48 @@ def steering_hook(
     """
     return activations + steering_coefficient * sae.W_dec[latent_idx]
 
+# def steering_hook_clamp(
+#     activations,#: Float[Tensor],  # Float[Tensor, "batch pos d_in"], Either jaxtyping or lm-evaluation-harness' precommit git script hate a type hint here.
+#     hook: HookPoint,
+#     sae: SAE,
+#     latent_idx: int,
+#     steering_coefficient: float,
+# ) -> Tensor:
+#     """
+#     Steers the model by returning a modified activations tensor, with some multiple of the steering vector added to all
+#     sequence positions.
+#     """
+#     raise NotImplemented
+#     z = sae.encode(activations)
+#     z[latent_idx] = steering_coefficient
+#     return sae.decode(activations)
+#     return activations + steering_coefficient * sae.W_dec[latent_idx]
+
+string_to_steering_function_dict : dict = {'add':steering_hook_add_scaled_one_hot, 'clamp':steering_hook_clamp}
+
+def clamp_sae_feature(sae_acts:Tensor, hook:HookPoint, latent_idx:int, value:float) -> Tensor:
+    """Clamps a specific latent feature in the SAE activations to a fixed value.
+
+    Args:
+        sae_acts (Tensor): The SAE activations tensor, shape [batch, pos, features]
+        hook (HookPoint): The transformer-lens hook point
+        latent_idx (int): Index of the latent feature to clamp
+        value (float): Value to clamp the feature to
+
+    Returns:
+        Tensor: The modified SAE activations with the specified feature clamped
+    """
+    sae_acts[:, :, latent_idx] = value
+    return sae_acts
 
 class InterventionModel(HookedSAETransformer):  # Replace with the specific model class
-    def __init__(self, base_name: str, fwd_hooks: list, device: str = "cuda:0"):
+    def __init__(self, base_name: str, device: str = "cuda:0", model=None):
         trueconfig = loading_from_pretrained.get_pretrained_model_config(
             base_name, device=device
         )
         super().__init__(trueconfig)
-        self.model = HookedSAETransformer.from_pretrained(base_name, device=device)
+        self.model = model or HookedSAETransformer.from_pretrained(base_name, device=device)
         self.model.eval()
-        self.fwd_hooks = fwd_hooks
         self.device = device  # Add device attribute
         self.to(device)  # Ensure model is on the correct device
 
@@ -59,7 +90,7 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
             InterventionModel with configured steering hooks
         """
         import pandas as pd
-
+        model = HookedSAETransformer.from_pretrained(base_name, device=device)
         # Read steering configurations
         df = pd.read_csv(csv_path)
         # Create hooks for each row in the CSV
@@ -77,19 +108,30 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
         for _, row in df.iterrows():
             sae_release = row["sae_release"]
             sae_id = row["sae_id"]
-
+            latent_idx = int(row["latent_idx"])
+            steering_coefficient = float(row["steering_coefficient"])
             sae = get_sae(sae_release=sae_release, sae_id=sae_id)
             sae.eval()
-            hook = partial(
-                steering_hook,
-                sae=sae,
-                latent_idx=int(row["latent_idx"]),
-                steering_coefficient=float(row["steering_coefficient"]),
-            )
-            hooks.append((sae.cfg.hook_name, hook))
+            hook_action = row.get("hook_action", "add")
+
+            if hook_action == "add":
+                hook_name = f"{sae.cfg.hook_name}.hook_sae_input" # we aren't actually putting the input through the model
+                hook = partial(steering_hook_add_scaled_one_hot,
+                               sae=sae,
+                               latent_idx=latent_idx,
+                               steering_coefficient=steering_coefficient,
+                              )
+                model.add_hook(hook_name, hook)
+            elif hook_action == "clamp":
+                sae.add_hook("hook_sae_acts_post", partial(clamp_sae_feature, latent_idx=latent_idx, value=steering_coefficient))
+                model.add_sae(sae)
+            else:
+                raise ValueError(f"Unknown hook type: {hook_action}")
+            
+            
 
         # Create and return the model
-        return cls(fwd_hooks=hooks, base_name=base_name, device=device)
+        return cls(base_name=base_name, device=device, model=model)
 
     def forward(self, *args, **kwargs):
         # Handle both input_ids and direct tensor inputs
@@ -101,8 +143,7 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
         else:
             input_tensor = None
         with torch.no_grad():  # I don't know why this no grad is necessary; I tried putting everything into eval mode. And yet, this is necessary to prevent CUDA out of memory exceptions.
-            with self.model.hooks(fwd_hooks=self.fwd_hooks):
-                output = self.model.forward(input_tensor, *args, **kwargs)
+            output = self.model.forward(input_tensor, *args, **kwargs)
         return output
 
 
