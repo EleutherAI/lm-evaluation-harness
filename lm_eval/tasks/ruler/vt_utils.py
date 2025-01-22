@@ -28,7 +28,7 @@ TASKS = {
     "variable_tracking": {
         "tokens_to_generate": 30,
         "template": """Memorize and track the chain(s) of variable assignment hidden in the following text.\n\n{context}\nQuestion: Find all variables that are assigned the value {query} in the text above.""",
-        "answer_prefix": """ Answer: According to the chain(s) of variable assignment in the text above, {num_v} variables are assgined the value {query}, they are: """,
+        "answer_prefix": """Answer: According to the chain(s) of variable assignment in the text above, {num_v} variables are assigned the value {query}, they are:""",
     },
 }
 
@@ -215,7 +215,7 @@ def sys_vartrack_w_noise_random(
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": gen_prefix,
+            "gen_prefix": gen_prefix.strip(),
         }
         write_jsons.append(formatted_output)
 

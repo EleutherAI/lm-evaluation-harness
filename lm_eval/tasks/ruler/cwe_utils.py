@@ -145,7 +145,7 @@ def sys_word_pair_random(
             )
 
         gen_prefix_index = input_text.rfind(" Answer")
-        gen_prefix = input_text[gen_prefix_index:].strip()
+        # gen_prefix = input_text[gen_prefix_index:].strip()
         input_text = input_text[:gen_prefix_index]
         formatted_output = {
             "index": index,
@@ -154,7 +154,7 @@ def sys_word_pair_random(
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": gen_prefix,
+            "gen_prefix": "Answer: The top 10 words that appear most often in the list are:",
         }
         write_jsons.append(formatted_output)
 

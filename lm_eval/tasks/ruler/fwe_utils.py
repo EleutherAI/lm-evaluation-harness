@@ -28,7 +28,7 @@ config = (
     {
         "tokens_to_generate": 50,
         "template": """Read the following coded text and track the frequency of each coded word. Find the three most frequently appeared coded words. {context}\nQuestion: Do not provide any explanation. Please ignore the dots '....'. What are the three most frequently appeared words in the above coded text?""",
-        "answer_prefix": """ Answer: According to the coded text above, the three most frequently appeared words are:""",
+        "answer_prefix": """Answer: According to the coded text above, the three most frequently appeared words are:""",
     },
 )
 
