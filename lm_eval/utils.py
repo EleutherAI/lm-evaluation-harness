@@ -114,6 +114,8 @@ def simple_parse_args_string(args_string: Optional[str]) -> dict:
 
 def parse_keyed_list_string(s: str) -> dict[str, list]:
     """Parse a string of key-value pairs into a dictionary where all values are lists."""
+    if s is None:
+        return {}
     result = {}
     current_key = None
     values = []
