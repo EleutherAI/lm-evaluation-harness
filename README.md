@@ -205,6 +205,19 @@ Note that it is recommended to substitute the `python` command by `torchrun --np
 
 Not supported yet: multi-node evaluation and combinations of data replication with tensor or pipeline parallelism.
 
+#### Multi-GPU evaluation with OpenVINO models
+
+Pipeline parallelizm during evaluation is supported with OpenVINO models
+
+To enable  pipeline parallelism, set the `model_args` of `pipeline_parallel`. In addition, you also have to set up `device` to value `HETERO:<GPU index1>,<GPU index2>` for example `HETERO:GPU.1,GPU.0` For example, the command to use pipeline parallelism of 2 is:
+
+```
+lm_eval --model openvino \
+    --tasks wikitext \
+    --model_args pretrained=<path_to_ov_model>,pipeline_parallel=True \
+    --device HETERO:GPU.1,GPU.0
+```
+
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html), especially faster when splitting a model across multiple GPUs. For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
@@ -257,10 +270,12 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html)                                                                                                                                                                                                                                                              | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                         | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces)                                                                                                                                                                                                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
 | Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                          | Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                                                                                                                                                                                                                            |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Huggingface Optimum-intel IPEX (Causal LMs)    | ✔️         | `ipex`                                          | Any decoder-only AutoModelForCausalLM                                                                                                                                                                                                                      |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                           | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                                                                                                                                                                                            |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)    | ✔️         | `deepsparse`                                        | Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                                                                                                                                                                                                       |  `generate_until`, `loglikelihood`                         | ...                                                      |
 | [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)    | ✔️         | `sparseml`                                          | Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized) |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
-| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions`     | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                                                                                                                                                                                                                         | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                                          |                                | ...                |
+| Watsonx.ai                                                                                                                 | :heavy_check_mark:              | `watsonx_llm`                                         | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                                                                                                                                                                                                                                               | `generate_until` `loglikelihood`                         |
+| [Your local inference server!](docs/API_guide.md)                                                                                             | :heavy_check_mark:                             | `local-completions` or `local-chat-completions`     | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                                                                                                                                                                                                                         | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                                          |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 
@@ -337,11 +352,12 @@ lm_eval --model hf \
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
-## Saving Results
+## Saving & Caching Results
 
 To save evaluation results provide an `--output_path`. We also support logging model responses with the `--log_samples` flag for post-hoc analysis.
 
-Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
+> [!TIP]
+> Use `--use_cache <DIR>` to cache evaluation results and skip previously evaluated samples when resuming runs of the same (model, task) pairs. Note that caching is rank-dependent, so restart with the same GPU count if interrupted. You can also use --cache_requests to save dataset preprocessing steps for faster evaluation resumption.
 
 To push results and samples to the Hugging Face Hub, first ensure an access token with write access is set in the `HF_TOKEN` environment variable. Then, use the `--hf_hub_log_args` flag to specify the organization, repository name, repository visibility, and whether to push results and samples to the Hub - [example dataset on the  HF Hub](https://huggingface.co/datasets/KonradSzafer/lm-eval-results-demo). For instance:
 
@@ -476,6 +492,8 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | gptq            | For loading models with GPTQ                 |
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
+| ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |
+| ipex            | For running on optimum-intel ipex backend    |
 | neuronx         | For running on AWS inf2 instances            |
 | mamba           | For loading Mamba SSM models                 |
 | math            | For running math task answer checking        |

@@ -1,9 +1,11 @@
 import os
 from functools import cached_property
+from operator import itemgetter
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.utils import handle_stop_sequences
 from lm_eval.utils import eval_logger
 
 
@@ -25,6 +27,7 @@ class LocalCompletionsAPI(TemplateAPI):
         generate=False,
         gen_kwargs: Optional[dict] = None,
         seed: int = 1234,
+        eos=None,
         **kwargs,
     ) -> dict:
         if generate:
@@ -34,7 +37,7 @@ class LocalCompletionsAPI(TemplateAPI):
             else:
                 max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
-            stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+            stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
             return {
                 "prompt": messages,
                 "model": self.model,
@@ -66,7 +69,9 @@ class LocalCompletionsAPI(TemplateAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
-            for choice, ctxlen in zip(out["choices"], ctxlens):
+            for choice, ctxlen in zip(
+                sorted(out["choices"], key=itemgetter("index")), ctxlens
+            ):
                 assert ctxlen > 0, "Context length must be greater than 0"
                 logprobs = sum(choice["logprobs"]["token_logprobs"][ctxlen:-1])
                 tokens_logprobs = choice["logprobs"]["token_logprobs"][ctxlen:-1]
@@ -85,8 +90,10 @@ class LocalCompletionsAPI(TemplateAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
+            tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                res.append(choices["text"])
+                tmp[choices["index"]] = choices["text"]
+            res = res + tmp
         return res
 
     @property
@@ -124,18 +131,19 @@ class LocalChatCompletion(LocalCompletionsAPI):
         generate=False,
         gen_kwargs: dict = None,
         seed=1234,
+        eos=None,
         **kwargs,
     ) -> dict:
-        assert (
-            type(messages) is not str
-        ), "chat-completions require the --apply_chat_template flag."
+        assert type(messages) is not str, (
+            "chat-completions require the --apply_chat_template flag."
+        )
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
         else:
             max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
-        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
         return {
@@ -154,8 +162,10 @@ class LocalChatCompletion(LocalCompletionsAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
+            tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                res.append(choices["message"]["content"])
+                tmp[choices["index"]] = choices["message"]["content"]
+            res = res + tmp
         return res
 
     def tok_encode(
@@ -198,13 +208,12 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         return key
 
     def loglikelihood(self, requests, **kwargs):
-        assert (
-            self.model
-            in [
-                "babbage-002",
-                "davinci-002",
-            ]
-        ), f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
+        assert self.model in [
+            "babbage-002",
+            "davinci-002",
+        ], (
+            f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
+        )
         return super().loglikelihood(requests, **kwargs)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -252,18 +261,19 @@ class OpenAIChatCompletion(LocalChatCompletion):
         generate=False,
         gen_kwargs: dict = None,
         seed=1234,
+        eos="<|endoftext|>",
         **kwargs,
     ) -> dict:
-        assert (
-            type(messages) is not str
-        ), "chat-completions require the --apply_chat_template flag."
+        assert type(messages) is not str, (
+            "chat-completions require the --apply_chat_template flag."
+        )
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
         else:
             max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
-        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        stop = handle_stop_sequences(gen_kwargs.pop("until", ["<|endoftext|>"]), eos)
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
         output = {

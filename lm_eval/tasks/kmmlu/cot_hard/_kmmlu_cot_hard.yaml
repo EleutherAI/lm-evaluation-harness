@@ -1,0 +1,11 @@
+group: kmmlu_cot_hard
+task:
+  - kmmlu_cot_hard_stem
+  - kmmlu_cot_hard_other
+  - kmmlu_cot_hard_applied_science
+  - kmmlu_cot_hard_humss
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 2.0

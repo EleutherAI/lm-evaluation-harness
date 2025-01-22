@@ -14,6 +14,7 @@ from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import (
     Collator,
     flatten_image_list,
+    handle_stop_sequences,
     pad_and_concat,
     replace_placeholders,
     stop_sequences_criteria,
@@ -50,9 +51,9 @@ class HFMultimodalLM(HFLM):
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
 
-        assert (
-            self.batch_size != "auto"
-        ), "Batch size 'auto' is not yet supported for hf-multimodal models."
+        assert self.batch_size != "auto", (
+            "Batch size 'auto' is not yet supported for hf-multimodal models."
+        )
         self.chat_applied: bool = False
         # TODO: phi-3.5 "image placeholders" are <image_1>, <image_2>, ... in order. how to handle this case
 
@@ -72,9 +73,9 @@ class HFMultimodalLM(HFLM):
                     or getattr(self.config, "image_token_index", None)
                 )
             )
-            assert (
-                self.image_token_id is not None
-            ), "Must have a non-None image_token_id to evaluate a Hugging Face AutoModelForVision2Seq model. Please pass `image_token_id` in `--model_args` if model's config does not already specify one."
+            assert self.image_token_id is not None, (
+                "Must have a non-None image_token_id to evaluate a Hugging Face AutoModelForVision2Seq model. Please pass `image_token_id` in `--model_args` if model's config does not already specify one."
+            )
             # get the string this token ID corresponds to
             self.image_token = self.tok_decode(
                 [self.image_token_id], skip_special_tokens=False
@@ -199,7 +200,9 @@ class HFMultimodalLM(HFLM):
 
         return context_enc, continuation_enc, image_enc
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         self.chat_applied = True
         if not self.interleave:
             for content in chat_history:
@@ -249,7 +252,9 @@ class HFMultimodalLM(HFLM):
                     )
 
         return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=True
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -629,7 +634,7 @@ class HFMultimodalLM(HFLM):
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
 
         ### Up to here: was identical to non-multimodal HFLM generate_until ###
-
+        eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
@@ -646,27 +651,14 @@ class HFMultimodalLM(HFLM):
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
