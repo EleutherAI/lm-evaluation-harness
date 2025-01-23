@@ -8,7 +8,7 @@ from lm_eval.models.huggingface import HFLM
 
 
 @register_model("rwkv")
-class MambaLMWrapper(HFLM):
+class RWKVWRAPPER(HFLM):
     def __init__(
         self,
         pretrained,
