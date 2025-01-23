@@ -21,13 +21,13 @@ class RWKVWRAPPER(HFLM):
         self.is_hf = is_hf or (True if pretrained.endswith("hf") else False)
         assert kwargs["tokenizer"] is not None, "`tokenizer` is required"
         assert kwargs["batch_size"] in [1, "1"], "`batch_size` must be 1"
-        self.tokenizer = kwargs["tokenizer"]
-        self.pretrained = pretrained
+        tokenizer = kwargs.pop("tokenizer")
+        pretrained = pretrained
         super().__init__(
             pretrained=pretrained,
             # set appropriate defaults for tokenizer, max length, etc
             backend=kwargs.pop("backend", "causal"),
-            tokenizer=self.tokenizer,
+            tokenizer=tokenizer,
             max_length=kwargs.pop("max_length", 4096),
             **kwargs,
         )
