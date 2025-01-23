@@ -1,0 +1,6 @@
+"dataset_name": "tarih"
+"description": "The following are multiple choice questions (with answers) about tarih"
+"tag": "mmlu_tarih_tr"
+"include": "default_template_yaml"
+"task": "mmlu_tarih_tr"
+"task_alias": "tarih"

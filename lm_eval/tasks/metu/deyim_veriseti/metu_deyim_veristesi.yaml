@@ -1,0 +1,16 @@
+task: metu_deyim_veriseti
+dataset_path: metunlp/deyim_veriseti
+dataset_name: default
+test_split: train
+output_type: multiple_choice
+should_decontaminate: true
+doc_to_decontamination_query: "{{question}}"
+doc_to_text: "P: {{context}}\nQ: {{question.strip()}}\nA: {{choices[0]}}\nB: {{choices[1]}}\nC: {{choices[2]}}\nD: {{choices[3]}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: "{{['A', 'B', 'C', 'D'].index(answer_index)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

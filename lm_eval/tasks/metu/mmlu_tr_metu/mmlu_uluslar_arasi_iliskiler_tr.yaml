@@ -1,0 +1,6 @@
+"dataset_name": "uluslar_arası_iliskiler"
+"description": "The following are multiple choice questions (with answers) about uluslar_arası_iliskiler"
+"tag": "mmlu_uluslar_arası_iliskiler_tr"
+"include": "default_template_yaml"
+"task": "mmlu_uluslar_arası_iliskiler_tr"
+"task_alias": "uluslar_arası_iliskiler"

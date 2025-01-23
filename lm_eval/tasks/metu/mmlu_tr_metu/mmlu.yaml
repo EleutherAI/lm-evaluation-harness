@@ -1,0 +1,38 @@
+group_alias: mmlu_tr
+task:
+  - group: cografya
+    task:
+      - mmlu_cografya_tr
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: iktisat
+    task:
+      - mmlu_iktisat_tr
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: uluslar arasi iliskiler
+    task:
+      - mmlu_uluslar_arasi_iliskiler
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: tarih
+    task:
+      - mmlu_tarih_tr
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+  - group: biyoloji
+    task:
+      - mmlu_biyoloji_tr
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 0.0

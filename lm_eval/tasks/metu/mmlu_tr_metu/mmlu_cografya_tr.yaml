@@ -1,0 +1,6 @@
+"dataset_name": "cografya"
+"description": "The following are multiple choice questions (with answers) about cografya"
+"tag": "mmlu_cografya_tr"
+"include": "default_template_yaml"
+"task": "mmlu_cografya_tr"
+"task_alias": "cografya"
