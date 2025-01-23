@@ -11,7 +11,7 @@ from lm_eval.models.huggingface import HFLM
 class MambaLMWrapper(HFLM):
     def __init__(
         self,
-        pretrained="",
+        pretrained,
         # To use the HF compatible variant
         is_hf: bool = False,
         **kwargs,
@@ -19,6 +19,7 @@ class MambaLMWrapper(HFLM):
         if "backend" in kwargs:
             assert kwargs["backend"] == "causal"
         self.is_hf = is_hf or (True if pretrained.endswith("hf") else False)
+        assert kwargs["tokenizer"] is not None, "`tokenizer` is required"
         self.tokenizer = kwargs["tokenizer"]
         self.pretrained = pretrained
         super().__init__(
