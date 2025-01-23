@@ -25,7 +25,7 @@ from tqdm import tqdm
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 
-TASKS = {
+CONFIG = {
     "variable_tracking": {
         "tokens_to_generate": 30,
         "template": """Memorize and track the chain(s) of variable assignment hidden in the following text.\n\n{context}\nQuestion: Find all variables that are assigned the value {query} in the text above.""",
@@ -34,7 +34,8 @@ TASKS = {
 }
 
 TEMPLATE = (
-    TASKS["variable_tracking"]["template"] + TASKS["variable_tracking"]["answer_prefix"]
+    CONFIG["variable_tracking"]["template"]
+    + CONFIG["variable_tracking"]["answer_prefix"]
 )
 
 
@@ -97,12 +98,12 @@ def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
     if (
         is_icl
         and template
-        != TASKS["variable_tracking"]["template"]
-        + TASKS["variable_tracking"]["answer_prefix"]
+        != CONFIG["variable_tracking"]["template"]
+        + CONFIG["variable_tracking"]["answer_prefix"]
     ):
         # remove model template
-        cutoff = template.index(TASKS["variable_tracking"]["template"][:20])
-        cutoff_ans = template.index(TASKS["variable_tracking"]["answer_prefix"][:10])
+        cutoff = template.index(CONFIG["variable_tracking"]["template"][:20])
+        cutoff_ans = template.index(CONFIG["variable_tracking"]["answer_prefix"][:10])
         template = (
             " ".join(template[cutoff:cutoff_ans].split()[:-1]) + template[cutoff_ans:]
         )
@@ -114,7 +115,7 @@ def generate_input_output(num_noises, num_chains, num_hops, is_icl=False):
 
 
 def randomize_icl(icl_example: str) -> str:
-    icl_tgt_cut = icl_example.index(TASKS["variable_tracking"]["answer_prefix"][-10:])
+    icl_tgt_cut = icl_example.index(CONFIG["variable_tracking"]["answer_prefix"][-10:])
     icl_tgt = icl_example[icl_tgt_cut + 10 :].strip().split()
     for item in icl_tgt:
         new_item = "".join(random.choices(string.ascii_uppercase, k=len(item))).upper()
@@ -186,7 +187,7 @@ def sys_vartrack_w_noise_random(
 
         if add_fewshot and (icl_example is not None):
             # insert icl_example between model template and input
-            cutoff = input_text.index(TASKS["variable_tracking"]["template"][:20])
+            cutoff = input_text.index(CONFIG["variable_tracking"]["template"][:20])
             input_text = (
                 input_text[:cutoff]
                 + randomize_icl(icl_example)

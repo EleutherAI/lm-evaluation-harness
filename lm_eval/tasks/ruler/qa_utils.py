@@ -23,13 +23,13 @@ from tqdm import tqdm
 
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
-config = {
+CONFIG = {
     "tokens_to_generate": 32,
     "template": """Answer the question based on the given documents. Only give me the answer and do not output any other words.\n\nThe following are given documents.\n\n{context}\n\nAnswer the question based on the given documents. Only give me the answer and do not output any other words.\n\nQuestion: {query}""",
     "answer_prefix": """Answer:""",
 }
 SEED = 42
-TEMPLATE = """Answer the question based on the given documents. Only give me the answer and do not output any other words.\n\nThe following are given documents.\n\n{context}\n\nAnswer the question based on the given documents. Only give me the answer and do not output any other words.\n\nQuestion: {query}"""
+TEMPLATE = CONFIG["template"]
 DOCUMENT_PROMPT = "Document {i}:\n{document}"
 
 

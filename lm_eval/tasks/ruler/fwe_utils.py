@@ -24,17 +24,15 @@ from tqdm import tqdm
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 
-config = (
-    {
-        "tokens_to_generate": 50,
-        "template": """Read the following coded text and track the frequency of each coded word. Find the three most frequently appeared coded words. {context}\nQuestion: Do not provide any explanation. Please ignore the dots '....'. What are the three most frequently appeared words in the above coded text?""",
-        "answer_prefix": """Answer: According to the coded text above, the three most frequently appeared words are:""",
-    },
-)
+CONFIG = {
+    "tokens_to_generate": 50,
+    "template": """Read the following coded text and track the frequency of each coded word. Find the three most frequently appeared coded words. {context}\nQuestion: Do not provide any explanation. Please ignore the dots '....'. What are the three most frequently appeared words in the above coded text?""",
+    "answer_prefix": """ Answer: According to the coded text above, the three most frequently appeared words are:""",
+}
 
 
 SEED = 42
-TEMPLATE = "Read the following coded text and track the frequency of each coded word. Find the three most frequently appeared coded words. {context}\nQuestion: Do not provide any explanation. Please ignore the dots '....'. What are the three most frequently appeared words in the above coded text?\n\n"
+TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 
 def generate_input_output(
@@ -136,11 +134,11 @@ def sys_kwext(
 
         formatted_output = {
             "index": index,
-            "input": input_text,
+            "input": input_text[: input_text.rfind(CONFIG["answer_prefix"])].strip(),
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": "Answer: According to the coded text above, the three most frequently appeared words are:",
+            "gen_prefix": CONFIG["answer_prefix"].strip(),
         }
         write_jsons.append(formatted_output)
 

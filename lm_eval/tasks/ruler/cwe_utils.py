@@ -21,8 +21,14 @@ from tqdm import tqdm
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 
+CONFIG = {
+    "tokens_to_generate": 120,
+    "template": """Below is a numbered list of words. In these words, some appear more often than others. Memorize the ones that appear most often.\n{context}\nQuestion: What are the 10 most common words in the above list?""",
+    "answer_prefix": """ Answer: The top 10 words that appear most often in the list are:""",
+}
+
 RNG = random.Random(42)
-TEMPLATE = "Below is a numbered list of words. In these words, some appear more often than others. Memorize the ones that appear most often.\n{context}\nQuestion: What are the 10 most common words in the above list?"
+TEMPLATE = CONFIG["template"] + CONFIG["answer_prefix"]
 
 
 r = wonderwords.RandomWord()
@@ -144,17 +150,16 @@ def sys_word_pair_random(
                 input_example.replace("\n", " ").replace("\t", " ").strip().split()
             )
 
-        gen_prefix_index = input_text.rfind(" Answer")
-        # gen_prefix = input_text[gen_prefix_index:].strip()
+        gen_prefix_index = input_text.rfind(CONFIG["answer_prefix"])
         input_text = input_text[:gen_prefix_index]
         formatted_output = {
             "index": index,
-            "input": input_text,
+            "input": input_text.strip(),
             "input_example": input_example,
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": "Answer: The top 10 words that appear most often in the list are:",
+            "gen_prefix": CONFIG["answer_prefix"].strip(),
         }
         write_jsons.append(formatted_output)
 
