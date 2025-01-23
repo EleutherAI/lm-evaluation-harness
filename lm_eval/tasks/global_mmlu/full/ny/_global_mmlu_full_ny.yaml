@@ -1,0 +1,11 @@
+group: global_mmlu_full_ny
+task:
+  - global_mmlu_full_ny_stem
+  - global_mmlu_full_ny_other
+  - global_mmlu_full_ny_social_sciences
+  - global_mmlu_full_ny_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1.0

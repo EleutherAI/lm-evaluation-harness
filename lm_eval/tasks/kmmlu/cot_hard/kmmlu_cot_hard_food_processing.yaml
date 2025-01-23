@@ -78,4 +78,5 @@ fewshot_config:
       이 품종은 상대적으로 높은 온도에 더 민감하게 반응하며, 일장의 변화에는 덜 민감한 특성을 가지고 있어 한국의 기후 특성에서 효과적으로
       성장할 수 있는 조건을 가지고 있습니다. 따라서, 정답은 (D) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_food_processing
+task: kmmlu_cot_hard_food_processing
+tag: kmmlu_cot_hard_other_tasks
