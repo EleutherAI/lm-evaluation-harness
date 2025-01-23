@@ -54,8 +54,7 @@ class MambaLMWrapper(HFLM):
                 from rwkv.model import RWKV
             except ModuleNotFoundError as exception:
                 raise type(exception)(
-                    "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
-    please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
+                    "install rwkv package (pip install rwkv)",
                 )
 
             import os
