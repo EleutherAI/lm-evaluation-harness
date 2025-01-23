@@ -1,10 +1,7 @@
 from functools import partial
 
 
-CATEGORIES = [
-    'Business', 'Humanities', 'Medical',
-    'Other', 'STEM', 'Social Sciences'
-]
+CATEGORIES = ["Business", "Humanities", "Medical", "Other", "STEM", "Social Sciences"]
 
 
 def process_docs(dataset, category):
@@ -12,7 +9,10 @@ def process_docs(dataset, category):
 
 
 process_functions = {
-    f"process_{category.lower().replace(' ', '_')}": partial(process_docs, category=category) for category in CATEGORIES
+    f"process_{category.lower().replace(' ', '_')}": partial(
+        process_docs, category=category
+    )
+    for category in CATEGORIES
 }
 
 globals().update(process_functions)
