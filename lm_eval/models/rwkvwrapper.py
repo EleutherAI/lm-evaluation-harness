@@ -20,7 +20,7 @@ class RWKVWRAPPER(HFLM):
             assert kwargs["backend"] == "causal"
         self.is_hf = is_hf or (True if pretrained.endswith("hf") else False)
         assert kwargs["tokenizer"] is not None, "`tokenizer` is required"
-        assert kwargs["batch_size"] == 1, "`batch_size` must be 1"
+        assert kwargs["batch_size"] in [1, "1"], "`batch_size` must be 1"
         self.tokenizer = kwargs["tokenizer"]
         self.pretrained = pretrained
         super().__init__(
