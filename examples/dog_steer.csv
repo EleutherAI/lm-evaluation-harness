@@ -1,0 +1,2 @@
+latent_idx,steering_coefficient,sae_release,sae_id,description
+12082, 240.0,gemma-scope-2b-pt-res-canonical,layer_20/width_16k/canonical,this feature has been found on neuronpedia to make the model talk about dogs and obedience

@@ -1,0 +1,6 @@
+hook_action,latent_idx,steering_coefficient,sae_release,sae_id,description
+debug,0,0,gemma-scope-2b-pt-res-canonical,layer_20/width_16k/canonical,applied second
+clamp,12082, 69420.0,gemma-scope-2b-pt-res-canonical,layer_20/width_16k/canonical,applied third
+clamp,0, 42.0,gemma-scope-2b-pt-res-canonical,layer_20/width_16k/canonical,applied fourth
+debug,0,0,gemma-scope-2b-pt-res-canonical,layer_20/width_16k/canonical,applied fifth
+add,12082,10000240.0,gemma-scope-2b-pt-res-canonical,layer_20/width_16k/canonical,applied first
