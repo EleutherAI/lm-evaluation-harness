@@ -116,7 +116,7 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
         self.to(device)  # Ensure model is on the correct device
 
     @classmethod
-    def from_dataframe(cls, dataframe, base_name:str, device:str='cuda:0'):
+    def from_dataframe(cls, df, base_name:str, device:str='cuda:0'):
         model = HookedSAETransformer.from_pretrained(base_name, device=device)
         original_saes = model.acts_to_saes
         assert original_saes == {} # There shouldn't be any SAEs to start
@@ -190,7 +190,7 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
         import pandas as pd
         df = pd.read_csv(csv_path)
 
-        return InterventionModel.from_dataframe(dataframe=df, base_name=base_name, device=device)
+        return InterventionModel.from_dataframe(df=df, base_name=base_name, device=device)
 
     def forward(self, *args, **kwargs):
         # Handle both input_ids and direct tensor inputs
