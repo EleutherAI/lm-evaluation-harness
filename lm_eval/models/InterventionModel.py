@@ -67,7 +67,7 @@ def clamp_original(sae_acts:Tensor, hook:HookPoint, latent_idx:int, value:float)
     Returns:
         Tensor: The modified SAE activations with the specified feature clamped
     """
-    
+    #import pdb;pdb.set_trace()
     mask = sae_acts[:, :, latent_idx] > 0  # Create a boolean mask where values are greater than 0
     sae_acts[:, :, latent_idx][mask] = value  # Replace values conditionally
 
@@ -116,6 +116,59 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
         self.to(device)  # Ensure model is on the correct device
 
     @classmethod
+    def from_dataframe(cls, dataframe, base_name:str, device:str='cuda:0'):
+        model = HookedSAETransformer.from_pretrained(base_name, device=device)
+        original_saes = model.acts_to_saes
+        assert original_saes == {} # There shouldn't be any SAEs to start
+        # Read steering configurations
+        # Create hooks for each row in the CSV
+        sae_cache = {}
+        # original_sae_hooks_cache = {}
+        def get_sae(sae_release, sae_id):
+            cache_key = (sae_release, sae_id)
+            if cache_key not in sae_cache:
+                sae_cache[cache_key] = SAE.from_pretrained(
+                    sae_release, sae_id, device=str(device)
+                )[0]
+                # original_sae_hooks_cache[cache_key] = sae_cache[cache_key]
+            return sae_cache[cache_key]
+
+        for _, row in df.iterrows():
+            sae_release = row["sae_release"]
+            sae_id = row["sae_id"]
+            latent_idx = int(row["latent_idx"])
+            steering_coefficient = float(row["steering_coefficient"])
+            sae = get_sae(sae_release=sae_release, sae_id=sae_id)
+            sae.use_error_term = True
+            sae.eval()
+            # Add the SAE to the model after configuring its hooks
+            model.add_sae(sae)
+            # First add all hooks to the SAE before adding it to the model
+            hook_action = row.get("hook_action", "add")
+            after_activation_fn = f"{sae.cfg.hook_name}.hook_sae_acts_post"
+            if hook_action == "add":
+                hook_name = f"{sae.cfg.hook_name}.hook_sae_input" # we aren't actually putting the input through the model
+                hook = partial(steering_hook_add_scaled_one_hot,
+                               sae=sae,
+                               latent_idx=latent_idx,
+                               steering_coefficient=steering_coefficient,
+                              )
+                model.add_hook(hook_name, hook)
+            elif hook_action == "clamp":
+                #import pdb;pdb.set_trace()
+                model.add_hook(after_activation_fn, partial(clamp_original, latent_idx=latent_idx, value=steering_coefficient))
+            elif hook_action == 'print':
+                model.add_hook(after_activation_fn, print_sae_acts)
+            elif hook_action == 'debug':
+                model.add_hook(after_activation_fn, debug_steer)
+            else:
+                raise ValueError(f"Unknown hook type: {hook_action}")
+            
+            
+        # Create and return the model
+        return cls(base_name=base_name, device=device, model=model)
+
+    @classmethod
     def from_csv(
         cls, csv_path: str, base_name: str, device: str = "cuda:0"
     ) -> "InterventionModel":
@@ -135,56 +188,9 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
             InterventionModel with configured steering hooks
         """
         import pandas as pd
-        model = HookedSAETransformer.from_pretrained(base_name, device=device)
-        original_saes = model.acts_to_saes
-        assert original_saes == {} # There shouldn't be any SAEs to start
-        # Read steering configurations
         df = pd.read_csv(csv_path)
-        
-        # Group SAEs by hook point
-        hook_groups = df.groupby(['sae_release', 'sae_id'])
-        sae_cache = {}
-        
-        for (sae_release, sae_id), group in hook_groups:
-            # Get or create SAE
-            cache_key = (sae_release, sae_id)
-            if cache_key not in sae_cache:
-                sae = SAE.from_pretrained(sae_release, sae_id, device=device)[0]
-                sae.use_error_term = True
-                sae.eval()
-                sae_cache[cache_key] = sae
-            else:
-                sae = sae_cache[cache_key]
-            
-            # Add SAE after configuring all its hooks
-            model.add_sae(sae)
-            # Add all hooks for this SAE
-            for _, row in group.iterrows():
-                latent_idx = int(row["latent_idx"])
-                steering_coefficient = float(row["steering_coefficient"])
-                hook_action = row.get("hook_action", "add")
-                
-                if hook_action == "add":
-                    hook_name = f"{sae.cfg.hook_name}.hook_sae_input"
-                    hook = partial(steering_hook_add_scaled_one_hot,
-                                 sae=sae,
-                                 latent_idx=latent_idx,
-                                 steering_coefficient=steering_coefficient)
-                    model.add_hook(hook_name, hook)
-                elif hook_action == "clamp":
-                    sae.add_hook("hook_sae_acts_post", 
-                               partial(clamp_original, 
-                                     latent_idx=latent_idx, 
-                                     value=steering_coefficient))
-                elif hook_action == 'print':
-                    sae.add_hook("hook_sae_acts_post", print_sae_acts)
-                elif hook_action == 'debug':
-                    sae.add_hook("hook_sae_acts_post", debug_steer)
-                else:
-                    raise ValueError(f"Unknown hook action: {hook_action}")
-            
-            
-        return cls(base_name=base_name, device=device, model=model)
+
+        return InterventionModel.from_dataframe(dataframe=df, base_name=base_name, device=device)
 
     def forward(self, *args, **kwargs):
         # Handle both input_ids and direct tensor inputs

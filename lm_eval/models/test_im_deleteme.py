@@ -1,3 +1,3 @@
 from InterventionModel import InterventionModel
 m = InterventionModel.from_csv(base_name='google/gemma-2-2b', csv_path='/home/cs29824/matthew/sae_jailbreak_unlearning/src/scripts/evaluation/lm-evaluation-harness/lm_eval/models/debug_steer.csv', device='cuda:1')
-m.generate('hi')
+m.generate('hi, this is a long text because we need the law of large numbers on our side in order to be able to trust that things will be positive a reasonable amount of the time; otherwise I get confused')
