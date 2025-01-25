@@ -2,7 +2,7 @@ dataset_path: cais/wmdp
 test_split: test
 training_split: null
 validation_split: null
-num_fewshot: 0
+num_fewshot: null # Changed from 0 to null because AMindToThink wants to evaluate fewshot even though it will use test set because he cares about comparisons not absolute performance
 output_type: multiple_choice
 doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
 doc_to_choice: ["A", "B", "C", "D"]
