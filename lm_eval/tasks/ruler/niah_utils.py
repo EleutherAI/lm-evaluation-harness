@@ -7,7 +7,7 @@ from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 from lm_eval.tasks.ruler.prepare_niah import generate_samples, get_haystack
 
 
-TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""
+TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nQuestion: What are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""
 
 
 def download_dataset(df: Generator) -> dict[str, datasets.Dataset]:
