@@ -80,7 +80,7 @@ class RWKVWRAPPER(HFLM):
                 )
                 return path
 
-            for pretrained in [
+            if pretrained in [
                 "RWKV-x070-Pile-168M-20241120-ctx4096",
                 "RWKV-x070-Pile-421M-20241127-ctx4096",
                 "RWKV-x070-Pile-1.47B-20241210-ctx4096",
@@ -90,6 +90,8 @@ class RWKVWRAPPER(HFLM):
                     filename=pretrained + ".pth",
                     local_dir="rwkv_model",
                 )
+            else:
+                raise ValueError(f"pretrained model {pretrained} not found")
 
             self._model = RWKV(model=f"rwkv_model/{pretrained}", strategy="cuda fp16")
             self._model.tie_weights = lambda: None
