@@ -52,7 +52,7 @@ The implementation is based on the paper "Histoires Morales: A French Dataset fo
 #### Tags
 
 * `moral_stories`: `Evaluation of the likelihoods of moral actions versus immoral actions. Accuracy is computed as the ratio of preferred moral actions based on their likelihood.`
-  
+
 #### Tasks
 
 * `moral_stories.yaml`
