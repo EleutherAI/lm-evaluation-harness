@@ -73,6 +73,24 @@ def clamp_original(sae_acts:Tensor, hook:HookPoint, latent_idx:int, value:float)
 
     return sae_acts
 
+def clamp_conditional(sae_acts:Tensor, hook:HookPoint, latent_idx:int, value:float, clamp_value:float) -> Tensor:
+    """Clamps a specific latent feature in the SAE activations to a fixed value.
+
+    Args:
+        sae_acts (Tensor): The SAE activations tensor, shape [batch, pos, features]
+        hook (HookPoint): The transformer-lens hook point
+        latent_idx (int): Index of the latent feature to clamp
+        value (float): Value to clamp the feature to
+
+    Returns:
+        Tensor: The modified SAE activations with the specified feature clamped
+    """
+    
+    mask = sae_acts[:, :, latent_idx] > clamp_value  # Create a boolean mask where values are greater than 0
+    sae_acts[:, :, latent_idx][mask] = value  # Replace values conditionally
+
+    return sae_acts
+
 def print_sae_acts(sae_acts:Tensor, hook:HookPoint) -> Tensor:
     """Clamps a specific latent feature in the SAE activations to a fixed value.
 
@@ -98,7 +116,7 @@ def debug_steer(sae_acts: Tensor, hook:HookPoint) -> Tensor:
 
 string_to_steering_function_dict : dict = {'add':steering_hook_add_scaled_one_hot, 
                                            'clamp':clamp_original,
-                                           'clamp'
+                                           'clamp_cond':clamp_conditional,
                                            'print':print_sae_acts,
                                            'debug':debug_steer,
                                            }
@@ -157,6 +175,8 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
             sae_id = row["sae_id"]
             latent_idx = int(row["latent_idx"])
             steering_coefficient = float(row["steering_coefficient"])
+            clamp_value = float(row['clamp_value'])
+
             sae = get_sae(sae_release=sae_release, sae_id=sae_id)
             sae.use_error_term = True
             sae.eval()
@@ -172,7 +192,8 @@ class InterventionModel(HookedSAETransformer):  # Replace with the specific mode
                 model.add_hook(hook_name, hook)
             elif hook_action == "clamp":
                 sae.add_hook("hook_sae_acts_post", partial(clamp_original, latent_idx=latent_idx, value=steering_coefficient))
-
+            elif hook_action == "clamp_cond":
+                sae.add_hook("hook_sae_acts_post", partial(clamp_conditional, latent_idx=latent_idx, value=steering_coefficient, clamp_value=clamp_value))
             elif hook_action == 'print':
                 sae.add_hook("hook_sae_acts_post", print_sae_acts)
             elif hook_action == 'debug':
