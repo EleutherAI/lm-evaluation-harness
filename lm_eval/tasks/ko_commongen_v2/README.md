@@ -6,7 +6,7 @@ Title: `KoCommonGEN v2: A Benchmark for Navigating Korean Commonsense Reasoning 
 
 Abstract: The paper presents KoCommonGEN v2, a benchmark for evaluating Korean commonsense reasoning in large language models. It was accepted to ACL 2024-Findings.
 
-Homepage: https://huggingface.co/datasets/nlpai-lab/ko_commongen_v2
+Homepage:
 
 ### Groups and Tasks
 

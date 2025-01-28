@@ -1,4 +1,3 @@
-task: ko_commongen_v2
 dataset_path: nlpai-lab/ko_commongen_v2_code_switching
 output_type: multiple_choice
 training_split: null
@@ -16,4 +15,3 @@ metric_list:
 num_fewshot: 0
 metadata:
   version: 0.0
-
