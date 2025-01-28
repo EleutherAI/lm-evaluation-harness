@@ -1,5 +1,3 @@
-tag:
-  - moral_stories
 task: moral_stories
 dataset_path: demelin/moral_stories
 dataset_name: full
