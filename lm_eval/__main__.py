@@ -170,9 +170,16 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--apply_chat_template",
-        action="store_true",
+        type=str,
+        nargs="?",
+        const=True,
         default=False,
-        help="If True, applies the chat template to the prompt",
+        help=(
+            "If True, apply chat template to the prompt. "
+            "Providing `--apply_chat_template` without an argument will apply the default chat template to the prompt. "
+            "To apply a specific template from the available list of templates, provide the template name as an argument. "
+            "E.g. `--apply_chat_template template_name`"
+        ),
     )
     parser.add_argument(
         "--fewshot_as_multiturn",
@@ -250,6 +257,11 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
+    parser.add_argument(
+        "--confirm_run_unsafe_code",
+        action="store_true",
+        help="Confirm that you understand the risks of running unsafe code for tasks that require it",
+    )
     return parser
 
 
@@ -289,14 +301,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
         raise ValueError(
-            "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
-        )
-
-    if (
-        args.num_fewshot is None or args.num_fewshot == 0
-    ) and args.fewshot_as_multiturn:
-        raise ValueError(
-            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
+            "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
         )
 
     if args.include_path is not None:
@@ -404,6 +409,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
+        confirm_run_unsafe_code=args.confirm_run_unsafe_code,
         **request_caching_args,
     )
 

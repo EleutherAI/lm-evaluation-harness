@@ -1,0 +1,39 @@
+{
+    "non_greedy_robustness":      {
+        "prompt": "Calculate the answer to this math problem\nProblem: {question}\nConclude your answer with:\nThe final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem."
+    },
+
+    "prompt_robustness": [
+        {
+            "prompt": "Efficiently solve the following math challenge. Explain your approach step-by-step\nThe answer should end with: The final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem\nProblem: {question}\nLets think step by step"
+        },
+        {
+            "prompt": "You should solve this math problem.\nIf the problem is easy, provide a brief solution with little explanation.\nFor more difficult problems, follow this structured format\n## Step 1: [Brief description]\n[Simple explanation and calculations]\n\n## Step 2: [Brief description]\n[Simple explanation and calculations]\n\nRepeat steps until your reach a solution\n\nProblem: {question}\nEnd with:\nThe final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem."
+        },
+        {
+            "prompt": "Solve this math problem. Your anwer should end with 'The final answer is: $\\boxed{{answer}}$' where [answer] is just the final number or expression that solves the problem\nProblem: {question}"
+        },
+        {
+            "prompt": "Analyze and solve the math task.\nProblem: {question}\nEnd the answer with:\nThe final answer is: $\\boxed{{answer}}$ where [answer] is just the final number or expression that solves the problem."
+        },
+        {
+            "prompt": "{question}\nFind the solution to this math problem. Your answer should end with - The final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem."
+        },
+        {
+            "prompt": "Calculate the answer to this math problem\nProblem: {question}\nConclude your answer with:\nThe final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem."
+        },
+        {
+            "prompt": "{question}\nPlease solve this math problem efficiently. Finish with: The final answer is: $\\boxed{{answer}}$ where [answer] is just the final number or expression that solves the problem."
+        },
+        {
+            "prompt": "{question}\nSolve the following math problem\nShow each step of your solution\nConclude with:\nThe final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem\nLets think step by step"
+        },
+        {
+            "prompt": "Find the answer to the following math question. Conclude with: 'The final answer is: $\\boxed{{answer}}$'\nwhere [answer] is just the final number or expression that solves the problem\nProblem: {question}"
+        },
+        {
+            "prompt": "Please solve the math problem. For simple problems offer a quick solution with minimal details. For more challenging problems, explain your approach step-by-step. Finish with\nThe final answer is: $\\boxed{{answer}}$.\nwhere [answer] is just the final number or expression that solves the problem.\nProblem: {question}\nLets think step by step."
+        }
+    ]
+
+}

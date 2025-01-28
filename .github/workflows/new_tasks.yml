@@ -16,7 +16,7 @@ jobs:
     name: Scan for changed tasks
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
 
@@ -47,7 +47,7 @@ jobs:
 
       - name: Set up Python 3.9
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.9
           cache: 'pip'
