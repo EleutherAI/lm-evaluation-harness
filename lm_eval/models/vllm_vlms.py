@@ -7,7 +7,12 @@ from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, replace_placeholders, undistribute
+from lm_eval.models.utils import (
+    Collator,
+    handle_stop_sequences,
+    replace_placeholders,
+    undistribute,
+)
 from lm_eval.models.vllm_causallms import VLLM
 from lm_eval.utils import eval_logger
 
@@ -139,7 +144,9 @@ class VLLM_VLM(VLLM):
             )
         return outputs
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt=True
+    ) -> str:
         self.chat_applied = True
         if not self.interleave:
             for content in chat_history:
@@ -189,7 +196,9 @@ class VLLM_VLM(VLLM):
                     )
 
         return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=True
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
     def generate_until(
@@ -225,7 +234,7 @@ class VLLM_VLM(VLLM):
             group_fn=lambda x: x[1],
         )
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
-
+        eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
@@ -241,27 +250,14 @@ class VLLM_VLM(VLLM):
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tokenizer.decode(self.eot_token_id)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -275,7 +271,9 @@ class VLLM_VLM(VLLM):
                 left_truncate_len=max_ctx_len,
             )
 
-            cont = self._model_generate(inputs, stop=until, generate=True, **kwargs)
+            cont = self._model_generate(
+                inputs, stop=until, generate=True, max_tokens=max_gen_toks, **kwargs
+            )
 
             for output, context in zip(cont, contexts):
                 generated_text = output.outputs[0].text

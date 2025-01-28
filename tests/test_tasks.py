@@ -1,6 +1,7 @@
 import os
 from itertools import islice
 
+import datasets
 import pytest
 
 import lm_eval.tasks as tasks
@@ -10,6 +11,7 @@ from lm_eval.evaluator_utils import get_task_list
 from .utils import new_tasks
 
 
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
 # Default Task
@@ -77,10 +79,19 @@ class TestNewTasks:
         )
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
-        assert all(
-            isinstance(x, str) and (x[-1] != " " if len(x) != 0 else True)
-            for x in _array
-        )
+        target_delimiter: str = task.config.target_delimiter
+        if not task.multiple_input:
+            for x in _array:
+                assert isinstance(x, str)
+                assert (
+                    (x[-1].isspace() is False if len(x) > 0 else True)
+                    if target_delimiter.isspace()
+                    else True
+                ), (
+                    "doc_to_text ends in a whitespace and target delimiter also a whitespace"
+                )
+        else:
+            pass
 
     def test_create_choices(self, task_class, limit):
         task = task_class
@@ -121,5 +132,11 @@ class TestNewTasks:
             if task.has_test_docs()
             else list(islice(task.validation_docs(), limit))
         )
-        requests = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
+        # ctx is "" for multiple input tasks
+        requests = [
+            task.construct_requests(
+                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
+            )
+            for doc in arr
+        ]
         assert len(requests) == limit if limit else True

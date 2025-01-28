@@ -29,9 +29,9 @@ class OptimumLM(HFLM):
     ) -> None:
         if "backend" in kwargs:
             # optimum currently only supports causal models
-            assert (
-                kwargs["backend"] == "causal"
-            ), "Currently, only OVModelForCausalLM is supported."
+            assert kwargs["backend"] == "causal", (
+                "Currently, only OVModelForCausalLM is supported."
+            )
 
         self.openvino_device = device
 
@@ -71,6 +71,11 @@ class OptimumLM(HFLM):
         else:
             model_kwargs["ov_config"] = {}
         model_kwargs["ov_config"].setdefault("CACHE_DIR", "")
+        if "pipeline_parallel" in model_kwargs:
+            if model_kwargs["pipeline_parallel"]:
+                model_kwargs["ov_config"]["MODEL_DISTRIBUTION_POLICY"] = (
+                    "PIPELINE_PARALLEL"
+                )
         model_file = Path(pretrained) / "openvino_model.xml"
         if model_file.exists():
             export = False
