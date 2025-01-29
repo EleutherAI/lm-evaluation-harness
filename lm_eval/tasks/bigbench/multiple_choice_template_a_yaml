@@ -1,3 +1,4 @@
+tag: bigbench_multiple_choice_a
 dataset_path: hails/bigbench
 dataset_kwargs:
   # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
