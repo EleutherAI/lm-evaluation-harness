@@ -225,7 +225,7 @@ class WandbLogger:
             instance = [x["arguments"][0][0] for x in data]
             labels = [x["arguments"][0][1] for x in data]
             resps = [
-                f'log probability of continuation is {x["resps"][0][0][0]} '
+                f"log probability of continuation is {x['resps'][0][0][0]} "
                 + "\n\n"
                 + "continuation will {} generated with greedy sampling".format(
                     "not be" if not x["resps"][0][0][1] else "be"
@@ -233,7 +233,7 @@ class WandbLogger:
                 for x in data
             ]
             filtered_resps = [
-                f'log probability of continuation is {x["filtered_resps"][0][0]} '
+                f"log probability of continuation is {x['filtered_resps'][0][0]} "
                 + "\n\n"
                 + "continuation will {} generated with greedy sampling".format(
                     "not be" if not x["filtered_resps"][0][1] else "be"

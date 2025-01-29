@@ -48,9 +48,9 @@ def escaped_split(text, sep_char, maxsplit=-1):
     is not specified or less than 0, then there is no limit on the
     number of splits (all possible splits are made).
     """
-    assert (
-        len(sep_char) == 1
-    ), "separation string must be a single character for escaped splitting"
+    assert len(sep_char) == 1, (
+        "separation string must be a single character for escaped splitting"
+    )
 
     if maxsplit == 0:
         return text
