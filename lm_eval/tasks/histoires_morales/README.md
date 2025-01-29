@@ -23,8 +23,8 @@ Norm-divergent path:
 6. Divergent action: An action by the actor that fulfills the intention but diverges from the norm.
 7. Divergent consequence: A possible effect of the divergent action on the actor’s environment.
 
-Histoires Morales is adapted to French from the widely used Moral Stories dataset. 
-We translated the Moral Stories dataset and refined these translations through manual annotations. 
+Histoires Morales is adapted to French from the widely used Moral Stories dataset.
+We translated the Moral Stories dataset and refined these translations through manual annotations.
 See paper for more details.
 
 Homepage: `https://huggingface.co/datasets/LabHC/histoires_morales`
