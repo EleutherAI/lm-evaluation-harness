@@ -1,5 +1,3 @@
-tag:
-  - histoires_morales
 task: histoires_morales
 dataset_path: LabHC/histoires_morales
 output_type: multiple_choice

@@ -42,7 +42,7 @@ Coming soon (accepted to NAACL 2025)
 
 #### Tags
 
-* `histoires_morales`: `Evaluation of the likelihoods of moral actions versus immoral actions. Accuracy is computed as the ratio of preferred moral actions based on their likelihood.`
+No tags, since there is a single task.
 
 #### Tasks
 
