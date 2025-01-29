@@ -1,5 +1,6 @@
 task: putnam_axiom_original
-dataset_path: kaifronsdal/Putnam-AXIOM
+# dataset_path: kaifronsdal/Putnam-AXIOM
+dataset_path: json
 process_docs: !function utils.process_docs
 dataset_name: original
 output_type: generate_until
@@ -20,9 +21,20 @@ metric_list:
 num_fewshot: 4
 metadata:
   version: 1.0
+# dataset_kwargs:
+#   trust_remote_code: true
 dataset_kwargs:
-  trust_remote_code: true
+  # data_files: 'putnam-axiom/data/Putnam_AXIOM_Original_v3.json'
+  data_files: putnam-axiom/data/Putnam_AXIOM_testSIngle.json
+# description: "Imagine three different experts are answering this question.
+# All experts will write down 1 step of their thinking,
+# then share it with the group.
+# Then all experts will go on to the next step, etc.
+# If any expert realises they're wrong at any point then they leave.
+# Simplify your answer as much as possible. Always give the final answer inside a \\boxed{answer}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct.
+# Here are some examples"
 description: "Given a mathematics question, compose a detailed solution. Simplify your answer as much as possible. Always give the final answer inside a \\boxed{answer}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct. Here are some examples:"
+# description: "Given a mathematics question, compose a detailed solution. Simplify your answer as much as possible. Always give the final answer inside a \\boxed{answer}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct."
 fewshot_config:
   sampler: first_n
   samples: !function utils.list_fewshot_samples
