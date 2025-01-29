@@ -456,6 +456,7 @@ class Task(abc.ABC):
                 ctx=fewshot_ctx,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
                 apply_chat_template=apply_chat_template,
+                chat_template=chat_template,
             )
 
             if not isinstance(inst, list):
@@ -1098,6 +1099,8 @@ class ConfigurableTask(Task):
         if apply_chat_template:
             if self.multiple_input:
                 # TODO: append prefill?
+                if not labeled_examples:
+                    return ""
                 return chat_template(labeled_examples)
             if isinstance(example, str):
                 self.append_target_question(
@@ -1350,6 +1353,7 @@ class ConfigurableTask(Task):
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
+        chat_template: Callable | None = kwargs.pop("chat_template", None)
 
         aux_arguments = None
 
@@ -1364,9 +1368,20 @@ class ConfigurableTask(Task):
                 target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
+                # apply chat_template to choices if apply_chat_template
                 cont = self.doc_to_target(doc)
+
                 arguments = [
-                    (ctx + choice, f"{target_delimiter}{cont}") for choice in choices
+                    (
+                        ctx
+                        + (
+                            chat_template([{"role": "user", "content": choice}])
+                            if apply_chat_template
+                            else choice
+                        ),
+                        f"{target_delimiter}{cont}",
+                    )
+                    for choice in choices
                 ]
             else:
                 # Otherwise they are placed in the continuation

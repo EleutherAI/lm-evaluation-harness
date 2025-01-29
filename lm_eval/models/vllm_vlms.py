@@ -271,7 +271,9 @@ class VLLM_VLM(VLLM):
                 left_truncate_len=max_ctx_len,
             )
 
-            cont = self._model_generate(inputs, stop=until, generate=True, **kwargs)
+            cont = self._model_generate(
+                inputs, stop=until, generate=True, max_tokens=max_gen_toks, **kwargs
+            )
 
             for output, context in zip(cont, contexts):
                 generated_text = output.outputs[0].text
