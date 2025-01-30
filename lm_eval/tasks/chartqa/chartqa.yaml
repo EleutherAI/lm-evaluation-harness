@@ -1,9 +1,9 @@
-dataset_path: MMMU/MMMU
-validation_split: validation
+dataset_path: HuggingFaceM4/ChartQA
+validation_split: test
 output_type: generate_until
 doc_to_image: image
 doc_to_text: |
-  {{question}}
+  <image>{{query}}
   Analyze the image and question carefully, using step-by-step reasoning.
   First, describe any image provided in detail. Then, present your reasoning. And finally your final answer in this format:
   Final Answer: <answer>
@@ -17,7 +17,6 @@ doc_to_text: |
   - If <answer> is an entity, it should include the full label from the graph.
   IMPORTANT: Remember, to end your answer with Final Answer: <answer>.
 doc_to_target: "{{ label[0] }}"
-#process_results: !function utils.process_results
 generation_kwargs:
   until: []
   temperature: 0.0
@@ -27,7 +26,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "Final Answer (\\-?[0-9\\.\\,]+).*"
+        regex_pattern: "Final Answer: (.+)$"
       - function: "take_first"
 metric_list:
   - metric: exact_match
