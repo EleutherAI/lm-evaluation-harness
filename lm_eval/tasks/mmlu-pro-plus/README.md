@@ -4,17 +4,17 @@
 
 Title: `MMLU-Pro+: Evaluating Higher-Order Reasoning and Shortcut Learning in LLMs`
 
-Abstract: `Existing benchmarks for large language models (LLMs) increasingly struggle to differentiate between 
-top-performing models, underscoring the need for more challenging evaluation frameworks. 
-We introduce MMLU-Pro+, an enhanced benchmark building upon MMLU-Pro to assess shortcut 
-learning and higher-order reasoning in LLMs. By incorporating questions with multiple 
-correct answers across diverse domains, MMLU-Pro+ tests LLMs' ability to engage in complex 
-reasoning and resist simplistic problem-solving strategies. Our results show that 
-MMLU-Pro+ maintains MMLU-Pro's difficulty while providing a more rigorous test of 
-model discrimination, particularly in multi-correct answer scenarios. 
+Abstract: `Existing benchmarks for large language models (LLMs) increasingly struggle to differentiate between
+top-performing models, underscoring the need for more challenging evaluation frameworks.
+We introduce MMLU-Pro+, an enhanced benchmark building upon MMLU-Pro to assess shortcut
+learning and higher-order reasoning in LLMs. By incorporating questions with multiple
+correct answers across diverse domains, MMLU-Pro+ tests LLMs' ability to engage in complex
+reasoning and resist simplistic problem-solving strategies. Our results show that
+MMLU-Pro+ maintains MMLU-Pro's difficulty while providing a more rigorous test of
+model discrimination, particularly in multi-correct answer scenarios.
 We introduce novel metrics like shortcut selection ratio and correct pair identification
-ratio, offering deeper insights into model behavior and anchoring bias. 
-Evaluations of six state-of-the-art LLMs reveal significant performance gaps, 
+ratio, offering deeper insights into model behavior and anchoring bias.
+Evaluations of six state-of-the-art LLMs reveal significant performance gaps,
 highlighting variations in reasoning abilities and bias susceptibility.`
 
 Homepage: https://github.com/asgsaeid/mmlu-pro-plus
