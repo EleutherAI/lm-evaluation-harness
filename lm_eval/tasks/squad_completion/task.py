@@ -44,7 +44,8 @@ class SQUADCompletion(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-
+        kwargs.pop("apply_chat_template", None)
+        kwargs.pop("chat_template", None)
         return [
             Instance(
                 request_type="generate_until",
