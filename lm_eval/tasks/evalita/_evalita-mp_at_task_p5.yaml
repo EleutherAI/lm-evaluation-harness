@@ -3,11 +3,14 @@ include: _at_template_yaml
 task: evalita-mp_at_prompt-5
 task_alias: prompt-5
 #doc_to_text: "Rispondi alla domanda a scelta multipla considerando le informazioni del testo seguente.\nTesto: {{background}}\nDomanda: {{domanda}}\nOpzioni: A: {{A}} B: {{B}} C: {{C}} D: {{D}}"
-doc_to_text: "Dato il seguente caso clinico: '{{background}}'. La risposta corretta alla domanda: '{{domanda}}' è:"
+#doc_to_text: "Dato il seguente caso clinico: '{{background}}'. La risposta corretta alla domanda: '{{domanda}}' è:"
+doc_to_text: "Dato il seguente quesito di medicina '{{Question}}' la risposta corretta è:"
 doc_to_choice: "{{[A,B,C,D,E]}}"
-doc_to_target: "{{ A if correct == 'A' else B if correct == 'B' else C if correct == 'C' else D if correct == 'D' else E}}"
+doc_to_target: "{{ A if Correct == 'A' else B if Correct == 'B' else C if Correct == 'C' else D if Correct == 'D' else E}}"
 metric_list:
   - metric: acc
+    higher_is_better: true
+  - metric: acc_norm
     higher_is_better: true
 metadata:
   version: 1
