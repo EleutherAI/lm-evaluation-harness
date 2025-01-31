@@ -21,10 +21,10 @@ generation_kwargs:
   do_sample: false
   temperature: 0.0
   max_new_tokens: 128
+repeats: 1
 filter_list:
   - name: "STRIP_ANSWER"
     filter:
       - function: "strip"
-repeats: 1
 metadata:
   version: 1.0
