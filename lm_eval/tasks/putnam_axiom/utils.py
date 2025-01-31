@@ -77,14 +77,17 @@ def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
 
     # Further processing if needed
     def _process_doc(doc: dict) -> dict:  
-    
-        out_doc = {
-            "problem": doc["problem"],
-            "solution": doc["solution"],
-            "answer": normalize_final_answer(
-                remove_boxed(last_boxed_only_string(doc["solution"]))
-            )
-        }
+
+        try:
+            out_doc = {
+                "problem": doc["problem"],
+                "solution": doc["solution"],
+                "answer": normalize_final_answer(
+                    remove_boxed(last_boxed_only_string(doc["solution"]))
+                )
+            }
+        except:
+            print(doc["problem"])
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
         return out_doc
@@ -138,9 +141,9 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    candidates = results[0]
-    # completion_output = results[0].outputs[0]
-    # candidates = completion_output.text
+    # candidates = results[0]
+    completion_output = results[0].outputs[0]
+    candidates = completion_output.text
     
     try:
         answer = ground_truth_boxed_answer(candidates)

@@ -24,8 +24,8 @@ metadata:
 # dataset_kwargs:
 #   trust_remote_code: true
 dataset_kwargs:
-  # data_files: 'putnam-axiom/data/Putnam_AXIOM_Original_v3.json'
-  data_files: putnam-axiom/data/Putnam_AXIOM_testSIngle.json
+  data_files: 'putnam-axiom/data/Putnam_AXIOM_Original_v3.json'
+  # data_files: putnam-axiom/data/Putnam_AXIOM_testSIngle.json
 # description: "Imagine three different experts are answering this question.
 # All experts will write down 1 step of their thinking,
 # then share it with the group.
