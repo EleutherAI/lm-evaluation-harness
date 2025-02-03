@@ -4,7 +4,10 @@ test_split: test
 fewshot_split: dev
 validation_split: dev
 doc_to_target: "{{ 0 if entailment == 'SI' else 1 }}"
-#doc_to_target: "{{ 'Sì' if entailment == 'SI' else 'No' }}"
 doc_to_choice: ["Sì", "No"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
 metadata:
-  version: 0.0
+  version: 1

@@ -8,5 +8,6 @@ metric_list:
   - metric: f1
     higher_is_better: true
     average: macro
+    aggregation: f1
 metadata:
   version: 1.0

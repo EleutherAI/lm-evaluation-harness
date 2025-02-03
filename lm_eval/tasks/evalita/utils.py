@@ -77,7 +77,6 @@ def ls_doc_to_target(x):
     """
     Generate the target for the lexical similarity task
     """
-    # all_answers = [(i["word"], i["count"]) for i in x["answers"]]
     if len(x["answers"]) == 0:
         return NO_SYN_STRING
     ans_str = ""
@@ -85,8 +84,6 @@ def ls_doc_to_target(x):
         ans_str += i["word"] + ", "
     if len(ans_str) != 0 and ans_str[-2] == ",":
         ans_str = ans_str[:-2]
-    # print(ans_str)
-
     return ans_str
 
 
@@ -120,16 +117,13 @@ def ls_process_results(doc, results):
     words, freqs = _ls_split_gold(gold_to_target)
     prec = 0
 
-    # eval_logger.debug(f"Result before processing {results}")
     # Considering a maximum of the first 10 synonyms
-    #results = split_text_with_regex(results[0], LS_SPLIT_REGEX)
     results = split_text_with_regex(results[0], LS_SPLIT_REGEX)
-    results = results[:min(10, len(results))]
-    # eval_logger.debug(f"Result after processing {results}")
-    
+    results = results[: min(10, len(results))]
+
     # Remove non-alphabetic characters from the word at the end of the list
     if results:  # Check if results is not empty
-        results[-1] = ''.join(char for char in results[-1] if char.isalpha())
+        results[-1] = "".join(char for char in results[-1] if char.isalpha())
 
     has_answ = 0 if len(results) == 0 else 1  # so we can compute |A|
     has_annotation = 0 if len(words) == 0 else 1  # so we can compute |T|
@@ -152,18 +146,6 @@ def ls_process_results(doc, results):
         prec = prec / Hi
     else:
         eval_logger.debug("H_i is 0")
-
-    # print everything to debug
-
-    # eval_logger.debug(f"gold_to_target {gold_to_target}")
-    # eval_logger.debug(f"prec {prec}")
-    # eval_logger.debug(f"words {words}")
-    # eval_logger.debug(f"freqs {freqs}")
-    # eval_logger.debug(f"Hi {Hi}")
-    # eval_logger.debug(f"ai {ai}")
-    # eval_logger.debug(f"matching_res {matching_res}")
-    # eval_logger.debug(f"results {results}")
-    # eval_logger.debug("=========")
 
     return {"f1": (prec, has_answ, has_annotation)}
 
@@ -201,9 +183,10 @@ def ner_doc_to_target(doc):
         return NO_ENT_STRING
     else:
         for e in ents:
-            targ_str += e["entity_text"] + NER_TYPE_SEPARATOR + e["type"] + NER_ENTITY_SEPARATOR
+            targ_str += (
+                e["entity_text"] + NER_TYPE_SEPARATOR + e["type"] + NER_ENTITY_SEPARATOR
+            )
     return targ_str[:-1]
-
 
 
 def ner_process_results(doc, results):
@@ -216,15 +199,11 @@ def ner_process_results(doc, results):
     raw_results = results[0]
     results = _ner_process_raw_output(raw_results)
 
-    # eval_logger.debug(f"results {results}")
-    # eval_logger.debug(f"gold {gold}")
-
     gold_labels = _ner_gold_to_target(gold)
     res_labels = [0] * len(gold_labels)
     matched_gold_idx = []
 
     if len(results) > len(gold):
-        # eval_logger.debug("Case when len(results) > len(gold)")
         for r in results:
             r_text = r[0]
             r_type = r[1]
@@ -282,7 +261,6 @@ def ner_process_results_v2(doc, results):
     matched_gold_idx = []
 
     if len(results) > len(gold):
-        # eval_logger.debug("Case when len(results) > len(gold)")
         for r in results:
             # print(r)
             r_text = r[0]
@@ -307,7 +285,6 @@ def ner_process_results_v2(doc, results):
         res_labels = [4]
         gold_labels = res_labels
     else:  # len(results) <= len(gold)
-        # print("Case when len(results) <= len(gold)")
         for r in results:
             r_text = r[0]
             r_type = r[1]
@@ -329,8 +306,6 @@ def ner_process_results_v2(doc, results):
                 res_labels[i] = 4
 
     assert len(gold_labels) == len(res_labels)
-    # print("gold_labels:", gold_labels)
-    # print("res_labels:", res_labels)
     return {"f1": (res_labels, gold_labels)}
 
 
@@ -385,7 +360,6 @@ def _ner_process_raw_output_v2(llm_result: str) -> list[tuple]:
 # ---------------------- RELATION EXTRACTION ----------------------
 
 
-
 def _rel_process_raw_output(llm_result: str) -> list[str]:
     if NO_REL_STRING in llm_result:
         return []
@@ -411,6 +385,7 @@ def _rel_process_raw_output(llm_result: str) -> list[str]:
 INTER_REL_SEPARATOR = "%"
 INTRA_REL_SEPARATOR = "$"
 NO_REL_STRING = "&&NOREL&&"
+
 
 def re_doc_to_target(doc):
     ents = doc["relations"]
@@ -458,139 +433,6 @@ def _extract_relations(results):
         relations.append((r_text1, r_text2))
     assert len(relations) == len(results)
     return relations
-
-
-
-
-# def rel_process_results(doc, results):
-#     """
-#     Process the results of the Relation extraction task
-#     """
-#     # each document has a list of relation with the following format:
-#     # [[text1, text2], [text3, text4]]
-#     gold = doc["relations"]
-#     raw_results = results[0]
-#     # raw_results = " Valerio Merola$PER%Guardia di Finanza$ORG"
-
-#     # gold = [["esame", "normale"], ["ecg", "brutto"], ["maremma", "toscana"]]
-#     # raw_results = "ecg$brutto%esame$normale"
-#     has_results = 0 if NO_REL_STRING in raw_results else 1
-#     has_gold = 1 if gold != [] else 0
-
-#     res_labels = []
-#     gold_labels = []
-
-#     if has_results == 0 and has_gold:
-#         # False negative
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = [0] * len(gold_labels)
-#     elif has_results == 0 and has_gold == 0:
-#         # True negative
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = gold_labels
-#     elif has_results and has_gold == 0:
-#         # False positive
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = [1] * len(gold_labels)
-#     else:
-#         results = raw_results.split(INTER_REL_SEPARATOR)
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = [0] * len(gold_labels)
-#         print("gold befre assert:", gold)
-#         assert len(gold) > 0
-#         if len(results) > len(gold):
-#             # Take the first n results --> order matters!
-#             results = results[: len(gold)]
-
-#         pred_rels = _extract_relations(results)
-#         # Here the check is done considering the order of the relations in the gold list
-#         # If the model correctly predicts all the relations but the order is wrong, the
-#         # result will be considered as false negative
-#         for i in range(len(results)):
-#             r_text1 = pred_rels[i][0]
-#             r_text2 = pred_rels[i][1]
-#             print("relations:", r_text1, r_text2)
-#             print("gold:", gold[i][0], gold[i][1])
-#             if r_text1 == gold[i][0] and r_text2 == gold[i][1]:  # list of lists
-#                 res_labels[i] = 1
-#             else:
-#                 res_labels[i] = 0
-
-#     assert len(gold_labels) == len(res_labels)
-#     print("gold_labels:", gold_labels)
-#     print("res_labels:", res_labels)
-#     return {"f1": (res_labels, gold_labels)}
-
-
-# def rel_process_results_v2(doc, results):
-#     """
-#     Process the results of the Relation extraction task not considering the order of the relation extracted
-#     """
-#     # each document has a list of relation with the following format:
-#     # [[text1, text2], [text3, text4]]
-#     gold = doc["relations"]
-#     raw_results = results[0]
-#     has_results = 0 if NO_REL_STRING in raw_results else 1
-#     has_gold = 1 if gold != [] else 0
-
-#     # debug purposes
-#     # gold = [["esame", "normale"], ["ecg", "brutto"], ["maremma", "toscana"]]
-#     # raw_results = "ecg$brutto%esame$Normale"
-
-#     res_labels = []
-#     gold_labels = []
-
-#     if has_results == 0 and has_gold:
-#         # False negative
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = [0] * len(gold_labels)
-#     elif has_results == 0 and has_gold == 0:
-#         # True negative
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = gold_labels
-#     elif has_results and has_gold == 0:
-#         # False positive
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = [1] * len(gold_labels)
-#     else:
-#         results = raw_results.split(INTER_REL_SEPARATOR)
-#         gold_labels = _rel_gold_to_target(gold)
-#         res_labels = [0] * len(gold_labels)
-#         print("gold befre assert:", gold)
-#         assert len(gold) > 0
-#         assert len(gold) > 0
-#         if len(results) > len(gold):
-#             # Take the first n results --> order matters!
-#             results = results[: len(gold)]
-
-#         pred_rels = _extract_relations(results)
-#         for i in range(len(gold)):
-#             # print("i:", i)
-#             # print("gold:", gold[i][0], gold[i][1])
-#             for j in range(len(pred_rels)):
-#                 r_text1 = pred_rels[j][0]
-#                 r_text2 = pred_rels[j][1]
-#                 # print("\tj:", j)
-#                 # print("\tpred:", r_text1, r_text2)
-#                 print("\tpred_rels[j]:", pred_rels)
-
-#                 if r_text1 == gold[i][0] and r_text2 == gold[i][1]:  # list of lists
-#                     res_labels[i] = 1
-#                     # print("\tres_labels", res_labels)
-#                     # print("\tfound")
-#                     pred_rels[j] = ("DELETED", "DELETED")
-#                 elif r_text1 == "DELETED" and r_text2 == "DELETED":
-#                     # print("\tres_labels", res_labels)
-#                     # print("\tdeleted")
-#                     continue
-#                 else:
-#                     pass
-#                     # print("\tres_labels", res_labels)
-#     # print("gold_labels:", gold_labels)
-#     # print("res_labels:", res_labels)
-
-#     assert len(gold_labels) == len(res_labels)
-#     return {"f1": (res_labels, gold_labels)}
 
 
 def rel_process_results_v3(doc, results):
@@ -659,7 +501,7 @@ def split_text_with_regex(text, pattern):
     """
     import re
 
-    # Get text with model-generated words for comparison with the gold standard 
+    # Get text with model-generated words for comparison with the gold standard
     text = text.split("\n")[0]
 
     # Find all matches for the pattern
@@ -731,5 +573,3 @@ def ht_doc_to_target(x):
         eval_logger.warning(
             'WARNING: source not found or not in ["ilgiornale", "repubblica"]'
         )
-
-

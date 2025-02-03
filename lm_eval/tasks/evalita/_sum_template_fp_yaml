@@ -3,11 +3,8 @@ output_type: generate_until
 generation_kwargs:
   until:
     - "</s>"
-  #do_sample: true
-  #temperature: 0.3
-
 test_split: test
 doc_to_target: "{{target}}"
 metadata:
-  version: 0.0
+  version: 1.0
 

@@ -2,8 +2,6 @@ tag: evalita-mp_sum_fp_tasks
 include: _sum_template_fp_yaml
 task: evalita-sp_sum_task_fp_p1
 task_alias: prompt-1
-#doc_to_text: >
-#  "Crea un sommario del seguente testo. Testo: {{source}}\nSommario: "
 doc_to_text: "Riassumi il seguente articolo di giornale: '{{source}}'\nRiassunto:"
 process_results: !function utils.process_results_sum
 metric_list:

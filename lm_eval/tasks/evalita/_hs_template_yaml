@@ -6,5 +6,4 @@ validation_split: dev
 doc_to_target: hs # 0 = Falso, 1 = Vero
 doc_to_choice: ["Falso", "Vero"]
 metadata:
-  version: 0.0
-
+  version: 1

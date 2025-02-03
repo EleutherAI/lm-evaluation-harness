@@ -5,4 +5,4 @@ doc_to_target: !function utils.faq_doc_to_target
 doc_to_choice: ["A", "B", "C", "D"]
 output_type: multiple_choice
 metadata:
-  version: 0.0
+  version: 1

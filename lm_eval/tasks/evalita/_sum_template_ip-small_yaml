@@ -7,5 +7,5 @@ test_split: test_100
 fewshot_split: dev
 doc_to_target: "{{target}}"
 metadata:
-  version: 0.0
+  version: 1
 

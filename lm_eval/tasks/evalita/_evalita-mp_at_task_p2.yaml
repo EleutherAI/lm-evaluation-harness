@@ -9,8 +9,10 @@ doc_to_choice: "{{[A,B,C,D,E]}}"
 doc_to_target: "{{ A if Correct == 'A' else B if Correct == 'B' else C if Correct == 'C' else D if Correct == 'D' else E}}"
 metric_list:
   - metric: acc
+    aggregation: mean
     higher_is_better: true
   - metric: acc_norm
+    aggregation: mean
     higher_is_better: true
 metadata:
   version: 1

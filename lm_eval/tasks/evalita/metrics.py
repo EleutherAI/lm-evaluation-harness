@@ -22,18 +22,15 @@ def _aggreg_ls(predictions):
     has_answ is 0 if the model did not produce any answer
     has_annotation is 0 if the gold answer is empty: no synonims from annotators
     """
-    # print("aggreg fn preds:", predictions)
     # get |A| and |T| to compute the final precision and recall using a lambda function
     A = sum([p[1] for p in predictions])
     T = sum([p[2] for p in predictions])
     # compute the final precision and recall
     if A == 0:
-        # TODO check if this is correct
         prec = sum([p[0] for p in predictions]) / 1
     else:
         prec = sum([p[0] for p in predictions]) / A
     if T == 0:
-        # TODO check if this is correct
         rec = sum([p[0] for p in predictions]) / 1
     else:
         rec = sum([p[0] for p in predictions]) / T
@@ -41,14 +38,6 @@ def _aggreg_ls(predictions):
     f1 = 0
     if prec + rec != 0:
         f1 = (2 * prec * rec) / (prec + rec)
-    # debug purposes
-
-    # print("prec:", [p[0] for p in predictions])
-    # print("A:", A)
-    # print("T:", T)
-    # print("prec final:", prec)
-    # print("rec final:", rec)
-    # print("f1 final:", f1)
     return f1
 
 
@@ -116,9 +105,6 @@ def _aggreg_sa(predictions):
     else:
         opos_f1_c1 = 0
 
-    # print("f1_c0:", opos_f1_c0)
-    # print("f1_c1:", opos_f1_c1)
-
     # oneg class
     oneg_prec_c0, oneg_prec_c1 = precision_score(
         ref_oneg, pred_oneg, labels=[0, 1], average=None
@@ -132,24 +118,6 @@ def _aggreg_sa(predictions):
         oneg_f1_c1 = f1_score(ref_oneg, pred_oneg, average=None)[1]
     else:
         oneg_f1_c1 = 0
-
-    """
-    opos_f1_c0 = f1_score(ref_opos, pred_opos, average=None)[0]
-    # TODO se limit == 1 qui fallisce, inserire try except
-    opos_f1_c1 = f1_score(ref_opos, pred_opos, average=None)[1]
-
-    print("f1_c0:", opos_f1_c0)
-    print("f1_c1:", opos_f1_c1)
-    # oneg class
-    oneg_prec_c0, oneg_prec_c1 = precision_score(
-        ref_oneg, pred_oneg, labels=[0, 1], average=None
-    )
-    oneg_rec_c0, oneg_rec_c1 = recall_score(
-        ref_oneg, pred_oneg, labels=[0, 1], average=None
-    )
-    oneg_f1_c0 = f1_score(ref_oneg, pred_oneg, average=None)[0]
-    oneg_f1_c1 = f1_score(ref_oneg, pred_oneg, average=None)[1]
-    """
 
     # average f1 score for each class (opos and oneg)
     f1_score_opos = (opos_f1_c0 + opos_f1_c1) / 2
@@ -179,10 +147,6 @@ def _aggreg_ner(predictions):
     return f1_sum
 
 
-def _aggreg_ht(predictions):
-    return headline_score(predictions)
-
-
 def _aggreg_rel(predictions):
     pred, ref = zip(*predictions)
     # concat all the predictions and references
@@ -197,81 +161,8 @@ def _aggreg_rel(predictions):
     return f1
 
 
-HEADLINE_CLASSIFIER_ID = "Hate-speech-CNERG/dehatebert-mono-italian"
-
-
-class HeadlineScorer:
-    def __init__(
-        self,
-        model_name_or_path: str,
-        device="cuda",  # if torch.cuda.is_available() elif ,
-        # torch_dtype=torch.bfloat16,
-        # use_lora: bool = False,
-    ):
-        # check if the device is available
-        if not torch.cuda.is_available():
-            if torch.backends.mps.is_available():
-                device = "mps"
-            else:
-                device = "cpu"
-
-        self.device = device
-
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            model_name_or_path  # , torch_dtype=torch_dtype
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-
-        # if use_lora:
-        #    self.config = PeftConfig.from_pretrained(model_name_or_path)
-        #    self.model = PeftModel.from_pretrained(self.model, model_name_or_path)
-
-        self.model.to(device).eval()
-
-    @inference_decorator()
-    def predict(self, texts, batch_size=4, num_workers=0):
-        data = Dataset.from_dict({"text": texts})
-        data = data.map(
-            lambda x: self.tokenizer(x["text"], truncation=True),
-            batched=True,
-            remove_columns=["text"],
-        )
-        collator = DataCollatorWithPadding(
-            self.tokenizer, pad_to_multiple_of=8, return_tensors="pt"
-        )
-        loader = torch.utils.data.DataLoader(
-            data,
-            batch_size=batch_size,
-            num_workers=num_workers,
-            collate_fn=collator,
-            pin_memory=True,
-        )
-
-        final_preds = list()
-        for step, batch in tqdm(
-            enumerate(loader), desc="Batch", total=len(texts) // batch_size
-        ):
-            batch.to(self.device)
-            outputs = self.model(**batch)
-            predictions = outputs.logits.argmax(dim=-1)
-            predictions = [self.model.config.id2label[i.item()] for i in predictions]
-            final_preds.extend(predictions)
-
-        return final_preds
-
-
-def headline_score(items):
-    references, predictions = list(zip(*items))
-    evaluator = HeadlineScorer(HEADLINE_CLASSIFIER_ID)
-    print("ht evaluator:", evaluator)
-    # preds = evaluator.predict(predictions)
-    # is_neutral = [True if p == "neutral" else False for p in preds]
-    # score = sum(is_neutral) / len(predictions)
-    score = -1
-    return score
-
-
 # ------------------------ DOCUMENT DATING ---------------------------
+
 
 def _aggreg_dd(items):
     unzipped_list = list(zip(*items))

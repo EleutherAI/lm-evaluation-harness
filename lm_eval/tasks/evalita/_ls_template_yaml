@@ -13,4 +13,4 @@ metric_list:
     higher_is_better: True
     aggregation: !function metrics._aggreg_ls
 metadata:
-  version: 1.0
+  version: 1

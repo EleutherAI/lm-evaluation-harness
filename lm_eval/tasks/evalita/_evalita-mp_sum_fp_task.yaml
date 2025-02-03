@@ -6,4 +6,4 @@ aggregate_metric_list:
   - metric: rouge1
     weight_by_size: True
 metadata:
-  version: 0.0
+  version: 1
