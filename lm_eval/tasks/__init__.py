@@ -14,6 +14,62 @@ from lm_eval.evaluator_utils import get_subtask_list
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
 
+def convert_mcq_to_generative(cfg: dict):
+    prompt = """Given the following question and candidate answers, choose the correct answer."""
+    if cfg.get("output_type", "generate_until") == "generate_until":
+        return cfg
+    else:
+        cfg["output_type"] = "generate_until"
+        cfg["doc_to_text"] = (
+            prompt
+            + cfg.get("doc_to_text", "")
+            + 'Your response should end with "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
+        )
+        cfg["generation_kwargs"] = ({"until": ["."], "max_gen_toks": 10},)
+        cfg["filter_list"] = (
+            [
+                {
+                    "name": "strict_match",
+                    "filter": [
+                        {"function": "remove_whitespace"},
+                        {"function": "take_first"},
+                    ],
+                }
+            ],
+        )
+    return cfg
+
+
+# def convert_mcq_to_generative(cfg: dict):
+#     Prompt = """Given the following question and candidate answers, choose the correct answer."""
+#     if cfg.get("output_type", "generate_until") == "generate_until":
+#         return cfg
+#     else:
+#         cfg["output_type"] = "generate_until"
+#         doc_to_text: str = cfg.get("doc_to_text", "")
+#         doc_to_choice = cfg.get("doc_to_choice")
+#         assert doc_to_choice is not None, "doc_to_choice is required!"
+#         if isinstance(doc_to_choice, str):
+#             doc_to_choice = doc_to_choice.replace("{", "").replace("}", "")
+#         if doc_to_text.lower().rfind("answer") != -1:
+#             doc_to_text = doc_to_text[:doc_to_text.lower().rfind(r"answer")].strip()
+#         elif doc_to_text.lower().rfind("a:") != -1:
+#             doc_to_text = doc_to_text[:doc_to_text.lower().rfind(r"a:")].strip()
+#
+#         cfg['doc_to_text'] = (
+#             f"{Prompt + '\n' + doc_to_text + '\n'}"
+#             "{% set letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] %}"
+#             f"{{% for choice in {doc_to_choice} %}}"
+#             "{{letters[loop.index0]}}. {{choice}}" + "\n"
+#             "{% endfor %}\n"
+#             """Your response should end with \"The best answer is [the_answer_letter]\" where the [the_answer_letter] is one of the answer letters."""
+#         )
+#         del cfg["doc_to_choice"]
+#         cfg["gen_prefix"] = "The answer is"
+#
+#     return cfg
+
+
 class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
     and an optional directory if provided.
@@ -277,6 +333,7 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = task
             else:
+                config = convert_mcq_to_generative(config)
                 task_object = ConfigurableTask(config=config)
 
             return {task: task_object}
