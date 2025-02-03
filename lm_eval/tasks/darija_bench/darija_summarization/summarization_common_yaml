@@ -25,6 +25,7 @@ repeats: 1
 filter_list:
   - name: "STRIP_ANSWER"
     filter:
-      - function: "strip"
+      - function: "custom"
+        filter_fn: !function utils.strip
 metadata:
   version: 1.0

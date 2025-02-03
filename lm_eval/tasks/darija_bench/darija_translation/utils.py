@@ -1,20 +1,12 @@
 import evaluate
 import datasets
-from lm_eval.api.filter import Filter
-from lm_eval.api.registry import register_filter
 
-@register_filter("strip")
-class Strip(Filter):
-    def __init__(self) -> None:
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    def apply(self, resps, docs):
-        """
-        Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
-        """
-        return map(lambda r: r[0].strip(), resps)
+    
+def strip(resps, docs):
+    """
+    Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
+    """
+    return map(lambda r: r[0].strip(), resps)
 
         
 def dr_fr(dataset: datasets.Dataset):
@@ -45,8 +37,6 @@ prompt_templates = {
             }
 
 def doc_to_text(doc):
-    # user_input = f"[INST] <<SYS>>\nأنت مساعد مفيد ومحترم وصادق. أجب دائما بأكبر قدر ممكن من المساعدة بينما تكون آمنا.  يجب ألا تتضمن إجاباتك أي محتوى ضار أو غير أخلاقي أو عنصري أو جنسي أو سام أو خطير أو غير قانوني. يرجى التأكد من أن ردودك غير متحيزة اجتماعيا وإيجابية بطبيعتها.\n\nإذا كان السؤال لا معنى له أو لم يكن متماسكا من الناحية الواقعية، اشرح السبب بدلا من الإجابة على شيء غير صحيح. إذا كنت لا تعرف إجابة سؤال ما، فيرجى عدم مشاركة معلومات خاطئة.\n<</SYS>>\n\n{0} [/INST]"
-    # doc_text = user_input.format(doc["messages"][0]["content"])
     doc_text = doc["messages"][0]["content"]
     return doc_text
 

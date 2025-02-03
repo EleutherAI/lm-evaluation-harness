@@ -21,7 +21,8 @@ generation_kwargs:
 filter_list:
   - name: "STRIP_ANSWER"
     filter:
-      - function: "strip"
+      - function: "custom"
+        filter_fn: !function utils.strip
 repeats: 1
 metadata:
   version: 1.0

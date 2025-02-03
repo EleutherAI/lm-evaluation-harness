@@ -1,20 +1,11 @@
 import evaluate
 import datasets
-from lm_eval.api.filter import Filter
-from lm_eval.api.registry import register_filter
 
-@register_filter("strip")
-class Strip(Filter):
-    def __init__(self) -> None:
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    def apply(self, resps, docs):
-        """
-        Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
-        """
-        return map(lambda r: r[0].strip(), resps)
+def strip(resps, docs):
+    """
+    Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
+    """
+    return map(lambda r: r[0].strip(), resps)
 
 
 def doc_to_text(doc):
