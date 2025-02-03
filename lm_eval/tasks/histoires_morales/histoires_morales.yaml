@@ -1,6 +1,5 @@
-task: moral_stories
-dataset_path: demelin/moral_stories
-dataset_name: full
+task: histoires_morales
+dataset_path: LabHC/histoires_morales
 output_type: multiple_choice
 test_split: train
 process_docs: !function utils.process_docs
