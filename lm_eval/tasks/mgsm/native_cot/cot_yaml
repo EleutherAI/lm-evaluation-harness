@@ -28,4 +28,4 @@ filter_list:
         regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)"
       - function: "take_first"
 metadata:
-  version: 3.0
+  version: 4.0

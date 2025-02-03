@@ -1,3 +1,4 @@
 dataset_name: maritime_engineering
 include: _direct_hard_kmmlu_yaml
-task: kmmlu_hard_direct_maritime_engineering
+task: kmmlu_direct_hard_maritime_engineering
+tag: kmmlu_direct_hard_applied_science_tasks

@@ -1,0 +1,20 @@
+dataset_path: "QCRI/AraDICE-ArabicMMLU-egy"
+fewshot_config:
+  sampler: default
+output_type: multiple_choice
+process_docs: !function utils.process_docs
+doc_to_text: "{{prompt}}"
+doc_to_choice: choices
+doc_to_target: target
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    higher_is_better: true
+    aggregation: !function metrics.micro_f1_score
+metadata:
+  version: 0.0

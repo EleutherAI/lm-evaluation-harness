@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "mmlu_pro_llama_engineering"
+task_alias: "engineering"
+process_docs: !function utils.process_engineering
