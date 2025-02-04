@@ -22,9 +22,13 @@ def convert_mcq_to_generative(cfg: dict):
         cfg["output_type"] = "generate_until"
         cfg["doc_to_text"] = (
             prompt
+            + "\n"
             + cfg.get("doc_to_text", "")
+            + "\n"
             + 'Your response should end with "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
         )
+        cfg["target_delimiter"] = "\n\n"
+        cfg["gen_prefix"] = "The best answer is"
         cfg["generation_kwargs"] = {"until": ["."], "max_gen_toks": 10}
         cfg["filter_list"] = [
             {
