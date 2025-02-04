@@ -83,4 +83,5 @@ fewshot_config:
       증가하면, 전자기파의 세기는 1/r^2배 감소합니다.  , 거리가 2배가 되면, 전자기파의 세기는 1/4배가 됩니다. 그리고 전력 밀도는
       전기장과 자기장의 제곱에 비례하므로, 거리가 2배가 되면 전력 밀도는 1/4배가 됩니다. 따라서, 정답은 (D) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_telecommunications_and_wireless_technology
+task: kmmlu_cot_hard_telecommunications_and_wireless_technology
+tag: kmmlu_cot_hard_applied_science_tasks

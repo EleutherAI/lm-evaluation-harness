@@ -1,0 +1,8 @@
+group: kmmlu_hard_humss
+task:
+  - kmmlu_hard_humss_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2.0

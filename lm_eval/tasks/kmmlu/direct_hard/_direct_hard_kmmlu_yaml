@@ -1,6 +1,3 @@
-tag:
-    - kmmlu
-    - kmmlu_hard_direct
 dataset_path: HAERAE-HUB/KMMLU-HARD
 output_type: generate_until
 test_split: test

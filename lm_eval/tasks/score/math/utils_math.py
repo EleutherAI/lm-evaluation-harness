@@ -34,6 +34,7 @@ from lm_eval.utils import eval_logger
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 
 PROMPT_ROBUSTNESS_TEMPLATE_KEY = "prompt_robustness"
+NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY = "non_greedy_robustness"
 
 math_robustness_doc_to_text = robustness_doc_to_text
 
@@ -141,8 +142,17 @@ def prompt_robustness_process_docs(doc: datasets.Dataset) -> datasets.Dataset:
     doc = process_docs(doc)
     return utils.process_docs_add_prompts(
         doc,
-        PROMPT_ROBUSTNESS_TEMPLATE_KEY,
-        TEMPLATE_FILE_PATH,
+        templates_key=PROMPT_ROBUSTNESS_TEMPLATE_KEY,
+        template_file_path=TEMPLATE_FILE_PATH,
+    )
+
+
+def non_greedy_robustness_process_docs(doc: datasets.Dataset) -> datasets.Dataset:
+    doc = process_docs(doc)
+    return utils.non_greedy_robustness_process_docs(
+        doc,
+        templates_key=NON_GREEDY_ROBUSTNESS_TEMPLATE_KEY,
+        template_file_path=TEMPLATE_FILE_PATH,
     )
 
 
@@ -161,6 +171,13 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         "consistency_rate": (doc["question_id"], answer),
     }
     return results
+
+
+def non_greedy_robustness_process_results(
+    doc: dict, results: List[str]
+) -> Dict[str, int]:
+    answer = extract_answer(results[0])
+    return {"non_greedy_accuracy": (doc["question_id"], answer, doc["answer"], None)}
 
 
 def per_prompt_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
@@ -233,3 +250,19 @@ def math_prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
     question_answers_list = [answers for answers in question_answers_dict.values()]
 
     return calculate_consistency_rate(question_answers_list)
+
+
+def non_greedy_accuracy(results: List[Dict[str, Any]]) -> float:
+    accuracies = []
+    for result in results:
+        question_id, final_answer, gt, _ = result
+        if math_equal(final_answer, gt):
+            retval = 1
+        else:
+            retval = 0
+        accuracies.append(retval)
+
+    accuracy = sum(accuracies) / len(accuracies)
+    eval_logger.info(f"Non greedy accuracy: {accuracy}")
+
+    return np.round(accuracy, 4)

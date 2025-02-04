@@ -21,7 +21,9 @@ HASH_PREFIX = hashlib.sha256(HASH_INPUT.encode("utf-8")).hexdigest()
 FILE_SUFFIX = f".{HASH_PREFIX}.pickle"
 
 
-def load_from_cache(file_name):
+def load_from_cache(file_name: str, cache: bool = False):
+    if not cache:
+        return
     try:
         path = f"{PATH}/{file_name}{FILE_SUFFIX}"
 

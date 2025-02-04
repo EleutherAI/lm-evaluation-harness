@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.5"
+version = "0.4.7"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",

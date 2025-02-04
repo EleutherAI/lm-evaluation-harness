@@ -1,10 +1,23 @@
 from functools import partial
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 
 import datasets
 
 
+if TYPE_CHECKING:
+    from random import Random
+
+    from lm_eval.api.task import ConfigurableTask, Task
+
+
 class ContextSampler:
-    def __init__(self, docs, task, fewshot_indices=None, rnd=None) -> None:
+    def __init__(
+        self,
+        docs: list[dict],
+        task: Union["Task", "ConfigurableTask"],
+        fewshot_indices: Optional[Iterable] = None,
+        rnd: Optional["Random"] = None,
+    ) -> None:
         self.rnd = rnd
         if not self.rnd:
             raise ValueError(
@@ -58,8 +71,9 @@ class ContextSampler:
                 )
             self.docs = self.docs.select(fewshot_indices)
 
-    def get_context(self, doc, num_fewshot):
+    def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str = None):
         # draw an extra fewshot sample if using same split as evaluating on
+        prefix = gen_prefix + " " if gen_prefix else ""
         n_samples = (
             num_fewshot + 1
             if self.config.fewshot_split == self.config.test_split
@@ -77,14 +91,14 @@ class ContextSampler:
         for doc in selected_docs:
             doc_content = self.doc_to_text(doc)
             doc_target = self.doc_to_target(doc)
-            labeled_examples += (
-                doc_content
-                if self.config.doc_to_choice is None or isinstance(doc_content, str)
-                else self.doc_to_choice(doc)[doc_content]
-            )
+            if self.config.doc_to_choice is None or isinstance(doc_content, str):
+                labeled_examples += doc_content
+            else:
+                labeled_examples += self.doc_to_choice(doc)[doc_content]
 
             if doc_target != "":
                 labeled_examples += self.target_delimiter
+                labeled_examples += prefix
                 labeled_examples += (
                     str(doc_target[0])
                     if isinstance(doc_target, list)
@@ -98,10 +112,13 @@ class ContextSampler:
 
     def get_chat_context(
         self,
-        doc,
-        num_fewshot,
+        doc: dict,
+        num_fewshot: int,
         fewshot_as_multiturn: bool = False,
+        gen_prefix: Optional[str] = None,
     ):
+        # TODO: Do we need any other delimiter
+        prefix = gen_prefix + " " if gen_prefix else ""
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
@@ -132,23 +149,28 @@ class ContextSampler:
                 chat_history.append(
                     {
                         "role": "assistant",
-                        "content": str(doc_target[0])
+                        "content": prefix + str(doc_target[0])
                         if isinstance(doc_target, list)
-                        else doc_target
+                        else prefix + doc_target
                         if self.config.doc_to_choice is None
                         or isinstance(doc_target, str)
-                        else str(self.doc_to_choice(doc)[doc_target]),
+                        else prefix + str(self.doc_to_choice(doc)[doc_target]),
                     }
                 )
         else:
             # get fewshot context as one user turn
             chat_history.append(
-                {"role": "user", "content": self.get_context(doc, num_fewshot)}
+                {
+                    "role": "user",
+                    "content": self.get_context(
+                        doc, num_fewshot, gen_prefix=gen_prefix
+                    ),
+                }
             )
 
         return chat_history
 
-    def sample(self, n):
+    def sample(self, n: int):
         """
         Draw `n` samples from our fewshot docs. This method should be overridden by subclasses.
         """
@@ -157,19 +179,19 @@ class ContextSampler:
 
 
 class FirstNSampler(ContextSampler):
-    def sample(self, n) -> None:
+    def sample(self, n: int) -> None:
         """
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        assert (
-            n <= len(self.docs)
-        ), f"Error: number of fewshot samples requested exceeds the {len(self.docs)} that are available."
+        assert n <= len(self.docs), (
+            f"Error: number of fewshot samples requested exceeds the {len(self.docs)} that are available."
+        )
         return self.docs[:n]
 
 
 class BalancedSampler(ContextSampler):
-    def sample(self, n) -> None:
+    def sample(self, n: int) -> None:
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples.
         TODO: what order should they be in? maybe random?
@@ -179,7 +201,7 @@ class BalancedSampler(ContextSampler):
 
 
 class ManualSampler(ContextSampler):
-    def sample(self, n) -> None:
+    def sample(self, n: int) -> None:
         """ """
         pass
 
@@ -190,7 +212,7 @@ SAMPLER_REGISTRY = {
 }
 
 
-def get_sampler(name):
+def get_sampler(name: str):
     try:
         return SAMPLER_REGISTRY[name]
     except KeyError:

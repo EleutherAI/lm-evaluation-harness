@@ -85,4 +85,5 @@ fewshot_config:
       요인이 아닙니다.  , 태양광발전 모듈의 I-V 특성곡선에서 일사량에 따라 가장 많이 변화하는 것은 전류입니다. 따라서, 정답은 (B)
       입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_energy_management
+task: kmmlu_cot_hard_energy_management
+tag: kmmlu_cot_hard_applied_science_tasks

@@ -1,0 +1,19 @@
+group: kobest
+task:
+  - kobest_boolq
+  - kobest_copa
+  - kobest_hellaswag
+  - kobest_sentineg
+  - kobest_wic
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+  - metric: f1
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

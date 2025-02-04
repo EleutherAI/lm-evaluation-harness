@@ -75,7 +75,7 @@ LANGUAGES = {
     },
     "ja": {  # Japanese
         # "QUESTION": "問題:",
-        "QUESTION": "\u554f\u984c:",
+        "QUESTION": "\u554f\u984c：",
         # "ANSWER": "ステップごとの答え:",
         "ANSWER": "\u30b9\u30c6\u30c3\u30d7\u3054\u3068\u306e\u7b54\u3048:",
         "DIRECT": "Answer:",
@@ -84,7 +84,7 @@ LANGUAGES = {
     },
     "zh": {  # Chinese
         # "QUESTION": "问题:",
-        "QUESTION": "\u95ee\u9898:",
+        "QUESTION": "\u95ee\u9898：",
         # "ANSWER": "逐步解答:",
         "ANSWER": "\u9010\u6b65\u89e3\u7b54:",
         "DIRECT": "Answer:",

@@ -83,4 +83,5 @@ fewshot_config:
       압축비가 9입니다. 이를 식에 대입하여 연소실 체적을 계산해 보겠습니다. 행정체적 = 240 압축비 = 9 연소실_체적 = 행정체적 /
       (압축비 - 1) = 240 / 8 = 30 연소실의 체적은 30cc입니다. 따라서, 정답은 (B) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_construction
+task: kmmlu_cot_hard_construction
+tag: kmmlu_cot_hard_other_tasks

@@ -113,13 +113,17 @@ class LM(abc.ABC):
         """
         pass
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt=True
+    ) -> str:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
 
         :param chat_history: list[dict[str, str]]
             A list of dictionaries with keys 'role' and 'content'.
             Values are strings representing the role name and the content of the message, respectively.
+        :param add_generation_prompt: bool
+            Whether to append an assistant gen prefix (for e.g. <|assistant|>) to the assistant messages in the chat history. False if prefilling an assistant message.
         :return: str
             A string representing the chat history in a format that can be used as input to the LM.
         """

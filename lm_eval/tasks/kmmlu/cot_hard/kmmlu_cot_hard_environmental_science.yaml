@@ -82,4 +82,5 @@ fewshot_config:
       전통적인 구성요소는 아닙니다. 과정분석은 보다 일반적인 용어로, 다양한 맥락에서 사용될 수 있습니다. (D) 목록분석 (Inventory
       Analysis): 이 역시 LCA의 핵심 단계 중 하나입니다. 따라서, 정답은 (C) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_environmental_science
+task: kmmlu_cot_hard_environmental_science
+tag: kmmlu_cot_hard_applied_science_tasks

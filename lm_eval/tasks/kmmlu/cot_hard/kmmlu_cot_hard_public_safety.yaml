@@ -90,4 +90,5 @@ fewshot_config:
       산업안전ᆞ보건과 관련된 그 밖의 사항  , 선택지 중에서 산업안전보건위원회의 심의ᆞ의결을 거치지 않아도 되는 사항은 (B) 안전ᆞ보건과
       관련된 안전장치 구입 시의 적격품 여부 확인에 관한 사항입니다. 따라서, 정답은 (B) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_public_safety
+task: kmmlu_cot_hard_public_safety
+tag: kmmlu_cot_hard_other_tasks

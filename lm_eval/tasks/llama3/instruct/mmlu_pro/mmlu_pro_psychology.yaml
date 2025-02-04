@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "mmlu_pro_llama_psychology"
+task_alias: "psychology"
+process_docs: !function utils.process_psychology

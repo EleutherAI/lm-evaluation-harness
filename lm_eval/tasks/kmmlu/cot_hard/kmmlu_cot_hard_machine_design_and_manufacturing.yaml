@@ -83,4 +83,5 @@ fewshot_config:
       선택지는 해칭이 주된 중심선 또는 단면도의 주된 외형선에 대하여 90℃ 기울기로 그린다는 내용인데, 이는 잘못된 내용입니다. 일반적으로
       해칭은 45도 기울기로 그려집니다.  , 이 선택지는 해칭의 일반적인 원칙을 잘못 설명하고 있습니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_machine_design_and_manufacturing
+task: kmmlu_cot_hard_machine_design_and_manufacturing
+tag: kmmlu_cot_hard_applied_science_tasks

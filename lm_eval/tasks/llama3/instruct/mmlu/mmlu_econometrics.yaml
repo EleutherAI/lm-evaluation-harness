@@ -1,0 +1,5 @@
+"dataset_name": "econometrics"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_social_sciences_tasks"
+"task": "mmlu_llama_econometrics"
+"task_alias": "econometrics"

@@ -98,4 +98,5 @@ fewshot_config:
       (D) 아르곤: 아르곤도 불활성 기체로, 지방질에 용해되거나 마취 효과를 나타내지 않습니다. 아르곤은 주로 산업 공정에서 보호 가스로 사용됩니다.
       따라서, 정답은 (B) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_maritime_engineering
+task: kmmlu_cot_hard_maritime_engineering
+tag: kmmlu_cot_hard_applied_science_tasks

@@ -95,4 +95,5 @@ fewshot_config:
       + ω2019 입니다.  , ω^2017 + ω^2019 = ω + 1 입니다. 주어진 식에 ω + 1을 대입하면 ω + 1 + ω +
       1 + 1 + 1이 됩니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_math
+task: kmmlu_cot_hard_math
+tag: kmmlu_cot_hard_stem_tasks

@@ -1,0 +1,5 @@
+"dataset_name": "conceptual_physics"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_stem_tasks"
+"task": "mmlu_llama_conceptual_physics"
+"task_alias": "conceptual physics"

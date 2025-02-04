@@ -15,5 +15,6 @@
 group: score_robustness_math
 task:
   - score_prompt_robustness_math
+  - score_non_greedy_robustness_math
 metadata:
   version: 1.0

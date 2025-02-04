@@ -488,7 +488,7 @@ class EvaluationTracker:
         else:
             dataset_summary += f"{self.general_config_tracker.model_name}\n"
         dataset_summary += (
-            f"The dataset is composed of {len(card_metadata)-1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
+            f"The dataset is composed of {len(card_metadata) - 1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
             f"The dataset has been created from {len(results_files)} run(s). Each run can be found as a specific split in each "
             'configuration, the split being named using the timestamp of the run.The "train" split is always pointing to the latest results.\n\n'
             'An additional configuration "results" store all the aggregated results of the run.\n\n'
@@ -501,7 +501,7 @@ class EvaluationTracker:
             )
         dataset_summary += (
             "## Latest results\n\n"
-            f'These are the [latest results from run {latest_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
+            f"These are the [latest results from run {latest_datetime}]({last_results_file_path.replace('/resolve/', '/blob/')}) "
             "(note that there might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
             'You find each in the results and the "latest" split for each eval):\n\n'
             f"```python\n{results_string}\n```"

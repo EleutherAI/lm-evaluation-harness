@@ -37,6 +37,7 @@ Prompting / in-context formatting options:
 - **doc_to_choice** (`Union[Callable, str]`, *optional*) — Jinja2 template, string, or function to process a sample into a list of possible string choices for `multiple_choice` tasks. Left undefined for `generate_until` tasks.
 - **fewshot_delimiter** (`str`, *optional*, defaults to "\n\n") — String to insert between few-shot examples.
 - **target_delimiter** (`str`, *optional*, defaults to `" "`) — String to insert between input and target output for the datapoint being tested.
+- **assistant_prefill** (`str`, *optional*) — String to append after the <|assistant|> token. For example, if the task is to generate a question, the assistant_prefill could be "The answer is: " to prompt the model to generate an answer to the question. If not using a chat template then this string will be appended to the end of the prompt.
 
 Runtime configuration options:
 - **num_fewshot** (`int`, *optional*, defaults to 0) — Number of few-shot examples before the input.

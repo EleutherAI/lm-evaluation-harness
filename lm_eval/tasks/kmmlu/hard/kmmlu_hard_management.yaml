@@ -1,3 +1,4 @@
 dataset_name: management
 include: _hard_kmmlu_yaml
 task: kmmlu_hard_management
+tag: kmmlu_hard_humss_tasks

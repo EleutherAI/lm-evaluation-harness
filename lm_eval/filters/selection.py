@@ -34,9 +34,9 @@ class TakeKFilter(Filter):
         # need resp to be subscriptable to check below
         resps = list(resps)
         # check we have at least k responses per doc, else we can't take the first k
-        assert (
-            len(resps[0]) >= self.k
-        ), f"Need at least {self.k} responses per doc to take first {self.k}, but got {len(resps[0])} only! Please increase TaskConfig.repeats ."
+        assert len(resps[0]) >= self.k, (
+            f"Need at least {self.k} responses per doc to take first {self.k}, but got {len(resps[0])} only! Please increase TaskConfig.repeats ."
+        )
         return map(lambda r: r[: self.k], resps)
 
 

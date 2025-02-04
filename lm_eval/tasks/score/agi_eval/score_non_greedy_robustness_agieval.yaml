@@ -1,0 +1,31 @@
+# Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+group: score_non_greedy_robustness_agieval
+task:
+  - non_greedy_robustness_agieval_aqua_rat
+  - non_greedy_robustness_agieval_logiqa_en
+  - non_greedy_robustness_agieval_lsat_ar
+  - non_greedy_robustness_agieval_lsat_lr
+  - non_greedy_robustness_agieval_lsat_rc
+  - non_greedy_robustness_agieval_sat_en
+  - non_greedy_robustness_agieval_sat_math
+
+aggregate_metric_list:
+  - metric: non_greedy_accuracy
+    aggregation: mean
+    weight_by_size: true
+
+metadata:
+  version: 1.0

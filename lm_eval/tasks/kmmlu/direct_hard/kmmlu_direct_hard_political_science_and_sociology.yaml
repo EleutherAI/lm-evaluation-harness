@@ -1,3 +1,4 @@
 dataset_name: political_science_and_sociology
 include: _direct_hard_kmmlu_yaml
-task: kmmlu_hard_direct_political_science_and_sociology
+task: kmmlu_direct_hard_political_science_and_sociology
+tag: kmmlu_direct_hard_humss_tasks

@@ -7,7 +7,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 ### Context: {doc["context"]}
 ### Question: {doc["question"]}
 ### Options:
-(1) {doc['option#1']}\n(2) {doc["option#2"]}\n(3) {doc["option#3"]}\n(4) {doc['option#4']}\n(5) {doc['option#5']}
+(1) {doc["option#1"]}\n(2) {doc["option#2"]}\n(3) {doc["option#3"]}\n(4) {doc["option#4"]}\n(5) {doc["option#5"]}
 ### Answer: 주어진 문제의 정답은"""
 
         out_doc = {

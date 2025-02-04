@@ -1,3 +1,4 @@
 dataset_name: Agricultural-Sciences
 include: _direct_kmmlu_yaml
 task: kmmlu_direct_agricultural_sciences
+tag: kmmlu_direct_other_tasks

@@ -90,4 +90,5 @@ fewshot_config:
       이는 사회복지정책의 본질적인 목표와 원칙을 반영하지 못하고 있습니다. 사회복지정책은 능력이 아닌 필요에 따라 지원을 하는 것이 원칙이며,
       이를 통해 사회적 불평등을 해소하고 모든 사람이 기본적인 생활을 유지할 수 있도록 지원하는 것이 목표입니다. 따라서, 정답은 (B) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_social_welfare
+task: kmmlu_cot_hard_social_welfare
+tag: kmmlu_cot_hard_humss_tasks

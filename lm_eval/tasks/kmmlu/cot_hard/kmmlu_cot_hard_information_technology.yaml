@@ -80,4 +80,5 @@ fewshot_config:
       피어스 B-E형 발진 회로에서는 컬렉터-이미터 간의 임피던스가 유도성일 때 가장 안정한 발진을 지속할 수 있습니다. 따라서, 정답은 (B)
       입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_information_technology
+task: kmmlu_cot_hard_information_technology
+tag: kmmlu_cot_hard_stem_tasks

@@ -91,4 +91,5 @@ fewshot_config:
       시험체의 두께 t를 계산하면 다음과 같습니다. t = v / (2f) = 4800 / (2 * 2 * 10^6) = 0.0012m = 1.2mm
       따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_nondestructive_testing
+task: kmmlu_cot_hard_nondestructive_testing
+tag: kmmlu_cot_hard_applied_science_tasks

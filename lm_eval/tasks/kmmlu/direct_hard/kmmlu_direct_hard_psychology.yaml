@@ -1,3 +1,4 @@
 dataset_name: psychology
 include: _direct_hard_kmmlu_yaml
-task: kmmlu_hard_direct_psychology
+task: kmmlu_direct_hard_psychology
+tag: kmmlu_direct_hard_humss_tasks

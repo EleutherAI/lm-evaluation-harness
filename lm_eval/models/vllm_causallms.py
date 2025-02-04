@@ -76,9 +76,9 @@ class VLLM(TemplateLM):
             )
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        assert (
-            max_length is None or max_model_len is None
-        ), "Either max_length or max_model_len may be provided, but not both"
+        assert max_length is None or max_model_len is None, (
+            "Either max_length or max_model_len may be provided, but not both"
+        )
 
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -102,7 +102,7 @@ class VLLM(TemplateLM):
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
-            else batch_size
+            else int(batch_size)
         )
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
@@ -142,9 +142,9 @@ class VLLM(TemplateLM):
         self._max_gen_toks = max_gen_toks
 
         if lora_local_path is not None:
-            assert parse_version(version("vllm")) > parse_version(
-                "0.3.0"
-            ), "lora adapters only compatible with vllm > v0.3.0."
+            assert parse_version(version("vllm")) > parse_version("0.3.0"), (
+                "lora adapters only compatible with vllm > v0.3.0."
+            )
             self.lora_request = LoRARequest("finetuned", 1, lora_local_path)
         else:
             self.lora_request = None
@@ -184,13 +184,20 @@ class VLLM(TemplateLM):
     def max_gen_toks(self):
         return self._max_gen_toks
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        return self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
+        chat_templated = self.tokenizer.apply_chat_template(
+            chat_history,
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
+
+        return chat_templated
 
     @property
     def tokenizer_name(self) -> str:
@@ -281,10 +288,21 @@ class VLLM(TemplateLM):
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
-        loglikelihoods = []
+        adaptive_batch_size = None
+        if self.batch_size == "auto":
+            adaptive_batch_size = len(requests)
 
-        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
-            rolling_token_windows = list(
+        # First, collect all windows from all requests
+        all_windows = []  # List of (request_idx, window) tuples
+        request_window_counts = []  # Track number of windows per request
+
+        for req_idx, (string,) in enumerate(
+            tqdm(
+                [req.args for req in requests],
+                disable=(disable_tqdm or (self.rank != 0)),
+            )
+        ):
+            rolling_token_windows: List[Tuple[List[int], List[int]]] = list(
                 map(
                     make_disjoint_window,
                     get_rolling_token_windows(
@@ -297,20 +315,42 @@ class VLLM(TemplateLM):
                 )
             )
 
-            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
+            windows = [(None,) + x for x in rolling_token_windows]
 
-            string_nll = self._loglikelihood_tokens(
-                rolling_token_windows,
+            # Store windows with their request index
+            all_windows.extend((req_idx, window) for window in windows)
+            request_window_counts.append(len(windows))
+
+        all_nlls = []
+        batch_size = adaptive_batch_size or int(self.batch_size)
+        for i in range(0, len(all_windows), batch_size):
+            batch = all_windows[i : i + batch_size]
+            # Extract just the windows for processing, keeping track of request indices
+            batch_indices, batch_windows = zip(*batch)
+
+            batch_nlls = self._loglikelihood_tokens(
+                requests=batch_windows,
+                disable_tqdm=False,
             )
+            # Store results with their request indices
+            all_nlls.extend(zip(batch_indices, batch_nlls))
 
-            # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
+        # Reconstruct per-request loglikelihoods
+        loglikelihoods = []
+        current_idx = 0
+        for window_count in request_window_counts:
+            # Get all nlls for this request
+            request_nlls = all_nlls[current_idx : current_idx + window_count]
+            # Sum up the nlls for this request (discarding is_greedy)
+            request_total = sum(nll[0] for _, nll in request_nlls)
+            loglikelihoods.append(request_total)
+            current_idx += window_count
 
-            string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
-
-            # cache this loglikelihood_rolling request
-            self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
+            string = requests[len(loglikelihoods) - 1].args[0]
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string,), request_total
+            )
 
         return loglikelihoods
 

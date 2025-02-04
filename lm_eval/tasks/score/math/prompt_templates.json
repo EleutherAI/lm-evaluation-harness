@@ -1,4 +1,8 @@
 {
+    "non_greedy_robustness":      {
+        "prompt": "Calculate the answer to this math problem\nProblem: {question}\nConclude your answer with:\nThe final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem."
+    },
+
     "prompt_robustness": [
         {
             "prompt": "Efficiently solve the following math challenge. Explain your approach step-by-step\nThe answer should end with: The final answer is: $\\boxed{{answer}}$\nwhere [answer] is just the final number or expression that solves the problem\nProblem: {question}\nLets think step by step"

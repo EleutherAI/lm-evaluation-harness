@@ -112,6 +112,4 @@ class ConfigurableGroup(abc.ABC):
         return self._config.group
 
     def __repr__(self):
-        return (
-            f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"
-        )
+        return f"ConfigurableGroup(group={self.group},group_alias={self.group_alias})"

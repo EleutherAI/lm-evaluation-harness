@@ -85,4 +85,5 @@ fewshot_config:
       위한 것입니다. (D) 기관의 과냉 및 소음방지를 위해 일정 회전수 이상 시 슬립 발생: 유체 커플링식 냉각 팬은 기관의 과냉 및 소음
       방지를 위해 일정 회전수 이상 시 슬립이 발생합니다. 이는 유체 커플링의 특성 때문입니다. 따라서, 정답은 (A) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_railway_and_automotive_engineering
+task: kmmlu_cot_hard_railway_and_automotive_engineering
+tag: kmmlu_cot_hard_applied_science_tasks

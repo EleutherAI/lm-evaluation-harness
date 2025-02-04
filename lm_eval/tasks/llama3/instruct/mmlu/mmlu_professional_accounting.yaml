@@ -1,0 +1,5 @@
+"dataset_name": "professional_accounting"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_other_tasks"
+"task": "mmlu_llama_professional_accounting"
+"task_alias": "professional accounting"

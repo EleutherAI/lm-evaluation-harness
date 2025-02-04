@@ -1,0 +1,5 @@
+"dataset_name": "high_school_computer_science"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_stem_tasks"
+"task": "mmlu_llama_high_school_computer_science"
+"task_alias": "high school computer science"

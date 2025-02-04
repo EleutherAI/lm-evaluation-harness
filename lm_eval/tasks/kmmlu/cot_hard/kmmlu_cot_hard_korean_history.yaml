@@ -97,4 +97,5 @@ fewshot_config:
       군사 기구로, 흥선대원군은 왕권 강화를 위해 비변사의 기능을 약화시켰습니다. (D) 통상 수교 거부 정책을 추진하였다 - 흥선대원군은 외세의
       침략을 막기 위해 통상 수교 거부 정책을 추진하였습니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_korean_history
+task: kmmlu_cot_hard_korean_history
+tag: kmmlu_cot_hard_humss_tasks
