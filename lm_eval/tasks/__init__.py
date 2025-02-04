@@ -313,7 +313,9 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = task
             else:
-                if self.mcq_to_generative:
+                if self.mcq_to_generative and (
+                    config.get("output_type") == "multiple_choice"
+                ):
                     config = convert_mcq_to_generative(config)
                     task_object = Generate_MultipleChoice(config=config)
                 else:
