@@ -9,6 +9,7 @@ from lm_eval import utils
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
 from lm_eval.api.task import ConfigurableTask, Generate_MultipleChoice, Task
 from lm_eval.evaluator_utils import get_subtask_list
+from lm_eval.tasks.mmlu_pro.utils import doc_to_text
 
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
@@ -20,13 +21,23 @@ def convert_mcq_to_generative(cfg: dict):
         return cfg
     else:
         cfg["output_type"] = "generate_until"
-        cfg["doc_to_text"] = (
-            prompt
-            + "\n"
-            + cfg.get("doc_to_text", "")
-            + "\n"
-            + 'Your response should end with "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
-        )
+        doc_to_text = cfg.get("doc_to_text", "")
+        if isinstance(doc_to_text, str):
+            cfg["doc_to_text"] = (
+                prompt
+                + "\n"
+                + cfg.get("doc_to_text", "")
+                + "\n"
+                + 'Your response should be formatted as "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
+            )
+        elif callable(doc_to_text):
+            cfg["doc_to_text"] = (
+                lambda doc: prompt
+                + "\n"
+                + doc_to_text(doc)
+                + "\n"
+                + 'Your response should be formatted as "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
+            )
         cfg["target_delimiter"] = "\n\n"
         cfg["gen_prefix"] = "The best answer is"
         cfg["generation_kwargs"] = {"until": ["."], "max_gen_toks": 10}
