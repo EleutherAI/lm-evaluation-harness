@@ -7,6 +7,8 @@ import requests
 # from api_model import make_concurrent_requests
 from Levenshtein import distance
 
+from lm_eval.models.utils import retry_on_specific_exceptions
+
 
 API_KEY = os.getenv("OPENAI_API_KEY")
 assert API_KEY is not None, (
@@ -58,27 +60,25 @@ Extracted answer: B
 
 
 # Function to send a single request to the OpenAI API
+@retry_on_specific_exceptions(
+    on_exceptions=[requests.exceptions.RequestException], max_retries=5
+)
 def send_request(prompt: str):
-    try:
-        headers = {
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": MODEL,
-            "messages": [
-                {"role": "user", "content": prompt},
-            ],
-            "max_tokens": 100,
-        }
-        response = requests.post(API_URL, headers=headers, json=data)
-        response.raise_for_status()
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
-
-    except Exception as e:
-        print(f"An error occurred while requesting: {e}")
-        return None
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "model": MODEL,
+        "messages": [
+            {"role": "user", "content": prompt},
+        ],
+        "max_tokens": 100,
+    }
+    response = requests.post(API_URL, headers=headers, json=data)
+    response.raise_for_status()
+    result = response.json()
+    return result["choices"][0]["message"]["content"]
 
 
 def create_test_prompt(demo_prompt, query, response):
