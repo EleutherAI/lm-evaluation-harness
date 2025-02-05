@@ -1,4 +1,5 @@
 group: evalita-mp_gen
+group_alias: Evalita-LLM - Generative
 task:
   - evalita-mp_sum_fp 
   - evalita-mp_ls 

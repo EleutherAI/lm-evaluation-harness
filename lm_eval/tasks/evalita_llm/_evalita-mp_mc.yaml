@@ -1,4 +1,5 @@
 group: evalita-mp_mc
+group_alias: Evalita-LLM - PPL-based
 task:
   - evalita-mp_te
   - evalita-mp_sa
