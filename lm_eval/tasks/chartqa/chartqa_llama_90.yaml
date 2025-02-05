@@ -1,4 +1,5 @@
 include: chartqa_llama.yaml
+task: chartqa_llama_90
 doc_to_text: |
   <image>You are provided a chart image and will be asked a question. Follow these steps carefully:
   Step 1: Analyze the question to understand what specific data or information is being asked for. Focus on whether the question is asking for a specific number or category from the chart image.
