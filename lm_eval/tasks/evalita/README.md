@@ -1,113 +1,62 @@
-## README
+# Evalita-LLM
 
-##  Single prompt Tasks
+### Paper
 
-## 1. Textual Entailment
-Relevant files:
-- `_te_template_yaml`
-- `_evalita-sp_te_task.yaml`
+Evalita-LLM, a new benchmark designed to evaluate Large Language
+Models (LLMs) on Italian tasks. The distinguishing and innovative features of
+Evalita-LLM are the following: (i) all tasks are native Italian, avoiding issues of
+translating from Italian and potential cultural biases; (ii) in addition to well established multiple-choice tasks, the benchmark includes generative tasks, enabling more natural interaction with LLMs; (iii) all tasks are evaluated against multiple prompts, this way mitigating the model sensitivity to specific prompts and allowing a fairer and objective evaluation. 
 
-## 2. Document Dating
-Relevant files:
-- `_dd_template_yaml`
-- `_evalita-sp_dd_task.yaml`
+### Citation
 
-## 3. Sentiment Analysis
-- `_sa_template_yaml`
-- `_sa_template_v2_yaml`
-- `_evalita-sp_sa_task.yaml`
-- `_evalita-sp_sa_task_v2.yaml`
-- `utils.py`
-    - lines 10-50
-- `metrics.py`
-    - lines 10-50
+```bibtex
+@misc{magnini2025evalitallmbenchmarkinglargelanguage,
+      title={Evalita-LLM: Benchmarking Large Language Models on Italian}, 
+      author={Bernardo Magnini and Roberto Zanoli and Michele Resta and Martin Cimmino and Paolo Albano and Marco Madeddu and Viviana Patti},
+      year={2025},
+      eprint={2502.02289},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2502.02289}, 
+}
+```
 
-V1 and V2 differs in the evaluation metric: v2 considers the macro average weighted by support of the F1 score, while v1 is based on the evaluation described [here](https://s3.cbk.cloud.syseleven.net/elg-public/60ef3fa107dc4869a353869a5d51201b_u2235_paper_026.pdf)
+### Groups
 
-## 4. Hate Speech Detection
-- `_hs_template_yaml`
-- `_evalita-sp_hs_task.yaml`
+- `evalita-mp`: All tasks (perplexity and non-perplexity based).
+- `evalita-mp_gen`: Only generative tasks.
+- `evalita-mp_mc`: Only perplexity-based tasks.
 
-# 5. Lexical Substitution
-- `_ls_template_yaml`
-- `_evalita-sp_ls_task.yaml`
-- `utils.py`
-    - lines 58-98
-- `metrics.py`
-    - lines 17-53
-The model is asked to provide synonims separated by commas and the output is parsed accordingly.
+#### Tasks
 
-## 6. Word in Context
-- `_wic_template_yaml`
-- `_evalita-sp_wic_task.yaml`
-
-## 7. Named Entity Recognition
-- `_ner_template_yaml`
-- `_evalita-sp_ner_task.yaml`
-- `utils.py`
-    - lines 147-349
-- `metrics.py`
-    - lines 162-180
-
-The model is asked to provide a list of entity in the format ENT1$TYPE1%ENT2$TYPE2%... and the output is parsed accordingly. If there are no entities it is asked to output "&&NOENT&&"
-If the format is changed the parsing and scoring functions in `utils.py` should be updated accordingly.
-
-## 8. Relation Extraction
-- `_re_template_yaml`
-- `_evalita-sp_re_task.yaml`
-- `utils.py`
-    - lines 349-400
-- `metrics.py`
-    - lines 185-198
-The format is the same as the one for NER.
-
-## 9. FAQ
-- `_faq_template_yaml`
-- `_evalita-sp_faq_task.yaml`
-- `utils.py`
-    - lines 643-657
-The dataset has two versions. V1 is the one to use
-
-## 10. Admissions Test
-- `_at_template_yaml`
-- `_evalita-sp_at_task.yaml`
+The following Evalita-LLM tasks can also be evaluated in isolation:
+  - `evalita-mp_te`: Textual Entailment
+  - `evalita-mp_sa`: Sentiment Analysis
+  - `evalita-mp_wic`: Word in Context
+  - `evalita-mp_hs`: Hate Speech Detection
+  - `evalita-mp_at`: Admission Tests
+  - `evalita-mp_faq`: FAQ
+  - `evalita-mp_sum_fp`:  Summarization
+  - `evalita-mp_ls`: Lexical Substitution
+  - `evalita-mp_ner_group`: Named Entity Recognition
+  - `evalita-mp_re`: Relation Extraction
 
 
-## 11. Headline Translation
-- `_ht_template_yaml`
-- `_evalita-sp_ht_task.yaml`
-- `utils.py`
-    - lines 660-670
-- `metrics.py`
-    - lines 199-263
+### Usage
 
-## 12. Summarization
-- `_sum_template_fp_yaml`
-- `_evalita-sp_sum_fp_task.yaml`
-- `_evalita-sp_sum_ip_task.yaml`
-- `utils.py`
-    - lines 619-642
+```bash
 
-## Multi prompt Tasks
-The multi prompt tasks are evaluated using the same code as the single prompt tasks. The only difference is that there are more configuation yaml files to be used.
-For each nlp task there are several yaml files:
-- `_evalita-mp_{nlp-taskcode}.yaml` which defines the task group and the tasks
-- `_evalita-mp_{taskcode}_{prompt_number}.yaml` which defines the single task and tag(that has to match the 'task' field in the yaml defining the group. Confusing, I know.)
+lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks evalita-mp --device cuda:0 --batch_size auto 
+```
 
-Be sure that the aggregate_metric_list field in the group yaml files list the metric used to evaluate the tasks in the group. Otherwise you'll see no aggregated results.
+### Checklist
 
-### For NER
-The tasks `evalita-mp_ner_group` aggregates all the scores from the three sub datasets and prompts.
-The tasks:
-- `evalita-mp_ner_fic_group`
-- `evalita-mp_ner_adg_group`
-- `evalita-mp_ner_wn_group`
-aggregate the scores for the respective sub datasets.
+* [x] Is the task an existing benchmark in the literature?
+  * [x] Have you referenced the original paper that introduced the task?
+  * [x] If yes, does the original paper provide a reference implementation?
+    * [x] Yes, original implementation contributed by author of the benchmark
 
-
-## Command line parameters
-- `--task`: the task to evaluate (e.g. evalita-sp or evalita-mp)
-- `--model`: the model to evaluate
-- `--apply_chat_template`: if the model is instruction tuned this is nedeed 
-- `--system_instruction=str`: System prompt of the model
-- `--num_fewshot`: number of fewshot examples to use. NB. the yaml file has to specify the split to use to get the fewshot example
+If other tasks on this dataset are already supported:
+* [x] Is the "Main" variant of this task clearly denoted?
+* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
