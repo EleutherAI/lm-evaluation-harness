@@ -226,7 +226,7 @@ def score(self, model_answer: str, reference_answer: str | list[str]) -> float:
 
 def exact_match(references, predictions):
     pred = predictions[0]
-    ref = references
+    ref = references[0]
 
     match = re.search(r"(?:Final Answer|FINAL ANSWER): (.+)$", pred, re.IGNORECASE)
     if match:
@@ -239,6 +239,6 @@ def exact_match(references, predictions):
 
 def relaxed_match(references, predictions):
     pred = predictions[0]
-    ref = references
+    ref = references[0]
     score = ExplicitPromptRelaxedCorrectness().score(pred, ref)
     return {"relaxed_match": score}
