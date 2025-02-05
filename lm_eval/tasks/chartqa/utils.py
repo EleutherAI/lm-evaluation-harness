@@ -238,7 +238,7 @@ def exact_match(references, predictions):
 
 
 def relaxed_match(references, predictions):
-    pred = references[0]
-    ref = predictions
+    pred = predictions[0]
+    ref = references
     score = ExplicitPromptRelaxedCorrectness().score(pred, ref)
     return {"relaxed_match": score}
