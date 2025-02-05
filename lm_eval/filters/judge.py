@@ -69,11 +69,17 @@ class JudgeFilter(Filter):
             base_url=url, pretrained=model, num_concurrent=2, **kwargs
         )
 
+    @staticmethod
+    def create_message(str) -> list[dict]:
+        return [{"role": "user", "content": str}]
+
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         inputs = [
-            self.PROMPT
-            + "\n\n"
-            + f"Question: {doc['question']}\nAnswer: {resp}\nGround Truth: {doc['answer']}"
+            self.create_message(
+                self.PROMPT
+                + "\n\n"
+                + f"Question: {doc['question']}\nAnswer: {resp}\nGround Truth: {doc['answer']}"
+            )
             for resp, doc in zip(resps, docs)
         ]
 

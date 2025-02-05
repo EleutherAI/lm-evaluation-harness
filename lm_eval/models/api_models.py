@@ -200,6 +200,9 @@ class TemplateAPI(TemplateLM):
             )
             # list[dict["role":..., "content":...],...]
             return json.loads(messages[0].prompt)
+        elif isinstance(messages[0], dict):
+            # list[dict["role":..., "content":...],...]
+            return messages
 
         if not self.tokenized_requests:
             # if messages are tokenized:
@@ -721,7 +724,9 @@ class TemplateAPI(TemplateLM):
         return loglikelihoods
 
     def simple_async_generate(
-        self, requests: Union[List[List[str]], List[List[dict]]], gen_kwargs: dict
+        self,
+        requests: Union[List[List[str], list[list[dict]]], List[List[dict]]],
+        gen_kwargs: dict,
     ):
         results = itertools.chain.from_iterable(
             asyncio.run(
