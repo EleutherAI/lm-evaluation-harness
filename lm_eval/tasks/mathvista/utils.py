@@ -1,3 +1,4 @@
+import os
 import re
 from typing import Optional
 
@@ -7,7 +8,10 @@ import requests
 from Levenshtein import distance
 
 
-API_KEY = "API KEY"
+API_KEY = os.getenv("OPENAI_API_KEY")
+assert API_KEY is not None, (
+    "Please set the OPENAI_API_KEY environment variable to use the MathVista task."
+)
 API_URL = "https://api.openai.com/v1/chat/completions"
 MODEL = "gpt-4"
 
@@ -65,7 +69,7 @@ def send_request(prompt: str):
             "messages": [
                 {"role": "user", "content": prompt},
             ],
-            "max_tokens": 1024,
+            "max_tokens": 100,
         }
         response = requests.post(API_URL, headers=headers, json=data)
         response.raise_for_status()
