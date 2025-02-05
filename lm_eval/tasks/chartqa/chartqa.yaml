@@ -24,14 +24,11 @@ generation_kwargs:
   temperature: 0.0
   do_sample: false
   max_gen_toks: 512
-filter_list:
-  - name: "strict-match"
-    filter:
-      - function: "regex"
-        regex_pattern: "Final Answer: (.+)$"
-      - function: "take_first"
 metric_list:
-  - metric: exact_match
+  - metric: !function utils.exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.relaxed_match
     aggregation: mean
     higher_is_better: true
 metadata:
