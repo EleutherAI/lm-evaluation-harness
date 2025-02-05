@@ -3,6 +3,7 @@ import os
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
 from lm_eval.models.openai_completions import LocalChatCompletion
+from lm_eval.utils import eval_logger
 
 
 @register_filter("judge")
@@ -53,7 +54,7 @@ class JudgeFilter(Filter):
     Your response must be exactly "yes", "no", or "unknown", with no additional explanation!
     """
 
-    def __init__(self, url, **kwargs) -> None:
+    def __init__(self, url, model, **kwargs) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
@@ -61,7 +62,12 @@ class JudgeFilter(Filter):
         assert os.environ.get("AI_API_KEY") is not None, (
             "Please set the AI_API_KEY environment variable to use the JudgeFilter (can be empty string)"
         )
-        self.model = LocalChatCompletion(base_url=url, **kwargs)
+        eval_logger.info(
+            "Pass num_concurrent=N to --metadata to set the number of concurrent requests for the JudgeFilter"
+        )
+        self.model = LocalChatCompletion(
+            base_url=url, pretrained=model, num_concurrent=2, **kwargs
+        )
 
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         inputs = [
