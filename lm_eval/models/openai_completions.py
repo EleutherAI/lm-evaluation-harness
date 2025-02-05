@@ -28,6 +28,7 @@ class LocalCompletionsAPI(TemplateAPI):
         tokenizer_backend="huggingface",
         **kwargs,
     ):
+        eval_logger.info("Use the AI_API_KEY environment variable to set the API key.")
         super().__init__(
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
@@ -109,7 +110,7 @@ class LocalCompletionsAPI(TemplateAPI):
 
     @property
     def api_key(self):
-        return os.environ.get("OPENAI_API_KEY", "")
+        return os.environ.get("AI_API_KEY", "")
 
 
 @register_model("local-chat-completions")
