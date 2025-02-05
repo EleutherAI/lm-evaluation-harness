@@ -13,25 +13,21 @@ class JudgeFilter(Filter):
     PROMPT = """You are an expert evaluator of question-answering systems. Your task is to determine if a given answer matches the ground truth answer in meaning and accuracy. You should respond with "yes", "no", or "unknown".
 
     Guidelines for evaluation:
-    1. Focus on semantic meaning rather than exact wording
-    2. Consider numerical accuracy when applicable
-    3. Account for partial answers that contain the correct information plus additional details
-    4. Recognize equivalent phrasings and synonyms
-    5. Be lenient with minor grammatical differences
-    6. For multi-part questions, all parts must be correct
-    7. For questions requiring specific units, check unit correctness
-    8. Respond with "unknown" when:
-       - The answer is ambiguous and could be interpreted multiple ways
-       - There is insufficient context to determine correctness
-       - The ground truth is incomplete or unclear
-       - The comparison requires external knowledge not provided
+    1. For multiple-choice questions, the answer choice letters are enough to determine correctness
+    2. Focus on semantic meaning rather than exact wording
+    3. Consider numerical accuracy when applicable
+    4. Account for partial answers that contain the correct information plus additional details
+    5. Recognize equivalent phrasings and synonyms
+    6. Be lenient with minor grammatical differences
+    7. For multi-part questions, all parts must be correct
+    8. For questions requiring specific units, check unit correctness. However, if the answer is correct in all other aspects, you may overlook minor unit errors
 
     Input format:
     Question: [The question being asked]
     Answer: [The answer given by the system]
     Ground Truth: [The known correct answer]
 
-    Your response must be exactly "yes", "no", or "unknown", with no additional explanation.
+    Your response must be exactly "yes" or "no", with no additional explanation.
 
     Example 1:
     Question: What is the capital of France?
@@ -46,15 +42,15 @@ class JudgeFilter(Filter):
     Your response: no
 
     Example 3:
-    Question: What is the GDP of France in 2023?
-    Answer: The economic output was substantial.
+    Question: What is the GDP of France in 2023?\nA. 2 trillion USD\nB. 3.05 trillion USD\nC. 2.5 trillion USD
+    Answer: B.
     Ground Truth: 3.05 trillion USD
-    Your response: unknown
+    Your response: yes
 
-    Your response must be exactly "yes", "no", or "unknown", with no additional explanation!
+    Your response must be exactly "yes" or "no", with no additional explanation!
     """
 
-    def __init__(self, url, model, **kwargs) -> None:
+    def __init__(self, url, model, prompt=None, **kwargs) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
@@ -68,20 +64,23 @@ class JudgeFilter(Filter):
         self.model = LocalChatCompletion(
             base_url=url, pretrained=model, num_concurrent=2, **kwargs
         )
+        self.prompt = self.PROMPT if prompt is None else prompt
 
     @staticmethod
-    def create_message(str) -> list[dict]:
-        return [{"role": "user", "content": str}]
+    def create_message(str) -> dict:
+        return {"role": "user", "content": str}
 
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         inputs = [
-            self.create_message(
-                self.PROMPT
-                + "\n\n"
-                + f"Question: {doc['question']}\nAnswer: {resp}\nGround Truth: {doc['answer']}"
-            )
+            [
+                self.create_message(
+                    self.PROMPT
+                    + "\n\n"
+                    + f"Question: {doc['question']}\nAnswer: {resp}\nGround Truth: {doc['answer']}"
+                )
+            ]
             for resp, doc in zip(resps, docs)
         ]
 
-        res = self.model.simple_async_generate([inputs], gen_kwargs={})
+        res = self.model.simple_async_generate(inputs, gen_kwargs={})
         return [[x] for x in res]
