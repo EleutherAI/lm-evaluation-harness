@@ -1,7 +1,9 @@
 dataset_path: HuggingFaceM4/ChartQA
 validation_split: test
 output_type: generate_until
-doc_to_image: image
+task: chartqa
+doc_to_image:
+  - image
 doc_to_text: |
   <image>{{query}}
   Analyze the image and question carefully, using step-by-step reasoning.
