@@ -725,7 +725,7 @@ class TemplateAPI(TemplateLM):
 
     def simple_async_generate(
         self,
-        requests: Union[List[List[str], list[list[dict]]], List[List[dict]]],
+        requests: Union[List[List[str]], List[List[dict]]],
         gen_kwargs: dict,
     ):
         results = itertools.chain.from_iterable(
