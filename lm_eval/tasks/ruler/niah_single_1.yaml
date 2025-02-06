@@ -8,7 +8,7 @@ test_split: test
 download_dataset: !function niah_utils.niah_single_1
 doc_to_text: "{{input}}"
 doc_to_target: "{{outputs[0]}}"
-gen_prefix: "Answer: {{gen_prefix}}"
+gen_prefix: "{{gen_prefix}}"
 target_delimiter: " "
 process_results: !function common_utils.process_results
 metric_list:
