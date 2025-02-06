@@ -9,4 +9,4 @@ doc_to_text: |
   Step 5: Use step-by-step reasoning to ensure you are referencing the correct numbers or data points from the image, avoiding unnecessary extra steps or interpretations.
   Step 6: Provide the final answer, starting with "FINAL ANSWER:" and using as few words as possible, simply stating the number or data point requested.
 
-  The question is: {query} Let's think step by step.
+  The question is: {{query}} Let's think step by step.
