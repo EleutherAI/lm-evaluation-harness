@@ -66,6 +66,8 @@ class RelaxedCorrectness:
             return 1.0 if relative_change <= max_relative_change else 0.0
 
         def _compare_text_values(prediction: str, target: str) -> float:
+            while prediction and prediction[-1] in string.punctuation:
+                prediction = prediction[:-1]
             return 1.0 if prediction.lower() == target.lower() else 0.0
 
         def _to_decimal(value: float, is_percent: bool) -> float:
@@ -176,52 +178,64 @@ class ExplicitPromptRelaxedCorrectness(RelaxedCorrectness):
         return super().score(parsed_model_answer, reference_answer)
 
 
-def score(self, model_answer: str, reference_answer: str | list[str]) -> float:
-    reference_answer = (
-        reference_answer if isinstance(reference_answer, list) else [reference_answer]
-    )
-    parsed_model_answer = self._get_final_answer(model_answer)
-    if parsed_model_answer:
-        return self._relaxed_correctness(parsed_model_answer, reference_answer)
+class AnywhereInAnswerRelaxedCorrectness(ExplicitPromptRelaxedCorrectness):
+    """Falls back to handle cases where reference answer appears anywhere in generation.
 
-    # Fallback: check if reference answer appears anywhere in the model answer.
-    for ref in reference_answer:
-        try:
-            # Try to parse as a float
-            number = float(ref)
+    NOTE: This is an overly generous metric and is likely to falsely inflate scores.
+    """
 
-            # Revert to int if it is actually an int.
-            if int(number) == number:
-                number = int(number)
-            # Check if the number is in the model answer with commas (e.g. 1,000)
-            if format(number, ",") in model_answer:
-                return 1.0
-            # Check if the number is in the model answer without commas (e.g. 1000)
-            elif str(number) in model_answer:
-                return 1.0
-            elif str(number) + "%" in model_answer:
-                return 1.0
-        except ValueError:
-            # Reference answer was a text string. We search for typical patterns
-            # in the model answer. Note that directly searching for the reference
-            # is not a good idea for letter-option choice questions, hence we look
-            # for common patterns. This is still heuristic, and might have false
-            # positives as well as false negatives.
-            candidates = []
-            for ref in reference_answer:
-                candidates.extend(
-                    [
-                        f"is {ref}",
-                        f"was {ref}",
-                        f" {ref}.",
-                        f"are {ref}",
-                        f"\n\n{ref}",
-                    ]
-                )
-            if any([c.lower() in model_answer for c in candidates]):
-                return 1.0
+    @property
+    def name(self) -> str:
+        return "anywhere_in_answer_relaxed_correctness"
 
-    return 0
+    def score(self, model_answer: str, reference_answer: str | list[str]) -> float:
+        reference_answer = (
+            reference_answer
+            if isinstance(reference_answer, list)
+            else [reference_answer]
+        )
+        parsed_model_answer = self._get_final_answer(model_answer)
+        if parsed_model_answer:
+            return self._relaxed_correctness(parsed_model_answer, reference_answer)
+
+        # Fallback: check if reference answer appears anywhere in the model answer.
+        for ref in reference_answer:
+            try:
+                # Try to parse as a float
+                number = float(ref)
+
+                # Revert to int if it is actually an int.
+                if int(number) == number:
+                    number = int(number)
+                # Check if the number is in the model answer with commas (e.g. 1,000)
+                if format(number, ",") in model_answer:
+                    return 1.0
+                # Check if the number is in the model answer without commas (e.g. 1000)
+                elif str(number) in model_answer:
+                    return 1.0
+                elif str(number) + "%" in model_answer:
+                    return 1.0
+            except ValueError:
+                # Reference answer was a text string. We search for typical patterns
+                # in the model answer. Note that directly searching for the reference
+                # is not a good idea for letter-option choice questions, hence we look
+                # for common patterns. This is still heuristic, and might have false
+                # positives as well as false negatives.
+                candidates = []
+                for ref in reference_answer:
+                    candidates.extend(
+                        [
+                            f"is {ref}",
+                            f"was {ref}",
+                            f" {ref}.",
+                            f"are {ref}",
+                            f"\n\n{ref}",
+                        ]
+                    )
+                if any([c.lower() in model_answer for c in candidates]):
+                    return 1.0
+
+        return 0
 
 
 def exact_match(references, predictions):
@@ -231,7 +245,7 @@ def exact_match(references, predictions):
     match = re.search(r"(?:Final Answer|FINAL ANSWER): (.+)$", pred, re.IGNORECASE)
     if match:
         extracted_pred = match.group(1).strip()
-        if extracted_pred == ref:
+        if extracted_pred.lower().removesuffix(".") == ref.strip().lower():
             return {"exact_match": 1.0}
         else:
             return {"exact_match": 0.0}
@@ -239,10 +253,21 @@ def exact_match(references, predictions):
         return {"exact_match": 0.0}
 
 
-def relaxed_match(references, predictions):
+def relaxed_accuracy(references, predictions):
     pred = predictions[0]
     ref = references[0]
     score = ExplicitPromptRelaxedCorrectness().score(pred, ref)
+    if score:
+        if score == 1.0:
+            return {"relaxed_match": 1.0}
+    else:
+        return {"relaxed_match": 0.0}
+
+
+def anywhere_accuracy(references, predictions):
+    pred = predictions[0]
+    ref = references[0]
+    score = AnywhereInAnswerRelaxedCorrectness().score(pred, ref)
     if score:
         if score == 1.0:
             return {"relaxed_match": 1.0}

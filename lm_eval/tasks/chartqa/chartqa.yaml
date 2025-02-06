@@ -28,7 +28,10 @@ metric_list:
   - metric: !function utils.exact_match
     aggregation: mean
     higher_is_better: true
-  - metric: !function utils.relaxed_match
+  - metric: !function utils.relaxed_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.anywhere_accuracy
     aggregation: mean
     higher_is_better: true
 metadata:
