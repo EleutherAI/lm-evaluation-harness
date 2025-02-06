@@ -1,3 +1,4 @@
 dataset_name: information_technology
 include: _hard_kmmlu_yaml
 task: kmmlu_hard_information_technology
+tag: kmmlu_hard_stem_tasks
