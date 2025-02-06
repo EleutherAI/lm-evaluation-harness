@@ -233,6 +233,8 @@ def exact_match(references, predictions):
         extracted_pred = match.group(1).strip()
         if extracted_pred == ref:
             return {"exact_match": 1.0}
+        else:
+            return {"exact_match": 0.0}
     else:
         return {"exact_match": 0.0}
 
@@ -241,4 +243,8 @@ def relaxed_match(references, predictions):
     pred = predictions[0]
     ref = references[0]
     score = ExplicitPromptRelaxedCorrectness().score(pred, ref)
-    return {"relaxed_match": score}
+    if score:
+        if score == 1.0:
+            return {"relaxed_match": 1.0}
+    else:
+        return {"relaxed_match": 0.0}
