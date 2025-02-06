@@ -95,4 +95,5 @@ fewshot_config:
       이러한 분석을 통해 고급 상담자의 특징은 (C) 내담자에게 의도적으로 주의를 기울이고 중요한 정보를 수집하고 인식할 수 있다는 것으로 보입니다.
       이는 상담자의 기본적인 역량을 넘어서서 고급 상담자가 갖추어야 할 능력으로 보입니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_psychology
+task: kmmlu_cot_hard_psychology
+tag: kmmlu_cot_hard_humss_tasks

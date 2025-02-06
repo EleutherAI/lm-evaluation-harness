@@ -21,7 +21,7 @@ from typing import (
 
 try:
     import requests
-    from aiohttp import ClientSession, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
@@ -81,6 +81,8 @@ class TemplateAPI(TemplateLM):
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
         eos_string: str = None,
+        # timeout in seconds
+        timeout: int = 300,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -126,6 +128,7 @@ class TemplateAPI(TemplateLM):
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
         self._eos_string = eos_string
+        self.timeout = int(timeout)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -192,9 +195,9 @@ class TemplateAPI(TemplateLM):
         """Helper method to transform the prompt into the expected API input format. messages consist of batched requests"""
         if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
-            assert (
-                self._batch_size == 1
-            ), "non-tokenized chat requests are only supported with batch_size=1"
+            assert self._batch_size == 1, (
+                "non-tokenized chat requests are only supported with batch_size=1"
+            )
             # list[dict["role":..., "content":...],...]
             return json.loads(messages[0].prompt)
 
@@ -250,12 +253,15 @@ class TemplateAPI(TemplateLM):
         return ""
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]]
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
     ) -> Union[str, JsonChatStr]:
         """Applies a chat template to a list of chat history between user and model."""
         if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
             return self.tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
+                chat_history,
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
             )
         else:
             # bit of a hack. We'll load back before sending to the API
@@ -445,9 +451,13 @@ class TemplateAPI(TemplateLM):
         for chunk in chunks:
             for cache_key, context_enc, continuation_enc in chunk:
                 # max_length - 1 as we always have 1 token for generation
-                inp = (context_enc + continuation_enc)[-(self.max_length) :]
+                inp = (context_enc + continuation_enc)[-self.max_length :]
+                if len(inp) < len(context_enc + continuation_enc):
+                    eval_logger.warning(
+                        f"Context length ({len(context_enc)}) + continuation length ({len(continuation_enc)}) > max_length ({self.max_length}). Left truncating context."
+                    )
                 ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
+                    0, len(context_enc) + len(continuation_enc) - self.max_length
                 )
 
                 inputs.append(inp)
@@ -466,7 +476,9 @@ class TemplateAPI(TemplateLM):
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
         conn = TCPConnector(limit=self._concurrent)
-        async with ClientSession(connector=conn) as session:
+        async with ClientSession(
+            connector=conn, timeout=ClientTimeout(total=self.timeout)
+        ) as session:
             retry_: Callable[..., Awaitable[Any]] = retry(
                 stop=stop_after_attempt(self.max_retries),
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),
@@ -494,9 +506,9 @@ class TemplateAPI(TemplateLM):
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
-        assert (
-            self.tokenizer is not None
-        ), "Tokenizer is required for loglikelihood tasks to compute context lengths."
+        assert self.tokenizer is not None, (
+            "Tokenizer is required for loglikelihood tasks to compute context lengths."
+        )
         res = []
 
         def _collate(req: LogLikelihoodInputs):
@@ -589,6 +601,24 @@ class TemplateAPI(TemplateLM):
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
+                if self.tokenized_requests:
+                    max_gen_toks = all_gen_kwargs[0].get(
+                        "max_gen_toks", self._max_gen_toks
+                    )
+                    max_context_len = self.max_length - max_gen_toks
+
+                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+
+                    if any(
+                        len(x) + max_gen_toks > self.max_length for x in encodings_list
+                    ):
+                        eval_logger.warning(
+                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks: ({max_gen_toks}). They were left truncated."
+                        )
+                else:
+                    eval_logger.info(
+                        "Tokenized requests are disabled. Context + generation length is not checked."
+                    )
                 req = encodings_list if self.tokenized_requests else contexts
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
@@ -620,6 +650,24 @@ class TemplateAPI(TemplateLM):
         else:
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
+                if self.tokenized_requests:
+                    max_gen_toks = all_gen_kwargs[0].get(
+                        "max_gen_toks", self._max_gen_toks
+                    )
+                    max_context_len = self.max_length - max_gen_toks
+
+                    encodings_list = [x[-max_context_len:] for x in encodings_list]
+
+                    if any(
+                        len(x) + max_gen_toks > self.max_length for x in encodings_list
+                    ):
+                        eval_logger.warning(
+                            f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks ({max_gen_toks}). They were left truncated."
+                        )
+                else:
+                    eval_logger.info(
+                        "Tokenized requests are disabled. Context + generation length is not checked."
+                    )
                 req = encodings_list if self.tokenized_requests else contexts
                 results = itertools.chain.from_iterable(
                     asyncio.run(

@@ -77,4 +77,5 @@ fewshot_config:
       어떤 것일까요? V벨트의 단면 크기는 알파벳이 뒤로 갈수록 커집니다 즉, A형은 B형보다 작고, B형은 C형보다 작으며, 이런 식으로 D형,
       E형으로 진행됩니다.  , 주어진 선택지 중에서 가장 단면이 큰 V벨트는 E형일 것입니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_mechanical_engineering
+task: kmmlu_cot_hard_mechanical_engineering
+tag: kmmlu_cot_hard_stem_tasks

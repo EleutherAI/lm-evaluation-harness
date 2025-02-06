@@ -1,0 +1,5 @@
+"dataset_name": "electrical_engineering"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_stem_tasks"
+"task": "mmlu_llama_electrical_engineering"
+"task_alias": "electrical engineering"
