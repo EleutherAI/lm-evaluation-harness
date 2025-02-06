@@ -18,7 +18,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "(?:[`\\*_]*(?:FINAL ANSWER|Final Answer)[`\\*_]*)[:\\s]*[`\\*_]*([A-D])[`\\*_]*"
+        regex_pattern: "(?:[`\\*_]*(?i:FINAL ANSWER|Final Answer|Answer)[`\\*_]*)[:\\s]*[`\\*_]*([A-D])[`\\*_]*"
       - function: "take_first"
 metric_list:
   - metric: exact_match
