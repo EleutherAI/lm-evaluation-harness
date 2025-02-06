@@ -260,9 +260,9 @@ def relaxed_accuracy(references, predictions):
     score = ExplicitPromptRelaxedCorrectness().score(pred, ref)
     if score:
         if score == 1.0:
-            return {"relaxed_match": 1.0}
+            return {"relaxed_accuracy": 1.0}
     else:
-        return {"relaxed_match": 0.0}
+        return {"relaxed_accuracy": 0.0}
 
 
 def anywhere_accuracy(references, predictions):
@@ -271,6 +271,6 @@ def anywhere_accuracy(references, predictions):
     score = AnywhereInAnswerRelaxedCorrectness().score(pred, ref)
     if score:
         if score == 1.0:
-            return {"relaxed_match": 1.0}
+            return {"anywhere_accuracy": 1.0}
     else:
-        return {"relaxed_match": 0.0}
+        return {"anywhere_accuracy": 0.0}
