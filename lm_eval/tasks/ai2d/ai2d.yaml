@@ -23,7 +23,7 @@ filter_list:
   - name: "flexible-extract"
     filter:
       - function: "custom"
-      - filter_fn: !function utils.flexible_extract
+        filter_fn: !function utils.flexible_extract
       - function: "take_first"
 metric_list:
   - metric: exact_match
