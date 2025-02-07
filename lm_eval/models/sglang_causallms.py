@@ -2,23 +2,99 @@ from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.api.instance import Instance
+from importlib.util import find_spec
+from lm_eval.utils import (
+    eval_logger,
+    get_rolling_token_windows,
+    make_disjoint_window,
+)
+
+try:
+    import sglang as sgl
+    from sglang.srt.server_args import ServerArgs
+    from sglang.lang.ir import SglSamplingParams
+except ModuleNotFoundError:
+    pass
+
+if TYPE_CHECKING:
+    pass
 
 @register_model("sglang")
 class SGLangLM(TemplateLM):
+    _DEFAULT_MAX_LENGTH = 2048
+
     def __init__(
         self,
         pretrained: str,
-        dtype: str = "auto",
-        tensor_parallel_size: int = 1,
+        # batch args from lm-eval interface: https://github.com/EleutherAI/lm-evaluation-harness/blob/144a1e58be73f937f8fecaae886346681d0fa082/docs/interface.md
+        batch_size: Union[str, int] = 1,
+        max_batch_size= None,
         max_model_len: int = None,
-        batch_size: int = 1,
+        ########## SGlang native args ##########
+        # Todo(Jinwei): Include more args of SGLang Engine if needed. Refer to https://docs.sglang.ai/backend/server_arguments.html .
+        tokenizer_path: Optional[str] = None,
+        tokenizer_mode: str = "auto",
+        load_format: str = "auto",
+        trust_remote_code: bool = True,
+        dtype: str = "auto",
+        kv_cache_dtype: str = "auto",
+        context_length: Optional[int] = None,
+        device: str = "cuda",
+        # Memory and scheduling
+        mem_fraction_static: Optional[float] = None,
+        # parallelism
+        dp_size: int = 1,
+        tp_size: int = 1,
         **kwargs
     ):
         super().__init__()
+
+        if not find_spec("sglang"):
+            raise ModuleNotFoundError(
+                "attempted to use 'sglang' LM type, but package `sglang` is not installed. "
+                "Please install sglang via `pip install lm-eval[sglang]` or `pip install -e .[sglang]`"
+            )
+        
+        assert "cuda" in device or device is None, "SGLang only supports CUDA"
+        assert context_length is None or max_model_len is None, (
+            "Either context_length or max_model_len may be provided, but not both"
+        )
         # Initialize your sglang model here
-        self.model_name = pretrained
-        self.batch_size = batch_size
-        # ... other initialization code
+        self._max_length = max_model_len if max_model_len is not None else context_length
+        self.tensor_parallel_size = int(tp_size)
+        self.data_parallel_size = int(dp_size)
+        self.model_args = {
+            "model_path": pretrained,
+            "tokenizer_path": tokenizer_path,
+            "tokenizer_mode": tokenizer_mode,
+            "load_format": load_format,
+            "trust_remote_code": trust_remote_code,
+            "dtype": dtype,
+            "kv_cache_dtype": kv_cache_dtype,
+            "context_length": int(self._max_length) if self._max_length else None,
+            "device": device,
+            "mem_fraction_static": mem_fraction_static,
+            "tp_size": self.tensor_parallel_size,
+            "dp_size": self.data_parallel_size,
+        }
+
+        self.model_args.update(kwargs)
+        server_args = ServerArgs(**self.model_args)
+        self.batch_size = (
+            "auto"
+            if isinstance(batch_size, str) and "auto" in batch_size
+            else int(batch_size)
+        )
+        if self.data_parallel_size <= 1:
+            self.model = sgl.Engine(**server_args)
+        else:
+            eval_logger.warning(
+                "Data parallelism will be deprecated in the future version of SGLang. See here: https://docs.sglang.ai/backend/server_arguments.html#data-parallelism ."
+            )
+            raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+        
+        # Todo(Jinwei): check tokenizer and other settings.
+
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         # Implement loglikelihood calculation
@@ -42,8 +118,13 @@ class SGLangLM(TemplateLM):
 
     @property
     def max_length(self):
-        # Return the model's maximum sequence length
-        return 2048  # Replace with the actual maximum length
+        if self._max_length:  # if max length manually set, return it
+            return self._max_length
+        if self.data_parallel_size <= 1:
+            return self.model.tokenizer_manager.context_length
+        else:
+            raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+        return self._DEFAULT_MAX_LENGTH
 
     @property
     def max_gen_toks(self):
