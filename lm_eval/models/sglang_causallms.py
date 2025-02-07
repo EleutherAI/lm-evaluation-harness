@@ -95,7 +95,7 @@ class SGLangLM(TemplateLM):
             else int(batch_size)
         )
         if self.data_parallel_size <= 1:
-            self.model = sgl.Engine(**server_args)
+            self.model = sgl.Engine(**self.model_args)
         else:
             eval_logger.warning(
                 "Data parallelism will be deprecated in the future version of SGLang. See here: https://docs.sglang.ai/backend/server_arguments.html#data-parallelism ."
