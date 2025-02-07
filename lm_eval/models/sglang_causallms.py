@@ -119,6 +119,9 @@ class SGLangLM(TemplateLM):
         mocked = [0.0] * len(requests)
         return mocked
 
+    def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
+        raise NotImplementedError("No support for logits.")
+    
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
