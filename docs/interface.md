@@ -8,7 +8,7 @@ A majority of users run the library by cloning it from Github, installing the pa
 
 Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
 
-This mode supports a number of command-line arguments, the details of which can be also be seen via running with `-h` or `--help`:
+This mode supports a number of command-line arguments, the details of which can also be seen via running with `-h` or `--help`:
 
 - `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#model-apis-and-inference-servers) for a full list of enabled model names and supported libraries or APIs.
 
