@@ -1,3 +1,4 @@
+import copy
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
@@ -8,6 +9,13 @@ from lm_eval.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
 )
+from lm_eval.models.utils import (
+    Collator,
+    configure_pad_token,
+    handle_stop_sequences,
+    undistribute,
+)
+from tqdm import tqdm
 
 try:
     import sglang as sgl
@@ -30,6 +38,7 @@ class SGLangLM(TemplateLM):
         batch_size: Union[str, int] = 1,
         max_batch_size= None,
         max_model_len: int = None,
+        max_gen_toks: int = 256,
         ########## SGlang native args ##########
         # Todo(Jinwei): Include more args of SGLang Engine if needed. Refer to https://docs.sglang.ai/backend/server_arguments.html .
         tokenizer_path: Optional[str] = None,
@@ -94,6 +103,8 @@ class SGLangLM(TemplateLM):
             raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
         
         # Todo(Jinwei): check tokenizer and other settings.
+        self.tokenizer = self.model.tokenizer_manager.tokenizer
+        self._max_gen_toks = max_gen_toks
 
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
@@ -106,11 +117,124 @@ class SGLangLM(TemplateLM):
         # Return [log_prob, ...]
         pass
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
-        # Implement text generation
-        # Return a list of generated texts
-        pass
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
+        res = []
 
+        # batch tokenize contexts
+        context, all_gen_kwargs = zip(*(req.args for req in requests))
+        context_encoding: List[List[int]] = self.tok_encode(
+            context, add_special_tokens=self.add_bos_token
+        )
+        requests = [
+            ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
+        ]
+
+        def _collate_gen(_requests):
+            # the negative sign on len(toks) sorts descending - this has a few advantages:
+            # - time estimates will always be over not underestimates, which is more useful for planning
+            # - to know the size of a batch when going through the list, you know the first one is always the batch
+            #   padded context length. this is useful to simplify the batching logic and more importantly to make
+            #   automatic adaptive batches much much easier to implement
+            # - any OOMs will happen right away rather than near the end
+            return -len(_requests[0][1]), _requests[0][0]
+
+        # we group requests by their generation_kwargs,
+        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
+        # in the same batch.
+        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
+        chunks = re_ords.get_batched(
+            n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
+        )
+
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running generate_until requests",
+        )
+        # for each different set of kwargs, we execute all requests, by batch.
+        eos = self.tokenizer.decode(self.eot_token_id)
+        for chunk in chunks:
+            context_and_encoding, all_gen_kwargs = zip(*chunk)
+            context, context_encoding = zip(*context_and_encoding)
+            # we assume all gen kwargs in the batch are the same
+            # this is safe to assume because the `grouper` object ensures it.
+            gen_kwargs = all_gen_kwargs[0]
+            # unpack our keyword arguments.
+            if isinstance(gen_kwargs, dict):
+                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+            else:
+                raise ValueError(
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+                )
+            if "max_gen_toks" in kwargs.keys():
+                max_gen_toks = kwargs.pop("max_gen_toks")
+            else:
+                max_gen_toks = self.max_gen_toks
+
+            # set the max length in tokens of inputs ("context_enc")
+            # max len for inputs = max length, minus room to generate the max new tokens
+            max_ctx_len = self.max_length - max_gen_toks
+            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+
+            # perform batched generation
+            cont = self._model_generate(
+                requests=context_encoding,
+                generate=True,
+                max_tokens=max_gen_toks,
+                stop=until,
+                **kwargs,
+            )
+
+            # cache generations
+            for output, context in zip(cont, context):
+                generated_text = output.outputs[0].text
+                res.append(generated_text)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), generated_text
+                )
+                pbar.update(1)
+
+        pbar.close()
+        # reorder all group of results back to original unsorted form
+        return re_ords.get_original(res)
+
+    def _model_generate(
+        self,
+        requests: List[List[int]] = None,
+        generate: bool = False,
+        max_tokens: int = None,
+        stop: Optional[List[str]] = None,
+        **kwargs,
+    ):  
+        # check sglang sampling parammeters: https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/sampling/sampling_params.py#L21  and https://docs.sglang.ai/references/sampling_params.html.
+        if generate:
+            kwargs = self.modify_gen_kwargs(kwargs)
+            sampling_params = {
+                "max_new_tokens": max_tokens, 
+                "stop": stop,
+            }
+            sampling_params.update(kwargs)
+        else:
+            sampling_params = {
+                "temperature": 0,
+                "max_new_tokens": 1,
+            }
+            sampling_params.update(kwargs)
+        if self.data_parallel_size > 1:
+            raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+
+        # Refer to: https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 
+        outputs = self.model.generate(
+            input_ids=requests,
+            sampling_params=sampling_params,
+            
+        )
+        return outputs
+    
     @property
     def eot_token_id(self):
         # Return the EOT (End of Text) token ID
@@ -129,11 +253,32 @@ class SGLangLM(TemplateLM):
     @property
     def max_gen_toks(self):
         # Return the maximum number of tokens for generation
-        return 256  # Replace with the actual maximum generation length
+        return self._max_gen_toks
 
-    def tok_encode(self, string: str) -> List[int]:
-        # Implement text-to-token encoding
-        pass
+    def tok_encode(
+        self,
+        string: Union[str, List[str]],
+        left_truncate_len: int = None,
+        add_special_tokens: bool = False,
+        truncation: bool = False,
+    ) -> Union[List[int], List[List[int]]]:
+        if not add_special_tokens:
+            add_special_tokens = False or self.add_bos_token
+        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+            string,
+            add_special_tokens=add_special_tokens,
+            truncation=truncation,
+            return_attention_mask=False,
+        ).input_ids
+
+        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
+        if left_truncate_len:
+            if not isinstance(string, str):
+                encoding = [enc[-left_truncate_len:] for enc in encoding]
+            else:
+                encoding = encoding[-left_truncate_len:]
+
+        return encoding
 
     def tok_decode(self, tokens: List[int]) -> str:
         # Implement token-to-text decoding
