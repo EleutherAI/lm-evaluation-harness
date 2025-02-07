@@ -16,6 +16,7 @@ from . import (
     textsynth,
     vllm_causallms,
     vllm_vlms,
+    sglang_causallms,
 )
 
 
