@@ -75,7 +75,6 @@ class VLLM(TemplateLM):
                 "Please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
-        assert "cuda" in device or device is None, "vLLM only supports CUDA"
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
