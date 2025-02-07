@@ -1,12 +1,6 @@
 import torch
-from datasets import Dataset
 from sklearn.metrics import f1_score, precision_score, recall_score
 from tqdm import tqdm
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    DataCollatorWithPadding,
-)
 
 
 inference_decorator = (
