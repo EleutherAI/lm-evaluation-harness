@@ -1,3 +1,4 @@
 dataset_name: criminal_law
 include: _direct_hard_kmmlu_yaml
-task: kmmlu_hard_direct_criminal_law
+task: kmmlu_direct_hard_criminal_law
+tag: kmmlu_direct_hard_humss_tasks

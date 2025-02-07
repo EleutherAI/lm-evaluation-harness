@@ -1,0 +1,67 @@
+# Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+tag: score_robustness_mmlu_pro
+task: score_option_order_robustness_mmlu_pro
+dataset_path: TIGER-Lab/MMLU-Pro
+dataset_name: default
+output_type: generate_until
+validation_split: validation
+test_split: test
+process_docs: !function utils_mmlu_pro.option_order_robustness_process_docs
+doc_to_text: !function utils_mmlu_pro.mmlu_pro_robustness_doc_to_text
+doc_to_target: answer
+generation_kwargs:
+  until: []
+  max_gen_toks: 1024
+  do_sample: False
+process_results: !function utils_mmlu_pro.option_order_robustness_process_results
+metric_list:
+  - metric: per_option_macro_accuracy_A
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_a
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_B
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_b
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_C
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_c
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_D
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_d
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_E
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_e
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_F
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_f
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_G
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_g
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_H
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_h
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_I
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_i
+    higher_is_better: true
+  - metric: per_option_macro_accuracy_J
+    aggregation:  !function utils_mmlu_pro.per_option_macro_accuracy_j
+    higher_is_better: true
+  - metric: options_consistency_rate
+    aggregation:  !function utils_mmlu_pro.options_consistency_rate
+    higher_is_better: true
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true

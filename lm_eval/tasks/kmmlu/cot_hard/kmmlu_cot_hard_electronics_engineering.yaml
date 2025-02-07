@@ -79,4 +79,5 @@ fewshot_config:
       합니다. 마지막으로 선택지 (D)는 컴퓨터 시스템의 하드웨어 오류를 발견하고 그에 대한 적절한 조치를 한다는 내용입니다. 이 역시 운영체제의
       기능으로, 하드웨어 오류를 감지하고 적절한 처리를 하여 시스템의 안정성을 유지하는 역할을 합니다. 따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_electronics_engineering
+task: kmmlu_cot_hard_electronics_engineering
+tag: kmmlu_cot_hard_applied_science_tasks

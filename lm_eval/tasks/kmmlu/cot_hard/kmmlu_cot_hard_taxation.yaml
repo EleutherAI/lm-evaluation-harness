@@ -104,4 +104,5 @@ fewshot_config:
       국가의 안전보장 목적의 수행상 긴요하다고 인정하여 수입하는 물품을 의미합니다. 이 또한 국가의 안전보장을 위해 필요한 물품이므로 면세 대상에
       해당할 것으로 보입니다. 따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_taxation
+task: kmmlu_cot_hard_taxation
+tag: kmmlu_cot_hard_humss_tasks
