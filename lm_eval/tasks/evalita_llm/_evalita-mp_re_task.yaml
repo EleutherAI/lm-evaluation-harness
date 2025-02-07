@@ -1,6 +1,6 @@
 group: evalita-mp_re
 group_alias: relation-extraction
-task: 
+task:
 - evalita-mp_re_tasks
 aggregate_metric_list:
   - metric: f1

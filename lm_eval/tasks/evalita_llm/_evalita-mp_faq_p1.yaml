@@ -1,5 +1,5 @@
 tag: evalita-mp_faq_tasks
-include: _faq_template_yaml 
+include: _faq_template_yaml
 task: evalita-mp_faq_prompt-1
 task_alias: prompt-1
 #doc_to_text: "Data la seguente domanda {{question}}, individua la risposta corretta tra le seguenti opzioni:\n A: {{A}}\nB: {{B}}\nC: {{C}}\nD: {{D}} Risposta:"

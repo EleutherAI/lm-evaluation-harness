@@ -1,6 +1,5 @@
 import torch
 from sklearn.metrics import f1_score, precision_score, recall_score
-from tqdm import tqdm
 
 
 inference_decorator = (

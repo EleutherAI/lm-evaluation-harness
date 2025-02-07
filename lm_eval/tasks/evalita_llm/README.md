@@ -5,19 +5,19 @@
 Evalita-LLM, a new benchmark designed to evaluate Large Language
 Models (LLMs) on Italian tasks. The distinguishing and innovative features of
 Evalita-LLM are the following: (i) all tasks are native Italian, avoiding issues of
-translating from Italian and potential cultural biases; (ii) in addition to well established multiple-choice tasks, the benchmark includes generative tasks, enabling more natural interaction with LLMs; (iii) all tasks are evaluated against multiple prompts, this way mitigating the model sensitivity to specific prompts and allowing a fairer and objective evaluation. 
+translating from Italian and potential cultural biases; (ii) in addition to well established multiple-choice tasks, the benchmark includes generative tasks, enabling more natural interaction with LLMs; (iii) all tasks are evaluated against multiple prompts, this way mitigating the model sensitivity to specific prompts and allowing a fairer and objective evaluation.
 
 ### Citation
 
 ```bibtex
 @misc{magnini2025evalitallmbenchmarkinglargelanguage,
-      title={Evalita-LLM: Benchmarking Large Language Models on Italian}, 
+      title={Evalita-LLM: Benchmarking Large Language Models on Italian},
       author={Bernardo Magnini and Roberto Zanoli and Michele Resta and Martin Cimmino and Paolo Albano and Marco Madeddu and Viviana Patti},
       year={2025},
       eprint={2502.02289},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2502.02289}, 
+      url={https://arxiv.org/abs/2502.02289},
 }
 ```
 
@@ -46,7 +46,7 @@ The following Evalita-LLM tasks can also be evaluated in isolation:
 
 ```bash
 
-lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks evalita-mp --device cuda:0 --batch_size auto 
+lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks evalita-mp --device cuda:0 --batch_size auto
 ```
 
 ### Checklist

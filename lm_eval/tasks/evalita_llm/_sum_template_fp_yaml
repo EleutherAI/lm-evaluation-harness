@@ -1,5 +1,5 @@
 dataset_path: ARTeLab/fanpage
-output_type: generate_until 
+output_type: generate_until
 generation_kwargs:
   until:
     - "</s>"
@@ -7,4 +7,3 @@ test_split: test
 doc_to_target: "{{target}}"
 metadata:
   version: 1.0
-

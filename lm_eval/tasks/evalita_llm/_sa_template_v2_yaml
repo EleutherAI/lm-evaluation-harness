@@ -1,4 +1,4 @@
-dataset_path: evalitahf/sentiment_analysis 
+dataset_path: evalitahf/sentiment_analysis
 output_type: multiple_choice
 test_split: test
 fewshot_split: train
@@ -7,4 +7,3 @@ doc_to_target: !function utils.sa_doc_to_target_v2
 doc_to_choice: ["positivo", "negativo", "neutrale", "misto"]
 metadata:
   version: 1
-

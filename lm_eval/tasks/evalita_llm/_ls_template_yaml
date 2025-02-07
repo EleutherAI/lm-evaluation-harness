@@ -8,8 +8,8 @@ generation_kwargs:
     - "</s>"
 doc_to_target: !function utils.ls_doc_to_target
 process_results: !function utils.ls_process_results
-metric_list: 
-  - metric: f1 
+metric_list:
+  - metric: f1
     higher_is_better: True
     aggregation: !function metrics._aggreg_ls
 metadata:

@@ -1,6 +1,6 @@
 group: evalita-mp_ls
-group_alias: lexical-substitution 
-task: 
+group_alias: lexical-substitution
+task:
 - evalita-mp_ls_tasks
 aggregate_metric_list:
   - metric: f1

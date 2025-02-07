@@ -7,4 +7,3 @@ doc_to_target: Correct
 doc_to_choice: ["A", "B", "C", "D", "E"]
 metadata:
   version: 1
-

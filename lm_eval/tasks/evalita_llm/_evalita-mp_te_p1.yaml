@@ -7,4 +7,3 @@ doc_to_text: "La frase: '{{text1}}' implica logicamente che la frase: '{{text2}}
 #metric_list:
 #  - metric: acc
 #    higher_is_better: true
-

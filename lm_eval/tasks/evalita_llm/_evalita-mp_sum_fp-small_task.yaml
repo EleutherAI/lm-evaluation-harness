@@ -1,6 +1,6 @@
 group: evalita-mp_sum_fp
 group_alias: summarization-fanpage
-task: 
+task:
 - evalita-mp_sum_fp-small_tasks
 aggregate_metric_list:
   - metric: rouge1
