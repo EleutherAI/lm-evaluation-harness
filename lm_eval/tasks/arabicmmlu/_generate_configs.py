@@ -14,46 +14,46 @@ eval_logger = logging.getLogger("lm-eval")
 
 
 SUBJECTS = {
-    "Driving Test": "other",
-    "High Geography": "social_science",
-    "High History": "humanities",
     "Islamic Studies": "humanities",
-    "Univ Accounting": "social_science",
-    "Primary General Knowledge": "other",
-    "Univ Political Science": "social_science",
-    "Primary Math": "stem",
-    "Middle General Knowledge": "other",
-    "High Biology": "stem",
-    "Primary Natural Science": "stem",
-    "High Economics": "social_science",
-    "Middle Natural Science": "stem",
-    "Middle Geography": "social_science",
-    "Primary Social Science": "social_science",
-    "Middle Computer Science": "stem",
-    "Middle Islamic Studies": "humanities",
-    "Primary Computer Science": "stem",
-    "High Physics": "stem",
-    "Middle Social Science": "social_science",
-    "Middle Civics": "social_science",
-    "High Computer Science": "stem",
+    "Driving Test": "other",
+    "Natural Science (Middle School)": "stem",
+    "Natural Science (Primary School)": "stem",
+    "History (Primary School)": "humanities",
+    "History (Middle School)": "humanities",
+    "History (High School)": "humanities",
     "General Knowledge": "other",
-    "High Civics": "social_science",
-    "Prof Law": "humanities",
-    "High Islamic Studies": "humanities",
-    "Primary Arabic Language": "language",
-    "High Arabic Language": "language",
-    "Arabic Language (Grammar)": "language",
-    "Primary History": "humanities",
-    "Middle History": "humanities",
-    "Univ Economics": "social_science",
+    "General Knowledge (Primary School)": "other",
+    "General Knowledge (Middle School)": "other",
+    "Law (Professional)": "humanities",
+    "Physics (High School)": "stem",
+    "Social Science (Middle School)": "social_science",
+    "Social Science (Primary School)": "social_science",
+    "Management (University)": "other",
+    "Arabic Language (Primary School)": "language",
+    "Arabic Language (Middle School)": "language",
+    "Arabic Language (High School)": "language",
+    "Political Science (University)": "social_science",
+    "Philosophy (High School)": "humanities",
+    "Accounting (University)": "social_science",
+    "Computer Science (University)": "stem",
+    "Computer Science (Middle School)": "stem",
+    "Computer Science (Primary School)": "stem",
+    "Computer Science (High School)": "stem",
+    "Geography (Primary School)": "social_science",
+    "Geography (Middle School)": "social_science",
+    "Geography (High School)": "social_science",
+    "Math (Primary School)": "stem",
+    "Biology (High School)": "stem",
+    "Economics (University)": "social_science",
+    "Economics (Middle School)": "social_science",
+    "Economics (High School)": "social_science",
     "Arabic Language (General)": "language",
-    "Univ Computer Science": "stem",
-    "Primary Islamic Studies": "humanities",
-    "Primary Geography": "social_science",
-    "High Philosophy": "humanities",
-    "Middle Arabic Language": "language",
-    "Middle Economics": "social_science",
-    "Univ Management": "other",
+    "Arabic Language (Grammar)": "language",
+    "Islamic Studies (High School)": "humanities",
+    "Islamic Studies (Middle School)": "humanities",
+    "Islamic Studies (Primary School)": "humanities",
+    "Civics (Middle School)": "social_science",
+    "Civics (High School)": "social_science",
 }
 
 
@@ -69,8 +69,9 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our "other" YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path, encoding="utf-8") as f:
-        base_yaml = yaml.full_load(f)
+
+    # with open(args.base_yaml_path, encoding="utf-8") as f:
+    #     base_yaml = yaml.full_load(f)
 
     ALL_CATEGORIES = []
     for subject, category in tqdm(SUBJECTS.items()):
@@ -81,8 +82,8 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "tag": f"arabicmmlu_{category}",
-            "task": f"arabicmmlu_{subject.lower().replace(' ', '_')}",
+            "tag": f"arabicmmlu_{category}_tasks",
+            "task": f"arabicmmlu_{subject.lower().replace(' ', '_').replace('(', '').replace(')', '')}",
             "task_alias": subject,
             "dataset_name": subject,
             # "description": description,

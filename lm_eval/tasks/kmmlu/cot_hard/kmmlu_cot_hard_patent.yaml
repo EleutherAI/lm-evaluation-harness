@@ -110,4 +110,5 @@ fewshot_config:
       발명에 대해서는 먼저 출원한 자만이 특허를 받을 수 있다고 규정하고 있으므로, 乙은 특허를 받을 수 없습니다.  , (D)는 옳은 설명입니다.
       따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_patent
+task: kmmlu_cot_hard_patent
+tag: kmmlu_cot_hard_other_tasks

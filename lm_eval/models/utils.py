@@ -155,9 +155,9 @@ def pad_and_concat(
     length in the batch. Used for batching inputs and continuations in
     seq2seq models.
     """
-    assert (
-        padding_side == "left" or padding_side == "right"
-    ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
+    assert padding_side == "left" or padding_side == "right", (
+        f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
+    )
 
     for i, tensor in enumerate(tensors):
         if len(tensor.shape) == 2:
@@ -709,3 +709,21 @@ def flatten_image_list(images: List[List]):
     :return: a list of PIL images, via concatenating all the sub-lists in order.
     """
     return [image for image_list in images for image in image_list]
+
+
+def handle_stop_sequences(
+    until: Union[str, List[str], None], eos: Optional[str]
+) -> List[str]:
+    """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token."""
+    if isinstance(until, str):
+        until = [until]
+    elif until is None:
+        until = []
+    elif not isinstance(until, list):
+        raise ValueError(
+            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+        )
+
+    if eos is not None and eos not in until:
+        until.append(eos)
+    return until

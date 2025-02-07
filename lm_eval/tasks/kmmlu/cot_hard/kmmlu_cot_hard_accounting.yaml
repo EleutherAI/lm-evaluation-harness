@@ -78,4 +78,5 @@ fewshot_config:
       당기순이익은 과소 계상됩니다. 왜냐하면 매출원가가 더 높아지면 이익은 줄어들기 때문입니다.  , 상품재고액을 과대 계상한 경우 매출원가는
       과대 계상되고, 당기순이익은 과소 계상됩니다. '따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_accounting
+task: kmmlu_cot_hard_accounting
+tag: kmmlu_cot_hard_humss_tasks
