@@ -110,12 +110,14 @@ class SGLangLM(TemplateLM):
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         # Implement loglikelihood calculation
         # Return [(log_prob, is_greedy), ...]
-        pass
+        mocked = [(0.0, True)] * len(requests)
+        return mocked
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         # Implement rolling loglikelihood calculation
         # Return [log_prob, ...]
-        pass
+        mocked = [0.0] * len(requests)
+        return mocked
 
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
