@@ -39,6 +39,7 @@ class SGLangLM(TemplateLM):
         max_batch_size= None,
         max_model_len: int = None,
         max_gen_toks: int = 256,
+        add_bos_token: Optional[bool] = False,
         ########## SGlang native args ##########
         # Todo(Jinwei): Include more args of SGLang Engine if needed. Refer to https://docs.sglang.ai/backend/server_arguments.html .
         tokenizer_path: Optional[str] = None,
@@ -105,6 +106,12 @@ class SGLangLM(TemplateLM):
         # Todo(Jinwei): check tokenizer and other settings.
         self.tokenizer = self.model.tokenizer_manager.tokenizer
         self._max_gen_toks = max_gen_toks
+        self.add_bos_token = add_bos_token
+        if "gemma" in pretrained.lower():
+            self.add_bos_token = True
+            eval_logger.info(
+                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
+            )
 
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
@@ -163,6 +170,7 @@ class SGLangLM(TemplateLM):
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
+            
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
@@ -186,6 +194,7 @@ class SGLangLM(TemplateLM):
             context_encoding = [x[-max_ctx_len:] for x in context_encoding]
 
             # perform batched generation
+            # cont is a list of dic. See here https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 .
             cont = self._model_generate(
                 requests=context_encoding,
                 generate=True,
@@ -193,10 +202,10 @@ class SGLangLM(TemplateLM):
                 stop=until,
                 **kwargs,
             )
-
+            
             # cache generations
             for output, context in zip(cont, context):
-                generated_text = output.outputs[0].text
+                generated_text = output.get("text", "")
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text
@@ -243,14 +252,14 @@ class SGLangLM(TemplateLM):
     @property
     def eot_token_id(self):
         # Return the EOT (End of Text) token ID
-        return None  # Replace with the actual EOT token ID
+        return self.tokenizer.eos_token_id
 
     @property
     def max_length(self):
         if self._max_length:  # if max length manually set, return it
             return self._max_length
         if self.data_parallel_size <= 1:
-            return self.model.tokenizer_manager.context_length
+            return self.model.tokenizer_manager.context_len
         else:
             raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
         return self._DEFAULT_MAX_LENGTH
@@ -319,15 +328,33 @@ class SGLangLM(TemplateLM):
             str: The selected chat template in Jinja format.
         """
         pass
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
-        Process a chat history to create a string that can be tokenized and input into the model.
-
-        Args:
-            chat_history (List[Dict[str, str]]): A list of dictionaries representing the chat history,
-                where each dictionary has "role" and "content" keys.
-
-        Returns:
-            str: A string representing the chat history that can be tokenized and fed into the model.
+        Method to apply a chat template to a list of chat history between user and model.
         """
-        pass
+        chat_templated = self.tokenizer.apply_chat_template(
+            chat_history,
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+        )
+
+        return chat_templated
+
+    @staticmethod
+    def modify_gen_kwargs(kwargs: dict) -> dict:
+        # sampling_params
+        do_sample = kwargs.pop("do_sample", None)
+        if do_sample is False and "temperature" not in kwargs:
+            eval_logger.debug(
+                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
+            )
+            kwargs["temperature"] = 0.0
+        # hf defaults
+        kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
+        kwargs["spaces_between_special_tokens"] = kwargs.get(
+            "spaces_between_special_tokens", False
+        )
+        return kwargs
