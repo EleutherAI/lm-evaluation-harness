@@ -16,6 +16,7 @@ a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questi
 
 Homepage: https://allenai.org/data/arc
 
+Note: The 0-shot generation variants are based on the LLama 3.2 [implementation](https://huggingface.co/datasets/meta-llama/Llama-3.2-3B-Instruct-evals/viewer/Llama-3.2-3B-Instruct-evals__arc_challenge__details).
 
 ### Citation
 
@@ -38,11 +39,14 @@ None.
 #### Tags
 
 * `ai2_arc`: Evaluates `arc_easy` and `arc_challenge`
+* `ai2_arc_generation`: Evaluates `arc_easy_generation` and `arc_challenge_generation`
 
 #### Tasks
 
 * `arc_easy`
 * `arc_challenge`
+* `arc_easy_generation`
+* `arc_challenge_generation`
 
 ### Checklist
 
