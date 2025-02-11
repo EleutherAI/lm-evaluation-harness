@@ -36,6 +36,8 @@ class RegexFilter(Filter):
             fallback_regex_group_select
             if fallback_regex_group_select
             else group_select * len(fallback_regex)
+            if fallback_regex
+            else None
         )
         self.group_select = group_select
         self.fallback = fallback
