@@ -16,10 +16,10 @@ try:
 
     assert version("antlr4-python3-runtime").startswith("4.11")
 except (ModuleNotFoundError, AssertionError) as e:
-    raise e(
-        "`sympy`, `math_verify` and `antlr4-python3-runtime==4.11` are required for generating translation task prompt templates. \
-please install the required packages via pip install lm-eval[math] or pip install -e .[math]",
-    )
+    raise type(e)(
+        "`sympy`, `math_verify` and `antlr4-python3-runtime==4.11` are required for generating translation task prompt templates. "
+        "Please install the required packages via pip install lm-eval[math] or pip install -e .[math]"
+    ) from e
 
 
 # taken from
