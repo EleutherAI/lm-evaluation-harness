@@ -13,7 +13,7 @@ filter_list:
     filter:
       - function: "regex"
         regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
-        fallback_regex: [r".*[aA]nswer:\s*([A-J])"]
+        fallback_regex: [".*[aA]nswer:\\s*([A-J])"]
       - function: "take_first"
 generation_kwargs:
   until:
