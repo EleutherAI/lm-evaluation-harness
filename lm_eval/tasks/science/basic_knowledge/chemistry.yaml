@@ -1,0 +1,40 @@
+dataset_path: CohereForAI/Global-MMLU
+dataset_name: en
+dataset_kwargs: null
+validation_split: dev
+test_split: test
+fewshot_split: dev
+process_docs: !function utils.process_college_chemistry
+doc_to_text: >
+  You are an expert in chemistry. The following are multiple choice questions about chemistry. Let's think step by step. Please wrap the final answer in XML tags: <answer>X</answer> (where X is A, B, C, or D)
+  Question: {{question.strip()}}
+  A: {{option_a}}
+  B: {{option_b}}
+  C: {{option_c}}
+  D: {{option_d}}
+  Answer:
+doc_to_target: answer
+task: cumstomized_chemistry_mc
+filter_list:
+  - name: "xml-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "<answer>(.*?)</answer>" # to capture responses like <answer>A\\</answer>
+        group_select: 0
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 4096
+  until:
+    - "</s>"
+    - "Q:"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    ignore_numbers: true
