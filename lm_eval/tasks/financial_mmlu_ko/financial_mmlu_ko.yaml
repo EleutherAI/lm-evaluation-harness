@@ -1,0 +1,48 @@
+task: financial_mmlu_ko
+dataset_path: allganize/financial-mmlu-ko
+dataset_name: null
+dataset_kwargs: {}
+
+training_split: null
+validation_split: null
+test_split: test
+
+# Few-shot configuration (fewshot_config: few-shot 예제 지정)
+fewshot_config:
+  sampler: first_n
+  samples:
+    - conversations:
+        - {from: "human", value: "금리의 종류에 대한 설명으로 바르지 않은 것은?\n1. 변동금리는 시장금리 변동에 따른 위험을 자금공급자가 부담하게 된다\n2. 피셔방정식에 의하면 실질금리는 명목금리에서 기대인플레이션을 차감하면 구할 수 있다.\n3. 복리는 원금에 대한 이자뿐 아니라 이자에 대한 이자도 함께 계산하는 방법이다.\n4. 실효금리는 이자지급방법, 상환방법, 수수료, 세금 등을 감안한 후 차입자가 실질적으로 부담하는 순자금조달비용을 말한다.\n5. 채권시장에서는 금리보다 수익률이라는 용어를 더 많이 사용한다."}
+        - {from: "gpt", value: "1"}
+    - conversations:
+        - {from: "human", value: "경제발전경험 공유사업에 대한 설명으로 옳지 않은 것은 무엇인가?\n1. KSP(Knowledge Sharing Program)라고도 한다.\n2. 한국의 발전 경험과 지식을 바탕으로 실시한다.\n3. 국제기구의 도움없이 한국이 대상국 특별 단독 정책자문을 실시한다.\n4. 협력대상국의 경제·사회발전에 기여하고자 하는 지식중심의 경제협력사업이다."}
+        - {from: "gpt", value: "3"}
+    - conversations:
+        - {from: "human", value: "남의 이름을 빌리거나 도용해 개설한 계좌로, 보통 불법적인 금융거래, 비자금 관리, 로비활동, 탈세 등의 행위를 위해 사용되는 것은 무엇인가?\n1. 계정계좌\n2. 예금계좌\n3. 휴면계좌\n4. 차명계좌"}
+        - {from: "gpt", value: "4"}
+    - conversations:
+        - {from: "human", value: "다음 중 유효수요에 대해 옳지 않은 것은?\n1. 구매력을 고려하지 않은 수요를 말한다.\n2. 유효수요의 크기가 작을 때는 경제활동 규모도 작아지게 된다.\n3. 유효수요의 크기가 클 때는 경제활동 규모 역시 커지게 된다.\n4. 정부는 재정정책을 설계하기 위해 유효수요를 중시한다."}
+        - {from: "gpt", value: "1"}
+    - conversations:
+        - {from: "human", value: "다음 중 개발도상국의 투자 촉진을 도모하기 위해 설립된 국제기구가 아닌 것은 무엇인가?\n1. 국제투자보증공사(MIGA)\n2. 국제부흥개발은행(IBRD)\n3. 국제금융공사(IFC)\n4. 국제통화기금(IMF)"}
+        - {from: "gpt", value: "4"}
+        
+        
+    # 추가 예제들을 이와 같이 계속 작성할 수 있습니다.
+
+doc_to_text: "{{ conversations[0].value | trim() }}\nAnswer:"
+doc_to_target: "{{ conversations[1].value | int - 1 }}"
+doc_to_choice: ["1", "2", "3", "4", "5"]
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 0
+
+tag:
+  - finance_mmlu
+  - finance
+  - multiple_choice
