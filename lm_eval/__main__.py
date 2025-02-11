@@ -323,7 +323,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
     if args.limit:
-        limit = args.limit
         eval_logger.warning(
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
@@ -332,9 +331,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         assert (
             args.limit is None
         ), "If --examples is not None, then --limit must be None."
-        limit = None
-        with open(args.examples, "r") as json_file:
-            examples = json.load(json_file)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -410,8 +406,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         max_batch_size=args.max_batch_size,
         device=args.device,
         use_cache=args.use_cache,
-        limit=limit,
-        examples=examples,
+        limit=args.limit,
+        examples=json.load(open(args.examples, "r")) if args.examples else None,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
