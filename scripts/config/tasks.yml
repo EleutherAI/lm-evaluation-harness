@@ -1,0 +1,23 @@
+tasks:
+  - tass_sentiment_analysis_2020_costa_rica
+  - tass_sentiment_analysis_2020_mexico
+  - tass_sentiment_analysis_2020_peru
+  - tass_sentiment_analysis_2020_spain
+  - tass_sentiment_analysis_2020_uruguay
+  - iberautextification_attribution_2024_basque
+  - iberautextification_attribution_2024_catalan
+  - iberautextification_attribution_2024_english
+  - iberautextification_attribution_2024_galician
+  - iberautextification_attribution_2024_portuguese
+  - iberautextification_attribution_2024_spanish
+  - iberautextification_detection_2024_basque
+  - iberautextification_detection_2024_catalan
+  - iberautextification_detection_2024_english
+  - iberautextification_detection_2024_galician
+  - iberautextification_detection_2024_portuguese
+  - iberautextification_detection_2024_spanish
+  - iberlef_fakedes_2021_spanish
+  - iberlef_parmex_2022_spanish
+  - tass_emotion_analysis_2020_spanish
+  - vaxxstance_2021_basque
+  - vaxxstance_2021_spanish
