@@ -14,7 +14,7 @@ doc_to_text: >
   D: {{option_d}}
   Answer:
 doc_to_target: answer
-task: cumstomized_chemistry_mc
+task: customized_chemistry_mc
 filter_list:
   - name: "xml-extract"
     filter:
