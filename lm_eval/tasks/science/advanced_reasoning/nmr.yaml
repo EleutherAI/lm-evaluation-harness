@@ -1,0 +1,39 @@
+dataset_path: Marshtomp/chemistry_nmr_demo
+dataset_name: null
+test_split: train   # for demonstration only, usually dataset's train, validation, and test splits are named, if they exist
+doc_to_text: >
+  You are an expert in chemistry. Determine the chemical structure based on the provided spectroscopic data.  
+  Given Information:  
+  Molecular Formula: {{MOLECULAR_FORMULA}}
+  Spectroscopic Data:  
+  {{SPEC_DATA}}
+
+  Requirements:  
+  - Provide the structure in SMILES notation  
+  - The answer should be exact and canonical  
+  - Include only the SMILES string in your answer, wrapped in <SMILES></SMILES> tags  
+
+  Example answer format:  
+  <SMILES>CCN(CC)CC</SMILES>  
+doc_to_target: SMILES
+task: reasoning_chemistry_nmr
+process_results: !function utils.process_smiles
+filter_list:
+  - name: "xml-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "<SMILES>(.*?)</SMILES>"
+        group_select: 0
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 4096
+  until:
+    - "</s>"
+    - "Q:"
+    - "<|im_end|>"
+  do_sample: false
+num_fewshot: 0
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
