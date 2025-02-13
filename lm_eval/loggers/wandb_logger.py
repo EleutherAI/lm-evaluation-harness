@@ -56,6 +56,8 @@ class WandbLogger:
             self.run = wandb.init(**self.wandb_args)
         else:
             self.run = wandb.run
+        self.run.define_metric("OptimizerStep")
+        self.run.define_metric("*", step_metric="OptimizerStep")
 
         self.printer = get_wandb_printer()
 
@@ -155,11 +157,11 @@ class WandbLogger:
 
         # log the complete eval result to W&B Table
         table = make_table(["Tasks"] + columns, "results")
-        self.run.log({"evaluation/eval_results": table}, step=self.step)
+        self.run.log({"evaluation/eval_results": table, "OptimizerStep": self.step}, commit=True)
 
         if "groups" in self.results.keys():
             table = make_table(["Groups"] + columns, "groups")
-            self.run.log({"evaluation/group_eval_results": table}, step=self.step)
+            self.run.log({"evaluation/group_eval_results": table, "OptimizerStep": self.step}, commit=True)
 
     def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
@@ -183,7 +185,7 @@ class WandbLogger:
         # update wandb.run.summary with items that were removed
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
-        self.run.log(self.wandb_results, step=self.step)
+        self.run.log({**self.wandb_results, "OptimizerStep": self.step}, commit=True)
         # Log the evaluation metrics as W&B Table
         self._log_results_as_table()
         # Log the results dict as json to W&B Artifacts
@@ -332,7 +334,7 @@ class WandbLogger:
 
             # log the samples as a W&B Table
             df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
-            self.run.log({f"{task_name}_eval_results": df}, step=self.step)
+            self.run.log({f"{task_name}_eval_results": df, "OptimizerStep": self.step}, commit=True)
 
             # log the samples as a json file as W&B Artifact
             self._log_samples_as_artifact(eval_preds, task_name)
@@ -351,4 +353,4 @@ class WandbLogger:
                 # log the samples as a json file as W&B Artifact
                 self._log_samples_as_artifact(eval_preds, task_name)
 
-            self.run.log({f"{group}_eval_results": grouped_df}, step=self.step)
+            self.run.log({f"{group}_eval_results": grouped_df, "OptimizerStep": self.step}, commit=True)
