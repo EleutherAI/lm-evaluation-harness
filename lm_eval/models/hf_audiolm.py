@@ -1,14 +1,11 @@
+import copy
 from typing import Dict, List, Optional, Tuple, Union
 
-import copy
 import torch
-import torch.nn.functional as F
 import transformers
 from tqdm import tqdm
 from transformers import BatchEncoding
-from transformers import PreTrainedTokenizer, GenerationConfig
 
-from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
@@ -17,6 +14,7 @@ from lm_eval.models.utils import (
     replace_placeholders,
     stop_sequences_criteria,
 )
+
 
 DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>", "<audio_1>", "<audio_2>"]
 
