@@ -102,7 +102,8 @@ class SGLangLM(TemplateLM):
             eval_logger.warning(
                 "Data parallelism will be deprecated in the future version of SGLang. See here: https://docs.sglang.ai/backend/server_arguments.html#data-parallelism ."
             )
-            raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+            # raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+            self.model = sgl.Engine(**self.model_args)
         
         # Todo(Jinwei): check tokenizer and other settings.
         self.tokenizer = self.model.tokenizer_manager.tokenizer
@@ -296,8 +297,8 @@ class SGLangLM(TemplateLM):
                 "max_new_tokens": 1,
             }
             sampling_params.update(kwargs)
-        if self.data_parallel_size > 1:
-            raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+        # if self.data_parallel_size > 1:
+        #     raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
 
         # Refer to: https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 
         outputs = self.model.generate(
@@ -330,7 +331,8 @@ class SGLangLM(TemplateLM):
         if self.data_parallel_size <= 1:
             return self.model.tokenizer_manager.context_len
         else:
-            raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+            # raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+            return self.model.tokenizer_manager.context_len
         return self._DEFAULT_MAX_LENGTH
 
     @property
