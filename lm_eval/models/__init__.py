@@ -4,6 +4,7 @@ from . import (
     dummy,
     gguf,
     hf_vlms,
+    hf_audiolm,
     huggingface,
     ibm_watsonx_ai,
     mamba_lm,
