@@ -60,4 +60,4 @@ If other tasks on this dataset are already supported:
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
-version 2.0: (2025-Feb-14) set target delimiter to "" as the inputs already ends with a space.
+version 2.0: (2025-Feb-14) set target delimiter to "" as the targets already start with a space.
