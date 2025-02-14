@@ -1,0 +1,6 @@
+"dataset_name": "nutrition"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_nutrition"
+"task_alias": "nutrition"

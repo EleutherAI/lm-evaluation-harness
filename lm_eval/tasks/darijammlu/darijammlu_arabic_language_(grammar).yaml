@@ -1,0 +1,6 @@
+"dataset_name": "arabic_language_(grammar)"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_ar_mmlu_tasks"
+"task": "darijammlu_arabic_language_(grammar)"
+"task_alias": "arabic language (grammar)"

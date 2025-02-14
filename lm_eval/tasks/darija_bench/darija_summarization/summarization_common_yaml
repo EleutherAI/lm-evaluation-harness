@@ -1,0 +1,31 @@
+output_type: generate_until
+dataset_path: MBZUAI-Paris/DarijaBench
+test_split: marsum
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: !function utils.rouge1
+  - metric: !function utils.rouge2
+  - metric: !function utils.rougeL
+  - metric: !function utils.rougeLsum
+  - metric: !function utils.bert
+  - metric: chrf
+generation_kwargs:
+  until:
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+  max_new_tokens: 128
+repeats: 1
+filter_list:
+  - name: "STRIP_ANSWER"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.strip
+metadata:
+  version: 1.0
