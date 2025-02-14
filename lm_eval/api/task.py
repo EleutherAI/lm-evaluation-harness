@@ -1049,6 +1049,8 @@ class ConfigurableTask(Task):
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param chat_template:
             callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
+        :param gen_prefix:
+            String to append after the <|assistant|> token.
         :returns: str
             The fewshot context.
         """
