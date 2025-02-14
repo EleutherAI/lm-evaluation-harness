@@ -1,0 +1,5 @@
+"dataset_name": "yue_Hant"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_yue_Hant"
+"test_split": "test"
