@@ -60,6 +60,7 @@ class TaskConfig(dict):
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
+    download_dataset: Optional[Callable] = None
     dataset_path: Optional[str] = None
     dataset_name: Optional[str] = None
     dataset_kwargs: Optional[dict] = None
@@ -324,10 +325,11 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            eval_logger.warning(
-                f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
-                ", using test_docs as fewshot_docs but this is not recommended."
-            )
+            if self.config.get("num_fewshot", 0) > 0:
+                eval_logger.warning(
+                    f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
+                    ", using test_docs as fewshot_docs but this is not recommended."
+                )
             return self.test_docs()
 
     def _process_doc(self, doc: dict) -> dict:
@@ -926,12 +928,22 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
-    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
-        self.dataset = datasets.load_dataset(
-            path=self.DATASET_PATH,
-            name=self.DATASET_NAME,
-            **dataset_kwargs if dataset_kwargs is not None else {},
-        )
+    def download(
+        self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> None:
+        if isinstance(self.config.download_dataset, Callable):
+            self.dataset = self.config.download_dataset(
+                **self.config.metadata,
+                **self.config.dataset_kwargs
+                if self.config.dataset_kwargs is not None
+                else {},
+            )
+        else:
+            self.dataset = datasets.load_dataset(
+                path=self.DATASET_PATH,
+                name=self.DATASET_NAME,
+                **dataset_kwargs if dataset_kwargs is not None else {},
+            )
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:

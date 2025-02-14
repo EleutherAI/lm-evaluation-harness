@@ -10,7 +10,7 @@ import os
 import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from typing import Any, Callable, Generator, List, Tuple
+from typing import Any, Callable, Generator, List, Optional, Tuple
 
 import numpy as np
 import yaml
@@ -93,12 +93,14 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string):
+def simple_parse_args_string(args_string: Optional[str]) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
     Into a dictionary
     """
+    if args_string is None:
+        return {}
     args_string = args_string.strip()
     if not args_string:
         return {}
@@ -108,6 +110,35 @@ def simple_parse_args_string(args_string):
         for kv in [arg.split("=") for arg in arg_list]
     }
     return args_dict
+
+
+def parse_keyed_list_string(s: str) -> dict[str, list]:
+    """Parse a string of key-value pairs into a dictionary where all values are lists."""
+    if s is None:
+        return {}
+    result = {}
+    current_key = None
+    values = []
+
+    parts = s.split(",")
+
+    for part in parts:
+        if "=" in part:
+            # Save previous key's values
+            if current_key is not None:
+                result[current_key] = values
+
+            # Start new key-value pair
+            current_key, value = part.split("=")
+            values = [handle_arg_string(value)]
+        else:
+            values.append(handle_arg_string(part))
+
+    # Add the last key-value pair
+    if current_key is not None:
+        result[current_key] = values
+
+    return result
 
 
 def join_iters(iters):
