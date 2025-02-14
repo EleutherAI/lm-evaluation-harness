@@ -527,9 +527,9 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
-    assert (
-        metrics is not None
-    ), "Need to pass a list of each subtask's metric for this stderr aggregation"
+    assert metrics is not None, (
+        "Need to pass a list of each subtask's metric for this stderr aggregation"
+    )
     assert len(stderrs) == len(sizes) and len(sizes) == len(metrics)
 
     # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1390 for more documentation.

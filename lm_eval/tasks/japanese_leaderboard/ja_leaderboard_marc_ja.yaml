@@ -1,0 +1,26 @@
+task: ja_leaderboard_marc_ja
+
+dataset_path: Rakuten/JGLUE
+dataset_name: MARC-ja
+training_split: train
+validation_split: validation
+test_split: null
+
+fewshot_split: train
+num_fewshot: 3
+
+description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
+doc_to_text: "### 指示：\n以下の製品レビューを、ポジティブまたはネガティブの感情クラスのいずれかに分類してください。\n\n### 入力：\n{{ sentence }}\n\n### 応答："
+doc_to_target: label
+doc_to_choice: ["ポジティブ", "ネガティブ"]
+target_delimiter: "\n"
+
+output_type: multiple_choice
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

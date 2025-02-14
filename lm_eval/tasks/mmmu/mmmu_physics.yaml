@@ -1,0 +1,4 @@
+task: mmmu_val_physics
+include: _template_yaml
+task_alias: Physics
+dataset_name: Physics

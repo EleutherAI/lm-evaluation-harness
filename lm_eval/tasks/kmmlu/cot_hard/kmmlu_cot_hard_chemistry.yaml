@@ -76,4 +76,5 @@ fewshot_config:
       황산의 분자량은 98g/mol입니다.   황산의 몰 수는 49g ÷ 98g/mol = 0.5mol입니다.   이 수용액의 물 농도는 0.5mol/1L
       = 0.5M입니다. 따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_chemistry
+task: kmmlu_cot_hard_chemistry
+tag: kmmlu_cot_hard_stem_tasks
