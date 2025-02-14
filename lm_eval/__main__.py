@@ -279,9 +279,19 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    eval_logger = utils.eval_logger
-    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
-    eval_logger.info(f"Verbosity set to {args.verbosity}")
+    # set verbosity and filter out some of the more verbose loggers
+    verbosity = os.environ.get("LOGLEVEL", None) or args.verbosity or logging.ERROR
+    logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.getLogger("filelock").setLevel(logging.INFO)
+    logging.getLogger("fsspec").setLevel(logging.INFO)
+
+    logging.basicConfig(
+        format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d:%H:%M:%S",
+        level=verbosity,
+    )
+    eval_logger = logging.getLogger(__name__)
+
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
@@ -306,7 +316,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(include_path=args.include_path)
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
@@ -403,7 +413,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
-        verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
@@ -464,4 +473,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
 
 if __name__ == "__main__":
-    cli_evaluate()
+    parser = setup_parser()
+    args = parse_eval_args(parser)
+    cli_evaluate(args)

@@ -13,6 +13,18 @@ from lm_eval.evaluator_utils import get_subtask_list
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
+eval_logger = logging.getLogger(__name__)
+
+
+def set_log_level(level):
+    """
+    Set the logger's level at runtime.
+    Level can be a string ('DEBUG', 'INFO', etc.) or logging constant (logging.DEBUG, etc.)
+    """
+    if isinstance(level, str):
+        level = getattr(logging, level.upper())
+    eval_logger.setLevel(level)
+
 
 class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
@@ -22,14 +34,13 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity="INFO",
+        verbosity: Optional[str] = None,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
     ) -> None:
-        self.verbosity = verbosity
+        if verbosity is not None:
+            set_log_level(verbosity)
         self.include_path = include_path
-        self.logger = utils.eval_logger
-        self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults
@@ -456,7 +467,7 @@ class TaskManager:
                             "yaml_path": -1,
                         }
                     elif tasks_and_groups[tag]["type"] != "tag":
-                        self.logger.info(
+                        eval_logger.info(
                             f"The tag '{tag}' is already registered as a group, this tag will not be registered. "
                             "This may affect tasks you want to call."
                         )
@@ -519,7 +530,7 @@ class TaskManager:
                             config, task, tasks_and_groups, print_info
                         )
                     else:
-                        self.logger.debug(f"File {f} in {root} could not be loaded")
+                        eval_logger.debug(f"File {f} in {root} could not be loaded")
 
         return tasks_and_groups
 
