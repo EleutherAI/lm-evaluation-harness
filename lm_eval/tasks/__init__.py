@@ -16,6 +16,16 @@ GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 eval_logger = logging.getLogger(__name__)
 
 
+def set_log_level(level):
+    """
+    Set the logger's level at runtime.
+    Level can be a string ('DEBUG', 'INFO', etc.) or logging constant (logging.DEBUG, etc.)
+    """
+    if isinstance(level, str):
+        level = getattr(logging, level.upper())
+    eval_logger.setLevel(level)
+
+
 class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
     and an optional directory if provided.
@@ -29,7 +39,7 @@ class TaskManager:
         include_defaults: bool = True,
     ) -> None:
         if verbosity is not None:
-            self.set_log_level(verbosity)
+            set_log_level(verbosity)
         self.include_path = include_path
 
         self._task_index = self.initialize_tasks(
@@ -52,15 +62,6 @@ class TaskManager:
         )
 
         self.task_group_map = collections.defaultdict(list)
-
-    def set_log_level(self, level):
-        """
-        Set the logger's level at runtime.
-        Level can be a string ('DEBUG', 'INFO', etc.) or logging constant (logging.DEBUG, etc.)
-        """
-        if isinstance(level, str):
-            level = getattr(logging, level.upper())
-        eval_logger.setLevel(level)
 
     def initialize_tasks(
         self,
