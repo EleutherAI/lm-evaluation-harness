@@ -24,9 +24,12 @@ class TaskManager:
 
     def __init__(
         self,
+        verbosity: Optional[str] = None,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
     ) -> None:
+        if verbosity is not None:
+            self.set_log_level(verbosity)
         self.include_path = include_path
 
         self._task_index = self.initialize_tasks(
@@ -49,6 +52,15 @@ class TaskManager:
         )
 
         self.task_group_map = collections.defaultdict(list)
+
+    def set_log_level(self, level):
+        """
+        Set the logger's level at runtime.
+        Level can be a string ('DEBUG', 'INFO', etc.) or logging constant (logging.DEBUG, etc.)
+        """
+        if isinstance(level, str):
+            level = getattr(logging, level.upper())
+        eval_logger.setLevel(level)
 
     def initialize_tasks(
         self,
@@ -454,7 +466,7 @@ class TaskManager:
                             "yaml_path": -1,
                         }
                     elif tasks_and_groups[tag]["type"] != "tag":
-                        self.logger.info(
+                        eval_logger.info(
                             f"The tag '{tag}' is already registered as a group, this tag will not be registered. "
                             "This may affect tasks you want to call."
                         )

@@ -387,7 +387,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         args.model_args = args.model_args + ",trust_remote_code=True"
 
-    eval_logger.warning(f"Selected Tasks: {task_names}")
+    print(f"Selected Tasks: {task_names}")
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
