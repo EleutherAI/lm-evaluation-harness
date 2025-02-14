@@ -1,14 +1,10 @@
-import re
-import signal
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import datasets
 
-from lm_eval.utils import eval_logger
-
 
 try:
-    from math_verify import parse, verify, LatexExtractionConfig
+    from math_verify import LatexExtractionConfig, parse, verify
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
         "`math-verify` is required for generating translation task prompt templates. \
@@ -30,7 +26,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
-            "answer": remove_boxed(last_boxed_only_string(doc["solution"]))
+            "answer": remove_boxed(last_boxed_only_string(doc["solution"])),
         }
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
@@ -123,6 +119,3 @@ def remove_boxed(s: str) -> str:
         return s[len(left) : -1]
     except AssertionError:
         return INVALID_ANSWER
-
-
-
