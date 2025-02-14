@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
@@ -24,7 +25,7 @@ from lm_eval.models.utils import (
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-multimodal")
