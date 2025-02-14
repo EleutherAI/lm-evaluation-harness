@@ -1,0 +1,8 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "high_school_us_history_CS"
+"task": "eu20_mmlu_cs-high_school_us_history"
+"tag": "eu20_mmlu_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdpověď:"
+"description": "Následující otázky s výběrem odpovědí se týkají středoškolské historie."

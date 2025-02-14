@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_easy_lv"
+"dataset_name": "easy_LV"
+"doc_to_text": "Jautājums: {{question}}\nAtbilde:"
+"doc_to_decontamination_query": "Jautājums: {{question}}\nAtbilde:"

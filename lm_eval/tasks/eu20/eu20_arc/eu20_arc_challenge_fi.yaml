@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_challenge_fi"
+"dataset_name": "challenge_FI"
+"doc_to_text": "Kysymys: {{question}}\nVastaa:"
+"doc_to_decontamination_query": "Kysymys: {{question}}\nVastaa:"

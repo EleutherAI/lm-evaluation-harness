@@ -1,0 +1,9 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "high_school_biology_RO"
+"task": "eu20_mmlu_ro-high_school_biology"
+"tag": "eu20_mmlu_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRăspuns:"
+"description": "Următoarele sunt întrebări cu variante multiple de răspuns (cu răspunsuri)\
+  \ despre biologia de liceu."

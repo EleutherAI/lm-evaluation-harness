@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_challenge_et"
+"dataset_name": "challenge_ET"
+"doc_to_text": "Küsimus: {{question}}\nVastus:"
+"doc_to_decontamination_query": "Küsimus: {{question}}\nVastus:"

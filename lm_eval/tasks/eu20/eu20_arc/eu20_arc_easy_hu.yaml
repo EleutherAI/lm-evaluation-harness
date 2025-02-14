@@ -1,0 +1,5 @@
+"include": "_default_eu20_arc_template_yaml"
+"task": "eu20_arc_easy_hu"
+"dataset_name": "easy_HU"
+"doc_to_text": "Kérdés: {{question}}\nVálasz:"
+"doc_to_decontamination_query": "Kérdés: {{question}}\nVálasz:"

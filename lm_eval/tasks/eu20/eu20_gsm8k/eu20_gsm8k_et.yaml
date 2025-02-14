@@ -1,0 +1,10 @@
+"include": "_default_eu20_gsm8k_template_yaml"
+"task": "eu20_gsm8k_et"
+"dataset_name": "ET"
+"doc_to_text": "Küsimus: {{question}}\nVastus:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Küsimus:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

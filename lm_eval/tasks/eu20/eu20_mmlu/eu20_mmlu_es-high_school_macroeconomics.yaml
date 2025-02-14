@@ -1,0 +1,9 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "high_school_macroeconomics_ES"
+"task": "eu20_mmlu_es-high_school_macroeconomics"
+"tag": "eu20_mmlu_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRespuesta:"
+"description": "Las siguientes son preguntas de opción múltiple (con respuestas) sobre\
+  \ macroeconomía en la escuela secundaria."

@@ -1,0 +1,9 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "professional_accounting_ET"
+"task": "eu20_mmlu_et-professional_accounting"
+"tag": "eu20_mmlu_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVastus:"
+"description": "Järgnevalt on esitatud valikvastustega küsimused (koos vastustega)\
+  \ kutsealase raamatupidamise kohta."

@@ -1,0 +1,8 @@
+"include": "_default_eu20_mmlu_template_yaml"
+"dataset_name": "prehistory_ES"
+"task": "eu20_mmlu_es-prehistory"
+"tag": "eu20_mmlu_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRespuesta:"
+"description": "Las siguientes son preguntas tipo test (con respuesta) sobre la prehistoria."

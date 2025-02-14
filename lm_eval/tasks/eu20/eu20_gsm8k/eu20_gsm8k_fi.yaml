@@ -1,0 +1,10 @@
+"include": "_default_eu20_gsm8k_template_yaml"
+"task": "eu20_gsm8k_fi"
+"dataset_name": "FI"
+"doc_to_text": "Kysymys: {{question}}\nVastaa:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Kysymys:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"

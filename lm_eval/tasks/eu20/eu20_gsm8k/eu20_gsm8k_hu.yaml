@@ -1,0 +1,10 @@
+"include": "_default_eu20_gsm8k_template_yaml"
+"task": "eu20_gsm8k_hu"
+"dataset_name": "HU"
+"doc_to_text": "Kérdés: {{question}}\nVálasz:"
+"generation_kwargs":
+  "until":
+  - "\n\n"
+  - "Kérdés:"
+  "do_sample": !!bool "false"
+  "temperature": !!float "0.0"
