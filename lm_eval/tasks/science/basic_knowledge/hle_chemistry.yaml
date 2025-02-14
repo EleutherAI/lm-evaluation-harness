@@ -1,0 +1,37 @@
+dataset_path: cais/hle
+dataset_name: null
+test_split: test
+doc_to_text: >
+  You are an expert in chemistry. Please answer the following question:
+  {{question}}
+
+  Requirements:  
+  - Please wrap the final answer in XML tags: <answer>X</answer> (where X is the answer to be evaluated with exact match.) 
+
+  Example answer format:  
+  <answer>positive</answer>  
+doc_to_target: answer
+task: hle_chemistry
+process_docs: !function utils.process_hle_chemistry
+filter_list:
+  - name: "xml-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "<answer>(.*?)</answer>"
+        group_select: 0
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 4096
+  until:
+    - "</s>"
+    - "Q:"
+    - "<|im_end|>"
+  do_sample: false
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    ignore_numbers: false
