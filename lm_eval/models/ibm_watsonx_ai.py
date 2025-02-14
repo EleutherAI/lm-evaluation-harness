@@ -13,6 +13,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import JsonChatStr
 from lm_eval.utils import simple_parse_args_string
 
+
 eval_logger = logging.getLogger(__name__)
 
 

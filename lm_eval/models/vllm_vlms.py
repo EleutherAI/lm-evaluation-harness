@@ -16,6 +16,7 @@ from lm_eval.models.utils import (
 )
 from lm_eval.models.vllm_causallms import VLLM
 
+
 eval_logger = logging.getLogger(__name__)
 
 

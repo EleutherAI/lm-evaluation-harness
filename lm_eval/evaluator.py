@@ -312,7 +312,7 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
-        verbosity=verbosity,
+        # verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
 
