@@ -279,13 +279,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    if args.verbosity:
-        verbosity = args.verbosity
-    else:
-        verbosity = logging.ERROR
+    # set verbosity and filter out some of the more verbose loggers
+    verbosity = os.environ.get("LOGLEVEL", None) or args.verbosity or logging.ERROR
+    logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.getLogger("filelock").setLevel(logging.INFO)
+    logging.getLogger("fsspec").setLevel(logging.INFO)
 
     logging.basicConfig(
-        format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+        format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
         datefmt="%Y-%m-%d:%H:%M:%S",
         level=verbosity,
     )
@@ -387,7 +388,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         args.model_args = args.model_args + ",trust_remote_code=True"
 
-    print(f"Selected Tasks: {task_names}")
+    eval_logger.info(f"Selected Tasks: {task_names}")
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
