@@ -241,7 +241,7 @@ def is_equiv(str1, str2, verbose=False):
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidate = results[0]
-    gold = doc["conversations"][1]['value']
+    gold = doc["conversations"][1]["value"]
 
     if not gold:
         print(doc, candidate, gold)
@@ -250,10 +250,8 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         retval = 1
     else:
         retval = 0
-    
+
     results = {
         "acc": retval,
     }
     return results
-
-
