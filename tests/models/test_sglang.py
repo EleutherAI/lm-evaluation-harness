@@ -6,14 +6,12 @@ from lm_eval import tasks
 from lm_eval.api.instance import Instance
 
 
-# import torch
-
 task_manager = tasks.TaskManager()
 
 
 # Note(jinwei): we refer to vLLM's test but modify the trigger condition.
-# @pytest.mark.skip(reason="requires CUDA")
 # @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
+@pytest.mark.skip(reason="requires CUDA")
 class Test_SGlang:
     sglang = pytest.importorskip("sglang")
     # try:
@@ -42,7 +40,7 @@ class Test_SGlang:
         try:
             from lm_eval.models.sglang_causallms import SGLangLM
 
-            cls.LM = SGLangLM(pretrained="EleutherAI/pythia-70m", batch_size=128)
+            cls.LM = SGLangLM(pretrained="EleutherAI/pythia-70m", batch_size=1)
         except Exception as e:
             pytest.fail(f"🔥 SGLangLM failed to initialize: {e}")
 
