@@ -1,31 +1,31 @@
 import copy
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from importlib.util import find_spec
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+
+from tqdm import tqdm
+
+from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.api.instance import Instance
-from importlib.util import find_spec
+from lm_eval.models.utils import (
+    Collator,
+    handle_stop_sequences,
+)
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
 )
-from lm_eval.models.utils import (
-    Collator,
-    configure_pad_token,
-    handle_stop_sequences,
-    undistribute,
-)
-from tqdm import tqdm
+
 
 try:
     import sglang as sgl
-    from sglang.srt.server_args import ServerArgs
-    from sglang.lang.ir import SglSamplingParams
 except ModuleNotFoundError:
     pass
 
 if TYPE_CHECKING:
     pass
+
 
 @register_model("sglang")
 class SGLangLM(TemplateLM):
@@ -36,7 +36,7 @@ class SGLangLM(TemplateLM):
         pretrained: str,
         # batch args from lm-eval interface: https://github.com/EleutherAI/lm-evaluation-harness/blob/144a1e58be73f937f8fecaae886346681d0fa082/docs/interface.md
         batch_size: Union[str, int] = 1,
-        max_batch_size= None,
+        max_batch_size=None,
         max_model_len: int = None,
         max_gen_toks: int = 256,
         add_bos_token: Optional[bool] = False,
@@ -57,7 +57,7 @@ class SGLangLM(TemplateLM):
         dp_size: int = 1,
         tp_size: int = 1,
         prefix_token_id: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
 
@@ -66,13 +66,15 @@ class SGLangLM(TemplateLM):
                 "attempted to use 'sglang' LM type, but package `sglang` is not installed. "
                 "Please install sglang via `pip install lm-eval[sglang]` or `pip install -e .[sglang]`"
             )
-        
+
         assert "cuda" in device or device is None, "SGLang only supports CUDA"
         assert context_length is None or max_model_len is None, (
             "Either context_length or max_model_len may be provided, but not both"
         )
         # Initialize your sglang model here
-        self._max_length = max_model_len if max_model_len is not None else context_length
+        self._max_length = (
+            max_model_len if max_model_len is not None else context_length
+        )
         self.tensor_parallel_size = int(tp_size)
         self.data_parallel_size = int(dp_size)
         self.model_args = {
@@ -87,7 +89,7 @@ class SGLangLM(TemplateLM):
             "mem_fraction_static": mem_fraction_static,
             "tp_size": self.tensor_parallel_size,
             "dp_size": self.data_parallel_size,
-            "chunked_prefill_size": chunked_prefill_size
+            "chunked_prefill_size": chunked_prefill_size,
         }
 
         self.model_args.update(kwargs)
@@ -102,9 +104,8 @@ class SGLangLM(TemplateLM):
             eval_logger.warning(
                 "Data parallelism will be deprecated in the future version of SGLang. See here: https://docs.sglang.ai/backend/server_arguments.html#data-parallelism ."
             )
-            # raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
             self.model = sgl.Engine(**self.model_args)
-        
+
         # Todo(Jinwei): check tokenizer and other settings.
         self.tokenizer = self.model.tokenizer_manager.tokenizer
         self._max_gen_toks = max_gen_toks
@@ -226,7 +227,7 @@ class SGLangLM(TemplateLM):
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
-            
+
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
@@ -258,7 +259,7 @@ class SGLangLM(TemplateLM):
                 stop=until,
                 **kwargs,
             )
-            
+
             # cache generations
             for output, context in zip(cont, context):
                 generated_text = output.get("text", "")
@@ -282,12 +283,12 @@ class SGLangLM(TemplateLM):
         top_logprobs_num: int = 1,
         logprob_start_len: int = -1,
         **kwargs,
-    ):  
-        # check sglang sampling parammeters: https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/sampling/sampling_params.py#L21  and https://docs.sglang.ai/references/sampling_params.html.
+    ):
+        # check sglang sampling parameters: https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/sampling/sampling_params.py#L21  and https://docs.sglang.ai/references/sampling_params.html.
         if generate:
             kwargs = self.modify_gen_kwargs(kwargs)
             sampling_params = {
-                "max_new_tokens": max_tokens, 
+                "max_new_tokens": max_tokens,
                 "stop": stop,
             }
             sampling_params.update(kwargs)
@@ -297,19 +298,17 @@ class SGLangLM(TemplateLM):
                 "max_new_tokens": 1,
             }
             sampling_params.update(kwargs)
-        # if self.data_parallel_size > 1:
-        #     raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
 
-        # Refer to: https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 
+        # Refer to: https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111
         outputs = self.model.generate(
             input_ids=requests,
             sampling_params=sampling_params,
-            return_logprob = return_logprob,
-            top_logprobs_num = top_logprobs_num,
-            logprob_start_len = logprob_start_len
-        )            
+            return_logprob=return_logprob,
+            top_logprobs_num=top_logprobs_num,
+            logprob_start_len=logprob_start_len,
+        )
         return outputs
-    
+
     @property
     def eot_token_id(self):
         # Return the EOT (End of Text) token ID
@@ -323,15 +322,14 @@ class SGLangLM(TemplateLM):
         if self.tokenizer.bos_token_id is not None:
             return self.tokenizer.bos_token_id
         return self.tokenizer.eos_token_id
-    
+
     @property
     def max_length(self):
         if self._max_length:  # if max length manually set, return it
             return self._max_length
-        if self.data_parallel_size <= 1:
-            return self.model.tokenizer_manager.context_len
-        else:
-            # raise NotImplementedError("Data parallelism is not supported for SGLang models now.")
+        if hasattr(self.model, "tokenizer_manager") and hasattr(
+            self.model.tokenizer_manager, "context_len"
+        ):
             return self.model.tokenizer_manager.context_len
         return self._DEFAULT_MAX_LENGTH
 
@@ -379,6 +377,7 @@ class SGLangLM(TemplateLM):
             str: The name of the model's tokenizer and/or chat template.
         """
         pass
+
     def chat_template(self, chat_template: Union[bool, str] = False) -> str:
         """
         Get the appropriate chat template for the model based on the `chat_template` argument.
@@ -399,6 +398,7 @@ class SGLangLM(TemplateLM):
             str: The selected chat template in Jinja format.
         """
         pass
+
     def apply_chat_template(
         self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
     ) -> str:
@@ -447,7 +447,13 @@ class SGLangLM(TemplateLM):
                 inputs.append(inp)
                 ctxlens.append(ctxlen)
 
-            outputs = self._model_generate(requests=inputs, generate=False, return_logprob=True, top_logprobs_num=2, logprob_start_len=0)
+            outputs = self._model_generate(
+                requests=inputs,
+                generate=False,
+                return_logprob=True,
+                top_logprobs_num=2,
+                logprob_start_len=0,
+            )
             for output, ctxlen, (cache_key, _, _), inp in zip(
                 outputs, ctxlens, chunk, inputs
             ):
@@ -473,7 +479,7 @@ class SGLangLM(TemplateLM):
 
         :param tokens: list
             Input tokens (potentially left-truncated)
-        :param outputs: 
+        :param outputs:
             Contains input_token_logprobs and input_top_logprobs
         :param ctxlen: int
             Length of context (so we can slice them away and only keep the predictions)
@@ -486,16 +492,16 @@ class SGLangLM(TemplateLM):
 
         # The first entry of prompt_logprobs is None because the model has no previous tokens to condition on.
         # [(logprob, token_id, token_text)]
-        continuation_logprobs_lists = outputs['meta_info']['input_token_logprobs']
-        continuation_logprobs = sum(logprob for logprob, _, _ in continuation_logprobs_lists[ctxlen:])
+        continuation_logprobs_lists = outputs["meta_info"]["input_token_logprobs"]
+        continuation_logprobs = sum(
+            logprob for logprob, _, _ in continuation_logprobs_lists[ctxlen:]
+        )
 
-        top_logprobs_lists = outputs['meta_info']['input_top_logprobs']
+        top_logprobs_lists = outputs["meta_info"]["input_top_logprobs"]
 
         # Determine if is_greedy
         is_greedy = True
-        for token, top_logprobs in zip(
-            tokens[ctxlen:], top_logprobs_lists[ctxlen:]
-        ):
+        for token, top_logprobs in zip(tokens[ctxlen:], top_logprobs_lists[ctxlen:]):
             if top_logprobs:
                 top_token = max(top_logprobs, key=lambda x: x[0])[1]
                 if top_token != token:
