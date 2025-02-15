@@ -10,6 +10,7 @@ from lm_eval.api.instance import Instance
 task_manager = tasks.TaskManager()
 
 
+# If you just want to run the two tests, one A100 80GB is enough. When we ran the last test "test_logliklihood_rolling", OOM happened.
 # Note(jinwei): we refer to vLLM's test but modify the trigger condition.
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
 # @pytest.mark.skip(reason="requires CUDA")
@@ -44,7 +45,7 @@ class Test_SGlang:
             # Note(jinwei): EleutherAI/pythia-70m is not supported by SGlang so I comment it here. Instead we use Qwen models.
             # cls.LM = SGLangLM(pretrained="EleutherAI/pythia-70m", batch_size=1)
             cls.LM = SGLangLM(
-                pretrained="Qwen/Qwen2-1.5B-Instruct", batch_size=1, tp_size=2
+                pretrained="Qwen/Qwen2-1.5B-Instruct", batch_size=1, tp_size=1
             )
         except Exception as e:
             pytest.fail(f"🔥 SGLangLM failed to initialize: {e}")
@@ -62,6 +63,7 @@ class Test_SGlang:
         for x in res:
             assert isinstance(x, str)
 
+    # Todo(jinwei): we set 4 A100 80GB gpus with tensor parallelism(tp_size=4) for this test, but when we ran the last test "test_logliklihood_rolling", OOM happened.
     def test_logliklihood_rolling(self) -> None:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
         for x in res:
