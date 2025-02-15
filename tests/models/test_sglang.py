@@ -16,13 +16,14 @@ task_manager = tasks.TaskManager()
 # @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
 class Test_SGlang:
     sglang = pytest.importorskip("sglang")
-    try:
-        from lm_eval.models.sglang_causallms import SGLangLM
+    # try:
+    #     from lm_eval.models.sglang_causallms import SGLangLM
 
-        LM = SGLangLM(pretrained="EleutherAI/pythia-70m")
-        # LM = SGLangLM(pretrained="Qwen/Qwen2-1.5B-Instruct")
-    except ModuleNotFoundError:
-        pass
+    #     LM = SGLangLM(pretrained="EleutherAI/pythia-70m",batch_size=128)
+    #     # LM = SGLangLM(pretrained="Qwen/Qwen2-1.5B-Instruct")
+    # except ModuleNotFoundError:
+    #     pass
+
     # torch.use_deterministic_algorithms(True)
     task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
     multiple_choice_task = task_list["arc_easy"]  # type: ignore
@@ -35,6 +36,15 @@ class Test_SGlang:
     rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
     ROLLING: List[Instance] = rolling_task.instances
+
+    @classmethod
+    def setup_class(cls):
+        try:
+            from lm_eval.models.sglang_causallms import SGLangLM
+
+            cls.LM = SGLangLM(pretrained="EleutherAI/pythia-70m", batch_size=128)
+        except Exception as e:
+            pytest.fail(f"🔥 SGLangLM failed to initialize: {e}")
 
     # TODO: make proper tests
     def test_logliklihood(self) -> None:
