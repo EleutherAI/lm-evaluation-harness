@@ -49,7 +49,7 @@ If other tasks on this dataset are already supported:
   The **financial-mmlu-ko** dataset is a Korean multiple-choice dataset focused on the financial domain. It comprises two sets of questions:
   - **Curated Questions (104 items):** Collected by crawling and manually verifying questions from public financial sources.
   - **Generated Questions (315 items):** Created using GPT-4 based on finance-related texts and subsequently reviewed by experts.
-  
+
 - **Data Sources:**  
   The questions were collected from:
   * [Korean Wikipedia Finance Category](https://ko.wikipedia.org/wiki/%EB%B6%84%EB%A5%98:%EA%B8%88%EC%9C%B5)
