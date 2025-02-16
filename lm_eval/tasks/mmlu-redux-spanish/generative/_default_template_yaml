@@ -1,5 +1,3 @@
-task: "mmlu_redux_spanish_generative"
-
 dataset_path: "amias-mx/mmlu-redux-2.0-spanish"
 test_split: test
 dataset_kwargs:

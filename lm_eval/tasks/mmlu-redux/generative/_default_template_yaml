@@ -1,5 +1,3 @@
-task: "mmlu_redux_generative"
-
 dataset_path: "edinburgh-dawg/mmlu-redux-2.0"
 test_split: test
 dataset_kwargs:

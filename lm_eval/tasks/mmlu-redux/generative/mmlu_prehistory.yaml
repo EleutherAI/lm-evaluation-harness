@@ -1,0 +1,7 @@
+"dataset_name": "prehistory"
+"description": "The following are multiple choice questions (with answers) about prehistory.\n\
+  \n"
+"tag": "mmlu_humanities_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_prehistory_generative"
+"task_alias": "prehistory"

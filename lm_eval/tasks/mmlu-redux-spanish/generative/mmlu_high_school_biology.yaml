@@ -1,0 +1,7 @@
+"dataset_name": "high_school_biology"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school biology.\n\n"
+"tag": "mmlu_stem_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_high_school_biology_generative"
+"task_alias": "high_school_biology"
