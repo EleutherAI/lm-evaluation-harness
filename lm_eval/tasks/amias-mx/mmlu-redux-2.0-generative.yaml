@@ -1,6 +1,6 @@
-task: "mmlu_redux_spanish_generative"
+task: "mmlu_redux_generative"
 
-dataset_path: "amias-mx/mmlu-redux-2.0-spanish"
+dataset_path: "edinburgh-dawg/mmlu-redux-2.0"
 test_split: test
 dataset_kwargs:
   trust_remote_code: true
@@ -15,7 +15,7 @@ doc_to_text: |
   C. {{choices[2]}}
   D. {{choices[3]}}
 
-  Por favor, responde con la letra correcta (A, B, C o D) sin absolutamente nada adicional, solo la letra correcta.
+  Please respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter.
 doc_to_target: "{{['A','B','C','D'][answer]}}"
 
 generation_kwargs:
