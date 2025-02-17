@@ -109,7 +109,7 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            self.model_args["worker_use_ray"] = True
+            self.model_args["distributed_executor_backend"] = "ray"
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
