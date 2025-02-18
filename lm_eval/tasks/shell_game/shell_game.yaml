@@ -1,0 +1,15 @@
+task: shell_game
+dataset_path: Gscraid/shell_game
+output_type: generate_until
+test_split: test
+doc_to_text: "input"
+doc_to_target: "output"
+doc_to_image: "video"
+process_results: !function utils.process_results
+metric_list:
+  - metric: shell_game_em
+    aggregation: !function utils.aggregate_results
+    higher_is_better: true
+num_fewshot: null
+metadata:
+  version: 1.0
