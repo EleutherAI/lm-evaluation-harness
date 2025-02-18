@@ -371,7 +371,7 @@ class Task(abc.ABC):
     # not an abstractmethod because not every language-only task has to implement this
     def doc_to_image(self, doc):
         raise NotImplementedError
-    
+
     def doc_to_audio(self, doc):
         raise NotImplementedError
 
@@ -1348,7 +1348,7 @@ class ConfigurableTask(Task):
             return doc_to_image(doc)
         else:
             return None
-        
+
     def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
         if doc_to_audio is not None:
             doc_to_audio = doc_to_audio

@@ -40,7 +40,6 @@ class HFAUDIOLMQWEN(HFLM):
         self.max_audios = max_audios
         self.chat_applied: bool = False
 
-
     def _create_tokenizer(
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
@@ -89,7 +88,9 @@ class HFAUDIOLMQWEN(HFLM):
         )
         self.tokenizer = self.processor.tokenizer
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
@@ -129,7 +130,7 @@ class HFAUDIOLMQWEN(HFLM):
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        audios: List[List], 
+        audios: List[List],
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
@@ -140,7 +141,10 @@ class HFAUDIOLMQWEN(HFLM):
         def _replace_placeholder(placeholder, strings):
             return [
                 replace_placeholders(
-                    string, placeholder, "<|audio_bos|><|AUDIO|><|audio_eos|>", self.max_audios
+                    string,
+                    placeholder,
+                    "<|audio_bos|><|AUDIO|><|audio_eos|>",
+                    self.max_audios,
                 )
                 for string in strings
             ]
@@ -205,9 +209,7 @@ class HFAUDIOLMQWEN(HFLM):
             audios = []
             for audio_lst_dict in aux_arguments:
                 for audio in audio_lst_dict["audio"]:
-                    audios.append(
-                        audio["array"]
-                    )
+                    audios.append(audio["array"])
 
             if not isinstance(contexts, list):
                 contexts = list(
@@ -261,7 +263,7 @@ class HFAUDIOLMQWEN(HFLM):
 
             if "max_length" not in kwargs:
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
-            inputs['input_ids'] = inputs['input_ids'].to("cuda")
+            inputs["input_ids"] = inputs["input_ids"].to("cuda")
             inputs.input_ids = inputs.input_ids.to("cuda")
             cont = self._model_multimodal_generate(inputs, stop=until, **kwargs)
 
