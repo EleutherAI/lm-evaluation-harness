@@ -1,0 +1,23 @@
+task: tagging_iberbench
+tag:
+  - tagging
+dataset_path: jogonba2/tagging-llm-eval-harness
+output_type: generate_until
+test_split: test
+fewshot_split: few_shot
+description: 'You must write the provided text by wrapping each word with tags. The tags you can use are: <A>, <B>, <C>, <D>, <E>, and <F>. Do not forget to open and close the tag for each word. Wrap your final response between tags <response> ... </response>.\n\n# Task\n'
+doc_to_text: 'Text: {{text}}\nResponse:'
+fewshot_delimiter: "\n"
+target_delimiter: " "
+doc_to_target: annotated_text
+num_fewshot: 2
+generation_kwargs:
+  max_gen_toks: 512
+  until:
+  - "</response>" 
+metric_list:
+  - metric: iberbench_seqeval
+    higher_is_better: true
+    is_iob: false
+metadata:
+  version: 1.0

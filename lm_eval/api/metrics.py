@@ -8,6 +8,7 @@ from typing import List
 
 import numpy as np
 import sacrebleu
+import evaluate
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -128,6 +129,30 @@ def brier_score(items):  # This is a passthrough function
     gold_one_hot = np.eye(num_class)[gold]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
+#@register_aggregation("iberbench_seqeval")
+def iberbench_seqeval(references, predictions, is_iob):
+    # Reconstruct the labeling from the annotated texts/generations
+    get_labels_fn = get_iob_labels if is_iob else get_non_iob_labels
+    references = [get_labels_fn(text) for text in references]
+    predictions = [get_labels_fn(text) for text in predictions]
+    seqeval = evaluate.load("seqeval")
+    try:
+        return seqeval.compute(predictions=predictions, references=references)["overall_f1"]
+    except:
+        # If seqeval raises an erroris because the length of the
+        # prediction do not match the length of the gold standard,
+        # which is the minimum an LLM has to do well to act as a
+        # token classification model.
+        return 0.
+
+@register_metric(
+    metric="iberbench_seqeval",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="mean",
+)
+def iberbench_seqeval_fn(**kwargs): # This is a passthrough function
+    return iberbench_seqeval(**kwargs)
 
 @register_metric(
     metric="brier_score",
@@ -437,6 +462,95 @@ def _sacreformat(refs, preds):
 
     return refs, preds
 
+# custom iberbench stuff
+
+def get_iob_labels(text):
+    """
+    Extract the IOB labeling from generated text with tag-wrapped words.
+    Required to extract the IOB labeling from annotated texts and evaluate in LM Eval Harness
+    """
+    # Get response block
+    pattern = r"<response>([\s\S]*?)(?:<\/response>|$)"
+    matches = re.findall(pattern, text)
+
+    # Return empty list to make an error, since the LLM
+    # didn't generate a proper <response> block
+    if not matches:
+        return []
+
+    # Otherwise, we get the response
+    text = matches[0].strip()
+
+    def is_open_tag(word):
+        return (
+            word.startswith("<") and word.endswith(">")
+        ) and not word.startswith("</")
+
+
+    def is_close_tag(word):
+        return word.startswith("</") and word.endswith(">")
+
+
+    def untag(tag):
+        return tag[1:-1]
+
+    labels = []
+    current_tag = "O"
+    for word in text.split():
+        if is_open_tag(word):
+            current_tag = word
+        elif is_close_tag(word):
+            current_tag = "O"
+        else:
+            if current_tag == "O":
+                labels.append(current_tag)
+            else:
+                if labels and labels[-1] != "O":
+                    labels.append(f"I-{untag(current_tag)}")
+                else:
+                    labels.append(f"B-{untag(current_tag)}")
+    return labels
+
+def get_non_iob_labels(text):
+    """
+    Extract the token non-IOB labeling from generated text with tag-wrapped words.
+    Required to extract the non-IOB labeling from annotated texts and evaluate in LM Eval Harness
+    """
+    # Get response block
+    pattern = r"<response>([\s\S]*?)(?:<\/response>|$)"
+    matches = re.findall(pattern, text)
+
+    # Return empty list to make an error, since the LLM
+    # didn't generate a proper <response> block
+    if not matches:
+        return []
+
+    # Otherwise, we get the response
+    text = matches[0].strip()
+
+    def is_open_tag(word):
+        return (
+            word.startswith("<") and word.endswith(">")
+        ) and not word.startswith("</")
+
+    def is_close_tag(word):
+        return word.startswith("</") and word.endswith(">")
+
+    def untag(tag):
+        return tag[1:-1]
+
+    labels = []
+    current_tag = None
+    for word in text.split():
+        if is_open_tag(word):
+            current_tag = untag(word)
+        elif is_close_tag(word):
+            current_tag = None
+        else:
+            # Add a prefix resembling NER since seqeval
+            # needs IOB-like labels.
+            labels.append(f"I-{current_tag}")
+    return labels
 
 # stderr stuff
 

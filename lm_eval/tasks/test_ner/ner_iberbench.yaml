@@ -1,0 +1,23 @@
+task: ner_iberbench
+tag:
+  - ner
+dataset_path: jogonba2/ner-llm-eval-harness
+output_type: generate_until
+test_split: test
+fewshot_split: few_shot
+description: 'You must write the provided text by wrapping chunks with entity tags. The entity tags you can use are: <person>, <location>, <organization>, and <misc>. Do not forget to open and close the tag for each entity chunk. Wrap your final response between tags <response> ... </response>.\n\n# Task\n'
+doc_to_text: 'Text: {{text}}\nResponse:'
+fewshot_delimiter: "\n"
+target_delimiter: " "
+doc_to_target: annotated_text
+num_fewshot: 2
+generation_kwargs:
+  max_gen_toks: 512
+  until:
+  - "</response>" 
+metric_list:
+  - metric: iberbench_seqeval
+    higher_is_better: true
+    is_iob: true
+metadata:
+  version: 1.0
