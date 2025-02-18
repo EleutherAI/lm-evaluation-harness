@@ -1,0 +1,119 @@
+dataset_path: PeterOldriver/tmc_fewshot_initalSample
+dataset_name: homo-lumo
+test_split: test
+doc_to_text: >
+  I have a pool of 50 ligands in a csv file format below.
+  SMILES,id,charge,connecting atom element,connecting atom index
+  c1ccccn1,RUCBEY-subgraph-1,0,N,1
+  CP(C)C,WECJIA-subgraph-3,0,P,1
+  N#CC,KEYRUB-subgraph-1,0,N,1
+  [C-]#[N+]c1c(C)cccc1C,NURKEQ-subgraph-2,0,C,1
+  O,MEBXUN-subgraph-1,0,O,1
+  n1c(cccc1C)C,BIFMOV-subgraph-1,0,N,1
+  CP(C)c1ccccc1,CUJYEL-subgraph-2,0,P,1
+  n1ccc(cc1)C,EZEXEM-subgraph-1,0,N,1
+  n1cccc(c1)Cl,FOMVUB-subgraph-2,0,N,1
+  [C-]#[N+]C(C)(C)C,EFIHEJ-subgraph-3,0,C,1
+  CN1[C]N(C)C=C1,LETTEL-subgraph-1,0,C,2
+  n1ccn(c1)C,KAKKIR-subgraph-3,0,N,1
+  [C-]#[N+]C1CCCCC1,BICRIQ-subgraph-3,0,C,1
+  S(=O)(C)C,UPEGAZ-subgraph-2,0,S,1
+  O1CCNCC1,CEVJAP-subgraph-2,0,N,1
+  n1[nH]c(cc1C)C,BABTUT-subgraph-3,0,N,1
+  C(C)NCC,ZEJJEF-subgraph-3,0,N,1
+  n1ccc(cc1)N(C)C,KULGAZ-subgraph-2,0,N,1
+  [C-]#[O+],CIGDAA-subgraph-1,0,C,1
+  c1ccnc(c1)N,HOVMIP-subgraph-3,0,N,1
+  N,ULUSIE-subgraph-1,0,N,1
+  S(C)C,IBEKUV-subgraph-1,0,S,1
+  CS(=O)C,REQSUD-subgraph-2,0,O,1
+  NCC,BOSJIF-subgraph-1,0,N,1
+  n1c(cc(cc1C)C)C,GUVMEP-subgraph-0,0,N,1
+  [Cl-],MAZJIJ-subgraph-0,-1,Cl,1
+  [Br-],OBONEA-subgraph-1,-1,Br,1
+  [I-],CORTOU-subgraph-2,-1,I,1
+  [CH3-],LEVGUO-subgraph-2,-1,C,1
+  [C-]1=C(F)C(=C(C(=C1F)F)F)F,REBWEB-subgraph-2,-1,C,1
+  C1=C[C-]=CC=C1,DOGPAS-subgraph-1,-1,C,3
+  O=N(=O)[O-],IJIMIX-subgraph-1,-1,O,1
+  [N-]=[N+]=[N-],PEJGAN-subgraph-1,-1,N,1
+  S1(=O)(=O)[N-]C(=O)c2c1cccc2,BIFZEX-subgraph-0,-1,N,1
+  [C-]#N,IRIXUC-subgraph-3,-1,C,1
+  [S-]C#N,SAYGOO-subgraph-0,-1,S,1
+  [F-],UROGIS-subgraph-1,-1,F,1
+  [C-](F)(F)F,MAQKEX-subgraph-1,-1,C,1
+  O=N[O-],LUQWUQ-subgraph-1,-1,N,1
+  C[C-]=O,QAYDID-subgraph-2,-1,C,2
+  C1CC(=O)[N-]C1=O,MOYDOV-subgraph-3,-1,N,1
+  [C-]1=CC=C(C=C1)F,NIZQUK-subgraph-1,-1,C,1
+  [S-]C#N,SAYHIJ-subgraph-1,-1,N,1
+  O=[C-]OC,CIQGOY-subgraph-0,-1,C,1
+  [S-]c1ccccc1,VUFZUT-subgraph-1,-1,S,1
+  [O-]c1ccccc1,ZOQFIU-subgraph-0,-1,O,1
+  [S-]c1c(c(cc(c1F)F)F)F,GUQBUQ-subgraph-0,-1,S,1
+  [C-]1=CC=C(C=C1)C,LEZYUM-subgraph-2,-1,C,1
+  [N-]1C(=O)c2c(C1=O)cccc2,RAJXUX-subgraph-2,-1,N,1
+  c1c(C#[C-])cccc1,QEWZOH-subgraph-3,-1,C,4
+
+  This csv files contains the SMILES string, id, charge, and the connecting atoms and index (corresponding to the occurrance of the connecting element) that coordiate to the metal of each ligand.
+  You will use this pool of ligands frequently. Please remember the correspondence between their SMILES string, id, charge, and connecting atom element.
+
+  I am interested in making a Pd based square planer transition metal complex (TMC) with Pd in +2 oxidation state.
+  My design objective is to maximize its HOMO-LUMO gap while making the total charge of the TMC to be -1, 0 or 1.
+  All ligands in the TMC need to be those present in this csv file.
+  I have made 20 TMCs and measured their total charge and HOMO-LUMO gap.
+  There might be a lot of data points for TMCs being provided. Please pay attention most to TMCs those that can achieve my design objective.
+  They are provided in a format of {$TMC, ${total charge}, ${HOMO-LUMO gap}}.
+  The $TMC should be in a format of Pd_$L1_$L2_$L3_$L4, where Pd is the metal center , $L1, $L2, $L3, and $L4 are the id of the ligands (listed in the csv file) and follow a clockwise ordering.
+  Note that the $TMC has cyclic symmetry for the ligands so that Pd_$L1_$L2_$L3_$L4, Pd_$L2_$L3_$L4_$L1, Pd_$L3_$L4_$L1_$L2, and Pd_$L4_$L1_$L2_$L3 are the same TMC.
+  Below are the TMCs and their ground-truth total charge and HOMO-LUMO gap.
+
+  {{tmc1}}
+  {{tmc2}}
+  {{tmc3}}
+  {{tmc4}}
+  {{tmc5}}
+  {{tmc6}}
+  {{tmc7}}
+  {{tmc8}}
+  {{tmc9}}
+  {{tmc10}}
+
+  Grounded on your chemistry knowledge, look at the pattern of the provided data and think about what makes a TMC with large HOMO-LUMO gap.
+  Then please propose FIVE *NEW* TMCs that have HOMO-LUMO gap larger than all the TMCs above.
+  You can make ligand crossover (i.e., swap ligands in the TMCs) and ligand mutations (i.e., substitude ligands in TMCs with thr 50 ligands in the pool) based on your knowledge to achieve the design objective.
+  If you want to be creative, you can also propose new TMCs by taking advantage of your chemistry knowledge to achieve the design objective.
+  You should make use of BOTH the ground-truth HOMO-LUMO gap data for the TMCs provided above AND your chemistry knowledge.
+  But be aware that your chemistry knowledge may be challenged in this task. When this happens, please treat the data provided as the ground truth.
+  Also please DO NOT get stuck with the existing TMCs and ligands and try to be exploratory.
+  Be sure to use the id of provided pool of 50 ligands and control the total charge of the TMC to be -1, 0, or 1, otherwise the TMC would be considered as invalid. T
+  In addition, please DO NOT propose duplicated TMCs that I have listed above.
+
+  Your output should follow the format: {<<<Explaination>>>: $EXPLANATION, <<<TMC>>>: [$TMC],  <<<TOTAL_CHARGE>>>: ${total charge}, <<<gap>>>: $GAP}. Here are the requirements that you should fulfill:
+  1. $EXPLANATION should be your analysis about why the new TMC would have a larger HOMO-LUMO gap.
+  2. The $TMC should be in a format of Pd_$L1_$L2_$L3_$L4, where Pd is the center metal. $L1, $L2, $L3, and $L4 should be the id of the ligands (listed in the csv file) and follow a clockwise ordering. Please give all TMCs in a list.3. The $TMC should be valid with a total charge of -1, 0 or 1.
+  4. The $TMC should not be a duplicate of the TMCs that have been provided. If the $TMC is a duplicate, please come up with a new one instead.
+  5. $GAP is your prediction of the HOMO-LUMO gap for $TMC based on your chemistry knowledge and provided data.
+
+
+doc_to_target: SMILES
+task: 50Ligands-TMC-gap
+process_results: !function utils.process_tmc_gap
+generation_kwargs:
+  max_tokens: 4096
+  until:
+    - "</s>"
+    - "Q:"
+    - "<|im_end|>"
+  do_sample: false
+num_fewshot: 0
+metric_list:
+  - metric: mean_gap
+    aggregation: mean
+    higher_is_better: true
+  - metric: gap_scaler
+    aggregation: mean
+    higher_is_better: true
+  - metric: top_3_gap_scaler
+    aggregation: mean
+    higher_is_better: true
