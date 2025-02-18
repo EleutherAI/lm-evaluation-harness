@@ -16,7 +16,7 @@ from lm_eval.models.utils import (
 )
 
 
-DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>", "<audio_1>", "<audio_2>"]
+DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>"]
 
 
 @register_model("hf-audiolm-qwen")
