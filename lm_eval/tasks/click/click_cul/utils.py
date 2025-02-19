@@ -13,6 +13,8 @@ def get_context(doc) -> str:
 
 def get_target(doc) -> str:
     ans = doc["answer"]
+    if "CSAT" in doc["id"]:
+        return ['A', 'B', 'C', 'D', 'E'][doc["choices"].index(ans)]
     return ['A', 'B', 'C', 'D'][doc["choices"].index(ans)]
 
 def extract_economy(dataset: Dataset) -> Dataset:
