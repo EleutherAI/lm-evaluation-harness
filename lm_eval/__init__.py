@@ -23,11 +23,12 @@ def setup_logging(verbosity=logging.INFO):
             datefmt="%Y-%m-%d:%H:%M:%S",
             level=log_level,
         )
+        if log_level == logging.DEBUG:
+            third_party_loggers = ["urllib3", "filelock", "fsspec"]
+            for logger_name in third_party_loggers:
+                logging.getLogger(logger_name).setLevel(logging.INFO)
     else:
         logging.getLogger().setLevel(log_level)
-    third_party_loggers = ["urllib3", "filelock", "fsspec"]
-    for logger_name in third_party_loggers:
-        logging.getLogger(logger_name).setLevel(logging.INFO)
     # Prevent logging from propagating to the root logger multiple times
     # logging.getLogger(__name__).propagate = False
 
