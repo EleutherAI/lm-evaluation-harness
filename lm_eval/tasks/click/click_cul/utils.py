@@ -29,7 +29,7 @@ def extract_geography(dataset: Dataset) -> Dataset:
 
 def extract_history(dataset: Dataset) -> Dataset:
     return dataset.filter(
-        lambda example: "KHB" in example["id"] or "histroy" in example["id"].lower()
+        lambda example: "KHB" in example["id"] or "history" in example["id"].lower()
     )
 
 def extract_law(dataset: Dataset) -> Dataset:
