@@ -1,7 +1,7 @@
 group: click
 task:
-  - click_lang_tasks
-  - click_cul_tasks
+  - click_lang
+  - click_cul
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
