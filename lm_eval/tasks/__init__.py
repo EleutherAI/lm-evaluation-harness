@@ -28,6 +28,10 @@ class TaskManager:
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
     ) -> None:
+        if verbosity is not None:
+            eval_logger.info(
+                "`verbosity` parameter is deprecated and will be removed in the next release. Please use `os.environ['LOGLEVEL']` instead."
+            )
         self.include_path = include_path
 
         self._task_index = self.initialize_tasks(
