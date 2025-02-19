@@ -1,0 +1,22 @@
+group: click
+task:
+  - click_lang_text
+  - click_lang_grammar
+  - click_lang_function
+  - click_cul_society
+  - click_cul_tradition
+  - click_cul_politics
+  - click_cul_economy
+  - click_cul_law
+  - click_cul_history
+  - click_cul_geography
+  - click_cul_kpop
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
