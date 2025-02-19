@@ -14,22 +14,22 @@ generation_kwargs:
     - "\n\n"
 metric_list:
   - metric: bleu
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: true
   - metric: rouge1
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: true
   - metric: rouge2
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: true
   - metric: rougeL
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: true
   - metric: bleurt
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: true
   - metric: bert_score
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: true
 metadata:
   version: 1.0
