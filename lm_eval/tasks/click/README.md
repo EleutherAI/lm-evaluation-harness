@@ -50,8 +50,8 @@ Homepage: https://huggingface.co/datasets/EunsuKim/CLIcK
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
-* [ ] Is the task an existing benchmark in the literature?
-  * [ ] Have you referenced the original paper that introduced the task?
+* [X] Is the task an existing benchmark in the literature?
+  * [X] Have you referenced the original paper that introduced the task?
   * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 
