@@ -43,7 +43,9 @@ def extract_function(dataset: Dataset) -> Dataset:
     return dataset.filter(
         lambda example:
             ("CSAT_korean" in example["id"] and
-                (int(example["id"].split('_')[-1]) < 11 or int(example["id"].split('_')[-1]) > 34)
+                (int(example["id"].split('_')[-1]) > 34 or
+                 (int(example["id"].split('_')[2]) < 21 and int(example["id"].split('_')[3]) < 11)
+                )
             ) or
             ("Kedu_16" in example["id"] and
                 ("대화" in example["question"] or "발화" in example["question"] or "질의" in example["question"])
