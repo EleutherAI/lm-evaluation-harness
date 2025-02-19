@@ -6,7 +6,7 @@ import sys
 from functools import partial
 from typing import Union
 
-from lm_eval import evaluator, utils
+from lm_eval import evaluator, setup_logging, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
@@ -213,7 +213,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--verbosity",
         "-v",
         type=str.upper,
-        default="INFO",
+        default=None,
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
         help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
@@ -279,19 +279,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    # set verbosity and filter out some of the more verbose loggers
-    verbosity = os.environ.get("LOGLEVEL", None) or args.verbosity or logging.INFO
-    logging.getLogger("urllib3").setLevel(logging.INFO)
-    logging.getLogger("filelock").setLevel(logging.INFO)
-    logging.getLogger("fsspec").setLevel(logging.INFO)
-
-    logging.basicConfig(
-        format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
-        datefmt="%Y-%m-%d:%H:%M:%S",
-        level=verbosity,
-    )
+    setup_logging(args.verbosity)
     eval_logger = logging.getLogger(__name__)
-
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
