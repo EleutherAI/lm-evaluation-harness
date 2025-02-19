@@ -1,3 +1,5 @@
+import logging
+import warnings
 from functools import partial
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 
@@ -8,6 +10,8 @@ if TYPE_CHECKING:
     from random import Random
 
     from lm_eval.api.task import ConfigurableTask, Task
+
+eval_logger = logging.getLogger("lm-eval")
 
 
 class ContextSampler:
@@ -97,6 +101,13 @@ class ContextSampler:
                 labeled_examples += self.doc_to_choice(doc)[doc_content]
 
             if doc_target != "":
+                if self.target_delimiter.isspace() and str(doc_target)[0].isspace():
+                    # TODO: add logger warn once here.
+                    warnings.warn(
+                        "Both target_delimiter and target start with a space. This may cause issues.",
+                        Warning,
+                        stacklevel=2,
+                    )
                 labeled_examples += self.target_delimiter
                 labeled_examples += prefix
                 labeled_examples += (
