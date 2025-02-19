@@ -3,7 +3,7 @@ from datasets import Dataset
 def get_context(doc) -> str:
     ctx = doc["paragraph"]
     q = doc["question"]
-    opt = doc["options"]
+    opt = doc["choices"]
     if ctx:
         res = f"주어진 맥락을 천천히 읽고, 질문에 대한 적절한 정답을 A, B, C, D 중에 골라 알파벳 하나로 답하시오.\n\n맥락: {ctx}\n질문: {q}\n보기:\nA:{opt[0]}, B: {opt[1]}, C: {opt[2]}, D: {opt[3]}\n정답:"
     else:
