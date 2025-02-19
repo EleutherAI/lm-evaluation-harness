@@ -1781,3 +1781,27 @@ class PerplexityTask(Task):
     def count_words(cls, doc) -> int:
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+
+class Generate_MultipleChoice(ConfigurableTask):
+    OUTPUT_TYPE = "generate_until"
+
+    def process_results(self, doc, results):
+        letters = [chr(i) for i in range(65, 91)]
+        gold = self.doc_to_target(doc)
+        result = results[0]
+        if isinstance(gold, int):
+            gold = letters[gold]
+        elif (self.config.doc_to_choice is not None) and (gold not in letters):
+            # If you set doc_to_choice,
+            # it assumes that doc_to_target returns a number.
+            choices = self.doc_to_choice(doc)
+            _index = choices.index(gold)
+            gold = letters[_index]
+        for metric in self._metric_fn_list.keys():
+            result_score = self._metric_fn_list[metric](
+                references=[gold],
+                predictions=[result],
+                **self._metric_fn_kwargs[metric],
+            )
+        return result_score
