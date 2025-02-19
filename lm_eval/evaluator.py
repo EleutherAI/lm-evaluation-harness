@@ -69,6 +69,7 @@ def simple_evaluate(
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
+    verbostiy=None,
     predict_only: bool = False,
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
@@ -123,6 +124,8 @@ def simple_evaluate(
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
+    :param verbostiy: str
+        Verbosity level for logging
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
     :param random_seed: int
@@ -137,6 +140,8 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
+    if verbostiy is not None:
+        lm_eval.setup_logging(verbosity=verbostiy)
     start_date = time.time()
 
     if delete_requests_cache:
@@ -312,9 +317,11 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
-        # verbosity=verbosity,
+        verbosity=verbostiy,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
+    if verbostiy is not None:
+        lm_eval.setup_logging(verbosity=verbostiy)
 
     if lm.rank == 0:
         if isinstance(model, str):
