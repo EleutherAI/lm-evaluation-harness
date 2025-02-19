@@ -1,0 +1,12 @@
+dummy (), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 1
+|   Tasks   |Version|Filter|n-shot|  Metric  |   | Value |   |Stderr|
+|-----------|------:|------|-----:|----------|---|------:|---|-----:|
+|careqa_en  |      1|none  |     0|acc       |↑  | 0.2476|±  |0.0058|
+|careqa_es  |      1|none  |     0|acc       |↑  | 0.2407|±  |0.0057|
+|careqa_open|      1|none  |     0|bert_score|↑  | 0.8186|±  |0.0006|
+|           |       |none  |     0|bleu      |↑  | 0.0000|±  |0.0000|
+|           |       |none  |     0|bleurt    |↑  |-1.1378|±  |0.0040|
+|           |       |none  |     0|rouge1    |↑  | 0.0000|±  |0.0000|
+|           |       |none  |     0|rouge2    |↑  | 0.0000|±  |0.0000|
+|           |       |none  |     0|rougeL    |↑  | 0.0000|±  |0.0000|
+

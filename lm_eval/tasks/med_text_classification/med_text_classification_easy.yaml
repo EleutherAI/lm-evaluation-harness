@@ -1,0 +1,24 @@
+group: med_text_classification
+task: med_text_classification_easy
+dataset_path: csv
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    train: /gpfs/projects/bsc70/heka/data/datasets/med_text_class_train.csv
+output_type: multiple_choice
+training_split: train
+validation_split: train
+test_split: train
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text_easy
+doc_to_choice: !function utils.doc_to_choice_easy
+doc_to_target: !function utils.doc_to_target_easy
+generation_kwargs:
+  until:
+    - "\n\n"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
