@@ -215,7 +215,7 @@ def setup_parser() -> argparse.ArgumentParser:
         type=str.upper,
         default="INFO",
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
+        help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
     parser.add_argument(
         "--wandb_args",
@@ -280,7 +280,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
     # set verbosity and filter out some of the more verbose loggers
-    verbosity = os.environ.get("LOGLEVEL", None) or args.verbosity or logging.ERROR
+    verbosity = os.environ.get("LOGLEVEL", None) or args.verbosity or logging.INFO
     logging.getLogger("urllib3").setLevel(logging.INFO)
     logging.getLogger("filelock").setLevel(logging.INFO)
     logging.getLogger("fsspec").setLevel(logging.INFO)
@@ -473,6 +473,4 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
 
 if __name__ == "__main__":
-    parser = setup_parser()
-    args = parse_eval_args(parser)
-    cli_evaluate(args)
+    cli_evaluate()
