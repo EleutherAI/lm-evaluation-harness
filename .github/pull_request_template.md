@@ -1,9 +1,3 @@
----
-name: Task Implementation
-about: Submit a new task implementation
-title: '[TASK] '
----
-
 ## Related Issue
 <!-- Link to the issue this PR addresses -->
 Closes #
@@ -39,3 +33,8 @@ Closes #
 1. Screenshots of your test results
 2. Copy/pasted output
 -->
+
+## Checklist
+- [ ] Test command provided and verified locally
+- [ ] Test results included (screenshots or output)
+- [ ] Relevant reviewers tagged
