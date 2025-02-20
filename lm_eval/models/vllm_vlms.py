@@ -109,9 +109,7 @@ class VLLM_VLM(VLLM):
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
-            # but then tensor_parallel breaks
-            @ray.remote
+            @ray.remote(num_gpus=1 if self.tensor_parallel_size == 1 else None)
             def run_inference_one_model(
                 model_args: dict, sampling_params, requests: List[List[dict]]
             ):
@@ -271,7 +269,9 @@ class VLLM_VLM(VLLM):
                 left_truncate_len=max_ctx_len,
             )
 
-            cont = self._model_generate(inputs, stop=until, generate=True, **kwargs)
+            cont = self._model_generate(
+                inputs, stop=until, generate=True, max_tokens=max_gen_toks, **kwargs
+            )
 
             for output, context in zip(cont, contexts):
                 generated_text = output.outputs[0].text
