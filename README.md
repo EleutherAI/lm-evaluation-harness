@@ -241,13 +241,9 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 ### Tensor + Data Parallel and Fast Offline Batching Inference with `SGLang`
 We support SGLang with its efficient offline batch inference. Its **[Fast Backend Runtime](https://docs.sglang.ai/index.html)** thanks to efficient serving with RadixAttention for prefix caching, jump-forward constrained decoding, overhead-free CPU scheduler, continuous batching, token attention (paged attention), tensor parallelism, FlashInfer kernels, chunked prefill, and quantization (FP8/INT4/AWQ/GPTQ).
 
-To use SGLang as evaluation backend, please **install it in advance**(due to dependencies of `Flashinfer`, a fast attention kernel library). See docs [here](https://docs.sglang.ai/start/install.html#install-sglang) to install SGLang. We recommend using uv to install the dependencies with a higher installation speed:
-```bash
-pip install --upgrade pip
-pip install uv
-uv pip install sgl-kernel --force-reinstall --no-deps
-uv pip install "sglang[all]>=0.4.3.post2" --find-links https://flashinfer.ai/whl/cu124/torch2.5/flashinfer-python
-```
+To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.ai/start/install.html#install-sglang). 
+> [!Tip]
+> Due to the installing method of [`Flashinfer`](https://docs.flashinfer.ai/)-- a fast attention kernel library, we don't include the dependencies of `SGLang` within [pyproject.toml](pyproject.toml). Note that the `Flashinfer` also has some requirements on `torch` version.
 
 SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
 ```bash
