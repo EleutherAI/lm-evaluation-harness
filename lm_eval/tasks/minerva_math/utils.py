@@ -3,6 +3,7 @@ import signal
 from typing import Dict, List, Optional
 
 import datasets
+from math_verify import parse, verify
 
 from lm_eval.utils import eval_logger
 
@@ -75,8 +76,13 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     else:
         retval = 0
 
+    # math_verify
+    res = verify(parse(doc["answer"]), parse(candidates))
+    mathval = 1 if res else 0
+
     results = {
         "exact_match": retval,
+        "math_verify": mathval,
     }
     return results
 
