@@ -238,6 +238,24 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 > [!Tip]
 > Passing `max_model_len=4096` or some other reasonable default to vLLM through model args may cause speedups or prevent out-of-memory errors when trying to use auto batch size, such as for Mistral-7B-v0.1 which defaults to a maximum length of 32k.
 
+### Tensor + Data Parallel and Fast Offline Batching Inference with `SGLang`
+We support SGLang with its efficient offline batch inference. Its **[Fast Backend Runtime](https://docs.sglang.ai/index.html)** thanks to efficient serving with RadixAttention for prefix caching, jump-forward constrained decoding, overhead-free CPU scheduler, continuous batching, token attention (paged attention), tensor parallelism, FlashInfer kernels, chunked prefill, and quantization (FP8/INT4/AWQ/GPTQ).
+
+To use SGLang as evaluation backend, please **install it in advance**(due to dependencies of `Flashinfer`, a fast attention kernel library). See docs [here](https://docs.sglang.ai/start/install.html#install-sglang) to install SGLang. We recommend using uv to install the dependencies with a higher installation speed:
+```bash
+pip install --upgrade pip
+pip install uv
+uv pip install sgl-kernel --force-reinstall --no-deps
+uv pip install "sglang[all]>=0.4.3.post2" --find-links https://flashinfer.ai/whl/cu124/torch2.5/flashinfer-python
+```
+
+SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
+```bash
+lm_eval --model sglang \
+    --model_args pretrained={model_name},tp_size={data_parallel_size},dp_size={tensor_parallel_size},dtype=auto,mem-fraction-static=0.9, \
+    --tasks gsm8k_cot \
+    --batch_size auto
+```
 ### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
