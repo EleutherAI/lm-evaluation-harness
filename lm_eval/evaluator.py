@@ -232,17 +232,16 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = TaskManager(verbosity)
+        metadata = (
+            simple_parse_args_string(model_args)
+            if isinstance(model_args, str)
+            else model_args
+        ) | (metadata or {})
+        task_manager = TaskManager(verbosity, metadata=metadata)
 
     task_dict = get_task_dict(
         tasks,
         task_manager,
-        metadata=(
-            simple_parse_args_string(model_args)
-            if isinstance(model_args, str)
-            else model_args
-        )
-        | (metadata or {}),
     )
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
