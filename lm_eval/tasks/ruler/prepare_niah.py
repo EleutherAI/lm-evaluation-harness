@@ -19,6 +19,7 @@ import re
 import uuid
 from functools import lru_cache, cache
 from typing import List, Union, Literal
+import datasets
 
 import numpy as np
 import wonderwords
@@ -326,8 +327,8 @@ def get_haystack(
 ) -> Union[list[str], str]:
     NEEDLE = "One of the special magic {type_needle_v} for {key} is: {value}."
     if type_haystack == "essay":
-        essay = get_all_essays()["text"]
-        # essay = json.load(open(essay))["text"]
+        essay = datasets.load_dataset("baber/paul_graham_essays", split="train")["text"]
+        essay = " ".join(essay)
         haystack = re.sub(r"\s+", " ", essay).split(" ")
     elif type_haystack == "repeat":
         haystack = "The grass is green. The sky is blue. The sun is yellow. Here we go. There and back again."
