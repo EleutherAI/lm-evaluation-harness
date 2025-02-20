@@ -1,4 +1,5 @@
 import itertools
+import logging
 from typing import Generator
 
 import datasets
@@ -8,6 +9,7 @@ from lm_eval.tasks.ruler.prepare_niah import generate_samples, get_haystack
 
 
 TEMPLATE = """Some special magic {type_needle_v} are hidden within the following text. Make sure to memorize it. I will quiz you about the {type_needle_v} afterwards.\n{context}\nWhat are all the special magic {type_needle_v} for {query} mentioned in the provided text?"""
+eval_logger = logging.getLogger(__name__)
 
 
 def download_dataset(df: Generator) -> dict[str, datasets.Dataset]:
@@ -28,6 +30,7 @@ def niah_single_1(**kwargs):
             type_haystack="repeat",
             type_needle_k="words",
             type_needle_v="numbers",
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -44,6 +47,7 @@ def niah_single_2(**kwargs):
             type_haystack="essay",
             type_needle_k="words",
             type_needle_v="numbers",
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -60,6 +64,7 @@ def niah_single_3(**kwargs):
             type_haystack="essay",
             type_needle_k="words",
             type_needle_v="uuids",
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -77,6 +82,7 @@ def niah_multikey_1(**kwargs):
             type_needle_k="words",
             type_needle_v="numbers",
             num_needle_k=4,
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -93,6 +99,7 @@ def niah_multikey_2(**kwargs):
             type_haystack="needle",
             type_needle_k="words",
             type_needle_v="numbers",
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -109,6 +116,7 @@ def niah_multikey_3(**kwargs):
             type_haystack="needle",
             type_needle_k="uuids",
             type_needle_v="uuids",
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -126,6 +134,7 @@ def niah_multivalue(**kwargs):
             type_needle_k="words",
             type_needle_v="numbers",
             num_needle_v=4,
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths
@@ -143,6 +152,7 @@ def niah_multiquery(**kwargs):
             type_needle_k="words",
             type_needle_v="numbers",
             num_needle_q=4,
+            num_samples=500,
             TOKENIZER=get_tokenizer(**kwargs),
         )
         for seq in seq_lengths

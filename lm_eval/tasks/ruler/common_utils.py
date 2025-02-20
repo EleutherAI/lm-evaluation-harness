@@ -9,14 +9,7 @@ if TYPE_CHECKING:
     import transformers
 
 
-DEFAULT_SEQ_LENGTHS = (
-    # 131072,
-    # 65536,
-    # 32768,
-    # 16384,
-    # 8192,
-    4096,
-)
+DEFAULT_SEQ_LENGTHS = (4096,)
 
 
 @cache

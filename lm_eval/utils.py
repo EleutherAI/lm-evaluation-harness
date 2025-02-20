@@ -112,8 +112,8 @@ def simple_parse_args_string(args_string: Optional[str]) -> dict:
     return args_dict
 
 
-def parse_keyed_list_string(s: str) -> dict[str, list]:
-    """Parse a string of key-value pairs into a dictionary where all values are lists."""
+def parse_keyed_list_string(s: str) -> dict[str, tuple]:
+    """Parse a string of key-value pairs into a dictionary where all values are tuples."""
     if s is None:
         return {}
     result = {}
@@ -126,7 +126,7 @@ def parse_keyed_list_string(s: str) -> dict[str, list]:
         if "=" in part:
             # Save previous key's values
             if current_key is not None:
-                result[current_key] = values
+                result[current_key] = tuple(values)
 
             # Start new key-value pair
             current_key, value = part.split("=")
@@ -136,7 +136,7 @@ def parse_keyed_list_string(s: str) -> dict[str, list]:
 
     # Add the last key-value pair
     if current_key is not None:
-        result[current_key] = values
+        result[current_key] = tuple(values)
 
     return result
 
