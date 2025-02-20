@@ -108,20 +108,11 @@ async def get_essays() -> Dict[str, str]:
     files_repo = sorted(glob.glob(os.path.join(temp_folder_repo, "*.txt")))
     files_html = sorted(glob.glob(os.path.join(temp_folder_html, "*.txt")))
 
-    # print(
-    #     f"Downloaded {len(files_repo)} essays from `https://github.com/gkamradt/LLMTest_NeedleInAHaystack/`"
-    # )
-    # print(f"Downloaded {len(files_html)} essays from `http://www.paulgraham.com/`")
-
     # Combine all texts
     text = ""
     for file in files_repo + files_html:
         with open(file, "r", encoding="utf-8") as f:
             text += f.read()
-
-    # Cleanup
-    # shutil.rmtree(temp_folder_repo)
-    # shutil.rmtree(temp_folder_html)
 
     return {"text": text}
 
