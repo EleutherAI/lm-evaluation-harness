@@ -320,8 +320,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     metadata = (
         simple_parse_args_string(args.model_args)
         if isinstance(args.model_args, str)
-        else {} | parse_keyed_list_string(args.metadata)
-    )
+        else {}
+    ) | parse_keyed_list_string(args.metadata)
+
     task_manager = TaskManager(
         args.verbosity, include_path=args.include_path, metadata=metadata
     )

@@ -134,6 +134,8 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param metadata: dict
+        Additional metadata to be added to the task manager. Will get passed to the download function of the task.
 
     return
         Dictionary of results
