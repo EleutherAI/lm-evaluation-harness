@@ -44,12 +44,8 @@ fewshot_config:
       dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The final answer is 8
 generation_kwargs:
   do_sample: false
-  until:
-  - '<|eot_id|>'
-  - '<|start_header_id|>user<|end_header_id|>'
-  - 'Q:'
-  - </s>
-  - <|im_end|>
+  until: []
+  max_gen_toks: 1024
 tag:
 - chain_of_thought
 metadata:
