@@ -54,9 +54,9 @@ tag:
 metadata:
   version: 3.0
 metric_list:
-- aggregation: math_verify
-  higher_is_better: true
-  ignore_case: true
+  - metric: math_verify
+    aggregation: mean
+    higher_is_better: true
 num_fewshot: 8
 output_type: generate_until
 repeats: 1
