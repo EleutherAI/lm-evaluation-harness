@@ -64,7 +64,7 @@ class SGLangLM(TemplateLM):
         if not find_spec("sglang"):
             raise ModuleNotFoundError(
                 "attempted to use 'sglang' LM type, but package `sglang` is not installed. "
-                "Please install sglang via `pip install lm-eval[sglang]` or `pip install -e .[sglang]`"
+                "Please install sglang via official document here:https://docs.sglang.ai/start/install.html#install-sglang"
             )
 
         assert "cuda" in device or device is None, "SGLang only supports CUDA"
@@ -98,13 +98,11 @@ class SGLangLM(TemplateLM):
             if isinstance(batch_size, str) and "auto" in batch_size
             else int(batch_size)
         )
-        if self.data_parallel_size <= 1:
-            self.model = sgl.Engine(**self.model_args)
-        else:
+        if self.data_parallel_size > 1:
             eval_logger.warning(
                 "Data parallelism will be deprecated in the future version of SGLang. See here: https://docs.sglang.ai/backend/server_arguments.html#data-parallelism ."
             )
-            self.model = sgl.Engine(**self.model_args)
+        self.model = sgl.Engine(**self.model_args)
 
         # Todo(Jinwei): check tokenizer and other settings.
         self.tokenizer = self.model.tokenizer_manager.tokenizer
