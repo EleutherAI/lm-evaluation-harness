@@ -1,39 +1,39 @@
-# CareQA
+# MTS-Dialog
 
 ### Paper
 
-Title: `Automatic Evaluation of Healthcare LLMs Beyond Question-Answering`
+Title: `An Empirical Study of Clinical Note Generation from Doctor-Patient Encounters`
 
-Abstract: [https://arxiv.org/abs/2502.06666](https://arxiv.org/abs/2502.06666)
+Abstract: [https://aclanthology.org/2023.eacl-main.168/](https://aclanthology.org/2023.eacl-main.168/)
 
-CareQA originates from the Spanish Specialised Healthcare Training (MIR) exams by the 
-Spanish Ministry of Health. The close-ended version is a multiple-choice question 
-answering (MCQA) including 5,621 QA pairs across six categories: medicine, nursing, 
-biology, chemistry, psychology, and pharmacology, sourced from the 2020 to 2024 exam 
-editions. CareQA is available in both English and Spanish. The open-ended version 
-(English only) contains 3,730 QA pairs.
-
-Homepage: \
-[https://huggingface.co/datasets/HPAI-BSC/CareQA](https://huggingface.co/datasets/HPAI-BSC/CareQA)
+MTS-Dialog is a collection of 1,700 doctor-patient dialogues and corresponding clinical notes.
+This task implements open-ended Question Answering (QA) on MTS-Dialog.
 
 
 #### Tasks
 
-* `careqa_en`: MCQA in english.
-* `careqa_es`: MCQA in spanish.
-* `careqa_open`: Open-Ended QA in english.
-* `careqa_open_perplexity`: Open-Ended QA in english, evaluated with perplexity.
+* `mts_dialog`: Open-Ended QA in english.
+* `mts_dialog_perplexity`: Open-Ended QA in english, evaluated with perplexity.
 
 ### Citation
 
 ```bibtex
-@misc{ariasduart2025automaticevaluationhealthcarellms,
-      title={Automatic Evaluation of Healthcare LLMs Beyond Question-Answering}, 
-      author={Anna Arias-Duart and Pablo Agustin Martin-Torres and Daniel Hinjos and Pablo Bernabeu-Perez and Lucia Urcelay Ganzabal and Marta Gonzalez Mallo and Ashwin Kumar Gururajan and Enrique Lopez-Cuena and Sergio Alvarez-Napagao and Dario Garcia-Gasulla},
-      year={2025},
-      eprint={2502.06666},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2502.06666}, 
+@inproceedings{ben-abacha-etal-2023-empirical,
+    title = "An Empirical Study of Clinical Note Generation from Doctor-Patient Encounters",
+    author = "Ben Abacha, Asma  and
+      Yim, Wen-wai  and
+      Fan, Yadan  and
+      Lin, Thomas",
+    editor = "Vlachos, Andreas  and
+      Augenstein, Isabelle",
+    booktitle = "Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics",
+    month = may,
+    year = "2023",
+    address = "Dubrovnik, Croatia",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.eacl-main.168/",
+    doi = "10.18653/v1/2023.eacl-main.168",
+    pages = "2291--2302",
+    abstract = "Medical doctors spend on average 52 to 102 minutes per day writing clinical notes from their patient encounters (Hripcsak et al., 2011). Reducing this workload calls for relevant and efficient summarization methods. In this paper, we introduce new resources and empirical investigations for the automatic summarization of doctor-patient conversations in a clinical setting. In particular, we introduce the MTS-Dialog dataset; a new collection of 1,700 doctor-patient dialogues and corresponding clinical notes. We use this new dataset to investigate the feasibility of this task and the relevance of existing language models, data augmentation, and guided summarization techniques. We compare standard evaluation metrics based on n-gram matching, contextual embeddings, and Fact Extraction to assess the accuracy and the factual consistency of the generated summaries. To ground these results, we perform an expert-based evaluation using relevant natural language generation criteria and task-specific criteria such as critical omissions, and study the correlation between the automatic metrics and expert judgments. To the best of our knowledge, this study is the first attempt to introduce an open dataset of doctor-patient conversations and clinical notes, with detailed automated and manual evaluations of clinical note generation."
 }
 ```

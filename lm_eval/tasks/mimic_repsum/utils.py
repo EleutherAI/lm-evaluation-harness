@@ -1,14 +1,16 @@
-from collections.abc import Iterable
-from radgraph import F1RadGraph
 import re
+from collections.abc import Iterable
+
 import evaluate
 import numpy as np
+from radgraph import F1RadGraph
 
 
 bleu = evaluate.load("bleu")
 rouge = evaluate.load("rouge")
 bertscore = evaluate.load("bertscore")
 bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
+
 
 def doc_eval(pred, refs):
     try:
@@ -30,7 +32,9 @@ def doc_eval(pred, refs):
         bleurt_scores = [np.NAN]
 
     try:
-        bert_scores = bertscore.compute(predictions=pred, references=refs, lang="en")["f1"]
+        bert_scores = bertscore.compute(predictions=pred, references=refs, lang="en")[
+            "f1"
+        ]
     except Exception as e:
         print(f"Bert error: {e}")
         bert_scores = [np.NAN]
@@ -78,9 +82,7 @@ def doc_to_text(doc) -> str:
     if len(findings) < 5 < len(impressions):
         findings = text[:a]
 
-    return "Given the findings: {}.\nSummarize the findings.".format(
-        findings
-    )
+    return "Given the findings: {}.\nSummarize the findings.".format(findings)
 
 
 def doc_to_target(doc) -> str:
@@ -104,6 +106,7 @@ def doc_to_target(doc) -> str:
 
     return impressions
 
+
 def is_non_str_iterable(obj):
     return isinstance(obj, Iterable) and not isinstance(obj, str)
 
@@ -119,14 +122,14 @@ def process_results(doc, results):
             "rougeL": np.NAN,
             "bleurt": np.NAN,
             "bert_score": np.NAN,
-            "F1-Radgraph": np.NAN
+            "F1-Radgraph": np.NAN,
         }
 
     results = doc_eval(pred, refs)
 
     try:
         radgraph_score, _, _, _ = f1radgraph(hyps=pred, refs=refs)
-    except:
+    except Exception:
         radgraph_score = np.NAN
 
     return {

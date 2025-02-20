@@ -1,5 +1,6 @@
 import re
-from lm_eval.tasks.meddialog.utils import doc_to_target_qsumm,doc_to_target_raw
+
+from lm_eval.tasks.meddialog.utils import doc_to_target_qsumm, doc_to_target_raw
 
 
 def process_results_qsumm(doc, results):

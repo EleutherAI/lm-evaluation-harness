@@ -1,7 +1,7 @@
 task: mediqa_qa2019
 dataset_path: bigbio/mediqa_qa
 description: >
-  Instructions: The following text is a question asked by a patient. Answer how a doctor would, while trying to be as informative and helpful as possible. 
+  Instructions: The following text is a question asked by a patient. Answer how a doctor would, while trying to be as informative and helpful as possible.
 
 output_type: generate_until
 training_split: train_live_qa_med

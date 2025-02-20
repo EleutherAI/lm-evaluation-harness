@@ -1,7 +1,5 @@
-from collections.abc import Iterable
-import numpy as np
 import evaluate
-from moverscore_v2 import get_idf_dict, word_mover_score
+import numpy as np
 
 
 bleu = evaluate.load("bleu")
@@ -12,9 +10,9 @@ bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
 
 def doc_to_text(doc) -> str:
     text = doc["CHQ"]
-    idx = text.find('MESSAGE')
+    idx = text.find("MESSAGE")
     if idx != -1:
-        return text[idx+9:]
+        return text[idx + 9 :]
     else:
         return text
 
@@ -28,39 +26,49 @@ def process_results_gen(doc, results):
 
     if len(refs[0]) < 1 or len(pred[0]) < 1:
         return {
-            "BLEU": np.NAN,
-            "ROUGE-1": np.NAN,
-            "ROUGE-2": np.NAN,
-            "ROUGE-L": np.NAN,
-            "BERT": np.NAN,
-            "BLEURT": np.NAN,
-            "MOVERSCORE": np.NAN,
+            "bleu": np.NAN,
+            "rouge1": np.NAN,
+            "rouge2": np.NAN,
+            "rougeL": np.NAN,
+            "bleurt": np.NAN,
+            "bert_score": np.NAN,
         }
-
-    hyp, ref = [pred[0], ''], [refs[0], '']
-    idf_dict_hyp = get_idf_dict(hyp)  # idf_dict_hyp = defaultdict(lambda: 1.)
-    idf_dict_ref = get_idf_dict(ref)  # idf_dict_ref = defaultdict(lambda: 1.)
-
-    moverscore_results = word_mover_score(ref, hyp, idf_dict_ref, idf_dict_hyp,
-                                          stop_words=[], n_gram=1, remove_subwords=False)[0]
 
     try:
         bleu_results = bleu.compute(predictions=pred, references=refs)
-        rouge_results = rouge.compute(predictions=pred, references=refs)
-        bert_results = bertscore.compute(predictions=pred, references=refs, lang="en")
-        bleurt_results = bleurt.compute(predictions=pred, references=refs)
-    except:
+    except Exception as e:
+        print(f"Bleu error: {e}")
         bleu_results = {"bleu": np.NAN}
-        bleurt_results = {"scores": np.NAN}
+
+    try:
+        rouge_results = rouge.compute(predictions=pred, references=refs)
+    except Exception as e:
+        print(f"Rouge error: {e}")
         rouge_results = {"rouge1": np.NAN, "rouge2": np.NAN, "rougeL": np.NAN}
-        bert_results = {"f1": np.NAN}
+
+    try:
+        bleurt_scores = bleurt.compute(predictions=pred, references=refs)["scores"]
+    except Exception as e:
+        print(f"Bleurt error: {e}")
+        bleurt_scores = [np.NAN]
+
+    try:
+        bert_scores = bertscore.compute(predictions=pred, references=refs, lang="en")[
+            "f1"
+        ]
+    except Exception as e:
+        print(f"Bert error: {e}")
+        bert_scores = [np.NAN]
+
+    if bleu_results["bleu"] == 0:
+        # Sometimes bleu is 0.0 and this breaks the stderr computation.
+        bleu_results["bleu"] += 1e-5
 
     return {
-        "BLEU": bleu_results["bleu"],
-        "ROUGE-1": rouge_results["rouge1"],
-        "ROUGE-2": rouge_results["rouge2"],
-        "ROUGE-L": rouge_results["rougeL"],
-        "BERT": np.nanmean(bert_results["f1"]),
-        "BLEURT": np.nanmean(bleurt_results["scores"]),
-        "MOVERSCORE": moverscore_results,
+        "bleu": bleu_results["bleu"],
+        "rouge1": rouge_results["rouge1"],
+        "rouge2": rouge_results["rouge2"],
+        "rougeL": rouge_results["rougeL"],
+        "bleurt": np.mean(bleurt_scores),
+        "bert_score": np.mean(bert_scores),
     }

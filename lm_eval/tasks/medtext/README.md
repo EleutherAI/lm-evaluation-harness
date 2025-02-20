@@ -1,32 +1,33 @@
-# MIMIC-III Report Summarization
+# MedText
 
 ### Paper
 
-Title: `MIMIC-III, a freely accessible critical care database`
+Title: `Towards Automatic Generation of Shareable Synthetic Clinical Notes Using Neural Language Models`
 
-Abstract: [https://www.nature.com/articles/sdata201635](https://www.nature.com/articles/sdata201635)
+Abstract: [https://arxiv.org/abs/1905.07002](https://arxiv.org/abs/1905.07002)
 
-MIMIC-III containins de-identified health data from around 40,000 patients admitted to 
-intensive care units at a large tertiary care hospital. This task focuses on radiology 
-report summarization.
+MedText is a medical diagnosis dataset containing over 1000 top notch textbook
+quality patient presentations and diagnosis/treatments. The 100 most common diseases
+and the 30 most common injuries people go to the hospital with, are, among others,
+fully captured in the dataset, with multiple datapoints for each ranging from mild
+to complicated to severe.
 
 
 #### Tasks
 
-* `mimic_repsum`: Generate extractive notes summaries, evaluated with [Radgraph-F1](https://www.cell.com/patterns/fulltext/S2666-3899(23)00157-5), bleu, rouge, bert_score, bleurt.
-* `mimic_repsum_perplexity`: Generate extractive notes summaries, evaluated with perplexity.
+* `medtext`: Open-ended QA in english.
+* `medtext_perplexity`: Open-ended QA in english, evaluated with perplexity.
 
 ### Citation
 
 ```bibtex
-@article{johnson2016mimic,
-  title={MIMIC-III, a freely accessible critical care database},
-  author={Johnson, Alistair EW and Pollard, Tom J and Shen, Lu and Lehman, Li-wei H and Feng, Mengling and Ghassemi, Mohammad and Moody, Benjamin and Szolovits, Peter and Anthony Celi, Leo and Mark, Roger G},
-  journal={Scientific data},
-  volume={3},
-  number={1},
-  pages={1--9},
-  year={2016},
-  publisher={Nature Publishing Group}
+@misc{melamud2019automaticgenerationshareablesynthetic,
+      title={Towards Automatic Generation of Shareable Synthetic Clinical Notes Using Neural Language Models},
+      author={Oren Melamud and Chaitanya Shivade},
+      year={2019},
+      eprint={1905.07002},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/1905.07002},
 }
 ```

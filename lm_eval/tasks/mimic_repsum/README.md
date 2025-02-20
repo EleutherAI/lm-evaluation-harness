@@ -1,39 +1,32 @@
-# CareQA
+# MIMIC-III Report Summarization
 
 ### Paper
 
-Title: `Automatic Evaluation of Healthcare LLMs Beyond Question-Answering`
+Title: `MIMIC-III, a freely accessible critical care database`
 
-Abstract: [https://arxiv.org/abs/2502.06666](https://arxiv.org/abs/2502.06666)
+Abstract: [https://www.nature.com/articles/sdata201635](https://www.nature.com/articles/sdata201635)
 
-CareQA originates from the Spanish Specialised Healthcare Training (MIR) exams by the 
-Spanish Ministry of Health. The close-ended version is a multiple-choice question 
-answering (MCQA) including 5,621 QA pairs across six categories: medicine, nursing, 
-biology, chemistry, psychology, and pharmacology, sourced from the 2020 to 2024 exam 
-editions. CareQA is available in both English and Spanish. The open-ended version 
-(English only) contains 3,730 QA pairs.
-
-Homepage: \
-[https://huggingface.co/datasets/HPAI-BSC/CareQA](https://huggingface.co/datasets/HPAI-BSC/CareQA)
+MIMIC-III containins de-identified health data from around 40,000 patients admitted to
+intensive care units at a large tertiary care hospital. This task focuses on radiology
+report summarization.
 
 
 #### Tasks
 
-* `careqa_en`: MCQA in english.
-* `careqa_es`: MCQA in spanish.
-* `careqa_open`: Open-Ended QA in english.
-* `careqa_open_perplexity`: Open-Ended QA in english, evaluated with perplexity.
+* `mimic_repsum`: Generate extractive notes summaries, evaluated with [Radgraph-F1](https://www.cell.com/patterns/fulltext/S2666-3899(23)00157-5), bleu, rouge, bert_score, bleurt.
+* `mimic_repsum_perplexity`: Generate extractive notes summaries, evaluated with perplexity.
 
 ### Citation
 
 ```bibtex
-@misc{ariasduart2025automaticevaluationhealthcarellms,
-      title={Automatic Evaluation of Healthcare LLMs Beyond Question-Answering}, 
-      author={Anna Arias-Duart and Pablo Agustin Martin-Torres and Daniel Hinjos and Pablo Bernabeu-Perez and Lucia Urcelay Ganzabal and Marta Gonzalez Mallo and Ashwin Kumar Gururajan and Enrique Lopez-Cuena and Sergio Alvarez-Napagao and Dario Garcia-Gasulla},
-      year={2025},
-      eprint={2502.06666},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2502.06666}, 
+@article{johnson2016mimic,
+  title={MIMIC-III, a freely accessible critical care database},
+  author={Johnson, Alistair EW and Pollard, Tom J and Shen, Lu and Lehman, Li-wei H and Feng, Mengling and Ghassemi, Mohammad and Moody, Benjamin and Szolovits, Peter and Anthony Celi, Leo and Mark, Roger G},
+  journal={Scientific data},
+  volume={3},
+  number={1},
+  pages={1--9},
+  year={2016},
+  publisher={Nature Publishing Group}
 }
 ```

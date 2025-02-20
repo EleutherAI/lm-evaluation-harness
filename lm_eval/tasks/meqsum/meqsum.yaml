@@ -15,25 +15,22 @@ generation_kwargs:
   until:
     - "\n\n"
 metric_list:
-  - metric: BLEU
+  - metric: bleu
     aggregation: nanmean
     higher_is_better: true
-  - metric: ROUGE-1
+  - metric: rouge1
     aggregation: nanmean
     higher_is_better: true
-  - metric: ROUGE-2
+  - metric: rouge2
     aggregation: nanmean
     higher_is_better: true
-  - metric: ROUGE-L
+  - metric: rougeL
     aggregation: nanmean
     higher_is_better: true
-  - metric: BERT
+  - metric: bert_score
     aggregation: nanmean
     higher_is_better: true
-  - metric: BLEURT
-    aggregation: nanmean
-    higher_is_better: true
-  - metric: MOVERSCORE
+  - metric: bleurt
     aggregation: nanmean
     higher_is_better: true
 metadata:

@@ -1,6 +1,7 @@
 import evaluate
 import numpy as np
 
+
 bleu = evaluate.load("bleu")
 rouge = evaluate.load("rouge")
 bertscore = evaluate.load("bertscore")
@@ -27,7 +28,9 @@ def doc_eval(pred, refs):
         bleurt_scores = [np.NAN]
 
     try:
-        bert_scores = bertscore.compute(predictions=pred, references=refs, lang="en")["f1"]
+        bert_scores = bertscore.compute(predictions=pred, references=refs, lang="en")[
+            "f1"
+        ]
     except Exception as e:
         print(f"Bert error: {e}")
         bert_scores = [np.NAN]
@@ -66,11 +69,10 @@ def process_results_gen(doc, results):
             "rouge2": np.NAN,
             "rougeL": np.NAN,
             "bleurt": np.NAN,
-            "bert_score": np.NAN
+            "bert_score": np.NAN,
         }
 
     results = doc_eval(pred, refs)
-
 
     return {
         "bleu": results["bleu"],
@@ -78,5 +80,5 @@ def process_results_gen(doc, results):
         "rouge2": results["rouge2"],
         "rougeL": results["rougeL"],
         "bleurt": results["bleurt"],
-        "bert_score": results["bert_score"]
+        "bert_score": results["bert_score"],
     }
