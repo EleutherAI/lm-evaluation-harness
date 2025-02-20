@@ -25,8 +25,6 @@ assignees: ''
 **Main Goal**:
 <!-- Clearly state what aspect of scientific knowledge or reasoning this task evaluates -->
 
-**Expected Behavior**:
-<!-- Describe what a successful response to this task looks like -->
 
 ## Dataset Information
 
@@ -59,30 +57,12 @@ assignees: ''
 **Evaluation Metric**:
 <!-- Describe how responses will be evaluated (e.g., exact match, RMSE, domain-specific metrics) -->
 
-## Implementation Plan
-
-**Required Files**:
-- [ ] `task_name.yaml`
-- [ ] `utils.py` (if needed)
-- [ ] `README.md`
-
-**Dependencies**:
-<!-- List any special dependencies or requirements -->
-
 ## Checklist
-
-- [ ] This task requires genuine scientific understanding
-- [ ] This task is not solvable by simple pattern matching
-- [ ] The task evaluation metrics are well-defined
 - [ ] Sample input/output pairs are provided
-- [ ] Dataset source is properly cited
-- [ ] Implementation path follows repository structure
+- [ ] Dataset source is properly described
 
 ## Additional Context
 <!-- Add any other relevant information, clarifications, or screenshots -->
-
-## Alternative Approaches
-<!-- If applicable, describe any alternative ways you considered implementing this task -->
 
 ## Related Issues/PRs
 <!-- Reference any related issues or pull requests -->
@@ -90,6 +70,5 @@ assignees: ''
 ---
 <!-- Before submitting:
 1. Tag appropriate maintainers
-2. Add relevant labels (e.g., 'chemistry', 'physics', 'materials')
-3. Link to any relevant documentation or papers
+2. Add relevant labels (Category, Subject...etc)
 -->
