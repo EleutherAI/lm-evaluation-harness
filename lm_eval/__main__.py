@@ -271,7 +271,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--metadata",
         type=str,
         default=None,
-        help="Comma separated string argument metadata to pass to task configs, for example max_context_len=4096,8192. Will be parsed as a dictionary with all values as lists.",
+        help="Comma separated string argument metadata to pass to task configs, for example max_seq_lengths=4096,8192. Will be parsed as a dictionary with all values as tuples.",
     )
     return parser
 
