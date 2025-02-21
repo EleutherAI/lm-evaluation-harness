@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import os
 import re
 from pathlib import Path
@@ -8,11 +9,13 @@ import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
 
 from lm_eval.utils import (
-    eval_logger,
     get_latest_filename,
     get_results_filenames,
     get_sample_results_filenames,
 )
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 def parse_args():
