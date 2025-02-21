@@ -241,14 +241,14 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 ### Tensor + Data Parallel and Fast Offline Batching Inference with `SGLang`
 We support SGLang with its efficient offline batch inference. Its **[Fast Backend Runtime](https://docs.sglang.ai/index.html)** thanks to efficient serving with RadixAttention for prefix caching, jump-forward constrained decoding, overhead-free CPU scheduler, continuous batching, token attention (paged attention), tensor parallelism, FlashInfer kernels, chunked prefill, and quantization (FP8/INT4/AWQ/GPTQ).
 
-To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.ai/start/install.html#install-sglang). 
+To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.ai/start/install.html#install-sglang).
 > [!Tip]
 > Due to the installing method of [`Flashinfer`](https://docs.flashinfer.ai/)-- a fast attention kernel library, we don't include the dependencies of `SGLang` within [pyproject.toml](pyproject.toml). Note that the `Flashinfer` also has some requirements on `torch` version.
 
 SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
 ```bash
 lm_eval --model sglang \
-    --model_args pretrained={model_name},tp_size={data_parallel_size},dp_size={tensor_parallel_size},dtype=auto,mem-fraction-static=0.9, \
+    --model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto,mem-fraction-static=0.9, \
     --tasks gsm8k_cot \
     --batch_size auto
 ```

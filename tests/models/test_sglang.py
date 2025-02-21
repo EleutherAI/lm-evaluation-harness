@@ -3,8 +3,9 @@ from typing import List
 import pytest
 import torch
 
-from lm_eval import tasks
+from lm_eval import evaluate, simple_evaluate, tasks
 from lm_eval.api.instance import Instance
+from lm_eval.tasks import get_task_dict
 
 
 task_manager = tasks.TaskManager()
@@ -60,3 +61,54 @@ class Test_SGlang:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
         for x in res:
             assert isinstance(x, float)
+
+    # def test_simple_evaluate(self)-> None:
+    #     results = simple_evaluate(
+    #         model =self.LM,
+    #         tasks=["gsm8k"],
+    #         # num_fewshot=0,
+    #         task_manager=task_manager,
+    #         limit= 1,
+    #     )
+    #     print(results)
+
+    # def test_evaluate(self)-> None:
+    #     tasks=["gsm8k"]
+    #     task_dict = get_task_dict(tasks, task_manager)
+    #     results = evaluate(
+    #     lm=self.LM,
+    #     task_dict=task_dict,
+    #     limit= 1,
+    #     )
+    #     print(results)
+
+    # TODO(jinwei): find out the outpt differences for "gsm_8k" with simple_evalute() and evaluate(). There are some errors in parser as well.
+    def test_evaluator(self) -> None:
+        simple_results = simple_evaluate(
+            model=self.LM,
+            tasks=["arc_easy"],
+            task_manager=task_manager,
+            limit=1,
+        )
+        assert simple_results is not None, "simple_evaluate returned None"
+
+        task_dict = get_task_dict(["arc_easy"], task_manager)
+        evaluate_results = evaluate(
+            lm=self.LM,
+            task_dict=task_dict,
+            limit=1,
+        )
+        assert evaluate_results is not None, "evaluate returned None"
+
+        assert set(simple_results["results"].keys()) == set(
+            evaluate_results["results"].keys()
+        ), "Mismatch in task keys between simple_evaluate and evaluate"
+
+        for task in simple_results["results"]:
+            assert (
+                simple_results["results"][task] == evaluate_results["results"][task]
+            ), f"Mismatch in results for {task}"
+
+        print(
+            "✅ test_evaluator passed: simple_evaluate and evaluate results are identical."
+        )
