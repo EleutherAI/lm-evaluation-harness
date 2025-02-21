@@ -6,7 +6,7 @@ import sys
 from functools import partial
 from typing import Union
 
-from lm_eval import evaluator, setup_logging, utils
+from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
@@ -279,7 +279,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    setup_logging(args.verbosity)
+    utils.setup_logging(args.verbosity)
     eval_logger = logging.getLogger(__name__)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
