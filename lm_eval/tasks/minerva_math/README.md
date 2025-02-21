@@ -63,3 +63,6 @@ If other tasks on this dataset are already supported:
 ### Variant Wishlist
 
 - [ ] zero-shot variant
+
+### Changelog
+version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For details [see](https://huggingface.co/blog/math_verify_leaderboard)
