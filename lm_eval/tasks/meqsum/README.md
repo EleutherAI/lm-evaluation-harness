@@ -6,11 +6,11 @@ Title: `On the Summarization of Consumer Health Questions`
 
 Abstract: [https://aclanthology.org/P19-1215/](https://aclanthology.org/P19-1215/)
 
-Question understanding is one of the main challenges in question answering. In real world 
-applications, users often submit natural language questions that are longer than needed 
-and include peripheral information that increases the complexity of the question, leading 
-to substantially more false positives in answer retrieval. In this paper, we study neural 
-abstractive models for medical question summarization. We introduce the MeQSum corpus of 
+Question understanding is one of the main challenges in question answering. In real world
+applications, users often submit natural language questions that are longer than needed
+and include peripheral information that increases the complexity of the question, leading
+to substantially more false positives in answer retrieval. In this paper, we study neural
+abstractive models for medical question summarization. We introduce the MeQSum corpus of
 1,000 summarized consumer health questions.
 
 

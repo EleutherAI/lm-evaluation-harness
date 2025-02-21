@@ -5,15 +5,16 @@ import numpy as np
 try:
     import evaluate
     from radgraph import F1RadGraph
+
+    bleu = evaluate.load("bleu")
+    rouge = evaluate.load("rouge")
+    bertscore = evaluate.load("bertscore")
+    bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
+
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "please install evaluation metrics via pip install evaluate and pip install radgraph",
+        "please install evaluation metrics via pip install evaluate, pip install bert-score and pip install radgraph",
     )
-
-bleu = evaluate.load("bleu")
-rouge = evaluate.load("rouge")
-bertscore = evaluate.load("bertscore")
-bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
 
 
 def doc_eval(pred, refs):

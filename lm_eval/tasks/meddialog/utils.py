@@ -1,15 +1,17 @@
 import numpy as np
+
 try:
     import evaluate
+
+    bleu = evaluate.load("bleu")
+    rouge = evaluate.load("rouge")
+    bertscore = evaluate.load("bertscore")
+    bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
+
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "please install evaluation metrics via pip install evaluate",
+        "please install evaluation metrics via pip install evaluate and pip install bert-score",
     )
-
-bleu = evaluate.load("bleu")
-rouge = evaluate.load("rouge")
-bertscore = evaluate.load("bertscore")
-bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
 
 
 def doc_eval(pred, refs):
