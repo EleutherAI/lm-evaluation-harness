@@ -83,7 +83,8 @@ We also support using the library's external API for use within model training l
 ```python
 import lm_eval
 ...
-
+# initialize logging
+lm_eval.setup_logging("DEBUG") # optional, but recommended; or you can set up logging yourself
 my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
 ...
 # instantiate an LM subclass that takes your initialized model and can run

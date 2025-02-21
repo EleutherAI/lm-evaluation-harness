@@ -31,6 +31,3 @@ def setup_logging(verbosity=logging.INFO):
         logging.getLogger().setLevel(log_level)
     # Prevent logging from propagating to the root logger multiple times
     # logging.getLogger(__name__).propagate = False
-
-
-setup_logging()
