@@ -1,10 +1,14 @@
 import re
 from collections.abc import Iterable
-
-import evaluate
 import numpy as np
-from radgraph import F1RadGraph
 
+try:
+    import evaluate
+    from radgraph import F1RadGraph
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "please install evaluation metrics via pip install evaluate and pip install radgraph",
+    )
 
 bleu = evaluate.load("bleu")
 rouge = evaluate.load("rouge")

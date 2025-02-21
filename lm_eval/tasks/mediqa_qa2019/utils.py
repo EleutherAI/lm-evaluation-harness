@@ -1,5 +1,10 @@
-import evaluate
 import numpy as np
+try:
+    import evaluate
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "please install evaluation metrics via pip install evaluate",
+    )
 
 
 bleu = evaluate.load("bleu")
