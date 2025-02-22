@@ -109,6 +109,7 @@ class Unitxt(ConfigurableTask):
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
+        gen_prefix: Optional[str] = None,
     ) -> str:
         source = self.doc_to_text(doc)
         if isinstance(source, list):
@@ -134,6 +135,7 @@ class Unitxt(ConfigurableTask):
             part of the document for `doc`.
         """
         kwargs.pop("apply_chat_template", False)  # Not used by unitxt
+        kwargs.pop("chat_template", False)  # Not used by unitxt
         return [
             Instance(
                 request_type="generate_until",

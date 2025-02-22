@@ -3,6 +3,7 @@ import asyncio
 import copy
 import itertools
 import json
+import logging
 from functools import cached_property
 from typing import (
     Any,
@@ -37,6 +38,8 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
+eval_logger = logging.getLogger(__name__)
+
 LogLikelihoodInputs = Tuple[Tuple[str, str], List[int], List[int]]
 
 
@@ -46,9 +49,6 @@ class JsonChatStr(NamedTuple):
 
     def encode(self, encoding):
         return self.prompt.encode(encoding)
-
-
-eval_logger = utils.eval_logger
 
 
 class TemplateAPI(TemplateLM):
@@ -265,7 +265,7 @@ class TemplateAPI(TemplateLM):
             )
         else:
             # bit of a hack. We'll load back before sending to the API
-            return JsonChatStr(json.dumps(chat_history))
+            return JsonChatStr(json.dumps(chat_history, ensure_ascii=False))
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:

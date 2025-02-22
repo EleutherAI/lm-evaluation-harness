@@ -489,7 +489,8 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | api             | For using api models (Anthropic, OpenAI API) |
 | deepsparse      | For running NM's DeepSparse models           |
 | dev             | For linting PRs and contributions            |
-| gptq            | For loading models with GPTQ                 |
+| gptq            | For loading models with AutoGPTQ             |
+| gptqmodel       | For loading models with GPTQModel            |
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
 | ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |

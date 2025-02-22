@@ -1,4 +1,4 @@
-dataset_path: lighteval/MATH-Hard
+dataset_path: DigitalLearningGmbH/MATH-lighteval
 process_docs: !function utils.process_docs
 output_type: generate_until
 training_split: train

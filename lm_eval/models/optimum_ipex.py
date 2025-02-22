@@ -1,12 +1,12 @@
+import logging
 from importlib.util import find_spec
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import get_dtype
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("ipex")

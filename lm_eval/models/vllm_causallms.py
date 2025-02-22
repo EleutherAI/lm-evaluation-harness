@@ -1,4 +1,5 @@
 import copy
+import logging
 from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
@@ -17,7 +18,6 @@ from lm_eval.models.utils import (
     undistribute,
 )
 from lm_eval.utils import (
-    eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -34,7 +34,7 @@ except ModuleNotFoundError:
 if TYPE_CHECKING:
     pass
 
-eval_logger = eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("vllm")
@@ -109,7 +109,7 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            self.model_args["worker_use_ray"] = True
+            self.model_args["distributed_executor_backend"] = "ray"
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
@@ -246,9 +246,7 @@ class VLLM(TemplateLM):
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
-            # but then tensor_parallel breaks
-            @ray.remote
+            @ray.remote(num_gpus=1 if self.tensor_parallel_size == 1 else None)
             def run_inference_one_model(
                 model_args: dict,
                 sampling_params,
