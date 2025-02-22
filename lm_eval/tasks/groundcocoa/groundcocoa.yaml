@@ -5,7 +5,7 @@ training_split: null
 validation_split: validation
 test_split: test
 process_docs: !function utils.process_docs
-doc_to_text: "{{query}}"
+doc_to_text: "{{criteria}}"
 doc_to_target: gold
 doc_to_choice: "choices"
 metric_list:
