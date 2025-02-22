@@ -1,0 +1,110 @@
+{
+  "results": {
+    "groundcocoa": {
+      "alias": "groundcocoa",
+      "acc,none": 0.0,
+      "acc_stderr,none": 0.0
+    }
+  },
+  "group_subtasks": {
+    "groundcocoa": []
+  },
+  "configs": {
+    "groundcocoa": {
+      "task": "groundcocoa",
+      "dataset_path": "harsh147/GroundCocoa",
+      "dataset_kwargs": {
+        "trust_remote_code": true,
+        "streaming": true
+      },
+      "validation_split": "validation",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    cocoa_dataset = [sample for sample in dataset]\n    processed = []\n    for doc in cocoa_dataset:\n        question = doc['query']\n        question = question + '\\n\\n Option A: ' + str(doc['Option A']) + '\\n'\n        question = question + '\\n Option B: ' + str(doc['Option B']) + '\\n'\n        question = question + '\\n Option C: ' + str(doc['Option C']) + '\\n'\n        question = question + '\\n Option D: ' + str(doc['Option D']) + '\\n'\n        question = question + '\\n Option E: ' + str(doc['Option E']) + '\\n'\n        out_doc = {\n            \"query\": question,\n            \"choices\": ['A', 'B', 'C', 'D', 'E'],\n            \"gold\": doc[\"Answer\"],\n        }\n        processed.append(out_doc)\n\n    # def _process_doc(doc):\n    #     out_doc = {\n    #         \"query\": doc['query'],\n    #         \"choices\": ['Option A: ' + str(doc['Option A']), 'Option B: ' + str(doc['Option B']), 'Option C: ' + str(doc['Option C']),\n    #                     'Option D: ' + str(doc['Option D']), 'Option E: ' + str(doc['Option E'])],\n    #         \"gold\": doc[\"Answer\"],\n    #     }\n    #     return out_doc\n    #\n    #\n    # return dataset.map(_process_doc)\n\n    df = pd.DataFrame(processed)\n\n    dataset = Dataset.from_pandas(df)\n    return dataset\n",
+      "doc_to_text": "{{query}}",
+      "doc_to_target": "gold",
+      "unsafe_code": false,
+      "doc_to_choice": "choices",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false
+    }
+  },
+  "versions": {
+    "groundcocoa": "Yaml"
+  },
+  "n-shot": {
+    "groundcocoa": 0
+  },
+  "higher_is_better": {
+    "groundcocoa": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "groundcocoa": {
+      "original": 4849,
+      "effective": 2
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=meta-llama/Llama-3.2-1B",
+    "model_num_parameters": 1235814400,
+    "model_dtype": "torch.bfloat16",
+    "model_revision": "main",
+    "model_sha": "4e20de362430cd3b72f300e6b0f18e50e7166e08",
+    "batch_size": "1",
+    "batch_sizes": [],
+    "device": "cpu",
+    "use_cache": null,
+    "limit": 2.0,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "684fd2dd",
+  "date": 1739480024.881813,
+  "pretty_env_info": "PyTorch version: 2.6.0\nIs debug build: False\nCUDA used to build PyTorch: None\nROCM used to build PyTorch: N/A\n\nOS: macOS 14.7.3 (arm64)\nGCC version: Could not collect\nClang version: 16.0.0 (clang-1600.0.26.6)\nCMake version: Could not collect\nLibc version: N/A\n\nPython version: 3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 08:22:19) [Clang 14.0.6 ] (64-bit runtime)\nPython platform: macOS-14.7.3-arm64-arm-64bit\nIs CUDA available: False\nCUDA runtime version: No CUDA\nCUDA_MODULE_LOADING set to: N/A\nGPU models and configuration: No CUDA\nNvidia driver version: No CUDA\ncuDNN version: No CUDA\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nApple M1 Pro\n\nVersions of relevant libraries:\n[pip3] mypy==1.15.0\n[pip3] mypy-extensions==1.0.0\n[pip3] numpy==2.0.2\n[pip3] torch==2.6.0\n[conda] numpy                     2.0.2           py312h7f4fdc5_0  \n[conda] numpy-base                2.0.2           py312he047099_0  \n[conda] torch                     2.6.0                    pypi_0    pypi",
+  "transformers_version": "4.48.3",
+  "upper_git_hash": "684fd2ddc249930a071ac9920221048070ea8d99",
+  "tokenizer_pad_token": [
+    "<|end_of_text|>",
+    "128001"
+  ],
+  "tokenizer_eos_token": [
+    "<|end_of_text|>",
+    "128001"
+  ],
+  "tokenizer_bos_token": [
+    "<|begin_of_text|>",
+    "128000"
+  ],
+  "eot_token_id": 128001,
+  "max_length": 131072,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "meta-llama/Llama-3.2-1B",
+  "model_name_sanitized": "meta-llama__Llama-3.2-1B",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 697464.096064666,
+  "end_time": 697558.6380005,
+  "total_evaluation_time_seconds": "94.54193583398592"
+}

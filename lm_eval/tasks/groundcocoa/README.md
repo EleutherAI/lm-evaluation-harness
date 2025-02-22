@@ -2,25 +2,26 @@
 
 ### Paper
 
-Title: `HellaSwag: Can a Machine Really Finish Your Sentence?`
+Title: `GroundCocoa: A Benchmark for Evaluating Compositional & Conditional Reasoning in Language Models`
 
-Abstract: https://arxiv.org/abs/1905.07830
+Abstract: https://arxiv.org/abs/2404.04237
 
-Recent work by Zellers et al. (2018) introduced a new task of commonsense natural language inference: given an event description such as "A woman sits at a piano," a machine must select the most likely followup: "She sets her fingers on the keys." With the introduction of BERT, near human-level performance was reached. Does this mean that machines can perform human level commonsense inference?
-In this paper, we show that commonsense inference still proves difficult for even state-of-the-art models, by presenting HellaSwag, a new challenge dataset. Though its questions are trivial for humans (>95% accuracy), state-of-the-art models struggle (<48%). We achieve this via Adversarial Filtering (AF), a data collection paradigm wherein a series of discriminators iteratively select an adversarial set of machine-generated wrong answers. AF proves to be surprisingly robust. The key insight is to scale up the length and complexity of the dataset examples towards a critical 'Goldilocks' zone wherein generated text is ridiculous to humans, yet often misclassified by state-of-the-art models.
-Our construction of HellaSwag, and its resulting difficulty, sheds light on the inner workings of deep pretrained models. More broadly, it suggests a new path forward for NLP research, in which benchmarks co-evolve with the evolving state-of-the-art in an adversarial way, so as to present ever-harder challenges.
+The rapid progress of large language models (LLMs) has seen them excel and frequently surpass human performance on standard benchmarks. This has enabled many downstream applications, such as LLM agents, to rely on their reasoning to address complex task requirements. However, LLMs are known to unexpectedly falter in simple tasks and under seemingly straightforward circumstances - underscoring the need for better and more diverse evaluation setups to measure their true capabilities. To this end, we choose to study compositional and conditional reasoning, two aspects that are central to human cognition, and introduce GroundCocoa - a lexically diverse benchmark connecting these reasoning skills to the real-world problem of flight booking. Our task involves aligning detailed user preferences with available flight options presented in a multiple-choice format. Results indicate a significant disparity in performance among current state-of-the-art LLMs with even the best performing model, GPT-4 Turbo, not exceeding 67% accuracy despite advanced prompting techniques.
 
-Homepage: `https://rowanzellers.com/hellaswag/`
+Homepage: `https://osu-nlp-group.github.io/GroundCocoa/`
 
 
 ### Citation
 
 ```
-@inproceedings{zellers2019hellaswag,
-    title={HellaSwag: Can a Machine Really Finish Your Sentence?},
-    author={Zellers, Rowan and Holtzman, Ari and Bisk, Yonatan and Farhadi, Ali and Choi, Yejin},
-    booktitle ={Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics},
-    year={2019}
+@misc{kohli2025groundcocoabenchmarkevaluatingcompositional,
+      title={GroundCocoa: A Benchmark for Evaluating Compositional & Conditional Reasoning in Language Models}, 
+      author={Harsh Kohli and Sachin Kumar and Huan Sun},
+      year={2025},
+      eprint={2404.04237},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2404.04237}, 
 }
 ```
 
@@ -32,7 +33,7 @@ Homepage: `https://rowanzellers.com/hellaswag/`
 
 #### Tasks
 
-- `hellaswag`
+- `groundcocoa`
 
 
 ### Checklist
