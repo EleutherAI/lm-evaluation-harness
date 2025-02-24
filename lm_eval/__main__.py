@@ -170,9 +170,16 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--apply_chat_template",
-        action="store_true",
+        type=str,
+        nargs="?",
+        const=True,
         default=False,
-        help="If True, applies the chat template to the prompt",
+        help=(
+            "If True, apply chat template to the prompt. "
+            "Providing `--apply_chat_template` without an argument will apply the default chat template to the prompt. "
+            "To apply a specific template from the available list of templates, provide the template name as an argument. "
+            "E.g. `--apply_chat_template template_name`"
+        ),
     )
     parser.add_argument(
         "--fewshot_as_multiturn",
@@ -206,9 +213,9 @@ def setup_parser() -> argparse.ArgumentParser:
         "--verbosity",
         "-v",
         type=str.upper,
-        default="INFO",
+        default=None,
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
+        help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
     parser.add_argument(
         "--wandb_args",
@@ -250,6 +257,11 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
+    parser.add_argument(
+        "--confirm_run_unsafe_code",
+        action="store_true",
+        help="Confirm that you understand the risks of running unsafe code for tasks that require it",
+    )
     return parser
 
 
@@ -267,9 +279,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    eval_logger = utils.eval_logger
-    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
-    eval_logger.info(f"Verbosity set to {args.verbosity}")
+    utils.setup_logging(args.verbosity)
+    eval_logger = logging.getLogger(__name__)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
@@ -289,19 +300,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
         raise ValueError(
-            "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
-        )
-
-    if (
-        args.num_fewshot is None or args.num_fewshot == 0
-    ) and args.fewshot_as_multiturn:
-        raise ValueError(
-            "If fewshot_as_multiturn is set, num_fewshot must be greater than 0."
+            "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
         )
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(include_path=args.include_path)
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
@@ -372,8 +376,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         args.model_args = args.model_args + ",trust_remote_code=True"
-
-    eval_logger.info(f"Selected Tasks: {task_names}")
+    print(eval_logger.level)
+    eval_logger.info(
+        f"Selected Tasks: {task_names}"
+    ) if eval_logger.level >= logging.INFO else print(f"Selected Tasks: {task_names}")
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
@@ -398,12 +404,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
-        verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
+        confirm_run_unsafe_code=args.confirm_run_unsafe_code,
         **request_caching_args,
     )
 

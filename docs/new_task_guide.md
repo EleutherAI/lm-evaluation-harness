@@ -37,7 +37,8 @@ and rename the folders and YAML file(s) as desired.
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
-
+> [!TIP]
+> To test your task, we recommend using verbose logging using `export LOGLEVEL = DEBUG` in your shell before running the evaluation script. This will help you debug any issues that may arise.
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
 
 ```yaml
@@ -86,20 +87,20 @@ Let's create a python file in the directory where we're writing our YAML file:
 ```bash
 touch lm_eval/tasks/<dataset_name>/utils.py
 ```
-Now, in `utils.py` we'll write a function to process each split of our dataset:
-
-TODO: Change the example to one that's in the tasks/
+Now, in `utils.py` we'll write a function to process each split of our dataset (the following example is drawn from [the `hellaswag` task](../lm_eval/tasks/hellaswag/utils.py)):
 
 ```python
-def process_docs(dataset: datasets.Dataset):
-    def _helper(doc):
-      # modifies the contents of a single
-      # document in our dataset.
-      doc["choices"] = [doc["choice1"], doc["choice2"], doc["wrong_answer"]]
-      doc["gold"] = doc["label"]
-      return doc
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+    def _process_doc(doc):
+        ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
+        out_doc = {
+            "query": preprocess(doc["activity_label"] + ": " + ctx),
+            "choices": [preprocess(ending) for ending in doc["endings"]],
+            "gold": int(doc["label"]),
+        }
+        return out_doc
 
-    return dataset.map(_helper) # returns back a datasets.Dataset object
+    return dataset.map(_process_doc)
 ```
 
 Now, in our YAML config file we'll use the `!function` constructor, and tell the config where our imported Python function will come from. At runtime, before doing anything else we will preprocess our dataset according to this function!
@@ -143,7 +144,7 @@ The next thing we need to do is decide what format to use when presenting the da
 
 To write a prompt, users will use `doc_to_text`, `doc_to_target`, and `doc_to_choice` (Optional when certain conditions are met).
 
-`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must be also be set with the appropriate list of possible choice strings.
+`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must also be set with the appropriate list of possible choice strings.
 
 ### Basic prompts
 
@@ -172,7 +173,7 @@ doc_to_choice: choices
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
+Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a sample line `doc`, the model sees something in the format of:
 ```
 doc["passage"]
 Question: doc["question"]?
@@ -190,7 +191,8 @@ doc_to_target: "{{answer}}"
 ```
 
 
-**Important**: we now add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_target(doc) + target_delimiter + doc_to_text(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively.
+> [!WARNING]
+> We add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_text(doc) + target_delimiter + doc_to_target(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively. For multiple choice the target will be each choice index concatenated with the delimiter.
 
 
 #### Multiple choice format
@@ -206,7 +208,7 @@ doc_to_choice: "{{[distractor1, distractor2, distractor3, correct_answer]}}"
 ```
 Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
 
-The label index can also be sourced from a feature directly. For example in `superglue/boolq`, the label index if defined in the feature `label`. We can set `doc_to_target` as simply `label`. The options or verbalizers can be written in a the form of a list `["no", "yes"]` that will correspond to the label index.
+The label index can also be sourced from a feature directly. For example in `superglue/boolq`, the label index if defined in the feature `label`. We can set `doc_to_target` as simply `label`. The options or verbalizers can be written in the form of a list `["no", "yes"]` that will correspond to the label index.
 
 ```yaml
 doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
@@ -283,7 +285,7 @@ As a heuristic check:
 * Do you expect to compute metrics after applying multiple such processing steps on your model outputs?
 * Does your task rely on metrics that need a custom implementation?
 
-For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md) . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
+For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md). If none of the above sounds like they apply to your task, it's time to continue onto checking your task performance!
 
 ### Task name + tags (registering a task)
 
@@ -382,7 +384,7 @@ task:
 
 ### Configuring python classes
 
-There can occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
+There can be occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
 
 ```yaml
 task: squadv2
@@ -485,7 +487,7 @@ If other tasks on this dataset are already supported:
 
 It is recommended to include a filled-out copy of this checklist in the README.md for the subfolder you are creating, if you have created a new subfolder in `lm_eval/tasks`.
 
-**Finally, please add a short description of your task(s), along with a link to its subfolder in lm_eval/tasks , to [`lm_eval/tasks/README.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/README.md) so that users can discover your task in the library, and follow the link to your README for more information about the variants supported, their task names, and the original source of the dataset and/or evaluation setup.**
+**Finally, please add a short description of your task(s), along with a link to its subfolder in lm_eval/tasks, to [`lm_eval/tasks/README.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/README.md) so that users can discover your task in the library, and follow the link to your README for more information about the variants supported, their task names, and the original source of the dataset and/or evaluation setup.**
 
 ## Submitting your task
 

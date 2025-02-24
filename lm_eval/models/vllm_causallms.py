@@ -1,4 +1,5 @@
 import copy
+import logging
 from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
@@ -10,9 +11,13 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, configure_pad_token, undistribute
+from lm_eval.models.utils import (
+    Collator,
+    configure_pad_token,
+    handle_stop_sequences,
+    undistribute,
+)
 from lm_eval.utils import (
-    eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -29,7 +34,7 @@ except ModuleNotFoundError:
 if TYPE_CHECKING:
     pass
 
-eval_logger = eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("vllm")
@@ -65,15 +70,14 @@ class VLLM(TemplateLM):
         super().__init__()
 
         if not find_spec("vllm"):
-            raise Exception(
+            raise ModuleNotFoundError(
                 "attempted to use 'vllm' LM type, but package `vllm` is not installed. "
                 "Please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
-        assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        assert (
-            max_length is None or max_model_len is None
-        ), "Either max_length or max_model_len may be provided, but not both"
+        assert max_length is None or max_model_len is None, (
+            "Either max_length or max_model_len may be provided, but not both"
+        )
 
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -97,7 +101,7 @@ class VLLM(TemplateLM):
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
-            else batch_size
+            else int(batch_size)
         )
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
@@ -105,7 +109,7 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            self.model_args["worker_use_ray"] = True
+            self.model_args["distributed_executor_backend"] = "ray"
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
@@ -118,7 +122,7 @@ class VLLM(TemplateLM):
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
-            tokenizer_revision=tokenizer_revision,
+            revision=tokenizer_revision,
         )
         self.tokenizer = configure_pad_token(self.tokenizer)
         self.add_bos_token = add_bos_token
@@ -137,9 +141,9 @@ class VLLM(TemplateLM):
         self._max_gen_toks = max_gen_toks
 
         if lora_local_path is not None:
-            assert parse_version(version("vllm")) > parse_version(
-                "0.3.0"
-            ), "lora adapters only compatible with vllm > v0.3.0."
+            assert parse_version(version("vllm")) > parse_version("0.3.0"), (
+                "lora adapters only compatible with vllm > v0.3.0."
+            )
             self.lora_request = LoRARequest("finetuned", 1, lora_local_path)
         else:
             self.lora_request = None
@@ -179,19 +183,20 @@ class VLLM(TemplateLM):
     def max_gen_toks(self):
         return self._max_gen_toks
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        return self.tokenizer.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=True
+        chat_templated = self.tokenizer.apply_chat_template(
+            chat_history,
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
-    @property
-    def chat_template(self) -> str:
-        if self.tokenizer.chat_template is not None:
-            return self.tokenizer.chat_template
-        return self.tokenizer.default_chat_template
+        return chat_templated
 
     @property
     def tokenizer_name(self) -> str:
@@ -241,21 +246,27 @@ class VLLM(TemplateLM):
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
-            # but then tensor_parallel breaks
-            @ray.remote
+            @ray.remote(num_gpus=1 if self.tensor_parallel_size == 1 else None)
             def run_inference_one_model(
-                model_args: dict, sampling_params, requests: List[List[int]]
+                model_args: dict,
+                sampling_params,
+                requests: List[List[int]],
+                lora_request: LoRARequest,
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
-                    prompt_token_ids=requests, sampling_params=sampling_params
+                    prompt_token_ids=requests,
+                    sampling_params=sampling_params,
+                    lora_request=lora_request,
                 )
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
             requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
-            inputs = ((self.model_args, sampling_params, req) for req in requests)
+            inputs = (
+                (self.model_args, sampling_params, req, self.lora_request)
+                for req in requests
+            )
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
@@ -263,50 +274,81 @@ class VLLM(TemplateLM):
             # flatten results
             return undistribute(results)
 
-        if self.lora_request is not None:
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=sampling_params,
-                use_tqdm=True if self.batch_size == "auto" else False,
-                lora_request=self.lora_request,
-            )
-        else:
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=sampling_params,
-                use_tqdm=True if self.batch_size == "auto" else False,
-            )
+        outputs = self.model.generate(
+            prompt_token_ids=requests,
+            sampling_params=sampling_params,
+            use_tqdm=True if self.batch_size == "auto" else False,
+            lora_request=self.lora_request,
+        )
         return outputs
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
-        loglikelihoods = []
+        adaptive_batch_size = None
+        if self.batch_size == "auto":
+            adaptive_batch_size = len(requests)
 
-        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
-            rolling_token_windows = list(
+        # First, collect all windows from all requests
+        all_windows = []  # List of (request_idx, window) tuples
+        request_window_counts = []  # Track number of windows per request
+
+        for req_idx, (string,) in enumerate(
+            tqdm(
+                [req.args for req in requests],
+                disable=(disable_tqdm or (self.rank != 0)),
+            )
+        ):
+            rolling_token_windows: List[Tuple[List[int], List[int]]] = list(
                 map(
                     make_disjoint_window,
                     get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
+                        prefix_token=self.prefix_token_id,
+                        # max_seq_len - (1 for context)
                         max_seq_len=self.max_length - 1,
                         context_len=1,
                     ),
                 )
             )
 
-            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
+            windows = [(None,) + x for x in rolling_token_windows]
 
-            string_nll = self._loglikelihood_tokens(
-                rolling_token_windows,
+            # Store windows with their request index
+            all_windows.extend((req_idx, window) for window in windows)
+            request_window_counts.append(len(windows))
+
+        all_nlls = []
+        batch_size = adaptive_batch_size or int(self.batch_size)
+        for i in range(0, len(all_windows), batch_size):
+            batch = all_windows[i : i + batch_size]
+            # Extract just the windows for processing, keeping track of request indices
+            batch_indices, batch_windows = zip(*batch)
+
+            batch_nlls = self._loglikelihood_tokens(
+                requests=batch_windows,
+                disable_tqdm=False,
+            )
+            # Store results with their request indices
+            all_nlls.extend(zip(batch_indices, batch_nlls))
+
+        # Reconstruct per-request loglikelihoods
+        loglikelihoods = []
+        current_idx = 0
+        for window_count in request_window_counts:
+            # Get all nlls for this request
+            request_nlls = all_nlls[current_idx : current_idx + window_count]
+            # Sum up the nlls for this request (discarding is_greedy)
+            request_total = sum(nll[0] for _, nll in request_nlls)
+            loglikelihoods.append(request_total)
+            current_idx += window_count
+
+            string = requests[len(loglikelihoods) - 1].args[0]
+            self.cache_hook.add_partial(
+                "loglikelihood_rolling", (string,), request_total
             )
 
-            # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
-
-            string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
         return loglikelihoods
 
     def generate_until(
@@ -346,6 +388,7 @@ class VLLM(TemplateLM):
             desc="Running generate_until requests",
         )
         # for each different set of kwargs, we execute all requests, by batch.
+        eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
@@ -353,27 +396,14 @@ class VLLM(TemplateLM):
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
             # unpack our keyword arguments.
-            until = None
             if isinstance(gen_kwargs, dict):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                if "until" in kwargs.keys():
-                    until = kwargs.pop("until")
-                    if isinstance(until, str):
-                        until = [until]
-                    elif not isinstance(until, list):
-                        raise ValueError(
-                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                        )
+                # add EOS token to stop sequences
+                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
             else:
                 raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
-            # add EOS token to stop sequences
-            eos = self.tokenizer.decode(self.eot_token_id)
-            if not until:
-                until = [eos]
-            else:
-                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -453,8 +483,10 @@ class VLLM(TemplateLM):
 
                 res.append(answer)
 
-                # partial caching
                 if cache_key is not None:
+                    # special case: loglikelihood_rolling produces a number of loglikelihood requests
+                    # all with cache key None. instead do add_partial on the per-example level
+                    # in the loglikelihood_rolling() function for those.
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
                 pbar.update(1)
         pbar.close()

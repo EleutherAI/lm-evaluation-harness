@@ -6,7 +6,7 @@ These YAML configuration files, along with the current codebase commit hash, are
 
 While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a Hugging Face dataset path in an existing file, more specialized evaluation setups also exist. Here we'll provide a crash course on the more advanced logic implementable in YAML form available to users.
 
-If your intended task relies on features beyond what are described in this guide, we'd love to hear about it! Feel free to open an issue describing the scenario on Github, create a PR to the project with a proposed implementation, or ask in the `#lm-thunderdome` channel on the EleutherAI discord.
+If your intended task relies on features beyond what is described in this guide, we'd love to hear about it! Feel free to open an issue describing the scenario on Github, create a PR to the project with a proposed implementation, or ask in the `#lm-thunderdome` channel on the EleutherAI discord.
 
 ## Configurations
 
@@ -37,6 +37,7 @@ Prompting / in-context formatting options:
 - **doc_to_choice** (`Union[Callable, str]`, *optional*) — Jinja2 template, string, or function to process a sample into a list of possible string choices for `multiple_choice` tasks. Left undefined for `generate_until` tasks.
 - **fewshot_delimiter** (`str`, *optional*, defaults to "\n\n") — String to insert between few-shot examples.
 - **target_delimiter** (`str`, *optional*, defaults to `" "`) — String to insert between input and target output for the datapoint being tested.
+- **gen_prefix** (`str`, *optional*) — String to append after the <|assistant|> token. For example, if the task is to generate a question, the gen_prefix could be "The answer is: " to prompt the model to generate an answer to the question. If not using a chat template then this string will be appended to the end of the prompt.
 
 Runtime configuration options:
 - **num_fewshot** (`int`, *optional*, defaults to 0) — Number of few-shot examples before the input.
@@ -46,7 +47,7 @@ Scoring details:
 - **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation. See docs for expected format.
 - **output_type** (`str`, *optional*, defaults to "generate_until") — Selects the type of model output for the given task. Options are `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 - **generation_kwargs** (`dict`, *optional*) — Auxiliary arguments for the `generate` function from HF transformers library. Advanced keyword arguments may not be supported for non-HF LM classes.
-- **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs through model for each sample. can be used for cases such as self-consistency.
+- **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs through model for each sample. Can be used for cases such as self-consistency.
 - **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. See below for further detail on the filter API.
 - **should_decontaminate** (`bool`, *optional*, defaults to False) - Whether to decontaminate or not.
 - **doc_to_decontamination_query** (`str`, *optional*) — Query for decontamination if `should_decontaminate` is True. If `should_decontaminate` is True but `doc_to_decontamination_query` is `None`, `doc_to_decontamination_query` will follow `doc_to_text`.
@@ -184,7 +185,7 @@ The prior implementation method of new tasks was to subclass `Task`. While we in
 
 ## Including a Base YAML
 
-You can base a YAML on another YAML file as a template. This can be handy when you need to just change the prompt for `doc_to_text` but keep the rest the same or change `filters` to compare which is better. Simply use `include` in the YAML file and write the name of the template you want to base from. This assumes that the base temeplate is in the same directory. Otherwise, You will need to define the full path.
+You can base a YAML on another YAML file as a template. This can be handy when you need to just change the prompt for `doc_to_text` but keep the rest the same or change `filters` to compare which is better. Simply use `include` in the YAML file and write the name of the template you want to base from. This assumes that the base template is in the same directory. Otherwise, You will need to define the full path.
 ```
 include: <YAML filename or with full path>
 ...
@@ -296,7 +297,7 @@ Tasks using complex filtering:
 
 # Group Configuration
 
-When evaluating a language model, it's is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
+When evaluating a language model, it is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be cumbersome to have to list the set of tasks or add a new group name to each yaml of each individual task.
 
 To solve this, we can create a **group** yaml config. This is a config that contains the names of the tasks that should be included in a particular group. The config consists of two main keys: a `group` key which denotes the name of the group (as it would be called from the command line, e.g. `mmlu`) and a `task` key which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example of a group yaml config can be found at [../lm_eval/tasks/mmlu/default/_mmlu.yaml]. See also the [New Task Guide](./new_task_guide.md) for a more in-depth and tutorial-esque explanation of how to write complex GroupConfigs.
 
@@ -311,7 +312,7 @@ Groups are configured via the `GroupConfig` object. Below, we describe all field
 - **task** (`Union[str, list]`, defaults to `None`) - List of tasks that constitute the group.
 - **aggregate_metric_list** (`list`, defaults to `None`) - similar to `metric_list` in TaskConfigs, provide a list of configurations for metrics that should be aggregated across subtasks. Leaving empty will result in no aggregation being performed for this group. Keys for each list entry are:
   - `metric: str` - the name of the metric to aggregate over (all subtasks must report a metric holding this name.)
-  - `aggregation: str` - what aggregation function to apply to aggregate these per-subtask metrics.  **currently, only `mean` is supported.**
+  - `aggregation: str` - what aggregation function to apply to aggregate these per-subtask metrics. **currently, only `mean` is supported.**
   - `weight_by_size: bool = True` whether to perform micro- averaging (`True`) or macro- (`False`) averaging of subtasks' accuracy scores when reporting the group's metric. MMLU, for example, averages over per-document accuracies (the *micro average*), resulting in the same accuracy as if one simply concatenated all 57 subjects into a single dataset and evaluated accuracy on that dataset.
   - `filter_list: Union[str, List[str]] = "none"` - what filter keys one should match on to aggregate results. For example, if trying to aggregate over the `exact_match` metric using `strict-match` filter for `bbh_cot_zeroshot`, then set this to be `filter_list: "strict-match"`.  
 - **metadata** (`dict`, *optional*) - As with TaskConfigs, a field where extra config metadata can be passed. set the `num_fewshot` key within this to override the printed n_shot value in a results table for your group, for example.

@@ -7,7 +7,7 @@ aggregate_metric_list:
   weight_by_size: true
 group: ceval-valid
 metadata:
-  version: 1.0
+  version: 2.0
 task:
   - ceval-valid_computer_network
   - ceval-valid_operating_system
