@@ -13,6 +13,8 @@ from lm_eval.evaluator_utils import get_subtask_list
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
+eval_logger = logging.getLogger(__name__)
+
 
 class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
@@ -22,17 +24,15 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity="INFO",
+        verbosity: Optional[str] = None,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
         metadata: Optional[dict] = None,
     ) -> None:
-        self.verbosity = verbosity
+        if verbosity is not None:
+            utils.setup_logging(verbosity)
         self.include_path = include_path
-        self.logger = utils.eval_logger
-        self.logger.setLevel(getattr(logging, f"{verbosity}"))
         self.metadata = metadata
-
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults
         )
@@ -270,7 +270,6 @@ class TaskManager:
                     ),
                     **config,
                 }
-                print("hello")
             if self._config_is_python_task(config):
                 if self._class_has_config_in_constructor(config["class"]):
                     task_object = config["class"](config=config)
@@ -474,7 +473,7 @@ class TaskManager:
                             "yaml_path": -1,
                         }
                     elif tasks_and_groups[tag]["type"] != "tag":
-                        self.logger.info(
+                        eval_logger.info(
                             f"The tag '{tag}' is already registered as a group, this tag will not be registered. "
                             "This may affect tasks you want to call."
                         )
@@ -537,7 +536,7 @@ class TaskManager:
                             config, task, tasks_and_groups, print_info
                         )
                     else:
-                        self.logger.debug(f"File {f} in {root} could not be loaded")
+                        eval_logger.debug(f"File {f} in {root} could not be loaded")
 
         return tasks_and_groups
 

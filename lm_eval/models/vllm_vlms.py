@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Dict, List, Optional
 
 import transformers
@@ -14,7 +15,9 @@ from lm_eval.models.utils import (
     undistribute,
 )
 from lm_eval.models.vllm_causallms import VLLM
-from lm_eval.utils import eval_logger
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 try:
