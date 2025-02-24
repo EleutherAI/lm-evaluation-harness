@@ -1,0 +1,10 @@
+"process_docs": !function utils.ar_dr
+"include": "transliteration_common_yaml"
+"tag":
+  - "darija_transliteration_tasks"
+"task": "transliteration_ar_dr"
+"task_alias": "ar_dr"
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.darijabert
+    higher_is_better: true
