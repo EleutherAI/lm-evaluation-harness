@@ -10,6 +10,7 @@ from . import (
     nemo_lm,
     neuralmagic,
     neuron_optimum,
+    ollama,
     openai_completions,
     optimum_ipex,
     optimum_lm,
