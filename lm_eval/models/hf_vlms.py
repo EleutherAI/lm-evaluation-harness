@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
@@ -7,7 +8,6 @@ import transformers
 from tqdm import tqdm
 from transformers import BatchEncoding
 
-from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
@@ -24,7 +24,7 @@ from lm_eval.models.utils import (
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-multimodal")
