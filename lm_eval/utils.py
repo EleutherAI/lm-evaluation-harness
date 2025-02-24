@@ -17,19 +17,39 @@ import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
 
-logging.basicConfig(
-    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
-    datefmt="%Y-%m-%d:%H:%M:%S",
-    level=logging.INFO,
-)
-eval_logger = logging.getLogger("lm-eval")
-
 SPACING = " " * 47
 
 HIGHER_IS_BETTER_SYMBOLS = {
     True: "↑",
     False: "↓",
 }
+
+
+def setup_logging(verbosity=logging.INFO):
+    # Configure the root logger
+    log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
+
+    level_map = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+
+    log_level = level_map.get(str(log_level).upper(), logging.INFO)
+    if not logging.root.handlers:
+        logging.basicConfig(
+            format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
+            datefmt="%Y-%m-%d:%H:%M:%S",
+            level=log_level,
+        )
+        if log_level == logging.DEBUG:
+            third_party_loggers = ["urllib3", "filelock", "fsspec"]
+            for logger_name in third_party_loggers:
+                logging.getLogger(logger_name).setLevel(logging.INFO)
+    else:
+        logging.getLogger().setLevel(log_level)
 
 
 def hash_string(string: str) -> str:
