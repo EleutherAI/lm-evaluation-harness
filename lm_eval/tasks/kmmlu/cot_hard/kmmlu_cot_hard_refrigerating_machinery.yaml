@@ -88,4 +88,5 @@ fewshot_config:
       = 200.15K입니다. 그러므로, W = 1kJ * (300.15K - 200.15K) / 200.15K = 0.5kJ입니다. 따라서,
       정답은 (D) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_refrigerating_machinery
+task: kmmlu_cot_hard_refrigerating_machinery
+tag: kmmlu_cot_hard_other_tasks

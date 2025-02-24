@@ -10,19 +10,12 @@ import os
 import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from typing import Any, Callable, List
+from typing import Any, Callable, Generator, List, Tuple
 
 import numpy as np
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
-
-logging.basicConfig(
-    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
-    datefmt="%Y-%m-%d:%H:%M:%S",
-    level=logging.INFO,
-)
-eval_logger = logging.getLogger("lm-eval")
 
 SPACING = " " * 47
 
@@ -30,6 +23,33 @@ HIGHER_IS_BETTER_SYMBOLS = {
     True: "↑",
     False: "↓",
 }
+
+
+def setup_logging(verbosity=logging.INFO):
+    # Configure the root logger
+    log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
+
+    level_map = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+
+    log_level = level_map.get(str(log_level).upper(), logging.INFO)
+    if not logging.root.handlers:
+        logging.basicConfig(
+            format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
+            datefmt="%Y-%m-%d:%H:%M:%S",
+            level=log_level,
+        )
+        if log_level == logging.DEBUG:
+            third_party_loggers = ["urllib3", "filelock", "fsspec"]
+            for logger_name in third_party_loggers:
+                logging.getLogger(logger_name).setLevel(logging.INFO)
+    else:
+        logging.getLogger().setLevel(log_level)
 
 
 def hash_string(string: str) -> str:
@@ -48,9 +68,9 @@ def escaped_split(text, sep_char, maxsplit=-1):
     is not specified or less than 0, then there is no limit on the
     number of splits (all possible splits are made).
     """
-    assert (
-        len(sep_char) == 1
-    ), "separation string must be a single character for escaped splitting"
+    assert len(sep_char) == 1, (
+        "separation string must be a single character for escaped splitting"
+    )
 
     if maxsplit == 0:
         return text
@@ -104,7 +124,8 @@ def simple_parse_args_string(args_string):
         return {}
     arg_list = [arg for arg in args_string.split(",") if arg]
     args_dict = {
-        k: handle_arg_string(v) for k, v in [arg.split("=") for arg in arg_list]
+        kv[0]: handle_arg_string("=".join(kv[1:]))
+        for kv in [arg.split("=") for arg in arg_list]
     }
     return args_dict
 
@@ -201,7 +222,9 @@ def get_sample_results_filenames(filenames: List[str]) -> List[str]:
     return [f for f in filenames if "/samples_" in f and ".json" in f]
 
 
-def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len):
+def get_rolling_token_windows(
+    token_list: List[int], prefix_token: int, max_seq_len: int, context_len: int
+) -> Generator[Tuple[List[int], List[int]], None, None]:
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
       condition on some context
@@ -228,7 +251,7 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
 
     # Special handling for first window: predict all tokens
     first_seq_len = min(max_seq_len, len(token_list))
-    yield ([prefix_token] + token_list[: first_seq_len - 1], token_list[:first_seq_len])
+    yield [prefix_token] + token_list[: first_seq_len - 1], token_list[:first_seq_len]
     predicted += first_seq_len
 
     while predicted < len(token_list):
@@ -242,7 +265,9 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
         predicted += window_pred_len
 
 
-def make_disjoint_window(pair):
+def make_disjoint_window(
+    pair: Tuple[List[int], List[int]],
+) -> Tuple[List[int], List[int]]:
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b

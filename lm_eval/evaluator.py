@@ -31,7 +31,6 @@ from lm_eval.tasks import (
     get_task_dict,
 )
 from lm_eval.utils import (
-    eval_logger,
     handle_non_serializable,
     hash_string,
     positional_deprecated,
@@ -42,6 +41,8 @@ from lm_eval.utils import (
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
+
+eval_logger = logging.getLogger(__name__)
 
 
 @positional_deprecated
@@ -68,12 +69,13 @@ def simple_evaluate(
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
-    verbosity: str = "INFO",
+    verbostiy=None,
     predict_only: bool = False,
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    confirm_run_unsafe_code: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -122,6 +124,8 @@ def simple_evaluate(
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
+    :param verbostiy: str
+        Verbosity level for logging
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
     :param random_seed: int
@@ -136,7 +140,8 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    if verbostiy is not None:
+        lm_eval.setup_logging(verbosity=verbostiy)
     start_date = time.time()
 
     if delete_requests_cache:
@@ -156,6 +161,9 @@ def simple_evaluate(
     if torch_random_seed is not None:
         seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
         torch.manual_seed(torch_random_seed)
+
+    if fewshot_random_seed is not None:
+        seed_message.append(f"Setting fewshot manual seed to {fewshot_random_seed}")
 
     if seed_message:
         eval_logger.info(" | ".join(seed_message))
@@ -227,7 +235,7 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = TaskManager(verbosity)
+        task_manager = TaskManager()
 
     task_dict = get_task_dict(tasks, task_manager)
 
@@ -276,9 +284,6 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-                eval_logger.info(
-                    f"Setting fewshot random generator seed to {fewshot_random_seed}"
-                )
 
                 adjusted_task_dict[task_name] = task_obj
 
@@ -294,7 +299,9 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template),
+            chat_template=lm.chat_template(apply_chat_template)
+            if apply_chat_template
+            else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
@@ -310,8 +317,11 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
-        verbosity=verbosity,
+        verbosity=verbostiy,
+        confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
+    if verbostiy is not None:
+        lm_eval.setup_logging(verbosity=verbostiy)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -370,6 +380,7 @@ def evaluate(
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
+    confirm_run_unsafe_code: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -379,6 +390,10 @@ def evaluate(
         Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
+    :param cache_requests: bool, optional
+        Speed up evaluation by caching the building of dataset requests.
+    :param rewrite_requests_cache: bool, optional
+        Rewrites all the request cache if set to `True`.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics, used when calculating stderr. Set to 0 for skipping all stderr calculations.
     :param write_out: bool
@@ -394,11 +409,18 @@ def evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
+    :param verbosity: str
+        Verbosity level for logging
+    :param confirm_run_unsafe_code: bool
+        Whether to confirm running tasks marked as unsafe.
     :return
         Dictionary of results
     """
 
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    if apply_chat_template:
+        eval_logger.warning(
+            "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
+        )
 
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
@@ -414,9 +436,39 @@ def evaluate(
             for task_output in eval_tasks
         ):
             raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
+
+    # validation checks:
+    # 1.are we running multimodal task <-> non-multimodal model class, or vice-versa.
+    # 2.are we running code that is marked as unsafe.
+    incompatible_tasks = []
     for task_output in eval_tasks:
         task: Task = task_output.task
-        limit = get_sample_size(task, limit)
+
+        if getattr(lm, "MULTIMODAL", False) != getattr(task, "MULTIMODAL", False):
+            incompatible_tasks.append(task_output.task_name)
+        elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
+            raise ValueError(
+                f"Attempted to run task: {task_output.task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
+            )
+    if len(incompatible_tasks) > 0:
+        if not getattr(lm, "MULTIMODAL", False):
+            raise ValueError(
+                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
+            )
+        else:
+            raise ValueError(
+                f"Attempted to run tasks: {incompatible_tasks} which are text-only, but used a model type which only currently supports multimodal tasks."
+            )
+    # end validation check
+
+    # Cache the limit arg.
+    limit_arg = limit
+    limits = []
+    for task_output in eval_tasks:
+        task: Task = task_output.task
+
+        limit = get_sample_size(task, limit_arg)
+        limits.append(limit)
         task.build_all_requests(
             limit=limit,
             rank=lm.rank,
@@ -486,7 +538,7 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output in eval_tasks:
+    for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         task.apply_filters()
 
@@ -521,6 +573,8 @@ def evaluate(
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
+                        "filter": filter_key,
+                        "metrics": list(metrics.keys()),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
@@ -635,7 +689,7 @@ def evaluate(
                         len(task_output.task.eval_docs),
                     ),
                 }
-                for task_output in eval_tasks
+                for task_output, limit in zip(eval_tasks, limits)
             },
         }
         if log_samples:

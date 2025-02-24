@@ -8,7 +8,7 @@ A majority of users run the library by cloning it from Github, installing the pa
 
 Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
 
-This mode supports a number of command-line arguments, the details of which can be also be seen via running with `-h` or `--help`:
+This mode supports a number of command-line arguments, the details of which can also be seen via running with `-h` or `--help`:
 
 - `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#model-apis-and-inference-servers) for a full list of enabled model names and supported libraries or APIs.
 
@@ -58,7 +58,7 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
 
-* `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```
+* `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```. Also allows for the passing of the step to log things at (passed to `wandb.run.log`), e.g., `--wandb_args step=123`.
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
     * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
@@ -82,8 +82,10 @@ We also support using the library's external API for use within model training l
 
 ```python
 import lm_eval
+from lm_eval.utils import setup_logging
 ...
-
+# initialize logging
+setup_logging("DEBUG") # optional, but recommended; or you can set up logging yourself
 my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
 ...
 # instantiate an LM subclass that takes your initialized model and can run
