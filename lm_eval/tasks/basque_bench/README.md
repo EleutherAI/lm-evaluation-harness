@@ -5,14 +5,16 @@
 BasqueBench is a benchmark for evaluating language models in Basque tasks. This is, it evaluates the ability of a language model to understand and generate Basque text. BasqueBench offers a combination of pre-existing, open datasets and datasets developed exclusivelly for this benchmark. All the details of BasqueBench will be published in a paper soon.
 
 The new evaluation datasets included in BasqueBench are:
-| Task          | Category       | Homepage  |
-|:-------------:|:-----:|:-----:|
-| MGSM_eu | Math | https://huggingface.co/datasets/HiTZ/MGSM-eu |
-| PIQA_eu | Question Answering | https://huggingface.co/datasets/HiTZ/PIQA-eu |
-| WNLI_eu | Natural Language Inference | https://huggingface.co/datasets/HiTZ/wnli-eu |
-| XCOPA_eu | Commonsense Reasoning | https://huggingface.co/datasets/HiTZ/XCOPA-eu |
+| Task     | Category                   | Homepage                                      |
+|:--------:|:--------------------------:|:---------------------------------------------:|
+| ARC_eu   | Question Answering         | https://huggingface.co/datasets/HiTZ/ARC-eu   |
+| MGSM_eu  | Math                       | https://huggingface.co/datasets/HiTZ/MGSM-eu  |
+| PAWS_eu  | Paraphrasing               | https://huggingface.co/datasets/HiTZ/PAWS-eu  |
+| PIQA_eu  | Question Answering         | https://huggingface.co/datasets/HiTZ/PIQA-eu  |
+| WNLI_eu  | Natural Language Inference | https://huggingface.co/datasets/HiTZ/WNLI-eu  |
+| XCOPA_eu | Commonsense Reasoning      | https://huggingface.co/datasets/HiTZ/XCOPA-eu |
 
-The datasets included in BasqueBench that have been made public in previous pubications are:
+The datasets included in BasqueBench that have been made public in previous publications are:
 
 | Task          | Category       | Paper title          | Homepage  |
 |:-------------:|:-----:|:-------------:|:-----:|
@@ -73,6 +75,8 @@ The datasets included in BasqueBench that have been made public in previous pubi
 #### Tasks
 
 The following tasks evaluate tasks on BasqueBench dataset using various scoring methods.
+  - `arc_eu_challenge`
+  - `arc_eu_easy`
   - `belebele_eus_Latn`
   - `eus_exams_eu`
   - `eus_proficiency`
@@ -97,6 +101,7 @@ The following tasks evaluate tasks on BasqueBench dataset using various scoring 
   - `flores_pt-eu`
   - `mgsm_direct_eu`
   - `mgsm_native_cot_eu`
+  - `paws_eu`
   - `piqa_eu`
   - `qnlieu`
   - `wnli_eu`
