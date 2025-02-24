@@ -19,7 +19,6 @@ def xcopa_doc_to_choice(doc):
 
 
 def paws_process_docs(dataset):
-
     empty_docs = []
 
     def _process_doc(doc):
