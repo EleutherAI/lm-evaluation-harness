@@ -3,19 +3,20 @@ import json
 from typing import Dict, List, Optional, Union
 import requests
 import os
+from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import JsonChatStr
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 from ollama import Client
 from lm_eval.api.model import LM
-from lm_eval import utils
+import logging
 
 try:
     from tenacity import RetryError
 except ModuleNotFoundError:
     pass
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 @register_model("ollama")
 class OllamaLM(LocalCompletionsAPI):
@@ -53,6 +54,15 @@ class OllamaLM(LocalCompletionsAPI):
     def header(self) -> dict:
         return {'Authorization': f'Bearer {self.api_key}','Content-Type': 'application/json'}
     
+    def loglikelihood(self, requests: list[Instance]) -> list[tuple[float, bool]]:
+        raise NotImplementedError("Not yet implemented")
+
+
+    def loglikelihood_rolling(self, requests: list[Instance]) -> list[tuple[float, bool]]:
+        raise NotImplementedError("Not yet implemented")
+
+        
+
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],

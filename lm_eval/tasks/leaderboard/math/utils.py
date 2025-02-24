@@ -1,10 +1,11 @@
+import logging
 import re
 import signal
 from typing import Dict, List, Optional
 
 import datasets
 
-from lm_eval.utils import eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 try:
