@@ -49,7 +49,7 @@ class SQUADCompletion(ConfigurableTask):
         """
         arguments = deepcopy(self.config.generation_kwargs)
         arguments["until"] = arguments.get("until", ["\n"])
-        arguments["max_gen_toks"] = 48
+        arguments["max_gen_toks"] = arguments.get("max_gen_toks", 48)
         return [
             Instance(
                 request_type="generate_until",
