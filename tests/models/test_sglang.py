@@ -106,7 +106,7 @@ class Test_SGlang:
             limit=10,
         )
         assert evaluate_results is not None, "evaluate returned None"
-        # The accuracy for 10 data points is 0.7. Setting up a threshold of 0.5 provides a buffer to account for these fluctuations. 
+        # The accuracy for 10 data points is 0.7. Setting up a threshold of 0.5 provides a buffer to account for these fluctuations.
         assert evaluate_results["results"]["arc_easy"]["acc,none"] >= 0.5, (
             "The accuracy for evaluate() is below 0.5!"
         )
