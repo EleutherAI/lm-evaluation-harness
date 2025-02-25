@@ -65,22 +65,26 @@ class Test_SGlang:
     # def test_simple_evaluate(self)-> None:
     #     results = simple_evaluate(
     #         model =self.LM,
-    #         tasks=["gsm8k"],
+    #         tasks=["arc_easy"],
     #         # num_fewshot=0,
     #         task_manager=task_manager,
-    #         limit= 1,
+    #         limit= 10,
     #     )
     #     print(results)
+    #     accuracy = results["results"]["arc_easy"]["acc,none"]
+    #     print(f"Accuracy: {accuracy}")
 
     # def test_evaluate(self)-> None:
-    #     tasks=["gsm8k"]
+    #     tasks=["arc_easy"]
     #     task_dict = get_task_dict(tasks, task_manager)
     #     results = evaluate(
     #     lm=self.LM,
     #     task_dict=task_dict,
-    #     limit= 1,
+    #     limit= 10,
     #     )
     #     print(results)
+    #     accuracy = results["results"]["arc_easy"]["acc,none"]
+    #     print(f"Accuracy: {accuracy}")
 
     # TODO(jinwei): find out the outpt differences for "gsm_8k" with simple_evalute() and evaluate(). There are some errors in parser as well.
     def test_evaluator(self) -> None:
@@ -88,17 +92,24 @@ class Test_SGlang:
             model=self.LM,
             tasks=["arc_easy"],
             task_manager=task_manager,
-            limit=1,
+            limit=10,
         )
         assert simple_results is not None, "simple_evaluate returned None"
-
+        # the accuracy for 10 data points is 0.7
+        assert simple_results["results"]["arc_easy"]["acc,none"] >= 0.5, (
+            "The accuracy for simple_evaluate() is below 0.5!"
+        )
         task_dict = get_task_dict(["arc_easy"], task_manager)
         evaluate_results = evaluate(
             lm=self.LM,
             task_dict=task_dict,
-            limit=1,
+            limit=10,
         )
         assert evaluate_results is not None, "evaluate returned None"
+        # the accuracy for 10 data points is 0.7
+        assert evaluate_results["results"]["arc_easy"]["acc,none"] >= 0.5, (
+            "The accuracy for evaluate() is below 0.5!"
+        )
 
         assert set(simple_results["results"].keys()) == set(
             evaluate_results["results"].keys()

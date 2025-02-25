@@ -1,4 +1,5 @@
 import copy
+import logging
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
@@ -12,11 +13,12 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
 )
 from lm_eval.utils import (
-    eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
 )
 
+
+eval_logger = logging.getLogger(__name__)
 
 try:
     import sglang as sgl
@@ -34,7 +36,7 @@ class SGLangLM(TemplateLM):
     def __init__(
         self,
         pretrained: str,
-        # batch args from lm-eval interface: https://github.com/EleutherAI/lm-evaluation-harness/blob/144a1e58be73f937f8fecaae886346681d0fa082/docs/interface.md
+        # batch args from lm-eval interface:  https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md
         batch_size: Union[str, int] = 1,
         max_batch_size=None,
         max_model_len: int = None,
@@ -297,7 +299,7 @@ class SGLangLM(TemplateLM):
             }
             sampling_params.update(kwargs)
 
-        # Refer to: https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111
+        # Refer to:  https://docs.sglang.ai/backend/offline_engine_api.html
         outputs = self.model.generate(
             input_ids=requests,
             sampling_params=sampling_params,
