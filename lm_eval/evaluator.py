@@ -76,6 +76,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
+    metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -99,9 +100,9 @@ def simple_evaluate(
     :param cache_requests: bool, optional
         Speed up evaluation by caching the building of dataset requests. `None` if not caching.
     :param rewrite_requests_cache: bool, optional
-        Rewrites all of the request cache if set to `True`. `None` if not desired.
+        Rewrites all the request cache if set to `True`. `None` if not desired.
     :param delete_requests_cache: bool, optional
-        Deletes all of the request cache if set to `True`. `None` if not desired.
+        Deletes all the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
@@ -136,8 +137,10 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param metadata: dict
+        Additional metadata to be added to the task manager. Will get passed to the download function of the task.
 
-    :return
+    return
         Dictionary of results
     """
     if verbostiy is not None:
@@ -235,9 +238,17 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = TaskManager()
+        metadata = (
+            simple_parse_args_string(model_args)
+            if isinstance(model_args, str)
+            else model_args
+        ) | (metadata or {})
+        task_manager = TaskManager(metadata=metadata)
 
-    task_dict = get_task_dict(tasks, task_manager)
+    task_dict = get_task_dict(
+        tasks,
+        task_manager,
+    )
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
