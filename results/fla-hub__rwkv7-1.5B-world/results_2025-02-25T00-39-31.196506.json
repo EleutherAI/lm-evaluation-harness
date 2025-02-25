@@ -1,0 +1,122 @@
+{
+  "results": {
+    "lambada_openai": {
+      "alias": "lambada_openai",
+      "perplexity,none": 20.08827618270199,
+      "perplexity_stderr,none": 0.7332036317112425,
+      "acc,none": 0.41063458179701146,
+      "acc_stderr,none": 0.006853811533501994
+    }
+  },
+  "group_subtasks": {
+    "lambada_openai": []
+  },
+  "configs": {
+    "lambada_openai": {
+      "task": "lambada_openai",
+      "tag": [
+        "lambada"
+      ],
+      "dataset_path": "EleutherAI/lambada_openai",
+      "dataset_name": "default",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "lambada_openai": 1.0
+  },
+  "n-shot": {
+    "lambada_openai": 0
+  },
+  "higher_is_better": {
+    "lambada_openai": {
+      "perplexity": false,
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "lambada_openai": {
+      "original": 5153,
+      "effective": 5153
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=fla-hub/rwkv7-1.5B-world,trust_remote_code=True",
+    "model_num_parameters": 1527404544,
+    "model_dtype": "torch.float32",
+    "model_revision": "main",
+    "model_sha": "13d1530e129cfa37ffc175e9e66b7e9244ee51d2",
+    "batch_size": "8",
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "e9e9d61b",
+  "date": 1740443873.6831174,
+  "pretty_env_info": "'NoneType' object has no attribute 'splitlines'",
+  "transformers_version": "4.49.0",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|rwkv_tokenizer_end_of_text|>",
+    "0"
+  ],
+  "tokenizer_eos_token": [
+    "<|rwkv_tokenizer_end_of_text|>",
+    "0"
+  ],
+  "tokenizer_bos_token": [
+    "<|rwkv_tokenizer_end_of_text|>",
+    "0"
+  ],
+  "eot_token_id": 0,
+  "max_length": 2048,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "fla-hub/rwkv7-1.5B-world",
+  "model_name_sanitized": "fla-hub__rwkv7-1.5B-world",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 9003390.435393188,
+  "end_time": 9003545.358169468,
+  "total_evaluation_time_seconds": "154.922776279971"
+}
