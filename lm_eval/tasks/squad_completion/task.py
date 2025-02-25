@@ -48,7 +48,7 @@ class SQUADCompletion(ConfigurableTask):
             part of the document for `doc`.
         """
         arguments = deepcopy(self.config.generation_kwargs)
-        arguments["until"] = ["\n"]
+        arguments["until"] = arguments.get("until", ["\n"])
         arguments["max_gen_toks"] = 48
         return [
             Instance(
