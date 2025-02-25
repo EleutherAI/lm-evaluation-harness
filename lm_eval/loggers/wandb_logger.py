@@ -47,8 +47,8 @@ class WandbLogger:
                 f"{e}"
             )
 
-        self.wandb_args: Dict[str, Any] = init_args
-        self.wandb_config_args: Dict[str, Any] = config_args
+        self.wandb_args: Dict[str, Any] = init_args or {}
+        self.wandb_config_args: Dict[str, Any] = config_args or {}
 
         # pop the step key from the args to save for all logging calls
         self.step = self.wandb_args.pop("step", None)
