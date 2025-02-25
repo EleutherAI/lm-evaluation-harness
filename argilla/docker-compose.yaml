@@ -1,0 +1,90 @@
+x-common-variables: &common-variables
+  ARGILLA_HOME_PATH: /var/lib/argilla
+  ARGILLA_ELASTICSEARCH: http://elasticsearch:9200
+  ARGILLA_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/argilla
+  ARGILLA_REDIS_URL: redis://redis:6379/0
+
+services:
+  argilla:
+    image: argilla/argilla-server:latest
+    restart: unless-stopped
+    ports:
+      - "6900:6900"
+    environment:
+      <<: *common-variables
+      USERNAME: argilla
+      PASSWORD: 12345678
+      API_KEY: argilla.apikey
+      WORKSPACE: default
+      # Uncomment the following line to reindex Argilla datasets into the search engine when starting up
+      # REINDEX_DATASETS: 1
+      # Opt-out for telemetry https://huggingface.co/docs/huggingface_hub/main/en/package_reference/utilities#huggingface_hub.utils.send_telemetry
+      # HF_HUB_DISABLE_TELEMETRY: 1
+      # Opt-out for telemetry https://huggingface.co/docs/huggingface_hub/main/en/package_reference/utilities#huggingface_hub.utils.send_telemetry
+      # HF_HUB_OFFLINE: 1
+    networks:
+      - argilla
+    volumes:
+      # ARGILLA_HOME_PATH is used to define where Argilla will save it's application data.
+      # If you change ARGILLA_HOME_PATH value please copy that same value to argilladata volume too.
+      - argilladata:/var/lib/argilla
+    depends_on:
+      - postgres
+      - elasticsearch
+      - redis
+
+  worker:
+    image: argilla/argilla-server:latest
+    environment:
+      <<: *common-variables
+      BACKGROUND_NUM_WORKERS: 2
+    networks:
+      - argilla
+    depends_on:
+      - postgres
+      - elasticsearch
+      - redis
+    command: sh -c 'python -m argilla_server worker --num-workers $${BACKGROUND_NUM_WORKERS}'
+
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: argilla
+    networks:
+      - argilla
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m 
+      - node.name=elasticsearch
+      - cluster.name=es-argilla-local
+      - discovery.type=single-node
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - argilla
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data/
+
+  redis:
+    image: redis
+    networks:
+      - argilla
+
+networks:
+  argilla:
+    driver: bridge
+
+volumes:
+  argilladata:
+  elasticdata:
+  postgresdata:

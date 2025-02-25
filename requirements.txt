@@ -1,1 +1,4 @@
 -e .
+mlflow==2.20.2
+argilla==2.7.0
+openai==1.64.0
