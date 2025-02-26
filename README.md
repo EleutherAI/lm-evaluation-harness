@@ -250,10 +250,15 @@ To use SGLang as the evaluation backend, please **install it in advance** via SG
 SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
 ```bash
 lm_eval --model sglang \
-    --model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto,mem-fraction-static=0.9, \
+    --model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto \
     --tasks gsm8k_cot \
     --batch_size auto
 ```
+> [!Tip]
+> When you meet out of memory(OOM), there are three ways to deal with that:
+> 1. reduce 'batch_size', as '-- batch_size auto' tends to set a very large (the same size of data point number in offline batch) batch size;
+> 2. reduce the memory usage of the KV cache pool by setting a smaller value of  'mem_fraction_static'. It is usually handled by the server engine, but you can set it like ' --model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto,mem_fraction_static=0.7'.
+> 3. increase tensor parallel size 'tp_size'.
 ### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
