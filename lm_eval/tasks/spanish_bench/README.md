@@ -15,6 +15,7 @@ The datasets included in SpanishBench that have been made public in previous pub
 | Task          | Category       | Paper title          | Homepage  |
 |:-------------:|:-----:|:-------------:|:-----:|
 | Belebele_es | Reading Comprehension | [The Belebele Benchmark: a Parallel Reading Comprehension Dataset in 122 Language Variants](https://arxiv.org/abs/2308.16884) | https://huggingface.co/datasets/facebook/belebele |
+| Cocoteros_es | Commonsense Reasoning | [COCOTEROS: A Spanish Corpus with Contextual Knowledge for Natural Language Generation](https://besaya.infor.uva.es/sepln24/paper04.pdf) | https://huggingface.co/datasets/gplsi/cocoteros |
 | EsCoLA | Linguistic Acceptability | [EsCoLA: Spanish Corpus of Linguistic Acceptability](https://aclanthology.org/2024.lrec-main.554/) | https://huggingface.co/datasets/nbel/EsCoLA |
 | FLORES_es | Translation | [The FLORES-101  Evaluation Benchmark for Low-Resource and Multilingual Machine Translation](https://arxiv.org/abs/2106.03193) | https://huggingface.co/datasets/facebook/flores |
 | MGSM_es | Math | [Language Models are Multilingual Chain-of-Thought Reasoners](https://arxiv.org/abs/2210.03057) | https://huggingface.co/datasets/juletxara/mgsm |
@@ -77,6 +78,7 @@ The datasets included in SpanishBench that have been made public in previous pub
 
 The following tasks evaluate tasks on SpanishBench dataset using various scoring methods.
   - `belebele_spa_Latn`
+  - `cocoteros_es`
   - `copa_es`
   - `escola`
   - `flores_es`
