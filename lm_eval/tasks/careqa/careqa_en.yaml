@@ -1,0 +1,14 @@
+task: careqa_en
+dataset_path: HPAI-BSC/CareQA
+dataset_name: CareQA_en
+test_split: test
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+doc_to_choice: ['A', 'B', 'C', 'D']
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 1.0
