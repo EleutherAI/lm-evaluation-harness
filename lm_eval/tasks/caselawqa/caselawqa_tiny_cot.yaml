@@ -1,0 +1,3 @@
+include: _default_template_cot.yaml
+dataset_name: tiny
+task: caselawqa_tiny_cot
