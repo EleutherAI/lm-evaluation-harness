@@ -1,12 +1,12 @@
+import logging
 from importlib.util import find_spec
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import get_dtype
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("ipex")
@@ -21,9 +21,9 @@ class IPEXLM(HFLM):
     ) -> None:
         if "backend" in kwargs:
             # currently only supports causal models
-            assert (
-                kwargs["backend"] == "causal"
-            ), "Currently, only IPEXModelForCausalLM is supported."
+            assert kwargs["backend"] == "causal", (
+                "Currently, only IPEXModelForCausalLM is supported."
+            )
 
         super().__init__(
             backend=kwargs.pop("backend", "causal"),

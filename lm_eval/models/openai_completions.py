@@ -1,3 +1,4 @@
+import logging
 import os
 from functools import cached_property
 from operator import itemgetter
@@ -6,7 +7,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
 from lm_eval.models.utils import handle_stop_sequences
-from lm_eval.utils import eval_logger
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("local-completions")
@@ -134,9 +137,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
         eos=None,
         **kwargs,
     ) -> dict:
-        assert (
-            type(messages) is not str
-        ), "chat-completions require the --apply_chat_template flag."
+        assert type(messages) is not str, (
+            "chat-completions require the --apply_chat_template flag."
+        )
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
@@ -208,13 +211,12 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         return key
 
     def loglikelihood(self, requests, **kwargs):
-        assert (
-            self.model
-            in [
-                "babbage-002",
-                "davinci-002",
-            ]
-        ), f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
+        assert self.model in [
+            "babbage-002",
+            "davinci-002",
+        ], (
+            f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
+        )
         return super().loglikelihood(requests, **kwargs)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -265,9 +267,9 @@ class OpenAIChatCompletion(LocalChatCompletion):
         eos="<|endoftext|>",
         **kwargs,
     ) -> dict:
-        assert (
-            type(messages) is not str
-        ), "chat-completions require the --apply_chat_template flag."
+        assert type(messages) is not str, (
+            "chat-completions require the --apply_chat_template flag."
+        )
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
@@ -289,4 +291,6 @@ class OpenAIChatCompletion(LocalChatCompletion):
         if "o1" in self.model:
             output.pop("stop")
             output["temperature"] = 1
+        elif "o3" in self.model:
+            output.pop("temperature")
         return output

@@ -1,13 +1,13 @@
 import json
+import logging
 from importlib.util import find_spec
 from pathlib import Path
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("openvino")
@@ -29,9 +29,9 @@ class OptimumLM(HFLM):
     ) -> None:
         if "backend" in kwargs:
             # optimum currently only supports causal models
-            assert (
-                kwargs["backend"] == "causal"
-            ), "Currently, only OVModelForCausalLM is supported."
+            assert kwargs["backend"] == "causal", (
+                "Currently, only OVModelForCausalLM is supported."
+            )
 
         self.openvino_device = device
 

@@ -58,9 +58,9 @@ class SQuAD2(ConfigurableTask):
         super().__init__(config={"metadata": {"version": self.VERSION}})
 
     # HF changed squad on us so we have to make sure we aren't running the old one
-    assert version.parse(datasets.__version__) >= version.parse(
-        "1.11.0"
-    ), "datasets v1.11.0 or later required for SQuAD"
+    assert version.parse(datasets.__version__) >= version.parse("1.11.0"), (
+        "datasets v1.11.0 or later required for SQuAD"
+    )
 
     def has_training_docs(self):
         return True
@@ -105,7 +105,9 @@ class SQuAD2(ConfigurableTask):
             answer = "unanswerable"
         return " " + answer
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(
+        self, doc, ctx, chat_template=None, apply_chat_template=False, **kwargs
+    ):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 

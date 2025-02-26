@@ -35,10 +35,11 @@ RANK = os.environ.get("LOCAL_RANK", "0")
 
 def download_nltk_resources():
     """Download 'punkt' if not already installed"""
-    assert (
-        (nltk_version := parse_version(version("nltk")))
-        >= parse_version(NLTK_MIN_VERSION)
-    ), f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
+        NLTK_MIN_VERSION
+    ), (
+        f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    )
 
     try:
         nltk.data.find("tokenizers/punkt_tab")

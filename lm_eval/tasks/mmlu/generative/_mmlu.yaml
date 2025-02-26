@@ -5,29 +5,29 @@ task:
     task:
       - mmlu_stem_generative
     aggregate_metric_list:
-      - metric: acc
-        weight_by_size: True
+      - metric: exact_match
+        weight_by_size: true
   - group: other
     task:
       - mmlu_other_generative
     aggregate_metric_list:
-      - metric: acc
-        weight_by_size: True
+      - metric: exact_match
+        weight_by_size: true
   - group: social sciences
     task:
       - mmlu_social_sciences_generative
     aggregate_metric_list:
-      - metric: acc
-        weight_by_size: True
+      - metric: exact_match
+        weight_by_size: true
   - group: humanities
     task:
       - mmlu_humanities_generative
     aggregate_metric_list:
-      - metric: acc
-        weight_by_size: True
+      - metric: exact_match
+        weight_by_size: true
 aggregate_metric_list:
   - aggregation: mean
     metric: exact_match
-    weight_by_size: True
+    weight_by_size: true
 metadata:
-  version: 2
+  version: 3
