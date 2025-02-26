@@ -3,6 +3,7 @@ from . import (
     api_models,
     dummy,
     gguf,
+    gigachat_model,
     hf_vlms,
     huggingface,
     ibm_watsonx_ai,
