@@ -23,7 +23,7 @@ from typing import (
 try:
     import requests
     from aiohttp import ClientSession, ClientTimeout, TCPConnector
-    from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
+    from tenacity import retry, RetryError, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
 except ModuleNotFoundError:
@@ -35,7 +35,7 @@ from importlib.util import find_spec
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
-from lm_eval.models.utils import Collator, chunks, configure_pad_token
+from lm_eval.models.utils import chunks, Collator, configure_pad_token
 
 
 eval_logger = logging.getLogger(__name__)
@@ -195,9 +195,9 @@ class TemplateAPI(TemplateLM):
         """Helper method to transform the prompt into the expected API input format. messages consist of batched requests"""
         if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
-            assert self._batch_size == 1, (
-                "non-tokenized chat requests are only supported with batch_size=1"
-            )
+            assert (
+                self._batch_size == 1
+            ), "non-tokenized chat requests are only supported with batch_size=1"
             # list[dict["role":..., "content":...],...]
             return json.loads(messages[0].prompt)
 
@@ -378,7 +378,25 @@ class TemplateAPI(TemplateLM):
                     f"API request failed with error message: {response.text}. Retrying..."
                 )
             response.raise_for_status()
-            return response.json()
+            api_response = response.json()
+            # Format the API response to match OpenAI's /v1/completions API response
+            formatted_response = {
+                "id": api_response["id"],
+                "object": api_response["object"],
+                "created": api_response["created"],
+                "model": api_response["model"],
+                "choices": [
+                    {
+                        "index": choice["index"],
+                        "text": choice["message"]["content"],
+                        "logprobs": choice["logprobs"],
+                        "finish_reason": choice["finish_reason"],
+                    }
+                    for choice in api_response["choices"]
+                ],
+                "usage": api_response["usage"],
+            }
+            return formatted_response
         except RetryError:
             eval_logger.error(
                 "API request failed after multiple retries. Please check the API status."
@@ -506,9 +524,9 @@ class TemplateAPI(TemplateLM):
             return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
-        assert self.tokenizer is not None, (
-            "Tokenizer is required for loglikelihood tasks to compute context lengths."
-        )
+        assert (
+            self.tokenizer is not None
+        ), "Tokenizer is required for loglikelihood tasks to compute context lengths."
         res = []
 
         def _collate(req: LogLikelihoodInputs):

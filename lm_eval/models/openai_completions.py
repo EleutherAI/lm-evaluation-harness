@@ -42,7 +42,11 @@ class LocalCompletionsAPI(TemplateAPI):
             temperature = gen_kwargs.pop("temperature", 0)
             stop = handle_stop_sequences(gen_kwargs.pop("until", None), eos)
             return {
-                "prompt": messages,
+                "messages": (
+                    [{"role": "user", "content": msg} for msg in messages]
+                    if isinstance(messages, list)
+                    else [{"role": "user", "content": messages}]
+                ),
                 "model": self.model,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
@@ -53,7 +57,11 @@ class LocalCompletionsAPI(TemplateAPI):
         else:
             return {
                 "model": self.model,
-                "prompt": messages,
+                "messages": (
+                    [{"role": "user", "content": msg} for msg in messages]
+                    if isinstance(messages, list)
+                    else [{"role": "user", "content": messages}]
+                ),
                 "temperature": 0,
                 "max_tokens": 1,
                 "logprobs": 1,
@@ -137,9 +145,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
         eos=None,
         **kwargs,
     ) -> dict:
-        assert type(messages) is not str, (
-            "chat-completions require the --apply_chat_template flag."
-        )
+        assert (
+            type(messages) is not str
+        ), "chat-completions require the --apply_chat_template flag."
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
@@ -214,9 +222,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         assert self.model in [
             "babbage-002",
             "davinci-002",
-        ], (
-            f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
-        )
+        ], f"Prompt loglikelihoods are only supported by OpenAI's API for {['babbage-002', 'davinci-002']}."
         return super().loglikelihood(requests, **kwargs)
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -267,9 +273,9 @@ class OpenAIChatCompletion(LocalChatCompletion):
         eos="<|endoftext|>",
         **kwargs,
     ) -> dict:
-        assert type(messages) is not str, (
-            "chat-completions require the --apply_chat_template flag."
-        )
+        assert (
+            type(messages) is not str
+        ), "chat-completions require the --apply_chat_template flag."
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
