@@ -376,10 +376,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         args.model_args = args.model_args + ",trust_remote_code=True"
-    print(eval_logger.level)
     eval_logger.info(
         f"Selected Tasks: {task_names}"
-    ) if eval_logger.level >= logging.INFO else print(f"Selected Tasks: {task_names}")
+    ) if eval_logger.getEffectiveLevel() >= logging.INFO else print(
+        f"Selected Tasks: {task_names}"
+    )
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
