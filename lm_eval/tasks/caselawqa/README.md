@@ -15,6 +15,12 @@ From a technical machine learning perspective, these tasks provide highly non-tr
 From a substantive legal perspective, efficient solutions to such classification problems have rich and important applications in legal research.
 Homepage: https://github.com/socialfoundations/lawma
 
+**Impotant**: it is strongly recommended to use --apply_chat_template, e.g.
+
+```bash
+lm_eval --model vllm --model_args pretrained=ricdomolm/lawma-8b,tensor_parallel_size=1,dtype=auto,gpu_memory_utilization=0.85,data_parallel_size=1 --tasks caselawqa --batch_size auto --apply_chat_template
+``` 
+
 
 ### Citation
 
@@ -35,6 +41,7 @@ Homepage: https://github.com/socialfoundations/lawma
 #### Groups
 
 * `caselawqa`: average accuracy of `caselawqa_sc` and `caselaw_songer`
+* `caselawqa_cot`: average accuracy of `caselawqa_sc_cot` and `caselaw_songer_cot`
 
 #### Tags
 
@@ -42,6 +49,10 @@ Homepage: https://github.com/socialfoundations/lawma
 
 * `caselawqa_sc`: 5,000 questions derived from the Supreme Court database
 * `caselaw_songer`: 5,000 questions derived from the Songer Court of Appeals database
+* `caselawqa_tiny`: 1145 questions subsampled from `caselawqa_sc` and `caselawqa_songer`
+* `caselawqa_sc_cot`: same as `caselawqa_sc` but with a Chain of Thought prompt
+* `caselawqa_songer_cot`: same as `caselawqa_songer` but with a Chain of Thought prompt
+* `caselawqa_tiny_cot`: same as `caselawqa_tiny` but with a Chain of Thought prompt
 
 ### Checklist
 
