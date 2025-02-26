@@ -12,7 +12,7 @@ import sacrebleu
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 # Register Aggregations First

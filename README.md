@@ -5,7 +5,7 @@
 ---
 
 *Latest News 📣*
-
+- [2025/02] Added [SGLang](https://docs.sglang.ai/) support!
 - [2024/09] We are prototyping allowing users of LM Evaluation Harness to create and evaluate on text+image multimodal input, text output tasks, and have just added the `hf-multimodal` and `vllm-vlm` model types and `mmmu` task as a prototype feature. We welcome users to try out this in-progress feature and stress-test it for themselves, and suggest they check out [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval), a wonderful project originally forking off of the lm-evaluation-harness, for a broader range of multimodal tasks, models, and features.
 - [2024/07] [API model](docs/API_guide.md) support has been updated and refactored, introducing support for batched and async requests, and making it significantly easier to customize and use for your own purposes. **To run Llama 405B, we recommend using VLLM's OpenAI-compliant API to host the model, and use the `local-completions` model type to evaluate the model.**
 - [2024/07] New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.
@@ -238,6 +238,22 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 > [!Tip]
 > Passing `max_model_len=4096` or some other reasonable default to vLLM through model args may cause speedups or prevent out-of-memory errors when trying to use auto batch size, such as for Mistral-7B-v0.1 which defaults to a maximum length of 32k.
 
+### Tensor + Data Parallel and Fast Offline Batching Inference with `SGLang`
+
+We support SGLang for efficient offline batch inference. Its **[Fast Backend Runtime](https://docs.sglang.ai/index.html)** delivers high performance through optimized memory management and parallel processing techniques. Key features include tensor parallelism, continuous batching, and support for various quantization methods (FP8/INT4/AWQ/GPTQ).
+
+To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.ai/start/install.html#install-sglang).
+
+> [!Tip]
+> Due to the installing method of [`Flashinfer`](https://docs.flashinfer.ai/)-- a fast attention kernel library, we don't include the dependencies of `SGLang` within [pyproject.toml](pyproject.toml). Note that the `Flashinfer` also has some requirements on `torch` version.
+
+SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
+```bash
+lm_eval --model sglang \
+    --model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto,mem-fraction-static=0.9, \
+    --tasks gsm8k_cot \
+    --batch_size auto
+```
 ### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
@@ -489,7 +505,8 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | api             | For using api models (Anthropic, OpenAI API) |
 | deepsparse      | For running NM's DeepSparse models           |
 | dev             | For linting PRs and contributions            |
-| gptq            | For loading models with GPTQ                 |
+| gptq            | For loading models with AutoGPTQ             |
+| gptqmodel       | For loading models with GPTQModel            |
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
 | ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |
