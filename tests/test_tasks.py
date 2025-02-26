@@ -29,7 +29,7 @@ def get_new_tasks_else_default():
     return task_classes if task_classes else TASKS
 
 
-def task_class(task_names = None, task_manager = None) -> ConfigurableTask:
+def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
     """
     Convert a list of task names to a list of ConfigurableTask instances
     """
@@ -159,7 +159,7 @@ class BaseTasks:
 @pytest.mark.parametrize(
     "task_class",
     task_class(get_new_tasks_else_default()),
-    ids=lambda x: f"{x.config.task}"
+    ids=lambda x: f"{x.config.task}",
 )
 class TestNewTasksElseDefault(BaseTasks):
     """
@@ -167,14 +167,17 @@ class TestNewTasksElseDefault(BaseTasks):
     (or a set of default tasks if none have been modified)
     """
 
+
 @pytest.mark.parametrize(
     "task_class",
-    task_class(["arc_easy_unitxt"], tasks.TaskManager(include_path="./tests/testconfigs")),
-    ids=lambda x: f"{x.config.task}"
+    task_class(
+        ["arc_easy_unitxt"], tasks.TaskManager(include_path="./tests/testconfigs")
+    ),
+    ids=lambda x: f"{x.config.task}",
 )
 class TestUnitxtTasks(BaseTasks):
     """
-    Test class for Unitxt tasks parameterized with a small custom 
+    Test class for Unitxt tasks parameterized with a small custom
     task as described here:
       https://www.unitxt.ai/en/latest/docs/lm_eval.html
     """
@@ -186,7 +189,7 @@ class TestUnitxtTasks(BaseTasks):
     def test_check_validation_docs(self, task_class):
         if task_class.has_validation_docs():
             assert task_class.dataset["validation"] is not None
-    
+
     def test_check_test_docs(self, task_class):
         task = task_class
         if task.has_test_docs():
