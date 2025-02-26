@@ -276,7 +276,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         parser = setup_parser()
         args = parse_eval_args(parser)
 
-    if args.wandb_args:
+    wandb_logger = None
+    if args.wandb_args and os.environ.get("RANK", "0") == "0":
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
     eval_logger = utils.eval_logger
@@ -425,7 +426,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         # Add W&B logging
-        if args.wandb_args:
+        if wandb_logger is not None:
             try:
                 wandb_logger.post_init(results)
                 wandb_logger.log_eval_result()
@@ -458,7 +459,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         if "groups" in results:
             print(make_table(results, "groups"))
 
-        if args.wandb_args:
+        if wandb_logger is not None:
             # Tear down wandb run once all the logging is done.
             wandb_logger.run.finish()
 
