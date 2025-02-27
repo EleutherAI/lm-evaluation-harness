@@ -22,11 +22,12 @@ def get_wandb_printer() -> Literal["Printer"]:
 
 
 class WandbLogger:
-    def __init__(self, **kwargs) -> None:
-        """Attaches to wandb logger if already initialized. Otherwise, passes kwargs to wandb.init()
+    def __init__(self, init_args=None, config_args=None) -> None:
+        """Attaches to wandb logger if already initialized. Otherwise, passes init_args to wandb.init() and config_args to wandb.config.update()
 
         Args:
-            kwargs Optional[Any]: Arguments for configuration.
+            init_args Optional[Dict]: Arguments for init configuration.
+            config_args Optional[Dict]: Arguments for config
 
         Parse and log the results returned from evaluator.simple_evaluate() with:
             wandb_logger.post_init(results)
@@ -46,7 +47,8 @@ class WandbLogger:
                 f"{e}"
             )
 
-        self.wandb_args: Dict[str, Any] = kwargs
+        self.wandb_args: Dict[str, Any] = init_args or {}
+        self.wandb_config_args: Dict[str, Any] = config_args or {}
 
         # pop the step key from the args to save for all logging calls
         self.step = self.wandb_args.pop("step", None)
@@ -54,6 +56,8 @@ class WandbLogger:
         # initialize a W&B run
         if wandb.run is None:
             self.run = wandb.init(**self.wandb_args)
+            if self.wandb_config_args:
+                self.run.config.update(self.wandb_config_args)
         else:
             self.run = wandb.run
 
