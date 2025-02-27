@@ -16,7 +16,6 @@ filter_list:
       - function: "regex"
         regex_pattern: "([A-D])"
         group_select: -1
-        ignore_punctuation: true
       - function: "take_first"
 generation_kwargs:
   until: []
