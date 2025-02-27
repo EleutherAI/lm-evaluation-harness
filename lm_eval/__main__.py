@@ -227,7 +227,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--wandb_config_args",
         type=str,
         default="",
-        help="Comma separated string arguments passed to wandb.config.update, eg. `lr=0.01",
+        help="Comma separated string arguments passed to wandb.config.update, eg. `lr=0.01,repeats=3",
     )
     parser.add_argument(
         "--hf_hub_log_args",
