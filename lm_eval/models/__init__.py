@@ -13,6 +13,7 @@ from . import (
     openai_completions,
     optimum_ipex,
     optimum_lm,
+    sae_steered_beta,
     sglang_causallms,
     textsynth,
     vllm_causallms,
