@@ -14,6 +14,7 @@ from . import (
     optimum_ipex,
     optimum_lm,
     sae_steered_beta,
+    sglang_causallms,
     textsynth,
     vllm_causallms,
     vllm_vlms,

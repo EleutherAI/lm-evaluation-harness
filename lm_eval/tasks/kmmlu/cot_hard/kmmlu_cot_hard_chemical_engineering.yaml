@@ -87,4 +87,5 @@ fewshot_config:
       압력, V는 부피입니다.   W = -P1Vln(P2/P1) = -(10×10^5 Pa)(0.05m^3)ln((1×10^5 Pa)/(10×10^5
       Pa)) = 0입니다. 따라서, 정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_chemical_engineering
+task: kmmlu_cot_hard_chemical_engineering
+tag: kmmlu_cot_hard_stem_tasks

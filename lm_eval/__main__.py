@@ -213,9 +213,9 @@ def setup_parser() -> argparse.ArgumentParser:
         "--verbosity",
         "-v",
         type=str.upper,
-        default="INFO",
+        default=None,
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
+        help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
     parser.add_argument(
         "--wandb_args",
@@ -279,9 +279,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    eval_logger = utils.eval_logger
-    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
-    eval_logger.info(f"Verbosity set to {args.verbosity}")
+    utils.setup_logging(args.verbosity)
+    eval_logger = logging.getLogger(__name__)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
@@ -306,7 +305,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(include_path=args.include_path)
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
@@ -377,8 +376,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         args.model_args = args.model_args + ",trust_remote_code=True"
-
-    eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.info(
+        f"Selected Tasks: {task_names}"
+    ) if eval_logger.getEffectiveLevel() >= logging.INFO else print(
+        f"Selected Tasks: {task_names}"
+    )
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
@@ -403,7 +405,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
-        verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],

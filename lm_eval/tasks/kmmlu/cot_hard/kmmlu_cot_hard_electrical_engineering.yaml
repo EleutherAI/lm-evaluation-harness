@@ -93,4 +93,5 @@ fewshot_config:
       Pyrometer)입니다. 이는 흑체 또는 비슷한 조건의 물체로부터 방사되는 가시광선의 강도를 통해 온도를 측정하는 방식을 사용하며, 흑체의
       방사율을 1로 설정하여 보정하는 원리를 기반으로 합니다. 따라서, 정답은 (A) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_electrical_engineering
+task: kmmlu_cot_hard_electrical_engineering
+tag: kmmlu_cot_hard_stem_tasks
