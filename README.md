@@ -1,4 +1,20 @@
-# Language Model Evaluation Harness
+# Carminho's Fork of the Language Model Evaluation Harness
+
+This is a fork of the original lm-eval-harness repository. Please find the original README below.
+
+## Getting started
+
+Create a new python environment and install this repository with the `vllm` option. For example:
+
+```bash
+uv venv carminho
+source carminho/bin/activate
+uv pip install ".[vllm]"
+```
+
+The original repository README is below.
+
+---
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
