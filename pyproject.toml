@@ -70,7 +70,9 @@ math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
+sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
+sparsify = ["sparsify"]
 sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
@@ -91,7 +93,9 @@ all = [
     "lm_eval[multilingual]",
     "lm_eval[openai]",
     "lm_eval[promptsource]",
+    "lm_eval[sae_lens]",
     "lm_eval[sentencepiece]",
+    "lm_eval[sparsify]",
     "lm_eval[sparseml]",
     "lm_eval[testing]",
     "lm_eval[vllm]",
