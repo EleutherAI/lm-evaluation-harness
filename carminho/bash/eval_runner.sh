@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=carminho_eval
 #SBATCH --output=./logs/%A-%a.out
-#SBATCH --time=24:00:00
+#SBATCH --time=01:00:00
 #SBATCH --gpus=1
 #SBATCH --qos=gpu-short
 #SBATCH --partition=a6000
@@ -38,8 +38,8 @@ echo "Model: $MODEL"
 # model_args="pretrained=${MODEL},tensor_parallel_size=${GPUs_per_model},dtype=auto,gpu_memory_utilization=0.8,data_parallel_size=${model_replicas}"
 model_args="pretrained=${MODEL},dtype=auto,gpu_memory_utilization=0.8,max_model_len=2048"
 tasks="belebele_por_Latn,global_mmlu_pt"
-output_path="~/myscratch/carminho/${MODEL//\//__}"
-cache_dir="~/myscratch/carminho/cache/${MODEL//\//__}"
+output_path="/mnt/home/giuseppe0/myscratch/carminho/"
+cache_dir="/mnt/home/giuseppe/myscratch/carminho = None/cache/${MODEL//\//__}"
 
 # HF Hub logging arguments
 hf_org="hub_results_org=carminho"
