@@ -36,7 +36,7 @@ fi
 echo "Model: $MODEL"
 
 # model_args="pretrained=${MODEL},tensor_parallel_size=${GPUs_per_model},dtype=auto,gpu_memory_utilization=0.8,data_parallel_size=${model_replicas}"
-model_args="pretrained=${MODEL},dtype=auto,gpu_memory_utilization=0.9,max_model_len=4096"
+model_args="pretrained=${MODEL},dtype=auto,gpu_memory_utilization=0.8,max_model_len=2048"
 tasks="belebele_por_Latn,global_mmlu_pt"
 output_path="~/myscratch/carminho/${MODEL//\//__}"
 cache_dir="~/myscratch/carminho/cache/${MODEL//\//__}"
