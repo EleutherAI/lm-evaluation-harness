@@ -144,11 +144,7 @@ class SteeredModel(HFLM):
             def load_from_sae_lens(sae_release: str, sae_id: str):
                 cache_key = (sae_release, sae_id)
                 if cache_key not in sae_cache:
-                    sae = SAE.from_pretrained(sae_release, sae_id)[0]
-                    sae.use_error_term = True
-                    sae.eval()
-
-                    sae_cache[cache_key] = sae
+                    sae_cache[cache_key] = SAE.from_pretrained(sae_release, sae_id)[0]
 
                 return sae_cache[cache_key]
 
