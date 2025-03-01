@@ -67,18 +67,66 @@ class SteeredModel(HFLM):
         **kwargs,
     ):
         """
-        HFLM with a steered forward pass specified in a CSV file.
+        HFLM with a steered forward pass.
 
-        Expected CSV format:
-        loader,hook_action,sparse_model,hookpoint,feature_index,steering_coefficient,sae_id,description,
+        To derive steering vectors from a sparse model loadable with sparsify or sae_lens,
+        provide the path to a CSV file with the following columns (example rows are provided below):
+
+        loader,action,sparse_model,hookpoint,feature_index,steering_coefficient,sae_id,description,
+        sparsify,add,EleutherAI/sae-pythia-70m-32k,layers.3,30,10.0,,,
         sae_lens,add,gemma-scope-2b-pt-res-canonical,layers.20,12082,10.0,layer_20/width_16k/canonical,increase dogs,
+
+        To load steering vectors directly, provide the path to a pytorch (.pt) file with content in the following format:
+
+        [
+            {
+                "hookpoint": <str>,
+                "steering_vector": <torch.Tensor>,
+                "steering_coefficient": <float>,
+                "action": <Literal["add", "clamp"]>,
+            },
+            ...
+        ]
         """
         super().__init__(pretrained=pretrained, device=device, **kwargs)
 
-        # Resolve the interventions specified in the CSV file
+        if steer_path.endswith(".pt") or steer_path.endswith(".pth"):
+            with open(steer_path, "rb") as f:
+                steer_config = torch.load(f)
+        elif steer_path.endswith(".csv"):
+            steer_config = self.derive_steer_config(steer_path)
+        else:
+            raise ValueError(f"Unknown steer file type: {steer_path}")
+
+        hook_to_steer = {}
+        for hookpoint, steer_info in steer_config.items():
+            action = steer_info["action"]
+            steering_coefficient = steer_info["steering_coefficient"]
+            steering_vector = steer_info["steering_vector"]
+
+            if action == "add":
+                # Steers the model by adding some multiple of a steering vector to all sequence positions.
+                hook_to_steer[hookpoint] = (
+                    lambda acts: acts + steering_coefficient * steering_vector
+                )
+            elif action == "clamp":
+                hook_to_steer[hookpoint] = partial(
+                    self.clamp_original,
+                    steering_vector=steering_vector,
+                    value=steering_coefficient,
+                )
+            else:
+                raise ValueError(f"Unknown hook type: {action}")
+
+        self.hook_to_steer = hook_to_steer
+
+    @classmethod
+    def derive_steer_config(cls, steer_path: str):
+        """Derive a dictionary of steering vectors from sparse model(/s) specified in a CSV file."""
         import pandas as pd
 
         df = pd.read_csv(steer_path)
+        steer_data = {}
 
         if any(df["loader"] == "sparsify"):
             from sparsify import SparseCoder
@@ -90,9 +138,7 @@ class SteeredModel(HFLM):
             def load_from_sae_lens(sae_release: str, sae_id: str):
                 cache_key = (sae_release, sae_id)
                 if cache_key not in sae_cache:
-                    sae = SAE.from_pretrained(sae_release, sae_id, device=str(device))[
-                        0
-                    ]
+                    sae = SAE.from_pretrained(sae_release, sae_id)[0]
                     sae.use_error_term = True
                     sae.eval()
 
@@ -100,29 +146,21 @@ class SteeredModel(HFLM):
 
                 return sae_cache[cache_key]
 
-        hook_to_steer: dict[str, Callable] = {}
-
         for _, row in df.iterrows():
-            loader = row.get("loader", "sparsify")
-            hook_action = row.get("hook_action", "add")
+            action = row.get("action", "add")
             sparse_name = row["sparse_model"]
             hookpoint = row["hookpoint"]
             feature_index = int(row["feature_index"])
             steering_coefficient = float(row["steering_coefficient"])
-            if loader == "sae_lens":
-                sae_id = row["sae_id"]
+            loader = row.get("loader", "sparsify")
 
             if loader == "sparsify":
                 name_path = Path(sparse_name)
 
                 sparse_coder = (
-                    SparseCoder.load_from_disk(
-                        name_path / hookpoint, device=device or self._model.device
-                    )
+                    SparseCoder.load_from_disk(name_path / hookpoint)
                     if name_path.exists()
-                    else SparseCoder.load_from_hub(
-                        sparse_name, hookpoint, device=device or self._model.device
-                    )
+                    else SparseCoder.load_from_hub(sparse_name, hookpoint)
                 )
 
                 steering_vector = (
@@ -132,7 +170,7 @@ class SteeredModel(HFLM):
                 )
             elif loader == "sae_lens":
                 sparse_coder = load_from_sae_lens(
-                    sae_release=sparse_name, sae_id=sae_id
+                    sae_release=sparse_name, sae_id=row["sae_id"]
                 )
                 steering_vector = sparse_coder.W_dec[feature_index]
                 if hookpoint == "" or pd.isna(hookpoint):
@@ -140,39 +178,39 @@ class SteeredModel(HFLM):
             else:
                 raise ValueError(f"Unknown loader: {loader}")
 
-            if hook_action == "add":
-                # Steers the model by adding some multiple of a steering vector to all sequence positions.
-                hook_to_steer[hookpoint] = (
-                    lambda acts: acts + steering_coefficient * steering_vector
-                )
-            elif hook_action == "clamp":
-                hook_to_steer[hookpoint] = partial(
-                    self.clamp_original,
-                    latent_idx=torch.tensor([feature_index]),
-                    value=steering_coefficient,
-                )
-            else:
-                raise ValueError(f"Unknown hook type: {hook_action}")
+            steer_data[hookpoint] = {
+                "action": action,
+                "steering_coefficient": steering_coefficient,
+                "steering_vector": steering_vector,
+            }
 
-        self.hook_to_steer = hook_to_steer
+        return steer_data
 
     @classmethod
-    def clamp_original(cls, acts: Tensor, latent_idx: Tensor, value: float) -> Tensor:
-        """Clamps a specific latent feature in the sparse activations to a fixed value
+    def clamp_original(
+        cls, acts: Tensor, steering_vector: Tensor, value: float
+    ) -> Tensor:
+        """Clamps a specific direction in the activations to a fixed value
         if the current activation is greater than 0.
 
         Args:
             acts (Tensor): The activations tensor to edit, shape [batch, pos, features]
-            latent_idx (Tensor): The activation index to clamp, shape [features]
-            value (float): Value to clamp the feature to
+            steering_vector (Tensor): A steering_vector to clamp, shape [features]
+            value (float): Value to clamp the direction to
 
         Returns:
-            Tensor: The modified sparse activations with the specified feature clamped
+            Tensor: The modified sparse activations with the specified direction clamped
         """
-        mask = acts[:, :, latent_idx] > 0
-        acts[:, :, latent_idx][mask] = value
+        direction = steering_vector / steering_vector.norm()
 
-        return acts
+        projections = torch.einsum("bpf,f->bp", acts, direction)
+        mask = (projections > 0).unsqueeze(-1)
+        projections = projections.unsqueeze(-1)
+
+        subtraction = projections * direction.view(1, 1, -1)
+        addition = value * direction.view(1, 1, -1)
+
+        return acts - mask * subtraction + mask * addition
 
     def forward(self, *args, **kwargs):
         with torch.no_grad():
