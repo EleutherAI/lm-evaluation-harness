@@ -83,7 +83,7 @@ class SteeredModel(HFLM):
                 "hookpoint": <str>,
                 "steering_vector": <torch.Tensor>,
                 "steering_coefficient": <float>,
-                "action": <Literal["add", "clamp"]>,
+                "action": <Literal["add", "clamp_max", "clamp_constant"]>,
             },
             ...
         ]
@@ -109,9 +109,15 @@ class SteeredModel(HFLM):
                 hook_to_steer[hookpoint] = (
                     lambda acts: acts + steering_coefficient * steering_vector
                 )
-            elif action == "clamp":
+            elif action == "clamp_max":
                 hook_to_steer[hookpoint] = partial(
-                    self.clamp,
+                    self.ceiling_clamp,
+                    steering_vector=steering_vector,
+                    value=steering_coefficient,
+                )
+            elif action == "clamp_constant":
+                hook_to_steer[hookpoint] = partial(
+                    self.clamp_constant,
                     steering_vector=steering_vector,
                     value=steering_coefficient,
                 )
@@ -187,7 +193,9 @@ class SteeredModel(HFLM):
         return steer_data
 
     @classmethod
-    def clamp(cls, acts: Tensor, steering_vector: Tensor, value: float) -> Tensor:
+    def ceiling_clamp(
+        cls, acts: Tensor, steering_vector: Tensor, value: float
+    ) -> Tensor:
         """Clamps a direction of the activations to a fixed maximum norm.
 
         Args:
@@ -208,6 +216,33 @@ class SteeredModel(HFLM):
 
         adjustment = torch.einsum("bp,f->bpf", proj * scaling_factor, norm_direction)
         return acts + adjustment
+
+    @classmethod
+    def clamp_constant(cls, acts: Tensor, steering_vector: Tensor, value: float):
+        """Clamps a direction of the activations to a fixed constant value.
+
+        Args:
+            acts (Tensor): The activations tensor to edit of shape [batch, pos, features]
+            steering_vector (Tensor): A direction to clamp of shape [features]
+            value (float): Value to clamp the direction to
+
+        Returns:
+            Tensor: The modified activations with the specified direction clamped
+        """
+
+        direction = steering_vector / torch.norm(steering_vector)
+
+        proj_magnitude = torch.sum(acts * direction, dim=-1, keepdim=True)
+        proj_vector = proj_magnitude * direction
+
+        scale_factor = torch.where(
+            proj_magnitude > 0,
+            value / torch.abs(proj_magnitude),
+            torch.zeros_like(proj_magnitude),
+        )
+        normalized_proj = proj_vector * scale_factor
+
+        return acts - proj_vector + normalized_proj
 
     def forward(self, *args, **kwargs):
         with torch.no_grad():
