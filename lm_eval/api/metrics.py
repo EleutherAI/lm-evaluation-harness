@@ -398,14 +398,15 @@ def acc_all_stderr(items):
     output_type=["generate_until"],
     aggregation="mean",
 )
-def seqeval_fn(**kwargs): # This is a passthrough function
+def seqeval_fn(**kwargs):  # This is a passthrough function
     return run_seqeval(**kwargs)
 
 
 def run_seqeval(references, predictions, is_iob):
     # Reconstruct the labeling from the annotated texts/generations
-    from lm_eval.utils import get_iob_labels, get_tagging_labels
     import evaluate
+
+    from lm_eval.utils import get_iob_labels, get_tagging_labels
 
     get_labels_fn = get_iob_labels if is_iob else get_tagging_labels
     references = [get_labels_fn(text) for text in references]
@@ -467,6 +468,7 @@ def _sacreformat(refs, preds):
         preds = [pred[0] for pred in preds]
 
     return refs, preds
+
 
 # stderr stuff
 

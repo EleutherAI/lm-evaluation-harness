@@ -522,14 +522,12 @@ def get_iob_labels(text):
     text = matches[0].strip()
 
     def is_open_tag(word):
-        return (
-            word.startswith("<") and word.endswith(">")
-        ) and not word.startswith("</")
-
+        return (word.startswith("<") and word.endswith(">")) and not word.startswith(
+            "</"
+        )
 
     def is_close_tag(word):
         return word.startswith("</") and word.endswith(">")
-
 
     def untag(tag):
         return tag[1:-1]
@@ -568,9 +566,9 @@ def get_tagging_labels(text):
     text = matches[0].strip()
 
     def is_open_tag(word):
-        return (
-            word.startswith("<") and word.endswith(">")
-        ) and not word.startswith("</")
+        return (word.startswith("<") and word.endswith(">")) and not word.startswith(
+            "</"
+        )
 
     def is_close_tag(word):
         return word.startswith("</") and word.endswith(">")

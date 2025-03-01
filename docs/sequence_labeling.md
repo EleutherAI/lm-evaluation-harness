@@ -153,7 +153,7 @@ num_fewshot: 2
 generation_kwargs:
   max_gen_toks: 512
   until:
-  - "</response>" 
+  - "</response>"
 metric_list:
   - metric: seqeval
     higher_is_better: true
@@ -257,7 +257,7 @@ num_fewshot: 2
 generation_kwargs:
   max_gen_toks: 512
   until:
-  - "</response>" 
+  - "</response>"
 metric_list:
   - metric: seqeval
     higher_is_better: true
