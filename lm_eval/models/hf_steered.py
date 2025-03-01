@@ -74,7 +74,7 @@ class SteeredModel(HFLM):
 
         loader,action,sparse_model,hookpoint,feature_index,steering_coefficient,sae_id,description,
         sparsify,add,EleutherAI/sae-pythia-70m-32k,layers.3,30,10.0,,,
-        sae_lens,add,gemma-scope-2b-pt-res-canonical,layers.20,12082,10.0,layer_20/width_16k/canonical,increase dogs,
+        sae_lens,add,gemma-scope-2b-pt-res-canonical,layers.20,12082,240.0,layer_20/width_16k/canonical,increase dogs,
 
         To load steering vectors directly, provide the path to a pytorch (.pt) file with content in the following format:
 
@@ -111,7 +111,7 @@ class SteeredModel(HFLM):
                 )
             elif action == "clamp":
                 hook_to_steer[hookpoint] = partial(
-                    self.clamp_original,
+                    self.clamp,
                     steering_vector=steering_vector,
                     value=steering_coefficient,
                 )
@@ -187,30 +187,27 @@ class SteeredModel(HFLM):
         return steer_data
 
     @classmethod
-    def clamp_original(
-        cls, acts: Tensor, steering_vector: Tensor, value: float
-    ) -> Tensor:
-        """Clamps a specific direction in the activations to a fixed value
-        if the current activation is greater than 0.
+    def clamp(cls, acts: Tensor, steering_vector: Tensor, value: float) -> Tensor:
+        """Clamps a direction of the activations to a fixed maximum norm.
 
         Args:
-            acts (Tensor): The activations tensor to edit, shape [batch, pos, features]
-            steering_vector (Tensor): A steering_vector to clamp, shape [features]
+            acts (Tensor): The activations tensor to edit of shape [batch, pos, features]
+            steering_vector (Tensor): A direction to clamp of shape [features]
             value (float): Value to clamp the direction to
 
         Returns:
-            Tensor: The modified sparse activations with the specified direction clamped
+            Tensor: The modified activations with the specified direction clamped
         """
-        direction = steering_vector / steering_vector.norm()
+        norm_direction = steering_vector / steering_vector.norm()
+        proj = torch.einsum("bpf,f->bp", acts, norm_direction).unsqueeze(-1)
 
-        projections = torch.einsum("bpf,f->bp", acts, direction)
-        mask = (projections > 0).unsqueeze(-1)
-        projections = projections.unsqueeze(-1)
+        # Assign each position a scaling factor to clamp its projection norm
+        scaling_factor = torch.zeros_like(proj)
+        mask = proj > value
+        scaling_factor[mask] = (value - proj[mask]) / proj[mask]
 
-        subtraction = projections * direction.view(1, 1, -1)
-        addition = value * direction.view(1, 1, -1)
-
-        return acts - mask * subtraction + mask * addition
+        adjustment = torch.einsum("bp,f->bpf", proj * scaling_factor, norm_direction)
+        return acts + adjustment
 
     def forward(self, *args, **kwargs):
         with torch.no_grad():
