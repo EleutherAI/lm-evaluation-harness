@@ -39,6 +39,7 @@ from lm_eval.api.registry import (
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.api.local_datasets import save_dataset_to_disk, load_dataset_from_disk
 
 
 ALL_OUTPUT_TYPES = [
@@ -700,6 +701,8 @@ class ConfigurableTask(Task):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
+        load_local=False,
+        local_base_dir=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
@@ -820,7 +823,10 @@ class ConfigurableTask(Task):
                     )
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
-        self.download(self.config.dataset_kwargs)
+        if load_local:
+            self.load_from_disk(local_base_dir=local_base_dir)
+        else:
+            self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -931,6 +937,28 @@ class ConfigurableTask(Task):
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
             **dataset_kwargs if dataset_kwargs is not None else {},
+        )
+
+    def save_to_disk(self, local_base_dir=None) -> None:
+        if not self.dataset:
+            raise ValueError("No dataset found to save to disk.")
+        save_dataset_to_disk(
+            self.dataset,
+            local_base_dir=local_base_dir,
+            hf_path=self.DATASET_PATH,
+            hf_name=self.DATASET_NAME,
+            hf_dataset_kwargs=self.config.dataset_kwargs,
+        )
+
+    def load_from_disk(
+        self,
+        local_base_dir: Optional[str] = None,
+    ) -> None:
+        self.dataset = load_dataset_from_disk(
+            local_base_dir=local_base_dir,
+            hf_path=self.DATASET_PATH,
+            hf_name=self.DATASET_NAME,
+            hf_dataset_kwargs=self.config.dataset_kwargs,
         )
 
     def has_training_docs(self) -> bool:
