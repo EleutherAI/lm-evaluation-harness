@@ -15,13 +15,13 @@ Homepage: `https://osu-nlp-group.github.io/GroundCocoa/`
 
 ```
 @misc{kohli2025groundcocoabenchmarkevaluatingcompositional,
-      title={GroundCocoa: A Benchmark for Evaluating Compositional & Conditional Reasoning in Language Models}, 
+      title={GroundCocoa: A Benchmark for Evaluating Compositional & Conditional Reasoning in Language Models},
       author={Harsh Kohli and Sachin Kumar and Huan Sun},
       year={2025},
       eprint={2404.04237},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2404.04237}, 
+      url={https://arxiv.org/abs/2404.04237},
 }
 ```
 
