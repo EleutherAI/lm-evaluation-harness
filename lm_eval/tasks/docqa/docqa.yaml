@@ -1,0 +1,20 @@
+dataset_path: lmms-lab/DocVQA
+validation_split: test
+output_type: generate_until
+doc_to_image: image
+doc_to_text: |
+  <image>Read the text in the image carefully and answer the question with the text as seen exactly in the image. For yes/no questions, just respond Yes or No. If the answer is numeric, just respond with the number and nothing else. If the answer has multiple words, just respond with the words and absolutely nothing else. Never respond in a sentence or a phrase.
+  Question: {question}
+doc_to_target: answers
+process_results: !function utils.process_results
+generation_kwargs:
+  until: []
+  temperature: 0.0
+  do_sample: false
+  max_gen_toks: 512
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

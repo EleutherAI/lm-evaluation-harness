@@ -1,0 +1,12 @@
+include: chartqa_llama.yaml
+task: chartqa_llama_90
+doc_to_text: |
+  <image>You are provided a chart image and will be asked a question. Follow these steps carefully:
+  Step 1: Analyze the question to understand what specific data or information is being asked for. Focus on whether the question is asking for a specific number or category from the chart image.
+  Step 2: Identify any numbers, categories, or groups mentioned in the question and take note of them. Focus on detecting and matching them directly to the image.
+  Step 3: Study the image carefully and find the relevant data corresponding to the categories or numbers mentioned. Avoid unnecessary assumptions or calculations; simply read the correct data from the image.
+  Step 4: Develop a clear plan to solve the question by locating the right data. Focus only on the specific category or group that matches the question.
+  Step 5: Use step-by-step reasoning to ensure you are referencing the correct numbers or data points from the image, avoiding unnecessary extra steps or interpretations.
+  Step 6: Provide the final answer, starting with "FINAL ANSWER:" and using as few words as possible, simply stating the number or data point requested.
+
+  The question is: {{query}} Let's think step by step.
