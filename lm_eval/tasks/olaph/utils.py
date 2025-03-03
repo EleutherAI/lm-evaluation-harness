@@ -9,9 +9,13 @@ try:
     bertscore = evaluate.load("bertscore")
     bleurt = evaluate.load("bleurt", "bleurt-base-512", module_type="metric")
 
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     raise ModuleNotFoundError(
-        "please install evaluation metrics via pip install evaluate and pip install bert-score",
+        "Please install evaluation metrics via pip install evaluate and pip install bert-score",
+    )
+except Exception as e:
+    raise RuntimeError(
+        f"Error loading evaluation metrics: {str(e)}. Please check your installation."
     )
 
 
