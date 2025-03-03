@@ -1,0 +1,10 @@
+group: evalita-mp_at
+group_alias: admission-test
+task:
+  - evalita-mp_at_tasks # Each of the tasks has to have a matching tag in its own yaml file
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+    aggregation: mean
+metadata:
+  version: 1.0

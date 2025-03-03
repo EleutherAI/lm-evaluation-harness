@@ -48,7 +48,7 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -1049,6 +1049,8 @@ class ConfigurableTask(Task):
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param chat_template:
             callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
+        :param gen_prefix:
+            String to append after the <|assistant|> token.
         :returns: str
             The fewshot context.
         """
@@ -1621,13 +1623,13 @@ class ConfigurableTask(Task):
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
-                    if isinstance(result_score, dict):
-                        # TODO: this handles the case where HF evaluate returns a dict.
-                        # This allows for multiple metrics to be returned from the same function
-                        for k, v in result_score.items():
-                            result_dict[k] = v
-                        return result_dict
-                result_dict[metric] = result_score
+                if isinstance(result_score, dict):
+                    # TODO: this handles the case where HF evaluate returns a dict.
+                    # This allows for multiple metrics to be returned from the same function
+                    for k, v in result_score.items():
+                        result_dict[k] = v
+                else:
+                    result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
