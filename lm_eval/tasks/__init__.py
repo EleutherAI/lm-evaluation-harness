@@ -14,6 +14,8 @@ from lm_eval.tasks.mmlu_pro.utils import doc_to_text
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
+eval_logger = logging.getLogger(__name__)
+
 
 def convert_mcq_to_generative(cfg: dict):
     prompt = """Given the following question and candidate answers, choose the correct answer."""
@@ -71,15 +73,14 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity="INFO",
+        verbosity: Optional[str] = None,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
         mcq_to_generative: bool = False,
     ) -> None:
-        self.verbosity = verbosity
+        if verbosity is not None:
+            utils.setup_logging(verbosity)
         self.include_path = include_path
-        self.logger = utils.eval_logger
-        self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults
@@ -513,7 +514,7 @@ class TaskManager:
                             "yaml_path": -1,
                         }
                     elif tasks_and_groups[tag]["type"] != "tag":
-                        self.logger.info(
+                        eval_logger.info(
                             f"The tag '{tag}' is already registered as a group, this tag will not be registered. "
                             "This may affect tasks you want to call."
                         )
@@ -576,7 +577,7 @@ class TaskManager:
                             config, task, tasks_and_groups, print_info
                         )
                     else:
-                        self.logger.debug(f"File {f} in {root} could not be loaded")
+                        eval_logger.debug(f"File {f} in {root} could not be loaded")
 
         return tasks_and_groups
 
