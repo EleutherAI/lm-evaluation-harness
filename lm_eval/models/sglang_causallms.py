@@ -1,11 +1,8 @@
 import copy
 import logging
-from importlib.metadata import version
 from importlib.util import find_spec
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
-from more_itertools import distribute
-from packaging.version import parse as parse_version
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
@@ -13,9 +10,7 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
-    configure_pad_token,
     handle_stop_sequences,
-    undistribute,
 )
 from lm_eval.utils import (
     get_rolling_token_windows,
@@ -23,264 +18,104 @@ from lm_eval.utils import (
 )
 
 
+eval_logger = logging.getLogger(__name__)
+
 try:
-    import ray
-    from vllm import LLM, SamplingParams
-    from vllm.lora.request import LoRARequest
-    from vllm.transformers_utils.tokenizer import get_tokenizer
+    import sglang as sgl
 except ModuleNotFoundError:
     pass
 
 if TYPE_CHECKING:
     pass
 
-eval_logger = logging.getLogger(__name__)
 
-
-@register_model("vllm")
-class VLLM(TemplateLM):
+@register_model("sglang")
+class SGLangLM(TemplateLM):
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
         self,
         pretrained: str,
-        dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
-        revision: Optional[str] = None,
-        trust_remote_code: Optional[bool] = False,
-        tokenizer: Optional[str] = None,
-        tokenizer_mode: Literal["auto", "slow"] = "auto",
-        tokenizer_revision: Optional[str] = None,
-        add_bos_token: Optional[bool] = False,
-        prefix_token_id: Optional[int] = None,
-        tensor_parallel_size: int = 1,
-        quantization: Optional[str] = None,
-        max_gen_toks: int = 256,
-        swap_space: int = 4,
+        # batch args from lm-eval interface:  https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md
         batch_size: Union[str, int] = 1,
         max_batch_size=None,
-        max_length: int = None,
         max_model_len: int = None,
-        seed: int = 1234,
-        gpu_memory_utilization: float = 0.9,
+        max_gen_toks: int = 256,
+        add_bos_token: Optional[bool] = False,
+        ########## SGlang native args ##########
+        # Todo(Jinwei): Include more args of SGLang Engine if needed. Refer to https://docs.sglang.ai/backend/server_arguments.html .
+        tokenizer_path: Optional[str] = None,
+        tokenizer_mode: str = "auto",
+        load_format: str = "auto",
+        trust_remote_code: bool = True,
+        dtype: str = "auto",
+        kv_cache_dtype: str = "auto",
+        context_length: Optional[int] = None,
         device: str = "cuda",
-        data_parallel_size: int = 1,
-        lora_local_path: str = None,
+        chunked_prefill_size: int = -1,
+        # Memory and scheduling
+        mem_fraction_static: Optional[float] = None,
+        # parallelism
+        dp_size: int = 1,
+        tp_size: int = 1,
+        prefix_token_id: Optional[int] = None,
         **kwargs,
     ):
         super().__init__()
 
-        if not find_spec("vllm"):
+        if not find_spec("sglang"):
             raise ModuleNotFoundError(
-                "attempted to use 'vllm' LM type, but package `vllm` is not installed. "
-                "Please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
+                "attempted to use 'sglang' LM type, but package `sglang` is not installed. "
+                "Please install sglang via official document here:https://docs.sglang.ai/start/install.html#install-sglang"
             )
 
-        assert max_length is None or max_model_len is None, (
-            "Either max_length or max_model_len may be provided, but not both"
+        assert "cuda" in device or device is None, "SGLang only supports CUDA"
+        assert context_length is None or max_model_len is None, (
+            "Either context_length or max_model_len may be provided, but not both"
         )
-
-        self._max_length = max_model_len if max_model_len is not None else max_length
-        self.tensor_parallel_size = int(tensor_parallel_size)
-        self.data_parallel_size = int(data_parallel_size)
+        # Initialize your sglang model here
+        self._max_length = (
+            max_model_len if max_model_len is not None else context_length
+        )
+        self.tensor_parallel_size = int(tp_size)
+        self.data_parallel_size = int(dp_size)
         self.model_args = {
-            "model": pretrained,
-            "gpu_memory_utilization": float(gpu_memory_utilization),
-            "revision": revision,
-            "dtype": dtype,
-            "tokenizer": tokenizer,
+            "model_path": pretrained,
+            "tokenizer_path": tokenizer_path,
             "tokenizer_mode": tokenizer_mode,
-            "tokenizer_revision": tokenizer_revision,
+            "load_format": load_format,
             "trust_remote_code": trust_remote_code,
-            "tensor_parallel_size": int(tensor_parallel_size),
-            "max_model_len": int(self._max_length) if self._max_length else None,
-            "swap_space": int(swap_space),
-            "quantization": quantization,
-            "seed": int(seed),
+            "dtype": dtype,
+            "kv_cache_dtype": kv_cache_dtype,
+            "device": device,
+            "mem_fraction_static": mem_fraction_static,
+            "tp_size": self.tensor_parallel_size,
+            "dp_size": self.data_parallel_size,
+            "chunked_prefill_size": chunked_prefill_size,
         }
+
         self.model_args.update(kwargs)
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
             else int(batch_size)
         )
-        if self.data_parallel_size <= 1:
-            self.model = LLM(**self.model_args)
-        else:
+        if self.data_parallel_size > 1:
             eval_logger.warning(
-                "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
+                "Data parallelism will be deprecated in the future version of SGLang. See here: https://docs.sglang.ai/backend/server_arguments.html#data-parallelism ."
             )
-            self.model_args["distributed_executor_backend"] = "ray"
-            self.batch_size = "auto"
-            eval_logger.info("Manual batching is not compatible with data parallelism.")
+        self.model = sgl.Engine(**self.model_args)
 
-            from transformers import AutoConfig
-
-            self._config = AutoConfig.from_pretrained(
-                pretrained, trust_remote_code=trust_remote_code, revision=revision
-            )
-        self.tokenizer = get_tokenizer(
-            tokenizer if tokenizer else pretrained,
-            tokenizer_mode=tokenizer_mode,
-            trust_remote_code=trust_remote_code,
-            revision=tokenizer_revision,
-        )
-        self.tokenizer = configure_pad_token(self.tokenizer)
+        # Todo(Jinwei): check tokenizer and other settings.
+        self.tokenizer = self.model.tokenizer_manager.tokenizer
+        self._max_gen_toks = max_gen_toks
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
             eval_logger.info(
                 "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
-
         self.custom_prefix_token_id = prefix_token_id
-        if prefix_token_id is not None:
-            eval_logger.info(
-                f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
-            )
-
-        self._max_gen_toks = max_gen_toks
-
-        if lora_local_path is not None:
-            assert parse_version(version("vllm")) > parse_version("0.3.0"), (
-                "lora adapters only compatible with vllm > v0.3.0."
-            )
-            self.lora_request = LoRARequest("finetuned", 1, lora_local_path)
-        else:
-            self.lora_request = None
-
-    @property
-    def eot_token_id(self):
-        # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
-        return self.tokenizer.eos_token_id
-
-    @property
-    def prefix_token_id(self):
-        # it is used as prefix for loglikelihood
-        if self.custom_prefix_token_id is not None:
-            return self.custom_prefix_token_id
-        if self.tokenizer.bos_token_id is not None:
-            return self.tokenizer.bos_token_id
-        return self.tokenizer.eos_token_id
-
-    @property
-    def max_length(self):
-        if self._max_length:  # if max length manually set, return it
-            return self._max_length
-        if self.data_parallel_size <= 1:
-            return self.model.llm_engine.model_config.max_model_len
-        else:
-            seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
-            for attr in seqlen_config_attrs:
-                if hasattr(self._config, attr):
-                    return getattr(self._config, attr)
-            if hasattr(self.tokenizer, "model_max_length"):
-                if self.tokenizer.model_max_length == 1000000000000000019884624838656:
-                    return self._DEFAULT_MAX_LENGTH
-                return self.tokenizer.model_max_length
-            return self._DEFAULT_MAX_LENGTH
-
-    @property
-    def max_gen_toks(self):
-        return self._max_gen_toks
-
-    def apply_chat_template(
-        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
-    ) -> str:
-        """
-        Method to apply a chat template to a list of chat history between user and model.
-        """
-        chat_templated = self.tokenizer.apply_chat_template(
-            chat_history,
-            tokenize=False,
-            add_generation_prompt=add_generation_prompt,
-            continue_final_message=not add_generation_prompt,
-        )
-
-        return chat_templated
-
-    @property
-    def tokenizer_name(self) -> str:
-        return self.tokenizer.name_or_path.replace("/", "__")
-
-    def tok_encode(
-        self,
-        string: Union[str, List[str]],
-        left_truncate_len: int = None,
-        add_special_tokens: bool = False,
-        truncation: bool = False,
-    ) -> Union[List[int], List[List[int]]]:
-        if not add_special_tokens:
-            add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
-            string,
-            add_special_tokens=add_special_tokens,
-            truncation=truncation,
-            return_attention_mask=False,
-        ).input_ids
-
-        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
-        if left_truncate_len:
-            if not isinstance(string, str):
-                encoding = [enc[-left_truncate_len:] for enc in encoding]
-            else:
-                encoding = encoding[-left_truncate_len:]
-
-        return encoding
-
-    def _model_generate(
-        self,
-        requests: List[List[int]] = None,
-        generate: bool = False,
-        max_tokens: int = None,
-        stop: Optional[List[str]] = None,
-        **kwargs,
-    ):
-        if generate:
-            kwargs = self.modify_gen_kwargs(kwargs)
-            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
-        else:
-            sampling_params = SamplingParams(
-                temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
-            )
-        if self.data_parallel_size > 1:
-            # vLLM hangs if resources are set in ray.remote
-            # also seems to only work with decorator and not with ray.remote() fn
-            # see https://github.com/vllm-project/vllm/issues/973
-            @ray.remote
-            def run_inference_one_model(
-                model_args: dict,
-                sampling_params: SamplingParams,
-                requests: List[List[int]],
-                lora_request: LoRARequest,
-            ):
-                llm = LLM(**model_args)
-                return llm.generate(
-                    prompt_token_ids=requests,
-                    sampling_params=sampling_params,
-                    lora_request=lora_request,
-                )
-
-            # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
-            # interleaved important to balance context lengths across workers
-            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
-            inputs = (
-                (self.model_args, sampling_params, req, self.lora_request)
-                for req in requests
-            )
-            object_refs = [run_inference_one_model.remote(*x) for x in inputs]
-            results = ray.get(object_refs)
-            # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
-            ray.shutdown()
-            # flatten results
-            return undistribute(results)
-
-        outputs = self.model.generate(
-            prompt_token_ids=requests,
-            sampling_params=sampling_params,
-            use_tqdm=True if self.batch_size == "auto" else False,
-            lora_request=self.lora_request,
-        )
-        return outputs
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
@@ -392,6 +227,7 @@ class VLLM(TemplateLM):
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
+
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
@@ -415,6 +251,7 @@ class VLLM(TemplateLM):
             context_encoding = [x[-max_ctx_len:] for x in context_encoding]
 
             # perform batched generation
+            # cont is a list of dic. See here https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 .
             cont = self._model_generate(
                 requests=context_encoding,
                 generate=True,
@@ -425,7 +262,7 @@ class VLLM(TemplateLM):
 
             # cache generations
             for output, context in zip(cont, context):
-                generated_text = output.outputs[0].text
+                generated_text = output.get("text", "")
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text
@@ -435,6 +272,147 @@ class VLLM(TemplateLM):
         pbar.close()
         # reorder all group of results back to original unsorted form
         return re_ords.get_original(res)
+
+    def _model_generate(
+        self,
+        requests: List[List[int]] = None,
+        generate: bool = False,
+        max_tokens: int = None,
+        stop: Optional[List[str]] = None,
+        return_logprob: bool = False,
+        top_logprobs_num: int = 1,
+        logprob_start_len: int = -1,
+        **kwargs,
+    ):
+        # check sglang sampling parameters: https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/sampling/sampling_params.py#L21  and https://docs.sglang.ai/references/sampling_params.html.
+        if generate:
+            kwargs = self.modify_gen_kwargs(kwargs)
+            sampling_params = {
+                "max_new_tokens": max_tokens,
+                "stop": stop,
+            }
+            sampling_params.update(kwargs)
+        else:
+            sampling_params = {
+                "temperature": 0,
+                "max_new_tokens": 1,
+            }
+            sampling_params.update(kwargs)
+
+        # Refer to:  https://docs.sglang.ai/backend/offline_engine_api.html
+        outputs = self.model.generate(
+            input_ids=requests,
+            sampling_params=sampling_params,
+            return_logprob=return_logprob,
+            top_logprobs_num=top_logprobs_num,
+            logprob_start_len=logprob_start_len,
+        )
+        return outputs
+
+    @property
+    def eot_token_id(self):
+        # Return the EOT (End of Text) token ID
+        return self.tokenizer.eos_token_id
+
+    @property
+    def prefix_token_id(self):
+        # it is used as prefix for loglikelihood
+        if self.custom_prefix_token_id is not None:
+            return self.custom_prefix_token_id
+        if self.tokenizer.bos_token_id is not None:
+            return self.tokenizer.bos_token_id
+        return self.tokenizer.eos_token_id
+
+    @property
+    def max_length(self):
+        if self._max_length:  # if max length manually set, return it
+            return self._max_length
+        if hasattr(self.model, "tokenizer_manager") and hasattr(
+            self.model.tokenizer_manager, "context_len"
+        ):
+            return self.model.tokenizer_manager.context_len
+        return self._DEFAULT_MAX_LENGTH
+
+    @property
+    def max_gen_toks(self):
+        # Return the maximum number of tokens for generation
+        return self._max_gen_toks
+
+    def tok_encode(
+        self,
+        string: Union[str, List[str]],
+        left_truncate_len: int = None,
+        add_special_tokens: bool = False,
+        truncation: bool = False,
+    ) -> Union[List[int], List[List[int]]]:
+        if not add_special_tokens:
+            add_special_tokens = False or self.add_bos_token
+        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+            string,
+            add_special_tokens=add_special_tokens,
+            truncation=truncation,
+            return_attention_mask=False,
+        ).input_ids
+
+        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
+        if left_truncate_len:
+            if not isinstance(string, str):
+                encoding = [enc[-left_truncate_len:] for enc in encoding]
+            else:
+                encoding = encoding[-left_truncate_len:]
+
+        return encoding
+
+    def tok_decode(self, tokens: List[int]) -> str:
+        # Implement token-to-text decoding
+        pass
+
+    @property
+    def tokenizer_name(self) -> str:
+        """
+        Return the name of the model's tokenizer and/or the accompanying chat template.
+        The returned string is used to cache requests.
+
+        Returns:
+            str: The name of the model's tokenizer and/or chat template.
+        """
+        pass
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> str:
+        """
+        Get the appropriate chat template for the model based on the `chat_template` argument.
+
+        This method returns the chat template string to build the prompt from a chat history.
+        The chat template is saved in the evaluation results for reproducibility.
+        Boolean arguments should be used with models that have only one chat template,
+        while string arguments are used with models that have multiple chat templates.
+        For the reference implementation, see HFLM class in `lm_eval.models.huggingface`.
+
+        Args:
+            chat_template (Union[bool, str]): Specifies whether to apply a chat template:
+                - If False: Do not apply any chat template.
+                - If True: Apply the default chat template.
+                - If str: Apply the specified chat template by name.
+
+        Returns:
+            str: The selected chat template in Jinja format.
+        """
+        pass
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        chat_templated = self.tokenizer.apply_chat_template(
+            chat_history,
+            tokenize=False,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+        )
+
+        return chat_templated
 
     def _loglikelihood_tokens(
         self,
@@ -452,7 +430,6 @@ class VLLM(TemplateLM):
         chunks = re_ord.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
-
         pbar = tqdm(
             total=len(requests),
             disable=disable_tqdm,
@@ -470,8 +447,13 @@ class VLLM(TemplateLM):
                 inputs.append(inp)
                 ctxlens.append(ctxlen)
 
-            outputs = self._model_generate(requests=inputs, generate=False)
-
+            outputs = self._model_generate(
+                requests=inputs,
+                generate=False,
+                return_logprob=True,
+                top_logprobs_num=2,
+                logprob_start_len=0,
+            )
             for output, ctxlen, (cache_key, _, _), inp in zip(
                 outputs, ctxlens, chunk, inputs
             ):
@@ -480,7 +462,6 @@ class VLLM(TemplateLM):
                     outputs=output,
                     ctxlen=ctxlen,
                 )
-
                 res.append(answer)
 
                 if cache_key is not None:
@@ -498,8 +479,8 @@ class VLLM(TemplateLM):
 
         :param tokens: list
             Input tokens (potentially left-truncated)
-        :param outputs: RequestOutput
-            Contains prompt_logprobs
+        :param outputs:
+            Contains input_token_logprobs and input_top_logprobs
         :param ctxlen: int
             Length of context (so we can slice them away and only keep the predictions)
         :return:
@@ -510,49 +491,22 @@ class VLLM(TemplateLM):
         """
 
         # The first entry of prompt_logprobs is None because the model has no previous tokens to condition on.
-        continuation_logprobs_dicts = outputs.prompt_logprobs
-
-        def coerce_logprob_to_num(logprob):
-            # vLLM changed the return type of logprobs from float
-            # to a Logprob object storing the float value + extra data
-            # (https://github.com/vllm-project/vllm/pull/3065).
-            # If we are dealing with vllm's Logprob object, return
-            # the logprob value stored as an attribute. Otherwise,
-            # return the object itself (which should be a float
-            # for older versions of vLLM).
-            return getattr(logprob, "logprob", logprob)
-
-        continuation_logprobs_dicts = [
-            {
-                token: coerce_logprob_to_num(logprob)
-                for token, logprob in logprob_dict.items()
-            }
-            if logprob_dict is not None
-            else None
-            for logprob_dict in continuation_logprobs_dicts
-        ]
-
-        # Calculate continuation_logprobs
-        # assume ctxlen always >= 1
+        # [(logprob, token_id, token_text)]
+        continuation_logprobs_lists = outputs["meta_info"]["input_token_logprobs"]
         continuation_logprobs = sum(
-            logprob_dict.get(token)
-            for token, logprob_dict in zip(
-                tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
-            )
+            logprob for logprob, _, _ in continuation_logprobs_lists[ctxlen:]
         )
+
+        top_logprobs_lists = outputs["meta_info"]["input_top_logprobs"]
 
         # Determine if is_greedy
         is_greedy = True
-        for token, logprob_dict in zip(
-            tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
-        ):
-            # Get the token with the maximum log probability from the logprob_dict
-            if logprob_dict:  # Ensure the logprob_dict is not None
-                top_token = max(logprob_dict, key=logprob_dict.get)
+        for token, top_logprobs in zip(tokens[ctxlen:], top_logprobs_lists[ctxlen:]):
+            if top_logprobs:
+                top_token = max(top_logprobs, key=lambda x: x[0])[1]
                 if top_token != token:
                     is_greedy = False
                     break
-
         return continuation_logprobs, is_greedy
 
     @staticmethod
