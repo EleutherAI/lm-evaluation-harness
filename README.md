@@ -255,10 +255,11 @@ lm_eval --model sglang \
     --batch_size auto
 ```
 > [!Tip]
-> When you meet out of memory(OOM), there are three ways to deal with that:
-> 1. Reduce `batch_size`, as `--batch_size auto` tends to set a very large (the same number of data points in a task) batch size;
-> 2. Reduce the memory usage of the KV cache pool by setting a smaller value of  `mem_fraction_static`. It is usually handled by the server engine, but you can set it like `--model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto,mem_fraction_static=0.7`.
-> 3. Increase tensor parallel size `tp_size`.
+> When encountering out of memory (OOM) errors (especially for multiple-choice tasks), try these solutions:
+> 1. Use a manual `batch_size`, rather than `auto`.
+> 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
+> 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
+
 ### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
