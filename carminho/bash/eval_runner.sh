@@ -5,7 +5,7 @@
 #SBATCH --gpus=1
 #SBATCH --qos=gpu-short
 #SBATCH --partition=a6000
-#SSBATCH --array=0
+#SBATCH --array=0-1
 
 # set -e
 export TOKENIZERS_PARALLELISM=false
@@ -15,7 +15,8 @@ source ~/mydata/venvs/carminho/bin/activate
 echo Interpreter used: `which python`
 
 MODELS=( \
-    "carminho/carminho_base_1"
+    "carminho/carminho_base_1" \
+    "carminho/carminho_it_1"
 )
 
 # Check if this is an array job
@@ -38,8 +39,8 @@ echo "Model: $MODEL"
 # model_args="pretrained=${MODEL},tensor_parallel_size=${GPUs_per_model},dtype=auto,gpu_memory_utilization=0.8,data_parallel_size=${model_replicas}"
 model_args="pretrained=${MODEL},dtype=auto,gpu_memory_utilization=0.8,max_model_len=2048"
 tasks="belebele_por_Latn,global_mmlu_pt"
-output_path="/mnt/home/giuseppe0/myscratch/carminho/"
-cache_dir="/mnt/home/giuseppe/myscratch/carminho = None/cache/${MODEL//\//__}"
+output_path="/mnt/home/giuseppe/myscratch/carminho/${MODEL//\//__}"
+cache_dir="/mnt/home/giuseppe/myscratch/carminho/${MODEL//\//__}"
 
 # HF Hub logging arguments
 hf_org="hub_results_org=carminho"
@@ -56,9 +57,9 @@ lm_eval --model vllm \
     --tasks $tasks \
     --batch_size auto \
     --output_path $output_path \
-    --log_samples \
     --use_cache $cache_dir \
     --cache_requests "true" \
+    --log_samples \
     --seed 42 \
     --hf_hub_log_args ${hf_org},${hf_details_repo},${hf_results_repo},${push_results},${push_samples},${public_repo}
 
