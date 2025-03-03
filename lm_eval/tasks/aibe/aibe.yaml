@@ -1,25 +1,21 @@
 task: aibe
-dataset_path: ParimalThakre/evaluation_test
+dataset_path: ParimalThakre/aibe_reformatted
 dataset_name: null
-dataset_kwargs:
-  token: ${HUGGINGFACE_TOKEN}
-task_alias: AIBE Assessment
-
+# Specify which splits to use
 training_split: train
-validation_split: train
-test_split: train
-
-doc_to_text: "Question: {{question}}\nOptions: {{options}}\nAnswer: "
-doc_to_target: "{{correct_option}}"
-doc_to_choice: ["a", "b", "c", "d"]
-
-output_type: multiple_choice
+validation_split: null
+test_split: train  # Use the train split as the test split for evaluation
+fewshot_split: train  # Use the train split for few-shot examples as well
+output_type: generate_until
 process_docs: !function utils.process_docs
-
+doc_to_text: "Question: {{question}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nAnswer:"
+doc_to_target: "{{correct_option}}"
+generation_kwargs:
+  temperature: 0.0
+  max_tokens: 256
 metric_list:
-  - metric: acc
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true
-
 metadata:
-  version: 0.0.1
+  version: 0.1

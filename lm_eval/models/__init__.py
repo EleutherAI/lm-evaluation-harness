@@ -18,9 +18,8 @@ from . import (
     vllm_vlms,
 )
 
-
 # TODO: implement __all__
-
+from .nugen_api import NugenAPI
 
 try:
     # enable hf hub transfer if available
