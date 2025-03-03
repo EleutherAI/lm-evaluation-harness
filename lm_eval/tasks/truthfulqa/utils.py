@@ -8,14 +8,13 @@ ROUGE_SCORER = None
 
 
 def process_results_mc2(doc, results):
-    # Unpack log-likelihoods from results
     ll, _ = zip(*results)
     ll = np.array(ll)
 
-    # Convert log-likelihoods to probabilities
+    # Convert log-likelihoods to probabilities.
     probs = np.exp(ll)
 
-    # Normalize probabilities
+    # Normalize probabilities.
     probs_norm = probs / np.sum(probs)
 
     labels = np.array(doc["mc2_targets"]["labels"])
