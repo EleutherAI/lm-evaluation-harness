@@ -1,0 +1,12 @@
+"process_docs": !function utils.dr_msa
+include:
+  - translation_common_yaml
+  - madar_common_yaml
+"tag":
+- "darija_translation_tasks_madar"
+"task": "trasnlation_dr_msa_madar"
+"task_alias": "dr_msa_madar"
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.arabert
+    higher_is_better: true
