@@ -13,7 +13,6 @@ from lm_eval.tasks import TaskManager
 from lm_eval.utils import (
     handle_non_serializable,
     make_table,
-    parse_keyed_list_string,
     simple_parse_args_string,
 )
 
@@ -269,9 +268,9 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--metadata",
-        type=str,
+        type=json.loads,
         default=None,
-        help="Comma separated string argument metadata to pass to task configs, for example max_seq_lengths=4096,8192. Will be parsed as a dictionary with all values as tuples.",
+        help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192],...}'. Will be merged with model_args""",
     )
     return parser
 
@@ -320,7 +319,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         simple_parse_args_string(args.model_args)
         if isinstance(args.model_args, str)
         else {}
-    ) | parse_keyed_list_string(args.metadata)
+    ) | args.metadata or {}
 
     task_manager = TaskManager(include_path=args.include_path, metadata=metadata)
 
@@ -427,7 +426,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
         confirm_run_unsafe_code=args.confirm_run_unsafe_code,
-        metadata=parse_keyed_list_string(args.metadata),
+        metadata=metadata,
         **request_caching_args,
     )
 
