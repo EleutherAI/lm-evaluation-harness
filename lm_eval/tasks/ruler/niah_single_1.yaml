@@ -21,15 +21,15 @@ metric_list:
   - metric: "16384"
     aggregation: !function common_utils.aggregate_metrics
     higher_is_better: true
-#  - metric: "32768"
-#    aggregation: !function utils.aggregate_metrics
-#    higher_is_better: true
-#  - metric: "65536"
-#    aggregation: !function utils.aggregate_metrics
-#    higher_is_better: true
-#  - metric: "131072"
-#    aggregation: !function utils.aggregate_metrics
-#    higher_is_better: true
+  - metric: "32768"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "65536"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "131072"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
 generation_kwargs:
   do_sample: false
   temperature: 0.0
