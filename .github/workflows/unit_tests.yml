@@ -3,9 +3,6 @@
 # just comment out unwanted steps to turn off the test.
 name: Unit Tests
 
-env:
-  HF_HUB_DOWNLOAD_TIMEOUT: 100
-
 on:
   push:
     branches:

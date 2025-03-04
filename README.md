@@ -160,9 +160,9 @@ To learn more about model parallelism and how to use it with the `accelerate` li
 
 ### Steered Hugging Face `transformers` models
 
-To evaluate a Hugging Face `transformers` model with steering vector(/s) applied, specify the model type as `steered` and provide the path to a PyTorch file containing pre-defined steering vectors or a CSV file which specifies how to derive steering vectors from pretrained `sparsify` or `sae_lens` models. To derive steering vectors from these models you will need to install the corresponding optional dependency.
+To evaluate a Hugging Face `transformers` model with steering vectors applied, specify the model type as `steered` and provide the path to either a PyTorch file containing pre-defined steering vectors, or a CSV file that specifies how to derive steering vectors from pretrained `sparsify` or `sae_lens` models (you will need to install the corresponding optional dependency for this method).
 
-Specify pre-defined steering vectors in a PyTorch file:
+Specify pre-defined steering vectors:
 
 ```python
 import torch
@@ -178,7 +178,7 @@ steer_config = {
 torch.save(steer_config, "steer_config.pt")
 ```
 
-Specify steering vectors derived from sparse models in a CSV file:
+Specify derived steering vectors:
 
 ```python
 import pandas as pd
