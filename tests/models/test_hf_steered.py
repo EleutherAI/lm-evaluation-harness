@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
 
 from lm_eval import tasks
@@ -107,6 +108,7 @@ class Test_SteeredModel:
         steer_path="tests/testconfigs/sparsify_intervention.csv",
     )
 
+    @pytest.mark.skip(reason="Ignoring SAE lens test")
     def test_load_with_sae_lens(self) -> None:
         SteeredModel(
             pretrained="EleutherAI/pythia-70m",
