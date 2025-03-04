@@ -1,6 +1,5 @@
 from typing import Dict, List
 
-
 def process_results(doc: List, results: List[str]) -> Dict:
     """
     Args:
@@ -22,3 +21,9 @@ def aggregate_results(results: Dict) -> int:
         if res["answer"] in res["pred_answer"]:
             score += 1
     return 100 * score / len(results)
+
+def doc_to_text(doc):
+    return "<video>" + doc["input"]
+
+def doc_to_video(doc):
+    return [doc["video"]]

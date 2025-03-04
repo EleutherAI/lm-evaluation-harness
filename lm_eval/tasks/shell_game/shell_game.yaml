@@ -2,9 +2,9 @@ task: shell_game
 dataset_path: Gscraid/shell_game
 output_type: generate_until
 test_split: test
-doc_to_text: "input"
+doc_to_text: !function utils.doc_to_text
 doc_to_target: "output"
-doc_to_image: "video"
+doc_to_video: !function utils.doc_to_video
 process_results: !function utils.process_results
 metric_list:
   - metric: shell_game_em
