@@ -34,6 +34,15 @@ def assert_unitxt_installed():
             "Please install unitxt via 'pip install unitxt'. For more information see: https://www.unitxt.ai/"
         )
 
+    from unitxt import __version__ as unitxt_version
+
+    # Function argument change due to https://github.com/IBM/unitxt/pull/1564
+    unitxt_version = tuple(map(int, (unitxt_version.split("."))))
+    if unitxt_version < (1, 17, 2):
+        raise Exception(
+            "Please install a more recent version of unitxt via 'pip install --upgrade unitxt' to avoid errors due to breaking changes"
+        )
+
 
 def score(items, metric):
     predictions, references = zip(*items)
@@ -69,7 +78,7 @@ class Unitxt(ConfigurableTask):
         assert_unitxt_installed()
         from unitxt import load_dataset
 
-        self.dataset = load_dataset(self.DATASET_NAME, disable_cache=False)
+        self.dataset = load_dataset(self.DATASET_NAME, use_cache=True)
 
     def has_training_docs(self):
         return "train" in self.dataset
