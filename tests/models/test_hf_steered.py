@@ -1,3 +1,4 @@
+# ruff: noqa
 from __future__ import annotations
 
 import os
@@ -10,8 +11,8 @@ import torch
 
 from lm_eval import tasks
 from lm_eval.api.instance import Instance
-from lm_eval.models.hf_steered import SteeredModel
 
+pytest.skip("dependency conflict on CI", allow_module_level=True)
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
@@ -20,6 +21,8 @@ TEST_STRING = "foo bar"
 
 
 class Test_SteeredModel:
+    from lm_eval.models.hf_steered import SteeredModel
+
     torch.use_deterministic_algorithms(True)
     task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
     version_minor = sys.version_info.minor
@@ -108,8 +111,9 @@ class Test_SteeredModel:
         steer_path="tests/testconfigs/sparsify_intervention.csv",
     )
 
-    @pytest.mark.skip(reason="Ignoring SAE lens test")
     def test_load_with_sae_lens(self) -> None:
+        from lm_eval.models.hf_steered import SteeredModel
+
         SteeredModel(
             pretrained="EleutherAI/pythia-70m",
             device="cpu",
