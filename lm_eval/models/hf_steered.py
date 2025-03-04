@@ -80,22 +80,23 @@ class SteeredModel(HFLM):
 
         To load steering vectors directly, provide the path to a pytorch (.pt) file with content in the following format:
 
-        [
-            {
-                "hookpoint": <str>,
+        {
+            hookpoint: {
                 "steering_vector": <torch.Tensor>,
                 "steering_coefficient": <float>,
                 "action": <Literal["add", "clamp"]>,
                 "bias": <torch.Tensor | None>,
             },
             ...
-        ]
+        }
         """
         super().__init__(pretrained=pretrained, device=device, **kwargs)
 
         if steer_path.endswith(".pt") or steer_path.endswith(".pth"):
             with open(steer_path, "rb") as f:
-                steer_config = torch.load(f, weights_only=True)
+                steer_config: dict[str, dict[str, Any]] = torch.load(
+                    f, weights_only=True
+                )
         elif steer_path.endswith(".csv"):
             steer_config = self.derive_steer_config(steer_path)
         else:
@@ -105,8 +106,14 @@ class SteeredModel(HFLM):
         for hookpoint, steer_info in steer_config.items():
             action = steer_info["action"]
             steering_coefficient = steer_info["steering_coefficient"]
-            steering_vector = steer_info["steering_vector"]
-            bias = steer_info["bias"]
+            steering_vector = (
+                steer_info["steering_vector"].to(self.device).to(self.model.dtype)
+            )
+            bias = (
+                steer_info["bias"].to(self.device).to(self.model.dtype)
+                if steer_info["bias"] is not None
+                else None
+            )
 
             if action == "add":
                 # Steers the model by adding some multiple of a steering vector to all sequence positions.
@@ -131,7 +138,7 @@ class SteeredModel(HFLM):
         import pandas as pd
 
         df = pd.read_csv(steer_path)
-        steer_data = {}
+        steer_data: dict[str, dict[str, Any]] = {}
 
         if any(df["loader"] == "sparsify"):
             from sparsify import SparseCoder
@@ -218,7 +225,7 @@ class SteeredModel(HFLM):
         clamped = orthogonal_component + direction * value
 
         if bias is not None:
-            clamped = clamped + bias
+            return clamped + bias
 
         return clamped
 
