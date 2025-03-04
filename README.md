@@ -5,6 +5,7 @@
 ---
 
 *Latest News 📣*
+- [2025/03] Added support for steering HF models!
 - [2025/02] Added [SGLang](https://docs.sglang.ai/) support!
 - [2024/09] We are prototyping allowing users of LM Evaluation Harness to create and evaluate on text+image multimodal input, text output tasks, and have just added the `hf-multimodal` and `vllm-vlm` model types and `mmmu` task as a prototype feature. We welcome users to try out this in-progress feature and stress-test it for themselves, and suggest they check out [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval), a wonderful project originally forking off of the lm-evaluation-harness, for a broader range of multimodal tasks, models, and features.
 - [2024/07] [API model](docs/API_guide.md) support has been updated and refactored, introducing support for batched and async requests, and making it significantly easier to customize and use for your own purposes. **To run Llama 405B, we recommend using VLLM's OpenAI-compliant API to host the model, and use the `local-completions` model type to evaluate the model.**
@@ -156,6 +157,50 @@ To learn more about model parallelism and how to use it with the `accelerate` li
 **Warning: We do not natively support multi-node evaluation using the `hf` model type! Please reference [our GPT-NeoX library integration](https://github.com/EleutherAI/gpt-neox/blob/main/eval.py) for an example of code in which a custom multi-machine evaluation script is written.**
 
 **Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
+
+### Steered Hugging Face `transformers` models
+
+To evaluate a Hugging Face `transformers` model with steering vectors applied, specify the model type as `steered` and provide the path to either a PyTorch file containing pre-defined steering vectors, or a CSV file that specifies how to derive steering vectors from pretrained `sparsify` or `sae_lens` models (you will need to install the corresponding optional dependency for this method).
+
+Specify pre-defined steering vectors:
+
+```python
+import torch
+
+steer_config = {
+    "layers.3": {
+        "steering_vector": torch.randn(1, 768),
+        "bias": torch.randn(1, 768),
+        "steering_coefficient": 1,
+        "action": "add"
+    },
+}
+torch.save(steer_config, "steer_config.pt")
+```
+
+Specify derived steering vectors:
+
+```python
+import pandas as pd
+
+pd.DataFrame({
+    "loader": ["sparsify"],
+    "action": ["add"],
+    "sparse_model": ["EleutherAI/sae-pythia-70m-32k"],
+    "hookpoint": ["layers.3"],
+    "feature_index": [30],
+    "steering_coefficient": [10.0],
+}).to_csv("steer_config.csv", index=False)
+```
+
+Run the evaluation harness with steering vectors applied:
+```bash
+lm_eval --model steered \
+    --model_args pretrained=EleutherAI/pythia-160m,steer_path=steer_config.pt \
+    --tasks lambada_openai,hellaswag \
+    --device cuda:0 \
+    --batch_size 8
+```
 
 ### NVIDIA `nemo` models
 
@@ -523,8 +568,10 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | multilingual    | For multilingual tokenizers                  |
 | optimum         | For running Intel OpenVINO models            |
 | promptsource    | For using PromptSource prompts               |
+| sae_lens        | For using SAELens to steer models            |
 | sentencepiece   | For using the sentencepiece tokenizer        |
 | sparseml        | For using NM's SparseML models               |
+| sparsify        | For using Sparsify to steer models           |
 | testing         | For running library test suite               |
 | vllm            | For loading models with vLLM                 |
 | zeno            | For visualizing results with Zeno            |

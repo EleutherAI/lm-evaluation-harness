@@ -1,0 +1,2 @@
+loader,hook_action,sparse_model,hookpoint,feature_index,steering_coefficient,sae_id,description,
+sparsify,add,EleutherAI/sae-pythia-70m-32k,layers.3,30,0.1,,,
