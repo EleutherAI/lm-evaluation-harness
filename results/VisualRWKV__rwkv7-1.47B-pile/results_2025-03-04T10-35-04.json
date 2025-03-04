@@ -1,0 +1,60 @@
+{
+  "glue": {
+    "acc,none": 0.4011731777036684,
+    "acc_stderr,none": 0.0018790022274732933,
+    "mcc,none": -0.0035622805992487597,
+    "mcc_stderr,none": 0.030901804261871967,
+    "f1,none": 0.530594768535563,
+    "f1_stderr,none": 0.0025918508369492076,
+    "alias": "glue"
+  },
+  "cola": {
+    "mcc,none": -0.0035622805992487597,
+    "mcc_stderr,none": 0.030901804261871963,
+    "alias": " - cola"
+  },
+  "mnli": {
+    "acc,none": 0.3843097300050942,
+    "acc_stderr,none": 0.004910195776393441,
+    "alias": " - mnli"
+  },
+  "mnli_mismatch": {
+    "acc,none": 0.37418633034987797,
+    "acc_stderr,none": 0.004880537269312324,
+    "alias": " - mnli_mismatch"
+  },
+  "mrpc": {
+    "acc,none": 0.553921568627451,
+    "acc_stderr,none": 0.02463953717560257,
+    "f1,none": 0.6829268292682927,
+    "f1_stderr,none": 0.022514960827454706,
+    "alias": " - mrpc"
+  },
+  "qnli": {
+    "acc,none": 0.5077796082738422,
+    "acc_stderr,none": 0.00676459158572741,
+    "alias": " - qnli"
+  },
+  "qqp": {
+    "acc,none": 0.3868661884739055,
+    "acc_stderr,none": 0.0024222084829320567,
+    "f1,none": 0.5290575070767711,
+    "f1_stderr,none": 0.0026081205761395465,
+    "alias": " - qqp"
+  },
+  "rte": {
+    "acc,none": 0.5776173285198556,
+    "acc_stderr,none": 0.029731622646495877,
+    "alias": " - rte"
+  },
+  "sst2": {
+    "acc,none": 0.7568807339449541,
+    "acc_stderr,none": 0.014534976562074276,
+    "alias": " - sst2"
+  },
+  "wnli": {
+    "acc,none": 0.4788732394366197,
+    "acc_stderr,none": 0.05970805879899505,
+    "alias": " - wnli"
+  }
+}
