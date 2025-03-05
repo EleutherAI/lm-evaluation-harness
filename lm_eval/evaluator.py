@@ -145,7 +145,9 @@ def simple_evaluate(
         setup_logging(verbosity=verbostiy)
     start_date = time.time()
 
-    if "instruct" in model_args and not apply_chat_template:
+    if isinstance(model_args, str) and (
+        "instruct" in model_args and not apply_chat_template
+    ):
         eval_logger.warning(
             "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
         )
