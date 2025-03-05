@@ -34,6 +34,7 @@ from lm_eval.utils import (
     handle_non_serializable,
     hash_string,
     positional_deprecated,
+    setup_logging,
     simple_parse_args_string,
 )
 
@@ -141,7 +142,7 @@ def simple_evaluate(
         Dictionary of results
     """
     if verbostiy is not None:
-        lm_eval.setup_logging(verbosity=verbostiy)
+        setup_logging(verbosity=verbostiy)
     start_date = time.time()
 
     if delete_requests_cache:
