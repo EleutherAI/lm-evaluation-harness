@@ -11,6 +11,7 @@ test_split: test
 doc_to_text: null
 doc_to_target: label
 doc_to_choice: null
+target_delimiter: ""
 metric_list:
   - metric: acc
     aggregation: mean

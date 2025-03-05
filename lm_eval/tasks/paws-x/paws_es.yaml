@@ -4,4 +4,5 @@ doc_to_choice: '{{[sentence1+", verdad? No, "+sentence2, sentence1+", verdad? SÃ
   "+sentence2]}}'
 doc_to_text: ''
 include: pawsx_template_yaml
+process_docs: !function utils.process_docs_paraphrases
 task: paws_es
