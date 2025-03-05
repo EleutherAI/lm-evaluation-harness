@@ -62,6 +62,9 @@
       "acc,none": 0.43661971830985913,
       "acc_stderr,none": 0.0592793555841297,
       "alias": " - wnli"
+    },
+    "aggregate": {
+      "acc,none": 0.5029
     }
   }
 }
