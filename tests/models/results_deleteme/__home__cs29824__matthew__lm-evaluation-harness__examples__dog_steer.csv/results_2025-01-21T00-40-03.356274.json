@@ -1,0 +1,124 @@
+{
+  "results": {
+    "mmlu_abstract_algebra": {
+      "alias": "abstract_algebra",
+      "acc,none": 0.34,
+      "acc_stderr,none": 0.047609522856952344
+    }
+  },
+  "group_subtasks": {
+    "mmlu_abstract_algebra": []
+  },
+  "configs": {
+    "mmlu_abstract_algebra": {
+      "task": "mmlu_abstract_algebra",
+      "task_alias": "abstract_algebra",
+      "tag": "mmlu_stem_tasks",
+      "dataset_path": "hails/mmlu_no_train",
+      "dataset_name": "abstract_algebra",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "test_split": "test",
+      "fewshot_split": "dev",
+      "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "The following are multiple choice questions (with answers) about abstract algebra.\n\n",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "mmlu_abstract_algebra": 1.0
+  },
+  "n-shot": {
+    "mmlu_abstract_algebra": 0
+  },
+  "higher_is_better": {
+    "mmlu_abstract_algebra": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "mmlu_abstract_algebra": {
+      "original": 100,
+      "effective": 100
+    }
+  },
+  "config": {
+    "model": "sae_steered_beta",
+    "model_args": "base_name=google/gemma-2-2b,csv_path=/home/cs29824/matthew/lm-evaluation-harness/examples/dog_steer.csv",
+    "model_num_parameters": 0,
+    "model_dtype": null,
+    "model_revision": "main",
+    "model_sha": "c5ebcd40d208330abc697524c919956e692655cf",
+    "batch_size": "auto",
+    "batch_sizes": [
+      16
+    ],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "e16afa2f",
+  "date": 1737419939.4888458,
+  "pretty_env_info": "PyTorch version: 2.5.1+cu124\nIs debug build: False\nCUDA used to build PyTorch: 12.4\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 20.04.6 LTS (x86_64)\nGCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0\nClang version: Could not collect\nCMake version: version 3.16.3\nLibc version: glibc-2.31\n\nPython version: 3.11.11 | packaged by conda-forge | (main, Dec  5 2024, 14:17:24) [GCC 13.3.0] (64-bit runtime)\nPython platform: Linux-5.4.0-1125-kvm-x86_64-with-glibc2.31\nIs CUDA available: True\nCUDA runtime version: 10.1.243\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: \nGPU 0: Quadro RTX 8000\nGPU 1: Quadro RTX 8000\n\nNvidia driver version: 545.23.08\ncuDNN version: Probably one of the following:\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn.so.8.4.1\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn_adv_infer.so.8.4.1\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn_adv_train.so.8.4.1\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn_cnn_infer.so.8.4.1\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn_cnn_train.so.8.4.1\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn_ops_infer.so.8.4.1\n/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcudnn_ops_train.so.8.4.1\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                       x86_64\nCPU op-mode(s):                     32-bit, 64-bit\nByte Order:                         Little Endian\nAddress sizes:                      46 bits physical, 48 bits virtual\nCPU(s):                             16\nOn-line CPU(s) list:                0-15\nThread(s) per core:                 1\nCore(s) per socket:                 1\nSocket(s):                          16\nNUMA node(s):                       1\nVendor ID:                          GenuineIntel\nCPU family:                         6\nModel:                              85\nModel name:                         Intel Xeon Processor (Cascadelake)\nStepping:                           6\nCPU MHz:                            2294.608\nBogoMIPS:                           4589.21\nVirtualization:                     VT-x\nHypervisor vendor:                  KVM\nVirtualization type:                full\nL1d cache:                          512 KiB\nL1i cache:                          512 KiB\nL2 cache:                           64 MiB\nL3 cache:                           256 MiB\nNUMA node0 CPU(s):                  0-15\nVulnerability Gather data sampling: Unknown: Dependent on hypervisor status\nVulnerability Itlb multihit:        Not affected\nVulnerability L1tf:                 Not affected\nVulnerability Mds:                  Not affected\nVulnerability Meltdown:             Not affected\nVulnerability Mmio stale data:      Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown\nVulnerability Retbleed:             Mitigation; Enhanced IBRS\nVulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:           Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI Vulnerable, KVM SW loop\nVulnerability Srbds:                Not affected\nVulnerability Tsx async abort:      Mitigation; TSX disabled\nFlags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap clflushopt clwb avx512cd avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves arat umip pku avx512_vnni md_clear arch_capabilities\n\nVersions of relevant libraries:\n[pip3] mypy==1.14.1\n[pip3] mypy-extensions==1.0.0\n[pip3] numpy==1.26.4\n[pip3] torch==2.5.1\n[pip3] triton==3.1.0\n[conda] numpy                     1.26.4                   pypi_0    pypi\n[conda] torch                     2.5.1                    pypi_0    pypi\n[conda] triton                    3.1.0                    pypi_0    pypi",
+  "transformers_version": "4.48.1",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<pad>",
+    "0"
+  ],
+  "tokenizer_eos_token": [
+    "<eos>",
+    "1"
+  ],
+  "tokenizer_bos_token": [
+    "<bos>",
+    "2"
+  ],
+  "eot_token_id": 1,
+  "max_length": 8192,
+  "task_hashes": {},
+  "model_source": "sae_steered_beta",
+  "model_name": "/home/cs29824/matthew/lm-evaluation-harness/examples/dog_steer.csv",
+  "model_name_sanitized": "__home__cs29824__matthew__lm-evaluation-harness__examples__dog_steer.csv",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 2970008.635285475,
+  "end_time": 2970078.697630497,
+  "total_evaluation_time_seconds": "70.06234502233565"
+}
