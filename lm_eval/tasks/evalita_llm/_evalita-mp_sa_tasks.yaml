@@ -1,0 +1,9 @@
+group: evalita-mp_sa
+group_alias: sentiment-analysis
+task:
+  - evalita-mp_sa_tasks # Each of the tasks has to have a matching tag in its own yaml file
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: True
+metadata:
+  version: 1

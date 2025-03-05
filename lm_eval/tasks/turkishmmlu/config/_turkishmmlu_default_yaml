@@ -9,7 +9,7 @@ fewshot_config:
 output_type: multiple_choice
 doc_to_text: "Soru: {{ question.strip() }}\nA. {{ choices[0] }}\nB. {{ choices[1] }}\nC. {{ choices[2] }}\nD. {{ choices[3] }}\nE. {{ choices[4] }}\nCevap:"
 doc_to_choice: ["A", "B", "C", "D", "E"]
-doc_to_target: "{{['A', 'B', 'C', 'D', 'E'].index(answer)}}"
+doc_to_target: "{{ answer.strip() }}"
 metric_list:
   - metric: acc
     aggregation: mean

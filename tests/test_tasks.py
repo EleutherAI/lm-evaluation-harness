@@ -13,18 +13,29 @@ from .utils import new_tasks
 
 datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-task_manager = tasks.TaskManager()
 # Default Task
 TASKS = ["arc_easy"]
 
 
-def task_class():
+def get_new_tasks_else_default():
+    """
+    Check if any modifications have been made to built-in tasks and return
+    the list, otherwise return the default task list
+    """
     global TASKS
     # CI: new_tasks checks if any modifications have been made
     task_classes = new_tasks()
     # Check if task_classes is empty
-    task_classes = task_classes if task_classes else TASKS
-    res = tasks.get_task_dict(task_classes, task_manager)
+    return task_classes if task_classes else TASKS
+
+
+def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
+    """
+    Convert a list of task names to a list of ConfigurableTask instances
+    """
+    if task_manager is None:
+        task_manager = tasks.TaskManager()
+    res = tasks.get_task_dict(task_names, task_manager)
     res = [x.task for x in get_task_list(res)]
 
     return res
@@ -36,8 +47,11 @@ def limit() -> int:
 
 
 # Tests
-@pytest.mark.parametrize("task_class", task_class(), ids=lambda x: f"{x.config.task}")
-class TestNewTasks:
+class BaseTasks:
+    """
+    Base class for testing tasks
+    """
+
     def test_download(self, task_class: ConfigurableTask):
         task_class.download()
         assert task_class.dataset is not None
@@ -87,7 +101,9 @@ class TestNewTasks:
                     (x[-1].isspace() is False if len(x) > 0 else True)
                     if target_delimiter.isspace()
                     else True
-                ), "doc_to_text ends in a whitespace and target delimiter also a whitespace"
+                ), (
+                    "doc_to_text ends in a whitespace and target delimiter also a whitespace"
+                )
         else:
             pass
 
@@ -138,3 +154,57 @@ class TestNewTasks:
             for doc in arr
         ]
         assert len(requests) == limit if limit else True
+
+
+@pytest.mark.parametrize(
+    "task_class",
+    task_class(get_new_tasks_else_default()),
+    ids=lambda x: f"{x.config.task}",
+)
+class TestNewTasksElseDefault(BaseTasks):
+    """
+    Test class parameterized with a list of new/modified tasks
+    (or a set of default tasks if none have been modified)
+    """
+
+
+@pytest.mark.parametrize(
+    "task_class",
+    task_class(
+        ["arc_easy_unitxt"], tasks.TaskManager(include_path="./tests/testconfigs")
+    ),
+    ids=lambda x: f"{x.config.task}",
+)
+class TestUnitxtTasks(BaseTasks):
+    """
+    Test class for Unitxt tasks parameterized with a small custom
+    task as described here:
+      https://www.unitxt.ai/en/latest/docs/lm_eval.html
+    """
+
+    def test_check_training_docs(self, task_class: ConfigurableTask):
+        if task_class.has_training_docs():
+            assert task_class.dataset["train"] is not None
+
+    def test_check_validation_docs(self, task_class):
+        if task_class.has_validation_docs():
+            assert task_class.dataset["validation"] is not None
+
+    def test_check_test_docs(self, task_class):
+        task = task_class
+        if task.has_test_docs():
+            assert task.dataset["test"] is not None
+
+    def test_doc_to_text(self, task_class, limit: int):
+        task = task_class
+        arr = (
+            list(islice(task.test_docs(), limit))
+            if task.has_test_docs()
+            else list(islice(task.validation_docs(), limit))
+        )
+        _array = [task.doc_to_text(doc) for doc in arr]
+        if not task.multiple_input:
+            for x in _array:
+                assert isinstance(x, str)
+        else:
+            pass

@@ -2,6 +2,7 @@ import collections
 import fnmatch
 import gc
 import itertools
+import logging
 import time
 from functools import wraps
 from typing import (
@@ -22,7 +23,8 @@ from typing import (
 import torch
 import transformers
 
-from lm_eval.utils import eval_logger
+
+eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
@@ -155,9 +157,9 @@ def pad_and_concat(
     length in the batch. Used for batching inputs and continuations in
     seq2seq models.
     """
-    assert (
-        padding_side == "left" or padding_side == "right"
-    ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
+    assert padding_side == "left" or padding_side == "right", (
+        f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
+    )
 
     for i, tensor in enumerate(tensors):
         if len(tensor.shape) == 2:

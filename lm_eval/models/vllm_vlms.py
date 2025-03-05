@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Dict, List, Optional
 
 import transformers
@@ -14,7 +15,9 @@ from lm_eval.models.utils import (
     undistribute,
 )
 from lm_eval.models.vllm_causallms import VLLM
-from lm_eval.utils import eval_logger
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 try:
@@ -106,11 +109,9 @@ class VLLM_VLM(VLLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
         if self.data_parallel_size > 1:
-            # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
+            # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
-            # but then tensor_parallel breaks
             @ray.remote
             def run_inference_one_model(
                 model_args: dict, sampling_params, requests: List[List[dict]]
@@ -144,7 +145,9 @@ class VLLM_VLM(VLLM):
             )
         return outputs
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt=True
+    ) -> str:
         self.chat_applied = True
         if not self.interleave:
             for content in chat_history:
@@ -194,7 +197,9 @@ class VLLM_VLM(VLLM):
                     )
 
         return self.processor.apply_chat_template(
-            chat_history, add_generation_prompt=True
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
     def generate_until(
@@ -267,7 +272,9 @@ class VLLM_VLM(VLLM):
                 left_truncate_len=max_ctx_len,
             )
 
-            cont = self._model_generate(inputs, stop=until, generate=True, **kwargs)
+            cont = self._model_generate(
+                inputs, stop=until, generate=True, max_tokens=max_gen_toks, **kwargs
+            )
 
             for output, context in zip(cont, contexts):
                 generated_text = output.outputs[0].text

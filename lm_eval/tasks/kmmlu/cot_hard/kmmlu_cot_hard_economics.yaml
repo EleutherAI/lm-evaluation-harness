@@ -87,4 +87,5 @@ fewshot_config:
       - 7,000,000원)은 어떻게 처리되었을까요? 이 금액은 회사의 이익에서 차감되어야 합니다. 이는 이익잉여금, 즉 회사가 벌어들인 이익에서
       퇴직금 등을 지급한 후 남은 금액이 감소한다는 의미입니다.   선택지 D는 옳지 않습니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_economics
+task: kmmlu_cot_hard_economics
+tag: kmmlu_cot_hard_humss_tasks
