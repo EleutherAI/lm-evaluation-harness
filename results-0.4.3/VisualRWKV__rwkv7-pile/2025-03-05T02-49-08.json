@@ -1,0 +1,70 @@
+{
+  "model": "/workspace/RWKV-x070-Pile-168M-20241120-ctx4096",
+  "tasks": [
+    "glue"
+  ],
+  "num_fewshot": 0,
+  "results": {
+    "glue": {
+      "f1,none": 0.5408238719161098,
+      "f1_stderr,none": 0.002532266760928874,
+      "acc,none": 0.38117853739876134,
+      "acc_stderr,none": 0.0018602396318534013,
+      "mcc,none": 0.0,
+      "mcc_stderr,none": 0.0,
+      "alias": "glue"
+    },
+    "cola": {
+      "mcc,none": 0.0,
+      "mcc_stderr,none": 0.0,
+      "alias": " - cola"
+    },
+    "mnli": {
+      "acc,none": 0.35384615384615387,
+      "acc_stderr,none": 0.004826720820135623,
+      "alias": " - mnli"
+    },
+    "mnli_mismatch": {
+      "acc,none": 0.35130187144019526,
+      "acc_stderr,none": 0.004814627655718593,
+      "alias": " - mnli_mismatch"
+    },
+    "mrpc": {
+      "acc,none": 0.6813725490196079,
+      "acc_stderr,none": 0.023095996571841474,
+      "f1,none": 0.8104956268221575,
+      "f1_stderr,none": 0.016511633766132367,
+      "alias": " - mrpc"
+    },
+    "qnli": {
+      "acc,none": 0.4933186893648179,
+      "acc_stderr,none": 0.006764806510150311,
+      "alias": " - qnli"
+    },
+    "qqp": {
+      "acc,none": 0.3685382141973782,
+      "acc_stderr,none": 0.0023992102083032034,
+      "f1,none": 0.5381024750325663,
+      "f1_stderr,none": 0.0025523701189909594,
+      "alias": " - qqp"
+    },
+    "rte": {
+      "acc,none": 0.5234657039711191,
+      "acc_stderr,none": 0.03006330041190266,
+      "alias": " - rte"
+    },
+    "sst2": {
+      "acc,none": 0.7190366972477065,
+      "acc_stderr,none": 0.015229696550278546,
+      "alias": " - sst2"
+    },
+    "wnli": {
+      "acc,none": 0.43661971830985913,
+      "acc_stderr,none": 0.0592793555841297,
+      "alias": " - wnli"
+    },
+    "aggregate": {
+      "acc,none": 0.4909
+    }
+  }
+}
