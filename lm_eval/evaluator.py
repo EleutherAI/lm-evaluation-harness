@@ -34,6 +34,7 @@ from lm_eval.utils import (
     handle_non_serializable,
     hash_string,
     positional_deprecated,
+    setup_logging,
     simple_parse_args_string,
 )
 
@@ -141,8 +142,15 @@ def simple_evaluate(
         Dictionary of results
     """
     if verbostiy is not None:
-        lm_eval.setup_logging(verbosity=verbostiy)
+        setup_logging(verbosity=verbostiy)
     start_date = time.time()
+
+    if isinstance(model_args, str) and (
+        "instruct" in model_args and not apply_chat_template
+    ):
+        eval_logger.warning(
+            "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+        )
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
