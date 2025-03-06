@@ -30,6 +30,8 @@ aggregate_metric_list:
   - metric: f1
     aggregation: mean
     weight_by_size: false
-  - metric:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
 metadata:
   version: 1.0
