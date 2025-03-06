@@ -319,7 +319,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         simple_parse_args_string(args.model_args)
         if isinstance(args.model_args, str)
         else {}
-    ) | args.metadata or {}
+    ) | (args.metadata if isinstance(args.metadata, dict) else {})
 
     task_manager = TaskManager(include_path=args.include_path, metadata=metadata)
 
