@@ -1,0 +1,35 @@
+group: multilingual
+task:
+  - global_mmlu
+  - agieval
+  - belebele
+  - french_bench
+  - xcopa
+  - xnli
+  - xwinograd
+  # heldout, undecided yet or take very long:
+  # - arabic_leaderboard_alghafa
+  # - ceval-valid
+  # - cmmlu
+  # - xquad
+  # - mgsm
+  # - xstorycloze
+  # - lingoly # warning: needs HF token and access via https://huggingface.co/datasets/ambean/lingOly
+  # - mlqa # takes very long
+  # - pawsx
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false  # Set to false if you want unweighted average
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false
+  - metric: perplexity
+    aggregation: mean
+    weight_by_size: false
+  - metric: f1
+    aggregation: mean
+    weight_by_size: false
+  - metric:
+metadata:
+  version: 1.0
