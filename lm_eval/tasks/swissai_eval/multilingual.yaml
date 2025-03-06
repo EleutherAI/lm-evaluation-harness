@@ -1,24 +1,24 @@
 group: multilingual
 task:
   - global_mmlu
-  - agieval
-  - belebele
   - xcopa
   - xnli
   - xwinograd
   - pawsx
+  - arc_multilingual # very big, 31 languages
+  - hellaswag_multilingual # very big, 31 languages, but gives signal
   # heldout, undecided yet or take very long:
   # - arabic_leaderboard_alghafa
   # - ceval-valid
   # - cmmlu
+  # - agieval # perf close to random for 1B
+  # - belebele # perf close to random for 1B
   # - mgsm # translation of gsm8k
   # - french_bench # contains duplicates of xnli etc
   # - xquad # takes ~20min for 1.5B
   # - xstorycloze
   # - lingoly # warning: needs HF token and access via https://huggingface.co/datasets/ambean/lingOly
   # - mlqa # takes very long, seemed like 2h or so
-  # - hellaswag_multilingual # very big, 31 languages
-  # - arc_multilingual # very big, 31 languages
   # - m_mmlu # multilingual mmlu
 aggregate_metric_list:
   - metric: acc
