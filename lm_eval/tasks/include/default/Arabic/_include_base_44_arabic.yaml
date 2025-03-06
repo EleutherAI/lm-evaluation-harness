@@ -1,0 +1,13 @@
+group: include_base_44_arabic
+task:
+- include_base_44_arabic_arts_humanities
+- include_base_44_arabic_stem
+- include_base_44_arabic_social_science
+- include_base_44_arabic_driving_license
+- include_base_44_arabic_general_knowledge
+- include_base_44_arabic_business_commerce
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0
