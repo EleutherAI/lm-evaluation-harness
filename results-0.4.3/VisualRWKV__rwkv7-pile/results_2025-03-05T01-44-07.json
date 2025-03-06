@@ -1,0 +1,70 @@
+{
+  "model": "/workspace/RWKV-x070-Pile-421M-20241127-ctx4096",
+  "tasks": [
+    "glue"
+  ],
+  "num_fewshot": 0,
+  "results": {
+    "glue": {
+      "acc,none": 0.38644890424011435,
+      "acc_stderr,none": 0.0018593151582183476,
+      "f1,none": 0.5275448606508784,
+      "f1_stderr,none": 0.00261291770999644,
+      "mcc,none": 0.0,
+      "mcc_stderr,none": 0.0,
+      "alias": "glue"
+    },
+    "cola": {
+      "mcc,none": 0.0,
+      "mcc_stderr,none": 0.0,
+      "alias": " - cola"
+    },
+    "mnli": {
+      "acc,none": 0.34090677534386143,
+      "acc_stderr,none": 0.004784848738191838,
+      "alias": " - mnli"
+    },
+    "mnli_mismatch": {
+      "acc,none": 0.33848657445077296,
+      "acc_stderr,none": 0.004772448023078359,
+      "alias": " - mnli_mismatch"
+    },
+    "mrpc": {
+      "acc,none": 0.6838235294117647,
+      "acc_stderr,none": 0.023048336668420193,
+      "f1,none": 0.8122270742358079,
+      "f1_stderr,none": 0.01642422915504594,
+      "alias": " - mrpc"
+    },
+    "qnli": {
+      "acc,none": 0.5209591799377631,
+      "acc_stderr,none": 0.006759464021556998,
+      "alias": " - qnli"
+    },
+    "qqp": {
+      "acc,none": 0.37813504823151123,
+      "acc_stderr,none": 0.002411709571849969,
+      "f1,none": 0.5246719854803947,
+      "f1_stderr,none": 0.0026340571216250785,
+      "alias": " - qqp"
+    },
+    "rte": {
+      "acc,none": 0.5306859205776173,
+      "acc_stderr,none": 0.030039730592197816,
+      "alias": " - rte"
+    },
+    "sst2": {
+      "acc,none": 0.7935779816513762,
+      "acc_stderr,none": 0.013713987123090354,
+      "alias": " - sst2"
+    },
+    "wnli": {
+      "acc,none": 0.43661971830985913,
+      "acc_stderr,none": 0.0592793555841297,
+      "alias": " - wnli"
+    },
+    "aggregate": {
+      "acc,none": 0.5029
+    }
+  }
+}
