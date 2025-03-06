@@ -29,6 +29,9 @@ BibTeX-formatted citation goes here
 
 #### Tasks
 
+### Tasks
+
+* `mgsm_chat`: 0-shot mgsm benchmark. Use with chat-template.
 * `mmlu_llama`: `generation variant of MMLU`
 * `arc_chalenge_chat`: `generation variant of ARC-Challenge using MMLU format`
 
