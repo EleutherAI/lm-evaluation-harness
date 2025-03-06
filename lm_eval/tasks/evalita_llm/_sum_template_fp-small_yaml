@@ -1,0 +1,10 @@
+dataset_path: evalitahf/summarization-fp
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "</s>"
+test_split: test_100
+fewshot_split: dev
+doc_to_target: "{{target}}"
+metadata:
+  version: 1
