@@ -1,0 +1,4 @@
+include: _armenian_template_yaml
+description: The following is multiple-choice question about Social Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_armenian_social_science

@@ -1,0 +1,11 @@
+group: include_base_44_turkish
+task:
+- include_base_44_turkish_few_shot_en_business_commerce
+- include_base_44_turkish_few_shot_en_stem
+- include_base_44_turkish_few_shot_en_arts_humanities
+- include_base_44_turkish_few_shot_en_social_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

@@ -1,0 +1,4 @@
+include: _bulgarian_few_shot_og_template_yaml
+description: Следват въпроси с избираем отговор (с отговори) за Social Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_bulgarian_few_shot_og_social_science

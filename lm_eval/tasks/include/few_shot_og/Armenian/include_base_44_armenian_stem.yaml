@@ -1,0 +1,4 @@
+include: _armenian_few_shot_og_template_yaml
+description: 'Ստորև բերված են բազմակի ընտրության հարցեր (պատասխաններով) STEM-ի վերաբերյալ:'
+process_docs: !function 'utils.process_stem'
+task: include_base_44_armenian_few_shot_og_stem

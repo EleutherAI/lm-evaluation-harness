@@ -1,0 +1,5 @@
+include: _uzbek_few_shot_og_template_yaml
+description: Quyida Arts & Humanities boʻyicha koʻp tanlovli savollar (javoblari bilan)
+  keltirilgan.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_uzbek_few_shot_og_arts_humanities

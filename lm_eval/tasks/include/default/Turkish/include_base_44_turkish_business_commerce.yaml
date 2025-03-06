@@ -1,0 +1,4 @@
+include: _turkish_template_yaml
+description: The following is multiple-choice question about Business & Commerce.
+process_docs: !function 'utils.process_business_commerce'
+task: include_base_44_turkish_business_commerce
