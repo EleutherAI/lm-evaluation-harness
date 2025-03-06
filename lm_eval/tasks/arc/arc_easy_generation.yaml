@@ -1,8 +1,9 @@
 tag:
-  - llama
-task: arc_challenge_chat
+  - llama3_tasks
+  - ai2_arc_generation
+task: arc_east_generation
 dataset_path: allenai/ai2_arc
-dataset_name: ARC-Challenge
+dataset_name: ARC-Easy
 output_type: generate_until
 training_split: train
 validation_split: validation
