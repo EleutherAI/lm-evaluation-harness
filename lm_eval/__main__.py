@@ -262,6 +262,17 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Confirm that you understand the risks of running unsafe code for tasks that require it",
     )
+    parser.add_argument(
+        "--load_local",
+        action="store_true",
+        help="Load local tasks instead of fetching from the Hub",
+    )
+    parser.add_argument(
+        "--local_base_dir",
+        type=str,
+        default=None,
+        help="Base directory to load local datasets from",
+    )
     return parser
 
 
@@ -306,7 +317,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(
+        args.verbosity,
+        include_path=args.include_path,
+        load_local=args.load_local,
+        local_base_dir=args.local_base_dir,
+    )
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(

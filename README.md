@@ -395,6 +395,23 @@ load_dataset("EleutherAI/lm-eval-results-private", "hellaswag", "latest")
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
+## Running without Internet Access
+
+It is possible to run the evaluation harness without internet access.
+For this, you can download the datasets on a system with internet access, and then transfer them to a system without internet access.
+
+In order to download the datasets, you can use the `scripts/save_local.py` script.
+```
+python scripts/save_local.py --tasks <list of tasks as in the lm_eval commands> --local_base_dir <local directory to store datasets>
+```
+
+After downloading the datasets, you can run the evaluation harness without internet access by setting the `--local_base_dir` argument to the directory where the datasets were downloaded.
+```
+lm_eval ... --tasks <tasks to run> --load_local --local_base_dir <local_base_dir> ...
+```
+
+For more information, check out the [offline guide](docs/offline_guide.md).
+
 ## Visualizing Results
 
 You can seamlessly visualize and analyze the results of your evaluation harness runs using both Weights & Biases (W&B) and Zeno.

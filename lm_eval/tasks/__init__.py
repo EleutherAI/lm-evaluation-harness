@@ -25,9 +25,13 @@ class TaskManager:
         verbosity="INFO",
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
+        load_local: bool = False,
+        local_base_dir: Optional[str] = None,
     ) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
+        self.load_local = load_local
+        self.local_base_dir = local_base_dir
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
@@ -277,7 +281,11 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = task
             else:
-                task_object = ConfigurableTask(config=config)
+                task_object = ConfigurableTask(
+                    config=config,
+                    load_local=self.load_local,
+                    local_base_dir=self.local_base_dir,
+                )
 
             return {task: task_object}
 
