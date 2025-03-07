@@ -1,3 +1,0 @@
-include: _default_template_cot.yaml
-dataset_name: sc
-task: caselawqa_sc_cot

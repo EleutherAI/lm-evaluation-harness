@@ -3,7 +3,7 @@ dataset_kwargs: null
 test_split: test
 
 output_type: generate_until
-process_docs: !function utils.process_docs_cot
+process_docs: !function utils.process_docs_direct
 doc_to_text: text
 doc_to_target: target
 
@@ -14,14 +14,16 @@ metric_list:
 
 generation_kwargs:
   until:
+    - "\n\n"
+    - "."
     - "\nQuestion:"
     - "\nQ:"
     - "</s>"
     - "<|im_end|>"
   do_sample: false
   temperature: 0.0
-  max_gen_toks: 32768
-  
+  max_gen_toks: 5
+
 filter_list:
   - name: default
     filter:
