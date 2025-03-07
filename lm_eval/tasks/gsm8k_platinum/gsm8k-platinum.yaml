@@ -1,7 +1,7 @@
 tag:
   - math_word_problems
 task: gsm8k_platinum
-dataset_path: madrylab/platinum-bench
+dataset_path: madrylab/gsm8k-platinum
 dataset_name: main
 output_type: generate_until
 training_split: test
