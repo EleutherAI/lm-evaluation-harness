@@ -11,6 +11,7 @@ NOTE: See the official implementation of the task:
 for how to make use of the dataset's calculator annotations in your language
 model's sample/generation function.
 
+Blog: https://gradientscience.org/gsm8k-platinum/
 Homepage: http://platinum-bench.csail.mit.edu/
 
 
