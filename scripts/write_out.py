@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import random
 
@@ -7,7 +8,10 @@ import numpy as np
 from lm_eval import tasks
 from lm_eval.evaluator_utils import get_task_list
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import eval_logger, join_iters
+from lm_eval.utils import join_iters
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
