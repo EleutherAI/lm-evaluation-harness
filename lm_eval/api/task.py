@@ -48,7 +48,7 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -838,6 +838,10 @@ class ConfigurableTask(Task):
                 filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
+            # TODO: handle repeats in a more general way rather than just discarding
+            eval_logger.debug(
+                "No custom filters defined. Using default 'take_first' filter for handling repeats."
+            )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
@@ -1049,6 +1053,8 @@ class ConfigurableTask(Task):
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param chat_template:
             callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
+        :param gen_prefix:
+            String to append after the <|assistant|> token.
         :returns: str
             The fewshot context.
         """

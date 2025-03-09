@@ -37,7 +37,8 @@ and rename the folders and YAML file(s) as desired.
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
-
+> [!TIP]
+> To test your task, we recommend using verbose logging using `export LOGLEVEL = DEBUG` in your shell before running the evaluation script. This will help you debug any issues that may arise.
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
 
 ```yaml
@@ -143,7 +144,7 @@ The next thing we need to do is decide what format to use when presenting the da
 
 To write a prompt, users will use `doc_to_text`, `doc_to_target`, and `doc_to_choice` (Optional when certain conditions are met).
 
-`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must be also be set with the appropriate list of possible choice strings.
+`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must also be set with the appropriate list of possible choice strings.
 
 ### Basic prompts
 
@@ -172,7 +173,7 @@ doc_to_choice: choices
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
+Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a sample line `doc`, the model sees something in the format of:
 ```
 doc["passage"]
 Question: doc["question"]?
@@ -284,7 +285,7 @@ As a heuristic check:
 * Do you expect to compute metrics after applying multiple such processing steps on your model outputs?
 * Does your task rely on metrics that need a custom implementation?
 
-For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md) . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
+For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md). If none of the above sounds like they apply to your task, it's time to continue onto checking your task performance!
 
 ### Task name + tags (registering a task)
 
@@ -383,7 +384,7 @@ task:
 
 ### Configuring python classes
 
-There can occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
+There can be occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
 
 ```yaml
 task: squadv2
@@ -486,7 +487,7 @@ If other tasks on this dataset are already supported:
 
 It is recommended to include a filled-out copy of this checklist in the README.md for the subfolder you are creating, if you have created a new subfolder in `lm_eval/tasks`.
 
-**Finally, please add a short description of your task(s), along with a link to its subfolder in lm_eval/tasks , to [`lm_eval/tasks/README.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/README.md) so that users can discover your task in the library, and follow the link to your README for more information about the variants supported, their task names, and the original source of the dataset and/or evaluation setup.**
+**Finally, please add a short description of your task(s), along with a link to its subfolder in lm_eval/tasks, to [`lm_eval/tasks/README.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/README.md) so that users can discover your task in the library, and follow the link to your README for more information about the variants supported, their task names, and the original source of the dataset and/or evaluation setup.**
 
 ## Submitting your task
 

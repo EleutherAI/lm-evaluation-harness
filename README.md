@@ -5,7 +5,8 @@
 ---
 
 *Latest News 📣*
-
+- [2025/03] Added support for steering HF models!
+- [2025/02] Added [SGLang](https://docs.sglang.ai/) support!
 - [2024/09] We are prototyping allowing users of LM Evaluation Harness to create and evaluate on text+image multimodal input, text output tasks, and have just added the `hf-multimodal` and `vllm-vlm` model types and `mmmu` task as a prototype feature. We welcome users to try out this in-progress feature and stress-test it for themselves, and suggest they check out [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval), a wonderful project originally forking off of the lm-evaluation-harness, for a broader range of multimodal tasks, models, and features.
 - [2024/07] [API model](docs/API_guide.md) support has been updated and refactored, introducing support for batched and async requests, and making it significantly easier to customize and use for your own purposes. **To run Llama 405B, we recommend using VLLM's OpenAI-compliant API to host the model, and use the `local-completions` model type to evaluate the model.**
 - [2024/07] New Open LLM Leaderboard tasks have been added ! You can find them under the [leaderboard](lm_eval/tasks/leaderboard/README.md) task group.
@@ -157,6 +158,50 @@ To learn more about model parallelism and how to use it with the `accelerate` li
 
 **Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
 
+### Steered Hugging Face `transformers` models
+
+To evaluate a Hugging Face `transformers` model with steering vectors applied, specify the model type as `steered` and provide the path to either a PyTorch file containing pre-defined steering vectors, or a CSV file that specifies how to derive steering vectors from pretrained `sparsify` or `sae_lens` models (you will need to install the corresponding optional dependency for this method).
+
+Specify pre-defined steering vectors:
+
+```python
+import torch
+
+steer_config = {
+    "layers.3": {
+        "steering_vector": torch.randn(1, 768),
+        "bias": torch.randn(1, 768),
+        "steering_coefficient": 1,
+        "action": "add"
+    },
+}
+torch.save(steer_config, "steer_config.pt")
+```
+
+Specify derived steering vectors:
+
+```python
+import pandas as pd
+
+pd.DataFrame({
+    "loader": ["sparsify"],
+    "action": ["add"],
+    "sparse_model": ["EleutherAI/sae-pythia-70m-32k"],
+    "hookpoint": ["layers.3"],
+    "feature_index": [30],
+    "steering_coefficient": [10.0],
+}).to_csv("steer_config.csv", index=False)
+```
+
+Run the evaluation harness with steering vectors applied:
+```bash
+lm_eval --model steered \
+    --model_args pretrained=EleutherAI/pythia-160m,steer_path=steer_config.pt \
+    --tasks lambada_openai,hellaswag \
+    --device cuda:0 \
+    --batch_size 8
+```
+
 ### NVIDIA `nemo` models
 
 [NVIDIA NeMo Framework](https://github.com/NVIDIA/NeMo) is a generative AI framework built for researchers and pytorch developers working on language models.
@@ -237,6 +282,28 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 
 > [!Tip]
 > Passing `max_model_len=4096` or some other reasonable default to vLLM through model args may cause speedups or prevent out-of-memory errors when trying to use auto batch size, such as for Mistral-7B-v0.1 which defaults to a maximum length of 32k.
+
+### Tensor + Data Parallel and Fast Offline Batching Inference with `SGLang`
+
+We support SGLang for efficient offline batch inference. Its **[Fast Backend Runtime](https://docs.sglang.ai/index.html)** delivers high performance through optimized memory management and parallel processing techniques. Key features include tensor parallelism, continuous batching, and support for various quantization methods (FP8/INT4/AWQ/GPTQ).
+
+To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.ai/start/install.html#install-sglang).
+
+> [!Tip]
+> Due to the installing method of [`Flashinfer`](https://docs.flashinfer.ai/)-- a fast attention kernel library, we don't include the dependencies of `SGLang` within [pyproject.toml](pyproject.toml). Note that the `Flashinfer` also has some requirements on `torch` version.
+
+SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
+```bash
+lm_eval --model sglang \
+    --model_args pretrained={model_name},dp_size={data_parallel_size},tp_size={tensor_parallel_size},dtype=auto \
+    --tasks gsm8k_cot \
+    --batch_size auto
+```
+> [!Tip]
+> When encountering out of memory (OOM) errors (especially for multiple-choice tasks), try these solutions:
+> 1. Use a manual `batch_size`, rather than `auto`.
+> 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
+> 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
 
 ### Model APIs and Inference Servers
 
@@ -489,7 +556,8 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | api             | For using api models (Anthropic, OpenAI API) |
 | deepsparse      | For running NM's DeepSparse models           |
 | dev             | For linting PRs and contributions            |
-| gptq            | For loading models with GPTQ                 |
+| gptq            | For loading models with AutoGPTQ             |
+| gptqmodel       | For loading models with GPTQModel            |
 | hf_transfer     | For speeding up HF Hub file downloads        |
 | ifeval          | For running the IFEval task                  |
 | ibm_watsonx_ai  | For using IBM watsonx.ai model apis          |
@@ -500,8 +568,10 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | multilingual    | For multilingual tokenizers                  |
 | optimum         | For running Intel OpenVINO models            |
 | promptsource    | For using PromptSource prompts               |
+| sae_lens        | For using SAELens to steer models            |
 | sentencepiece   | For using the sentencepiece tokenizer        |
 | sparseml        | For using NM's SparseML models               |
+| sparsify        | For using Sparsify to steer models           |
 | testing         | For running library test suite               |
 | vllm            | For loading models with vLLM                 |
 | zeno            | For visualizing results with Zeno            |
