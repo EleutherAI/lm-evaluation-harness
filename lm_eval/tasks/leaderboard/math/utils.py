@@ -17,7 +17,6 @@ except ModuleNotFoundError:
 please install sympy via pip install lm-eval[math] or pip install -e .[math]",
     )
 
-
 INVALID_ANSWER = "[invalidanswer]"
 
 
@@ -41,6 +40,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         return out_doc
 
     return dataset.filter(lambda x: x["level"] == "Level 5").map(_process_doc)
+
 
 def list_fewshot_samples() -> list[dict]:
     return [
