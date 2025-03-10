@@ -690,9 +690,9 @@ class Task(abc.ABC):
     ) -> Iterator[Tuple[int, Any]]:
         if examples:
             n = self.eval_docs.to_pandas().shape[0]
-            assert all(
-                [e < n for e in examples]
-            ), f"Elements of --examples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            assert all([e < n for e in examples]), (
+                f"Elements of --examples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            )
             doc_iterator = utils.create_iterator(
                 enumerate(
                     datasets.Dataset.from_pandas(

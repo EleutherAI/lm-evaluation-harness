@@ -327,9 +327,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
     if args.examples:
-        assert (
-            args.limit is None
-        ), "If --examples is not None, then --limit must be None."
+        assert args.limit is None, (
+            "If --examples is not None, then --limit must be None."
+        )
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -389,10 +389,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         args.model_args = args.model_args + ",trust_remote_code=True"
-    eval_logger.info(
-        f"Selected Tasks: {task_names}"
-    ) if eval_logger.getEffectiveLevel() >= logging.INFO else print(
-        f"Selected Tasks: {task_names}"
+    (
+        eval_logger.info(f"Selected Tasks: {task_names}")
+        if eval_logger.getEffectiveLevel() >= logging.INFO
+        else print(f"Selected Tasks: {task_names}")
     )
 
     request_caching_args = request_caching_arg_to_dict(
@@ -466,7 +466,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             evaluation_tracker.recreate_metadata_card()
 
         print(
-            f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {limit}, num_fewshot: {args.num_fewshot}, "
+            f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(make_table(results))
