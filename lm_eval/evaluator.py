@@ -31,9 +31,9 @@ from lm_eval.utils import (
     handle_non_serializable,
     hash_string,
     positional_deprecated,
+    setup_logging,
     simple_parse_args_string,
 )
-
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
@@ -67,7 +67,7 @@ def simple_evaluate(
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
-    verbostiy=None,
+    verbosity=None,
     predict_only: bool = False,
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
@@ -124,7 +124,7 @@ def simple_evaluate(
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
-    :param verbostiy: str
+    :param verbosity: str
         Verbosity level for logging
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
@@ -140,13 +140,16 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    if verbostiy is not None:
-        lm_eval.setup_logging(verbosity=verbostiy)
+    if verbosity is not None:
+        setup_logging(verbosity=verbosity)
     start_date = time.time()
 
     if limit is not None and examples is not None:
-        raise ValueError(
-            "Either 'limit' or 'examples' must be None, but both are not None."
+        raise ValueError("Either 'limit' or 'examples' must be None, but both are not None.")
+
+    if isinstance(model_args, str) and ("instruct" in model_args and not apply_chat_template):
+        eval_logger.warning(
+            "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
         )
 
     if delete_requests_cache:
@@ -176,9 +179,7 @@ def simple_evaluate(
     if tasks is None:
         tasks = []
     if len(tasks) == 0:
-        raise ValueError(
-            "No tasks specified, or no tasks found. Please verify the task names."
-        )
+        raise ValueError("No tasks specified, or no tasks found. Please verify the task names.")
 
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
@@ -195,9 +196,7 @@ def simple_evaluate(
             model_args = ""
 
         if isinstance(model_args, dict):
-            eval_logger.info(
-                f"Initializing {model} model, with arguments: {model_args}"
-            )
+            eval_logger.info(f"Initializing {model} model, with arguments: {model_args}")
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
                 {
@@ -208,9 +207,7 @@ def simple_evaluate(
             )
 
         else:
-            eval_logger.info(
-                f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
-            )
+            eval_logger.info(f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}")
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,
                 {
@@ -234,9 +231,7 @@ def simple_evaluate(
             use_cache
             # each rank receives a different cache db.
             # necessary to avoid multiple writes to cache at once
-            + "_rank"
-            + str(lm.rank)
-            + ".db",
+            + "_rank" + str(lm.rank) + ".db",
         )
 
     if task_manager is None:
@@ -258,14 +253,10 @@ def simple_evaluate(
             else:
                 if task_obj.get_config("output_type") == "generate_until":
                     if gen_kwargs is not None:
-                        task_obj.set_config(
-                            key="generation_kwargs", value=gen_kwargs, update=True
-                        )
+                        task_obj.set_config(key="generation_kwargs", value=gen_kwargs, update=True)
 
                 if predict_only:
-                    eval_logger.info(
-                        f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
-                    )
+                    eval_logger.info(f"Processing {task_name} in output-only mode. Metrics will not be calculated!")
                     # we have to change the class properties post-hoc. This is pretty hacky.
                     task_obj.override_metric(metric_name="bypass")
 
@@ -283,9 +274,7 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=num_fewshot)
                 else:
                     # if num_fewshot not provided, and the task does not define a default one, default to 0
-                    if (
-                        default_num_fewshot := task_obj.get_config("num_fewshot")
-                    ) is None:
+                    if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
@@ -304,9 +293,7 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template)
-            if apply_chat_template
-            else None,
+            chat_template=lm.chat_template(apply_chat_template) if apply_chat_template else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
@@ -323,11 +310,11 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
-        verbosity=verbostiy,
+        verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
-    if verbostiy is not None:
-        lm_eval.setup_logging(verbosity=verbostiy)
+    if verbosity is not None:
+        lm_eval.setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -349,9 +336,7 @@ def simple_evaluate(
         results["config"].update(
             {
                 "batch_size": batch_size,
-                "batch_sizes": (
-                    list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
-                ),
+                "batch_sizes": (list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []),
                 "device": device,
                 "use_cache": use_cache,
                 "limit": limit,
@@ -429,9 +414,7 @@ def evaluate(
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     if limit is not None and examples is not None:
-        raise ValueError(
-            "Either 'limit' or 'examples' must be None, but both are not None."
-        )
+        raise ValueError("Either 'limit' or 'examples' must be None, but both are not None.")
     if apply_chat_template:
         eval_logger.warning(
             "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
@@ -446,8 +429,7 @@ def evaluate(
     eval_tasks = get_task_list(task_dict)
     if not log_samples:
         if not all(
-            "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
-            for task_output in eval_tasks
+            "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys() for task_output in eval_tasks
         ):
             raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
@@ -485,9 +467,7 @@ def evaluate(
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            examples=examples[task_output.task_name]
-            if examples is not None
-            else examples,
+            examples=examples[task_output.task_name] if examples is not None else examples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -495,16 +475,10 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=bool(apply_chat_template),
             fewshot_as_multiturn=fewshot_as_multiturn,
-            chat_template=getattr(lm, "apply_chat_template")
-            if apply_chat_template
-            else None,
-            tokenizer_name=getattr(lm, "tokenizer_name", "")
-            if apply_chat_template
-            else "",
+            chat_template=getattr(lm, "apply_chat_template") if apply_chat_template else None,
+            tokenizer_name=getattr(lm, "tokenizer_name", "") if apply_chat_template else "",
         )
-        eval_logger.debug(
-            f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
-        )
+        eval_logger.debug(f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}")
         if write_out:
             print_writeout(task)
         # aggregate Instances by LM method requested to get output.
@@ -514,15 +488,9 @@ def evaluate(
 
         if lm.world_size > 1:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
-            gathered_item = (
-                lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
-            )
+            gathered_item = lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
             # "multiple_choice" task types dispatch (several) "loglikelihood" request types
-            reqtype = (
-                "loglikelihood"
-                if task.OUTPUT_TYPE == "multiple_choice"
-                else task.OUTPUT_TYPE
-            )
+            reqtype = "loglikelihood" if task.OUTPUT_TYPE == "multiple_choice" else task.OUTPUT_TYPE
             # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
             # todo: may not account for padding in cases like SquadV2 which has multiple req types
@@ -574,9 +542,7 @@ def evaluate(
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
-                examples=examples[task_output.task_name]
-                if examples is not None
-                else examples,
+                examples=examples[task_output.task_name] if examples is not None else examples,
                 world_size=WORLD_SIZE,
             )
             for doc_id, doc in doc_iterator:
@@ -585,9 +551,7 @@ def evaluate(
                 else:
                     doc_id_true = doc_id
                 requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
-                )
+                metrics = task.process_results(doc, [req.filtered_resps[filter_key] for req in requests])
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -596,9 +560,7 @@ def evaluate(
                         "target": target,
                         "arguments": [req.args for req in requests],
                         "resps": [req.resps for req in requests],
-                        "filtered_resps": [
-                            req.filtered_resps[filter_key] for req in requests
-                        ],
+                        "filtered_resps": [req.filtered_resps[filter_key] for req in requests],
                         "filter": filter_key,
                         "metrics": list(metrics.keys()),
                         "doc_hash": hash_string(
@@ -631,9 +593,7 @@ def evaluate(
                 )
 
                 if RANK == 0:
-                    task_output.logged_samples = list(
-                        itertools.chain.from_iterable(full_samples)
-                    )
+                    task_output.logged_samples = list(itertools.chain.from_iterable(full_samples))
 
             # then collect metrics across all ranks
             for metrics in task_output.sample_metrics:
@@ -644,9 +604,7 @@ def evaluate(
                     dst=0,
                 )
                 if RANK == 0:
-                    task_output.sample_metrics[metrics] = list(
-                        itertools.chain.from_iterable(metric_list)
-                    )
+                    task_output.sample_metrics[metrics] = list(itertools.chain.from_iterable(metric_list))
 
     if RANK == 0:
         ### Aggregate results over all datapoints ###
@@ -664,9 +622,7 @@ def evaluate(
 
         ### Calculate group metrics ###
         if bool(results):
-            results, versions, show_group_table, *_ = consolidate_group_results(
-                results, versions, task_dict
-            )
+            results, versions, show_group_table, *_ = consolidate_group_results(results, versions, task_dict)
 
         results_agg, group_agg = prepare_print_tasks(task_dict, results)
         subtask_list = get_subtask_list(task_dict)
@@ -676,19 +632,13 @@ def evaluate(
         # TODO: clean this up ; unify with the below metric_list loop?
         _higher_is_better = {}
         for group, task_list in subtask_list.items():
-            if (
-                len(task_list) != 0
-            ):  # subtask list will list "task_name": [] for solo tasks
+            if len(task_list) != 0:  # subtask list will list "task_name": [] for solo tasks
                 for task in task_list:
                     for m, h in higher_is_better[task].items():
                         if m not in _higher_is_better.keys():
                             _higher_is_better[m] = h
 
-                        if (
-                            m in _higher_is_better
-                            and _higher_is_better[m] is not None
-                            and _higher_is_better[m] != h
-                        ):
+                        if m in _higher_is_better and _higher_is_better[m] is not None and _higher_is_better[m] != h:
                             eval_logger.warning(
                                 f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
                             )
@@ -697,11 +647,7 @@ def evaluate(
 
         results_dict = {
             "results": dict(results_agg.items()),
-            **(
-                {"groups": dict(group_agg.items())}
-                if (bool(group_agg) & show_group_table)
-                else {}
-            ),
+            **({"groups": dict(group_agg.items())} if (bool(group_agg) & show_group_table) else {}),
             "group_subtasks": dict(reversed(subtask_list.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
