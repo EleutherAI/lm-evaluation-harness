@@ -1,0 +1,7 @@
+"dataset_name": "npi_Deva-prs_Arab"
+"doc_to_target": "{{sentence_prs_Arab}}"
+"doc_to_text": "{{sentence_npi_Deva}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_npi_Deva-prs_Arab"
+"test_split": "dev"
