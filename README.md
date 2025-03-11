@@ -252,9 +252,9 @@ Not supported yet: multi-node evaluation and combinations of data replication wi
 
 #### Multi-GPU evaluation with OpenVINO models
 
-Pipeline parallelizm during evaluation is supported with OpenVINO models
+Pipeline parallelism during evaluation is supported with OpenVINO models
 
-To enable  pipeline parallelism, set the `model_args` of `pipeline_parallel`. In addition, you also have to set up `device` to value `HETERO:<GPU index1>,<GPU index2>` for example `HETERO:GPU.1,GPU.0` For example, the command to use pipeline parallelism of 2 is:
+To enable pipeline parallelism, set the `model_args` of `pipeline_parallel`. In addition, you also have to set up `device` to value `HETERO:<GPU index1>,<GPU index2>` for example `HETERO:GPU.1,GPU.0` For example, the command to use pipeline parallelism of 2 is:
 
 ```
 lm_eval --model openvino \
