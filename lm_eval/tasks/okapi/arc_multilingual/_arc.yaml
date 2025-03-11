@@ -2,21 +2,42 @@
 # and we want to log the aggregated metrics in the default group (m_arc)
 group: m_arc
 task:
-  - arc_multilingual # very big, 31 languages
+  - arc_ar
+  - arc_bn
+  - arc_ca
+  - arc_da
+  - arc_de
+  - arc_es
+  - arc_eu
+  - arc_fr
+  - arc_gu
+  - arc_hi
+  - arc_hr
+  - arc_hu
+  - arc_hy
+  - arc_id
+  - arc_it
+  - arc_kn
+  - arc_ml
+  - arc_mr
+  - arc_ne
+  - arc_nl
+  - arc_pt
+  - arc_ro
+  - arc_ru
+  - arc_sk
+  - arc_sr
+  - arc_sv
+  - arc_ta
+  - arc_te
+  - arc_uk
+  - arc_vi
+  - arc_zh
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: false  # Set to false if you want unweighted average
   - metric: acc_norm
-    aggregation: mean
-    weight_by_size: false
-  - metric: perplexity
-    aggregation: mean
-    weight_by_size: false
-  - metric: f1
-    aggregation: mean
-    weight_by_size: false
-  - metric: exact_match
     aggregation: mean
     weight_by_size: false
 metadata:
