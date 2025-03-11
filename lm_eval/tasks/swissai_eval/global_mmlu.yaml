@@ -18,6 +18,15 @@ task:
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
+    weight_by_size: false  # Set to false if you want unweighted average
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false
+  - metric: perplexity
+    aggregation: mean
+    weight_by_size: false
+  - metric: f1
+    aggregation: mean
     weight_by_size: false
 metadata:
   version: 1.0
