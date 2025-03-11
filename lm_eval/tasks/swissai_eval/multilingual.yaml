@@ -5,8 +5,8 @@ task:
   - xnli
   - xwinograd
   - pawsx
-  - arc_multilingual # very big, 31 languages
-  - hellaswag_multilingual # very big, 31 languages, but gives signal
+  - m_arc # renamed to actually get grouped metrics (original only logs individual languages)
+  - m_hellaswag # renamed to actually get grouped metrics (original only logs individual languages)
   # heldout, undecided yet or take very long:
   # - arabic_leaderboard_alghafa
   # - ceval-valid
