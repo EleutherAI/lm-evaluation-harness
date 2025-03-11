@@ -1,5 +1,6 @@
 import numpy as np
 
+
 try:
     import evaluate
 
@@ -23,19 +24,19 @@ def doc_eval(pred, refs):
         bleu_results = bleu.compute(predictions=pred, references=refs)
     except Exception as e:
         print(f"Bleu error: {e}")
-        bleu_results = {"bleu": np.NAN}
+        bleu_results = {"bleu": np.nan}
 
     try:
         rouge_results = rouge.compute(predictions=pred, references=refs)
     except Exception as e:
         print(f"Rouge error: {e}")
-        rouge_results = {"rouge1": np.NAN, "rouge2": np.NAN, "rougeL": np.NAN}
+        rouge_results = {"rouge1": np.nan, "rouge2": np.nan, "rougeL": np.nan}
 
     try:
         bleurt_scores = bleurt.compute(predictions=pred, references=refs)["scores"]
     except Exception as e:
         print(f"Bleurt error: {e}")
-        bleurt_scores = [np.NAN]
+        bleurt_scores = [np.nan]
 
     try:
         bert_scores = bertscore.compute(predictions=pred, references=refs, lang="en")[
@@ -43,7 +44,7 @@ def doc_eval(pred, refs):
         ]
     except Exception as e:
         print(f"Bert error: {e}")
-        bert_scores = [np.NAN]
+        bert_scores = [np.nan]
 
     if bleu_results["bleu"] == 0:
         # Sometimes bleu is 0.0 and this breaks the stderr computation.
@@ -74,12 +75,12 @@ def process_results_gen_raw(doc, results):
 
     if len(refs[0]) < 1 or len(pred[0]) < 1:
         return {
-            "bleu": np.NAN,
-            "rouge1": np.NAN,
-            "rouge2": np.NAN,
-            "rougeL": np.NAN,
-            "bleurt": np.NAN,
-            "bert_score": np.NAN,
+            "bleu": np.nan,
+            "rouge1": np.nan,
+            "rouge2": np.nan,
+            "rougeL": np.nan,
+            "bleurt": np.nan,
+            "bert_score": np.nan,
         }
 
     results = doc_eval(pred, refs)
@@ -107,12 +108,12 @@ def process_results_gen_qsumm(doc, results):
 
     if len(refs[0]) < 1 or len(pred[0]) < 1:
         return {
-            "bleu": np.NAN,
-            "rouge1": np.NAN,
-            "rouge2": np.NAN,
-            "rougeL": np.NAN,
-            "bleurt": np.NAN,
-            "bert_score": np.NAN,
+            "bleu": np.nan,
+            "rouge1": np.nan,
+            "rouge2": np.nan,
+            "rougeL": np.nan,
+            "bleurt": np.nan,
+            "bert_score": np.nan,
         }
 
     results = doc_eval(pred, refs)

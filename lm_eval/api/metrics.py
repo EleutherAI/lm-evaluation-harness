@@ -24,7 +24,7 @@ def bypass_agg(arr):
 @register_aggregation("nanmean")
 def nanmean(arr):
     if len(arr) == 0 or all(np.isnan(arr)):
-        return np.NAN
+        return np.nan
     return np.nanmean(arr)
 
 
