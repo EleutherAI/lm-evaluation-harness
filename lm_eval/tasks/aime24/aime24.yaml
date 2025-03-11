@@ -1,0 +1,20 @@
+task: aime24
+dataset_path: Maxwell-Jia/AIME_2024
+process_docs: !function utils.process_docs
+output_type: generate_until
+doc_to_text:  "Problem: {{Problem}}\nAnswer:"
+process_results: !function utils.process_results
+doc_to_target: "{{answer}}"
+generation_kwargs:
+  until:
+    - "Problem:"
+  do_sample: false
+  temperature: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true
