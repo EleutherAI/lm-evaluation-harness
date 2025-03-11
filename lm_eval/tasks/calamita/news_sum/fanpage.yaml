@@ -1,6 +1,0 @@
-include: default.yaml
-task: news_sum_fanpage
-dataset_path: ARTeLab/fanpage
-metadata:
-  version: 0
-
