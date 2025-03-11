@@ -4,7 +4,7 @@ dataset_path: xnli
 dataset_name: es
 output_type: multiple_choice
 doc_to_choice: '{{[premise+", ¿correcto? Sí, "+hypothesis,premise+", ¿correcto? Así
-  que, "+hypothesis,premise+", ¿correcto? No, "+hypothesis]}}'
+  que "+hypothesis,premise+", ¿correcto? No, "+hypothesis]}}'
 doc_to_text: ''
 target_delimiter: ''
 process_docs: !function utils.process_doc_nli
