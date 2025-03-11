@@ -1,0 +1,26 @@
+tag:
+  - argument mining
+  - legal
+dataset_path: nlp-unibo/AMELIA
+dataset_name: default
+test_split: train
+validation_split: null
+task: amelia-arg-component-zeroshot
+doc_to_text: "Classifica il seguente testo argomentativo come premessa 'prem' o conclusione 'conc'. Per premessa (prem) si intende una proposizione che fornisce una ragione o un supporto per l'argomentazione. Per conclusione (conc) si intende l'affermazione che segue logicamente dalle premesse e rappresenta il punto finale che viene argomentato. Testo: {{Text}} Classificazione:"
+doc_to_target: Component
+filter_list:
+  - name: lowercase
+    filter:
+      - function: lowercase
+metric_list:
+  - metric: !function utils.macro_f1_score
+    aggregation: !function utils.macro_f1_score_agg
+    higher_is_better: true
+  - metric: !function utils.f1_classes
+    aggregation: !function utils.f1_classes_agg
+    higher_is_better: true
+  - metric: !function utils.accuracy
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

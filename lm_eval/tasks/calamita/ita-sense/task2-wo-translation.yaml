@@ -1,0 +1,26 @@
+tag:
+  - understanding
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: ../private_data/ita-sense/without_translation/test-it-ft.data.ml.jsonl
+test_split: train
+task: ita-sense-ml-no-translation
+doc_to_text: "{{instruction}} Input\u0003 '{{input}}'"
+doc_to_target: output
+process_results: !function utils.extract_answer
+filter_list:
+  - name: lowercase
+    filter:
+      - function: lowercase
+  - name: "number-filter"
+    filter:
+      - function: regex
+        group_select: -1
+        regex_pattern: "([0-9]+)"
+metric_list:
+  - metric: extract_answer
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

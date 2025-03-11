@@ -1,0 +1,4 @@
+group: ecwca
+task:
+      - ecwca-hint
+      - ecwca-no-hint

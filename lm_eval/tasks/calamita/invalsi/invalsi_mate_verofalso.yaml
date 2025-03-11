@@ -1,0 +1,12 @@
+task: invalsi_mate_verofalso
+dataset_path: AI4text/Invalsi
+dataset_name: mate
+dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
+output_type: multiple_choice
+training_split: null
+validation_split: "validation"
+test_split: null
+process_docs: !function utils.process_docs_mate_verofalso
+doc_to_text: prompt
+doc_to_target: label
+doc_to_choice: choices

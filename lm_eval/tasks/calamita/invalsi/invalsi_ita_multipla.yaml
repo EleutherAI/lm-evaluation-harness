@@ -1,0 +1,12 @@
+task: invalsi_ita_multipla
+dataset_path: AI4text/Invalsi
+output_type: multiple_choice
+dataset_name: ita
+dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
+training_split: null
+validation_split: "validation"
+test_split: null
+process_docs: !function utils.process_docs_ita_multipla
+doc_to_text: "prompt"
+doc_to_target: "label"
+doc_to_choice: "choices"

@@ -1,0 +1,6 @@
+group: news_sum
+task:
+  - news_sum_fanpage
+  - news_sum_ilpost
+metadata:
+  version: 1.0

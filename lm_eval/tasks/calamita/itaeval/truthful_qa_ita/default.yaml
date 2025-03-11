@@ -1,0 +1,7 @@
+group: itaeval_truthfulqa
+task:
+  - truthfulqa_gen_ita
+  - truthfulqa_mc1_ita
+  - truthfulqa_mc2_ita
+metadata:
+  version: 1.0

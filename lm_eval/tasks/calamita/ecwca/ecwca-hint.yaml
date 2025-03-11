@@ -1,0 +1,43 @@
+tag:
+  - knowledge
+  - general knowledge
+dataset_path: azugarini/crossword-clues-QA
+dataset_name: default
+test_split: test
+validation_split: null
+task: ecwca-hint
+doc_to_text: "Sei un esperto di enigmistica. Devi risolvere definizioni di cruciverba. Ti verrà data una definizione corredata da un suggerimento, una sequenza di numeri indicante di quanti caratteri è composta ciascuna parola della risposta. Trova la risposta alla definizione. Ritorna solo la risposta, nient'altro. Non scrivere nulla che non sia la risposta, senza caratteri aggiuntivi.
+--
+-- Esempi: 
+--
+-- DEFINIZIONE: Protagonista di Titanic al fianco di Kate Winslet
+-- SUGGERIMENTO: (8,8)
+-- RISPOSTA: leonardo dicaprio
+--
+-- DEFINIZIONE: capitale dell'Impero romano d'Occidente nel 313 d.C.
+-- SUGGERIMENTO: (6)
+-- RISPOSTA: milano
+--
+-- Ora tocca a te:
+--
+-- DEFINIZIONE: {{clue}}
+-- SUGGERIMENTO: {{length_hint}}
+-- RISPOSTA: "
+doc_to_target: answer
+
+
+filter_list:
+  - name: lowercase
+    filter:
+      - function: lowercase
+metric_list:
+  - metric: !function utils.words_avg_f1
+    aggregation: !function utils.words_avg_f1_agg
+    higher_is_better: true
+  - metric: !function utils.exact_match_custom
+    aggregation: mean
+  - metric: !function utils.edit_distance
+    aggregation: !function utils.edit_distance_agg
+    higher_is_better: true
+metadata:
+  version: 1.0

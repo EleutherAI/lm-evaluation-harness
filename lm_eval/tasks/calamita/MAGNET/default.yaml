@@ -1,0 +1,12 @@
+group: magnet
+task:
+  - MAGNET_en_it_public
+  - MAGNET_IT_en_it_private
+  - MAGNET_it_en_public
+  - MAGNET_IT_it_en_private
+  - MAGNET_UK_en_it_private
+  - MAGNET_UK_it_en_private
+  - MAGNET_US_en_it_private
+  - MAGNET_US_it_en_private
+metadata:
+  version: 1.0

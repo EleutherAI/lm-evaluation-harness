@@ -1,0 +1,8 @@
+group: amelia
+task:
+    - amelia-arg-component-fewshot
+    - amelia-arg-component-zeroshot
+    - amelia-arg-premisetype-fewshot
+    - amelia-arg-premisetype-zeroshot
+    - amelia-arg-scheme-fewshot
+    - amelia-arg-scheme-zeroshot

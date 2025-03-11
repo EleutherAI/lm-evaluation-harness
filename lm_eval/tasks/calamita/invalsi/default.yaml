@@ -1,0 +1,9 @@
+group: invalsi
+task:
+      - invalsi_mate_verofalso
+      - invalsi_mate_multipla
+      - invalsi_mate_numero
+      - invalsi_mate
+      - invalsi_ita_multipla
+      - invalsi_ita_binarie
+      - invalsi_ita

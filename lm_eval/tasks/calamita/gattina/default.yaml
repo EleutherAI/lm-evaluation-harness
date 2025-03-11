@@ -1,0 +1,6 @@
+group: gattina
+task:
+  - gattina-ansa
+  - gattina-galileo
+metadata:
+  version: 1.0

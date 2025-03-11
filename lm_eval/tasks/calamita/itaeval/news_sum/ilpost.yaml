@@ -1,0 +1,5 @@
+include: news_sum.yaml
+task: news_sum_ilpost
+dataset_path: ARTeLab/ilpost
+metadata:
+  version: 0

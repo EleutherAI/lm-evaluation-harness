@@ -1,0 +1,11 @@
+group: gfg
+task:
+  - gfg_task_1_1
+  - gfg_task_1_2
+  - gfg_task_2_1
+  - gfg_task_2_2
+  - gfg_task_2_3
+  - gfg_task_3_1
+  - gfg_task_3_2
+metadata:
+  version: 1.0

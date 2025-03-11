@@ -1,0 +1,22 @@
+task: arc_easy_ita
+dataset_path: RiTA-nlp/ai2_arc_ita
+dataset_name: ARC-Easy
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Domanda: {{question}}\nRisposta:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "Domanda: {{question}}\nRisposta:"
+process_docs: !function ../utils.remove_trailing_dot_question
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

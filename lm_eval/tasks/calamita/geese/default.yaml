@@ -1,0 +1,8 @@
+group: geese
+task:
+  - geese_noexp
+  - geese_llama3
+  - geese_dummy
+  - geese_human
+metadata:
+  version: 1.0
