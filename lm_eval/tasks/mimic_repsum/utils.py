@@ -1,6 +1,8 @@
 import re
 from collections.abc import Iterable
+
 import numpy as np
+
 
 try:
     import evaluate
@@ -19,6 +21,7 @@ except Exception as e:
     raise RuntimeError(
         f"Error loading evaluation metrics: {str(e)}. Please check your installation."
     )
+
 
 def doc_eval(pred, refs):
     try:
