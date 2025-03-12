@@ -329,7 +329,7 @@ def simple_evaluate(
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
     if verbosity is not None:
-        lm_eval.setup_logging(verbosity=verbosity)
+        setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
