@@ -109,10 +109,10 @@ class VLLM_VLM(VLLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
         if self.data_parallel_size > 1:
-            # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
+            # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            @ray.remote(num_gpus=1 if self.tensor_parallel_size == 1 else None)
+            @ray.remote
             def run_inference_one_model(
                 model_args: dict, sampling_params, requests: List[List[dict]]
             ):
