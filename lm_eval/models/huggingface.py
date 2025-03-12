@@ -1,4 +1,5 @@
 import copy
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -39,7 +40,7 @@ from lm_eval.models.utils import (
 )
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-auto", "hf", "huggingface")
@@ -183,6 +184,7 @@ class HFLM(TemplateLM):
             trust_remote_code=trust_remote_code,
             use_fast_tokenizer=use_fast_tokenizer,
             gguf_file=gguf_file,
+            add_bos_token=add_bos_token,
         )
 
         # if we passed `pretrained` as a string, initialize our model now
@@ -687,6 +689,7 @@ class HFLM(TemplateLM):
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
         gguf_file: Optional[str] = None,
+        add_bos_token: Optional[bool] = False,
     ) -> None:
         """
         Helper method during initialization.
@@ -704,6 +707,9 @@ class HFLM(TemplateLM):
             kwargs["gguf_file"] = gguf_file
         else:
             kwargs["use_fast"] = use_fast_tokenizer
+
+        if add_bos_token:
+            kwargs["add_bos_token"] = True
 
         if tokenizer:
             if isinstance(tokenizer, str):
