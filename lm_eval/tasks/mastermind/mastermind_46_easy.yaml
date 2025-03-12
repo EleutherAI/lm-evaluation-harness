@@ -1,0 +1,3 @@
+include: mastermind_24_easy.yaml
+task: mastermind_46_easy
+dataset_path: flair/mastermind_46_mcq_random
