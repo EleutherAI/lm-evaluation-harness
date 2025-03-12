@@ -22,6 +22,8 @@ filter_list:
         ignore_case: true
         ignore_punctuation: true
         regex_pattern: "(\\([A-Z]\\))"
+        choices_field: "choices"
+        format_style: "parens"
       - function: "take_first"
 generation_kwargs:
   until:
