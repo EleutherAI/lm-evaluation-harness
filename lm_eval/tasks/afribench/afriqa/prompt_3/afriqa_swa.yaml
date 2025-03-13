@@ -9,4 +9,7 @@ doc_to_text: 'Given the context, provide the answer to the following question.En
 
   Answer:'
 include: afriqa
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
 task: afriqa_swa_prompt_3

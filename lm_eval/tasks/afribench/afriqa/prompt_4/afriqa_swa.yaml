@@ -10,4 +10,7 @@ doc_to_text: 'You are an AI assistant and your task is to answer the question ba
 
   Answer:'
 include: afriqa
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
 task: afriqa_swa_prompt_4
