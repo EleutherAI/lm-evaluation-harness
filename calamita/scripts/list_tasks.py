@@ -1,5 +1,5 @@
 import os
-import ruamel.yaml
+import re
 
 
 def find_yaml_files(directory):
@@ -13,21 +13,22 @@ def find_yaml_files(directory):
 
 def print_task_names(directory):
     yaml_files = find_yaml_files(directory)
+    output_names = list()
     # print(yaml_files)
-    parser = ruamel.yaml.YAML()
 
-    yaml_files.sort()
     print(f"Total YAML files: {len(yaml_files)}")
 
     for file in yaml_files:
         with open(file, "r") as f:
-            try:
-                data = parser.load(f)
-                if "task" in data:
-                    print(f"Task in {file}: {data['task']}")
-            except Exception as e:
-                print(f"Error parsing {file}: {e}")
+            content = f.read()
+            task_names = re.findall(r"task: (.*)", content)
+            for task_name in task_names:
+                output_names.append(task_name)
+    output_names.sort()
+    return output_names
 
-
-# Replace 'your_directory_path' with the path to the directory you want to search
-print_task_names("lm_eval/tasks/calamita")
+    
+if __name__ == "__main__":
+    # print_task_names("lm_eval/tasks/calamita")
+    task_names = print_task_names("lm_eval/tasks/calamita")
+    print(task_names)
