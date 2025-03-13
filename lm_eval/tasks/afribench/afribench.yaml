@@ -1,10 +1,8 @@
-group: afribench
+group: afrobench
 task:
-  - afrisenti_tasks
-  - afrixnli_tasks
-  - afrimmlu_tasks
-  - afrimgsm_tasks
-  - masakhapos_tasks
+  - belebele_tasks
+  - afriqa_tasks
+  - naijarc_tasks
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

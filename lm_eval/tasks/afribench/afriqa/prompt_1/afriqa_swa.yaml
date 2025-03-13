@@ -9,4 +9,7 @@ doc_to_text: 'Your task is to answer a qestion given a context.Make sure you res
 
   Answer:'
 include: afriqa
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
 task: afriqa_swa_prompt_1

@@ -9,4 +9,7 @@ doc_to_text: 'Using the context, find the answer to the question.Respond with th
 
   Answer:'
 include: afriqa
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
 task: afriqa_swa_prompt_5
