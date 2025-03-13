@@ -1,5 +1,4 @@
 task: hatecheck_ita
-group: toxicity_ita
 
 dataset_path: Paul/hatecheck-italian
 dataset_name: null

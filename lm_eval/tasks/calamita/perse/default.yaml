@@ -1,0 +1,8 @@
+group: perse
+task:
+  - perse_task_0
+  - perse_task_1
+  - perse_task_2
+  - perse_task_3
+metadata:
+  version: 1.0

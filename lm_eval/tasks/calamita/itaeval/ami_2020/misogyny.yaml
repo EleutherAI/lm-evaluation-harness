@@ -1,8 +1,4 @@
 task: ami_2020_misogyny
-group:
-  - toxicity_ita
-  - ami
-
 dataset_path: RiTA-nlp/ami_2020
 dataset_name: raw
 dataset_kwargs: null

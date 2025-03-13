@@ -1,0 +1,7 @@
+group: gita4calamita
+task:
+  - gita_conflict_detect
+  - gita_physical_state
+  - gita_story_class
+metadata:
+  version: 1.0

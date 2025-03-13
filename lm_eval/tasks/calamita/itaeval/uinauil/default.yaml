@@ -1,0 +1,9 @@
+group: itaeval_uinauil
+task:
+  - sentipolc
+  - ironita_sarcasm
+  - ironita_irony
+  - haspeede2_stereo
+  - haspeede2_hs
+metadata:
+  version: 1.0

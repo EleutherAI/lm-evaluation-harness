@@ -1,4 +1,4 @@
-task: physical_state
+task: gita_physical_state
 dataset_path: juletxara/GITA4CALAMITA
 dataset_name: default
 output_type: multiple_choice

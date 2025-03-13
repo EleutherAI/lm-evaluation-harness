@@ -1,9 +1,7 @@
 task: truthfulqa_mc1_ita
-group: truthfulqa
 dataset_path: RiTA-nlp/truthful_qa_ita
 dataset_name: multiple_choice
 output_type: multiple_choice
-
 training_split: null
 validation_split: validation
 test_split: null

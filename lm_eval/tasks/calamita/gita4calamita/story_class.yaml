@@ -1,4 +1,4 @@
-task: story_class
+task: gita_story_class
 dataset_path: juletxara/GITA4CALAMITA
 dataset_name: default
 output_type: multiple_choice

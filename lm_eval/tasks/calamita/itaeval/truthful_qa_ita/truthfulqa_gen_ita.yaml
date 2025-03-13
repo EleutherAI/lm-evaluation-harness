@@ -1,5 +1,4 @@
 task: truthfulqa_gen_ita
-group: truthfulqa
 dataset_path: RiTA-nlp/truthful_qa_ita
 dataset_name: generation
 output_type: generate_until

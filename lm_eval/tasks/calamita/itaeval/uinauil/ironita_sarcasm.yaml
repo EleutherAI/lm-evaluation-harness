@@ -1,7 +1,4 @@
 task: ironita_sarcasm
-group:
-  - uinauil
-
 dataset_path: RiTA-nlp/UINAUIL
 dataset_name: ironita
 dataset_kwargs: null

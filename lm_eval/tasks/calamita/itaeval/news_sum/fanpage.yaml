@@ -1,4 +1,4 @@
-include: default.yaml
+include: news_sum.yaml
 task: news_sum_fanpage
 dataset_path: ARTeLab/fanpage
 metadata:

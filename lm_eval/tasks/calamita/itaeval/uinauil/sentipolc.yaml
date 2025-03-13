@@ -1,7 +1,4 @@
 task: sentipolc
-group:
-  - uinauil
-
 dataset_path: RiTA-nlp/UINAUIL
 dataset_name: sentipolc
 dataset_kwargs: null

@@ -1,10 +1,6 @@
-task: haspeede2_hs
-group:
-  - toxicity_ita
-  - uinauil
-
-dataset_path: RiTA-nlp/UINAUIL
-dataset_name: haspeede2
+task: ami_2020_aggressiveness
+dataset_path: RiTA-nlp/ami_2020
+dataset_name: raw
 dataset_kwargs: null
 
 training_split: train
@@ -16,9 +12,10 @@ num_fewshot: 5
 
 output_type: multiple_choice
 
-doc_to_text: "La seguente frase contiene contenuto d'odio? Rispondi Sì o No.\nFrase: {{full_text}}\nRisposta:"
-doc_to_target: hs
+doc_to_text: "La seguente frase è aggressiva? Rispondi Sì o No.\nFrase: {{text}}\nRisposta:"
+doc_to_target: aggressiveness
 doc_to_choice: ['No', 'Sì']
+
 
 metric_list:
   - metric: f1

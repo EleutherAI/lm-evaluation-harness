@@ -1,4 +1,4 @@
-task: conflict_detect
+task: gita_conflict_detect
 dataset_path: juletxara/GITA4CALAMITA
 dataset_name: default
 output_type: multiple_choice
