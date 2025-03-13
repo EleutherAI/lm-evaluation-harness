@@ -11,8 +11,8 @@ assignees: ''
 <!-- Please fill in the following information about your task -->
 
 **Category**: <!-- Choose one: advanced_reasoning, basic_knowledge, research -->
-**Subject**: <!-- e.g., Chemistry, Physics, Materials Science -->
-**Domain**: <!-- Specific domain within the subject, e.g., Organic Chemistry, Quantum Mechanics -->
+**Group**: <!-- e.g., Chemistry, Materials, etc -->
+**Topic**: <!-- Specific domain within the subject, e.g., forward reaction prediction, retrosynthesis, etc -->
 **Path**: <!-- Proposed path in repo structure, e.g., science/advanced_reasoning/chemistry/organic/ -->
 
 ## Task Description
@@ -70,5 +70,5 @@ assignees: ''
 ---
 <!-- Before submitting:
 1. Tag appropriate maintainers
-2. Add relevant labels (Category, Subject...etc)
+2. Add relevant labels (Category, Group...etc)
 -->
