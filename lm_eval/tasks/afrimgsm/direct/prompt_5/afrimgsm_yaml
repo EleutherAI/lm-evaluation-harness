@@ -1,4 +1,6 @@
-tag: afrimgsm_tasks
+tag:
+    - afrimgsm_tasks
+    - afrimgsm_tasks_prompt_5
 dataset_path: masakhane/afrimgsm
 output_type: generate_until
 test_split: test

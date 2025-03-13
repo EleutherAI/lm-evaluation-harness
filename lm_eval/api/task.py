@@ -1516,65 +1516,67 @@ class ConfigurableTask(Task):
                 gold = type(result)(gold)
 
             for metric in self._metric_fn_list.keys():
-                if self.multiple_target:
-                    # in the case where we have multiple targets,
-                    # return true if any are true
-                    # TODO: this may break for multipLe_target, non zero-or-1 metrics
-                    scores = []
-                    if not isinstance(gold, list):
-                        # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        # print(gold)
-                        gold = [gold]
+                # if self.multiple_target:
+                #     # in the case where we have multiple targets,
+                #     # return true if any are true
+                #     # TODO: this may break for multipLe_target, non zero-or-1 metrics
+                #     # scores = []
+                #     if not isinstance(gold, list):
+                #         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
+                #         # print(gold)
+                #         gold = [gold]
+                #     if metric == "exact_match":
+                #         result = [result for _ in range(len(gold))]
+                #         result_score = self._metric_fn_list[metric](
+                #             references=gold,
+                #             predictions=result,
+                #             **self._metric_fn_kwargs[metric],
+                #         )[metric]
+                #         # result_score = 1.0 if scores > 0.0 else 0.0
+                #     else:
+                #         for gold_option in gold:
+                #             try:
+                #                 result_score = self._metric_fn_list[metric](
+                #                     references=[gold_option],
+                #                     predictions=[result],
+                #                     **self._metric_fn_kwargs[metric],
+                #                 )
+                #                 print(result_score)
+                #             except (
+                #                 TypeError
+                #             ):  # TODO: this is hacky and I don't want to do it
+                #                 result_score = self._metric_fn_list[metric](
+                #                     [gold_option, result]
+                #                 )
+                #             if isinstance(result_score, dict):
+                #                 # TODO: this handles the case where HF evaluate returns a dict.
+                #                 result_score = result_score[metric]
+                #             # scores.append(result_score)
+                #         # if any(scores):
+                #         #     result_score = 1.0
+                #         # else:
+                #         #     result_score = 0.0
+                # else:
+                try:
                     if metric == "exact_match":
-                        result = [result for _ in range(len(gold))]
-                        scores = self._metric_fn_list[metric](
-                            references=gold,
-                            predictions=result,
+                        result_score = self._metric_fn_list[metric](
+                            references=[str(gold)],
+                            predictions=[str(result)],
                             **self._metric_fn_kwargs[metric],
-                        )[metric]
-                        result_score = 1.0 if scores > 0.0 else 0.0
+                        )
                     else:
-                        for gold_option in gold:
-                            try:
-                                result_score = self._metric_fn_list[metric](
-                                    references=[gold_option],
-                                    predictions=[result],
-                                    **self._metric_fn_kwargs[metric],
-                                )
-                            except (
-                                TypeError
-                            ):  # TODO: this is hacky and I don't want to do it
-                                result_score = self._metric_fn_list[metric](
-                                    [gold_option, result]
-                                )
-                            if isinstance(result_score, dict):
-                                # TODO: this handles the case where HF evaluate returns a dict.
-                                result_score = result_score[metric]
-                            scores.append(result_score)
-                        if any(scores):
-                            result_score = 1.0
-                        else:
-                            result_score = 0.0
-                else:
-                    try:
-                        if metric == "exact_match":
-                            result_score = self._metric_fn_list[metric](
-                                references=[str(gold)],
-                                predictions=[str(result)],
-                                **self._metric_fn_kwargs[metric],
-                            )
-                        else:
-                            result_score = self._metric_fn_list[metric](
-                                references=[gold],
-                                predictions=[result],
-                                **self._metric_fn_kwargs[metric],
-                            )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = self._metric_fn_list[metric]([gold, result])
-                    if isinstance(result_score, dict):
-                        # TODO: this handles the case where HF evaluate returns a dict.
-                        result_score = result_score[metric]
+                        result_score = self._metric_fn_list[metric](
+                            references=[gold],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[metric],
+                        )
+                except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    result_score = self._metric_fn_list[metric]([gold, result])
+                if isinstance(result_score, dict):
+                    # TODO: this handles the case where HF evaluate returns a dict.
+                    result_score = result_score[metric]
                 result_dict[metric] = result_score
+                # print(result_dict)
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",

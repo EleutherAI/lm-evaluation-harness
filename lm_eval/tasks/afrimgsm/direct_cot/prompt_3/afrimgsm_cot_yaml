@@ -12,6 +12,7 @@ generation_kwargs:
   - 'Question:'
   - </s>
   - <|im_end|>
+  - <|eot_id|>
 metric_list:
   - metric: exact_match
     aggregation: mean
