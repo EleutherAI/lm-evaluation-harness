@@ -1,4 +1,4 @@
-group:
+tag:
   - social_bias
 task: bbq
 dataset_path: oskarvanderwal/bbq

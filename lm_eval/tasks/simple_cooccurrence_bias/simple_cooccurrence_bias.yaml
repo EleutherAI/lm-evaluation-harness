@@ -1,4 +1,4 @@
-group:
+tag:
   - social_bias
 task: simple_cooccurrence_bias
 dataset_path: oskarvanderwal/simple-cooccurrence-bias
