@@ -8,7 +8,7 @@ from typing import List
 
 import numpy as np
 import sacrebleu
-import evaluate as hf_evaluate
+import collections
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -59,6 +59,34 @@ def f1_score(items):
     fscore = f1_score(golds, preds)
 
     return np.max(fscore)
+
+
+@register_aggregation("acc_pos")
+def acc_score(items):
+    from itertools import chain
+    from sklearn.metrics import accuracy_score
+
+    unzipped_list = list(zip(*items))
+
+    golds, preds = unzipped_list[0], unzipped_list[1]
+
+    # Flatten preds' inner lists
+    flattened_preds = [list(chain.from_iterable(p)) for p in preds]
+
+    # Calculate the accuracy for each gold-pred pair
+    accuracy_scores = []
+    for gold, pred in zip(golds, flattened_preds):
+        # Ensure both lists are of the same length, otherwise truncate to match
+        min_length = min(len(gold), len(pred))
+        gold = gold[:min_length]
+        pred = pred[:min_length]
+
+        # Calculate accuracy for the current pair and add to the list
+        accuracy = accuracy_score(gold, pred)
+        accuracy_scores.append(accuracy)
+
+    mean_accuracy = sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0
+    return mean_accuracy
 
 
 @register_aggregation("matthews_corrcoef")
@@ -161,12 +189,132 @@ def acc_norm_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="acc_pos",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="acc_pos",
+)
+def acc_pos_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="acc_mutual_info",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
 )
 def acc_mutual_info_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_aggregation("span_f1_agg")
+def span_f1_seqio(items):
+    """Computes Span based F1 score.
+
+    This function is copied from
+    https://github.com/google-research/multilingual-t5/blob/master/multilingual_t5/evaluation/metrics.py
+
+    Args:
+    targets: list of strings or list of list of strings if multiple references
+      are present.
+    predictions: list of strings
+
+    Returns:
+    span f1 across all targets and predictions (Based on CoNLL script)
+    """
+    unzipped_list = list(zip(*items))
+    targets = unzipped_list[0]
+    predictions = unzipped_list[1]
+
+    true_positives = collections.defaultdict(int)
+    false_positives = collections.defaultdict(int)
+    false_negatives = collections.defaultdict(int)
+
+    def normalize_text(strings):
+        def get_blank_spaces_pattern():
+            return re.compile(r'\s{3,}|\t')
+
+        def remove_blank_spaces(text):
+            text = re.sub(pattern=get_blank_spaces_pattern(), repl='', string=text)
+            text = re.sub('\s+', ' ', text)
+            return text
+
+        def remove_punctuation(text):
+            my_punctuation = '!"$%&\'()*+,-./:;<=>?[\\]^_`{|}~•@.""-,`'
+            text = re.sub('[' + my_punctuation + ']+', ' ', str(text))  # strip punctuation
+            return text
+
+        def remove_articles(text):
+            regex = re.compile(r"\b(a|an|the)\b", re.UNICODE)
+            return re.sub(regex, " ", text)
+
+        def lowercase(text):
+            text = text.lower()
+            return text
+
+        strings = remove_punctuation(strings)
+        strings = remove_articles(strings)
+        strings = remove_blank_spaces(strings)
+        strings = lowercase(strings)
+
+        return strings
+
+    def tags_to_spans(tag_sequence, delimiter="$$"):
+        """Extract spans from IOB1 or BIO tags."""
+        if isinstance(tag_sequence, list):
+            tag_sequence = " ".join(i.strip() for i in tag_sequence)
+        tag_sequence_split = [item.strip() for sub in tag_sequence.strip().split(delimiter) for item in sub.split('$') if item]
+        tag_sequence_split = [item.strip() for value in tag_sequence_split for sub in value.split(". ") for item in sub.split(", ")]
+        tags_entities = []
+        for tag_entity in tag_sequence_split:
+            tag_entity_split = tag_entity.split(": ")
+            if len(tag_entity_split) != 2:
+                continue
+            tag = normalize_text(tag_entity_split[0].strip())
+            entity = normalize_text(tag_entity_split[1].rstrip().lstrip())
+            tags_entities.append((tag, entity))
+        return tags_entities
+
+    def compute_f1_metrics(true_positive, false_positive, false_negative):
+        precision = float(true_positive) / float(
+            true_positive + false_positive + 1e-13
+        )
+        recall = float(true_positive) / float(
+            true_positive + false_negative + 1e-13
+        )
+        f1_measures = 2.0 * ((precision * recall) / (precision + recall + 1e-13))
+        return precision, recall, f1_measures
+
+    for target, pred in zip(targets, predictions):
+        gold_spans = tags_to_spans(target)
+        predicted_spans = tags_to_spans(pred)
+
+        for span in predicted_spans:
+            if span in gold_spans:
+                true_positives[span[0]] += 1
+                gold_spans.remove(span)
+            else:
+                false_positives[span[0]] += 1
+        # These spans weren't predicted.
+        for span in gold_spans:
+            false_negatives[span[0]] += 1
+
+    _, _, f1_measure = compute_f1_metrics(
+        sum(true_positives.values()),
+        sum(false_positives.values()),
+        sum(false_negatives.values()),
+    )
+    return f1_measure
+
+
+@register_metric(
+    metric="span_f1",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="span_f1_agg",
+)
+def span_f1(items):  # This is a passthrough function
     return items
 
 
@@ -188,44 +336,39 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# def exact_match_hf_evaluate(
-#     predictions,
-#     references,
-#     regexes_to_ignore=None,
-#     ignore_case=False,
-#     ignore_punctuation=False,
-#     ignore_numbers=False,
-# ):
-#     if regexes_to_ignore is not None:
-#         for s in regexes_to_ignore:
-#             predictions = np.array([re.sub(s, "", x) for x in predictions])
-#             references = np.array([re.sub(s, "", x) for x in references])
-#     else:
-#         predictions = np.asarray(predictions)
-#         references = np.asarray(references)
-#
-#     if ignore_case:
-#         predictions = np.char.lower(predictions)
-#         references = np.char.lower(references)
-#
-#     if ignore_punctuation:
-#         repl_table = string.punctuation.maketrans("", "", string.punctuation)
-#         predictions = np.char.translate(predictions, table=repl_table)
-#         references = np.char.translate(references, table=repl_table)
-#
-#     if ignore_numbers:
-#         repl_table = string.digits.maketrans("", "", string.digits)
-#         predictions = np.char.translate(predictions, table=repl_table)
-#         references = np.char.translate(references, table=repl_table)
-#
-#     score_list = predictions == references
-#
-#     return {"exact_match": np.mean(score_list)}
+def exact_match_hf_evaluate(
+    predictions,
+    references,
+    regexes_to_ignore=None,
+    ignore_case=False,
+    ignore_punctuation=False,
+    ignore_numbers=False,
+):
+    if regexes_to_ignore is not None:
+        for s in regexes_to_ignore:
+            predictions = np.array([re.sub(s, "", x) for x in predictions])
+            references = np.array([re.sub(s, "", x) for x in references])
+    else:
+        predictions = np.asarray(predictions)
+        references = np.asarray(references)
 
+    if ignore_case:
+        predictions = np.char.lower(predictions)
+        references = np.char.lower(references)
 
-###
+    if ignore_punctuation:
+        repl_table = string.punctuation.maketrans("", "", string.punctuation)
+        predictions = np.char.translate(predictions, table=repl_table)
+        references = np.char.translate(references, table=repl_table)
 
-exact_match = hf_evaluate.load("exact_match")
+    if ignore_numbers:
+        repl_table = string.digits.maketrans("", "", string.digits)
+        predictions = np.char.translate(predictions, table=repl_table)
+        references = np.char.translate(references, table=repl_table)
+
+    score_list = predictions == references
+
+    return {"exact_match": np.mean(score_list)}
 
 
 @register_metric(
@@ -235,17 +378,7 @@ exact_match = hf_evaluate.load("exact_match")
     aggregation="mean",
 )
 def exact_match_fn(**kwargs):
-    return exact_match.compute(**kwargs)
-
-
-# @register_metric(
-#     metric="exact_match",
-#     higher_is_better=True,
-#     output_type="generate_until",
-#     aggregation="mean",
-# )
-# def exact_match_fn(**kwargs):
-#     return exact_match_hf_evaluate(**kwargs)
+    return exact_match_hf_evaluate(**kwargs)
 
 
 @register_metric(
