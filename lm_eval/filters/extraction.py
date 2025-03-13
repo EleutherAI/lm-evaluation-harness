@@ -56,12 +56,14 @@ class POSFilter(Filter):
         self,
         regex_pattern: str = r"\['(.*?)'\]",
         group_select=0,
-        fallback: str = "[invalid]",
+        fallback=None,
     ) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
+        if fallback is None:
+            fallback = ['invalid']
         self.regex_pattern = regex_pattern
         self.regex = re.compile(regex_pattern)
         self.group_select = group_select
@@ -79,7 +81,7 @@ class POSFilter(Filter):
             if isinstance(result, str):
                 result = extract_tagged_tokens(result)
             pos_tags.extend(pos for _, pos in result)
-            return pos_tags if pos_tags else ['invalid']
+            return pos_tags if pos_tags else self.fallback
 
         def filter_set(inst):
             filtered = []
@@ -88,7 +90,7 @@ class POSFilter(Filter):
                 filtered.append(match)
             return filtered
 
-        filtered_resps = list(map(lambda x: filter_set(x), resps))
+        filtered_resps = map(lambda x: filter_set(x), resps)
         return filtered_resps
 
 

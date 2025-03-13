@@ -1,6 +1,6 @@
-group:
-  - afribench
-task: null
+tag:
+    - belebele_tasks
+    - belebele_tasks_prompt_4
 dataset_path: facebook/belebele
 dataset_name: null
 output_type: multiple_choice
