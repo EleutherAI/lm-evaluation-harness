@@ -1,0 +1,9 @@
+group: masakhaner
+task:
+  - masakhaner_tasks
+aggregate_metric_list:
+  - metric: span_f1
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
