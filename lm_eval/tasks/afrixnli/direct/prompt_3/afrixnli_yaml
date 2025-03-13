@@ -1,4 +1,6 @@
-tag: afrixnli_tasks
+tag:
+    - afrixnli_tasks
+    - afrixnli_tasks_prompt_3
 dataset_path: masakhane/afrixnli
 dataset_name: null
 output_type: multiple_choice

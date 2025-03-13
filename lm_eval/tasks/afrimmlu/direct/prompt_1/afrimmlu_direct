@@ -1,4 +1,6 @@
-tag: afrimmlu_tasks
+tag:
+    - afrimmlu_tasks
+    - afrimmlu_tasks_prompt_1
 dataset_path: masakhane/afrimmlu
 dataset_name: null
 output_type: multiple_choice
