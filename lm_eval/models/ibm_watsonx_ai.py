@@ -31,38 +31,28 @@ def _verify_credentials(creds: Any) -> None:
         ValueError: If any of the necessary credentials are missing, with guidance
                     on which environment variables need to be set.
     """
-
-    def _is_missing(key):
-        return key not in creds or not creds[key]
-
-    missing_keys = [key for key in ["url", "project_id"] if _is_missing(key)]
-
-    auth_keys = ["apikey", "token"]
-    missing_auth = False
-    if all(_is_missing(key) for key in auth_keys):
-        missing_auth = True
-
-    env_var_mapping = {
+    env_var_map = {
         "apikey": "WATSONX_API_KEY",
         "token": "WATSONX_TOKEN",
         "url": "WATSONX_URL",
         "project_id": "WATSONX_PROJECT_ID",
     }
 
+    auth_req_keys = ["apikey", "token"]  # one of these is required
+    other_req_keys = ["url", "project_id"]  # both of these are required
+
+    missing_auth = all(not creds.get(key) for key in auth_req_keys)  # flag any missing
+    missing_keys = [
+        f"{key} ({env_var_map[key]})" for key in other_req_keys if not creds.get(key)
+    ]  # list all missing
+
     if missing_keys or missing_auth:
         error_msg = f"Missing required credentials: {', '.join(missing_keys)}"
-        missing_env_vars = [env_var_mapping[key] for key in missing_keys]
         if missing_auth:
-            error_msg += (
-                f"{', and' if missing_keys else ''} either {' or '.join(auth_keys)}"
-            )
-            missing_env_vars.append(
-                f"{'/'.join([val for key, val in env_var_mapping.items() if key in auth_keys])}"
-            )
+            error_msg += ", and " if missing_keys else ""
+            error_msg += f"either {' or '.join([f'{key} ({env_var_map[key]})' for key in auth_req_keys])}"
 
-        error_msg += (
-            f". Set the following environment variables: {', '.join(missing_env_vars)}"
-        )
+        error_msg += ". Please set the environment variables indicated in parenthesis."
         raise ValueError(error_msg)
 
 
