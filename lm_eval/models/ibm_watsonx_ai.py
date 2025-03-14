@@ -29,9 +29,10 @@ def _verify_credentials(creds: Any) -> None:
     Args:
         creds (Any): A dictionary containing the credentials.
     Raises:
-        ValueError: If any of the necessary credentials are missing, with guidance 
+        ValueError: If any of the necessary credentials are missing, with guidance
                     on which environment variables need to be set.
     """
+
     def _is_missing(key):
         return key not in creds or not creds[key]
 
@@ -53,10 +54,16 @@ def _verify_credentials(creds: Any) -> None:
         error_msg = f"Missing required credentials: {', '.join(missing_keys)}"
         missing_env_vars = [env_var_mapping[key] for key in missing_keys]
         if missing_auth:
-            error_msg += f"{', and' if missing_keys else ''} either {' or '.join(auth_keys)}" 
-            missing_env_vars.append(f"{'/'.join([val for key, val in env_var_mapping.items() if key in auth_keys])}")
+            error_msg += (
+                f"{', and' if missing_keys else ''} either {' or '.join(auth_keys)}"
+            )
+            missing_env_vars.append(
+                f"{'/'.join([val for key, val in env_var_mapping.items() if key in auth_keys])}"
+            )
 
-        error_msg += f". Set the following environment variables: {', '.join(missing_env_vars)}"
+        error_msg += (
+            f". Set the following environment variables: {', '.join(missing_env_vars)}"
+        )
         raise ValueError(error_msg)
 
 
@@ -70,10 +77,10 @@ def get_watsonx_credentials() -> Dict[str, str]:
     Raises:
         AssertionError: If the credentials format is invalid or any of the necessary credentials are missing.
     """
-    # This function attempts to load a file named .env starting from the CWD & working backwards 
+    # This function attempts to load a file named .env starting from the CWD and working backwards
     # towards root. KV pairs are parsed and stored as env vars iff not already set
     load_dotenv()
-    
+
     credentials = {
         "apikey": os.getenv("WATSONX_API_KEY", None),
         "token": os.getenv("WATSONX_TOKEN", None),
