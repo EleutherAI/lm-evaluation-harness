@@ -1,0 +1,4 @@
+include: _indonesian_template_yaml
+description: The following is multiple-choice question about Professional certification.
+process_docs: !function 'utils.process_professional_certification'
+task: include_base_44_indonesian_professional_certification

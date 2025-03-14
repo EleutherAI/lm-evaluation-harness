@@ -1,0 +1,4 @@
+include: _malay_few_shot_og_template_yaml
+description: Berikut ialah soalan aneka pilihan (dengan jawapan) tentang Arts & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_malay_few_shot_og_arts_humanities

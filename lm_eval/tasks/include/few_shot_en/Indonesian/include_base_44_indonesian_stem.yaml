@@ -1,0 +1,4 @@
+include: _indonesian_few_shot_en_template_yaml
+description: The following are multiple-choice questions (with answers) about STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_indonesian_few_shot_en_stem

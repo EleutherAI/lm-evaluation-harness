@@ -1,0 +1,13 @@
+group: include_base_44_portuguese
+task:
+- include_base_44_portuguese_stem
+- include_base_44_portuguese_social_science
+- include_base_44_portuguese_arts_humanities
+- include_base_44_portuguese_health_oriented_education
+- include_base_44_portuguese_business_commerce
+- include_base_44_portuguese_applied_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

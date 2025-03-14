@@ -1,0 +1,10 @@
+group: include_base_44_urdu
+task:
+- include_base_44_urdu_few_shot_og_stem
+- include_base_44_urdu_few_shot_og_health_oriented_education
+- include_base_44_urdu_few_shot_og_arts_humanities
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

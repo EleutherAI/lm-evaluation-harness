@@ -1,0 +1,5 @@
+include: _greek_few_shot_og_template_yaml
+description: Ακολουθούν ερωτήσεις πολλαπλής επιλογής (με απαντήσεις) σχετικά με το
+  Social Science.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_greek_few_shot_og_social_science

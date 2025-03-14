@@ -1,0 +1,4 @@
+include: _arabic_few_shot_og_template_yaml
+description: فيما يلي أسئلة اختيارية متعددة (مع الإجابات) حول Driving License.
+process_docs: !function 'utils.process_driving_license'
+task: include_base_44_arabic_few_shot_og_driving_license

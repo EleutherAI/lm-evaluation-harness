@@ -1,0 +1,5 @@
+include: _spanish_few_shot_og_template_yaml
+description: Las siguientes son preguntas de opción múltiple (con respuestas) sobre
+  Arts & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_spanish_few_shot_og_arts_humanities

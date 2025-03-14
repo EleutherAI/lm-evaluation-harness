@@ -1,0 +1,5 @@
+include: _georgian_few_shot_og_template_yaml
+description: ქვემოთ მოცემულია რამდენიმე არჩევანის კითხვები (პასუხებით) Arts & Humanities-ის
+  შესახებ.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_georgian_few_shot_og_arts_humanities
