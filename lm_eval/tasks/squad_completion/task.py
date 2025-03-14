@@ -2,6 +2,7 @@ import re
 from typing import List
 
 import numpy as np
+from deepcopy import deepcopy
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
@@ -46,12 +47,14 @@ class SQUADCompletion(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-
+        arguments = deepcopy(self.config.generation_kwargs)
+        arguments["until"] = arguments.get("until", ["\n"])
+        arguments["max_gen_toks"] = arguments.get("max_gen_toks", 48)
         return [
             Instance(
                 request_type="generate_until",
                 doc=doc,
-                arguments=(ctx, {"until": ["\n"], "max_gen_toks": 48}),
+                arguments=(ctx, arguments),
                 idx=0,
                 **kwargs,
             )
