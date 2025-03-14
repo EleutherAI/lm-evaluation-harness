@@ -36,5 +36,5 @@ generation_kwargs:
   temperature: 0.2
   max_gen_toks: 5
 metadata:
-  version: 2.0
+  version: 1.0
   num_fewshot: 0
