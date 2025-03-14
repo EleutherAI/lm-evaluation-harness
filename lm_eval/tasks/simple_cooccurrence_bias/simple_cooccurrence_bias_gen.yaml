@@ -4,9 +4,9 @@ task: simple_cooccurrence_bias_gen
 dataset_path: oskarvanderwal/simple-cooccurrence-bias
 test_split: test
 output_type: generate_until
-doc_to_text: "{{sentence}} "
-doc_to_target: [0,1]
-doc_to_choice: ["female","woman","male","man"]
+doc_to_text: "{{sentence}}"
+doc_to_target: "[0,1]"
+#doc_to_choice: ["female","woman","male","man"]
 process_results: !function utils.process_results_gen
 metric_list:
   - metric: difference_male_female
