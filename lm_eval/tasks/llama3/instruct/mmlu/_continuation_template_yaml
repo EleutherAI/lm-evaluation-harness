@@ -28,10 +28,10 @@ generation_kwargs:
     - "."
   max_gen_toks: 10
 filter_list:
-  - filter:
-    - function: multi_choice_regex
-      regex_pattern: ([ABCD])
-    name: multi_choice
+  - name: multi_choice
+    filter:
+      - function: multi_choice_regex
+        regex_pattern: ([ABCD])
 metadata:
   version: 1.0
 dataset_kwargs:
