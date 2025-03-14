@@ -7,13 +7,62 @@ from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
-from lm_eval.api.task import ConfigurableTask, Task
+from lm_eval.api.task import ConfigurableTask, Generate_MultipleChoice, Task
 from lm_eval.evaluator_utils import get_subtask_list
+from lm_eval.tasks.mmlu_pro.utils import doc_to_text
 
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
 eval_logger = logging.getLogger(__name__)
+
+
+def convert_mcq_to_generative(cfg: dict):
+    prompt = """Given the following question and candidate answers, choose the correct answer."""
+    if cfg.get("output_type", "generate_until") == "generate_until":
+        return cfg
+    else:
+        cfg["output_type"] = "generate_until"
+        doc_to_text = cfg.get("doc_to_text", "")
+        if isinstance(doc_to_text, str):
+            cfg["doc_to_text"] = (
+                prompt
+                + "\n"
+                + cfg.get("doc_to_text", "")
+                + "\n"
+                + 'Your response should be formatted as "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
+            )
+        elif callable(doc_to_text):
+            cfg["doc_to_text"] = (
+                lambda doc: prompt
+                + "\n"
+                + doc_to_text(doc)
+                + "\n"
+                + 'Your response should be formatted as "The best answer is [the_answer_letter]" where the [the_answer_letter] is one of choice letters, A, B, C etc.'
+            )
+        cfg["target_delimiter"] = "\n\n"
+        cfg["gen_prefix"] = "The best answer is"
+        cfg["generation_kwargs"] = {"until": ["."], "max_gen_toks": 10}
+        cfg["filter_list"] = [
+            {
+                "name": "strict_match",
+                "filter": [
+                    {"function": "remove_whitespace"},
+                    {"function": "take_first"},
+                ],
+            }
+        ]
+        cfg["metric_list"] = [
+            {
+                "metric": "exact_match",
+                "aggregation": "mean",
+                "higher_is_better": True,
+                "ignore_case": True,
+                "ignore_punctuation": True,
+                "regexes_to_ignore": ["\\$", "\\.$"],
+            }
+        ]
+    return cfg
 
 
 class TaskManager:
@@ -27,6 +76,7 @@ class TaskManager:
         verbosity: Optional[str] = None,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
+        mcq_to_generative: bool = False,
     ) -> None:
         if verbosity is not None:
             utils.setup_logging(verbosity)
@@ -52,6 +102,7 @@ class TaskManager:
         )
 
         self.task_group_map = collections.defaultdict(list)
+        self.mcq_to_generative = mcq_to_generative
 
     def initialize_tasks(
         self,
@@ -278,7 +329,13 @@ class TaskManager:
                     # very scuffed: set task name here. TODO: fixme?
                     task_object.config.task = task
             else:
-                task_object = ConfigurableTask(config=config)
+                if self.mcq_to_generative and (
+                    config.get("output_type") == "multiple_choice"
+                ):
+                    config = convert_mcq_to_generative(config)
+                    task_object = Generate_MultipleChoice(config=config)
+                else:
+                    task_object = ConfigurableTask(config=config)
 
             return {task: task_object}
 
