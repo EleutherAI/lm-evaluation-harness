@@ -75,6 +75,7 @@ class TaskConfig(dict):
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
+    doc_to_audio: Union[Callable, str] = None
     unsafe_code: bool = False
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
@@ -369,6 +370,9 @@ class Task(abc.ABC):
 
     # not an abstractmethod because not every language-only task has to implement this
     def doc_to_image(self, doc):
+        raise NotImplementedError
+
+    def doc_to_audio(self, doc):
         raise NotImplementedError
 
     def doc_to_prefix(self, doc):
@@ -730,6 +734,10 @@ class ConfigurableTask(Task):
             self.OUTPUT_TYPE = self.config.output_type
 
         if self.config.doc_to_image is not None:
+            # mark the task as requiring multimodality.
+            self.MULTIMODAL = True
+
+        if self.config.doc_to_audio:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
 
@@ -1347,6 +1355,29 @@ class ConfigurableTask(Task):
         else:
             return None
 
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
+        if doc_to_audio is not None:
+            doc_to_audio = doc_to_audio
+        elif self.config.doc_to_audio is not None:
+            doc_to_audio = self.config.doc_to_audio
+        else:
+            return None
+
+        if isinstance(doc_to_audio, list):
+            audio_feature = [
+                self.doc_to_audio(doc, feature) for feature in doc_to_audio
+            ]
+            return [feature for feature in audio_feature if feature is not None]
+        elif isinstance(doc_to_audio, str):
+            if doc_to_audio in self.features:
+                return doc[doc_to_audio]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_audio, doc))
+        elif callable(doc_to_audio):
+            return doc_to_audio(doc)
+        else:
+            return None
+
     def doc_to_prefix(self, doc):
         if (gen_prefix := self.config.gen_prefix) is not None:
             if gen_prefix in self.features:
@@ -1415,6 +1446,14 @@ class ConfigurableTask(Task):
             multimodal_arg = {
                 **multimodal_arg,
                 **{"visual": self.doc_to_image(doc)},
+            }
+
+        if (
+            self.config.doc_to_audio
+        ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
+            multimodal_arg = {
+                **multimodal_arg,
+                **{"audio": self.doc_to_audio(doc)},
             }
 
         if bool(multimodal_arg):
