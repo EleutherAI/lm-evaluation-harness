@@ -82,11 +82,10 @@ class TemplateAPI(TemplateLM):
         verify_certificate: bool = True,
         eos_string: str = None,
         # timeout in seconds
-        # timeout: int = 300,
-        timeout: int = 150,
+        timeout: int = 300,
         **kwargs,
     ) -> None:
-        super().__init__()        
+        super().__init__()
         missing_packages = [
             pkg
             for pkg in ["aiohttp", "tqdm", "tenacity", "requests"]
