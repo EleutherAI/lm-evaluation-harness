@@ -32,6 +32,7 @@ filter_list:
     filter:
       - function: multi_choice_regex
         regex_pattern: ([ABCD])
+      - function: take_first
 metadata:
   version: 1.0
 dataset_kwargs:
