@@ -5,7 +5,6 @@ import os
 from functools import lru_cache
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, cast
 
-from dotenv import load_dotenv
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
@@ -77,6 +76,13 @@ def get_watsonx_credentials() -> Dict[str, str]:
     Raises:
         AssertionError: If the credentials format is invalid or any of the necessary credentials are missing.
     """
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        raise ImportError(
+            "Could not import dotenv: Please install lm_eval[ibm_watsonx_ai] package."
+        )
+
     # This function attempts to load a file named .env starting from the CWD and working backwards
     # towards root. KV pairs are parsed and stored as env vars iff not already set
     load_dotenv()
