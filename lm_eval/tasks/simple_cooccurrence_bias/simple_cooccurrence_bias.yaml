@@ -5,7 +5,8 @@ dataset_path: oskarvanderwal/simple-cooccurrence-bias
 test_split: test
 output_type: multiple_choice
 doc_to_text: "{{sentence}}"
-doc_to_target: [0,1]
+# doc_to_target is not used as we overload process_results
+doc_to_target: "[0,1]"
 doc_to_choice: ["female","woman","male","man"]
 process_results: !function utils.process_results
 metric_list:
