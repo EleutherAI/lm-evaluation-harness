@@ -32,3 +32,7 @@ if __name__ == "__main__":
     # print_task_names("lm_eval/tasks/calamita")
     task_names = print_task_names("lm_eval/tasks/calamita")
     print(task_names)
+    with open("./calamita/calamita_tasks_v1.txt", "w") as f:
+        for task_name in task_names:
+            f.write(f"{task_name}\n")
+    print(f"Total tasks: {len(task_names)}")
