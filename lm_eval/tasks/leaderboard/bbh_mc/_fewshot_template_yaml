@@ -1,0 +1,16 @@
+dataset_path: SaylorTwift/bbh
+output_type: multiple_choice
+test_split: test
+doc_to_text: 'Q: {{input}}
+
+  A:'
+doc_to_target: "{{target}}"
+metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+num_fewshot: 3
+fewshot_config:
+  sampler: first_n
+metadata:
+  version: 1.0

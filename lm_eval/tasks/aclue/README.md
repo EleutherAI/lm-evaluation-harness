@@ -14,7 +14,7 @@ Homepage: https://github.com/isen-zhang/ACLUE
 
 ```bibtex
 @inproceedings{zhang-li-2023-large,
-    title = "Can Large Langauge Model Comprehend {A}ncient {C}hinese? A Preliminary Test on {ACLUE}",
+    title = "Can Large Language Model Comprehend {A}ncient {C}hinese? A Preliminary Test on {ACLUE}",
     author = "Zhang, Yixuan  and Li, Haonan",
     booktitle = "Proceedings of the Ancient Language Processing Workshop",
     month = sep,
@@ -26,7 +26,7 @@ Homepage: https://github.com/isen-zhang/ACLUE
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 

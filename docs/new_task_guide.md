@@ -37,7 +37,8 @@ and rename the folders and YAML file(s) as desired.
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
-
+> [!TIP]
+> To test your task, we recommend using verbose logging using `export LOGLEVEL = DEBUG` in your shell before running the evaluation script. This will help you debug any issues that may arise.
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
 
 ```yaml
@@ -59,7 +60,25 @@ We can also specify from which split the task should retrieve few-shot examples 
 ```yaml
 fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
-though if this is not set, we will default to train/validation/test sets, in that order.
+or by hardcoding them, either using the following in the yaml file:
+```yaml
+fewshot_config:
+  sampler: first_n
+  samples: [
+    {<sample 1>},
+    {<sample 2>},
+  ]
+```
+or by adding the function `list_fewshot_samples` in the associated utils.py file:
+```python
+def list_fewshot_samples() -> list[dict]:
+  return [{<sample 1>}, {<sample 2>}]
+```
+See `lm_eval/tasks/minerva_math/minerva_math_algebra.yaml` for an example of the latter, and `lm_eval/tasks/gsm8k/gsm8k-cot.yaml` for an example of the former.
+
+In this case, each sample must contain the same fields as the samples in the above sets--for example, if `doc_to_text` expects an `input` field when rendering input prompts, these provided samples must include an `input` key.
+
+If neither above options are not set, we will default to train/validation/test sets, in that order.
 
 
 Finally, our dataset may not be already in the exact format we want. Maybe we have to strip whitespace and special characters via a regex from our dataset's "question" field! Or maybe we just want to rename its columns to match a convention we'll be using for our prompts.
@@ -68,20 +87,20 @@ Let's create a python file in the directory where we're writing our YAML file:
 ```bash
 touch lm_eval/tasks/<dataset_name>/utils.py
 ```
-Now, in `utils.py` we'll write a function to process each split of our dataset:
-
-TODO: Change the example to one that's in the tasks/
+Now, in `utils.py` we'll write a function to process each split of our dataset (the following example is drawn from [the `hellaswag` task](../lm_eval/tasks/hellaswag/utils.py)):
 
 ```python
-def process_docs(dataset: datasets.Dataset):
-    def _helper(doc):
-      # modifies the contents of a single
-      # document in our dataset.
-      doc["choices"] = [doc["choice1"], doc["choice2"], doc["wrong_answer"]]
-      doc["gold"] = doc["label"]
-      return doc
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+    def _process_doc(doc):
+        ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
+        out_doc = {
+            "query": preprocess(doc["activity_label"] + ": " + ctx),
+            "choices": [preprocess(ending) for ending in doc["endings"]],
+            "gold": int(doc["label"]),
+        }
+        return out_doc
 
-    return dataset.map(_helper) # returns back a datasets.Dataset object
+    return dataset.map(_process_doc)
 ```
 
 Now, in our YAML config file we'll use the `!function` constructor, and tell the config where our imported Python function will come from. At runtime, before doing anything else we will preprocess our dataset according to this function!
@@ -125,7 +144,7 @@ The next thing we need to do is decide what format to use when presenting the da
 
 To write a prompt, users will use `doc_to_text`, `doc_to_target`, and `doc_to_choice` (Optional when certain conditions are met).
 
-`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must be also be set with the appropriate list of possible choice strings.
+`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must also be set with the appropriate list of possible choice strings.
 
 ### Basic prompts
 
@@ -154,7 +173,7 @@ doc_to_choice: choices
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
+Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a sample line `doc`, the model sees something in the format of:
 ```
 doc["passage"]
 Question: doc["question"]?
@@ -172,7 +191,8 @@ doc_to_target: "{{answer}}"
 ```
 
 
-**Important**: we now add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_target(doc) + target_delimiter + doc_to_text(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively.
+> [!WARNING]
+> We add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_text(doc) + target_delimiter + doc_to_target(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively. For multiple choice the target will be each choice index concatenated with the delimiter.
 
 
 #### Multiple choice format
@@ -188,7 +208,7 @@ doc_to_choice: "{{[distractor1, distractor2, distractor3, correct_answer]}}"
 ```
 Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
 
-The label index can also be sourced from a feature directly. For example in `superglue/boolq`, the label index if defined in the feature `label`. We can set `doc_to_target` as simply `label`. The options or verbalizers can be written in a the form of a list `["no", "yes"]` that will correspond to the label index.
+The label index can also be sourced from a feature directly. For example in `superglue/boolq`, the label index if defined in the feature `label`. We can set `doc_to_target` as simply `label`. The options or verbalizers can be written in the form of a list `["no", "yes"]` that will correspond to the label index.
 
 ```yaml
 doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
@@ -265,9 +285,9 @@ As a heuristic check:
 * Do you expect to compute metrics after applying multiple such processing steps on your model outputs?
 * Does your task rely on metrics that need a custom implementation?
 
-For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md) . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
+For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md). If none of the above sounds like they apply to your task, it's time to continue onto checking your task performance!
 
-### Task name + groups (registering a task)
+### Task name + tags (registering a task)
 
 To test a task conveniently, it helps to *register* the task--that is, to give it a name and make the `lm-eval` library aware it exists!
 
@@ -278,14 +298,14 @@ task: <name of the task>
 ```
 Including a task name is mandatory.
 
-It is often also convenient to label your task with several `groups`, or tags, though this field is optional:
+It is often also convenient to label your task with several `tag` values, though this field is optional:
 
 ```yaml
-group:
-  - group1
-  - group2
+tag:
+  - tag1
+  - tag2
 ```
-This will add your task to the `group1` and `group2` groups, enabling people to know how to categorize your task, and if desired run all tasks in one of these groups at once, your task along with them.
+This will add your task to the `tag1` and `tag2` tags, enabling people to know how to categorize your task, and if desired run all tasks in one of these groups at once, your task along with them.
 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
@@ -301,7 +321,48 @@ Passing `--tasks /path/to/yaml/file` is also accepted.
 
 ### Advanced Group Configs
 
-You can make more complete group config while also tailoring parameters for individual tasks.
+While `tag` values are helpful when you want to be able to quickly and conveniently run a set of related tasks via `--tasks my_tag_name`, often, we wish to implement more complex logic. For example, the MMLU benchmark contains 57 *subtasks* that must all be *averaged* together in order to report a final 'MMLU score'.
+
+Groupings of tasks might also use particular variants of a task--for example, we might want to default to evaluating a task as 5-shot when called as part of a given grouping, but not have a preference for number of shots when evaluating it as a standalone.
+
+We implement this via **groups**, which are distinct from tags. Groups can be implemented via *group config* YAML files, which are laid out similarly but slightly differently to tasks' YAML configs.
+
+The most basic form of group can be defined via a YAML config similar to the following:
+
+```yaml
+group: nli_tasks
+task:
+  - cb
+  - anli_r1
+  - rte
+metadata:
+  version: 1.0
+```
+
+This will behave almost identically to a `tag` that includes these 3 tasks, but with one key distinction: we'll print the `nli_tasks` group as a row (with no associated metrics) in our table of outputs, and visually show that these 3 tasks appear under its subheader.
+
+
+Now, let's assume we actually want to report an aggregate score for `nli_tasks`. We would instead use a YAML config like the following:
+
+```yaml
+group: nli_tasks
+task:
+  - cb
+  - anli_r1
+  - rte
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true # defaults to `true`. Set this to `false` to do a "macro" average (taking each subtask's average accuracy, and summing those accuracies and dividing by 3)--by default we do a "micro" average (retain all subtasks' per-document accuracies, and take the mean over all documents' accuracies to get our aggregate mean).
+metadata:
+  version: 1.0
+```
+
+Similar to our `metric_list` for listing out the metrics we want to calculate for a given task, we use an `aggregate_metric_list` field to specify which metric name to aggregate across subtasks, what aggregation function to use, and whether we should micro- or macro- average these metrics. See [./task_guide.md](./task_guide.md) for a full list of related sub-keys.
+
+**[!Tip]: currently, we predominantly only support the aggregation of group metrics that use `mean` (either micro- or macro- averaged) over their subtasks. If you require even more complex aggregation rules, you may want to perform aggregation offline.**
+
+Group configs can be fairly complex! We can do various operations, such as defining new subtask(s) inline in our group YAML, overriding an existing task's specific config value, or nesting existing groups within our
 
 For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks.
 
@@ -313,37 +374,17 @@ task:
       - cb
       - anli_r1
       - rte
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        higher_is_better: true
   - task: mmlu
     num_fewshot: 2
-```
-It's also important to note how you can basically insert a group config as a task. Here, to make a group of natural language inference tasks, you simply write like how you would normally write a group config but this time place that as part of a task list under the main group being built.
-
-### Duplicate Tasks in Group Configs
-
-There might be cases where you might want to evaluate prompts and how models perform over prompt variations. You can list an existing task (In the example below, `anli_r1`) which varying `doc_to_text` implementation. To differentiate from each variation, we can utilize `task_alias`. LM-Eval will recognize that there are multiple variations of the same tasks and differentiate them.
-```yaml
-group: flan_held_in
-group_alias: Flan (Held-In)
-task:
-  # ANLI R1
-  - group: anli_r1_flan
-    group_alias: ANLI R1
-    task:
-      - task: anli_r1
-        task_alias: prompt-0
-        include: _held_in_template_yaml
-        doc_to_text: "{{premise}}\n\nChoose your answer ..."
-        ...
-      - task: anli_r1
-        task_alias: prompt-1
-        include: _held_in_template_yaml
-        doc_to_text: "{{premise}}\n\nBased on ..."
-      ...
 ```
 
 ### Configuring python classes
 
-There can occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
+There can be occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
 
 ```yaml
 task: squadv2
@@ -364,21 +405,29 @@ task:
   ...
 ```
 
+You can also pass a custom argument to your class by accepting `config` in the custom class constructor.
+Here's how to do it:
+
+```yaml
+task: 20_newsgroups
+class: !function task.Unitxt
+recipe: card=cards.20_newsgroups,template=templates.classification.multi_class.title
+```
+
+In this example, `recipe` is the custom argument for the `Unitxt` class.
+
 ## Beautifying Table Display
 
-To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed. For example in `mmlu_abstract_algebra.yaml` we set `group_alias` to `stem` and `task_alias` to `abstract_algebra`.
+To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed. For example in `mmlu_abstract_algebra.yaml` we set `task_alias` to `abstract_algebra`. In group configs, a `group_alias` for a group can also be set.
 
 ```
 "dataset_name": "abstract_algebra"
 "description": "The following are multiple choice questions (with answers) about abstract\
   \ algebra.\n\n"
-"group": "mmlu_stem"
-"group_alias": "stem"
 "include": "_default_template_yaml"
 "task": "mmlu_abstract_algebra"
 "task_alias": "abstract_algebra"
 ```
-Note: Even though `group` can be a list, for now, `group_alias` can only be a single string.
 
 ## Checking validity
 
@@ -398,9 +447,9 @@ a simple eye test.
 
 ## Versioning
 
-One key feature in LM Evaluation Harness is the ability to version tasks--that is, mark them with a specific version number that can be bumped whenever a breaking change is made.
+One key feature in LM Evaluation Harness is the ability to version tasks and groups--that is, mark them with a specific version number that can be bumped whenever a breaking change is made.
 
-This version info can be provided by adding the following to your new task config file:
+This version info can be provided by adding the following to your new task or group config file:
 
 ```
 metadata:
@@ -437,6 +486,8 @@ If other tasks on this dataset are already supported:
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 It is recommended to include a filled-out copy of this checklist in the README.md for the subfolder you are creating, if you have created a new subfolder in `lm_eval/tasks`.
+
+**Finally, please add a short description of your task(s), along with a link to its subfolder in lm_eval/tasks, to [`lm_eval/tasks/README.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/README.md) so that users can discover your task in the library, and follow the link to your README for more information about the variants supported, their task names, and the original source of the dataset and/or evaluation setup.**
 
 ## Submitting your task
 

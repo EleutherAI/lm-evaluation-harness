@@ -8,7 +8,7 @@ from typing import Union
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.logging import EvaluationTracker, WandbLogger
+from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
@@ -73,7 +73,7 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         type=str,
         metavar="task1,task2",
-        help="To get full list of tasks, use the command lm-eval --tasks list",
+        help="Comma-separated list of task names or task groupings to evaluate on.\nTo get full list of tasks, use one of the commands `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above",
     )
     parser.add_argument(
         "--model_args",
@@ -163,6 +163,31 @@ def setup_parser() -> argparse.ArgumentParser:
         help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
     )
     parser.add_argument(
+        "--system_instruction",
+        type=str,
+        default=None,
+        help="System instruction to be used in the prompt",
+    )
+    parser.add_argument(
+        "--apply_chat_template",
+        type=str,
+        nargs="?",
+        const=True,
+        default=False,
+        help=(
+            "If True, apply chat template to the prompt. "
+            "Providing `--apply_chat_template` without an argument will apply the default chat template to the prompt. "
+            "To apply a specific template from the available list of templates, provide the template name as an argument. "
+            "E.g. `--apply_chat_template template_name`"
+        ),
+    )
+    parser.add_argument(
+        "--fewshot_as_multiturn",
+        action="store_true",
+        default=False,
+        help="If True, uses the fewshot as a multi-turn conversation",
+    )
+    parser.add_argument(
         "--show_config",
         action="store_true",
         default=False,
@@ -188,9 +213,9 @@ def setup_parser() -> argparse.ArgumentParser:
         "--verbosity",
         "-v",
         type=str.upper,
-        default="INFO",
+        default=None,
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
+        help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
     parser.add_argument(
         "--wandb_args",
@@ -219,7 +244,7 @@ def setup_parser() -> argparse.ArgumentParser:
         help=(
             "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
             "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
-            "respectively, or a single integer to set the same seed for all three.\n"
+            "respectively, or a single integer to set the same seed for all four.\n"
             f"The values are either an integer or 'None' to not set the seed. Default is `{default_seed_string}` "
             "(for backward compatibility).\n"
             "E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot sampling seed to 52. "
@@ -231,6 +256,11 @@ def setup_parser() -> argparse.ArgumentParser:
         "--trust_remote_code",
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
+    )
+    parser.add_argument(
+        "--confirm_run_unsafe_code",
+        action="store_true",
+        help="Confirm that you understand the risks of running unsafe code for tasks that require it",
     )
     return parser
 
@@ -249,19 +279,17 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
-    eval_logger = utils.eval_logger
-    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
-    eval_logger.info(f"Verbosity set to {args.verbosity}")
+    utils.setup_logging(args.verbosity)
+    eval_logger = logging.getLogger(__name__)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
-    args.hf_hub_log_args = f"output_path={args.output_path},token={os.environ.get('HF_TOKEN')},{args.hf_hub_log_args}"
+    if args.output_path:
+        args.hf_hub_log_args += f",output_path={args.output_path}"
+    if os.environ.get("HF_TOKEN", None):
+        args.hf_hub_log_args += f",token={os.environ.get('HF_TOKEN')}"
     evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
     evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
-    evaluation_tracker.general_config_tracker.log_experiment_args(
-        model_source=args.model,
-        model_args=args.model_args,
-    )
 
     if args.predict_only:
         args.log_samples = True
@@ -270,17 +298,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "Specify --output_path if providing --log_samples or --predict_only"
         )
 
+    if args.fewshot_as_multiturn and args.apply_chat_template is False:
+        raise ValueError(
+            "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
+        )
+
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(include_path=args.include_path)
 
-    if (
-        "push_results_to_hub" in evaluation_tracker_args
-        or "push_samples_to_hub" in evaluation_tracker_args
-    ) and "hub_results_org" not in evaluation_tracker_args:
-        raise ValueError(
-            "If push_results_to_hub or push_samples_to_hub is set, results_org must be specified."
-        )
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
             "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
@@ -296,9 +322,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
     elif args.tasks == "list":
-        eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
-        )
+        print(task_manager.list_all_tasks())
+        sys.exit()
+    elif args.tasks == "list_groups":
+        print(task_manager.list_all_tasks(list_subtasks=False, list_tags=False))
+        sys.exit()
+    elif args.tasks == "list_tags":
+        print(task_manager.list_all_tasks(list_groups=False, list_subtasks=False))
+        sys.exit()
+    elif args.tasks == "list_subtasks":
+        print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
     else:
         if os.path.isdir(args.tasks):
@@ -327,18 +360,27 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above, or pass '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
-        os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
-        args.model_args = (
-            args.model_args
-            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
+        eval_logger.info(
+            "Passed `--trust_remote_code`, setting environment variable `HF_DATASETS_TRUST_REMOTE_CODE=true`"
         )
+        # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
+        # because it's already been determined based on the prior env var before launching our
+        # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
+        import datasets
 
-    eval_logger.info(f"Selected Tasks: {task_names}")
+        datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+
+        args.model_args = args.model_args + ",trust_remote_code=True"
+    eval_logger.info(
+        f"Selected Tasks: {task_names}"
+    ) if eval_logger.getEffectiveLevel() >= logging.INFO else print(
+        f"Selected Tasks: {task_names}"
+    )
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
@@ -357,14 +399,18 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
+        evaluation_tracker=evaluation_tracker,
+        system_instruction=args.system_instruction,
+        apply_chat_template=args.apply_chat_template,
+        fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
-        verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
+        confirm_run_unsafe_code=args.confirm_run_unsafe_code,
         **request_caching_args,
     )
 
@@ -398,6 +444,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 evaluation_tracker.save_results_samples(
                     task_name=task_name, samples=samples[task_name]
                 )
+
+        if (
+            evaluation_tracker.push_results_to_hub
+            or evaluation_tracker.push_samples_to_hub
+        ):
+            evaluation_tracker.recreate_metadata_card()
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "

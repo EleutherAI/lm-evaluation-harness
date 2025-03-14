@@ -1,53 +1,70 @@
-"dataset_name": "formal_logic"
-"description": "The following are multiple choice questions (with answers) about formal\
-  \ logic.\n\nQ: Which of the given formulas of PL is the best symbolization of the\
-  \ following sentence?\nTurtles live long lives and are happy creatures, unless they\
-  \ are injured.\n(A) (L • H) ≡ I (B) (L • H) ∨ I (C) L • (H ∨ I) (D) L • (H ⊃ R).\n\
-  A: Let's think step by step. We refer to Wikipedia articles on formal logic for\
-  \ help. Let’s solve this step by step. Let “L” denote “living long”, H “being happy”,\
-  \ and “I” “being injured”. Now, consider each choice:\n(A) means (living long AND\
-  \ being happy) is equivalent to (being injured). \n(B) means (living long AND being\
-  \ happy) OR (being injured). \n(C) means (living long) AND (being happy OR being\
-  \ injured). \n(D) means (living long) AND (being happy implies being R), but what\
-  \ R denotes is not clear.\nObviously, (B) is the best symbolization of the original\
-  \ sentence. The answer is (B).\n\nQ: Select the best translation into predicate\
-  \ logic.George borrows Hector's lawnmower. (g: George; h: Hector; l: Hector's lawnmower;\
-  \ Bxyx: x borrows y from z).\n(A) Blgh (B) Bhlg (C) Bglh (D) Bghl\nA: Let's think\
-  \ step by step. We refer to Wikipedia articles on formal logic for help. Let’s solve\
-  \ this step by step. We are told that “Bxyx” means “x borrows y from z”. We can\
-  \ rewrite “George borrows Hector's lawnmower” as “George borrows a lawnmower from\
-  \ Hector”, which can then be translated into predicate logic as “Bglh”. The answer\
-  \ “Bglh” appears in (C); therefore, (C) must be the correct answer. The answer is\
-  \ (C).\n\nQ: \nSelect the best English interpretation of the given arguments in\
-  \ predicate logic.\nDm\n(∀x)(Wx ⊃ ~Dx). \n(∀x)Wx ∨ Ag\t/ (∃x)Ax\n(A) Marina is a\
-  \ dancer. Some weaklings are not dancers. Either everything is a weakling or Georgia\
-  \ plays volleyball. So something plays volleyball. (B) Marina is a dancer. No weakling\
-  \ is a dancer. Everything is either a weakling or plays volleyball. So something\
-  \ plays volleyball. (C) Marina is a dancer. Some weaklings are not dancers. Everything\
-  \ is either a weakling or plays volleyball. So something plays volleyball. (D) Marina\
-  \ is a dancer. No weakling is a dancer. Either everything is a weakling or Georgia\
-  \ plays volleyball. So something plays volleyball.\nA: Let's think step by step.\
-  \ We refer to Wikipedia articles on formal logic for help. Let’s solve this step\
-  \ by step. Let “D” denote “being a dancer”, “m” denote “Maria”, “g” denote “Georgia”,\
-  \ “W” denote “weakling”, “A” denote “playing volleyball”. Then, we have the following:\n\
-  1. Dm → Maria is a dance.\n2. (∀x)(Wx ⊃ ~Dx). → For all x, if x is a weakling, then\
-  \ x is not a dancer. In other words, no weakling is a dancer.\n3. (∀x)Wx ∨ Ag\t\
-  / (∃x)Ax → For all x, x is a weakling or Georgia plays volleyball. So there exists\
-  \ an x that plays volleyball. \nOptions (A) and (C) do claim that some weaklings\
-  \ are not dancers, but the second argument strongly states that no weakling is a\
-  \ dancer. Thus, we can eliminate them. Option (B) omits the important detail about\
-  \ Georgia playing volleyball. Option (D) has all the details presented in the arguments\
-  \ and is the best English interpretation of the arguments. The answer is (D).\n\n\
-  Q: Select the best translation into predicate logic: No people drive on Mars.\n\
-  (A) ~Pd (B) (∀x)(Px ∨ ~Dx) (C) (∀x)(Px ⊃ ~Dx) (D) ~Dp\nA: Let's think step by step.\
-  \ We refer to Wikipedia articles on formal logic for help. Let’s solve this step\
-  \ by step. Let “P” denote “being on Mars” and “D” denote “driving on Mars”. Then\
-  \ let’s consider each option:\nOption (A): ~Pd → d is not on Mars.\nOption (B):\
-  \ (∀x)(Px ∨ ~Dx) → For all x, x is on Mars and x do not drive on Mars.\nOption (C):\
-  \ (∀x)(Px ⊃ ~Dx) → For all x, x is on Mars implies that x do not drive on Mars.\n\
-  Option (D): ~Dp: → p do not drive on Mars.\nOf all these options, Option (C) appears\
-  \ to be the best and most meaningful interpretation of the argument “No people drive\
-  \ on Mars.” The answer is (C).\n\n"
-"group": "mmlu_flan_cot_fewshot_humanities"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_formal_logic"
+dataset_name: formal_logic
+description: The following are multiple choice questions (with answers) about formal
+  logic.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "Which of the given formulas of PL is the best symbolization of the following\
+      \ sentence?\nTurtles live long lives and are happy creatures, unless they are\
+      \ injured.\n(A) (L \u2022 H) \u2261 I (B) (L \u2022 H) \u2228 I (C) L \u2022\
+      \ (H \u2228 I) (D) L \u2022 (H \u2283 R)."
+    target: "Let's think step by step. We refer to Wikipedia articles on formal logic\
+      \ for help. Let\u2019s solve this step by step. Let \u201CL\u201D denote \u201C\
+      living long\u201D, H \u201Cbeing happy\u201D, and \u201CI\u201D \u201Cbeing\
+      \ injured\u201D. Now, consider each choice:\n(A) means (living long AND being\
+      \ happy) is equivalent to (being injured). \n(B) means (living long AND being\
+      \ happy) OR (being injured). \n(C) means (living long) AND (being happy OR being\
+      \ injured). \n(D) means (living long) AND (being happy implies being R), but\
+      \ what R denotes is not clear.\nObviously, (B) is the best symbolization of\
+      \ the original sentence. The answer is (B)."
+  - question: 'Select the best translation into predicate logic.George borrows Hector''s
+      lawnmower. (g: George; h: Hector; l: Hector''s lawnmower; Bxyx: x borrows y
+      from z).
+
+      (A) Blgh (B) Bhlg (C) Bglh (D) Bghl'
+    target: "Let's think step by step. We refer to Wikipedia articles on formal logic\
+      \ for help. Let\u2019s solve this step by step. We are told that \u201CBxyx\u201D\
+      \ means \u201Cx borrows y from z\u201D. We can rewrite \u201CGeorge borrows\
+      \ Hector's lawnmower\u201D as \u201CGeorge borrows a lawnmower from Hector\u201D\
+      , which can then be translated into predicate logic as \u201CBglh\u201D. The\
+      \ answer \u201CBglh\u201D appears in (C); therefore, (C) must be the correct\
+      \ answer. The answer is (C)."
+  - question: "\nSelect the best English interpretation of the given arguments in predicate\
+      \ logic.\nDm\n(\u2200x)(Wx \u2283 ~Dx). \n(\u2200x)Wx \u2228 Ag\t/ (\u2203x)Ax\n\
+      (A) Marina is a dancer. Some weaklings are not dancers. Either everything is\
+      \ a weakling or Georgia plays volleyball. So something plays volleyball. (B)\
+      \ Marina is a dancer. No weakling is a dancer. Everything is either a weakling\
+      \ or plays volleyball. So something plays volleyball. (C) Marina is a dancer.\
+      \ Some weaklings are not dancers. Everything is either a weakling or plays volleyball.\
+      \ So something plays volleyball. (D) Marina is a dancer. No weakling is a dancer.\
+      \ Either everything is a weakling or Georgia plays volleyball. So something\
+      \ plays volleyball."
+    target: "Let's think step by step. We refer to Wikipedia articles on formal logic\
+      \ for help. Let\u2019s solve this step by step. Let \u201CD\u201D denote \u201C\
+      being a dancer\u201D, \u201Cm\u201D denote \u201CMaria\u201D, \u201Cg\u201D\
+      \ denote \u201CGeorgia\u201D, \u201CW\u201D denote \u201Cweakling\u201D, \u201C\
+      A\u201D denote \u201Cplaying volleyball\u201D. Then, we have the following:\n\
+      1. Dm \u2192 Maria is a dance.\n2. (\u2200x)(Wx \u2283 ~Dx). \u2192 For all\
+      \ x, if x is a weakling, then x is not a dancer. In other words, no weakling\
+      \ is a dancer.\n3. (\u2200x)Wx \u2228 Ag\t/ (\u2203x)Ax \u2192 For all x, x\
+      \ is a weakling or Georgia plays volleyball. So there exists an x that plays\
+      \ volleyball. \nOptions (A) and (C) do claim that some weaklings are not dancers,\
+      \ but the second argument strongly states that no weakling is a dancer. Thus,\
+      \ we can eliminate them. Option (B) omits the important detail about Georgia\
+      \ playing volleyball. Option (D) has all the details presented in the arguments\
+      \ and is the best English interpretation of the arguments. The answer is (D)."
+  - question: "Select the best translation into predicate logic: No people drive on Mars.\n\
+      (A) ~Pd (B) (\u2200x)(Px \u2228 ~Dx) (C) (\u2200x)(Px \u2283 ~Dx) (D) ~Dp"
+    target: "Let's think step by step. We refer to Wikipedia articles on formal logic\
+      \ for help. Let\u2019s solve this step by step. Let \u201CP\u201D denote \u201C\
+      being on Mars\u201D and \u201CD\u201D denote \u201Cdriving on Mars\u201D. Then\
+      \ let\u2019s consider each option:\nOption (A): ~Pd \u2192 d is not on Mars.\n\
+      Option (B): (\u2200x)(Px \u2228 ~Dx) \u2192 For all x, x is on Mars and x do\
+      \ not drive on Mars.\nOption (C): (\u2200x)(Px \u2283 ~Dx) \u2192 For all x,\
+      \ x is on Mars implies that x do not drive on Mars.\nOption (D): ~Dp: \u2192\
+      \ p do not drive on Mars.\nOf all these options, Option (C) appears to be the\
+      \ best and most meaningful interpretation of the argument \u201CNo people drive\
+      \ on Mars.\u201D The answer is (C).\n\n"
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_formal_logic

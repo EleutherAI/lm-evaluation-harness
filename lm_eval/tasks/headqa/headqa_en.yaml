@@ -1,5 +1,4 @@
-group:
-  - headqa
+tag: headqa
 task: headqa_en
 dataset_path: EleutherAI/headqa
 dataset_name: en

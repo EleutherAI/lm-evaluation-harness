@@ -1,24 +1,31 @@
 import logging
 import math
 import random
+import re
+import string
 from collections.abc import Iterable
 from typing import List
 
-import evaluate as hf_evaluate
 import numpy as np
 import sacrebleu
-import sklearn.metrics
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 # Register Aggregations First
 @register_aggregation("bypass")
 def bypass_agg(arr):
     return 999
+
+
+@register_aggregation("nanmean")
+def nanmean(arr):
+    if len(arr) == 0 or all(np.isnan(arr)):
+        return np.nan
+    return np.nanmean(arr)
 
 
 @register_aggregation("mean")
@@ -50,21 +57,24 @@ def bits_per_byte(items):
 
 @register_aggregation("f1")
 def f1_score(items):
+    from sklearn.metrics import f1_score
+
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    fscore = sklearn.metrics.f1_score(golds, preds)
+    fscore = f1_score(golds, preds)
 
     return np.max(fscore)
 
 
 @register_aggregation("matthews_corrcoef")
 def matthews_corrcoef(items):
+    from sklearn.metrics import matthews_corrcoef
+
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    # print(preds)
-    return sklearn.metrics.matthews_corrcoef(golds, preds)
+    return matthews_corrcoef(golds, preds)
 
 
 @register_aggregation("bleu")
@@ -119,9 +129,10 @@ def ter(items):
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
     gold, predictions = list(zip(*items))
+    bs, num_class = np.array(predictions).shape
+
     gold = list(gold)
-    gold_one_hot = np.eye(np.max(gold) + 1)[gold]
-    predictions = list(zip(*items))[1]
+    gold_one_hot = np.eye(num_class)[gold]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
 
@@ -165,7 +176,60 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
 
 
-exact_match = hf_evaluate.load("exact_match")
+### the code used in the `exact_match_hf_evaluate` function is ported from
+### https://github.com/huggingface/evaluate/blob/main/metrics/exact_match/exact_match.py
+### which is under the apache license.
+
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+def exact_match_hf_evaluate(
+    predictions,
+    references,
+    regexes_to_ignore=None,
+    ignore_case=False,
+    ignore_punctuation=False,
+    ignore_numbers=False,
+):
+    if regexes_to_ignore is not None:
+        for s in regexes_to_ignore:
+            predictions = np.array([re.sub(s, "", x) for x in predictions])
+            references = np.array([re.sub(s, "", x) for x in references])
+    else:
+        predictions = np.asarray(predictions)
+        references = np.asarray(references)
+
+    if ignore_case:
+        predictions = np.char.lower(predictions)
+        references = np.char.lower(references)
+
+    if ignore_punctuation:
+        repl_table = string.punctuation.maketrans("", "", string.punctuation)
+        predictions = np.char.translate(predictions, table=repl_table)
+        references = np.char.translate(references, table=repl_table)
+
+    if ignore_numbers:
+        repl_table = string.digits.maketrans("", "", string.digits)
+        predictions = np.char.translate(predictions, table=repl_table)
+        references = np.char.translate(references, table=repl_table)
+
+    score_list = predictions == references
+
+    return {"exact_match": np.mean(score_list)}
+
+
+###
 
 
 @register_metric(
@@ -175,7 +239,7 @@ exact_match = hf_evaluate.load("exact_match")
     aggregation="mean",
 )
 def exact_match_fn(**kwargs):
-    return exact_match.compute(**kwargs)
+    return exact_match_hf_evaluate(**kwargs)
 
 
 @register_metric(
@@ -428,7 +492,11 @@ def bootstrap_stderr(f, xs, iters):
     return sample_stddev(res)
 
 
-def stderr_for_metric(metric, bootstrap_iters):
+def stderr_for_metric(metric, bootstrap_iters: int):
+    if bootstrap_iters <= 0:
+        # return no function (don't compute stderr) if bootstrap iters = 0
+        return None
+
     bootstrappable = [
         median,
         matthews_corrcoef,
@@ -437,6 +505,7 @@ def stderr_for_metric(metric, bootstrap_iters):
         bleu,
         chrf,
         ter,
+        nanmean,
     ]
 
     if metric in bootstrappable:
@@ -466,9 +535,9 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
-    assert (
-        metrics is not None
-    ), "Need to pass a list of each subtask's metric for this stderr aggregation"
+    assert metrics is not None, (
+        "Need to pass a list of each subtask's metric for this stderr aggregation"
+    )
     assert len(stderrs) == len(sizes) and len(sizes) == len(metrics)
 
     # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1390 for more documentation.

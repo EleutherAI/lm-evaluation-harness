@@ -1,4 +1,5 @@
-"fewshot_split": "mal_Mlym"
-"include": "_default_template_yaml"
-"task": "belebele_mal_Mlym"
-"test_split": "mal_Mlym"
+dataset_name: mal_Mlym
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_mal_Mlym
+test_split: test

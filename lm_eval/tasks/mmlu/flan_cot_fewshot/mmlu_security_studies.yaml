@@ -1,86 +1,104 @@
-"dataset_name": "security_studies"
-"description": "The following are multiple choice questions (with answers) about security\
-  \ studies.\n\nQ: What are the frameworks of analysis within which terrorism has\
-  \ been considered (as of 2020)?\n(A) Competition between larger nations has resulted\
-  \ in some countries actively supporting terrorist groups to undermine the strength\
-  \ of rival states. Terrorist networks are extended patronage clubs maintained and\
-  \ paid for by their donor states and are conceptualised as being like state actors,\
-  \ to be dealt with using military force. (B) Globalization has enabled the internationalization\
-  \ of terrorist activities by opening up their operational space, although coordination\
-  \ is still managed from a geographical base. This suggests that terrorist groups\
-  \ are nationally structured which means that terrorism cannot be considered in terms\
-  \ of a war to be defeated militarily without having serious implications on the\
-  \ indigenous population. (C) Terrorism can be viewed as a problem to be resolved\
-  \ by military means (war on terrorism), by normal police techniques (terrorism as\
-  \ crime), or as a medical problem with underlying causes and symptoms (terrorism\
-  \ as disease). (D) Terrorism is viewed as a criminal problem. The criminalization\
-  \ of terrorism has two important implications. Firstly, it suggests that terrorism\
-  \ can be eradicated - terrorists can be caught and brought to trial by normal judicial\
-  \ proceedings thereby removing the threat from society - and secondly, it suggests\
-  \ that preventative crime techniques are applicable to prevent its development.\n\
-  A: Let's think step by step. We refer to Wikipedia articles on security studies\
-  \ for help. (A) is wrong because it is not competition between larger nations that\
-  \ causes terrorism. \n(B) is wrong because globalization is not the cause of terrorism.\n\
-  (C) is correct because the US undertook the war on terrorism. \n(D) is wrong because\
-  \ preventative crime techniques will likely not end terrorism. The answer is (C).\n\
-  \nQ: Which of the following is the best lens through which to investigate the role\
-  \ of child soldiers?\n(A) Child soldiers are victims of combat that need re-education\
-  \ and rehabilitation. (B) Children and their mothers are not active subjects in\
-  \ warfare and are best considered as subjects in the private sphere. (C) Children\
-  \ are most often innocent bystanders in war and are best used as signifiers of peace.\
-  \ (D) Children have political subjecthood that is missed when they are considered\
-  \ as passive victims of warfare.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on security studies for help. Child soliders as a political topic can\
-  \ be missed when they are considered passive victims of warfare. The answer is (D).\n\
-  \nQ: How can we best describe the relationship between the state-centric approach\
-  \ and the concept of human security?\n(A) There are such wide divisions within the\
-  \ human security framework regarding the nature of threats and referent objects\
-  \ that no widely applicable comparisons between state-centric approaches and human\
-  \ security can be drawn. (B) By adopting the framework of human security, the limitations\
-  \ of the realist state-centric approach become evident. Whilst human security defines\
-  \ the referent object as the person or population, state-centric approaches prioritise\
-  \ the security of the state, de-prioritizing the pursuit of human security. (C)\
-  \ The state-centric approach to security is a faction of human security, usually\
-  \ defined within the broad school of human security. By being state-centric this\
-  \ approach prioritises the individual as the referent object in security studies.\
-  \ (D) Both the state-centric and human-centric approaches to security are mutually\
-  \ exclusive and offer a sufficient analytic framework with which to understand the\
-  \ international security system. It is therefore the role of security analysts to\
-  \ determine which of these substantial concepts is correct, and which should be\
-  \ discarded.\nA: Let's think step by step. We refer to Wikipedia articles on security\
-  \ studies for help. Human security focuses on a person or population whereas state-centric\
-  \ approaches focus on the state while deprioritizing human security. The answer\
-  \ is (B).\n\nQ: In order to become securitized, a threat must be presented in which\
-  \ of these ways?\n(A) As an existential threat that requires immediate and extraordinary\
-  \ action, posing a threat to the survival of the state or to societal security.\
-  \ (B) As requiring immediate and extraordinary action by the state, threatening\
-  \ the survival of a referent object and therefore warranting the use of measures\
-  \ not normally employed in the political realm. (C) As an urgent threat to the survival\
-  \ of the referent object, so serious that it legitimises the employment of extraordinary\
-  \ action in response. (D) As an urgent threat to the survival of the audience that\
-  \ requires extraordinary or emergency measures.\nA: Let's think step by step. We\
-  \ refer to Wikipedia articles on security studies for help. To be securitized, a\
-  \ threat must be an urgent threat to the survival of the referent object. The answer\
-  \ is (C).\n\nQ: What distinguishes coercive diplomacy from military force?\n(A)\
-  \ Compellence is another term for coercive diplomacy, but covering a narrower set\
-  \ of criteria; compellence covers those threats aimed at initiating adversary action.\
-  \ A threat to coerce a state to give up part of its territory would count as coercive\
-  \ diplomacy, as long as that threat proactively initiates action before reactive\
-  \ diplomacy is taken. (B) Coercive diplomacy constitutes the threats of limited\
-  \ force to induce adversary's incentive to comply with the coercer's demands. It\
-  \ is an influence strategy that is intended to obtain compliance: the use of force\
-  \ to defeat an opponent first does not count. It leaves an element of choice with\
-  \ the target to comply, or to continue. (C) Military force, or the threat of military\
-  \ force, utilises fear to achieve strategic objectives. Coercive diplomacy is differentiated\
-  \ from this approach, because it does not use fear as a tool for coercing an adversary.\
-  \ (D) Coercive diplomacy is employed to use force but to limit its effects on the\
-  \ international community. Coercive diplomacy is an aggressive strategy that is\
-  \ intended to obtain compliance through defeat. It does not leave an element of\
-  \ choice with the target, the target either being forced to comply or engage in\
-  \ conflict. It seeks to control by imposing compliance by removing any opportunity\
-  \ for negotiation or concession.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on security studies for help. Coercive diplomacy uses the threat of force\
-  \ to induce the opponent to comply with demands. The answer is (B).\n\n"
-"group": "mmlu_flan_cot_fewshot_social_sciences"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_security_studies"
+dataset_name: security_studies
+description: The following are multiple choice questions (with answers) about security
+  studies.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'What are the frameworks of analysis within which terrorism has been considered
+      (as of 2020)?
+
+      (A) Competition between larger nations has resulted in some countries actively
+      supporting terrorist groups to undermine the strength of rival states. Terrorist
+      networks are extended patronage clubs maintained and paid for by their donor
+      states and are conceptualised as being like state actors, to be dealt with using
+      military force. (B) Globalization has enabled the internationalization of terrorist
+      activities by opening up their operational space, although coordination is still
+      managed from a geographical base. This suggests that terrorist groups are nationally
+      structured which means that terrorism cannot be considered in terms of a war
+      to be defeated militarily without having serious implications on the indigenous
+      population. (C) Terrorism can be viewed as a problem to be resolved by military
+      means (war on terrorism), by normal police techniques (terrorism as crime),
+      or as a medical problem with underlying causes and symptoms (terrorism as disease).
+      (D) Terrorism is viewed as a criminal problem. The criminalization of terrorism
+      has two important implications. Firstly, it suggests that terrorism can be eradicated
+      - terrorists can be caught and brought to trial by normal judicial proceedings
+      thereby removing the threat from society - and secondly, it suggests that preventative
+      crime techniques are applicable to prevent its development.'
+    target: "Let's think step by step. We refer to Wikipedia articles on security\
+      \ studies for help. (A) is wrong because it is not competition between larger\
+      \ nations that causes terrorism. \n(B) is wrong because globalization is not\
+      \ the cause of terrorism.\n(C) is correct because the US undertook the war on\
+      \ terrorism. \n(D) is wrong because preventative crime techniques will likely\
+      \ not end terrorism. The answer is (C)."
+  - question: 'Which of the following is the best lens through which to investigate the
+      role of child soldiers?
+
+      (A) Child soldiers are victims of combat that need re-education and rehabilitation.
+      (B) Children and their mothers are not active subjects in warfare and are best
+      considered as subjects in the private sphere. (C) Children are most often innocent
+      bystanders in war and are best used as signifiers of peace. (D) Children have
+      political subjecthood that is missed when they are considered as passive victims
+      of warfare.'
+    target: Let's think step by step. We refer to Wikipedia articles on security studies
+      for help. Child soliders as a political topic can be missed when they are considered
+      passive victims of warfare. The answer is (D).
+  - question: 'How can we best describe the relationship between the state-centric approach
+      and the concept of human security?
+
+      (A) There are such wide divisions within the human security framework regarding
+      the nature of threats and referent objects that no widely applicable comparisons
+      between state-centric approaches and human security can be drawn. (B) By adopting
+      the framework of human security, the limitations of the realist state-centric
+      approach become evident. Whilst human security defines the referent object as
+      the person or population, state-centric approaches prioritise the security of
+      the state, de-prioritizing the pursuit of human security. (C) The state-centric
+      approach to security is a faction of human security, usually defined within
+      the broad school of human security. By being state-centric this approach prioritises
+      the individual as the referent object in security studies. (D) Both the state-centric
+      and human-centric approaches to security are mutually exclusive and offer a
+      sufficient analytic framework with which to understand the international security
+      system. It is therefore the role of security analysts to determine which of
+      these substantial concepts is correct, and which should be discarded.'
+    target: Let's think step by step. We refer to Wikipedia articles on security studies
+      for help. Human security focuses on a person or population whereas state-centric
+      approaches focus on the state while deprioritizing human security. The answer
+      is (B).
+  - question: 'In order to become securitized, a threat must be presented in which of
+      these ways?
+
+      (A) As an existential threat that requires immediate and extraordinary action,
+      posing a threat to the survival of the state or to societal security. (B) As
+      requiring immediate and extraordinary action by the state, threatening the survival
+      of a referent object and therefore warranting the use of measures not normally
+      employed in the political realm. (C) As an urgent threat to the survival of
+      the referent object, so serious that it legitimises the employment of extraordinary
+      action in response. (D) As an urgent threat to the survival of the audience
+      that requires extraordinary or emergency measures.'
+    target: Let's think step by step. We refer to Wikipedia articles on security studies
+      for help. To be securitized, a threat must be an urgent threat to the survival
+      of the referent object. The answer is (C).
+  - question: 'What distinguishes coercive diplomacy from military force?
+
+      (A) Compellence is another term for coercive diplomacy, but covering a narrower
+      set of criteria; compellence covers those threats aimed at initiating adversary
+      action. A threat to coerce a state to give up part of its territory would count
+      as coercive diplomacy, as long as that threat proactively initiates action before
+      reactive diplomacy is taken. (B) Coercive diplomacy constitutes the threats
+      of limited force to induce adversary''s incentive to comply with the coercer''s
+      demands. It is an influence strategy that is intended to obtain compliance:
+      the use of force to defeat an opponent first does not count. It leaves an element
+      of choice with the target to comply, or to continue. (C) Military force, or
+      the threat of military force, utilises fear to achieve strategic objectives.
+      Coercive diplomacy is differentiated from this approach, because it does not
+      use fear as a tool for coercing an adversary. (D) Coercive diplomacy is employed
+      to use force but to limit its effects on the international community. Coercive
+      diplomacy is an aggressive strategy that is intended to obtain compliance through
+      defeat. It does not leave an element of choice with the target, the target either
+      being forced to comply or engage in conflict. It seeks to control by imposing
+      compliance by removing any opportunity for negotiation or concession.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on security
+      studies for help. Coercive diplomacy uses the threat of force to induce the
+      opponent to comply with demands. The answer is (B).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_security_studies

@@ -1,35 +1,48 @@
-"dataset_name": "clinical_knowledge"
-"description": "The following are multiple choice questions (with answers) about clinical\
-  \ knowledge.\n\nQ: Glycolysis is the name given to the pathway involving the conversion\
-  \ of:\n(A) glycogen to glucose-1-phosphate. (B) glycogen or glucose to fructose.\
-  \ (C) glycogen or glucose to pyruvate or lactate. (D) glycogen or glucose to pyruvate\
-  \ or acetyl CoA.\nA: Let's think step by step. We refer to Wikipedia articles on\
-  \ clinical knowledge for help. Glycolysis is the name given to the pathway involving\
-  \ conversion of glycogen or glucose to pyruvate or lactate. The answer is (C).\n\
-  \nQ: What is the difference between a male and a female catheter?\n(A) Male and\
-  \ female catheters are different colours. (B) Male catheters are longer than female\
-  \ catheters. (C) Male catheters are bigger than female catheters. (D) Female catheters\
-  \ are longer than male catheters.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on clinical knowledge for help. The difference between a male and female\
-  \ catheter is that male catheters tend to be longer than female catheters. The answer\
-  \ is (B).\n\nQ: How many attempts should you make to cannulate a patient before\
-  \ passing the job on to a senior colleague, according to the medical knowledge of\
-  \ 2020?\n(A) 4 (B) 3 (C) 2 (D) 1\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on clinical knowledge for help. According to the medical protocol as\
-  \ of 2020, you should make two attempts to cannulate a patient before passing the\
-  \ job on to a more-senior practitioner. The answer is (C).\n\nQ: In the assessment\
-  \ of the hand function which of the following is true?\n(A) Abduction of the thumb\
-  \ is supplied by spinal root T2 (B) Opposition of the thumb by opponens policis\
-  \ is supplied by spinal root T1 (C) Finger adduction is supplied by the median nerve\
-  \ (D) Finger abduction is mediated by the palmar interossei\nA: Let's think step\
-  \ by step. We refer to Wikipedia articles on clinical knowledge for help. Of all\
-  \ the options, it is only true that the opposition of the thumb by opponens pollicis\
-  \ is supplied by spinal root T1. The answer is (B).\n\nQ: The energy for all forms\
-  \ of muscle contraction is provided by:\n(A) ATP. (B) ADP. (C) phosphocreatine.\
-  \ (D) oxidative phosphorylation.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on clinical knowledge for help. The energy for muscular contraction is\
-  \ provided by ATP (adenosine triphosphate), which is the powerhouse of the cell.\
-  \ The answer is (A).\n\n"
-"group": "mmlu_flan_cot_fewshot_other"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_clinical_knowledge"
+dataset_name: clinical_knowledge
+description: The following are multiple choice questions (with answers) about clinical
+  knowledge.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Glycolysis is the name given to the pathway involving the conversion of:
+
+      (A) glycogen to glucose-1-phosphate. (B) glycogen or glucose to fructose. (C)
+      glycogen or glucose to pyruvate or lactate. (D) glycogen or glucose to pyruvate
+      or acetyl CoA.'
+    target: Let's think step by step. We refer to Wikipedia articles on clinical knowledge
+      for help. Glycolysis is the name given to the pathway involving conversion of
+      glycogen or glucose to pyruvate or lactate. The answer is (C).
+  - question: 'What is the difference between a male and a female catheter?
+
+      (A) Male and female catheters are different colours. (B) Male catheters are
+      longer than female catheters. (C) Male catheters are bigger than female catheters.
+      (D) Female catheters are longer than male catheters.'
+    target: Let's think step by step. We refer to Wikipedia articles on clinical knowledge
+      for help. The difference between a male and female catheter is that male catheters
+      tend to be longer than female catheters. The answer is (B).
+  - question: 'How many attempts should you make to cannulate a patient before passing
+      the job on to a senior colleague, according to the medical knowledge of 2020?
+
+      (A) 4 (B) 3 (C) 2 (D) 1'
+    target: Let's think step by step. We refer to Wikipedia articles on clinical knowledge
+      for help. According to the medical protocol as of 2020, you should make two
+      attempts to cannulate a patient before passing the job on to a more-senior practitioner.
+      The answer is (C).
+  - question: 'In the assessment of the hand function which of the following is true?
+
+      (A) Abduction of the thumb is supplied by spinal root T2 (B) Opposition of the
+      thumb by opponens policis is supplied by spinal root T1 (C) Finger adduction
+      is supplied by the median nerve (D) Finger abduction is mediated by the palmar
+      interossei'
+    target: Let's think step by step. We refer to Wikipedia articles on clinical knowledge
+      for help. Of all the options, it is only true that the opposition of the thumb
+      by opponens pollicis is supplied by spinal root T1. The answer is (B).
+  - question: 'The energy for all forms of muscle contraction is provided by:
+
+      (A) ATP. (B) ADP. (C) phosphocreatine. (D) oxidative phosphorylation.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on clinical
+      knowledge for help. The energy for muscular contraction is provided by ATP (adenosine
+      triphosphate), which is the powerhouse of the cell. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_other
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_clinical_knowledge

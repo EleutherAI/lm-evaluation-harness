@@ -21,15 +21,19 @@ Homepage: https://github.com/suzgunmirac/BIG-Bench-Hard
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 
+- `bbh`: is the same as `bbh_cot_fewshot`.
 - `bbh_zeroshot`
 - `bbh_fewshot`
 - `bbh_cot_fewshot`
 - `bbh_cot_zeroshot`
 
+#### Tags
+
+None.
 
 #### Tasks
 

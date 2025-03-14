@@ -1,4 +1,5 @@
-"fewshot_split": "ssw_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_ssw_Latn"
-"test_split": "ssw_Latn"
+dataset_name: ssw_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ssw_Latn
+test_split: test
