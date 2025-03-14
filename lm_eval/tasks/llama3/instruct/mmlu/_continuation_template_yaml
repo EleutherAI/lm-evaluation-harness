@@ -18,14 +18,20 @@ metric_list:
       - "\\$"
       - "\\.$"
 generation_kwargs:
+  do_sample: false
   until:
+    - </s>
+    - <|im_end|>
+    - <|eot_id|>
+    - <|end_of_text|>
+    - <|end_of_sentence|>
     - "."
   max_gen_toks: 10
 filter_list:
-  - name: strict_match
-    filter:
-      - function: remove_whitespace
-      - function: take_first
+  - filter:
+    - function: multi_choice_regex
+      regex_pattern: ([ABCD])
+    name: multi_choice
 metadata:
   version: 1.0
 dataset_kwargs:
