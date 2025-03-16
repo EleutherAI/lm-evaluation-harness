@@ -174,13 +174,13 @@ def pattern_match(patterns, source_list):
     return sorted(list(task_names))
 
 
-def softmax(x):
+def softmax(x) -> np.ndarray:
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
 
-def general_detokenize(string):
+def general_detokenize(string) -> str:
     string = string.replace(" n't", "n't")
     string = string.replace(" )", ")")
     string = string.replace("( ", "(")
