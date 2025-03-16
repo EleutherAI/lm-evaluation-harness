@@ -68,7 +68,7 @@ def simple_evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
-    gen_kwargs: Optional[str] = None,
+    gen_kwargs: Union[str, dict, None] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity=None,
     predict_only: bool = False,
@@ -123,8 +123,8 @@ def simple_evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param gen_kwargs: str
-        String arguments for model generation
+    :param gen_kwargs: dict (or str depreciated)
+        Arguments for model generation
         Ignored for all tasks with loglikelihood output_type
     :param verbosity: str
         Verbosity level for logging
@@ -187,12 +187,16 @@ def simple_evaluate(
         )
 
     if gen_kwargs is not None:
-        gen_kwargs = simple_parse_args_string(gen_kwargs)
+        if isinstance(gen_kwargs, str):
+            gen_kwargs = simple_parse_args_string(gen_kwargs)
+            eval_logger.warning(
+                "Passing generation_kwargs as a string is depreciated. Please pass as a dictionary."
+            )
         eval_logger.warning(
-            "generation_kwargs specified through cli, these settings will update set parameters in yaml tasks. "
+            f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
             "Ensure 'do_sample=True' for non-greedy decoding!"
         )
-        if gen_kwargs == "":
+        if not gen_kwargs:
             gen_kwargs = None
 
     if isinstance(model, str):
@@ -275,6 +279,9 @@ def simple_evaluate(
                         task_obj.set_config(
                             key="generation_kwargs", value=gen_kwargs, update=True
                         )
+                    eval_logger.info(
+                        f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
+                    )
 
                 if predict_only:
                     eval_logger.info(

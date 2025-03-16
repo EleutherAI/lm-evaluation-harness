@@ -206,11 +206,11 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--gen_kwargs",
-        type=str,
+        type=json.loads,
         default=None,
         help=(
-            "String arguments for model generation on greedy_until tasks,"
-            " e.g. `temperature=0,top_k=0,top_p=0`."
+            "JSON formatted arguments for model generation on greedy_until tasks,"
+            """ e.g. '{"temperature":0.7,"until":["hello"]}'."""
         ),
     )
     parser.add_argument(
