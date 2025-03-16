@@ -28,6 +28,17 @@ HIGHER_IS_BETTER_SYMBOLS = {
 
 def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
+    class CustomFormatter(logging.Formatter):
+        def format(self, record):
+            if record.name.startswith("lm_eval."):
+                record.name = record.name[len("lm_eval.") :]
+            return super().format(record)
+
+    formatter = CustomFormatter(
+        "%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d:%H:%M:%S",
+    )
+
     log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
 
     level_map = {
@@ -39,12 +50,15 @@ def setup_logging(verbosity=logging.INFO):
     }
 
     log_level = level_map.get(str(log_level).upper(), logging.INFO)
+
     if not logging.root.handlers:
-        logging.basicConfig(
-            format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
-            datefmt="%Y-%m-%d:%H:%M:%S",
-            level=log_level,
-        )
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+
+        root_logger = logging.getLogger()
+        root_logger.addHandler(handler)
+        root_logger.setLevel(log_level)
+
         if log_level == logging.DEBUG:
             third_party_loggers = ["urllib3", "filelock", "fsspec"]
             for logger_name in third_party_loggers:
