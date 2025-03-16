@@ -1,3 +1,4 @@
+import logging
 import re
 from functools import cache
 from typing import TYPE_CHECKING, Union
@@ -8,6 +9,8 @@ from transformers import AutoTokenizer
 if TYPE_CHECKING:
     import transformers
 
+
+eval_logger = logging.getLogger(__name__)
 
 DEFAULT_SEQ_LENGTHS = [
     4096,
@@ -20,7 +23,7 @@ def get_tokenizer(
 ) -> Union["transformers.PreTrainedTokenizer", "transformers.PreTrainedTokenizerFast"]:
     pretrained = tokenizer or pretrained
     assert pretrained, "No tokenizer or pretrained provided."
-    print("using tokenizer ", pretrained)
+    eval_logger.info(f"Using tokenizer {pretrained} for synthetic tasks.")
     return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
