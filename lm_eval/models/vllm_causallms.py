@@ -123,6 +123,7 @@ class VLLM(TemplateLM):
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
             revision=tokenizer_revision,
+            add_bos_token=add_bos_token,
         )
         self.tokenizer = configure_pad_token(self.tokenizer)
         self.add_bos_token = add_bos_token
