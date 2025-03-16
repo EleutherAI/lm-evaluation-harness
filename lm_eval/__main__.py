@@ -17,6 +17,19 @@ from lm_eval.utils import (
 )
 
 
+def try_parse_json(value: str) -> Union[str, dict, None]:
+    if value is None:
+        return None
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        if "{" in value:
+            raise argparse.ArgumentTypeError(
+                f"Invalid JSON: {value}. Hint: Use double quotes for JSON strings."
+            )
+        return value
+
+
 def _int_or_none_list_arg_type(
     min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","
 ):
@@ -83,8 +96,8 @@ def setup_parser() -> argparse.ArgumentParser:
         "--model_args",
         "-a",
         default="",
-        type=str,
-        help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
+        type=try_parse_json,
+        help="""Comma separated string or JSON formatted arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32` or '{"pretrained":"EleutherAI/pythia-160m","dtype":"float32"}'""",
     )
     parser.add_argument(
         "--num_fewshot",
@@ -206,7 +219,7 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--gen_kwargs",
-        type=json.loads,
+        type=try_parse_json,
         default=None,
         help=(
             "Either comma delimited string or JSON formatted arguments for model generation on greedy_until tasks,"
@@ -401,13 +414,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
     )
-    if args.gen_kwargs is not None:
-        try:
-            args.gen_kwargs = json.loads(args.gen_kwargs)
-        except json.JSONDecodeError:
-            eval_logger.error(
-                "Invalid JSON format for `--gen_kwargs`. Will be parsed as a comma delimited string."
-            )
 
     results = evaluator.simple_evaluate(
         model=args.model,
