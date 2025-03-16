@@ -251,6 +251,8 @@ def simple_evaluate(
             simple_parse_args_string(model_args)
             if isinstance(model_args, str)
             else model_args
+            if isinstance(model_args, dict)
+            else {}
         ) | (metadata or {})
         task_manager = TaskManager(metadata=metadata)
 

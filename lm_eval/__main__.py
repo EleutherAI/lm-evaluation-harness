@@ -331,6 +331,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     metadata = (
         simple_parse_args_string(args.model_args)
         if isinstance(args.model_args, str)
+        else args.model_args
+        if isinstance(args.model_args, dict)
         else {}
     ) | (
         args.metadata
