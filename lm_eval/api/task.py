@@ -945,8 +945,8 @@ class ConfigurableTask(Task):
     ) -> None:
         if isinstance(self.config.download_dataset, Callable):
             eval_logger.warning(
-                f"Custom kwargs used for the {self.config.task} can be passed to `--metadata` in console (as json string) or to the TaskManager."
-                + " For example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
+                f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
+                + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
             )
             self.dataset = self.config.download_dataset(
                 **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
