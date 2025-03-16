@@ -270,7 +270,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--metadata",
         type=json.loads,
         default=None,
-        help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192],...}'. Will be merged with model_args""",
+        help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192]}'. Will be merged with model_args. Can also be set in task config.""",
     )
     return parser
 

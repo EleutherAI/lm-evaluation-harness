@@ -9,7 +9,9 @@ if TYPE_CHECKING:
     import transformers
 
 
-DEFAULT_SEQ_LENGTHS = (4096,)
+DEFAULT_SEQ_LENGTHS = [
+    4096,
+]
 
 
 @cache
@@ -76,5 +78,5 @@ def aggregate_metrics(metrics: list[float]) -> float:
     res = [x for x in metrics if x != -1]
     if not res:
         # we don't have any samples with this length
-        return 0.0
+        return -1
     return sum(res) / len(res)
