@@ -17,6 +17,7 @@
 import itertools
 import random
 import string
+from typing import TYPE_CHECKING, Union
 
 import datasets
 import numpy as np
@@ -25,6 +26,8 @@ from tqdm import tqdm
 from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
 
 
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast
 CONFIG = {
     "variable_tracking": {
         "tokens_to_generate": 30,
@@ -219,8 +222,11 @@ def sys_vartrack_w_noise_random(
     return write_jsons
 
 
-def get_dataset(pretrained, seq=None, **kwargs) -> list[dict]:
-    tokenizer = get_tokenizer(pretrained)
+def get_dataset(
+    tokenizer: Union["PreTrainedTokenizer", "PreTrainedTokenizerFast"],
+    seq=None,
+    **kwargs,
+) -> list[dict]:
     icl_example = sys_vartrack_w_noise_random(
         tokenizer=tokenizer,
         num_samples=1,
@@ -237,9 +243,9 @@ def get_dataset(pretrained, seq=None, **kwargs) -> list[dict]:
 
 
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
-    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
+    pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", ""))
     df = (
-        get_dataset(pretrained, seq=seq)
+        get_dataset(tokenizer=get_tokenizer(pretrained), seq=seq)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 
