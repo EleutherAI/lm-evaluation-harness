@@ -209,8 +209,8 @@ def setup_parser() -> argparse.ArgumentParser:
         type=json.loads,
         default=None,
         help=(
-            "JSON formatted arguments for model generation on greedy_until tasks,"
-            """ e.g. '{"temperature":0.7,"until":["hello"]}'."""
+            "Either comma delimited string or JSON formatted arguments for model generation on greedy_until tasks,"
+            """ e.g. '{"temperature":0.7,"until":["hello"]}' or temperature=0,top_p=0.1."""
         ),
     )
     parser.add_argument(
@@ -401,6 +401,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
     )
+    if args.gen_kwargs is not None:
+        try:
+            args.gen_kwargs = json.loads(args.gen_kwargs)
+        except json.JSONDecodeError:
+            eval_logger.error(
+                "Invalid JSON format for `--gen_kwargs`. Will be parsed as a comma delimited string."
+            )
 
     results = evaluator.simple_evaluate(
         model=args.model,

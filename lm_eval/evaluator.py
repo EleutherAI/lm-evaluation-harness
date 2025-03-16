@@ -123,7 +123,7 @@ def simple_evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param gen_kwargs: dict (or str depreciated)
+    :param gen_kwargs: dict or comma-separated string
         Arguments for model generation
         Ignored for all tasks with loglikelihood output_type
     :param verbosity: str
@@ -189,9 +189,6 @@ def simple_evaluate(
     if gen_kwargs is not None:
         if isinstance(gen_kwargs, str):
             gen_kwargs = simple_parse_args_string(gen_kwargs)
-            eval_logger.warning(
-                "Passing generation_kwargs as a string is depreciated. Please pass as a dictionary."
-            )
         eval_logger.warning(
             f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
             "Ensure 'do_sample=True' for non-greedy decoding!"
