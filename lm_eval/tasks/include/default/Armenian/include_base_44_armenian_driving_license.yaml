@@ -1,0 +1,4 @@
+include: _armenian_template_yaml
+description: The following is multiple-choice question about Driving License.
+process_docs: !function 'utils.process_driving_license'
+task: include_base_44_armenian_driving_license
