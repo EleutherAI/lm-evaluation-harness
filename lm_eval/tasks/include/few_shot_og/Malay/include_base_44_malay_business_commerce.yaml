@@ -1,0 +1,5 @@
+include: _malay_few_shot_og_template_yaml
+description: Berikut ialah soalan aneka pilihan (dengan jawapan) tentang Business
+  & Commerce.
+process_docs: !function 'utils.process_business_commerce'
+task: include_base_44_malay_few_shot_og_business_commerce

@@ -1,0 +1,10 @@
+group: include_base_44_serbian
+task:
+- include_base_44_serbian_few_shot_og_stem
+- include_base_44_serbian_few_shot_og_arts_humanities
+- include_base_44_serbian_few_shot_og_social_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0
