@@ -1,6 +1,6 @@
 include: niah_single_1.yaml
 task: ruler_fwe
-download_dataset: !function fwe_utils.fwe_download
+custom_dataset: !function fwe_utils.fwe_download
 generation_kwargs:
   do_sample: false
   temperature: 0.0

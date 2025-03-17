@@ -60,7 +60,7 @@ class TaskConfig(dict):
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    download_dataset: Optional[Callable] = None
+    custom_dataset: Optional[Callable] = None
     dataset_path: Optional[str] = None
     dataset_name: Optional[str] = None
     dataset_kwargs: Optional[dict] = None
@@ -943,12 +943,12 @@ class ConfigurableTask(Task):
     def download(
         self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
     ) -> None:
-        if isinstance(self.config.download_dataset, Callable):
+        if isinstance(self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
                 + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
             )
-            self.dataset = self.config.download_dataset(
+            self.dataset = self.config.custom_dataset(
                 **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
             )
         else:

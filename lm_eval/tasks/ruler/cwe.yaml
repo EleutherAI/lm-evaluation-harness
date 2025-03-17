@@ -1,6 +1,6 @@
 include: niah_single_1.yaml
 task: ruler_cwe
-download_dataset: !function cwe_utils.get_cw_dataset
+custom_dataset: !function cwe_utils.get_cw_dataset
 target_delimiter: "\n\n"
 generation_kwargs:
   do_sample: false

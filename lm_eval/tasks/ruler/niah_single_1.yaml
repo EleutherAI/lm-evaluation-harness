@@ -5,7 +5,7 @@ dataset_path: ""
 dataset_name: ""
 output_type: generate_until
 test_split: test
-download_dataset: !function niah_utils.niah_single_1
+custom_dataset: !function niah_utils.niah_single_1
 doc_to_text: "{{input}}"
 doc_to_target: "{{outputs}}"
 gen_prefix: "{{gen_prefix}}"
