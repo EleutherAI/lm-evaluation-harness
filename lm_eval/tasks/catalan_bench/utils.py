@@ -18,7 +18,7 @@ def process_doc_nli(dataset):
     def filter_fn(doc):
         # There shouldn't be any final punctuation marks (except periods) in the premise or the hypothesis.
         # They're supposed to be one single sentence in order to be concatenated properly in the prompt.
-        if any([punct in sent for punct in ["!", "?", "¿"] for sent in [doc["premise"], doc["hypothesis"]]]):
+        if any([punct in sent for punct in ["¡", "!", "?", "¿", "..."] for sent in [doc["premise"], doc["hypothesis"]]]):
             return False
 
         return True

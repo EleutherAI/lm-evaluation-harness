@@ -14,6 +14,8 @@ from lm_eval.utils import general_detokenize
 def lowercase_first_letter(text):
     return text[0].lower() + text[1:]
 
+def uppercase_first_letter(text):
+    return text[0].upper() + text[1:]
 
 def process_summarization(dataset):
     def _process_doc(doc):
@@ -141,30 +143,39 @@ def preprocess_function_gen(examples):
 
 
 def process_doc_nli(dataset):
+
+    def filter_fn(doc):
+        # There shouldn't be any final punctuation marks (except periods) in sentence1 or sentence2.
+        # They're supposed to be one single sentence in order to be concatenated properly in the prompt.
+        if any([punct in sent for punct in ["¡", "!", "?", "¿", "..."] for sent in [doc["sentence1"], doc["sentence2"]]]):
+            return False
+
+        return True
+
     def process_fn(doc):
         # Detokenize(remove extra whitespaces)
         doc["sentence1"] = general_detokenize(doc["sentence1"]).strip()
         doc["sentence2"] = general_detokenize(doc["sentence2"]).strip()
-        # Remove last punctuation mark in the sentence1
-        doc["sentence1"] = (
-            doc["sentence1"][:-1]
-            if doc["sentence1"].endswith((".", ",", "!", "?"))
-            else doc["sentence1"]
-        )
-        # Lowercase the first letter in the sentence2
+
+        # Remove final periods in sentence1
+        doc["sentence1"] = doc["sentence1"].rstrip(".")
+
+        # Lowercase the first letter in sentence2
         doc["sentence2"] = lowercase_first_letter(doc["sentence2"])
-        # Ensure that the sentence2 ends with a dot
-        doc["sentence2"] = (
-            (doc["sentence2"] + ".")
-            if not doc["sentence2"].endswith(".")
-            else doc["sentence2"]
-        )
+
+        # Uppercase the first letter in sentence1
+        doc["sentence1"] = uppercase_first_letter(doc["sentence1"])
+
+        # Ensure that sentence2 ends with a single period
+        doc["sentence2"] = doc["sentence2"].rstrip(".") + "."
+
         # map label names to int
         label_to_int = {"entailment": 0, "neutral": 1, "contradiction": 2}
         doc["gold_label"] = label_to_int[doc["gold_label"]]
+
         return doc
 
-    return dataset.map(process_fn)
+    return dataset.filter(filter_fn).map(process_fn)
 
 
 def process_results_gen(doc, results):
