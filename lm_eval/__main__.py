@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from functools import partial
+from pathlib import Path
 from typing import Union
 
 from lm_eval import evaluator, utils
@@ -134,8 +135,7 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         type=str,
         metavar="/path/to/json",
-        help="Examples to test. "
-        "Should be a json file which loads into a Python dictionary. E.g., {'mmlu_anatomy':[0,1],'mmlu_astronomy':[1,2,3]}.",
+        help='JSON string or path to JSON file containing doc indices of examples to test. Format: {"task_name":[indices],...}',
     )
     parser.add_argument(
         "--use_cache",
@@ -330,6 +330,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         assert args.limit is None, (
             "If --examples is not None, then --limit must be None."
         )
+        if (examples := Path(args.examples)).is_file():
+            args.examples = json.loads(examples.read_text())
+        else:
+            args.examples = json.loads(args.examples)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -409,7 +413,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
-        examples=json.load(open(args.examples, "r")) if args.examples else None,
+        examples=args.examples,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,

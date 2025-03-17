@@ -104,7 +104,7 @@ def simple_evaluate(
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param examples: dictionary, optional
-        Dictionary indicating which examples should be tested in each task, e.g., {'mmlu_astronomy':[0,3,6],'mmlu_anatomy':[1,4,7,10]}.
+        Dictionary indicating which examples should be tested in each task, e.g., {"mmlu_astronomy":[0,3,6],"mmlu_anatomy":[1,4,7,10]}.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics, used when calculating stderrs. set to 0 for no stderr calculations to be performed.
     :param check_integrity: bool
@@ -406,7 +406,7 @@ def evaluate(
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param examples: dictionary, optional
-        Dictionary indicating which examples should be tested in each task, e.g., {'mmlu_astronomy':[0,3,6],'mmlu_anatomy':[1,4,7,10]}.
+        Dictionary indicating which examples should be tested in each task, e.g., {"mmlu_astronomy":[0,3,6],"mmlu_anatomy":[1,4,7,10]}.
     :param cache_requests: bool, optional
         Speed up evaluation by caching the building of dataset requests.
     :param rewrite_requests_cache: bool, optional
@@ -434,12 +434,12 @@ def evaluate(
         Dictionary of results
     """
 
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
-
     if limit is not None and examples is not None:
         raise ValueError(
             "Either 'limit' or 'examples' must be None, but both are not None."
         )
+    if examples is not None:
+        eval_logger.info(f"Evaluating examples for tasks {list(examples.keys())}")
     if apply_chat_template:
         eval_logger.warning(
             "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
@@ -493,7 +493,7 @@ def evaluate(
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            examples=examples[task_output.task_name]
+            examples=examples.get(task_output.task_name, None)
             if examples is not None
             else examples,
             rank=lm.rank,
@@ -579,17 +579,20 @@ def evaluate(
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
+            indices = (
+                examples.get(task_output.task_name, None)
+                if examples is not None
+                else None
+            )
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
-                examples=examples[task_output.task_name]
-                if examples is not None
-                else examples,
                 world_size=WORLD_SIZE,
+                examples=indices,
             )
             for doc_id, doc in doc_iterator:
-                if examples:
-                    doc_id_true = examples[task_output.task_name][doc_id]
+                if indices:
+                    doc_id_true = indices[doc_id]
                 else:
                     doc_id_true = doc_id
                 requests = instances_by_doc_id[doc_id]

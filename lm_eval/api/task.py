@@ -689,22 +689,19 @@ class Task(abc.ABC):
         *,
         rank: int = 0,
         limit: Union[int, None] = None,
-        examples: Optional[List[int]] = None,
         world_size: int = 1,
+        examples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
         if examples:
-            n = self.eval_docs.to_pandas().shape[0]
+            n = len(self.eval_docs) - 1
             assert all([e < n for e in examples]), (
                 f"Elements of --examples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
+            eval_logger.info(
+                f"{self.config.task}: Evaluating on {len(examples)} examples"
+            )
             doc_iterator = utils.create_iterator(
-                enumerate(
-                    datasets.Dataset.from_pandas(
-                        self.eval_docs.to_pandas()
-                        .iloc[examples, :]
-                        .reset_index(drop=True)
-                    )
-                ),
+                enumerate(x for i, x in enumerate(self.eval_docs) if i in examples),
                 rank=int(rank),
                 limit=None,  # limit does not matter here since we are selecting samples directly
                 world_size=int(world_size),
