@@ -22,15 +22,20 @@ from typing import List, Union, Literal
 import datasets
 
 import numpy as np
-import wonderwords
-import nltk
-from nltk import sent_tokenize
 from packaging.version import parse as parse_version
 from importlib.metadata import version
 
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.essays import get_all_essays
+try:
+    import wonderwords
+    import nltk
+    from nltk import sent_tokenize
+except ImportError:
+    raise ImportError(
+        'Please install the `wonderwords` and `nltk` packages to run this script. You can install them with `pip install lm_eval["ruler"]` or`pip install wonderwords nltk`.'
+    )
+
 
 NUM_SAMPLES = 500
 REMOVE_NEWLINE_TAB = ""

@@ -27,14 +27,17 @@ def get_tokenizer(
     return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
 
 
-def postprocess_pred(predict_str: str) -> str:
-    predict_str = predict_str.strip()
+def postprocess_pred(prediction: list[str]) -> list[str]:
+    res = []
+    for predict_str in prediction:
+        predict_str = predict_str.strip()
 
-    # Remove all non-printable characters
-    np_pattern = re.compile(r"[\x00-\x1f]")
-    predict_str = np_pattern.sub("\n", predict_str).strip()
+        # Remove all non-printable characters
+        np_pattern = re.compile(r"[\x00-\x1f]")
+        predict_str = np_pattern.sub("\n", predict_str).strip()
+        res.append(predict_str)
 
-    return predict_str
+    return res
 
 
 def string_match_all(preds: list[str], refs: list[list[str]]) -> float:
@@ -61,8 +64,8 @@ def process_results(doc: dict, results: list[str]) -> dict[str, float]:
     # hacky: set all other lengths to -1
     metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
     input_len = doc["max_length"]
-    pred = postprocess_pred(results[0])
-    score = string_match_all([pred], [doc["outputs"]])
+    pred = postprocess_pred(results)
+    score = string_match_all(pred, [doc["outputs"]])
     metrics[str(input_len)] = score
     return metrics
 
@@ -71,8 +74,8 @@ def process_results_part(doc: dict, results: list[str]) -> dict[str, float]:
     # hacky: set all other lengths to -1
     metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
     input_len = doc["max_length"]
-    pred = postprocess_pred(results[0])
-    score = string_match_part([pred], [doc["outputs"]])
+    pred = postprocess_pred(results)
+    score = string_match_part(pred, [doc["outputs"]])
     metrics[str(input_len)] = score
     return metrics
 
