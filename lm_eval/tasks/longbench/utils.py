@@ -86,38 +86,3 @@ def scorer(dataset, predictions, answers, all_classes):
             )
         total_score += score
     return round(100 * total_score / len(predictions), 2)
-
-
-# if __name__ == '__main__':
-#     args = parse_args()
-#     scores = dict()
-#     if args.e:
-#         path = f"pred_e/{args.model}/"
-#     else:
-#         path = f"pred/{args.model}/"
-#     all_files = os.listdir(path)
-#     print("Evaluating on:", all_files)
-#     for filename in all_files:
-#         if not filename.endswith("jsonl"):
-#             continue
-#         predictions, answers, lengths = [], [], []
-#         dataset = filename.split('.')[0]
-#         with open(f"{path}{filename}", "r", encoding="utf-8") as f:
-#             for line in f:
-#                 data = json.loads(line)
-#                 predictions.append(data["pred"])
-#                 answers.append(data["answers"])
-#                 all_classes = data["all_classes"]
-#                 if "length" in data:
-#                     lengths.append(data["length"])
-#         if args.e:
-#             score = scorer_e(dataset, predictions, answers, lengths, all_classes)
-#         else:
-#             score = scorer(dataset, predictions, answers, all_classes)
-#         scores[dataset] = score
-#     if args.e:
-#         out_path = f"pred_e/{args.model}/result.json"
-#     else:
-#         out_path = f"pred/{args.model}/result.json"
-#     with open(out_path, "w") as f:
-#         json.dump(scores, f, ensure_ascii=False, indent=4)

@@ -29,7 +29,9 @@ try:
     from fuzzywuzzy import fuzz
     from rouge import Rouge
 except ImportError:
-    raise ImportError("Please install jieba, fuzzywuzzy and rouge to run this task.")
+    raise ImportError(
+        'Please install the required dependencies for this task with `pip install lm_eval["longbench"] or `pip install jeiba fuzzywuzzy rouge`'
+    )
 
 # taken from https://github.com/THUDM/LongBench
 
