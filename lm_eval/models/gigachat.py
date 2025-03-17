@@ -397,7 +397,7 @@ class GigaChatAPI(LocalChatCompletion):
     @property  # Don't use cached_property as we need to check that the acess_token has not expired.
     def api_key(self):
         self.key = os.environ.get(
-            "GIGACHAT_CREDENTIALS", None
+            "GIGACHAT_TOKEN", None
         )  # GigaChat access token.
         if self.key:
             return self.key  # If access token is available, return access token.
@@ -405,7 +405,7 @@ class GigaChatAPI(LocalChatCompletion):
             "GIGACHAT_RQUID", None
         )  # Unique identification request. Complies with uuid4 format. Value must match regular expression (([0-9a-fA-F-])36)
         auth_token = os.environ.get(
-            "GIGACHAT_TOKEN", None
+            "GIGACHAT_CREDENTIALS", None
         )  # Client Secret. Credential for GigaChat API.
         scope = os.environ.get(
             "SCOPE", None
