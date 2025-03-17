@@ -693,7 +693,7 @@ class Task(abc.ABC):
         examples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
         if examples:
-            n = len(self.eval_docs) - 1
+            n = len(self.eval_docs)
             assert all([e < n for e in examples]), (
                 f"Elements of --examples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
