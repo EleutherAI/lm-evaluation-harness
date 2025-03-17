@@ -1,0 +1,15 @@
+group: include_base_44_hindi
+task:
+- include_base_44_hindi_few_shot_en_professional_certification
+- include_base_44_hindi_few_shot_en_stem
+- include_base_44_hindi_few_shot_en_social_science
+- include_base_44_hindi_few_shot_en_driving_license
+- include_base_44_hindi_few_shot_en_applied_science
+- include_base_44_hindi_few_shot_en_arts_humanities
+- include_base_44_hindi_few_shot_en_general_knowledge
+- include_base_44_hindi_few_shot_en_health_oriented_education
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0
