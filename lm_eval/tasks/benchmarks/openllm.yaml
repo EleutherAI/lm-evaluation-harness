@@ -16,3 +16,5 @@ task:
     num_fewshot: 5
   - task: gsm8k
     num_fewshot: 5
+metadata:
+  version: 2
