@@ -147,7 +147,7 @@ def process_doc_nli(dataset):
     def filter_fn(doc):
         # There shouldn't be any final punctuation marks (except periods) in sentence1 or sentence2.
         # They're supposed to be one single sentence in order to be concatenated properly in the prompt.
-        if any([punct in sent for punct in ["¡", "!", "?", "¿", "..."] for sent in [doc["sentence1"], doc["sentence2"]]]):
+        if any([punct in sent for punct in ["¡", "!", "?", "¿", "...", ":", ";"] for sent in [doc["sentence1"], doc["sentence2"]]]):
             return False
 
         return True
