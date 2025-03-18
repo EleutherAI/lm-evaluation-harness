@@ -1,0 +1,9 @@
+description: 'Voici des questions à choix multiples (avec réponses) sur commerce.
+  Réfléchissez étape par étape, puis terminez votre réponse par "La réponse est (X)"
+  où X est la lettre correspondant au bon choix.
+
+  '
+include: _fr_template_yaml
+task: mmlu_prox_fr_business
+task_alias: business
+process_docs: !function utils.process_business

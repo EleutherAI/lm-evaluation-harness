@@ -1,0 +1,9 @@
+description: 'The following are multiple choice questions (with answers) about economics.
+  Think step by step and then finish your answer with "the answer is (X)" where X
+  is the correct letter choice.
+
+  '
+include: _en_template_yaml
+task: mmlu_prox_en_economics
+task_alias: economics
+process_docs: !function utils.process_economics
