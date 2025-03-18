@@ -1,4 +1,4 @@
-group:
+tag:
   - afrimmlu_translate
 task: null
 dataset_path: masakhane/afrimmlu-translate-test
