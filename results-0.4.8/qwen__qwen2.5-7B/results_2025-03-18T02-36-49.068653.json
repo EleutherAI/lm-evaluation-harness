@@ -1,0 +1,2229 @@
+{
+  "results": {
+    "lambada_openai_mt_de": {
+      "alias": "lambada_openai_mt_de",
+      "perplexity,none": 41.524835786735544,
+      "perplexity_stderr,none": 2.4066200880538715,
+      "acc,none": 0.41820298855035903,
+      "acc_stderr,none": 0.00687213024405143
+    },
+    "lambada_openai_mt_en": {
+      "alias": "lambada_openai_mt_en",
+      "perplexity,none": 3.70873656895629,
+      "perplexity_stderr,none": 0.07842495469265137,
+      "acc,none": 0.7199689501261402,
+      "acc_stderr,none": 0.0062556443609290135
+    },
+    "lambada_openai_mt_es": {
+      "alias": "lambada_openai_mt_es",
+      "perplexity,none": 67.94895756237318,
+      "perplexity_stderr,none": 3.5873483106683994,
+      "acc,none": 0.27634387735299826,
+      "acc_stderr,none": 0.006230216184986256
+    },
+    "lambada_openai_mt_fr": {
+      "alias": "lambada_openai_mt_fr",
+      "perplexity,none": 23.454130938244965,
+      "perplexity_stderr,none": 1.2205505710940052,
+      "acc,none": 0.5092179313021541,
+      "acc_stderr,none": 0.0069647937547564235
+    },
+    "lambada_openai_mt_it": {
+      "alias": "lambada_openai_mt_it",
+      "perplexity,none": 31.073140477732952,
+      "perplexity_stderr,none": 1.7945451192875486,
+      "acc,none": 0.4991267222976907,
+      "acc_stderr,none": 0.006965967032480213
+    },
+    "xcopa": {
+      "acc,none": 0.6176363636363637,
+      "acc_stderr,none": 0.006392014387285067,
+      "alias": "xcopa"
+    },
+    "xcopa_et": {
+      "alias": " - xcopa_et",
+      "acc,none": 0.492,
+      "acc_stderr,none": 0.022380208834928035
+    },
+    "xcopa_ht": {
+      "alias": " - xcopa_ht",
+      "acc,none": 0.532,
+      "acc_stderr,none": 0.022337186479044285
+    },
+    "xcopa_id": {
+      "alias": " - xcopa_id",
+      "acc,none": 0.73,
+      "acc_stderr,none": 0.019874354831287487
+    },
+    "xcopa_it": {
+      "alias": " - xcopa_it",
+      "acc,none": 0.748,
+      "acc_stderr,none": 0.01943572728224953
+    },
+    "xcopa_qu": {
+      "alias": " - xcopa_qu",
+      "acc,none": 0.498,
+      "acc_stderr,none": 0.022382894986483524
+    },
+    "xcopa_sw": {
+      "alias": " - xcopa_sw",
+      "acc,none": 0.524,
+      "acc_stderr,none": 0.0223572738810164
+    },
+    "xcopa_ta": {
+      "alias": " - xcopa_ta",
+      "acc,none": 0.548,
+      "acc_stderr,none": 0.02227969410784342
+    },
+    "xcopa_th": {
+      "alias": " - xcopa_th",
+      "acc,none": 0.582,
+      "acc_stderr,none": 0.022080014812228134
+    },
+    "xcopa_tr": {
+      "alias": " - xcopa_tr",
+      "acc,none": 0.598,
+      "acc_stderr,none": 0.021948929609938612
+    },
+    "xcopa_vi": {
+      "alias": " - xcopa_vi",
+      "acc,none": 0.744,
+      "acc_stderr,none": 0.01953692357474761
+    },
+    "xcopa_zh": {
+      "alias": " - xcopa_zh",
+      "acc,none": 0.798,
+      "acc_stderr,none": 0.017973260031288248
+    },
+    "xnli": {
+      "acc,none": 0.4332530120481928,
+      "acc_stderr,none": 0.002546582581248556,
+      "alias": "xnli"
+    },
+    "xnli_ar": {
+      "alias": " - xnli_ar",
+      "acc,none": 0.3437751004016064,
+      "acc_stderr,none": 0.00952031050288293
+    },
+    "xnli_bg": {
+      "alias": " - xnli_bg",
+      "acc,none": 0.42811244979919677,
+      "acc_stderr,none": 0.00991794742106747
+    },
+    "xnli_de": {
+      "alias": " - xnli_de",
+      "acc,none": 0.4714859437751004,
+      "acc_stderr,none": 0.010005762674605288
+    },
+    "xnli_el": {
+      "alias": " - xnli_el",
+      "acc,none": 0.41124497991967873,
+      "acc_stderr,none": 0.009862912223544632
+    },
+    "xnli_en": {
+      "alias": " - xnli_en",
+      "acc,none": 0.5341365461847389,
+      "acc_stderr,none": 0.009998688066102651
+    },
+    "xnli_es": {
+      "alias": " - xnli_es",
+      "acc,none": 0.4891566265060241,
+      "acc_stderr,none": 0.010019715824483487
+    },
+    "xnli_fr": {
+      "alias": " - xnli_fr",
+      "acc,none": 0.5124497991967871,
+      "acc_stderr,none": 0.01001896559305539
+    },
+    "xnli_hi": {
+      "alias": " - xnli_hi",
+      "acc,none": 0.42570281124497994,
+      "acc_stderr,none": 0.009910810127822816
+    },
+    "xnli_ru": {
+      "alias": " - xnli_ru",
+      "acc,none": 0.4742971887550201,
+      "acc_stderr,none": 0.01000882225331206
+    },
+    "xnli_sw": {
+      "alias": " - xnli_sw",
+      "acc,none": 0.3514056224899598,
+      "acc_stderr,none": 0.009569263079823954
+    },
+    "xnli_th": {
+      "alias": " - xnli_th",
+      "acc,none": 0.43172690763052207,
+      "acc_stderr,none": 0.009928203186112913
+    },
+    "xnli_tr": {
+      "alias": " - xnli_tr",
+      "acc,none": 0.42811244979919677,
+      "acc_stderr,none": 0.009917947421067467
+    },
+    "xnli_ur": {
+      "alias": " - xnli_ur",
+      "acc,none": 0.3413654618473896,
+      "acc_stderr,none": 0.009504288078880216
+    },
+    "xnli_vi": {
+      "alias": " - xnli_vi",
+      "acc,none": 0.4771084337349398,
+      "acc_stderr,none": 0.010011563747774337
+    },
+    "xnli_zh": {
+      "alias": " - xnli_zh",
+      "acc,none": 0.378714859437751,
+      "acc_stderr,none": 0.009722751990000571
+    },
+    "xstorycloze": {
+      "acc,none": 0.6202394561097407,
+      "acc_stderr,none": 0.0037078285926675707,
+      "alias": "xstorycloze"
+    },
+    "xstorycloze_ar": {
+      "alias": " - xstorycloze_ar",
+      "acc,none": 0.6227663798808736,
+      "acc_stderr,none": 0.012473240654741194
+    },
+    "xstorycloze_en": {
+      "alias": " - xstorycloze_en",
+      "acc,none": 0.7749834546657842,
+      "acc_stderr,none": 0.010746448655964488
+    },
+    "xstorycloze_es": {
+      "alias": " - xstorycloze_es",
+      "acc,none": 0.6882859033752482,
+      "acc_stderr,none": 0.011919943180399331
+    },
+    "xstorycloze_eu": {
+      "alias": " - xstorycloze_eu",
+      "acc,none": 0.5175380542686963,
+      "acc_stderr,none": 0.012859207453266307
+    },
+    "xstorycloze_hi": {
+      "alias": " - xstorycloze_hi",
+      "acc,none": 0.586366644606221,
+      "acc_stderr,none": 0.012673714851823753
+    },
+    "xstorycloze_id": {
+      "alias": " - xstorycloze_id",
+      "acc,none": 0.671740569159497,
+      "acc_stderr,none": 0.012084283945686681
+    },
+    "xstorycloze_my": {
+      "alias": " - xstorycloze_my",
+      "acc,none": 0.5069490403706155,
+      "acc_stderr,none": 0.012865882570960725
+    },
+    "xstorycloze_ru": {
+      "alias": " - xstorycloze_ru",
+      "acc,none": 0.6962276637988087,
+      "acc_stderr,none": 0.01183480958251309
+    },
+    "xstorycloze_sw": {
+      "alias": " - xstorycloze_sw",
+      "acc,none": 0.5188616810059563,
+      "acc_stderr,none": 0.012857966762465005
+    },
+    "xstorycloze_te": {
+      "alias": " - xstorycloze_te",
+      "acc,none": 0.5592322964923891,
+      "acc_stderr,none": 0.012776518586332792
+    },
+    "xstorycloze_zh": {
+      "alias": " - xstorycloze_zh",
+      "acc,none": 0.6796823295830576,
+      "acc_stderr,none": 0.012007565507943366
+    },
+    "xwinograd": {
+      "acc,none": 0.8141155315801304,
+      "acc_stderr,none": 0.0057665622545387575,
+      "alias": "xwinograd"
+    },
+    "xwinograd_en": {
+      "alias": " - xwinograd_en",
+      "acc,none": 0.8662365591397849,
+      "acc_stderr,none": 0.007061043850142513
+    },
+    "xwinograd_fr": {
+      "alias": " - xwinograd_fr",
+      "acc,none": 0.7469879518072289,
+      "acc_stderr,none": 0.04800875830437278
+    },
+    "xwinograd_jp": {
+      "alias": " - xwinograd_jp",
+      "acc,none": 0.7445255474452555,
+      "acc_stderr,none": 0.014090642175469435
+    },
+    "xwinograd_pt": {
+      "alias": " - xwinograd_pt",
+      "acc,none": 0.8022813688212928,
+      "acc_stderr,none": 0.024605744229700226
+    },
+    "xwinograd_ru": {
+      "alias": " - xwinograd_ru",
+      "acc,none": 0.6952380952380952,
+      "acc_stderr,none": 0.025976599352305375
+    },
+    "xwinograd_zh": {
+      "alias": " - xwinograd_zh",
+      "acc,none": 0.7976190476190477,
+      "acc_stderr,none": 0.017914248052567788
+    }
+  },
+  "groups": {
+    "xcopa": {
+      "acc,none": 0.6176363636363637,
+      "acc_stderr,none": 0.006392014387285067,
+      "alias": "xcopa"
+    },
+    "xnli": {
+      "acc,none": 0.4332530120481928,
+      "acc_stderr,none": 0.002546582581248556,
+      "alias": "xnli"
+    },
+    "xstorycloze": {
+      "acc,none": 0.6202394561097407,
+      "acc_stderr,none": 0.0037078285926675707,
+      "alias": "xstorycloze"
+    },
+    "xwinograd": {
+      "acc,none": 0.8141155315801304,
+      "acc_stderr,none": 0.0057665622545387575,
+      "alias": "xwinograd"
+    }
+  },
+  "group_subtasks": {
+    "lambada_openai_mt_it": [],
+    "lambada_openai_mt_fr": [],
+    "lambada_openai_mt_es": [],
+    "lambada_openai_mt_en": [],
+    "lambada_openai_mt_de": [],
+    "xcopa": [
+      "xcopa_et",
+      "xcopa_ht",
+      "xcopa_id",
+      "xcopa_it",
+      "xcopa_qu",
+      "xcopa_sw",
+      "xcopa_ta",
+      "xcopa_th",
+      "xcopa_tr",
+      "xcopa_vi",
+      "xcopa_zh"
+    ],
+    "xnli": [
+      "xnli_ar",
+      "xnli_bg",
+      "xnli_de",
+      "xnli_el",
+      "xnli_en",
+      "xnli_es",
+      "xnli_fr",
+      "xnli_hi",
+      "xnli_ru",
+      "xnli_sw",
+      "xnli_th",
+      "xnli_tr",
+      "xnli_ur",
+      "xnli_vi",
+      "xnli_zh"
+    ],
+    "xstorycloze": [
+      "xstorycloze_ar",
+      "xstorycloze_en",
+      "xstorycloze_es",
+      "xstorycloze_eu",
+      "xstorycloze_hi",
+      "xstorycloze_id",
+      "xstorycloze_my",
+      "xstorycloze_ru",
+      "xstorycloze_sw",
+      "xstorycloze_te",
+      "xstorycloze_zh"
+    ],
+    "xwinograd": [
+      "xwinograd_en",
+      "xwinograd_fr",
+      "xwinograd_jp",
+      "xwinograd_pt",
+      "xwinograd_ru",
+      "xwinograd_zh"
+    ]
+  },
+  "configs": {
+    "lambada_openai_mt_de": {
+      "task": "lambada_openai_mt_de",
+      "tag": [
+        "lambada_multilingual"
+      ],
+      "dataset_path": "EleutherAI/lambada_openai",
+      "dataset_name": "de",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "lambada_openai_mt_en": {
+      "task": "lambada_openai_mt_en",
+      "tag": [
+        "lambada_multilingual"
+      ],
+      "dataset_path": "EleutherAI/lambada_openai",
+      "dataset_name": "en",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "lambada_openai_mt_es": {
+      "task": "lambada_openai_mt_es",
+      "tag": [
+        "lambada_multilingual"
+      ],
+      "dataset_path": "EleutherAI/lambada_openai",
+      "dataset_name": "es",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "lambada_openai_mt_fr": {
+      "task": "lambada_openai_mt_fr",
+      "tag": [
+        "lambada_multilingual"
+      ],
+      "dataset_path": "EleutherAI/lambada_openai",
+      "dataset_name": "fr",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "lambada_openai_mt_it": {
+      "task": "lambada_openai_mt_it",
+      "tag": [
+        "lambada_multilingual"
+      ],
+      "dataset_path": "EleutherAI/lambada_openai",
+      "dataset_name": "it",
+      "test_split": "test",
+      "doc_to_text": "{{text.split(' ')[:-1]|join(' ')}}",
+      "doc_to_target": "{{' '+text.split(' ')[-1]}}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "perplexity",
+          "aggregation": "perplexity",
+          "higher_is_better": false
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "loglikelihood",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{text}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_et": {
+      "task": "xcopa_et",
+      "dataset_path": "xcopa",
+      "dataset_name": "et",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d8f130>, connector={'cause': 'sest', 'effect': 'seetõttu'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_ht": {
+      "task": "xcopa_ht",
+      "dataset_path": "xcopa",
+      "dataset_name": "ht",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d8e7a0>, connector={'cause': 'poukisa', 'effect': 'donk sa'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_id": {
+      "task": "xcopa_id",
+      "dataset_path": "xcopa",
+      "dataset_name": "id",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d8d360>, connector={'cause': 'karena', 'effect': 'maka'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_it": {
+      "task": "xcopa_it",
+      "dataset_path": "xcopa",
+      "dataset_name": "it",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d8d750>, connector={'cause': 'perché', 'effect': 'quindi'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_qu": {
+      "task": "xcopa_qu",
+      "dataset_path": "xcopa",
+      "dataset_name": "qu",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d8d630>, connector={'cause': 'imataq', 'effect': 'chaymi'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_sw": {
+      "task": "xcopa_sw",
+      "dataset_path": "xcopa",
+      "dataset_name": "sw",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d8c1f0>, connector={'cause': 'kwa sababu', 'effect': 'kwa hiyo'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_ta": {
+      "task": "xcopa_ta",
+      "dataset_path": "xcopa",
+      "dataset_name": "ta",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464d61240>, connector={'cause': 'காரணமாக', 'effect': 'எனவே'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_th": {
+      "task": "xcopa_th",
+      "dataset_path": "xcopa",
+      "dataset_name": "th",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464cd3250>, connector={'cause': 'เพราะ', 'effect': 'ดังนั้น'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_tr": {
+      "task": "xcopa_tr",
+      "dataset_path": "xcopa",
+      "dataset_name": "tr",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe464cd0280>, connector={'cause': 'çünkü', 'effect': 'bu yüzden'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_vi": {
+      "task": "xcopa_vi",
+      "dataset_path": "xcopa",
+      "dataset_name": "vi",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe465fc9120>, connector={'cause': 'bởi vì', 'effect': 'vì vậy'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xcopa_zh": {
+      "task": "xcopa_zh",
+      "dataset_path": "xcopa",
+      "dataset_name": "zh",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "functools.partial(<function doc_to_text at 0x7fe4805744c0>, connector={'cause': '因为', 'effect': '所以'})",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [convert_choice(doc[\"choice1\"]), convert_choice(doc[\"choice2\"])]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_ar": {
+      "task": "xnli_ar",
+      "dataset_path": "xnli",
+      "dataset_name": "ar",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", صحيح? نعم, \"+hypothesis,premise+\", صحيح? لذا, \"+hypothesis,premise+\", صحيح? رقم, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_bg": {
+      "task": "xnli_bg",
+      "dataset_path": "xnli",
+      "dataset_name": "bg",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", правилно? да, \"+hypothesis,premise+\", правилно? така, \"+hypothesis,premise+\", правилно? не, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_de": {
+      "task": "xnli_de",
+      "dataset_path": "xnli",
+      "dataset_name": "de",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", richtig? Ja, \"+hypothesis,premise+\", richtig? Auch, \"+hypothesis,premise+\", richtig? Nein, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_el": {
+      "task": "xnli_el",
+      "dataset_path": "xnli",
+      "dataset_name": "el",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", σωστός? Ναί, \"+hypothesis,premise+\", σωστός? Έτσι, \"+hypothesis,premise+\", σωστός? όχι, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_en": {
+      "task": "xnli_en",
+      "dataset_path": "xnli",
+      "dataset_name": "en",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", right? Yes, \"+hypothesis,premise+\", right? Also, \"+hypothesis,premise+\", right? No, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_es": {
+      "task": "xnli_es",
+      "dataset_path": "xnli",
+      "dataset_name": "es",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", correcto? Sí, \"+hypothesis,premise+\", correcto? Asi que, \"+hypothesis,premise+\", correcto? No, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_fr": {
+      "task": "xnli_fr",
+      "dataset_path": "xnli",
+      "dataset_name": "fr",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", correct? Oui, \"+hypothesis,premise+\", correct? Aussi, \"+hypothesis,premise+\", correct? Non, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_hi": {
+      "task": "xnli_hi",
+      "dataset_path": "xnli",
+      "dataset_name": "hi",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", सही? हाँ, \"+hypothesis,premise+\", सही? इसलिए, \"+hypothesis,premise+\", सही? नहीं, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_ru": {
+      "task": "xnli_ru",
+      "dataset_path": "xnli",
+      "dataset_name": "ru",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", правильно? Да, \"+hypothesis,premise+\", правильно? Так, \"+hypothesis,premise+\", правильно? Нет, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_sw": {
+      "task": "xnli_sw",
+      "dataset_path": "xnli",
+      "dataset_name": "sw",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", sahihi? Ndiyo, \"+hypothesis,premise+\", sahihi? Hivyo, \"+hypothesis,premise+\", sahihi? Hapana, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_th": {
+      "task": "xnli_th",
+      "dataset_path": "xnli",
+      "dataset_name": "th",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", ถูกต้อง? ใช่, \"+hypothesis,premise+\", ถูกต้อง? ดังนั้น, \"+hypothesis,premise+\", ถูกต้อง? ไม่, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_tr": {
+      "task": "xnli_tr",
+      "dataset_path": "xnli",
+      "dataset_name": "tr",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", doğru? Evet, \"+hypothesis,premise+\", doğru? Böylece, \"+hypothesis,premise+\", doğru? Hayır, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_ur": {
+      "task": "xnli_ur",
+      "dataset_path": "xnli",
+      "dataset_name": "ur",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", صحیح? جی ہاں, \"+hypothesis,premise+\", صحیح? اس لئے, \"+hypothesis,premise+\", صحیح? نہیں, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_vi": {
+      "task": "xnli_vi",
+      "dataset_path": "xnli",
+      "dataset_name": "vi",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", đúng? Vâng, \"+hypothesis,premise+\", đúng? Vì vậy, \"+hypothesis,premise+\", đúng? Không, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xnli_zh": {
+      "task": "xnli_zh",
+      "dataset_path": "xnli",
+      "dataset_name": "zh",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", 正确? 是的, \"+hypothesis,premise+\", 正确? 所以, \"+hypothesis,premise+\", 正确? 不是的, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_ar": {
+      "task": "xstorycloze_ar",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "ar",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_en": {
+      "task": "xstorycloze_en",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "en",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_es": {
+      "task": "xstorycloze_es",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "es",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_eu": {
+      "task": "xstorycloze_eu",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "eu",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_hi": {
+      "task": "xstorycloze_hi",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "hi",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_id": {
+      "task": "xstorycloze_id",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "id",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_my": {
+      "task": "xstorycloze_my",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "my",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_ru": {
+      "task": "xstorycloze_ru",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "ru",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_sw": {
+      "task": "xstorycloze_sw",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "sw",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_te": {
+      "task": "xstorycloze_te",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "te",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xstorycloze_zh": {
+      "task": "xstorycloze_zh",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "zh",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xwinograd_en": {
+      "task": "xwinograd_en",
+      "dataset_path": "Muennighoff/xwinograd",
+      "dataset_name": "en",
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: Dict) -> int:\n    \"\"\"\n    Return index of the correct choice.\n\n    Note: We are using the \"multiple input\" mode of the multiple-choice\n        output-type, which means we use different contexts with the same target\n        for the different choices, rather than the same context and different targets.\n    \"\"\"\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc: Dict) -> str:\n    \"\"\"\n    Return the target completion.\n\n    Note that this does not depend on the correct choice as we are using\n    \"multiple input\" mode.\n    \"\"\"\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc: Dict) -> List[str]:\n    \"\"\"Return the choices that will be used as contexts in \"multiple input\" mode.\"\"\"\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xwinograd_fr": {
+      "task": "xwinograd_fr",
+      "dataset_path": "Muennighoff/xwinograd",
+      "dataset_name": "fr",
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: Dict) -> int:\n    \"\"\"\n    Return index of the correct choice.\n\n    Note: We are using the \"multiple input\" mode of the multiple-choice\n        output-type, which means we use different contexts with the same target\n        for the different choices, rather than the same context and different targets.\n    \"\"\"\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc: Dict) -> str:\n    \"\"\"\n    Return the target completion.\n\n    Note that this does not depend on the correct choice as we are using\n    \"multiple input\" mode.\n    \"\"\"\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc: Dict) -> List[str]:\n    \"\"\"Return the choices that will be used as contexts in \"multiple input\" mode.\"\"\"\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xwinograd_jp": {
+      "task": "xwinograd_jp",
+      "dataset_path": "Muennighoff/xwinograd",
+      "dataset_name": "jp",
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: Dict) -> int:\n    \"\"\"\n    Return index of the correct choice.\n\n    Note: We are using the \"multiple input\" mode of the multiple-choice\n        output-type, which means we use different contexts with the same target\n        for the different choices, rather than the same context and different targets.\n    \"\"\"\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc: Dict) -> str:\n    \"\"\"\n    Return the target completion.\n\n    Note that this does not depend on the correct choice as we are using\n    \"multiple input\" mode.\n    \"\"\"\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc: Dict) -> List[str]:\n    \"\"\"Return the choices that will be used as contexts in \"multiple input\" mode.\"\"\"\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xwinograd_pt": {
+      "task": "xwinograd_pt",
+      "dataset_path": "Muennighoff/xwinograd",
+      "dataset_name": "pt",
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: Dict) -> int:\n    \"\"\"\n    Return index of the correct choice.\n\n    Note: We are using the \"multiple input\" mode of the multiple-choice\n        output-type, which means we use different contexts with the same target\n        for the different choices, rather than the same context and different targets.\n    \"\"\"\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc: Dict) -> str:\n    \"\"\"\n    Return the target completion.\n\n    Note that this does not depend on the correct choice as we are using\n    \"multiple input\" mode.\n    \"\"\"\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc: Dict) -> List[str]:\n    \"\"\"Return the choices that will be used as contexts in \"multiple input\" mode.\"\"\"\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xwinograd_ru": {
+      "task": "xwinograd_ru",
+      "dataset_path": "Muennighoff/xwinograd",
+      "dataset_name": "ru",
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: Dict) -> int:\n    \"\"\"\n    Return index of the correct choice.\n\n    Note: We are using the \"multiple input\" mode of the multiple-choice\n        output-type, which means we use different contexts with the same target\n        for the different choices, rather than the same context and different targets.\n    \"\"\"\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc: Dict) -> str:\n    \"\"\"\n    Return the target completion.\n\n    Note that this does not depend on the correct choice as we are using\n    \"multiple input\" mode.\n    \"\"\"\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc: Dict) -> List[str]:\n    \"\"\"Return the choices that will be used as contexts in \"multiple input\" mode.\"\"\"\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    },
+    "xwinograd_zh": {
+      "task": "xwinograd_zh",
+      "dataset_path": "Muennighoff/xwinograd",
+      "dataset_name": "zh",
+      "test_split": "test",
+      "doc_to_text": "def doc_to_text(doc: Dict) -> int:\n    \"\"\"\n    Return index of the correct choice.\n\n    Note: We are using the \"multiple input\" mode of the multiple-choice\n        output-type, which means we use different contexts with the same target\n        for the different choices, rather than the same context and different targets.\n    \"\"\"\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc: Dict) -> str:\n    \"\"\"\n    Return the target completion.\n\n    Note that this does not depend on the correct choice as we are using\n    \"multiple input\" mode.\n    \"\"\"\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc: Dict) -> List[str]:\n    \"\"\"Return the choices that will be used as contexts in \"multiple input\" mode.\"\"\"\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0
+      }
+    }
+  },
+  "versions": {
+    "lambada_openai_mt_de": 1.0,
+    "lambada_openai_mt_en": 1.0,
+    "lambada_openai_mt_es": 1.0,
+    "lambada_openai_mt_fr": 1.0,
+    "lambada_openai_mt_it": 1.0,
+    "xcopa": 1.0,
+    "xcopa_et": 1.0,
+    "xcopa_ht": 1.0,
+    "xcopa_id": 1.0,
+    "xcopa_it": 1.0,
+    "xcopa_qu": 1.0,
+    "xcopa_sw": 1.0,
+    "xcopa_ta": 1.0,
+    "xcopa_th": 1.0,
+    "xcopa_tr": 1.0,
+    "xcopa_vi": 1.0,
+    "xcopa_zh": 1.0,
+    "xnli": 1.0,
+    "xnli_ar": 1.0,
+    "xnli_bg": 1.0,
+    "xnli_de": 1.0,
+    "xnli_el": 1.0,
+    "xnli_en": 1.0,
+    "xnli_es": 1.0,
+    "xnli_fr": 1.0,
+    "xnli_hi": 1.0,
+    "xnli_ru": 1.0,
+    "xnli_sw": 1.0,
+    "xnli_th": 1.0,
+    "xnli_tr": 1.0,
+    "xnli_ur": 1.0,
+    "xnli_vi": 1.0,
+    "xnli_zh": 1.0,
+    "xstorycloze": 1.0,
+    "xstorycloze_ar": 1.0,
+    "xstorycloze_en": 1.0,
+    "xstorycloze_es": 1.0,
+    "xstorycloze_eu": 1.0,
+    "xstorycloze_hi": 1.0,
+    "xstorycloze_id": 1.0,
+    "xstorycloze_my": 1.0,
+    "xstorycloze_ru": 1.0,
+    "xstorycloze_sw": 1.0,
+    "xstorycloze_te": 1.0,
+    "xstorycloze_zh": 1.0,
+    "xwinograd": 1.0,
+    "xwinograd_en": 1.0,
+    "xwinograd_fr": 1.0,
+    "xwinograd_jp": 1.0,
+    "xwinograd_pt": 1.0,
+    "xwinograd_ru": 1.0,
+    "xwinograd_zh": 1.0
+  },
+  "n-shot": {
+    "lambada_openai_mt_de": 0,
+    "lambada_openai_mt_en": 0,
+    "lambada_openai_mt_es": 0,
+    "lambada_openai_mt_fr": 0,
+    "lambada_openai_mt_it": 0,
+    "xcopa_et": 0,
+    "xcopa_ht": 0,
+    "xcopa_id": 0,
+    "xcopa_it": 0,
+    "xcopa_qu": 0,
+    "xcopa_sw": 0,
+    "xcopa_ta": 0,
+    "xcopa_th": 0,
+    "xcopa_tr": 0,
+    "xcopa_vi": 0,
+    "xcopa_zh": 0,
+    "xnli_ar": 0,
+    "xnli_bg": 0,
+    "xnli_de": 0,
+    "xnli_el": 0,
+    "xnli_en": 0,
+    "xnli_es": 0,
+    "xnli_fr": 0,
+    "xnli_hi": 0,
+    "xnli_ru": 0,
+    "xnli_sw": 0,
+    "xnli_th": 0,
+    "xnli_tr": 0,
+    "xnli_ur": 0,
+    "xnli_vi": 0,
+    "xnli_zh": 0,
+    "xstorycloze_ar": 0,
+    "xstorycloze_en": 0,
+    "xstorycloze_es": 0,
+    "xstorycloze_eu": 0,
+    "xstorycloze_hi": 0,
+    "xstorycloze_id": 0,
+    "xstorycloze_my": 0,
+    "xstorycloze_ru": 0,
+    "xstorycloze_sw": 0,
+    "xstorycloze_te": 0,
+    "xstorycloze_zh": 0,
+    "xwinograd_en": 0,
+    "xwinograd_fr": 0,
+    "xwinograd_jp": 0,
+    "xwinograd_pt": 0,
+    "xwinograd_ru": 0,
+    "xwinograd_zh": 0
+  },
+  "higher_is_better": {
+    "lambada_openai_mt_de": {
+      "perplexity": false,
+      "acc": true
+    },
+    "lambada_openai_mt_en": {
+      "perplexity": false,
+      "acc": true
+    },
+    "lambada_openai_mt_es": {
+      "perplexity": false,
+      "acc": true
+    },
+    "lambada_openai_mt_fr": {
+      "perplexity": false,
+      "acc": true
+    },
+    "lambada_openai_mt_it": {
+      "perplexity": false,
+      "acc": true
+    },
+    "xcopa": {
+      "acc": true
+    },
+    "xcopa_et": {
+      "acc": true
+    },
+    "xcopa_ht": {
+      "acc": true
+    },
+    "xcopa_id": {
+      "acc": true
+    },
+    "xcopa_it": {
+      "acc": true
+    },
+    "xcopa_qu": {
+      "acc": true
+    },
+    "xcopa_sw": {
+      "acc": true
+    },
+    "xcopa_ta": {
+      "acc": true
+    },
+    "xcopa_th": {
+      "acc": true
+    },
+    "xcopa_tr": {
+      "acc": true
+    },
+    "xcopa_vi": {
+      "acc": true
+    },
+    "xcopa_zh": {
+      "acc": true
+    },
+    "xnli": {
+      "acc": true
+    },
+    "xnli_ar": {
+      "acc": true
+    },
+    "xnli_bg": {
+      "acc": true
+    },
+    "xnli_de": {
+      "acc": true
+    },
+    "xnli_el": {
+      "acc": true
+    },
+    "xnli_en": {
+      "acc": true
+    },
+    "xnli_es": {
+      "acc": true
+    },
+    "xnli_fr": {
+      "acc": true
+    },
+    "xnli_hi": {
+      "acc": true
+    },
+    "xnli_ru": {
+      "acc": true
+    },
+    "xnli_sw": {
+      "acc": true
+    },
+    "xnli_th": {
+      "acc": true
+    },
+    "xnli_tr": {
+      "acc": true
+    },
+    "xnli_ur": {
+      "acc": true
+    },
+    "xnli_vi": {
+      "acc": true
+    },
+    "xnli_zh": {
+      "acc": true
+    },
+    "xstorycloze": {
+      "acc": true
+    },
+    "xstorycloze_ar": {
+      "acc": true
+    },
+    "xstorycloze_en": {
+      "acc": true
+    },
+    "xstorycloze_es": {
+      "acc": true
+    },
+    "xstorycloze_eu": {
+      "acc": true
+    },
+    "xstorycloze_hi": {
+      "acc": true
+    },
+    "xstorycloze_id": {
+      "acc": true
+    },
+    "xstorycloze_my": {
+      "acc": true
+    },
+    "xstorycloze_ru": {
+      "acc": true
+    },
+    "xstorycloze_sw": {
+      "acc": true
+    },
+    "xstorycloze_te": {
+      "acc": true
+    },
+    "xstorycloze_zh": {
+      "acc": true
+    },
+    "xwinograd": {
+      "acc": true
+    },
+    "xwinograd_en": {
+      "acc": true
+    },
+    "xwinograd_fr": {
+      "acc": true
+    },
+    "xwinograd_jp": {
+      "acc": true
+    },
+    "xwinograd_pt": {
+      "acc": true
+    },
+    "xwinograd_ru": {
+      "acc": true
+    },
+    "xwinograd_zh": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "xwinograd_en": {
+      "original": 2325,
+      "effective": 2325
+    },
+    "xwinograd_fr": {
+      "original": 83,
+      "effective": 83
+    },
+    "xwinograd_jp": {
+      "original": 959,
+      "effective": 959
+    },
+    "xwinograd_pt": {
+      "original": 263,
+      "effective": 263
+    },
+    "xwinograd_ru": {
+      "original": 315,
+      "effective": 315
+    },
+    "xwinograd_zh": {
+      "original": 504,
+      "effective": 504
+    },
+    "xstorycloze_ar": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_en": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_es": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_eu": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_hi": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_id": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_my": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_ru": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_sw": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_te": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xstorycloze_zh": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xnli_ar": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_bg": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_de": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_el": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_en": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_es": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_fr": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_hi": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_ru": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_sw": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_th": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_tr": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_ur": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_vi": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xnli_zh": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "xcopa_et": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_ht": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_id": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_it": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_qu": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_sw": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_ta": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_th": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_tr": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_vi": {
+      "original": 500,
+      "effective": 500
+    },
+    "xcopa_zh": {
+      "original": 500,
+      "effective": 500
+    },
+    "lambada_openai_mt_de": {
+      "original": 5153,
+      "effective": 5153
+    },
+    "lambada_openai_mt_en": {
+      "original": 5153,
+      "effective": 5153
+    },
+    "lambada_openai_mt_es": {
+      "original": 5153,
+      "effective": 5153
+    },
+    "lambada_openai_mt_fr": {
+      "original": 5153,
+      "effective": 5153
+    },
+    "lambada_openai_mt_it": {
+      "original": 5153,
+      "effective": 5153
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=qwen/qwen2.5-7B,trust_remote_code=True,dtype=float32",
+    "model_num_parameters": 7615616512,
+    "model_dtype": "torch.float32",
+    "model_revision": "main",
+    "model_sha": "d149729398750b98c0af14eb82c78cfe92750796",
+    "batch_size": "32",
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "c59711e",
+  "date": 1742262941.1335394,
+  "pretty_env_info": "'NoneType' object has no attribute 'splitlines'",
+  "transformers_version": "4.49.0",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|endoftext|>",
+    "151643"
+  ],
+  "tokenizer_eos_token": [
+    "<|endoftext|>",
+    "151643"
+  ],
+  "tokenizer_bos_token": [
+    null,
+    "None"
+  ],
+  "eot_token_id": 151643,
+  "max_length": 131072,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "qwen/qwen2.5-7B",
+  "model_name_sanitized": "qwen__qwen2.5-7B",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 33306204.24851119,
+  "end_time": 33308674.527938858,
+  "total_evaluation_time_seconds": "2470.279427666217"
+}
