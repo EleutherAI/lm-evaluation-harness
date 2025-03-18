@@ -147,4 +147,4 @@ If other tasks on this dataset are already supported:
 
 
 ### Changelog
-version 2.0: (2025-Mar-18) add [`cococteros_va`](./cocoteros_va.yaml) task. 
+version 2.0: (2025-Mar-18) add [`cococteros_va`](./cocoteros_va.yaml) task.
