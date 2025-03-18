@@ -65,10 +65,8 @@ class HFMultimodalLM(HFLM):
         self.interleave = interleave
         self.max_images = max_images
         self.rgb = convert_img_format
-        self.pixels = (
-            {"min_pixels": min_pixels, "max_pixels": max_pixels}
-            if min_pixels or max_pixels
-            else {}
+        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
+            {"max_pixels": max_pixels} if max_pixels else {}
         )
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
