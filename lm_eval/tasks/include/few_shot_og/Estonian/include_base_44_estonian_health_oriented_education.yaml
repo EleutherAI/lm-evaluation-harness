@@ -1,0 +1,5 @@
+include: _estonian_few_shot_og_template_yaml
+description: Järgmised on valikvastustega küsimused (koos vastustega) teemal Health
+  oriented education.
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_estonian_few_shot_og_health_oriented_education

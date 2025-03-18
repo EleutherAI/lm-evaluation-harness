@@ -54,7 +54,7 @@ All three request types take as input `requests` of type `list[Instance]` that h
 - `generate_until`
   - Each request contains `Instance.args : Tuple[str, dict]` containing 1. an input string to the LM and 2. a dictionary of keyword arguments used to control generation parameters.
   - Using this input and these generation parameters, text will be sampled from the language model (typically until a maximum output length or specific stopping string sequences--for example, `{"until": ["\n\n", "."], "max_gen_toks": 128}`).
-  - The generated input+output text from the model will then be returned.
+  - The generated output text from the model will then be returned.
 
 - `loglikelihood`
   - Each request contains `Instance.args : Tuple[str, str]` containing 1. an input string to the LM and 2. a target string on which the loglikelihood of the LM producing this target, conditioned on the input, will be returned.

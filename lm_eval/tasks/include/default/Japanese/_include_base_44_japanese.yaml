@@ -1,0 +1,10 @@
+group: include_base_44_japanese
+task:
+- include_base_44_japanese_driving_license
+- include_base_44_japanese_medical_license
+- include_base_44_japanese_professional_certification
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

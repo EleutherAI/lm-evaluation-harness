@@ -1,0 +1,18 @@
+dataset_path: CohereForAI/include-base-44
+dataset_name: Dutch
+test_split: test
+output_type: multiple_choice
+doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\n
+  D. {{option_d}}\nAnswer:"
+doc_to_choice:
+  - A
+  - B
+  - C
+  - D
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

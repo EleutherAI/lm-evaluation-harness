@@ -31,10 +31,10 @@ from lm_eval.tasks import (
     get_task_dict,
 )
 from lm_eval.utils import (
-    eval_logger,
     handle_non_serializable,
     hash_string,
     positional_deprecated,
+    setup_logging,
     simple_parse_args_string,
 )
 
@@ -42,6 +42,8 @@ from lm_eval.utils import (
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
+
+eval_logger = logging.getLogger(__name__)
 
 
 @positional_deprecated
@@ -68,7 +70,7 @@ def simple_evaluate(
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
-    verbosity: str = "INFO",
+    verbosity=None,
     predict_only: bool = False,
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
@@ -123,6 +125,8 @@ def simple_evaluate(
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
+    :param verbosity: str
+        Verbosity level for logging
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
     :param random_seed: int
@@ -137,8 +141,16 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    if verbosity is not None:
+        setup_logging(verbosity=verbosity)
     start_date = time.time()
+
+    if isinstance(model_args, str) and (
+        "instruct" in model_args and not apply_chat_template
+    ):
+        eval_logger.warning(
+            "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+        )
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
@@ -231,7 +243,7 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = TaskManager(verbosity)
+        task_manager = TaskManager()
 
     task_dict = get_task_dict(tasks, task_manager)
 
@@ -316,6 +328,8 @@ def simple_evaluate(
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
+    if verbosity is not None:
+        setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -410,8 +424,6 @@ def evaluate(
     :return
         Dictionary of results
     """
-
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     if apply_chat_template:
         eval_logger.warning(

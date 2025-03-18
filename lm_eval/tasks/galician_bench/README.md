@@ -26,7 +26,40 @@ The datasets included in GalicianBench that have been made public in previous pu
 
 
 ### Citation
-Paper for GalicianBench coming soon.
+
+```
+@inproceedings{baucells-etal-2025-iberobench,
+    title = "{I}bero{B}ench: A Benchmark for {LLM} Evaluation in {I}berian Languages",
+    author = "Baucells, Irene  and
+      Aula-Blasco, Javier  and
+      de-Dios-Flores, Iria  and
+      Paniagua Su{\'a}rez, Silvia  and
+      Perez, Naiara  and
+      Salles, Anna  and
+      Sotelo Docio, Susana  and
+      Falc{\~a}o, J{\'u}lia  and
+      Saiz, Jose Javier  and
+      Sepulveda Torres, Robiert  and
+      Barnes, Jeremy  and
+      Gamallo, Pablo  and
+      Gonzalez-Agirre, Aitor  and
+      Rigau, German  and
+      Villegas, Marta",
+    editor = "Rambow, Owen  and
+      Wanner, Leo  and
+      Apidianaki, Marianna  and
+      Al-Khalifa, Hend  and
+      Eugenio, Barbara Di  and
+      Schockaert, Steven",
+    booktitle = "Proceedings of the 31st International Conference on Computational Linguistics",
+    month = jan,
+    year = "2025",
+    address = "Abu Dhabi, UAE",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.coling-main.699/",
+    pages = "10491--10519",
+}
+```
 
 ### Groups and Tasks
 

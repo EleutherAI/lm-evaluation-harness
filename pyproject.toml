@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.7"
+version = "0.4.8"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -58,19 +58,22 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
+audiolm_qwen = ["librosa", "soundfile"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
-ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22"]
+ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
-math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
+math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
+sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
+sparsify = ["sparsify"]
 sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
@@ -91,7 +94,9 @@ all = [
     "lm_eval[multilingual]",
     "lm_eval[openai]",
     "lm_eval[promptsource]",
+    "lm_eval[sae_lens]",
     "lm_eval[sentencepiece]",
+    "lm_eval[sparsify]",
     "lm_eval[sparseml]",
     "lm_eval[testing]",
     "lm_eval[vllm]",
