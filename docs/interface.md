@@ -72,6 +72,8 @@ This mode supports a number of command-line arguments, the details of which can 
     * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
     * `gated` - whether to gate the details dataset, can be `True` or `False`.
 
+* `--metadata`: JSON string to pass to TaskConfig. Used for some tasks which require additional metadata to be passed for processing. E.g., `--metadata '{"key": "value"}'`.
+
 ## External Library Usage
 
 We also support using the library's external API for use within model training loops or other scripts.

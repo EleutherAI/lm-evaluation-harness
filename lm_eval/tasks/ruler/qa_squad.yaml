@@ -1,0 +1,10 @@
+include: niah_single_1.yaml
+task: ruler_qa_squad
+custom_dataset: !function qa_utils.get_squad
+process_results: !function common_utils.process_results_part
+test_split: test
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 32
+  until: []
