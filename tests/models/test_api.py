@@ -180,9 +180,7 @@ def test_get_batched_requests_with_no_ssl(
     expected_inputs, expected_ctxlens, expected_cache_keys
 ):
     with (
-        patch(
-            "lm_eval.models.api_models.Semaphore", autospec=True
-        ) as mock_semaphore,
+        patch("lm_eval.models.api_models.Semaphore", autospec=True) as mock_semaphore,
         patch(
             "lm_eval.models.api_models.ClientSession", autospec=True
         ) as mock_client_session,
@@ -191,7 +189,6 @@ def test_get_batched_requests_with_no_ssl(
             autospec=True,
         ) as mock_parse,
     ):
-        
         # Create API instance
         api_batch_ssl_tokenized = LocalCompletionsAPI(
             base_url="https://test-url.com",
@@ -203,7 +200,7 @@ def test_get_batched_requests_with_no_ssl(
 
         # Track post calls and arguments
         post_calls = []
-        
+
         def capture_post_args(*args, **kwargs):
             post_calls.append(kwargs)
             mock_post_response = AsyncMock()
@@ -231,11 +228,13 @@ def test_get_batched_requests_with_no_ssl(
         assert result_batches
 
         mock_semaphore.assert_called_once_with(value=2)
-        
+
         # Verify post was called with ssl=False
         assert len(post_calls) > 0, "session.post was not called"
         for call_kwargs in post_calls:
-            assert 'ssl' in call_kwargs, "ssl parameter was not provided to session.post"
-            assert call_kwargs['ssl'] is False, "session.post was not called with ssl=False"
-
-
+            assert "ssl" in call_kwargs, (
+                "ssl parameter was not provided to session.post"
+            )
+            assert call_kwargs["ssl"] is False, (
+                "session.post was not called with ssl=False"
+            )

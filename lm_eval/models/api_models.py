@@ -7,8 +7,6 @@ import logging
 from functools import cached_property
 from typing import (
     Any,
-    Awaitable,
-    Callable,
     Dict,
     Iterable,
     List,
@@ -21,12 +19,13 @@ from typing import (
 
 
 try:
+    from asyncio import Semaphore
+
     import requests
     from aiohttp import ClientSession, ClientTimeout
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
-    from asyncio import Semaphore
 except ModuleNotFoundError:
     pass
 
@@ -439,8 +438,8 @@ class TemplateAPI(TemplateLM):
                     async with session.post(
                         self.base_url,
                         json=payload,
-                        headers=self.header,                        
-                        ssl=self.verify_certificate
+                        headers=self.header,
+                        ssl=self.verify_certificate,
                     ) as response:
                         if not response.ok:
                             error_text = await response.text()
