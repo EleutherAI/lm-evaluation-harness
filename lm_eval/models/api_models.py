@@ -22,10 +22,11 @@ from typing import (
 
 try:
     import requests
-    from aiohttp import ClientSession, ClientTimeout, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
+    from asyncio import Semaphore
 except ModuleNotFoundError:
     pass
 
@@ -130,7 +131,7 @@ class TemplateAPI(TemplateLM):
         self._eos_string = eos_string
         self.timeout = int(timeout)
 
-        self.semaphore = asyncio.Semaphore(self._concurrent)
+        self.semaphore = Semaphore(self._concurrent)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -432,11 +433,14 @@ class TemplateAPI(TemplateLM):
         cache_method = "generate_until" if generate else "loglikelihood"
         try:
             async with self.semaphore:
-                async with ClientSession(timeout=ClientTimeout(total=self.timeout)) as session:
+                async with ClientSession(
+                    timeout=ClientTimeout(total=self.timeout),
+                ) as session:
                     async with session.post(
                         self.base_url,
                         json=payload,
-                        headers=self.header,
+                        headers=self.header,                        
+                        ssl=self.verify_certificate
                     ) as response:
                         if not response.ok:
                             error_text = await response.text()
