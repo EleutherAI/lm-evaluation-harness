@@ -241,6 +241,12 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
     )
     parser.add_argument(
+        "--wandb_config_args",
+        type=str,
+        default="",
+        help="Comma separated string arguments passed to wandb.config.update. Use this to trace parameters that aren't already traced by default. eg. `lr=0.01,repeats=3",
+    )
+    parser.add_argument(
         "--hf_hub_log_args",
         type=str,
         default="",
@@ -300,7 +306,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         args = parse_eval_args(parser)
 
     if args.wandb_args:
-        wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
+        wandb_args_dict = simple_parse_args_string(args.wandb_args)
+        wandb_config_args_dict = simple_parse_args_string(args.wandb_config_args)
+        wandb_logger = WandbLogger(wandb_args_dict, wandb_config_args_dict)
 
     utils.setup_logging(args.verbosity)
     eval_logger = logging.getLogger(__name__)
