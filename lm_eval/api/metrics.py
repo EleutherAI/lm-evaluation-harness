@@ -8,7 +8,6 @@ from typing import List
 
 import numpy as np
 import sacrebleu
-import collections
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -159,6 +158,7 @@ def acc_fn(items):  # This is a passthrough function
 def acc_norm_fn(items):  # This is a passthrough function
     return items
 
+
 @register_metric(
     metric="acc_mutual_info",
     higher_is_better=True,
@@ -167,6 +167,7 @@ def acc_norm_fn(items):  # This is a passthrough function
 )
 def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
+
 
 ### the code used in the `exact_match_hf_evaluate` function is ported from
 ### https://github.com/huggingface/evaluate/blob/main/metrics/exact_match/exact_match.py
@@ -219,6 +220,9 @@ def exact_match_hf_evaluate(
     score_list = predictions == references
 
     return {"exact_match": np.mean(score_list)}
+
+
+###
 
 
 @register_metric(
