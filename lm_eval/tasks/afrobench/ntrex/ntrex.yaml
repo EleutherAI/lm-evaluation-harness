@@ -1,4 +1,4 @@
-group: ntrex
+group: african_ntrex
 task:
   - ntrex_eng-afr_prompt_1
   - ntrex_eng-afr_prompt_2

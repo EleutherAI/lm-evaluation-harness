@@ -1,7 +1,8 @@
 tag:
-- flores_tasks
+- african_flores_tasks
 - flores_eng-afr
 - flores_eng-afr_prompt_1
+- afrobench_MT_tasks
 dataset_path: facebook/flores
 dataset_kwargs: {trust_remote_code: True}
 output_type: generate_until

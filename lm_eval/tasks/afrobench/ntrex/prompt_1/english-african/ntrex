@@ -2,6 +2,7 @@ tag:
 - ntrex_tasks
 - ntrex_eng-afr
 - ntrex_eng-afr_prompt_1
+- afrobench_MT_tasks
 dataset_path: masakhane/ntrex_african
 dataset_kwargs: {trust_remote_code: True}
 output_type: generate_until

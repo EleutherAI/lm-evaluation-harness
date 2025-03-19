@@ -1,23 +1,18 @@
 group: afrobench
 task:
   - adr_tasks
-  - afrihate
+  - afrihate_tasks
   - afrimgsm_tasks
-  - afrimmlu_tasks
   - afrixnli_tasks
-  - afriqa_tasks
-  - afrisenti_tasks
-  - belebele_tasks
-  - flores_tasks
+  - afrobench_xqa_tasks
+  - afrobench_sentiment_tasks
+  - afrobench_MT_tasks
+  - afrobench_TC_tasks
+  - afrobench_mmlu_tasks
   - injongointent_tasks
-  - mafand_tasks
-  - masakhanews_tasks
-  - naijarc_tasks
-  - nollysenti_tasks
-  - ntrex_tasks
-  - openai_mmlu_tasks
-  - sib_tasks
-  - salt_tasks
+  - masakhaner_tasks
+  - masakhapos_tasks
+  - RC_tasks
   - uhura_arc_easy_tasks
   - xlsum_tasks
 aggregate_metric_list:

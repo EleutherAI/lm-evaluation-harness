@@ -1,11 +1,11 @@
-group: afrobench
+group: afrobench_lite
 task:
   - afrimgsm_tasks
   - afrimmlu_tasks
   - afrixnli_tasks
   - belebele_tasks
   - sib_tasks
-  - flores_tasks
+  - african_flores_tasks
   - injongointent_tasks
 aggregate_metric_list:
   - metric: acc

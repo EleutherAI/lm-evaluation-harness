@@ -1,6 +1,7 @@
 tag:
     - openai_mmlu_tasks
     - openai_mmlu_prompt_2
+    - afrobench_mmlu_tasks
 dataset_path: openai/MMMLU
 output_type: multiple_choice
 test_split: test

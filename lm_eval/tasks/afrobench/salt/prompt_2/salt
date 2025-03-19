@@ -1,6 +1,7 @@
 tag:
 - salt_tasks
 - salt_prompt_2
+- afrobench_MT_tasks
 dataset_path: Sunbird/salt
 dataset_kwargs: {trust_remote_code: True}
 output_type: generate_until

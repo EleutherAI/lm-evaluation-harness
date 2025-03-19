@@ -1,6 +1,7 @@
 tag:
     - belebele_tasks
     - belebele_prompt_1
+    - RC_tasks
 dataset_path: facebook/belebele
 dataset_name: null
 output_type: multiple_choice

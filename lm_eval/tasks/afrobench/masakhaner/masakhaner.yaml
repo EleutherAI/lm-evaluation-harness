@@ -1,0 +1,13 @@
+group: masakhaner
+task:
+  - masakhaner_prompt_1
+  - masakhaner_prompt_2
+  - masakhaner_prompt_3
+  - masakhaner_prompt_4
+  - masakhaner_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
