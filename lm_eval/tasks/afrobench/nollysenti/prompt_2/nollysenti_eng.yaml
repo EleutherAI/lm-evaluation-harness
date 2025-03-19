@@ -1,0 +1,4 @@
+dataset_name: en
+include: nollysenti
+doc_to_text: 'Does this English movie description; "{{review}}" have a Positive or Negative sentiment? Labels only\n'
+task: nollysenti_eng_prompt_2
