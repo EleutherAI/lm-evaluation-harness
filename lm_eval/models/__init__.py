@@ -3,6 +3,7 @@ from . import (
     api_models,
     dummy,
     gguf,
+    gigachat,
     hf_audiolm,
     hf_steered,
     hf_vlms,

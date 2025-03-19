@@ -88,6 +88,7 @@ all = [
     "lm_eval[dev]",
     "lm_eval[deepsparse]",
     "lm_eval[gptq]",
+    "lm_eval[gigachat]",
     "lm_eval[hf_transfer]",
     "lm_eval[ibm_watsonx_ai]",
     "lm_eval[ifeval]",
