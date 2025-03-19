@@ -1,4 +1,6 @@
-tag: afrisenti_tasks
+tag:
+    - afrisenti_tasks
+    - afrisenti_prompt_1
 task: null
 dataset_path: masakhane/afrisenti
 dataset_name: null

@@ -1,5 +1,6 @@
-tag: afrisenti_tasks
-task: null
+tag:
+    - afrisenti_tasks
+    - afrisenti_prompt_5
 dataset_path: masakhane/afrisenti
 dataset_name: null
 output_type: multiple_choice

@@ -1,6 +1,6 @@
 tag:
     - naijarc_tasks
-    - naijarc_tasks_prompt_2
+    - naijarc_prompt_2
 dataset_path: Davlan/NaijaRC
 dataset_name: null
 output_type: multiple_choice

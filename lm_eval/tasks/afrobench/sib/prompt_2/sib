@@ -1,6 +1,6 @@
 tag:
     - sib_tasks
-    - sib_tasks_prompt_2
+    - sib_prompt_2
 dataset_path: Davlan/sib200
 dataset_name: null
 output_type: multiple_choice

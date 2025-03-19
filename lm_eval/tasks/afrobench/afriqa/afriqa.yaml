@@ -1,10 +1,10 @@
 group: afriqa
 task:
-  - afriqa_tasks_prompt_1
-  - afriqa_tasks_prompt_2
-  - afriqa_tasks_prompt_3
-  - afriqa_tasks_prompt_4
-  - afriqa_tasks_prompt_5
+  - afriqa_prompt_1
+  - afriqa_prompt_2
+  - afriqa_prompt_3
+  - afriqa_prompt_4
+  - afriqa_prompt_5
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

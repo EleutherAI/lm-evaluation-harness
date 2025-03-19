@@ -1,10 +1,10 @@
 group: belebele
 task:
-  - belebele_tasks_prompt_1
-  - belebele_tasks_prompt_2
-  - belebele_tasks_prompt_3
-  - belebele_tasks_prompt_4
-  - belebele_tasks_prompt_5
+  - belebele_prompt_1
+  - belebele_prompt_2
+  - belebele_prompt_3
+  - belebele_prompt_4
+  - belebele_prompt_5
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

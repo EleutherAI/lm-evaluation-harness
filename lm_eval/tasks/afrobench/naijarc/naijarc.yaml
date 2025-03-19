@@ -1,13 +1,13 @@
 group: naijarc
 task:
-  - naijarc_tasks_prompt_1
-  - naijarc_tasks_prompt_2
-  - naijarc_tasks_prompt_3
-  - naijarc_tasks_prompt_4
-  - naijarc_tasks_prompt_5
+  - naijarc_prompt_1
+  - naijarc_prompt_2
+  - naijarc_prompt_3
+  - naijarc_prompt_4
+  - naijarc_prompt_5
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true
 metadata:
-  version: 2
+  version: 1

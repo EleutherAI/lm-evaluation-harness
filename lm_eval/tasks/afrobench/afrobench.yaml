@@ -5,12 +5,20 @@ task:
   - afrimgsm_tasks
   - afrimmlu_tasks
   - afrixnli_tasks
+  - afriqa_tasks
+  - afrisenti_tasks
   - belebele_tasks
   - flores_tasks
   - injongointent_tasks
+  - mafand_tasks
+  - masakhanews_tasks
+  - naijarc_tasks
+  - nollysenti_tasks
   - ntrex_tasks
+  - openai_mmlu_tasks
   - sib_tasks
   - salt_tasks
+  - uhura_arc_easy_tasks
   - xlsum_tasks
 
 
