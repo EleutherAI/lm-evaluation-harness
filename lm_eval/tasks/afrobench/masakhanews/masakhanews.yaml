@@ -1,0 +1,13 @@
+group: masakhanews
+task:
+  - masakhanews_prompt_1
+  - masakhanews_prompt_2
+  - masakhanews_prompt_3
+  - masakhanews_prompt_4
+  - masakhanews_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
