@@ -1,6 +1,7 @@
 tag:
     - sib_tasks
     - sib_prompt_4
+    - afrobench_TC_tasks
 dataset_path: Davlan/sib200
 dataset_name: null
 output_type: multiple_choice

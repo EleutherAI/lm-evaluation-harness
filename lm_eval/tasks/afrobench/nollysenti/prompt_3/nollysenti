@@ -1,5 +1,5 @@
 tag:
-    - nollysenti_tasks
+    - afrobench_sentiment_tasks
     - nollysenti_prompt_3
 dataset_path: Davlan/nollysenti
 dataset_name: null

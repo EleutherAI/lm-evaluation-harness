@@ -1,5 +1,5 @@
 group:
-    - afrihate
+    - afrihate_tasks
     - afrihate_template2
 dataset_path: afrihate/afrihate
 dataset_name: null

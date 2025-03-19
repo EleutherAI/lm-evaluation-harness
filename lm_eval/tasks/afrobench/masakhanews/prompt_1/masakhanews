@@ -1,6 +1,7 @@
 tag:
 - masakhanews_tasks
 - masakhanews_prompt_1
+- afrobench_TC_tasks
 dataset_path: masakhane/masakhanews
 dataset_name: null
 output_type: multiple_choice

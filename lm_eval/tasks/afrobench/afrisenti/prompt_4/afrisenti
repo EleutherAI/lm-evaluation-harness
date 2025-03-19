@@ -1,5 +1,5 @@
 tag:
-    - afrisenti_tasks
+    - afrobench_sentiment_tasks
     - afrisenti_prompt_4
 dataset_path: masakhane/afrisenti
 dataset_name: null

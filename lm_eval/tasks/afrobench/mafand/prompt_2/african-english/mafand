@@ -2,6 +2,7 @@ tag:
 - mafand_tasks
 - mafand_afr-eng
 - mafand_afr-eng_prompt_3
+- afrobench_MT_tasks
 dataset_path: masakhane/mafand
 dataset_kwargs: {trust_remote_code: True}
 output_type: generate_until

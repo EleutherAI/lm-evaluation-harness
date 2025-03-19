@@ -1,5 +1,5 @@
 tag:
-    - afriqa_tasks
+    - afrobench_xqa_tasks
     - afriqa_prompt_5
 dataset_kwargs: {trust_remote_code: True}
 dataset_path: masakhane/afriqa-gold-passages

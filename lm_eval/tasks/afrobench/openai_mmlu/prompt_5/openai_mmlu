@@ -1,6 +1,7 @@
 tag:
     - openai_mmlu_tasks
     - openai_mmlu_prompt_5
+    - afrobench_mmlu_tasks
 dataset_path: openai/MMMLU
 dataset_name: null
 output_type: multiple_choice
