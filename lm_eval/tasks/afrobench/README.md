@@ -38,6 +38,10 @@ Dataset specific grouping that listing all prompts, allowing users to review or 
 * `xlsum_tasks`: all datasets in this benchmark relating to Summarization task
 
 
+We've included sample run scripts for easier integration with the benchmark: [sample run scripts](./sample_run_scripts)
+
+For better understanding of the run interface see [interface.md](../../../docs/interface.md)
+
 ### Citation
 
 ```
