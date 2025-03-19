@@ -7,15 +7,15 @@ export CUDA_VISIBLE_DEVICES=0,1
 
 model_names=(
   "google/gemma-1.1-7b-it",
-#  "google/gemma-2-9b-it",
-#  "google/gemma-2-27b-it",
-#  "Jacaranda/AfroLlama_V1",
-#  "LLaMAX/LLaMAX3-8B-Alpaca",
-#  "meta-llama/Llama-2-7b-chat-hf",
-#  "meta-llama/Llama-3.1-8B-Instruct",
-#  "meta-llama/Llama-3.1-70B-Instruct",
-#  "meta-llama/Meta-Llama-3-8B-Instruct",
-#  "CohereForAI/aya-101"
+  "google/gemma-2-9b-it",
+  "google/gemma-2-27b-it",
+  "Jacaranda/AfroLlama_V1",
+  "LLaMAX/LLaMAX3-8B-Alpaca",
+  "meta-llama/Llama-2-7b-chat-hf",
+  "meta-llama/Llama-3.1-8B-Instruct",
+  "meta-llama/Llama-3.1-70B-Instruct",
+  "meta-llama/Meta-Llama-3-8B-Instruct",
+  "CohereForAI/aya-101"
 )
 
 for model_name in "${model_names[@]}"
