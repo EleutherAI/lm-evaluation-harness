@@ -20,11 +20,9 @@ task:
   - salt_tasks
   - uhura_arc_easy_tasks
   - xlsum_tasks
-
-
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true
 metadata:
-  version: 2
+  version: 1
