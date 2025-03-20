@@ -21,11 +21,7 @@ generation_kwargs:
   do_sample: false
   max_gen_toks: 1024
   until:
-    - </s>
-    - <|im_end|>
-    - <|eot_id|>
-    - <|end_of_text|>
-    - <|end_of_sentence|>
+    - []
 filter_list:
   - name: strict_match
     filter:
