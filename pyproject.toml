@@ -114,6 +114,14 @@ all = [
     "lm_eval[zeno]",
 ]
 
+[tool.pymarkdown]
+plugins.md013.enabled = false # line-length
+plugins.md024.allow_different_nesting = true # no-duplicate-headers
+plugins.md025.enabled = false # single-header
+plugins.md028.enabled = false # no-blanks-blockquote
+plugins.md029.allow_extended_start_values = true # ol-prefix
+plugins.md034.enabled = false # no-bare-urls
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
