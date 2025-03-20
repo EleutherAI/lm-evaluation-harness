@@ -24,11 +24,9 @@ do
     lm_eval --model hf \
     --model_args pretrained=${model_name},parallelize=true \
     --tasks afrobench_lite\
-    --device 'mps'  \
     --batch_size ${batch_size} \
     --num_fewshot ${num_fewshot} \
     --verbosity DEBUG \
-    --output_path './afrobench_results/' \
-    --log_samples \
-    --limit 2
+    --output_path 'path_to_results/' \
+    --log_samples
 done

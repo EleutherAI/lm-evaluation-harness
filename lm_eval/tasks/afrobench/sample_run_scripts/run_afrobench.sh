@@ -22,13 +22,11 @@ for model_name in "${model_names[@]}"
 do
     echo "Running model: $model_name"
     lm_eval --model hf \
-    --model_args pretrained=bigscience/mt0-small,parallelize=true \
+    --model_args pretrained=${model_names},parallelize=true \
     --tasks  afrobench\
-    --device 'mps'  \
     --batch_size ${batch_size} \
     --num_fewshot ${num_fewshot} \
     --verbosity DEBUG \
-    --output_path './afrobench_results/' \
-    --log_samples \
-    --limit 2
+    --output_path 'path_to_results/' \
+    --log_samples
 done
