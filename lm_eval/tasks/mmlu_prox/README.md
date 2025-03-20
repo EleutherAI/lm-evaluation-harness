@@ -12,13 +12,13 @@ Homepage: https://mmluprox.github.io/
 
 ```bibtex
 @misc{mmluprox,
-      title={MMLU-ProX: A Multilingual Benchmark for Advanced Large Language Model Evaluation}, 
+      title={MMLU-ProX: A Multilingual Benchmark for Advanced Large Language Model Evaluation},
       author={Weihao Xuan and Rui Yang and Heli Qi and Qingcheng Zeng and Yunze Xiao and Yun Xing and Junjue Wang and Huitao Li and Xin Li and Kunyu Yu and Nan Liu and Qingyu Chen and Douglas Teodoro and Edison Marrese-Taylor and Shijian Lu and Yusuke Iwasawa and Yutaka Matsuo and Irene Li},
       year={2025},
       eprint={2503.10497},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2503.10497}, 
+      url={https://arxiv.org/abs/2503.10497},
 }
 ```
 
