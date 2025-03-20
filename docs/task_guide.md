@@ -15,14 +15,17 @@ Tasks are configured via the `TaskConfig` object. Below, we describe all fields 
 ### Parameters
 
 Task naming + registration:
+
 - **task** (`str`, defaults to None) — name of the task.
 - **task_alias** (`str`, defaults to None) - Alias of the task name that will be printed in the final table results.
 - **tag** (`str`, *optional*) — name of the task tags(s) a task belongs to. Enables one to run all tasks with a specified tag name at once.
 
 Dataset configuration options:
+
 - **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub.
 - **dataset_name**  (`str`, *optional*, defaults to None) — The name of what HF calls a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just leave this to default to None. (If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
 - **dataset_kwargs** (`dict`, *optional*) — Auxiliary arguments that `datasets.load_dataset` accepts. This can be used to specify arguments such as `data_files` or `data_dir` if you want to use local datafiles such as json or csv.
+- **custom_dataset** (`Callable`, *optional) - A function that returns a `dict[str, datasets.Dataset]` (<split_name>, dataset) object. This can be used to load a dataset from a custom source or to preprocess the dataset in a way that is not supported by the `datasets` library. Will have access to `metadata` field if defined (from config and passed to TaskManager), and `model_args` from runtime (if using `evaluate`).
 - **training_split** (`str`, *optional*) — Split in the dataset to use as the training split.
 - **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
 - **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
@@ -30,6 +33,7 @@ Dataset configuration options:
 - **process_docs** (`Callable`, *optional*) — Optionally define a function to apply to each HF dataset split, to preprocess all documents before being fed into prompt template rendering or other evaluation steps. Can be used to rename dataset columns, or to process documents into a format closer to the expected format expected by a prompt template.
 
 Prompting / in-context formatting options:
+
 - **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use. if defined, will overwrite doc_to_text, doc_to_target, and doc_to_choice.
 - **description** (`str`, *optional*) — An optional prepended Jinja2 template or string which will be prepended to the few-shot examples passed into the model, often describing the task or providing instructions to a model, such as `"The following are questions (with answers) about {{subject}}.\n\n"`. No delimiters or spacing are inserted between the description and the first few-shot example.
 - **doc_to_text** (`Union[Callable, str]`, *optional*) — Jinja2 template, string, or function to process a sample into the appropriate input for the model.
@@ -40,10 +44,12 @@ Prompting / in-context formatting options:
 - **gen_prefix** (`str`, *optional*) — String to append after the <|assistant|> token. For example, if the task is to generate a question, the gen_prefix could be "The answer is: " to prompt the model to generate an answer to the question. If not using a chat template then this string will be appended to the end of the prompt.
 
 Runtime configuration options:
+
 - **num_fewshot** (`int`, *optional*, defaults to 0) — Number of few-shot examples before the input.
 - **batch_size** (`int`, *optional*, defaults to 1) — Batch size.
 
 Scoring details:
+
 - **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation. See docs for expected format.
 - **output_type** (`str`, *optional*, defaults to "generate_until") — Selects the type of model output for the given task. Options are `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 - **generation_kwargs** (`dict`, *optional*) — Auxiliary arguments for the `generate` function from HF transformers library. Advanced keyword arguments may not be supported for non-HF LM classes.
@@ -53,7 +59,8 @@ Scoring details:
 - **doc_to_decontamination_query** (`str`, *optional*) — Query for decontamination if `should_decontaminate` is True. If `should_decontaminate` is True but `doc_to_decontamination_query` is `None`, `doc_to_decontamination_query` will follow `doc_to_text`.
 
 Other:
-- **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n-shot` table column for a task.
+
+- **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n-shot` table column for a task. Will also be passed to the `custom_dataset` function if defined.
 
 ## Filters
 
@@ -69,9 +76,7 @@ We do such post-processing by operating on *responses*, which are stored after r
 `resps` is a `List[str]` for each instance, and we pass a `List[List[<expected return type from model>]]` to our filters that is a list of `[instance.resps for instance in instances]`.
 
 Our filters, after completing a pipeline, must return a `List[<expected return type from model>]` which we then unpack and store each element of in `Instance.filtered_resps` for the corresponding instance. Thus, we take as input a list of returns from our model for each doc, and must return a return from our model *without it being wrapped in a list* for each doc.
-
 **End Aside**
-
 
 A full list of supported filter operations can be found in `lm_eval/filters/__init__.py`. Contributions of new filter types are welcome!
 
@@ -111,6 +116,7 @@ filter_list:
 We are able to provide multiple different filter pipelines, each with their own name and list of filters to apply in sequence.
 
 Our first filter pipeline implements
+
 - applying a regex to the model generations (extracting the number within the phrase "The answer is (number)")
 - selecting only the first out of the 64 model answers
 
@@ -125,6 +131,7 @@ Then scoring this single answer.
 ```
 
 Our second filter pipeline, "maj@64", does majority voting across all 64 answers via:
+
 - applying the same regex to all responses, to get the numerical answer from the model for each of the 64 responses per problem
 - applying majority voting to all responses, which then returns a length-1 `[<majority answer>]` list for each
 - taking the first element of this length-1 list, to then score the sole response `<majority answer>` for each document.
@@ -139,8 +146,10 @@ Our second filter pipeline, "maj@64", does majority voting across all 64 answers
 ```
 
 Our final filter pipeline, "maj@8", does majority voting across the first 8 of the model's responses per document via:
+
 - subsetting the len-64 list of responses `[answer1, answer2, ..., answer64]` to `[answer1, answer2, ..., answer8]` for each document
 - performing the same sequence of filters on these new sets of 8 responses, for each document.
+
 ```yaml
 - name: "maj@8"
   filter:
@@ -153,7 +162,6 @@ Our final filter pipeline, "maj@8", does majority voting across the first 8 of t
 ```
 
 Thus, given the 64 responses from our LM on each document, we can report metrics on these responses in these 3 different ways, as defined by our filter pipelines.
-
 
 ### Adding a custom filter
 
@@ -168,11 +176,10 @@ class NewFilter(Filter)
     ...
 ```
 
-
-
 ## Embedded Python Code
 
 Use can use python functions for certain arguments by using the `!function` operator after the argument name followed by `<filename>.<pythonfunctionname>`. This feature can be used for the following arguments:
+
 1. `doc_to_text`
 2. `doc_to_target`
 3. `doc_to_choice`
@@ -182,22 +189,22 @@ Use can use python functions for certain arguments by using the `!function` oper
 
 The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass the Task class and implement custom logic. For more information, see `docs/task_guide.md` in v0.3.0 of the `lm-evaluation-harness`.
 
-
 ## Including a Base YAML
 
 You can base a YAML on another YAML file as a template. This can be handy when you need to just change the prompt for `doc_to_text` but keep the rest the same or change `filters` to compare which is better. Simply use `include` in the YAML file and write the name of the template you want to base from. This assumes that the base template is in the same directory. Otherwise, You will need to define the full path.
-```
+
+```yaml
 include: <YAML filename or with full path>
 ...
 ```
-You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based off [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
 
+You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based off [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
 
 ## Passing Arguments to Metrics
 
 Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxiliary arguments. For example, setting the [`exact_match` metric](https://github.com/huggingface/evaluate/tree/main/metrics/exact_match), auxiliary arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
 
-```
+```yaml
 metric_list:
   - metric: acc
   - metric: exact_match
@@ -215,25 +222,27 @@ metric_list:
 Here we list all metrics currently supported natively in `lm-eval`:
 
 Metrics:
-* `acc` (accuracy)
-* `acc_norm` (length-normalized accuracy)
-* `acc_mutual_info` (baseline loglikelihood - normalized accuracy)
-* `perplexity`
-* `word_perplexity` (perplexity per word)
-* `byte_perplexity` (perplexity per byte)
-* `bits_per_byte`
-* `matthews_corrcoef` (Matthews correlation coefficient)
-* `f1` (F1 score)
-* `bleu`
-* `chrf`
-* `ter`
+
+- `acc` (accuracy)
+- `acc_norm` (length-normalized accuracy)
+- `acc_mutual_info` (baseline loglikelihood - normalized accuracy)
+- `perplexity`
+- `word_perplexity` (perplexity per word)
+- `byte_perplexity` (perplexity per byte)
+- `bits_per_byte`
+- `matthews_corrcoef` (Matthews correlation coefficient)
+- `f1` (F1 score)
+- `bleu`
+- `chrf`
+- `ter`
 
 Aggregation functions:
-* `mean`
-* `median`
-* `perplexity`
-* `weighted_perplexity`
-* `bits_per_byte`
+
+- `mean`
+- `median`
+- `perplexity`
+- `weighted_perplexity`
+- `bits_per_byte`
 
 ### Adding a Multiple Choice Metric
 
@@ -245,37 +254,41 @@ Adding a multiple choice metric has a few steps. To get it working you need to:
 
 The default metric and aggregation functions are in `lm_eval/api/metrics.py`, and you can add a function there if it's for general use. The metrics are towards the bottom of the file and look like this:
 
-
-    @register_metric(
-        metric="mcc",
-        higher_is_better=True,
-        output_type="multiple_choice",
-        aggregation="matthews_corrcoef",
-    )
-    def mcc_fn(items):  # This is a passthrough function
-        return items
+```python
+@register_metric(
+    metric="mcc",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="matthews_corrcoef",
+)
+def mcc_fn(items):  # This is a passthrough function
+    return items
+```
 
 Note that many of these are passthrough functions, and for multiple choice (at least) this function is never actually called.
 
 Aggregation functions are defined towards the top of the file, here's an example:
 
-    @register_aggregation("matthews_corrcoef")
-    def matthews_corrcoef(items):
-        unzipped_list = list(zip(*items))
-        golds = unzipped_list[0]
-        preds = unzipped_list[1]
-        return sklearn.metrics.matthews_corrcoef(golds, preds)
+```python
+@register_aggregation("matthews_corrcoef")
+def matthews_corrcoef(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    return sklearn.metrics.matthews_corrcoef(golds, preds)
+```
 
 This function returns a single numeric value. The input is defined in `Task.process_results` in `lm_eval/api/task.py`. There's a section that looks like this:
 
-
-    result_dict = {
-        **({"acc": acc} if "acc" in use_metric else {}),
-        **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-        **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
-        **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-        **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-    }
+```python
+result_dict = {
+    **({"acc": acc} if "acc" in use_metric else {}),
+    **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+    **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
+    **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+    **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+}
+```
 
 The value here determines the input to the aggregation function, though the name used matches the metric function. These metrics all have simple needs and just need the accuracy or gold and predicted values, but immediately below this there are examples of metrics with more complicated needs you can use as reference.
 
@@ -284,15 +297,19 @@ The value here determines the input to the aggregation function, though the name
 Contributing a new task can be daunting! Luckily, much of the work has often been done for you in a different, similarly evaluated task. Good examples of task implementations to study include:
 
 Multiple choice tasks:
+
 - SciQ (`lm_eval/tasks/sciq/sciq.yaml`)
 
 Corpus perplexity evaluations:
+
 - Wikitext (`lm_eval/tasks/wikitext/wikitext.yaml`)
 
 Generative tasks:
+
 - GSM8k (`lm_eval/tasks/gsm8k/gsm8k.yaml`)
 
 Tasks using complex filtering:
+
 - GSM8k with CoT (+ with Self-Consistency): (`lm_eval/tasks/gsm8k/gsm8k-cot.yaml` ; `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`)
 
 # Group Configuration

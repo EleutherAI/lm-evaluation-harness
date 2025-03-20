@@ -1,0 +1,40 @@
+tag:
+  - longcxt
+task: niah_single_1
+dataset_path: ""
+dataset_name: ""
+output_type: generate_until
+test_split: test
+custom_dataset: !function niah_utils.niah_single_1
+doc_to_text: "{{input}}"
+doc_to_target: "{{outputs}}"
+gen_prefix: "{{gen_prefix}}"
+target_delimiter: " "
+process_results: !function common_utils.process_results
+metric_list:
+  - metric: "4096"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "8192"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "16384"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "32768"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "65536"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "131072"
+    aggregation: !function common_utils.aggregate_metrics
+    higher_is_better: true
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 128
+  until: []
+repeats: 1
+metadata:
+  version: 1.0
