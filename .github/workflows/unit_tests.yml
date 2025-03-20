@@ -31,11 +31,7 @@ jobs:
     - name: Pre-Commit
       env:
         SKIP: "no-commit-to-branch,mypy"
-
       uses: pre-commit/action@v3.0.1
-#       # mypy turned off for now
-#    - name: Lint with mypy
-#      run: mypy . --ignore-missing-imports --check-untyped-defs --explicit-package-bases --warn-unreachable
 # Job 2
   testcpu:
     name: CPU Tests
@@ -57,9 +53,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
-#         Install optional git dependencies
-#                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
-#        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
     - name: Archive artifacts

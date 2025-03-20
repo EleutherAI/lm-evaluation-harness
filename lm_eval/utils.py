@@ -11,7 +11,7 @@ import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Tuple
+from typing import Any, Callable, Generator, List, Optional, Tuple
 
 import numpy as np
 import yaml
@@ -28,6 +28,17 @@ HIGHER_IS_BETTER_SYMBOLS = {
 
 def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
+    class CustomFormatter(logging.Formatter):
+        def format(self, record):
+            if record.name.startswith("lm_eval."):
+                record.name = record.name[len("lm_eval.") :]
+            return super().format(record)
+
+    formatter = CustomFormatter(
+        "%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d:%H:%M:%S",
+    )
+
     log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
 
     level_map = {
@@ -39,12 +50,15 @@ def setup_logging(verbosity=logging.INFO):
     }
 
     log_level = level_map.get(str(log_level).upper(), logging.INFO)
+
     if not logging.root.handlers:
-        logging.basicConfig(
-            format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
-            datefmt="%Y-%m-%d:%H:%M:%S",
-            level=log_level,
-        )
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+
+        root_logger = logging.getLogger()
+        root_logger.addHandler(handler)
+        root_logger.setLevel(log_level)
+
         if log_level == logging.DEBUG:
             third_party_loggers = ["urllib3", "filelock", "fsspec"]
             for logger_name in third_party_loggers:
@@ -114,12 +128,14 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string):
+def simple_parse_args_string(args_string: Optional[str]) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
     Into a dictionary
     """
+    if args_string is None:
+        return {}
     args_string = args_string.strip()
     if not args_string:
         return {}
@@ -158,13 +174,13 @@ def pattern_match(patterns, source_list):
     return sorted(list(task_names))
 
 
-def softmax(x):
+def softmax(x) -> np.ndarray:
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
 
-def general_detokenize(string):
+def general_detokenize(string) -> str:
     string = string.replace(" n't", "n't")
     string = string.replace(" )", ")")
     string = string.replace("( ", "(")
