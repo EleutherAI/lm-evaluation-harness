@@ -42,6 +42,8 @@ We've included sample run scripts for easier integration with the benchmark: [sa
 
 For better understanding of the run interface see [interface.md](../../../docs/interface.md)
 
+All dataset used in this benchmark are available at [huggingface](https://huggingface.co/collections/masakhane/afrobench-67dbf553ebf5701c2207f883)
+
 ### Citation
 
 ```
