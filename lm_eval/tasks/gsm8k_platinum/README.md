@@ -18,13 +18,13 @@ Homepage: http://platinum-bench.csail.mit.edu/
 ## Citation
 ```
 @misc{vendrow2025largelanguagemodelbenchmarks,
-      title={Do Large Language Model Benchmarks Test Reliability?}, 
+      title={Do Large Language Model Benchmarks Test Reliability?},
       author={Joshua Vendrow and Edward Vendrow and Sara Beery and Aleksander Madry},
       year={2025},
       eprint={2502.03461},
       archivePrefix={arXiv},
       primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2502.03461}, 
+      url={https://arxiv.org/abs/2502.03461},
 }
 
 @misc{cobbe2021training,
