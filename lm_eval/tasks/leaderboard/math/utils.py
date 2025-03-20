@@ -79,9 +79,14 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     else:
         retval = 0
 
+    try:
+        original = process_result_v1(doc, candidates)
+    except:  # noqa: E722
+        original = 0
+
     output = {
         "exact_match": retval,
-        "exact_match_original": process_result_v1(doc, candidates),
+        "exact_match_original": original,
     }
     return output
 
@@ -90,11 +95,10 @@ def process_result_v1(doc: dict, candidates: str) -> int:
     # using the orginal answer extraction method
     unnormalized_answer = get_unnormalized_answer(candidates)
     answer = normalize_final_answer(unnormalized_answer)
+    normalized_gold = normalize_final_answer(doc["answer"])
     if answer == INVALID_ANSWER:
         return 0
-    if answer.strip() == doc["answer"].strip() or is_equiv(
-        answer, normalize_final_answer(doc["answer"])
-    ):
+    if answer.strip() == normalized_gold.strip() or is_equiv(answer, normalized_gold):
         retval = 1
     else:
         retval = 0
