@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import os
 import re
 from pathlib import Path
@@ -8,11 +9,13 @@ import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
 
 from lm_eval.utils import (
-    eval_logger,
     get_latest_filename,
     get_results_filenames,
     get_sample_results_filenames,
 )
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 def parse_args():
@@ -66,9 +69,9 @@ def main():
                 f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
             )
 
-    assert (
-        len(tasks) > 0
-    ), "Must provide at least one task in common amongst models to compare."
+    assert len(tasks) > 0, (
+        "Must provide at least one task in common amongst models to compare."
+    )
 
     for task in tasks:
         # Upload data for all models
@@ -109,13 +112,14 @@ def main():
             if model_index == 0:  # Only need to assemble data for the first model
                 metrics = []
                 for metric in config["metric_list"]:
-                    metrics.append(
-                        ZenoMetric(
-                            name=metric["metric"],
-                            type="mean",
-                            columns=[metric["metric"]],
+                    if metric.get("aggregation") == "mean":
+                        metrics.append(
+                            ZenoMetric(
+                                name=metric["metric"],
+                                type="mean",
+                                columns=[metric["metric"]],
+                            )
                         )
-                    )
                 project = client.create_project(
                     name=args.project_name + (f"_{task}" if len(tasks) > 1 else ""),
                     view="text-classification",
@@ -168,7 +172,11 @@ def generate_dataset(
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    ids = [x["doc_id"] for x in data]
+    ids = (
+        [x["doc_id"] for x in data]
+        if not config.get("filter_list")
+        else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    )
     labels = [x["target"] for x in data]
     instance = [""] * len(ids)
 
@@ -190,6 +198,7 @@ def generate_dataset(
     return pd.DataFrame(
         {
             "id": ids,
+            "doc_id": [x["doc_id"] for x in data],
             "data": instance,
             "input_len": [len(x) for x in instance],
             "labels": labels,
@@ -208,8 +217,15 @@ def generate_system_df(data, config):
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
-    ids = [x["doc_id"] for x in data]
+    ids = (
+        [x["doc_id"] for x in data]
+        if not config.get("filter_list")
+        else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    )
     system_dict = {"id": ids}
+    system_dict["doc_id"] = [x["doc_id"] for x in data]
+    if config.get("filter_list"):
+        system_dict["filter"] = [x["filter"] for x in data]
     system_dict["output"] = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
@@ -228,11 +244,10 @@ def generate_system_df(data, config):
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
         system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
-    metrics = {}
-    for metric in config["metric_list"]:
-        if "aggregation" in metric and metric["aggregation"] == "mean":
-            metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
-
+    metrics = {
+        metric["metric"]: [x[metric["metric"]] for x in data]
+        for metric in config["metric_list"]
+    }
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df

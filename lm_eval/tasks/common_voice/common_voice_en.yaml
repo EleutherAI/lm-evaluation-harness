@@ -1,0 +1,31 @@
+task: common_voice_en
+task_alias: common_voice_en
+
+# subset only. The real dataset (mozilla-foundation/common_voice_17_0) is to huge
+dataset_path: fixie-ai/endpointing-audio
+dataset_name: common_voice_17_0-en
+
+training_split: train
+test_split: test
+
+output_type: generate_until
+
+doc_to_audio: !function utils.doc_to_audio
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{transcript}}"
+
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+  temperature: 0.0
+  do_sample: false
+  max_gen_toks: 64
+
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+
+# any metadata you need. Does not affect how the task is processed
+metadata:
+  version: 1.0

@@ -1,0 +1,5 @@
+include: _portuguese_few_shot_og_template_yaml
+description: A seguir estão perguntas de múltipla escolha (com respostas) sobre Business
+  & Commerce.
+process_docs: !function 'utils.process_business_commerce'
+task: include_base_44_portuguese_few_shot_og_business_commerce

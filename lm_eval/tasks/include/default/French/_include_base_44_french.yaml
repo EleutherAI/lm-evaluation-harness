@@ -1,0 +1,12 @@
+group: include_base_44_french
+task:
+- include_base_44_french_stem
+- include_base_44_french_social_science
+- include_base_44_french_health_oriented_education
+- include_base_44_french_arts_humanities
+- include_base_44_french_driving_license
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

@@ -1,12 +1,17 @@
 import argparse
+import logging
 import os
 import random
 
 import numpy as np
 
 from lm_eval import tasks
+from lm_eval.evaluator_utils import get_task_list
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import eval_logger, join_iters
+from lm_eval.utils import join_iters
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
@@ -51,9 +56,8 @@ def main():
     task_dict = tasks.get_task_dict(task_names, task_manager)
 
     os.makedirs(args.output_base_path, exist_ok=True)
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            _, task = task
+    for task in [x.task for x in get_task_list(task_dict)]:
+        task_name = task.config.task
         rnd = random.Random()
         rnd.seed(args.seed)
 
