@@ -13,8 +13,8 @@ try:
     from sympy.parsing.latex import parse_latex
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "`math-verify` is required for generating translation task prompt templates. \
-please install math-verify via pip install lm-eval[math] or pip install -e .[math]",
+        "`math-verify`, `sympy>=1.12`, and antlr4-python3-runtime==4.11 is required for generating translation task prompt templates. \
+please install via pip install lm-eval[math] or pip install -e .[math]",
     )
 
 
