@@ -1,12 +1,12 @@
 import logging
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
 
 import evaluate as hf_evaluate
 
 from lm_eval.api.model import LM
 
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 MODEL_REGISTRY = {}
 
@@ -17,13 +17,13 @@ def register_model(*names):
 
     def decorate(cls):
         for name in names:
-            assert issubclass(
-                cls, LM
-            ), f"Model '{name}' ({cls.__name__}) must extend LM class"
+            assert issubclass(cls, LM), (
+                f"Model '{name}' ({cls.__name__}) must extend LM class"
+            )
 
-            assert (
-                name not in MODEL_REGISTRY
-            ), f"Model named '{name}' conflicts with existing model! Please register with a non-conflicting alias instead."
+            assert name not in MODEL_REGISTRY, (
+                f"Model named '{name}' conflicts with existing model! Please register with a non-conflicting alias instead."
+            )
 
             MODEL_REGISTRY[name] = cls
         return cls
@@ -48,9 +48,9 @@ func2task_index = {}
 
 def register_task(name):
     def decorate(fn):
-        assert (
-            name not in TASK_REGISTRY
-        ), f"task named '{name}' conflicts with existing registered task!"
+        assert name not in TASK_REGISTRY, (
+            f"task named '{name}' conflicts with existing registered task!"
+        )
 
         TASK_REGISTRY[name] = fn
         ALL_TASKS.add(name)
@@ -78,6 +78,7 @@ METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
 AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
+FILTER_REGISTRY = {}
 
 DEFAULT_METRIC_REGISTRY = {
     "loglikelihood": [
@@ -103,9 +104,9 @@ def register_metric(**args):
         ]:
             if key in args:
                 value = args[key]
-                assert (
-                    value not in registry
-                ), f"{key} named '{value}' conflicts with existing registered {key}!"
+                assert value not in registry, (
+                    f"{key} named '{value}' conflicts with existing registered {key}!"
+                )
 
                 if key == "metric":
                     registry[name] = fn
@@ -139,9 +140,9 @@ def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
 
 def register_aggregation(name: str):
     def decorate(fn):
-        assert (
-            name not in AGGREGATION_REGISTRY
-        ), f"aggregation named '{name}' conflicts with existing registered aggregation!"
+        assert name not in AGGREGATION_REGISTRY, (
+            f"aggregation named '{name}' conflicts with existing registered aggregation!"
+        )
 
         AGGREGATION_REGISTRY[name] = fn
         return fn
@@ -170,3 +171,26 @@ def is_higher_better(metric_name) -> bool:
         eval_logger.warning(
             f"higher_is_better not specified for metric '{metric_name}'!"
         )
+
+
+def register_filter(name):
+    def decorate(cls):
+        if name in FILTER_REGISTRY:
+            eval_logger.info(
+                f"Registering filter `{name}` that is already in Registry {FILTER_REGISTRY}"
+            )
+        FILTER_REGISTRY[name] = cls
+        return cls
+
+    return decorate
+
+
+def get_filter(filter_name: Union[str, Callable]) -> Callable:
+    try:
+        return FILTER_REGISTRY[filter_name]
+    except KeyError as e:
+        if callable(filter_name):
+            return filter_name
+        else:
+            eval_logger.warning(f"filter `{filter_name}` is not registered!")
+            raise e

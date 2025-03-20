@@ -1,0 +1,6 @@
+|    Tasks    |Version|Filter|n-shot| Metric |   |Value|   |Stderr|
+|-------------|------:|------|-----:|--------|---|----:|---|------|
+|arc_challenge|      1|none  |     0|acc     |↑  |  0.0|±  |   N/A|
+|             |       |none  |     0|acc_norm|↑  |  0.0|±  |   N/A|
+|arc_easy     |      1|none  |     0|acc     |↑  |  0.3|±  |   N/A|
+|             |       |none  |     0|acc_norm|↑  |  0.1|±  |   N/A|

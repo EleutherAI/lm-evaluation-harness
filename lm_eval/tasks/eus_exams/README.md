@@ -26,7 +26,7 @@ Homepage: https://github.com/hitz-zentroa/latxa
 
 ### Groups and Tasks
 
-#### Groups
+#### Tags
 
 * `eus_exams_eu`: The Basque version of the exams.
 * `eus_exams_es`: The Spanish version of the exams.

@@ -1,8 +1,13 @@
+import json
+import logging
 from importlib.util import find_spec
 from pathlib import Path
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("openvino")
@@ -11,6 +16,10 @@ class OptimumLM(HFLM):
     Optimum Intel provides a simple interface to optimize Transformer models and convert them to \
     OpenVINO™ Intermediate Representation (IR) format to accelerate end-to-end pipelines on \
     Intel® architectures using OpenVINO™ runtime.
+
+    To use an OpenVINO config, use `--model_args ov_config` to point to a json file with an OpenVINO config:
+    `lm_eval --model openvino --model_args pretrained=gpt2,ov_config=config.json --task lambada_openai`
+    Example json file contents: {"INFERENCE_PRECISION_HINT": "f32", "CACHE_DIR": "model_cache"}
     """
 
     def __init__(
@@ -20,9 +29,9 @@ class OptimumLM(HFLM):
     ) -> None:
         if "backend" in kwargs:
             # optimum currently only supports causal models
-            assert (
-                kwargs["backend"] == "causal"
-            ), "Currently, only OVModelForCausalLM is supported."
+            assert kwargs["backend"] == "causal", (
+                "Currently, only OVModelForCausalLM is supported."
+            )
 
         self.openvino_device = device
 
@@ -41,23 +50,37 @@ class OptimumLM(HFLM):
         **kwargs,
     ) -> None:
         if not find_spec("optimum"):
-            raise Exception(
+            raise ModuleNotFoundError(
                 "package `optimum` is not installed. Please install it via `pip install optimum[openvino]`"
             )
         else:
             from optimum.intel.openvino import OVModelForCausalLM
 
         model_kwargs = kwargs if kwargs else {}
+        if "ov_config" in model_kwargs:
+            if not Path(model_kwargs["ov_config"]).exists():
+                raise ValueError(
+                    "ov_config should point to a .json file containing an OpenVINO config"
+                )
+            with open(model_kwargs["ov_config"]) as f:
+                model_kwargs["ov_config"] = json.load(f)
+                eval_logger.info(
+                    f"Using custom OpenVINO config: {model_kwargs['ov_config']}"
+                )
+
+        else:
+            model_kwargs["ov_config"] = {}
+        model_kwargs["ov_config"].setdefault("CACHE_DIR", "")
+        if "pipeline_parallel" in model_kwargs:
+            if model_kwargs["pipeline_parallel"]:
+                model_kwargs["ov_config"]["MODEL_DISTRIBUTION_POLICY"] = (
+                    "PIPELINE_PARALLEL"
+                )
         model_file = Path(pretrained) / "openvino_model.xml"
         if model_file.exists():
             export = False
         else:
             export = True
-        kwargs["ov_config"] = {
-            "PERFORMANCE_HINT": "LATENCY",
-            "NUM_STREAMS": "1",
-            "CACHE_DIR": "",
-        }
 
         self._model = OVModelForCausalLM.from_pretrained(
             pretrained,

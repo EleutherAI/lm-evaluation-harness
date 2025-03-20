@@ -1,0 +1,15 @@
+tag: bigbench_multiple_choice_a
+dataset_path: hails/bigbench
+dataset_kwargs:
+  # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
+  # subtask_name: null
+output_type: multiple_choice
+test_split: default
+doc_to_text: inputs
+doc_to_target: "{{multiple_choice_targets.index(targets[0])}}"
+doc_to_choice: "{{multiple_choice_targets}}"
+metric_list:
+  - metric: acc
+  # TODO: brier score and other metrics
+metadata:
+  version: 1.0

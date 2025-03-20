@@ -1,40 +1,56 @@
-"dataset_name": "us_foreign_policy"
-"description": "The following are multiple choice questions (with answers) about us\
-  \ foreign policy.\n\nQ: How did Donald Trump attack globalization in the 2016 campaign?\n\
-  (A) Globalization had made men like him too rich (B) Globalization only benefited\
-  \ certain American states, such as New York (C) Liberal elites had encouraged globalization,\
-  \ while 'ordinary Americans' lost jobs because of it (D) Globalization encouraged\
-  \ damaging trade wars\nA: Let's think step by step. We refer to Wikipedia articles\
-  \ on us foreign policy for help. Trump attacked globalization because he believed\
-  \ ordinary Americans lost jobs due to it, and so he wanted to blame liberals who\
-  \ had encouraged it. The answer is (C).\n\nQ: How did NSC-68 change U.S. strategy?\n\
-  (A) It globalized containment. (B) It militarized containment. (C) It called for\
-  \ the development of the hydrogen bomb. (D) All of the above\nA: Let's think step\
-  \ by step. We refer to Wikipedia articles on us foreign policy for help. NSC-68\
-  \ outlined a variety of courses of action, including globalization of containment,\
-  \ militarization of contaiment, and the development of the hydrogen bomb. The answer\
-  \ is (D).\n\nQ: How do Defensive Realism and Offensive Realism differ in their explanation\
-  \ of state behaviour?\n(A) Defensive realists place greater emphasis on the role\
-  \ of international institutions (B) Defensive realists place less emphasis on geographical\
-  \ factors (C) Offensive realists give more priority to the national interest than\
-  \ Defensive realists. (D) Defensive realists believe states are security maximizers,\
-  \ while Offensive realists believe states to be power maximizers\nA: Let's think\
-  \ step by step. We refer to Wikipedia articles on us foreign policy for help. While\
-  \ defensive realism advocates that states are security maximizers, offensive realists\
-  \ think of states as power maximizers. The answer is (D).\n\nQ: The realm of policy\
-  \ decisions concerned primarily with relations between the United States and the\
-  \ rest of the world is known as\n(A) terrorism policy. (B) economic policy. (C)\
-  \ foreign policy. (D) international policy.\nA: Let's think step by step. We refer\
-  \ to Wikipedia articles on us foreign policy for help. The topic of policy decisions\
-  \ concerns with relations between the US and the rest of the world is known as foreign\
-  \ policy. The answer is (C).\n\nQ: How did the 2008 financial crisis affect America's\
-  \ international reputation?\n(A) It damaged support for the US model of political\
-  \ economy and capitalism (B) It created anger at the United States for exaggerating\
-  \ the crisis (C) It increased support for American global leadership under President\
-  \ Obama (D) It reduced global use of the US dollar\nA: Let's think step by step.\
-  \ We refer to Wikipedia articles on us foreign policy for help. The 2008 financial\
-  \ crisis damanged the international reputation of the American model of political\
-  \ economy and capitalism. The answer is (A).\n\n"
-"group": "mmlu_flan_cot_fewshot_social_sciences"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_us_foreign_policy"
+dataset_name: us_foreign_policy
+description: The following are multiple choice questions (with answers) about us foreign
+  policy.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'How did Donald Trump attack globalization in the 2016 campaign?
+
+      (A) Globalization had made men like him too rich (B) Globalization only benefited
+      certain American states, such as New York (C) Liberal elites had encouraged
+      globalization, while ''ordinary Americans'' lost jobs because of it (D) Globalization
+      encouraged damaging trade wars'
+    target: Let's think step by step. We refer to Wikipedia articles on us foreign
+      policy for help. Trump attacked globalization because he believed ordinary Americans
+      lost jobs due to it, and so he wanted to blame liberals who had encouraged it.
+      The answer is (C).
+  - question: 'How did NSC-68 change U.S. strategy?
+
+      (A) It globalized containment. (B) It militarized containment. (C) It called
+      for the development of the hydrogen bomb. (D) All of the above'
+    target: Let's think step by step. We refer to Wikipedia articles on us foreign
+      policy for help. NSC-68 outlined a variety of courses of action, including globalization
+      of containment, militarization of contaiment, and the development of the hydrogen
+      bomb. The answer is (D).
+  - question: 'How do Defensive Realism and Offensive Realism differ in their explanation
+      of state behaviour?
+
+      (A) Defensive realists place greater emphasis on the role of international institutions
+      (B) Defensive realists place less emphasis on geographical factors (C) Offensive
+      realists give more priority to the national interest than Defensive realists.
+      (D) Defensive realists believe states are security maximizers, while Offensive
+      realists believe states to be power maximizers'
+    target: Let's think step by step. We refer to Wikipedia articles on us foreign
+      policy for help. While defensive realism advocates that states are security
+      maximizers, offensive realists think of states as power maximizers. The answer
+      is (D).
+  - question: 'The realm of policy decisions concerned primarily with relations between
+      the United States and the rest of the world is known as
+
+      (A) terrorism policy. (B) economic policy. (C) foreign policy. (D) international
+      policy.'
+    target: Let's think step by step. We refer to Wikipedia articles on us foreign
+      policy for help. The topic of policy decisions concerns with relations between
+      the US and the rest of the world is known as foreign policy. The answer is (C).
+  - question: 'How did the 2008 financial crisis affect America''s international reputation?
+
+      (A) It damaged support for the US model of political economy and capitalism
+      (B) It created anger at the United States for exaggerating the crisis (C) It
+      increased support for American global leadership under President Obama (D) It
+      reduced global use of the US dollar'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on us foreign
+      policy for help. The 2008 financial crisis damanged the international reputation
+      of the American model of political economy and capitalism. The answer is (A).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_us_foreign_policy

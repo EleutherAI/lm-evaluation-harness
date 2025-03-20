@@ -15,3 +15,7 @@ task:
     task_alias: "professional_medicine (mmlu)"
   - task: mmlu_college_biology
     task_alias: "college_biology (mmlu)"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: True

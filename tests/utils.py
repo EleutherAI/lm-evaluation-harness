@@ -12,9 +12,9 @@ from lm_eval.utils import load_yaml_config
 # reads a text file and returns a list of words
 # used to read the output of the changed txt from tj-actions/changed-files
 def load_changed_files(file_path: str) -> List[str]:
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
-        words_list = [x for x in content.split()]
+        words_list = list(content.split())
     return words_list
 
 
@@ -25,7 +25,7 @@ def load_changed_files(file_path: str) -> List[str]:
 def parser(full_path: List[str]) -> List[str]:
     _output = set()
     for x in full_path:
-        if os.path.exists(x) and x.endswith(".yaml"):
+        if x.endswith(".yaml") and os.path.exists(x):
             config = load_yaml_config(x, mode="simple")
             if isinstance(config["task"], str):
                 _output.add(config["task"])
@@ -40,10 +40,9 @@ def new_tasks() -> Union[List[str], None]:
         # If tasks folder has changed then we get the list of files from FILENAME
         # and parse the yaml files to get the task names.
         return parser(load_changed_files(FILENAME))
-    elif os.getenv("API") is not None:
+    if os.getenv("API") is not None:
         # Or if API has changed then we set the ENV variable API to True
         # and run  given tasks.
         return ["arc_easy", "hellaswag", "piqa", "wikitext"]
     # if both not true just do arc_easy
-    else:
-        return
+    return None

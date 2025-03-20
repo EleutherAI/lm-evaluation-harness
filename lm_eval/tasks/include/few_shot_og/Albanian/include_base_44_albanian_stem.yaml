@@ -1,0 +1,5 @@
+include: _albanian_few_shot_og_template_yaml
+description: Më poshtë janë pyetjet me zgjedhje të shumëfishta (me përgjigje) rreth
+  STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_albanian_few_shot_og_stem

@@ -1,44 +1,62 @@
-"dataset_name": "moral_scenarios"
-"description": "The following are multiple choice questions (with answers) about moral\
-  \ scenarios.\n\nQ: For which of these two scenarios does the main character (who\
-  \ uses I/me/my) do something clearly morally wrong, according to ordinary moral\
-  \ standards in the US as of 2020? Scenario 1 | I took his wallet after he harassed\
-  \ me at the bar. Scenario 2 | I made love to my newborn baby boy.\n(A) Wrong, Wrong\
-  \ (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not wrong\nA: Let's think\
-  \ step by step. We refer to Wikipedia articles on moral scenarios for help. Stealing\
-  \ from someone is not considered an ethical response to harrassment. And having\
-  \ sex with a minor is egregiously unethical. The answer is (A).\n\nQ: For which\
-  \ of these two scenarios does the main character (who uses I/me/my) do something\
-  \ clearly morally wrong, according to ordinary moral standards in the US as of 2020?\
-  \ Scenario 1 | I asked for a cigarette from the guy outside the store. Scenario\
-  \ 2 | When the security guard left his post, I pocketed a rare coin.\n(A) Wrong,\
-  \ Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not wrong\nA: Let's\
-  \ think step by step. We refer to Wikipedia articles on moral scenarios for help.\
-  \ Asking for something is not morally wrong. Stealing is morally wrong. The answer\
-  \ is (C).\n\nQ: For which of these two scenarios does the main character (who uses\
-  \ I/me/my) do something clearly morally wrong, according to ordinary moral standards\
-  \ in the US as of 2020? Scenario 1 | During the house's demolition, I pushed him\
-  \ into a wall. Scenario 2 | When I choose a babysitter for my twin nieces, I don't\
-  \ care about her racial background.\n(A) Wrong, Wrong (B) Wrong, Not wrong (C) Not\
-  \ wrong, Wrong (D) Not wrong, Not wrong\nA: Let's think step by step. We refer to\
-  \ Wikipedia articles on moral scenarios for help. Physical violence is morally wrong.\
-  \ Being open to hiring people from different racial backgrounds is an expected moral\
-  \ stance. The answer is (B).\n\nQ: For which of these two scenarios does the main\
-  \ character (who uses I/me/my) do something clearly morally wrong, according to\
-  \ ordinary moral standards in the US as of 2020? Scenario 1 | I bought an old pick-up\
-  \ truck for work. Scenario 2 | I looked up at the gorgeous waterfall and threw a\
-  \ rock at it.\n(A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not\
-  \ wrong, Not wrong\nA: Let's think step by step. We refer to Wikipedia articles\
-  \ on moral scenarios for help. Neither of these are wrong as no one is wronged by\
-  \ buing a pick-up truck or throwing a rock into a stream. The answer is (D).\n\n\
-  Q: For which of these two scenarios does the main character (who uses I/me/my) do\
-  \ something clearly morally wrong, according to ordinary moral standards in the\
-  \ US as of 2020? Scenario 1 | I really loved my newborn baby boy. Scenario 2 | The\
-  \ new girl is embarrassed to live in a trailer park, so I invite the class to her\
-  \ house.\n(A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong,\
-  \ Not wrong\nA: Let's think step by step. We refer to Wikipedia articles on moral\
-  \ scenarios for help. Loving someone is not wrong. However, exposing something that\
-  \ someone is embarrassed about could be considered quite mean. The answer is (C).\n\n"
-"group": "mmlu_flan_cot_fewshot_humanities"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_moral_scenarios"
+dataset_name: moral_scenarios
+description: The following are multiple choice questions (with answers) about moral
+  scenarios.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'For which of these two scenarios does the main character (who uses I/me/my)
+      do something clearly morally wrong, according to ordinary moral standards in
+      the US as of 2020? Scenario 1 | I took his wallet after he harassed me at the
+      bar. Scenario 2 | I made love to my newborn baby boy.
+
+      (A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not
+      wrong'
+    target: Let's think step by step. We refer to Wikipedia articles on moral scenarios
+      for help. Stealing from someone is not considered an ethical response to harrassment.
+      And having sex with a minor is egregiously unethical. The answer is (A).
+  - question: 'For which of these two scenarios does the main character (who uses I/me/my)
+      do something clearly morally wrong, according to ordinary moral standards in
+      the US as of 2020? Scenario 1 | I asked for a cigarette from the guy outside
+      the store. Scenario 2 | When the security guard left his post, I pocketed a
+      rare coin.
+
+      (A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not
+      wrong'
+    target: Let's think step by step. We refer to Wikipedia articles on moral scenarios
+      for help. Asking for something is not morally wrong. Stealing is morally wrong.
+      The answer is (C).
+  - question: 'For which of these two scenarios does the main character (who uses I/me/my)
+      do something clearly morally wrong, according to ordinary moral standards in
+      the US as of 2020? Scenario 1 | During the house''s demolition, I pushed him
+      into a wall. Scenario 2 | When I choose a babysitter for my twin nieces, I don''t
+      care about her racial background.
+
+      (A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not
+      wrong'
+    target: Let's think step by step. We refer to Wikipedia articles on moral scenarios
+      for help. Physical violence is morally wrong. Being open to hiring people from
+      different racial backgrounds is an expected moral stance. The answer is (B).
+  - question: 'For which of these two scenarios does the main character (who uses I/me/my)
+      do something clearly morally wrong, according to ordinary moral standards in
+      the US as of 2020? Scenario 1 | I bought an old pick-up truck for work. Scenario
+      2 | I looked up at the gorgeous waterfall and threw a rock at it.
+
+      (A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not
+      wrong'
+    target: Let's think step by step. We refer to Wikipedia articles on moral scenarios
+      for help. Neither of these are wrong as no one is wronged by buing a pick-up
+      truck or throwing a rock into a stream. The answer is (D).
+  - question: 'For which of these two scenarios does the main character (who uses I/me/my)
+      do something clearly morally wrong, according to ordinary moral standards in
+      the US as of 2020? Scenario 1 | I really loved my newborn baby boy. Scenario
+      2 | The new girl is embarrassed to live in a trailer park, so I invite the class
+      to her house.
+
+      (A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong, Not
+      wrong'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on moral scenarios
+      for help. Loving someone is not wrong. However, exposing something that someone
+      is embarrassed about could be considered quite mean. The answer is (C).'
+tag: mmlu_flan_cot_fewshot_humanities
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_moral_scenarios

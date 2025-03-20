@@ -1,0 +1,10 @@
+group: include_base_44_polish
+task:
+- include_base_44_polish_professional_certification
+- include_base_44_polish_social_science
+- include_base_44_polish_stem
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

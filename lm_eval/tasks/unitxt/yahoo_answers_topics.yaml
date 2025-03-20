@@ -1,0 +1,3 @@
+task: yahoo_answers_topics
+include: unitxt
+recipe: card=cards.yahoo_answers_topics,template=templates.classification.multi_class.title

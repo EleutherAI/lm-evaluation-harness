@@ -1,4 +1,3 @@
-include: crows_pairs_english.yaml
+include: crows_pairs_french.yaml
 task: crows_pairs_french_race_color
-dataset_name: french
 process_docs: !function utils.filter_race_color

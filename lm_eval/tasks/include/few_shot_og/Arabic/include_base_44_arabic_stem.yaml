@@ -1,0 +1,4 @@
+include: _arabic_few_shot_og_template_yaml
+description: فيما يلي أسئلة اختيارية متعددة (مع الإجابات) حول STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_arabic_few_shot_og_stem

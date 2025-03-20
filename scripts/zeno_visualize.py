@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import os
 import re
 from pathlib import Path
@@ -7,7 +8,14 @@ from pathlib import Path
 import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
 
-from lm_eval.utils import eval_logger
+from lm_eval.utils import (
+    get_latest_filename,
+    get_results_filenames,
+    get_sample_results_filenames,
+)
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 def parse_args():
@@ -45,13 +53,15 @@ def main():
 
     assert len(models) > 0, "No model directories found in the data_path."
 
+    # Get the tasks from the latest results file of the first model.
     tasks = set(tasks_for_model(models[0], args.data_path))
 
-    for model in models:  # Make sure that all models have the same tasks.
+    # Get tasks names from the latest results file for each model
+    # Get intersection of tasks for all models
+    for model in models:
         old_tasks = tasks.copy()
         task_count = len(tasks)
-
-        model_tasks = tasks_for_model(model, args.data_path)
+        model_tasks = set(tasks_for_model(model, args.data_path))
         tasks.intersection(set(model_tasks))
 
         if task_count != len(tasks):
@@ -59,42 +69,57 @@ def main():
                 f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
             )
 
-    assert (
-        len(tasks) > 0
-    ), "Must provide at least one task in common amongst models to compare."
+    assert len(tasks) > 0, (
+        "Must provide at least one task in common amongst models to compare."
+    )
 
     for task in tasks:
         # Upload data for all models
         for model_index, model in enumerate(models):
+            # Get latest results and sample results for a model
+            model_dir = Path(args.data_path, model)
+            model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
+            model_results_filenames = get_results_filenames(model_files)
+            model_sample_filenames = get_sample_results_filenames(model_files)
+            latest_results = get_latest_filename(
+                [Path(f).name for f in model_results_filenames]
+            )
+            latest_sample_results = get_latest_filename(
+                [Path(f).name for f in model_sample_filenames if task in f]
+            )
             model_args = re.sub(
                 r"[\"<>:/\|\\?\*\[\]]+",
                 "__",
                 json.load(
-                    open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
                 )["config"]["model_args"],
             )
+            print(model_args)
+            data = []
             with open(
-                Path(args.data_path, model, f"{model_args}_{task}.jsonl"),
+                Path(args.data_path, model, latest_sample_results),
                 "r",
                 encoding="utf-8",
             ) as file:
-                data = json.loads(file.read())
+                for line in file:
+                    data.append(json.loads(line.strip()))
 
             configs = json.load(
-                open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+                open(Path(args.data_path, model, latest_results), encoding="utf-8")
             )["configs"]
             config = configs[task]
 
             if model_index == 0:  # Only need to assemble data for the first model
                 metrics = []
                 for metric in config["metric_list"]:
-                    metrics.append(
-                        ZenoMetric(
-                            name=metric["metric"],
-                            type="mean",
-                            columns=[metric["metric"]],
+                    if metric.get("aggregation") == "mean":
+                        metrics.append(
+                            ZenoMetric(
+                                name=metric["metric"],
+                                type="mean",
+                                columns=[metric["metric"]],
+                            )
                         )
-                    )
                 project = client.create_project(
                     name=args.project_name + (f"_{task}" if len(tasks) > 1 else ""),
                     view="text-classification",
@@ -125,10 +150,12 @@ def tasks_for_model(model: str, data_path: str):
     Returns:
         list: A list of tasks for the model.
     """
-    dir_path = Path(data_path, model)
-    config = (
-        json.load(open(Path(dir_path, "results.json"), encoding="utf-8"))["configs"],
-    )
+    # get latest model results for a given name
+    model_dir = Path(data_path, model)
+    model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
+    model_results_filenames = get_results_filenames(model_files)
+    latest_results = get_latest_filename(model_results_filenames)
+    config = (json.load(open(latest_results, encoding="utf-8"))["configs"],)
     return list(config[0].keys())
 
 
@@ -145,28 +172,33 @@ def generate_dataset(
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    ids = [x["doc_id"] for x in data]
+    ids = (
+        [x["doc_id"] for x in data]
+        if not config.get("filter_list")
+        else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    )
     labels = [x["target"] for x in data]
     instance = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
-        instance = [x["arguments"][0][0] for x in data]
-        labels = [x["arguments"][0][1] for x in data]
+        instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
+        labels = [x["arguments"]["gen_args_0"]["arg_1"] for x in data]
     elif config["output_type"] == "multiple_choice":
         instance = [
-            x["arguments"][0][0]
+            x["arguments"]["gen_args_0"]["arg_0"]
             + "\n\n"
             + "\n".join([f"- {y[1]}" for y in x["arguments"]])
             for x in data
         ]
     elif config["output_type"] == "loglikelihood_rolling":
-        instance = [x["arguments"][0][0] for x in data]
+        instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
     elif config["output_type"] == "generate_until":
-        instance = [x["arguments"][0][0] for x in data]
+        instance = [x["arguments"]["gen_args_0"]["arg_0"] for x in data]
 
     return pd.DataFrame(
         {
             "id": ids,
+            "doc_id": [x["doc_id"] for x in data],
             "data": instance,
             "input_len": [len(x) for x in instance],
             "labels": labels,
@@ -185,8 +217,15 @@ def generate_system_df(data, config):
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
-    ids = [x["doc_id"] for x in data]
+    ids = (
+        [x["doc_id"] for x in data]
+        if not config.get("filter_list")
+        else [f"{x['doc_id']}.{x['filter']}" for x in data]
+    )
     system_dict = {"id": ids}
+    system_dict["doc_id"] = [x["doc_id"] for x in data]
+    if config.get("filter_list"):
+        system_dict["filter"] = [x["filter"] for x in data]
     system_dict["output"] = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
@@ -205,11 +244,10 @@ def generate_system_df(data, config):
         system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
         system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
-    metrics = {}
-    for metric in config["metric_list"]:
-        if "aggregation" in metric and metric["aggregation"] == "mean":
-            metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
-
+    metrics = {
+        metric["metric"]: [x[metric["metric"]] for x in data]
+        for metric in config["metric_list"]
+    }
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df

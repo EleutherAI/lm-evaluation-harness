@@ -8,13 +8,13 @@ A majority of users run the library by cloning it from Github, installing the pa
 
 Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
 
-This mode supports a number of command-line arguments, the details of which can be also be seen via running with `-h` or `--help`:
+This mode supports a number of command-line arguments, the details of which can also be seen via running with `-h` or `--help`:
 
-- `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#commercial-apis) for a full list of enabled model names and supported libraries or APIs.
+- `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#model-apis-and-inference-servers) for a full list of enabled model names and supported libraries or APIs.
 
 - `--model_args` : Controls parameters passed to the model constructor. Accepts a string containing comma-separated keyword arguments to the model class of the format `"arg1=val1,arg2=val2,..."`, such as, for example `--model_args pretrained=EleutherAI/pythia-160m,dtype=float32`. For a full list of what keyword arguments, see the initialization of the `lm_eval.api.model.LM` subclass, e.g. [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/models/huggingface.py#L66)
 
-- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups.
+- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups. A list of supported tasks can be viewed with `--tasks list`.
 
 - `--num_fewshot` : Sets the number of few-shot examples to place in context. Must be an integer.
 
@@ -42,13 +42,37 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--show_config` : If used, prints the full `lm_eval.api.task.TaskConfig` contents (non-default settings the task YAML file) for each task which was run, at the completion of an evaluation. Useful for when one is modifying a task's configuration YAML locally to transmit the exact configurations used for debugging or for reproducibility purposes.
 
-- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing ` lm-eval`` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than  `lm_eval/tasks/`
+- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`.
+
+- `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
+
+- `--apply_chat_template` : This flag specifies whether to apply a chat template to the prompt. It can be used in the following ways:
+  - `--apply_chat_template` : When used without an argument, applies the only available chat template to the prompt. For Hugging Face models, if no dedicated chat template exists, the default chat template will be applied.
+  - `--apply_chat_template template_name` : If the model has multiple chat templates, apply the specified template to the prompt.
+
+    For Hugging Face models, the default chat template can be found in the [`default_chat_template`](https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1912) property of the Transformers Tokenizer.
+
+- `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
 
 - `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
 
-* `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
+- `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
 
-* `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list (here.)[https://docs.wandb.ai/ref/python/init]. e.g., ```--wandb_args project=test-project,name=test-run```
+- `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```. Also allows for the passing of the step to log things at (passed to `wandb.run.log`), e.g., `--wandb_args step=123`.
+
+- `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
+  - `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
+  - `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
+  - `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
+  - `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
+  - `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
+  - `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
+  - `public_repo` - whether the repository is public, can be `True` or `False`,
+  - `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
+  - `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
+  - `gated` - whether to gate the details dataset, can be `True` or `False`.
+
+- `--metadata`: JSON string to pass to TaskConfig. Used for some tasks which require additional metadata to be passed for processing. E.g., `--metadata '{"key": "value"}'`.
 
 ## External Library Usage
 
@@ -60,8 +84,10 @@ We also support using the library's external API for use within model training l
 
 ```python
 import lm_eval
+from lm_eval.utils import setup_logging
 ...
-
+# initialize logging
+setup_logging("DEBUG") # optional, but recommended; or you can set up logging yourself
 my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
 ...
 # instantiate an LM subclass that takes your initialized model and can run
@@ -77,7 +103,7 @@ task_manager = lm_eval.tasks.TaskManager()
 
 # Setting `task_manager` to the one above is optional and should generally be done
 # if you want to include tasks from paths other than ones in `lm_eval/tasks`.
-# `simple_evaluate` will instantiate its own task_manager is the it is set to None here.
+# `simple_evaluate` will instantiate its own task_manager if it is set to None here.
 results = lm_eval.simple_evaluate( # call simple_evaluate
     model=lm_obj,
     tasks=["taskname1", "taskname2"],
@@ -87,11 +113,9 @@ results = lm_eval.simple_evaluate( # call simple_evaluate
 )
 ```
 
-See https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/evaluator.py#L35 for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
+See the `simple_evaluate()` and `evaluate()` functions in [lm_eval/evaluator.py](../lm_eval/evaluator.py#:~:text=simple_evaluate) for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
 
 Additionally, the `evaluate()` function offers the core evaluation functionality provided by the library, but without some of the special handling and simplification + abstraction provided by `simple_evaluate()`.
-
-See https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/evaluator.py#L173 for more details.
 
 As a brief example usage of `evaluate()`:
 
@@ -132,7 +156,7 @@ task_dict = lm_eval.tasks.get_task_dict(
     task_manager # A task manager that allows lm_eval to
                  # load the task during evaluation.
                  # If none is provided, `get_task_dict`
-                 # will instantiated one itself, but this
+                 # will instantiate one itself, but this
                  # only includes the stock tasks so users
                  # will need to set this if including
                  # custom paths is required.

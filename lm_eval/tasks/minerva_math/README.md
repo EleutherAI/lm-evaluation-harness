@@ -28,16 +28,11 @@ Eprint = {arXiv:2206.14858},
 }
 ```
 
-### Groups, Benchmarks and Tasks
-
-#### Benchmarks
-
-- `minerva_math`
+### Groups and Tasks
 
 #### Groups
 
-- `math_word_problems`
-- `generate_until`
+- `minerva_math`
 
 #### Tasks
 
@@ -68,3 +63,6 @@ If other tasks on this dataset are already supported:
 ### Variant Wishlist
 
 - [ ] zero-shot variant
+
+### Changelog
+version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For details [see](https://huggingface.co/blog/math_verify_leaderboard)

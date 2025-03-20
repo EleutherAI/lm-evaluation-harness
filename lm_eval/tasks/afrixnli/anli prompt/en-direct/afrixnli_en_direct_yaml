@@ -1,0 +1,34 @@
+tag:
+    - afrixnli
+    - afrixnli_en_direct
+dataset_path: masakhane/afrixnli
+dataset_name: null
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+fewshot_split: validation
+doc_to_text: "{{premise}}\nQuestion: {{hypothesis}} True, False, or Neither?\nAnswer:"
+# True = entailment
+# False = contradiction
+# Neither = neutral
+doc_to_target: !function utils.doc_to_target
+doc_to_choice:
+  - "True"
+  - "Neither"
+  - "False"
+should_decontaminate: true
+doc_to_decontamination_query: premise
+metric_list:
+  - metric: f1
+    aggregation: !function utils.weighted_f1_score
+    average: weighted
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

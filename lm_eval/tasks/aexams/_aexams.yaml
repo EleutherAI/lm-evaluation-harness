@@ -1,0 +1,16 @@
+group: aexams
+task:
+  - aexams_Biology
+  - aexams_IslamicStudies
+  - aexams_Physics
+  - aexams_Science
+  - aexams_Social
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

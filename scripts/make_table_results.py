@@ -2,6 +2,7 @@
 Usage:
    python make_table_tasks.py --output <markdown_filename>
 """
+
 import json
 import logging
 import os
@@ -9,7 +10,6 @@ import os
 from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

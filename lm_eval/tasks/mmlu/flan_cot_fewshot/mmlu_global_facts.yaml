@@ -1,34 +1,49 @@
-"dataset_name": "global_facts"
-"description": "The following are multiple choice questions (with answers) about global\
-  \ facts.\n\nQ: As of 2017, how many of the world’s 1-year-old children today have\
-  \ been vaccinated against some disease? *\n(A) 80% (B) 60% (C) 40% (D) 20%\nA: Let's\
-  \ think step by step. We refer to Wikipedia articles on global facts for help. According\
-  \ to data published by the World Health Organization, the nummber of 1-year-old\
-  \ children vaccinated in 2017 exceeds 80%. The answer is (A).\n\nQ: As of 2019,\
-  \ about what percentage of Americans agree that the state is run for the benefit\
-  \ of all the people?\n(A) 31% (B) 46% (C) 61% (D) 76%\nA: Let's think step by step.\
-  \ We refer to Wikipedia articles on global facts for help. In 2019, about 46% percentage\
-  \ of Americans agree that the state is run for the benefit of all the people. The\
-  \ answer is (B).\n\nQ: As of 2019, about what percentage of Russians say it is very\
-  \ important to have free media in our country without government/state censorship?\n\
-  (A) 38% (B) 53% (C) 68% (D) 83%\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on global facts for help. As of 2019, about 38% of Russians say it is\
-  \ very important to have free media in our country. The answer is (A).\n\nQ: As\
-  \ of 2015, since 1990 forests have ____ in Europe and have ____ in Africa and the\
-  \ Americas.\n(A) increased, increased (B) increased, decreased (C) decreased, increased\
-  \ (D) decreased, decreased\nA: Let's think step by step. We refer to Wikipedia articles\
-  \ on global facts for help. As of 2015, since 1990 forests have increased in Europe\
-  \ and have decreased in Africa and the Americas. The answer is (B).\n\nQ: Which\
-  \ of the following pairs of statements are both true (as of 2019)?\n(A) People tend\
-  \ to be optimistic about their own future and the future of their nation or the\
-  \ world. (B) People tend to be optimistic about their own future but pessimistic\
-  \ about the future of their nation or the world. (C) People tend to be pessimistic\
-  \ about their own future but optimistic about the future of their nation or the\
-  \ world. (D) People tend to be pessimistic about their own future and the future\
-  \ of their nation or the world.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on global facts for help. As of 2019, most people tend to be optimistic\
-  \ about their own future but pessimistic about the future of their nation or the\
-  \ world. The answer is (B).\n\n"
-"group": "mmlu_flan_cot_fewshot_other"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_global_facts"
+dataset_name: global_facts
+description: The following are multiple choice questions (with answers) about global
+  facts.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "As of 2017, how many of the world\u2019s 1-year-old children today have\
+      \ been vaccinated against some disease? *\n(A) 80% (B) 60% (C) 40% (D) 20%"
+    target: Let's think step by step. We refer to Wikipedia articles on global facts
+      for help. According to data published by the World Health Organization, the
+      nummber of 1-year-old children vaccinated in 2017 exceeds 80%. The answer is
+      (A).
+  - question: 'As of 2019, about what percentage of Americans agree that the state is
+      run for the benefit of all the people?
+
+      (A) 31% (B) 46% (C) 61% (D) 76%'
+    target: Let's think step by step. We refer to Wikipedia articles on global facts
+      for help. In 2019, about 46% percentage of Americans agree that the state is
+      run for the benefit of all the people. The answer is (B).
+  - question: 'As of 2019, about what percentage of Russians say it is very important
+      to have free media in our country without government/state censorship?
+
+      (A) 38% (B) 53% (C) 68% (D) 83%'
+    target: Let's think step by step. We refer to Wikipedia articles on global facts
+      for help. As of 2019, about 38% of Russians say it is very important to have
+      free media in our country. The answer is (A).
+  - question: 'As of 2015, since 1990 forests have ____ in Europe and have ____ in Africa
+      and the Americas.
+
+      (A) increased, increased (B) increased, decreased (C) decreased, increased (D)
+      decreased, decreased'
+    target: Let's think step by step. We refer to Wikipedia articles on global facts
+      for help. As of 2015, since 1990 forests have increased in Europe and have decreased
+      in Africa and the Americas. The answer is (B).
+  - question: 'Which of the following pairs of statements are both true (as of 2019)?
+
+      (A) People tend to be optimistic about their own future and the future of their
+      nation or the world. (B) People tend to be optimistic about their own future
+      but pessimistic about the future of their nation or the world. (C) People tend
+      to be pessimistic about their own future but optimistic about the future of
+      their nation or the world. (D) People tend to be pessimistic about their own
+      future and the future of their nation or the world.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on global facts
+      for help. As of 2019, most people tend to be optimistic about their own future
+      but pessimistic about the future of their nation or the world. The answer is
+      (B).'
+tag: mmlu_flan_cot_fewshot_other
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_global_facts

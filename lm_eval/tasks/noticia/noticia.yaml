@@ -1,0 +1,29 @@
+task: noticia
+dataset_path: Iker/NoticIA
+dataset_name: null
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+training_split: null
+validation_split: null
+test_split: test
+fewshot_split: null
+doc_to_text: "Ahora eres una Inteligencia Artificial experta en desmontar titulares sensacionalistas o clickbait. Tu tarea consiste en analizar noticias con titulares sensacionalistas y generar un resumen de una sola frase que revele la verdad detrás del titular.\nEste es el titular de la noticia: {{web_headline}}\nEl titular plantea una pregunta o proporciona información incompleta. Debes buscar en el cuerpo de la noticia una frase que responda lo que se sugiere en el título. Siempre que puedas cita el texto original, especialmente si se trata de una frase que alguien ha dicho. Si citas una frase que alguien ha dicho, usa comillas para indicar que es una cita. Usa siempre las mínimas palabras posibles. No es necesario que la respuesta sea una oración completa, puede ser sólo el foco de la pregunta. Recuerda responder siempre en Español.\nEste es el cuerpo de la noticia:\n{{web_text}}"
+doc_to_target: summary
+target_delimiter: " "
+num_fewshot: 0
+should_decontaminate: false
+doc_to_decontamination_query: sentence
+metric_list:
+  - metric: !function utils.rouge1
+    higher_is_better: true
+    aggregation: !function utils.rouge1_agg
+  - metric: !function utils.average_len
+    higher_is_better: false
+    aggregation: !function utils.average_len_agg
+metadata:
+  version: 1.0

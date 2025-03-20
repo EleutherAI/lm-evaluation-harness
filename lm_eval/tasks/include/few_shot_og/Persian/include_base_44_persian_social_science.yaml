@@ -1,0 +1,5 @@
+include: _persian_few_shot_og_template_yaml
+description: در زیر سؤالات چند گزینه ای (همراه با پاسخ) در مورد Social Science آمده
+  است.
+process_docs: !function 'utils.process_social_science'
+task: include_base_44_persian_few_shot_og_social_science

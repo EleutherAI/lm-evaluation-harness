@@ -1,37 +1,53 @@
-"dataset_name": "high_school_macroeconomics"
-"description": "The following are multiple choice questions (with answers) about high\
-  \ school macroeconomics.\n\nQ: Which of the following policies best describes supply-side\
-  \ fiscal policy?\n(A) An increase in the money supply (B) Increased government spending\
-  \ (C) Lower taxes on research and development of new technology (D) Higher taxes\
-  \ on household income\nA: Let's think step by step. We refer to Wikipedia articles\
-  \ on macroeconomics for help. Supply-side fiscal policy stimulates the economy by\
-  \ encouraging more production of goods and services through reduction in taxes and\
-  \ deregulation. The answer is (C).\n\nQ: The short-run Phillips curve indicates\
-  \ a\n(A) direct relation between unemployment and inflation (B) direct relation\
-  \ between price and quantity demanded (C) inverse relation between price and quantity\
-  \ demanded (D) inverse relation between unemployment and inflation\nA: Let's think\
-  \ step by step. We refer to Wikipedia articles on macroeconomics for help. The short-run\
-  \ Phillips curve shows that whenever unemployment decreases below a natural level,\
-  \ the inflation starts increasing, and vice-versa. The answer is (D).\n\nQ: Holding\
-  \ all else equal which of the following monetary policies would be used to boost\
-  \ U.S. exports?\n(A) Increasing the discount rate (B) Increasing the reserve ratio\
-  \ (C) Buying government securities (D) Lowering tariffs\nA: Let's think step by\
-  \ step. We refer to Wikipedia articles on macroeconomics for help. Buying government\
-  \ securities leads to reduction in demand for US dollars from foreign buyers, thereby\
-  \ making it cheaper and hence making US exports more attractive. The answer is (C).\n\
-  \nQ: A federal deficit occurs when\n(A) exports exceed imports. (B) imports exceed\
-  \ exports. (C) federal tax collections exceed spending. (D) federal spending exceeds\
-  \ federal tax revenues.\nA: Let's think step by step. We refer to Wikipedia articles\
-  \ on macroeconomics for help. A federal deficit occurs when federal spending exceeds\
-  \ federal income which is primarily from tax revenues. The answer is (D).\n\nQ:\
-  \ Which of the following is not included in the U.S. GDP?\n(A) The U.S. military\
-  \ opens a new base in a foreign country with 1000 U.S. personnel. (B) Japanese consumers\
-  \ buy thousands of CDs produced in the United States. (C) An American pop singer\
-  \ performs a sold-out concert in Paris. (D) A French theatrical production tours\
-  \ dozens of American cities.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on macroeconomics for help. The economic transactions related to the\
-  \ performance of the American pop-singer in Paris happens entirely outside the U.S.\
-  \ and hence is not included in the GDP numbers. The answer is (C).\n\n"
-"group": "mmlu_flan_cot_fewshot_social_sciences"
-"include": "_mmlu_flan_cot_fewshot_template_yaml"
-"task": "mmlu_flan_cot_fewshot_high_school_macroeconomics"
+dataset_name: high_school_macroeconomics
+description: The following are multiple choice questions (with answers) about high
+  school macroeconomics.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: 'Which of the following policies best describes supply-side fiscal policy?
+
+      (A) An increase in the money supply (B) Increased government spending (C) Lower
+      taxes on research and development of new technology (D) Higher taxes on household
+      income'
+    target: Let's think step by step. We refer to Wikipedia articles on macroeconomics
+      for help. Supply-side fiscal policy stimulates the economy by encouraging more
+      production of goods and services through reduction in taxes and deregulation.
+      The answer is (C).
+  - question: 'The short-run Phillips curve indicates a
+
+      (A) direct relation between unemployment and inflation (B) direct relation between
+      price and quantity demanded (C) inverse relation between price and quantity
+      demanded (D) inverse relation between unemployment and inflation'
+    target: Let's think step by step. We refer to Wikipedia articles on macroeconomics
+      for help. The short-run Phillips curve shows that whenever unemployment decreases
+      below a natural level, the inflation starts increasing, and vice-versa. The
+      answer is (D).
+  - question: 'Holding all else equal which of the following monetary policies would
+      be used to boost U.S. exports?
+
+      (A) Increasing the discount rate (B) Increasing the reserve ratio (C) Buying
+      government securities (D) Lowering tariffs'
+    target: Let's think step by step. We refer to Wikipedia articles on macroeconomics
+      for help. Buying government securities leads to reduction in demand for US dollars
+      from foreign buyers, thereby making it cheaper and hence making US exports more
+      attractive. The answer is (C).
+  - question: 'A federal deficit occurs when
+
+      (A) exports exceed imports. (B) imports exceed exports. (C) federal tax collections
+      exceed spending. (D) federal spending exceeds federal tax revenues.'
+    target: Let's think step by step. We refer to Wikipedia articles on macroeconomics
+      for help. A federal deficit occurs when federal spending exceeds federal income
+      which is primarily from tax revenues. The answer is (D).
+  - question: 'Which of the following is not included in the U.S. GDP?
+
+      (A) The U.S. military opens a new base in a foreign country with 1000 U.S. personnel.
+      (B) Japanese consumers buy thousands of CDs produced in the United States. (C)
+      An American pop singer performs a sold-out concert in Paris. (D) A French theatrical
+      production tours dozens of American cities.'
+    target: 'Let''s think step by step. We refer to Wikipedia articles on macroeconomics
+      for help. The economic transactions related to the performance of the American
+      pop-singer in Paris happens entirely outside the U.S. and hence is not included
+      in the GDP numbers. The answer is (C).'
+tag: mmlu_flan_cot_fewshot_social_sciences
+include: _mmlu_flan_cot_fewshot_template_yaml
+task: mmlu_flan_cot_fewshot_high_school_macroeconomics

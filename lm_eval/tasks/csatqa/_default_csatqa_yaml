@@ -1,5 +1,4 @@
-group: csatqa
-dataset_path: EleutherAI/csatqa
+dataset_path: HAERAE-HUB/csatqa
 test_split: test
 output_type: multiple_choice
 process_docs: !function utils.process_docs

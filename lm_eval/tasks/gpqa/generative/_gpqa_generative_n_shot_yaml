@@ -1,5 +1,5 @@
 dataset_path: Idavidrein/gpqa
-group: gpqa
+tag: gpqa
 output_type: generate_until
 process_docs: !function utils.process_docs
 training_split: train
@@ -36,4 +36,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 1.0
+  version: 2.0
