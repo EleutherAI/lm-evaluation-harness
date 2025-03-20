@@ -3,6 +3,7 @@ from os.path import basename, dirname
 
 from lm_eval.tasks.mmlu_prox.lang_libs import LANG_LIBS
 
+
 lang_abbr = basename(dirname(__file__))
 lang_dict = LANG_LIBS[lang_abbr]
 
@@ -38,9 +39,7 @@ def format_cot_example(example, including_answer=True):
         if opt is not None:
             prompt += "{}. {}\n".format(choices[i], opt)
     if including_answer:
-        cot_content = example["cot_content"].replace(
-            lang_dict[4], lang_dict[2]
-        )
+        cot_content = example["cot_content"].replace(lang_dict[4], lang_dict[2])
         prompt += cot_content + "\n\n"
     else:
         prompt += lang_dict[2]
