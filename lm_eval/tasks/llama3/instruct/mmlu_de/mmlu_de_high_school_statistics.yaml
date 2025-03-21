@@ -1,0 +1,70 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Wenn die Steigung der Regressionsgerade genau 1 ist, dann ist die Korrelation
+        genau 1.
+      B: Wenn die Korrelation 0 ist, dann ist die Steigung der Regressionsgerade undefiniert.
+      C: "Das Umschalten, welche Variable x und welche y hei\xDFt, \xE4ndert das Vorzeichen\
+        \ der Korrelation."
+      D: "Die Korrelation r ist gleich der Steigung der Regressionslinie, wenn die\
+        \ Z-Scores f\xFCr die y-Variable gegen die Z-Scores f\xFCr die x-Variable\
+        \ aufgetragen werden."
+    input_correct_responses:
+    - D
+    input_question: Welche der folgenden Aussagen zur Korrelation ist richtig?
+  - input_choice_list:
+      A: E(X + Y) = 99, Var(X + Y) = 8,5
+      B: E(X + Y) = 99, var(X + Y) = 13
+      C: E(X + Y) = 99, var(X + Y) = 17
+      D: Zur Beantwortung dieser Frage liegen keine ausreichenden Informationen vor.
+    input_correct_responses:
+    - D
+    input_question: Angenommen, X und Y sind Zufallsvariablen mit E(X) = 37, var(X)
+      = 5, E(Y) = 62 und var(Y) = 12. Was sind der erwartete Wert und die Varianz
+      der Zufallsvariablen X + Y?
+  - input_choice_list:
+      A: "Der Anteil der B\xE4ume, die zu mehr als 50 Prozent durch Frost gesch\xE4\
+        digt wurden."
+      B: "Die Anzahl der vom Frost betroffenen B\xE4ume."
+      C: "Die Anzahl der B\xE4ume, die aus dem Hain entnommen wurden."
+      D: "F\xFCr jeden beprobten Baum, ob er mehr als 50 Prozent Schaden oder h\xF6\
+        chstens 50 Prozent Schaden erlitten hat."
+    input_correct_responses:
+    - D
+    input_question: "Nach einer Frostwarnung forderte der Besitzer eines gro\xDFen\
+      \ Orangenhains seine Arbeiter auf, alle seine B\xE4ume mit Wasser zu bespr\xFC\
+      hen. Das Wasser sollte gefrieren und eine sch\xFCtzende Eisschicht um die Orangenbl\xFC\
+      te bilden. Dennoch vermutete der Eigent\xFCmer, dass einige B\xE4ume durch den\
+      \ Frost erheblichen Schaden erlitten haben. Um den Anteil der B\xE4ume abzusch\xE4\
+      tzen, die durch den Frost zu mehr als 50 Prozent gesch\xE4digt wurden, entnahm\
+      \ er stichprobenartig 100 B\xE4ume aus seinem Hain. Was ist die Antwortvariable\
+      \ in diesem Experiment?"
+  - input_choice_list:
+      A: Durchschnittlich 518 Gramm; Standardabweichung 7,0 Gramm
+      B: Durchschnittlich 518 Gramm; Standardabweichung 3,5 Gramm
+      C: Durchschnittlich 518 Gramm; Standardabweichung 6,1 Gramm
+      D: Durchschnittlich 394 Gramm; Standardabweichung 6,1 Gramm
+    input_correct_responses:
+    - C
+    input_question: "Eine neue Smartwatch wird in einem Teil einer Fabrik hergestellt\
+      \ und dann in einem anderen, unabh\xE4ngigen Teil der Fabrik f\xFCr den Versand\
+      \ gesichert. Das Gewicht der Smartwatch liegt im Mittel bei 62 Gramm und einer\
+      \ Standardabweichung von 1,0 Gramm. Das Gewicht der Verpackung (Schachtel, Bedienungsanleitung,\
+      \ Luftpolsterfolie etc.) hat einen Mittelwert von 456 Gramm und eine Standardabweichung\
+      \ von 6 Gramm. Zusammen h\xE4tte die Gewichtsverteilung der Smartwatch und ihrer\
+      \ Verpackung folgenden Mittelwert und Standardabweichung:"
+  - input_choice_list:
+      A: Ich, II
+      B: II, III
+      C: III, I
+      D: III, II
+    input_correct_responses:
+    - D
+    input_question: "Welche der folgenden Mengen hat die kleinste Standardabweichung?\
+      \ Welche hat die gr\xF6\xDFte? I: {1,2,3} II: {-10,10} III: {100}"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_statistics
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_high_school_statistics
+task_alias: high_school_statistics

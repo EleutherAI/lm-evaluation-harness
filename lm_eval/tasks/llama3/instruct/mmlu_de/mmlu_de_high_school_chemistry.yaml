@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: HCl
+      B: H2SO3
+      C: SO2
+      D: Al(NO3)3
+    input_correct_responses:
+    - C
+    input_question: "Welches der folgenden gilt als S\xE4ureanhydrid?"
+  - input_choice_list:
+      A: PCl4F
+      B: BF3
+      C: CO2
+      D: Si(CH3)4
+    input_correct_responses:
+    - A
+    input_question: "Welches der folgenden ist voraussichtlich ein polares Molek\xFC\
+      l?"
+  - input_choice_list:
+      A: "Alle Chloride, Bromide und Jodide sind l\xF6slich"
+      B: "Alle Sulfate sind l\xF6slich"
+      C: "Alle Hydroxide sind l\xF6slich"
+      D: "Alle ammoniumhaltigen Verbindungen sind l\xF6slich"
+    input_correct_responses:
+    - D
+    input_question: "Welche der folgenden Aussagen von den L\xF6slichkeitsregeln ist\
+      \ wahr?"
+  - input_choice_list:
+      A: 3,89
+      B: '7.78'
+      C: '5.78'
+      D: '2.33'
+    input_correct_responses:
+    - C
+    input_question: "Eine neue Verbindung wird synthetisiert und als einprotonige\
+      \ S\xE4ure mit einer Molmasse von 248 g/mol gefunden. Wenn 0,0050 Mol dieser\
+      \ S\xE4ure in 0,500 L Wasser gel\xF6st werden, wird der pH-Wert mit 3,89 gemessen.\
+      \ Welchen pKa-Wert hat diese S\xE4ure?"
+  - input_choice_list:
+      A: 0,500 Mol
+      B: 1,00 Mol
+      C: 2,00 Mol
+      D: 3,00 Mol
+    input_correct_responses:
+    - C
+    input_question: "Eine L\xF6sung enth\xE4lt 2,00 Mol Essigs\xE4ure, CH3COOH, und\
+      \ 1,00 Mol Calciumacetat, Ca(CH3COO)2. Die L\xF6sung ist in der Lage, der Zugabe\
+      \ einer kleinen Menge starker S\xE4ure oder starker Base mit nur geringf\xFC\
+      gigen \xC4nderungen des pH-Werts der L\xF6sung zu widerstehen. Gr\xF6\xDFere\
+      \ Mengen starker S\xE4uren oder starker Basen k\xF6nnen eine deutliche \xC4\
+      nderung des pH-Werts verursachen. Wie viele Mol Salpeters\xE4ure, HNO3, k\xF6\
+      nnen hinzugef\xFCgt werden, bevor sich der pH-Wert signifikant zu \xE4ndern\
+      \ beginnt?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_chemistry
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_high_school_chemistry
+task_alias: high_school_chemistry

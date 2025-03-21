@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Ha danneggiato il sostegno al modello americano di economia politica e capitalismo
+      B: Ha creato rabbia nei confronti degli Stati Uniti per aver esagerato la crisi
+      C: Ha aumentato il sostegno alla leadership globale americana sotto la presidenza
+        Obama
+      D: "Ha ridotto l\u2019uso globale del dollaro USA"
+    input_correct_responses:
+    - A
+    input_question: "In che modo la crisi finanziaria del 2008 ha influito sulla reputazione\
+      \ internazionale dell\u2019America?"
+  - input_choice_list:
+      A: Ha globalizzato il contenimento.
+      B: Ha militarizzato il contenimento.
+      C: Ha chiesto lo sviluppo della bomba all&#39;idrogeno.
+      D: Tutti i precedenti
+    input_correct_responses:
+    - D
+    input_question: "In che modo l\u2019NSC-68 ha cambiato la strategia degli Stati\
+      \ Uniti?"
+  - input_choice_list:
+      A: politica del terrorismo.
+      B: politica economica.
+      C: politica estera.
+      D: politica internazionale.
+    input_correct_responses:
+    - C
+    input_question: "L\u2019ambito delle decisioni politiche che riguardano principalmente\
+      \ le relazioni tra gli Stati Uniti e il resto del mondo \xE8 noto come"
+  - input_choice_list:
+      A: I realisti difensivi pongono maggiore enfasi sul ruolo delle istituzioni
+        internazionali
+      B: I realisti difensivi pongono meno enfasi sui fattori geografici
+      C: "I realisti offensivi danno maggiore priorit\xE0 all\u2019interesse nazionale\
+        \ rispetto ai realisti difensivi."
+      D: I realisti difensivi credono che gli stati massimizzino la sicurezza, mentre
+        i realisti offensivi credono che gli stati massimizzino il potere
+    input_correct_responses:
+    - D
+    input_question: In che modo il realismo difensivo e il realismo offensivo differiscono
+      nella loro spiegazione del comportamento statale?
+  - input_choice_list:
+      A: La globalizzazione aveva reso uomini come lui troppo ricchi
+      B: La globalizzazione ha avvantaggiato solo alcuni stati americani, come New
+        York
+      C: "Le \xE9lite liberali avevano incoraggiato la globalizzazione, mentre gli\
+        \ \u201Camericani comuni\u201D avevano perso il lavoro a causa di essa"
+      D: La globalizzazione ha incoraggiato guerre commerciali dannose
+    input_correct_responses:
+    - C
+    input_question: In che modo Donald Trump ha attaccato la globalizzazione nella
+      campagna del 2016?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_us_foreign_policy
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_us_foreign_policy
+task_alias: us_foreign_policy
