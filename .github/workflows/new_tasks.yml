@@ -20,13 +20,13 @@ jobs:
         with:
           fetch-depth: 2  # OR "2" -> To retrieve the preceding commit.
 
-      # Uses the tj-actions/changed-files action to check for changes.
-      # Outputs provided here: https://github.com/tj-actions/changed-files#outputs
+      # Uses the dorny/paths-filter@v3 action to check for changes.
+      # Outputs provided here: https://github.com/dorny/paths-filter#outputs
       # The `files_yaml` input optionally takes a yaml string to specify filters,
       # and prepends the filter name to the standard output names.
       - name: Check task folders
         id: changed-tasks
-        uses: tj-actions/changed-files@v44.5.2
+        uses: dorny/paths-filter@v3
         with:
           # tasks checks the tasks folder and api checks the api folder for changes
           files_yaml: |
