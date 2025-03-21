@@ -20,7 +20,6 @@ generation_kwargs:
     - "</s>"
     - "Q:"
     - "<|im_end|>"
-  max_length: 8192
   max_gen_toks: 2048
   do_sample: false
   temperature: 0.0
