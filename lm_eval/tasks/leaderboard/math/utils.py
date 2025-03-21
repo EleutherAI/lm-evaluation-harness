@@ -1,21 +1,22 @@
 import logging
-import re
-import signal
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import datasets
 
 
-eval_logger = logging.getLogger(__name__)
-
 try:
+    import re
+    import signal
+
     import sympy
+    from math_verify import LatexExtractionConfig, parse, verify
     from sympy.parsing.latex import parse_latex
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "`sympy` is required for generating translation task prompt templates. \
-please install sympy via pip install lm-eval[math] or pip install -e .[math]",
+        "`math-verify`, `sympy>=1.12`, and antlr4-python3-runtime==4.11 is required for generating translation task prompt templates. \
+please install via pip install lm-eval[math] or pip install -e .[math]",
     )
+
 
 INVALID_ANSWER = "[invalidanswer]"
 
@@ -31,9 +32,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
-            "answer": normalize_final_answer(
-                remove_boxed(last_boxed_only_string(doc["solution"]))
-            ),
+            "answer": remove_boxed(last_boxed_only_string(doc["solution"])),
         }
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
@@ -73,32 +72,47 @@ def list_fewshot_samples() -> list[dict]:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidates = results[0]
-
-    unnormalized_answer = get_unnormalized_answer(candidates)
-    answer = normalize_final_answer(unnormalized_answer)
-
-    if answer == INVALID_ANSWER:
-        return {"exact_match": 0}
-
-    if answer.strip() == doc["answer"].strip() or is_equiv(answer, doc["answer"]):
+    parsed_candidate = parse(candidates)
+    parsed_answer = parse(doc["solution"], extraction_config=[LatexExtractionConfig()])
+    if verify(parsed_answer, parsed_candidate):
         retval = 1
     else:
         retval = 0
 
-    results = {
+    try:
+        original = process_result_v1(doc, candidates)
+    except:  # noqa: E722
+        original = 0
+
+    output = {
         "exact_match": retval,
+        "exact_match_original": original,
     }
-    return results
+    return output
 
 
-def last_boxed_only_string(string: str) -> Optional[str]:
+def process_result_v1(doc: dict, candidates: str) -> int:
+    # using the orginal answer extraction method
+    unnormalized_answer = get_unnormalized_answer(candidates)
+    answer = normalize_final_answer(unnormalized_answer)
+    normalized_gold = normalize_final_answer(doc["answer"])
+    if answer == INVALID_ANSWER:
+        return 0
+    if answer.strip() == normalized_gold.strip() or is_equiv(answer, normalized_gold):
+        retval = 1
+    else:
+        retval = 0
+    return retval
+
+
+def last_boxed_only_string(string: str) -> str:
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
         return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
     if idx < 0:
         idx = string.rfind("\\fbox")
         if idx < 0:
-            return None
+            return INVALID_ANSWER
 
     i = idx
     right_brace_idx = None
@@ -114,7 +128,7 @@ def last_boxed_only_string(string: str) -> Optional[str]:
         i += 1
 
     if right_brace_idx is None:
-        retval = None
+        retval = INVALID_ANSWER
     else:
         retval = string[idx : right_brace_idx + 1]
 
@@ -157,6 +171,7 @@ def is_equiv(x1: str, x2: str) -> bool:
     """
     x1 and x2 are normalized latex string
     """
+    eval_logger = logging.getLogger(__name__)
     try:
         with timeout(seconds=1):
             try:
