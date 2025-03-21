@@ -1,0 +1,6 @@
+"dataset_name": "formal_logic"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_humanities_tasks"
+"task": "mmlu_cot_llama_formal_logic"
+"task_alias": "formal logic"
