@@ -1,0 +1,163 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Risposta organizzata alla ribellione di Bacon
+      B: Risposta federale alla ribellione di Shays
+      C: Risposta federale alla ribellione del whisky
+      D: Risposta federale alla ribellione di Pontiac
+    input_correct_responses:
+    - C
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;La\
+      \ societ\xE0 in ogni stato \xE8 una benedizione, ma il governo, anche nel suo\
+      \ stato migliore, non \xE8 altro che un male necessario; nel suo stato peggiore,\
+      \ un male intollerabile; perch\xE9 quando soffriamo, o siamo esposti alle stesse\
+      \ miserie da parte di un governo, cosa che potremmo aspettarci In un paese senza\
+      \ governo, la nostra calamit\xE0 \xE8 accresciuta se riflettiamo sul fatto che\
+      \ siamo noi a fornire i mezzi con cui soffriamo. Il governo, come l\u2019abito,\
+      \ \xE8 il distintivo dell\u2019innocenza perduta; i palazzi dei re sono costruiti\
+      \ sulle rovine delle pergole del paradiso. se gli impulsi della coscienza fossero\
+      \ chiari, uniformi e irresistibilmente obbediti, l\u2019uomo non avrebbe bisogno\
+      \ di altro legislatore; ma non essendo cos\xEC, egli ritiene necessario cedere\
+      \ una parte della sua propriet\xE0 per fornire i mezzi per la protezione del\
+      \ resto; e a ci\xF2 \xE8 indotto dalla stessa prudenza che in ogni altro caso\
+      \ gli consiglia di scegliere il minimo tra due mali. Pertanto, essendo la sicurezza\
+      \ il vero disegno e fine del governo, ne consegue indiscutibilmente che qualunque\
+      \ forma di essa appaia pi\xF9 idonea a garantire per noi, con la minima spesa\
+      \ e il massimo beneficio, \xE8 preferibile a tutti gli altri.&quot; Thomas Paine,\
+      \ Common Sense, 1776 Quale delle seguenti &quot;miserie&quot; a cui si \xE8\
+      \ accennato sopra \xE8 stata maggiormente condannata dagli antifederalisti dell&#39;era\
+      \ post-rivoluzionaria?"
+  - input_choice_list:
+      A: Tensioni tra le politiche britanniche e le aspirazioni dei coloni nordamericani.
+      B: Tensioni tra gli indiani d&#39;America alleati con i francesi e quelli alleati
+        con gli inglesi.
+      C: Tensioni tra afroamericani liberati e piantatori bianchi.
+      D: "Tensioni tra coloni dell&#39;entroterra ed \xE9lite nell&#39;America coloniale."
+    input_correct_responses:
+    - D
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;Poich\xE9\
+      \ la nostra ultima condotta a Conestoga Manor e a Lancaster ha dato luogo a\
+      \ molte speculazioni e a una grande diversit\xE0 di sentimenti in questo e nei\
+      \ governi vicini; alcuni lo hanno rivendicato e altri lo hanno condannato; alcuni\
+      \ hanno caritatevolmente alleviato il Crimine, e altri maliziosamente lo dipingono\
+      \ nel modo pi\xF9 odioso e colori detestabili, riteniamo nostro dovere esporre\
+      \ al pubblico l&#39;intera questione come ci \xE8 apparsa, e ci appare ancora...\
+      \ &quot;Se queste cose non bastano a dimostrare un ingiustificabile attaccamento\
+      \ dei quaccheri agli indiani selvaggi , una ferma risoluzione di fare amicizia\
+      \ con loro e un&#39;assoluta insensibilit\xE0 alle sofferenze umane, consideriamo\
+      \ alcuni fatti pi\xF9 recenti. Quando l&#39;estate scorsa abbiamo scoperto che\
+      \ probabilmente non avremmo ricevuto assistenza dal governo, alcuni volontari\
+      \ sono partiti a nostre spese, determinati a scacciare i nostri nemici dai nostri\
+      \ confini; e quando ci avvicinammo alla grande Isola, capimmo che un certo numero\
+      \ dei loro Guerrieri erano usciti contro le nostre Frontiere. Dopodich\xE9 siamo\
+      \ tornati, li abbiamo raggiunti e abbiamo combattuto con loro a Munfey Hill,\
+      \ dove abbiamo perso alcuni dei nostri uomini e ucciso alcuni dei loro guerrieri,\
+      \ salvando cos\xEC le nostre frontiere da questa storia in un&#39;altra spedizione.\
+      \ Ma non appena avevamo distrutto le loro provviste sulla grande isola e rovinato\
+      \ il loro commercio con la brava gente di Betlemme, questi stessi indiani, che\
+      \ erano giustamente sospettati di aver ucciso i nostri amici nella contea di\
+      \ Northampton, furono presi dall&#39;influenza di alcuni quaccheri. sotto la\
+      \ protezione del governo per proteggerli dai risentimenti degli amici e dei\
+      \ parenti degli assassinati e per sostenerli durante l&#39;inverno.&quot; \u2014\
+      &quot;Apology of the Paxton Boys&quot; (opuscolo), 1764 (Nota: &quot;apology&quot;\
+      \ in questo contesto dovrebbe essere letto come una spiegazione, non come un&#39;ammissione\
+      \ di colpa o di rammarico.) I sentimenti espressi nella spiegazione di cui sopra\
+      \ riflettono quali delle tensioni in corso durante il periodo coloniale della\
+      \ storia americana?"
+  - input_choice_list:
+      A: "l\u2019emendamento sulla parit\xE0 di diritti"
+      B: suffragio universale
+      C: diritti degli Stati
+      D: divieto
+    input_correct_responses:
+    - B
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;Nel\
+      \ nuovo Codice di Leggi che suppongo sar\xE0 necessario che tu faccia, desidero\
+      \ che ti ricordi delle Signore, e che tu sia pi\xF9 generoso e favorevole verso\
+      \ loro rispetto ai tuoi antenati. Non mettere un potere cos\xEC illimitato nelle\
+      \ mani dei Mariti . Ricorda che tutti gli uomini sarebbero tiranni se potessero.\
+      \ Se non viene prestata particolare cura e attenzione alle donne, siamo determinati\
+      \ a fomentare una ribellione e non ci riterremo vincolati da alcuna legge in\
+      \ cui non abbiamo voce o rappresentanza. Abigail Adams, in una lettera a John\
+      \ Adams, 1776 &quot;La legislazione speciale per le donne ci ha posto in una\
+      \ posizione molto anomala. Le donne investite dei diritti di cittadinanza in\
+      \ una sezione - elettori, giurati, titolari di cariche - che attraversano una\
+      \ linea immaginaria, sono soggetti nei successivi. In alcuni Stati, una donna\
+      \ sposata pu\xF2 detenere propriet\xE0 e trattare affari a proprio nome; in\
+      \ altri, i suoi guadagni appartengono a suo marito. In alcuni Stati, una donna\
+      \ pu\xF2 testimoniare contro suo marito, fare causa ed essere citata in giudizio\
+      \ nei tribunali; in altri, non ha alcun risarcimento in caso di danno alla persona,\
+      \ alla propriet\xE0 o al carattere. In caso di divorzio per adulterio del marito,\
+      \ la moglie innocente non \xE8 ritenuta titolare di alcun diritto sui figli\
+      \ o sulla propriet\xE0, a meno che per decreto speciale del tribunale. Ma in\
+      \ nessuno Stato dell&#39;Unione la moglie ha diritto sulla propria persona,\
+      \ o su una parte dei guadagni comuni della convivenza durante la vita del marito.\
+      \ In alcuni Stati le donne possono entrare nel scuole di diritto e pratica nei\
+      \ tribunali; in altri sono vietati. In alcune universit\xE0 le ragazze godono\
+      \ di pari vantaggi educativi rispetto ai ragazzi, mentre molte delle istituzioni\
+      \ pi\xF9 orgogliose del paese negano loro l\u2019ammissione, sebbene i figli\
+      \ della Cina, del Giappone e dell\u2019Africa vi siano i benvenuti. Ma i privilegi\
+      \ gi\xE0 concessi nei vari Stati non sono affatto sicuri.&quot; Susan B. Anthony,\
+      \ &quot;Dichiarazione dei diritti delle donne&quot;, 4 luglio 1876 I sentimenti\
+      \ espressi nel secondo estratto da Susan B. Anthony sono molto probabilmente\
+      \ a sostegno Di"
+  - input_choice_list:
+      A: Gli americani devono massimizzare il loro vantaggio tecnologico in Vietnam.
+      B: I bombardamenti americani in Vietnam stanno portando passo dopo passo al
+        progresso della guerra.
+      C: "Il bombardamento americano in Vietnam \xE8 un fallimento."
+      D: "L\u2019America non deve cedere al disfattismo riguardo alla guerra in Vietnam."
+    input_correct_responses:
+    - C
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. I nostri\
+      \ leader parlano di fermare l&#39;aggressione dal nord, ma questa \xE8 stata\
+      \ una lotta tra gruppi di vietnamiti finch\xE9 non siamo intervenuti. Sembriamo\
+      \ decisi a salvare i vietnamiti da Ho Chi Minh, anche a costo di ucciderli e\
+      \ demolire il loro paese per farlo. Mentre i nativi osservano i villaggi bombardati,\
+      \ le donne e i bambini bruciati dal napalm, i raccolti di riso distrutti e le\
+      \ citt\xE0 invase dal nostro personale militare, senza dubbio dicono segretamente\
+      \ della guerriglia vietcong e delle forze americane: &quot;Una piaga su entrambe\
+      \ le vostre case .&quot; \u2026 Fermare i bombardamenti, a nord e a sud, porre\
+      \ fine alle ricerche e alla distruzione delle operazioni offensive e limitare\
+      \ la nostra azione militare allo svolgimento di operazioni sul terreno. I bombardamenti\
+      \ sul nord non sono riusciti a fermare o a frenare seriamente il flusso di truppe\
+      \ verso sud e potrebbero, di fatto, aver indotto Hanoi ad uno sforzo bellico\
+      \ molto maggiore. \u2014Il senatore George McGovern, &quot;The Lessons of Vietnam&quot;,\
+      \ 25 aprile 1967 Quale delle seguenti opinioni degli anni &#39;60 riflette pi\xF9\
+      \ direttamente la prospettiva del discorso di George McGovern?"
+  - input_choice_list:
+      A: Abigail Adams
+      B: Clara Barton
+      C: Shirley Temple
+      D: Hillary Clinton
+    input_correct_responses:
+    - B
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. Non vengo\
+      \ per sollecitare pretese personali, n\xE9 per cercare vantaggi individuali;\
+      \ Appaio come l&#39;avvocato di coloro che non possono difendere la propria\
+      \ causa; Vengo come amico di coloro che sono abbandonati, oppressi e desolati.\
+      \ Nella Provvidenza di Dio, io sono la voce del maniaco le cui grida penetranti\
+      \ dalle tetre segrete delle vostre prigioni non penetrano nelle vostre Aule\
+      \ della Legislazione. Io sono la Speranza dei poveri esseri impazziti che si\
+      \ struggono nelle celle, nei box, nelle gabbie e nelle stanze desolate delle\
+      \ vostre povere case. Io sono la Rivelazione di centinaia di creature lamentose\
+      \ e sofferenti, nascoste nelle vostre dimore private, in recinti e cabine, chiuse\
+      \ fuori, tagliate fuori da ogni influenza curativa, da ogni cura che risana\
+      \ la mente... Le loro storie malinconiche potrebbero essere diffuse davanti\
+      \ a voi? come rivelato al mio spirito addolorato durante gli ultimi tre mesi,\
+      \ con quanta rapidit\xE0 e seriet\xE0 cercheresti i mezzi di sollievo pi\xF9\
+      \ approvati; quanto insignificanti, quanto insignificanti, al confronto, sembrerebbero\
+      \ i sacrifici che ti vengono richiesti; come potrebbero diminuire di valore\
+      \ pochi centesimi e dollari, raccolti da ciascun cittadino, in confronto ai\
+      \ benefici certi e all&#39;immenso bene che sarebbero assicurati ai pazzi sofferenti...\
+      \ mediante la consacrazione e l&#39;applicazione di un fondo sufficiente alla\
+      \ costruzione? di un ospedale adatto... \u2014Dorothea Dix, Memorial Soliciting\
+      \ a State Hospital for the Protection and Cure of the Insane, presentato all&#39;Assemblea\
+      \ Generale della Carolina del Nord, novembre 1848 Dorothea Dix pu\xF2 essere\
+      \ meglio paragonata a chi?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_us_history
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_high_school_us_history
+task_alias: high_school_us_history

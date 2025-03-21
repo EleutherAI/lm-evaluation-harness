@@ -1,0 +1,77 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 70 000 $
+      B: 75 000 $
+      C: 80 000 $
+      D: '100000'
+    input_correct_responses:
+    - D
+    input_question: "Encadr\xE9 une organisation non gouvernementale \xE0 but non\
+      \ lucratif a effectu\xE9 les transactions suivantes au cours de l&#39;ann\xE9\
+      e : Produit de la vente de placements 80 000 $ Achat d&#39;immobilisations corporelles\
+      \ 10 000 $ Produit de la dette \xE0 long terme 100 000 $ Perte sur la vente\
+      \ d&#39;un placement 5 000 $ Quel montant doit \xEAtre d\xE9clar\xE9 comme net\
+      \ les liquidit\xE9s fournies par les activit\xE9s de financement dans l&#39;\xE9\
+      tat des flux de tr\xE9sorerie de Box\_?"
+  - input_choice_list:
+      A: 13 000 $
+      B: 600 $
+      C: 15 000 $
+      D: 28 000 $
+    input_correct_responses:
+    - A
+    input_question: "Il y a cent ans, votre arri\xE8re-arri\xE8re-grand-m\xE8re a\
+      \ investi 100 $ \xE0 5 % d&#39;int\xE9r\xEAt annuel. Que vaut l&#39;investissement\
+      \ aujourd&#39;hui ?"
+  - input_choice_list:
+      A: 0 $
+      B: 500 $
+      C: 1 650 $
+      D: 16 500 $
+    input_correct_responses:
+    - A
+    input_question: "Krete est un contribuable c\xE9libataire dont les revenus proviennent\
+      \ exclusivement des salaires. Au 31 d\xE9cembre, ann\xE9e 1, l&#39;employeur\
+      \ de Krete a retenu 16 000 $ d&#39;imp\xF4t f\xE9d\xE9ral sur le revenu et Krete\
+      \ n&#39;a effectu\xE9 aucun paiement d&#39;imp\xF4t estim\xE9. Le 15 avril de\
+      \ l&#39;ann\xE9e 2, Krete a d\xE9pos\xE9 en temps opportun une demande de prolongation\
+      \ pour d\xE9poser sa d\xE9claration de revenus individuelle et a pay\xE9 300\_\
+      $ d&#39;imp\xF4ts suppl\xE9mentaires. La dette fiscale de Krete pour la premi\xE8\
+      re ann\xE9e \xE9tait de 16 500 $ lorsqu&#39;elle a d\xE9pos\xE9 sa d\xE9claration\
+      \ dans les d\xE9lais le 30 avril de la deuxi\xE8me ann\xE9e et a pay\xE9 le\
+      \ solde de la dette fiscale restante. Quel montant serait soumis \xE0 la p\xE9\
+      nalit\xE9 pour sous-paiement des imp\xF4ts estim\xE9s\_?"
+  - input_choice_list:
+      A: 5 000 $
+      B: 13 500 $
+      C: 16 000 $
+      D: 20 000 $
+    input_correct_responses:
+    - B
+    input_question: "Le 1er janvier de l&#39;ann\xE9e 1, Alpha Co. a sign\xE9 un contrat\
+      \ de maintenance annuel avec un fournisseur de logiciels pour 15 000 $ et la\
+      \ p\xE9riode de maintenance commence le 1er mars de l&#39;ann\xE9e 2. Alpha\
+      \ a \xE9galement engag\xE9 5 000 $ de co\xFBts le 1er janvier de l&#39;ann\xE9\
+      e 1 li\xE9s \xE0 la modification du logiciel. demandes qui augmenteront la fonctionnalit\xE9\
+      \ du logiciel. Alpha d\xE9pr\xE9cie et amortit ses actifs informatiques et logiciels\
+      \ sur cinq ans selon la m\xE9thode de l&#39;amortissement lin\xE9aire. Quel\
+      \ est le montant total des d\xE9penses qu&#39;Alpha devrait comptabiliser relativement\
+      \ au contrat de maintenance et aux modifications logicielles pour l&#39;exercice\
+      \ clos le 31 d\xE9cembre, ann\xE9e 1\_?"
+  - input_choice_list:
+      A: Valorisation et allocation
+      B: "Compl\xE9tude"
+      C: Droits et obligations
+      D: "Pr\xE9sentation et divulgation"
+    input_correct_responses:
+    - B
+    input_question: "Un auditeur trace les num\xE9ros de s\xE9rie sur l&#39;\xE9quipement\
+      \ jusqu&#39;au registre auxiliaire d&#39;un non-\xE9metteur. Laquelle des assertions\
+      \ de gestion suivantes est prise en charge par ce test\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_accounting
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_professional_accounting
+task_alias: professional_accounting

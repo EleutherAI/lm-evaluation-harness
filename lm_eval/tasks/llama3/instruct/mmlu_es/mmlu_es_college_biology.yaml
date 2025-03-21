@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Poseen un exoesqueleto compuesto principalmente de peptidoglicano.
+      B: "Poseen un sistema circulatorio abierto con un coraz\xF3n dorsal."
+      C: "Son miembros de un filo biol\xF3gicamente fracasado, incapaz de explotar\
+        \ diversos h\xE1bitats y fuentes de nutrici\xF3n."
+      D: "Carecen de ap\xE9ndices pareados y articulados."
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de las siguientes representa una afirmaci\xF3n precisa\
+      \ sobre los artr\xF3podos?"
+  - input_choice_list:
+      A: 1/400
+      B: 19/400
+      C: 20/400
+      D: 38/400
+    input_correct_responses:
+    - D
+    input_question: "En una poblaci\xF3n determinada, 1 de cada 400 personas tiene\
+      \ un c\xE1ncer causado por un alelo completamente recesivo, b. Suponiendo que\
+      \ la poblaci\xF3n se encuentra en equilibrio de Hardy-Weinberg, \xBFcu\xE1l\
+      \ de las siguientes es la proporci\xF3n esperada de individuos que portan el\
+      \ alelo b pero que no se espera que desarrollen c\xE1ncer?"
+  - input_choice_list:
+      A: "el humano y el ave son especies polifil\xE9ticas"
+      B: "La evoluci\xF3n de un ser humano y un p\xE1jaro es convergente."
+      C: "el humano y el p\xE1jaro pertenecen a un clado"
+      D: "El ser humano y el p\xE1jaro desarrollados por analog\xEDa."
+    input_correct_responses:
+    - C
+    input_question: "La presencia de estructuras hom\xF3logas en dos organismos diferentes,\
+      \ como el h\xFAmero en la extremidad anterior de un humano y un p\xE1jaro, indica\
+      \ que"
+  - input_choice_list:
+      A: "una bomba de presi\xF3n-flujo dependiente de ATP"
+      B: "un gradiente de potencial de presi\xF3n del agua"
+      C: "transpiraci\xF3n"
+      D: "difusi\xF3n apopl\xE1sica"
+    input_correct_responses:
+    - B
+    input_question: "Seg\xFAn el modelo de presi\xF3n-flujo del movimiento del contenido\
+      \ del floema, el movimiento de fotosintato desde la fuente hasta el sumidero\
+      \ es impulsado por"
+  - input_choice_list:
+      A: "Tel\xF3meros"
+      B: "centr\xF3meros"
+      C: Nucleosomas
+      D: Empalizosomas
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de los siguientes contiene secuencias de ADN necesarias\
+      \ para la segregaci\xF3n de cromosomas en la mitosis y la meiosis?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_biology
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_college_biology
+task_alias: college_biology

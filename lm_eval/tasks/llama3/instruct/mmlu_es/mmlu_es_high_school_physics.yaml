@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: solo yo y ii
+      B: Solo I y III
+      C: "S\xF3lo II y III"
+      D: solo III
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes condiciones asegurar\xE1 que se\
+      \ conserve el momento angular? I. Conservaci\xF3n del momento lineal II. Fuerza\
+      \ externa neta cero III. Par externo neto cero"
+  - input_choice_list:
+      A: "La presi\xF3n est\xE1 en un nodo, pero el desplazamiento de part\xEDculas\
+        \ est\xE1 en un antinodo."
+      B: "La presi\xF3n est\xE1 en un antinodo, pero el desplazamiento de part\xED\
+        culas est\xE1 en un nodo."
+      C: "La presi\xF3n y el desplazamiento de part\xEDculas est\xE1n ambos en los\
+        \ nodos."
+      D: "La presi\xF3n y el desplazamiento de part\xEDculas est\xE1n ambos en los\
+        \ antinodos."
+    input_correct_responses:
+    - B
+    input_question: "Un tubo lleno de aire est\xE1 cerrado por un extremo. Se produce\
+      \ una onda estacionaria en la tuber\xEDa, lo que hace que \xE9sta suene una\
+      \ nota. \xBFCu\xE1l de las siguientes es una afirmaci\xF3n correcta sobre las\
+      \ propiedades de la onda en el extremo cerrado de la tuber\xEDa?"
+  - input_choice_list:
+      A: 02 A.M
+      B: 6:00 AM
+      C: 12:00 A.M
+      D: 24A
+    input_correct_responses:
+    - D
+    input_question: "Una fotoc\xE9lula de funci\xF3n de trabajo \u03D5 = 2eV est\xE1\
+      \ conectada a una resistencia en serie. Una luz de frecuencia f = 1 \xD7 10^15\
+      \ Hz incide en una placa met\xE1lica de la fotoc\xE9lula. Si la potencia de\
+      \ la luz es P = 100 W, \xBFcu\xE1l es la corriente que pasa por la resistencia?"
+  - input_choice_list:
+      A: 10W
+      B: 30 vatios
+      C: 60W
+      D: 240W
+    input_correct_responses:
+    - D
+    input_question: "Un horno microondas est\xE1 conectado a un tomacorriente de 120\
+      \ V y consume una corriente de 2 amperios. \xBFA qu\xE9 tasa utiliza energ\xED\
+      a el horno microondas?"
+  - input_choice_list:
+      A: 3,5 J
+      B: 6,0 J
+      C: 22,5J
+      D: 40J
+    input_correct_responses:
+    - B
+    input_question: "Una carga puntual, Q = +1 mC, est\xE1 fija en el origen. \xBF\
+      Cu\xE1nto trabajo se requiere para mover una carga, Q = +8 \xB5C, desde el punto\
+      \ (0, 4 metros) al punto (3 metros, 0)?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_physics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_high_school_physics
+task_alias: high_school_physics

@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Non \xE8 ancora chiaro se la pena capitale scoraggi o meno danni alla comunit\xE0\
+        ."
+      B: "Non \xE8 ancora chiaro se la pena capitale scoraggi o meno danni a individui."
+      C: "Il consequenzialismo non \xE8 supportato dai valori africani."
+      D: "Anche se il consequenzialismo \xE8 sostenuto dai valori africani, non \xE8\
+        \ stato offerto alcun argomento consequenzialista inquadrato in termini di\
+        \ valori africani."
+    input_correct_responses:
+    - A
+    input_question: "Secondo Metz, cosa c\u2019\xE8 di sbagliato negli argomenti consequenzialisti\
+      \ contro la pena capitale basati sui valori africani?"
+  - input_choice_list:
+      A: uno zigote.
+      B: un embrione.
+      C: "una viabilit\xE0."
+      D: una blastocisti.
+    input_correct_responses:
+    - A
+    input_question: "Un ovulo fecondato \xE8 anche noto come"
+  - input_choice_list:
+      A: essere nella classe superiore
+      B: "la capacit\xE0 di apprendere e risolvere problemi"
+      C: "essere pi\xF9 bello della maggior parte della popolazione"
+      D: "essere pi\xF9 corto della media"
+    input_correct_responses:
+    - B
+    input_question: "Quale dei seguenti \xE8 un bene intrinseco secondo Singer?"
+  - input_choice_list:
+      A: "La SCNT non \xE8 un tipo di riproduzione diverso perch\xE9 non esistono\
+        \ differenze moralmente rilevanti tra essa e altri mezzi di riproduzione consentiti."
+      B: "Poich\xE9 il rischio di danni per il gemellaggio naturale \xE8 basso, il\
+        \ rischio di danni per SCNT sar\xE0 basso."
+      C: sia a che B
+      D: "n\xE8 a n\xE8 B"
+    input_correct_responses:
+    - A
+    input_question: Pence mette a confronto sei diversi casi di riproduzione, dal
+      gemellaggio naturale all&#39;SCNT. Quale conclusione trae da questo confronto?
+  - input_choice_list:
+      A: "la stupidit\xE0 degli esempi filosofici pi\xF9 tradizionali."
+      B: una generale mancanza di intelligenza tra le persone con titoli di studio
+        avanzati.
+      C: l&#39;ingiustizia della tortura.
+      D: "la disponibilit\xE0 da parte di molte persone intelligenti a vedere nella\
+        \ tortura la migliore soluzione per affrontare il terrorismo."
+    input_correct_responses:
+    - D
+    input_question: "Baron ammette che le versioni dell&#39;ipotetica bomba ad orologeria\
+      \ di cui parla sono &quot;incredibilmente stupide&quot;, ma sostiene che questa\
+      \ \xE8 in realt\xE0 la prova di"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_disputes
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_moral_disputes
+task_alias: moral_disputes

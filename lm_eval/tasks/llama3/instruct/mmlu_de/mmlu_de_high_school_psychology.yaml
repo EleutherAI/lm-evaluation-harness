@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "ein starkes \xDCber-Ich."
+      B: geringe Selbstachtung.
+      C: geringe Selbstwirksamkeit.
+      D: ein interner Ort der Kontrolle.
+    input_correct_responses:
+    - D
+    input_question: Ani glaubt, dass ihre Einstellung und ihr Verhalten eine zentrale
+      Rolle dabei spielen, was mit ihr passiert. Ein solcher Glaube ist wahrscheinlich
+      mit verbunden
+  - input_choice_list:
+      A: "Ermittlung der Ursachen und L\xF6sungen f\xFCr die Probleme des Klienten"
+      B: "die Ursachen f\xFCr die Schwierigkeiten des Beraters bei der Bew\xE4ltigung\
+        \ eines Problems zu identifizieren und zu beseitigen"
+      C: "Aufbau einer Autorit\xE4tshierarchie, um eine effektive Entscheidungsfindung\
+        \ zu erm\xF6glichen"
+      D: "Bereitstellung einer einzigen, klar definierten und eindeutigen Vorgehensweise\
+        \ f\xFCr den Berater zur \xDCberwindung von Kompetenzdefiziten"
+    input_correct_responses:
+    - B
+    input_question: "Nach Caplans Modell der beraterzentrierten Fallberatung interessiert\
+      \ sich der Berater in erster Linie f\xFCr"
+  - input_choice_list:
+      A: Nachrichten werden vom Thalamus direkt an die Amygdala gesendet.
+      B: "Nachrichten werden vom Thalamus an die Bahnen \u201EWas\u201C und \u201E\
+        Wo\u201C gesendet."
+      C: "Nachrichten werden vom parasympathischen Nervensystem an die Gro\xDFhirnrinde\
+        \ gesendet."
+      D: Nachrichten werden von den Frontallappen an die Hypophyse gesendet.
+    input_correct_responses:
+    - A
+    input_question: "W\xE4hrend er im Ozean schwimmt, erschrickt Ivan vor einem dunklen\
+      \ Schatten im Wasser, noch bevor er die Chance hat, den Schatten zu identifizieren.\
+      \ Welche der folgenden Aussagen beschreiben die synaptischen Verbindungen, die\
+      \ w\xE4hrend dieses Schreckensereignisses stattfinden, am besten?"
+  - input_choice_list:
+      A: Geben Sie dem Kind eine Probezeit in der neuen Umgebung
+      B: Benachrichtigen Sie die Eltern schriftlich
+      C: "Genehmigung der Schulbeh\xF6rde einholen"
+      D: "Einverst\xE4ndnis der Eltern einholen"
+    input_correct_responses:
+    - B
+    input_question: "Was muss eine Bildungsagentur gem\xE4\xDF dem Gesetz zur Verbesserung\
+      \ der Bildung von Menschen mit Behinderungen tun, bevor sie den Bildungsplatz\
+      \ eines Sch\xFClers mit einer Behinderung \xE4ndert?"
+  - input_choice_list:
+      A: soziokulturell
+      B: klinisch
+      C: kognitiv
+      D: Behaviorist
+    input_correct_responses:
+    - C
+    input_question: "Pascale interessiert sich f\xFCr die Verarbeitungsstrategien,\
+      \ mit denen Kinder neue Informationen lernen. In welche Art von Psychologin\
+      \ w\xFCrde man Pascale am besten einordnen?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_psychology
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_high_school_psychology
+task_alias: high_school_psychology

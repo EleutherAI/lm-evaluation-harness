@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: tramite trasportatori di proteine chiamati GLUT4.
+      B: solo in presenza di insulina.
+      C: tramite esochinasi.
+      D: tramite trasportatori dell&#39;acido monocarbilico.
+    input_correct_responses:
+    - A
+    input_question: 'Il glucosio viene trasportato nella cellula muscolare:'
+  - input_choice_list:
+      A: Il glicogeno muscolare viene scomposto enzimaticamente in glucosio-1-fosfato
+      B: "I corridori di resistenza d&#39;\xE9lite hanno un&#39;alta percentuale di\
+        \ fibre di tipo I nei muscoli delle gambe"
+      C: "Il glicogeno epatico \xE8 importante nel mantenimento della concentrazione\
+        \ di glucosio nel sangue"
+      D: "L\u2019insulina promuove l\u2019assorbimento del glucosio da parte di tutti\
+        \ i tessuti del corpo"
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti non \xE8 un&#39;affermazione vera?"
+  - input_choice_list:
+      A: Tutti i discendenti dal lato materno avranno il disturbo.
+      B: In questa famiglia le femmine saranno colpite circa il doppio rispetto ai
+        maschi.
+      C: Tutte le figlie di un maschio affetto saranno colpite.
+      D: "Ci sar\xE0 una distribuzione equa dei maschi e delle femmine colpiti."
+    input_correct_responses:
+    - C
+    input_question: "In un test genetico su un neonato, viene rilevata una rara malattia\
+      \ genetica che ha una trasmissione recessiva legata all&#39;X. Quale delle seguenti\
+      \ affermazioni \xE8 probabilmente vera riguardo all&#39;albero genealogico di\
+      \ questo disturbo?"
+  - input_choice_list:
+      A: Aumento della temperatura, aumento delle moli di gas
+      B: Aumento della temperatura, aumento del volume
+      C: Diminuzione del volume, diminuzione della temperatura
+      D: Diminuzione delle moli di gas, aumento del volume
+    input_correct_responses:
+    - A
+    input_question: "Un insegnante di scienze di una scuola superiore riempie una\
+      \ bottiglia da 1 litro con azoto puro e sigilla il coperchio. La pressione \xE8\
+      \ di 1,70 atm e la temperatura ambiente \xE8 di 25\xB0C. Quali due variabili\
+      \ aumenteranno entrambe la pressione del sistema, se tutte le altre variabili\
+      \ rimangono costanti?"
+  - input_choice_list:
+      A: debolezza muscolare.
+      B: aumento di massa corporea.
+      C: crampi muscolari.
+      D: perdita di elettroliti.
+    input_correct_responses:
+    - B
+    input_question: "Un effetto collaterale atteso dell&#39;integrazione di creatina\
+      \ \xE8:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_medicine
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_college_medicine
+task_alias: college_medicine

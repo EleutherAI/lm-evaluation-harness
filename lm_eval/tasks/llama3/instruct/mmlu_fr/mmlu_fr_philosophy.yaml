@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "une th\xE9orie \xE9thique sur la fa\xE7on dont nous devrions nous comporter."
+      B: "une g\xE9n\xE9ralisation concernant la fa\xE7on dont les gens ont tendance\
+        \ \xE0 se comporter."
+      C: "une revendication sur la nature humaine et les fa\xE7ons dont les gens sont\
+        \ capables de se comporter."
+      D: "Aucune de ces r\xE9ponses."
+    input_correct_responses:
+    - C
+    input_question: "L&#39;\xE9go\xEFsme psychologique est :"
+  - input_choice_list:
+      A: plaisir.
+      B: bonheur.
+      C: bien.
+      D: vertu.
+    input_correct_responses:
+    - C
+    input_question: "Selon \xAB l&#39;utilitarisme id\xE9al \xBB de Moore, la bonne\
+      \ action est celle qui produit le plus de :"
+  - input_choice_list:
+      A: choix libres
+      B: "diktat de l&#39;\xE2me"
+      C: "lois naturelles n\xE9cessaires"
+      D: "volont\xE9 ind\xE9termin\xE9e"
+    input_correct_responses:
+    - C
+    input_question: Selon d&#39;Holbach, les gens agissent toujours selon _____.
+  - input_choice_list:
+      A: optimiste
+      B: satisfait
+      C: nominalement religieux
+      D: pessimiste
+    input_correct_responses:
+    - D
+    input_question: "Avant la conversion chr\xE9tienne de Tolsto\xEF, quelle \xE9\
+      tait sa perspective sur le sens de la vie ?"
+  - input_choice_list:
+      A: "m\xE9taphysique"
+      B: "\xE9pist\xE9mologie"
+      C: la physique quantique
+      D: axiologie
+    input_correct_responses:
+    - A
+    input_question: "L&#39;\xE9tude de la r\xE9alit\xE9 au sens le plus large, une\
+      \ enqu\xEAte sur la nature \xE9l\xE9mentaire de l&#39;univers et des choses\
+      \ qu&#39;il contient, est connue sous le nom de _____."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_philosophy
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_philosophy
+task_alias: philosophy

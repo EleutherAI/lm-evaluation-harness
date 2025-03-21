@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Ils poss\xE8dent un exosquelette compos\xE9 principalement de peptidoglycane."
+      B: "Ils poss\xE8dent un syst\xE8me circulatoire ouvert avec un c\u0153ur dorsal."
+      C: Ils sont membres d&#39;un phylum biologiquement infructueux incapable d&#39;exploiter
+        divers habitats et sources de nutrition.
+      D: "Ils n&#39;ont pas d&#39;appendices appari\xE9s et articul\xE9s."
+    input_correct_responses:
+    - B
+    input_question: "Lequel des \xE9nonc\xE9s suivants repr\xE9sente une d\xE9claration\
+      \ exacte concernant les arthropodes\_?"
+  - input_choice_list:
+      A: 1/400
+      B: 19/400
+      C: 20/400
+      D: 38/400
+    input_correct_responses:
+    - D
+    input_question: "Dans une population donn\xE9e, 1 personne sur 400 a un cancer\
+      \ caus\xE9 par un all\xE8le compl\xE8tement r\xE9cessif, b. En supposant que\
+      \ la population est en \xE9quilibre de Hardy-Weinberg, laquelle des propositions\
+      \ suivantes est la proportion attendue d&#39;individus porteurs de l&#39;all\xE8\
+      le b mais qui ne devraient pas d\xE9velopper le cancer\_?"
+  - input_choice_list:
+      A: "l&#39;homme et l&#39;oiseau sont des esp\xE8ces polyphyl\xE9tiques"
+      B: "l&#39;\xE9volution d&#39;un homme et d&#39;un oiseau est convergente"
+      C: "l&#39;humain et l&#39;oiseau appartiennent \xE0 un clade"
+      D: "l&#39;homme et l&#39;oiseau d\xE9velopp\xE9s par analogie"
+    input_correct_responses:
+    - C
+    input_question: "La pr\xE9sence de structures homologues dans deux organismes\
+      \ diff\xE9rents, comme l&#39;hum\xE9rus du membre ant\xE9rieur d&#39;un humain\
+      \ et d&#39;un oiseau, indique que"
+  - input_choice_list:
+      A: "une pompe pression-d\xE9bit d\xE9pendante de l&#39;ATP"
+      B: un gradient de potentiel de pression d&#39;eau
+      C: transpiration
+      D: diffusion apoplastique
+    input_correct_responses:
+    - B
+    input_question: "Selon le mod\xE8le pression-d\xE9bit du mouvement du contenu\
+      \ du phlo\xE8me, le mouvement du photosynthate de la source au puits est entra\xEE\
+      n\xE9 par"
+  - input_choice_list:
+      A: "T\xE9lom\xE8res"
+      B: "Centrom\xE8res"
+      C: "Nucl\xE9osomes"
+      D: "Splic\xE9osomes"
+    input_correct_responses:
+    - B
+    input_question: "Lequel des \xE9l\xE9ments suivants contient des s\xE9quences\
+      \ d&#39;ADN n\xE9cessaires \xE0 la s\xE9gr\xE9gation des chromosomes lors de\
+      \ la mitose et de la m\xE9iose\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_biology
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_college_biology
+task_alias: college_biology

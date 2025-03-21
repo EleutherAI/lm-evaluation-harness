@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Le persone tendono ad essere ottimiste riguardo al proprio futuro e al futuro
+        della propria nazione o del mondo.
+      B: Le persone tendono ad essere ottimiste riguardo al proprio futuro ma pessimiste
+        riguardo al futuro della propria nazione o del mondo.
+      C: Le persone tendono ad essere pessimiste riguardo al proprio futuro ma ottimiste
+        riguardo al futuro della propria nazione o del mondo.
+      D: Le persone tendono ad essere pessimiste riguardo al proprio futuro e al futuro
+        della propria nazione o del mondo.
+    input_correct_responses:
+    - B
+    input_question: Quali delle seguenti coppie di affermazioni sono entrambe vere
+      (al 2019)?
+  - input_choice_list:
+      A: 31%
+      B: 46%
+      C: 61%
+      D: 76%
+    input_correct_responses:
+    - B
+    input_question: "Nel 2019, quale percentuale di americani concorda sul fatto che\
+      \ lo stato \xE8 gestito a beneficio di tutte le persone?"
+  - input_choice_list:
+      A: aumentato, aumentato
+      B: aumentato, diminuito
+      C: diminuito, aumentato
+      D: diminuito, diminuito
+    input_correct_responses:
+    - B
+    input_question: Nel 2015, dal 1990 le foreste hanno ____ in Europa e hanno ____
+      in Africa e nelle Americhe.
+  - input_choice_list:
+      A: 38%
+      B: 53%
+      C: 68%
+      D: 83%
+    input_correct_responses:
+    - A
+    input_question: "Nel 2019, quale percentuale di russi afferma che \xE8 molto importante\
+      \ avere media liberi nel nostro Paese senza censura governativa/statale?"
+  - input_choice_list:
+      A: 80%
+      B: 60%
+      C: 40%
+      D: 20%
+    input_correct_responses:
+    - A
+    input_question: Nel 2017, quanti bambini di 1 anno nel mondo sono stati oggi vaccinati
+      contro alcune malattie? *
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_global_facts
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_global_facts
+task_alias: global_facts

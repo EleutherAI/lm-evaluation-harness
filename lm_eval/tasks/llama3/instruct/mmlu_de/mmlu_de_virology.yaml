@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Weil sie keine Nukleins\xE4ure haben"
+      B: "Sie ben\xF6tigen einen Helfervirus"
+      C: Nur in sich teilenden Zellen replizieren
+      D: Kann sich in Wirtschromosomen integrieren
+    input_correct_responses:
+    - A
+    input_question: "Warum sind Parvoviren ein \xE4u\xDFerst wirkungsvoller Parasit?"
+  - input_choice_list:
+      A: Zerbrechliche Viren werden oft mit RNA visualisiert, die von innen ausspuckt
+      B: "Verl\xE4ngerte Viren"
+      C: "Ikosaedrische Viren mit H\xFClle"
+      D: "Sehr gro\xDFe Viren"
+    input_correct_responses:
+    - A
+    input_question: Welches der folgenden Merkmale ist ein morphologisches Merkmal
+      der Paramyxoviren?
+  - input_choice_list:
+      A: Datensammlung
+      B: "Einrichtung eines Depots f\xFCr biologische Proben"
+      C: Teilnehmerinteresse
+      D: Verwaltung des Fragebogens durch Mitarbeiter
+    input_correct_responses:
+    - B
+    input_question: "Ein Schl\xFCsselfaktor, der die Anwendung von verschachtelten\
+      \ Fall-Kontroll-Studien aus dem MACS erleichterte, war:"
+  - input_choice_list:
+      A: "Verhaltens\xE4nderung"
+      B: Umfassende Abdeckung
+      C: Effektive Anwendung der Verhaltenstheorie
+      D: "Nachhaltige Verhaltens\xE4nderung"
+    input_correct_responses:
+    - D
+    input_question: 'Das wichtigste Ziel einer Verhaltensintervention ist:'
+  - input_choice_list:
+      A: "Seropr\xE4valente HIV-infizierte Personen"
+      B: Seronegative
+      C: Serokonverter
+      D: Hochrisiko-Seronegative
+    input_correct_responses:
+    - C
+    input_question: "Die mittlere \xDCberlebenszeit bis AIDS und Tod wurde wie folgt\
+      \ ermittelt:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_virology
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_virology
+task_alias: virology

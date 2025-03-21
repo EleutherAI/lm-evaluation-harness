@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Forne\xE7a ao rep\xF3rter outras informa\xE7\xF5es que ele tenha certeza\
+        \ de que est\xE3o corretas."
+      B: "Diga que a informa\xE7\xE3o \xE9 \u201Coff the record\u201D e ser\xE1 divulgada\
+        \ posteriormente."
+      C: "Diga &#39;n\xE3o sei&#39; e prometa fornecer as informa\xE7\xF5es mais tarde."
+      D: "Diga &#39;sem coment\xE1rios&#39; em vez de parecer desinformado."
+    input_correct_responses:
+    - C
+    input_question: "O que um profissional de rela\xE7\xF5es p\xFAblicas na m\xED\
+      dia deve fazer se n\xE3o souber a resposta \xE0 pergunta de um rep\xF3rter?"
+  - input_choice_list:
+      A: "Compre nomes de dom\xEDnio que possam ser usados por grupos de oposi\xE7\
+        \xE3o."
+      B: "Poste coment\xE1rios an\xF4nimos em blogs para combater essas informa\xE7\
+        \xF5es."
+      C: "Prepare um comunicado \xE0 imprensa que desacredite as informa\xE7\xF5es\
+        \ imprecisas."
+      D: "Fa\xE7a altera\xE7\xF5es nas pol\xEDticas para atender \xE0s reclama\xE7\
+        \xF5es destacadas nesses sites."
+    input_correct_responses:
+    - D
+    input_question: "Na gest\xE3o de problemas, qual \xE9 a abordagem mais proativa\
+      \ para lidar com informa\xE7\xF5es negativas ou enganosas publicadas on-line\
+      \ sobre a sua organiza\xE7\xE3o?"
+  - input_choice_list:
+      A: "Houve uma resposta coordenada da m\xEDdia."
+      B: Mensagens consistentes foram comunicadas.
+      C: "As cr\xEDticas foram tomadas como ataques \xE0 Igreja Cat\xF3lica."
+      D: A credibilidade do Vaticano foi mantida.
+    input_correct_responses:
+    - C
+    input_question: "Qual destas afirma\xE7\xF5es \xE9 verdadeira em rela\xE7\xE3\
+      o ao Vaticano em 2010, na altura das acusa\xE7\xF5es de encobrimento de abusos\
+      \ infantis?"
+  - input_choice_list:
+      A: Definindo o programa
+      B: Planejando o programa
+      C: Agir e implementar ideias
+      D: "Avalia\xE7\xE3o do programa"
+    input_correct_responses:
+    - A
+    input_question: "Em que fase do processo de planeamento seria realizada uma an\xE1\
+      lise da situa\xE7\xE3o?"
+  - input_choice_list:
+      A: Paz verde
+      B: A ONU
+      C: Oxfam
+      D: Fundo Mundial para a Vida Selvagem
+    input_correct_responses:
+    - D
+    input_question: "A Hora do Planeta foi uma campanha lan\xE7ada por qual organiza\xE7\
+      \xE3o?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_public_relations
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_public_relations
+task_alias: public_relations

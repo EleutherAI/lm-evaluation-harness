@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "El ej\xE9rcito estadounidense abre una nueva base en un pa\xEDs extranjero\
+        \ con 1.000 efectivos estadounidenses."
+      B: Los consumidores japoneses compran miles de CD producidos en Estados Unidos.
+      C: "Un cantante pop estadounidense ofrece un concierto con entradas agotadas\
+        \ en Par\xEDs."
+      D: "Una producci\xF3n teatral francesa recorre decenas de ciudades americanas."
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de los siguientes no est\xE1 incluido en el PIB de\
+      \ EE. UU.?"
+  - input_choice_list:
+      A: "relaci\xF3n directa entre desempleo e inflaci\xF3n"
+      B: "relaci\xF3n directa entre precio y cantidad demandada"
+      C: "relaci\xF3n inversa entre precio y cantidad demandada"
+      D: "relaci\xF3n inversa entre desempleo e inflaci\xF3n"
+    input_correct_responses:
+    - D
+    input_question: La curva de Phillips de corto plazo indica una
+  - input_choice_list:
+      A: las exportaciones superan a las importaciones.
+      B: las importaciones superan a las exportaciones.
+      C: "La recaudaci\xF3n de impuestos federales supera el gasto."
+      D: el gasto federal excede los ingresos fiscales federales.
+    input_correct_responses:
+    - D
+    input_question: "Un d\xE9ficit federal ocurre cuando"
+  - input_choice_list:
+      A: Aumentar la tasa de descuento
+      B: Aumentar el ratio de reservas
+      C: Comprar valores gubernamentales
+      D: Bajar aranceles
+    input_correct_responses:
+    - C
+    input_question: "Manteniendo todo lo dem\xE1s igual, \xBFcu\xE1l de las siguientes\
+      \ pol\xEDticas monetarias se utilizar\xEDa para impulsar las exportaciones estadounidenses?"
+  - input_choice_list:
+      A: Un aumento en la oferta monetaria
+      B: Aumento del gasto gubernamental
+      C: "Reducir los impuestos a la investigaci\xF3n y el desarrollo de nuevas tecnolog\xED\
+        as"
+      D: "Impuestos m\xE1s altos sobre los ingresos de los hogares"
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de las siguientes pol\xEDticas describe mejor la\
+      \ pol\xEDtica fiscal del lado de la oferta?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_macroeconomics
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_high_school_macroeconomics
+task_alias: high_school_macroeconomics

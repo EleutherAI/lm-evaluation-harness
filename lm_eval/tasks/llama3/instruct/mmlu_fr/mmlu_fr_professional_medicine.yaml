@@ -1,0 +1,101 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Lab\xE9talol"
+      B: Une dose de charge de chlorure de potassium
+      C: "Nif\xE9dipine"
+      D: "Ph\xE9noxybenzamine"
+    input_correct_responses:
+    - D
+    input_question: "Un homme de 42 ans se pr\xE9sente au cabinet pour une \xE9valuation\
+      \ pr\xE9op\xE9ratoire avant de subir une surr\xE9nalectomie pr\xE9vue dans 2\
+      \ semaines. Il y a un mois, il a re\xE7u des soins aux urgences pour des douleurs\
+      \ au flanc droit suite \xE0 une collision automobile. \xC0 ce moment-l\xE0,\
+      \ la pression art\xE9rielle \xE9tait de 160/100 mm Hg et la tomodensitom\xE9\
+      trie de l&#39;abdomen a montr\xE9 une masse surr\xE9nalienne gauche accidentelle\
+      \ de 10 cm. Les r\xE9sultats des \xE9tudes de laboratoire, y compris la num\xE9\
+      ration globulaire compl\xE8te, les concentrations d&#39;\xE9lectrolytes s\xE9\
+      riques et les tests de la fonction h\xE9patique, se situaient dans les plages\
+      \ de r\xE9f\xE9rence. Par ailleurs, le patient \xE9tait en bonne sant\xE9 et\
+      \ on ne lui avait jamais dit qu&#39;il avait une tension art\xE9rielle \xE9\
+      lev\xE9e. Il ne prend aucun m\xE9dicament. Une visite de suivi au bureau il\
+      \ y a 2 semaines a r\xE9v\xE9l\xE9 des concentrations urinaires \xE9lev\xE9\
+      es de norm\xE9tan\xE9phrine et de m\xE9tan\xE9phrine et d&#39;aldost\xE9rone\
+      \ plasmatique. Le patient a \xE9t\xE9 r\xE9f\xE9r\xE9 \xE0 un chirurgien, qui\
+      \ a recommand\xE9 la surr\xE9nalectomie. Aujourd&#39;hui, les signes vitaux\
+      \ sont une temp\xE9rature de 36,6\_\xB0C (97,9\_\xB0F), un pouls de 100/min,\
+      \ une respiration de 14/min et une tension art\xE9rielle de 170/95\_mm Hg. L&#39;examen\
+      \ physique ne r\xE9v\xE8le aucune d\xE9couverte significative. La pr\xE9paration\
+      \ pr\xE9op\xE9ratoire initiale doit inclure un traitement avec lequel des \xE9\
+      l\xE9ments suivants\_?"
+  - input_choice_list:
+      A: "torsion sacr\xE9e gauche \xE0 gauche"
+      B: "torsion sacr\xE9e gauche-droite"
+      C: "flexion sacr\xE9e unilat\xE9rale droite"
+      D: "torsion sacr\xE9e droite \xE0 droite"
+    input_correct_responses:
+    - D
+    input_question: "Un homme de 36 ans se pr\xE9sente au cabinet avec des ant\xE9\
+      c\xE9dents de lombalgie depuis 3 semaines. Il nie tout traumatisme r\xE9cent,\
+      \ mais dit qu&#39;il monte et descend de son camion plusieurs fois par jour\
+      \ pour son travail. L&#39;examen du patient en d\xE9cubitus ventral r\xE9v\xE8\
+      le un profond sillon sacr\xE9 \xE0 gauche, un angle lat\xE9ral post\xE9ro-inf\xE9\
+      rieur \xE0 droite et une jonction lombo-sacr\xE9e qui ressort librement \xE0\
+      \ la compression. Le diagnostic le plus probable est"
+  - input_choice_list:
+      A: Dopamine
+      B: Glutamate
+      C: "Nor\xE9pin\xE9phrine"
+      D: "S\xE9rotonine"
+    input_correct_responses:
+    - D
+    input_question: "Une femme de 32 ans, auparavant en bonne sant\xE9, se rend chez\
+      \ le m\xE9decin 8 mois apr\xE8s que son mari a \xE9t\xE9 tu\xE9 dans un accident\
+      \ de voiture. Depuis ce temps, elle a un app\xE9tit diminu\xE9 et des difficult\xE9\
+      s \xE0 s&#39;endormir. Elle d\xE9clare qu&#39;elle est souvent triste et pleure\
+      \ fr\xE9quemment. Elle a rev\xE9rifi\xE9 la serrure de la porte cinq fois avant\
+      \ de quitter sa maison et doit compter exactement cinq morceaux de papier toilette\
+      \ avant de l&#39;utiliser. Elle dit avoir toujours \xE9t\xE9 perfectionniste\
+      \ mais ces envies et rituels sont nouveaux. La pharmacoth\xE9rapie doit \xEA\
+      tre cibl\xE9e sur lequel des neurotransmetteurs suivants\_?"
+  - input_choice_list:
+      A: Rhinite allergique
+      B: Virus d&#39;Epstein-Barr
+      C: Mycoplasme pneumoniae
+      D: Rhinovirus
+    input_correct_responses:
+    - D
+    input_question: "Un homme de 44 ans se pr\xE9sente au bureau en raison d&#39;une\
+      \ histoire de 3 jours de maux de gorge, de toux non productive, d&#39;\xE9coulement\
+      \ nasal et de maux de t\xEAte frontaux. Il dit que le mal de t\xEAte est pire\
+      \ le matin et que l&#39;ibuprof\xE8ne procure un certain soulagement. Il n&#39;a\
+      \ pas eu d&#39;essoufflement. Les ant\xE9c\xE9dents m\xE9dicaux sont sans particularit\xE9\
+      . Il ne prend aucun autre m\xE9dicament que l&#39;ibuprof\xE8ne contre la douleur.\
+      \ Les signes vitaux sont une temp\xE9rature de 37,4 \xB0C (99,4 \xB0F), un pouls\
+      \ de 88/min, une respiration de 18/min et une tension art\xE9rielle de 120/84\
+      \ mm Hg. L&#39;examen des narines montre des muqueuses \xE9ryth\xE9mateuses.\
+      \ L&#39;examen de la gorge montre un \xE9ryth\xE8me et une hyperplasie lympho\xEF\
+      de folliculaire sur l&#39;oropharynx post\xE9rieur. Il n&#39;y a pas d&#39;ad\xE9\
+      nopathie cervicale palpable. Les poumons sont d\xE9gag\xE9s \xE0 l&#39;auscultation.\
+      \ Lequel des \xE9l\xE9ments suivants est la cause la plus probable des sympt\xF4\
+      mes de ce patient\_?"
+  - input_choice_list:
+      A: "scal\xE8ne ant\xE9rieur"
+      B: grand dorsal
+      C: petit pectoral
+      D: "carr\xE9 des lombes"
+    input_correct_responses:
+    - C
+    input_question: "Un coureur de marathon masculin de 22 ans se pr\xE9sente au bureau\
+      \ avec une plainte de douleur aux c\xF4tes droites lorsqu&#39;il parcourt de\
+      \ longues distances. L&#39;examen physique r\xE9v\xE8le des signes cardiaques\
+      \ et pulmonaires normaux et un dysfonctionnement de l&#39;expiration au niveau\
+      \ des c\xF4tes 4-5 \xE0 droite. Lequel des muscles ou groupes de muscles suivants\
+      \ sera le plus utile pour corriger ce dysfonctionnement en utilisant une m\xE9\
+      thode directe\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_medicine
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_professional_medicine
+task_alias: professional_medicine

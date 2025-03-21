@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "D\xE9le al periodista otra informaci\xF3n que est\xE9 segura de que es correcta."
+      B: "Diga que la informaci\xF3n es &quot;extraoficial&quot; y se difundir\xE1\
+        \ m\xE1s adelante."
+      C: "Diga &quot;No lo s\xE9&quot; y prometa proporcionar la informaci\xF3n m\xE1\
+        s tarde."
+      D: Diga &quot;sin comentarios&quot; en lugar de parecer desinformado.
+    input_correct_responses:
+    - C
+    input_question: "\xBFQu\xE9 debe hacer un profesional de relaciones p\xFAblicas\
+      \ en los medios si no sabe la respuesta a la pregunta de un periodista?"
+  - input_choice_list:
+      A: "Compre nombres de dominio que puedan ser utilizados por grupos de oposici\xF3\
+        n."
+      B: "Publique comentarios an\xF3nimos en blogs para combatir esta informaci\xF3\
+        n."
+      C: "Prepare un comunicado de prensa que desacredite la informaci\xF3n inexacta."
+      D: "Realizar cambios en las pol\xEDticas para abordar las quejas destacadas\
+        \ en estos sitios."
+    input_correct_responses:
+    - D
+    input_question: "En la gesti\xF3n de problemas, \xBFcu\xE1l es el enfoque m\xE1\
+      s proactivo para abordar la informaci\xF3n negativa o enga\xF1osa publicada\
+      \ en l\xEDnea sobre su organizaci\xF3n?"
+  - input_choice_list:
+      A: Hubo una respuesta coordinada de los medios.
+      B: Se comunicaron mensajes consistentes.
+      C: "Las cr\xEDticas fueron tomadas como ataques a la Iglesia cat\xF3lica."
+      D: Se mantuvo la credibilidad del Vaticano.
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de estas afirmaciones es cierta respecto del Vaticano\
+      \ en 2010, en el momento de las acusaciones de encubrimiento de abuso infantil?"
+  - input_choice_list:
+      A: Definiendo el programa
+      B: Planificando el programa
+      C: Tomar medidas e implementar ideas
+      D: "Evaluaci\xF3n del programa"
+    input_correct_responses:
+    - A
+    input_question: "\xBFEn qu\xE9 etapa del proceso de planificaci\xF3n se llevar\xED\
+      a a cabo un an\xE1lisis de la situaci\xF3n?"
+  - input_choice_list:
+      A: Paz verde
+      B: la ONU
+      C: Oxfam
+      D: Fondo Mundial para la Vida Silvestre
+    input_correct_responses:
+    - D
+    input_question: "\xBFLa Hora del Planeta fue una campa\xF1a lanzada por qu\xE9\
+      \ organizaci\xF3n?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_public_relations
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_public_relations
+task_alias: public_relations

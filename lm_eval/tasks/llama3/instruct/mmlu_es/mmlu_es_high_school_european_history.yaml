@@ -1,0 +1,200 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Jean-Jacques Rousseau
+      B: "Bar\xF3n Montesquieu"
+      C: "Mar\xEDa Wollstonecraft"
+      D: Adam Smith
+    input_correct_responses:
+    - B
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. El siguiente\
+      \ extracto es de un folleto. Me har\xE1 usted la justicia de recordar que siempre\
+      \ he apoyado en\xE9rgicamente el derecho de cada hombre a tener su propia opini\xF3\
+      n, por muy diferente que esa opini\xF3n pueda ser de la m\xEDa. Quien niega\
+      \ a otro este derecho, se hace esclavo de su opini\xF3n actual, porque se excluye\
+      \ el derecho de cambiarla. El arma m\xE1s formidable contra errores de todo\
+      \ tipo es la raz\xF3n. Nunca he usado ning\xFAn otro y conf\xEDo en que nunca\
+      \ lo har\xE9. La circunstancia que ha tenido lugar ahora en Francia de la abolici\xF3\
+      n total de todo el orden nacional del sacerdocio, y de todo lo perteneciente\
+      \ a sistemas religiosos compulsivos y art\xEDculos de fe compulsivos, no s\xF3\
+      lo ha precipitado mi intenci\xF3n, sino que ha convertido una obra de este tipo\
+      \ sumamente necesario, no sea que en el desastre general de la superstici\xF3\
+      n, de los falsos sistemas de gobierno y la falsa teolog\xEDa, perdamos de vista\
+      \ la moralidad, la humanidad y la teolog\xEDa que es verdadera. Creo en un Dios\
+      \ y no m\xE1s; y espero felicidad m\xE1s all\xE1 de esta vida. Creo en la igualdad\
+      \ del hombre; y creo que los deberes religiosos consisten en hacer justicia,\
+      \ amar la misericordia y esforzarse en hacer felices a nuestros semejantes.\
+      \ No creo en el credo profesado por la iglesia jud\xEDa, por la iglesia romana,\
+      \ por la iglesia griega, por la iglesia turca, por la iglesia protestante, ni\
+      \ por ninguna iglesia que yo sepa. Mi propia mente es mi propia iglesia. Todas\
+      \ las instituciones nacionales de las iglesias, ya sean jud\xEDas, cristianas\
+      \ o turcas, me parecen no m\xE1s que invenciones humanas, creadas para aterrorizar\
+      \ y esclavizar a la humanidad y monopolizar el poder y las ganancias. No pretendo\
+      \ con esta declaraci\xF3n condenar a quienes creen lo contrario; ellos tienen\
+      \ el mismo derecho a sus creencias que yo a las m\xEDas. \u2014Thomas Paine,\
+      \ La era de la raz\xF3n, 1794\u20131795 \xBFCu\xE1l de los siguientes fil\xF3\
+      sofos de la Ilustraci\xF3n dise\xF1\xF3 un sistema de controles y equilibrios\
+      \ para que el gobierno evitara abusos de poder?"
+  - input_choice_list:
+      A: "Las ideas de libertad personal y nacionalismo concebidas durante la Ilustraci\xF3\
+        n resultaron en revoluciones radicales que pudieron extenderse por toda Europa."
+      B: "La conquista de Europa por Napole\xF3n condujo a la creaci\xF3n de nuevas\
+        \ facciones y cambi\xF3 el equilibrio de poder europeo."
+      C: "El poder de los monarcas hab\xEDa crecido hasta el punto de que necesitaba\
+        \ ser controlado por otros poderes dentro de cada naci\xF3n o se producir\xED\
+        a la dominaci\xF3n de los civiles."
+      D: "El ciclo econ\xF3mico ascendente y descendente de la nueva econom\xEDa capitalista\
+        \ emergente podr\xEDa provocar disturbios civiles que deben ser reprimidos."
+    input_correct_responses:
+    - A
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. Lea el\
+      \ siguiente extracto. La semilla revolucionaria hab\xEDa penetrado en todos\
+      \ los pa\xEDses y se hab\xEDa extendido m\xE1s o menos. Se desarroll\xF3 mucho\
+      \ bajo el r\xE9gimen del despotismo militar de Bonaparte. Sus conquistas desplazaron\
+      \ una serie de leyes, instituciones y costumbres; rompi\xF3 v\xEDnculos sagrados\
+      \ entre todas las naciones, lo suficientemente fuertes como para resistir el\
+      \ tiempo mismo; lo cual es m\xE1s de lo que se puede decir de ciertos beneficios\
+      \ conferidos por estos innovadores. Los monarcas cumplir\xE1n los deberes que\
+      \ les impone Aquel que, al confiarles el poder, les ha encargado velar por el\
+      \ mantenimiento de la justicia y de los derechos de todos, de evitar los caminos\
+      \ del error y de pisar con firmeza el camino del verdad. M\xE1s all\xE1 de las\
+      \ pasiones que agitan la sociedad, es principalmente en los d\xEDas de prueba\
+      \ cuando est\xE1n llamados a despojar las realidades de sus falsas apariencias\
+      \ y a mostrarse tal como son, padres investidos de la autoridad que corresponde\
+      \ por derecho a los cabezas de familia, para demostrar que, en los d\xEDas de\
+      \ luto, saben ser justos, sabios y, por tanto, fuertes, y que no abandonar\xE1\
+      n al pueblo que deber\xEDan gobernar para que sea el juego de las facciones,\
+      \ al error y a sus consecuencias, que deben implican la p\xE9rdida de la sociedad.\
+      \ La uni\xF3n entre los monarcas es la base de la pol\xEDtica que ahora debe\
+      \ seguirse para salvar a la sociedad de la ruina total. . . . No confundan las\
+      \ concesiones hechas a los partidos con el bien que deber\xEDan hacer a su pueblo,\
+      \ modificando, seg\xFAn sus necesidades reconocidas, las ramas de la administraci\xF3\
+      n que as\xED lo requieran. Que sean justos, pero fuertes; ben\xE9fico, pero\
+      \ estricto. Que mantengan los principios religiosos en toda su pureza, y no\
+      \ permitan que la fe sea atacada y la moral interpretada seg\xFAn el contrato\
+      \ social o las visiones de tontos sectarios. Que supriman las sociedades secretas;\
+      \ esa gangrena de la sociedad. \u2014Klemens von Metternich, Confesi\xF3n pol\xED\
+      tica de fe, 1820 \xBFCu\xE1l de las siguientes fue la causa principal de los\
+      \ temores expresados por Metternich en el documento anterior?"
+  - input_choice_list:
+      A: Capitalista
+      B: "Cient\xEDfico"
+      C: Comunista
+      D: existencialista
+    input_correct_responses:
+    - C
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. En Rusia\
+      \ no iba nada bien y [Souvarine] estaba desesperado por la noticia que hab\xED\
+      a recibido. Todos sus antiguos compa\xF1eros se volv\xEDan hacia los pol\xED\
+      ticos; los famosos nihilistas que hicieron temblar a Europa -hijos de curas\
+      \ de aldea, de la clase media baja, de comerciantes- no pudieron elevarse por\
+      \ encima de la idea de la liberaci\xF3n nacional, y parec\xEDan creer que el\
+      \ mundo ser\xEDa liberado -cuando hab\xEDan matado a su d\xE9spota... &quot;\xA1\
+      Tonter\xEDas! Nunca saldr\xE1n de aqu\xED con sus tonter\xEDas.&quot; Luego,\
+      \ bajando a\xFAn m\xE1s la voz, describi\xF3 con algunas palabras amargas su\
+      \ viejo sue\xF1o de fraternidad. Hab\xEDa renunciado a su rango y a su fortuna;\
+      \ hab\xEDa ido entre los trabajadores, s\xF3lo con la esperanza de ver por fin\
+      \ los cimientos de una nueva sociedad de trabajo en com\xFAn. Todos los sueldos\
+      \ que llevaba en los bolsillos hac\xEDa tiempo que hab\xEDan ido a parar a los\
+      \ pilluelos del asentamiento; hab\xEDa sido tan tierno como un hermano con los\
+      \ mineros, sonriendo ante sus sospechas, gan\xE1ndolos con sus maneras tranquilas\
+      \ y trabajadoras y su aversi\xF3n a la charla. Pero decididamente la fusi\xF3\
+      n no se hab\xEDa producido. Su voz cambi\xF3, sus ojos se iluminaron, fij\xF3\
+      \ sus ojos en \xC9tienne, dirigi\xE9ndose directamente a \xE9l: &quot;Ahora,\
+      \ \xBFentiendes? Esos sombrereros de Marsella, que han ganado el gran premio\
+      \ de la loter\xEDa de cien mil francos, se han ido inmediatamente a invertir\
+      \ \xA1Declarando que van a vivir sin hacer nada! S\xED, esa es vuestra idea,\
+      \ todos vosotros, trabajadores franceses: quer\xE9is desenterrar un tesoro para\
+      \ devorarlo despu\xE9s solos en alg\xFAn rinc\xF3n perezoso y ego\xEDsta. Por\
+      \ mucho que quieras contra los ricos, no tienes el valor suficiente para devolver\
+      \ a los pobres el dinero que te trae la suerte. Nunca ser\xE1s digno de la felicidad\
+      \ mientras poseas algo, y tu odio hacia los burgueses contin\xFAa. \xFAnicamente\
+      \ por un furioso deseo de ser ustedes mismos burgueses en su lugar&quot;. \xE9\
+      mile Zola, escritor franc\xE9s, Germinal, 1885 \xBFEl pasaje muestra la preocupaci\xF3\
+      n directa por el bienestar de las clases trabajadoras que t\xEDpicamente era\
+      \ parte de qu\xE9 movimiento?"
+  - input_choice_list:
+      A: "Sirvieron de catalizador para el crecimiento del transporte mar\xEDtimo\
+        \ y del comercio exterior ingleses, pero hicieron poco para limitar las perspectivas\
+        \ de los holandeses en el siglo XVII."
+      B: "Provocaron dificultades casi inmediatas para la econom\xEDa holandesa, ya\
+        \ que su dominio del comercio exterior termin\xF3 r\xE1pidamente."
+      C: "Fueron rescindidos durante la restauraci\xF3n de los Estuardo porque buscaban\
+        \ relaciones diplom\xE1ticas normales con los holandeses para no necesitar\
+        \ el apoyo financiero del Parlamento para la guerra."
+      D: "Condujeron a casi un siglo de guerras recurrentes entre Inglaterra y los\
+        \ Pa\xEDses Bajos, que no terminar\xEDan hasta despu\xE9s de la independencia\
+        \ estadounidense."
+    input_correct_responses:
+    - A
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. Los extractos\
+      \ que aparecen a continuaci\xF3n pertenecen a las Leyes de Navegaci\xF3n de\
+      \ 1651. [Despu\xE9s del primer d\xEDa de diciembre de mil seiscientos cincuenta\
+      \ y uno, y desde all\xED en adelante, ning\xFAn bien o mercanc\xEDa alguna del\
+      \ crecimiento, producci\xF3n o manufactura de Asia, \xC1frica o Estados Unidos,\
+      \ o de cualquier parte del mismo; o de cualesquiera islas que les pertenezcan,\
+      \ o que est\xE9n descritas o establecidas en los mapas o tarjetas habituales\
+      \ de esos lugares, as\xED como de las plantaciones inglesas como otras, ser\xE1\
+      n importadas o tra\xEDdas a esta Commonwealth de Inglaterra, o a Irlanda, o\
+      \ cualquier otra tierra, isla, plantaci\xF3n o territorio de este Commonwealth\
+      \ que pertenezca, o est\xE9 en su posesi\xF3n, en cualquier otro barco o barcos,\
+      \ buque o buques de cualquier tipo, pero s\xF3lo en aquellos que verdaderamente\
+      \ y sin fraude pertenezcan \xFAnicamente al pueblo de este Commonwealth , o\
+      \ las plantaciones de los mismos, como propietarios o derechohabientes de los\
+      \ mismos; y de los cuales el capit\xE1n y los marineros son tambi\xE9n del pueblo\
+      \ de este Estado Libre Asociado, bajo pena de decomiso y p\xE9rdida de todos\
+      \ los bienes que se importen en contra de esta ley, , , , [N]o bienes o mercanc\xED\
+      as del crecimiento, La producci\xF3n o fabricaci\xF3n de Europa, o de cualquier\
+      \ parte de ella, despu\xE9s del primer d\xEDa de diciembre de mil seiscientos\
+      \ cincuenta y uno, ser\xE1 importada o tra\xEDda a esta Commonwealth de Inglaterra,\
+      \ o a cualquier otra tierra o territorio de esta Commonwealth que pertenezca,\
+      \ o en su posesi\xF3n, en cualquier barco o barcos, embarcaci\xF3n o embarcaciones\
+      \ de cualquier tipo, pero en aquellos que verdaderamente y sin fraude pertenecen\
+      \ \xFAnicamente al pueblo de esta Commonwealth, y en ning\xFAn otro, excepto\
+      \ s\xF3lo aquellos barcos y embarcaciones extranjeras que verdaderamente y pertenecen\
+      \ propiamente a la gente de ese pa\xEDs o lugar, del cual dichos bienes son\
+      \ el cultivo, producci\xF3n o fabricaci\xF3n. \xBFCu\xE1l de las siguientes\
+      \ describe mejor el resultado de las Leyes de Navegaci\xF3n de 1651?"
+  - input_choice_list:
+      A: "Dar al rey ingl\xE9s una nueva posici\xF3n de autoridad."
+      B: "Dar el puesto de jefe de la Iglesia de Inglaterra \xFAnicamente a Enrique\
+        \ VIII y excluir a sus herederos."
+      C: "establecer el calvinismo como la \xFAnica teolog\xEDa verdadera en Inglaterra"
+      D: "poner fin a diversas formas de corrupci\xF3n que azotan a la Iglesia en\
+        \ Inglaterra"
+    input_correct_responses:
+    - D
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. Si bien\
+      \ la Majestad del Rey es y debe ser, justa y leg\xEDtimamente, la cabeza suprema\
+      \ de la Iglesia de Inglaterra, y as\xED lo reconoce el clero de este reino en\
+      \ sus convocatorias, no obstante, para corroborarla y confirmarla, y para aumentar\
+      \ la virtud en la religi\xF3n de Cristo dentro de este reino de Inglaterra,\
+      \ y para reprimir y extirpar todos los errores, herej\xEDas y otras atrocidades\
+      \ y abusos utilizados hasta ahora en el mismo, promulg\xE1ndose, por autoridad\
+      \ del presente Parlamento, que el rey, nuestro se\xF1or soberano, sus herederos\
+      \ y los sucesores, reyes de este reino, ser\xE1n tomados, aceptados y reputados\
+      \ como la \xFAnica cabeza suprema en la tierra de la Iglesia de Inglaterra,\
+      \ llamada Anglicans Ecclesia; y tendr\xE1 y disfrutar\xE1, anexada y unida a\
+      \ la corona imperial de este reino, as\xED como el t\xEDtulo y estilo de la\
+      \ misma, as\xED como todos los honores, dignidades, preeminencias, jurisdicciones,\
+      \ privilegios, autoridades, inmunidades, ganancias y mercanc\xEDas a dicha dignidad\
+      \ de el jefe supremo de la misma Iglesia perteneciente y perteneciente; y que\
+      \ nuestro dicho se\xF1or soberano, sus herederos y sucesores, reyes de este\
+      \ reino, tendr\xE1n pleno poder y autoridad de vez en cuando para visitar, reprimir,\
+      \ reparar, registrar, ordenar, corregir, restringir y enmendar todos esos errores,\
+      \ herej\xEDas, abusos, ofensas, desprecios y atrocidades, cualesquiera que sean,\
+      \ que por cualquier tipo de autoridad o jurisdicci\xF3n espiritual deban o puedan\
+      \ ser reformadas, reprimidas, ordenadas, reparadas, corregidas, restringidas\
+      \ o enmendadas, para la mayor complacencia de Dios Todopoderoso, el aumento\
+      \ de la virtud en la religi\xF3n de Cristo y la conservaci\xF3n de la paz, unidad\
+      \ y tranquilidad de este reino; Sin perjuicio de cualquier uso, territorio extranjero,\
+      \ autoridad extranjera, prescripci\xF3n o cualquier otra cosa o cosas que se\
+      \ opongan al presente. Parlamento ingl\xE9s, Acta de Supremac\xEDa, 1534 Del\
+      \ pasaje se puede inferir que el Parlamento ingl\xE9s deseaba argumentar que\
+      \ el Acta de Supremac\xEDa"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_european_history
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_high_school_european_history
+task_alias: high_school_european_history

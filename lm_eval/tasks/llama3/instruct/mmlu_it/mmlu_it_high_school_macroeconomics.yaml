@@ -1,0 +1,52 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: L&#39;esercito americano apre una nuova base in un paese straniero con 1.000
+        dipendenti statunitensi.
+      B: I consumatori giapponesi acquistano migliaia di CD prodotti negli Stati Uniti.
+      C: Una cantante pop americana si esibisce in un concerto tutto esaurito a Parigi.
+      D: "Una produzione teatrale francese gira decine di citt\xE0 americane."
+    input_correct_responses:
+    - C
+    input_question: "Quale dei seguenti elementi non \xE8 incluso nel PIL degli Stati\
+      \ Uniti?"
+  - input_choice_list:
+      A: relazione diretta tra disoccupazione e inflazione
+      B: "relazione diretta tra prezzo e quantit\xE0 domandata"
+      C: "relazione inversa tra prezzo e quantit\xE0 domandata"
+      D: relazione inversa tra disoccupazione e inflazione
+    input_correct_responses:
+    - D
+    input_question: La curva di Phillips di breve periodo indica a
+  - input_choice_list:
+      A: le esportazioni superano le importazioni.
+      B: le importazioni superano le esportazioni.
+      C: la riscossione delle tasse federali supera la spesa.
+      D: la spesa federale supera le entrate fiscali federali.
+    input_correct_responses:
+    - D
+    input_question: Un deficit federale si verifica quando
+  - input_choice_list:
+      A: Aumento del tasso di sconto
+      B: Aumentare il coefficiente di riserva
+      C: Acquistare titoli di Stato
+      D: Abbassamento delle tariffe
+    input_correct_responses:
+    - C
+    input_question: "A parit\xE0 di condizioni, quale delle seguenti politiche monetarie\
+      \ verrebbe utilizzata per stimolare le esportazioni statunitensi?"
+  - input_choice_list:
+      A: "Un aumento dell\u2019offerta di moneta"
+      B: Aumento della spesa pubblica
+      C: "Tasse pi\xF9 basse su ricerca e sviluppo di nuove tecnologie"
+      D: "Tasse pi\xF9 alte sul reddito delle famiglie"
+    input_correct_responses:
+    - C
+    input_question: "Quale delle seguenti politiche descrive meglio la politica fiscale\
+      \ dal lato dell\u2019offerta?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_macroeconomics
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_high_school_macroeconomics
+task_alias: high_school_macroeconomics

@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Externalidades, Poder, Independ\xEAncia"
+      B: "Publicidade, Recursos insubstanciais, Depend\xEAncia m\xFAtua"
+      C: "Publicidade, Poder, Independ\xEAncia"
+      D: "Externalidades, Poder, Depend\xEAncia M\xFAtua"
+    input_correct_responses:
+    - D
+    input_question: "Al\xE9m do argumento comercial para o envolvimento na RSE, h\xE1\
+      \ uma s\xE9rie de argumentos morais relacionados com: _______ negativo, o _______que\
+      \ as empresas possuem e o ________ dos neg\xF3cios e da sociedade."
+  - input_choice_list:
+      A: Responsabilidade social corporativa
+      B: "Gest\xE3o de \xE9tica empresarial"
+      C: Sustentabilidade
+      D: "Gest\xE3o ambiental"
+    input_correct_responses:
+    - B
+    input_question: "_______ \xE9 a tentativa direta de gerir formal ou informalmente\
+      \ quest\xF5es ou problemas \xE9ticos, atrav\xE9s de pol\xEDticas, pr\xE1ticas\
+      \ e programas espec\xEDficos."
+  - input_choice_list:
+      A: Fora, limitado, independente
+      B: Dentro, Limitado, Intermitentemente
+      C: Fora, Ilimitado, Intermitentemente
+      D: Dentro, Ilimitado, Independentemente
+    input_correct_responses:
+    - A
+    input_question: "Para garantir a independ\xEAncia dos administradores n\xE3o executivos,\
+      \ h\xE1 uma s\xE9rie de medidas que podem ser tomadas, que incluem a sele\xE7\
+      \xE3o de n\xE3o executivos de _______ da sociedade, a nomea\xE7\xE3o por um\
+      \ per\xEDodo de _________, bem como a nomea\xE7\xE3o de _________."
+  - input_choice_list:
+      A: "A\xE7\xE3o direta n\xE3o violenta, A\xE7\xE3o direta violenta, A\xE7\xE3\
+        o indireta, Boicote"
+      B: "A\xE7\xE3o indireta, A\xE7\xE3o instrumental, A\xE7\xE3o direta n\xE3o violenta,\
+        \ Campanha de informa\xE7\xE3o"
+      C: "A\xE7\xE3o indireta, a\xE7\xE3o direta violenta, boicote de a\xE7\xE3o direta\
+        \ n\xE3o violenta"
+      D: "A\xE7\xE3o direta n\xE3o violenta, A\xE7\xE3o instrumental, A\xE7\xE3o indireta,\
+        \ Campanha de informa\xE7\xE3o"
+    input_correct_responses:
+    - C
+    input_question: "Tr\xEAs t\xE1ticas contrastantes que os OSCs podem adotar para\
+      \ atingir seus objetivos s\xE3o ________, que normalmente envolve pesquisa e\
+      \ comunica\xE7\xE3o, ________, que pode envolver atacar fisicamente as opera\xE7\
+      \xF5es de uma empresa, ou ________, muitas vezes envolvendo alguma forma de\
+      \ _______."
+  - input_choice_list:
+      A: "Buycotts, boicotes, tecnologia Blockchain, doa\xE7\xF5es de caridade"
+      B: Compras, boicotes, tecnologia digital, aumento de vendas
+      C: "Boicotes, Buyalls, tecnologia Blockchain, doa\xE7\xF5es de caridade"
+      D: Boicotes, Buycotts, Tecnologia Digital, Aumento de Vendas
+    input_correct_responses:
+    - D
+    input_question: "Em contraste com _______, _______ visam recompensar o comportamento\
+      \ favor\xE1vel das empresas. O sucesso de tais campanhas foi aumentado atrav\xE9\
+      s do uso de ___________, que permite campanhas para facilitar a empresa a alcan\xE7\
+      ar _________."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_business_ethics
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_business_ethics
+task_alias: business_ethics

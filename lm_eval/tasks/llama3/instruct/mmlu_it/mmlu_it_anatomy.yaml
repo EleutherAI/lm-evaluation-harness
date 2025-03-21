@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Il primo arco faringeo
+      B: Il primo e il secondo arco faringeo
+      C: Il secondo arco faringeo
+      D: Il secondo e il terzo arco faringeo
+    input_correct_responses:
+    - D
+    input_question: "Qual \xE8 l&#39;origine embriologica dell&#39;osso ioide?"
+  - input_choice_list:
+      A: Il nervo sopraorbitario
+      B: Il nervo infraorbitario
+      C: Il nervo mentale
+      D: Nessuna delle precedenti
+    input_correct_responses:
+    - D
+    input_question: Quali di questi rami del nervo trigemino contengono processi motori
+      somatici?
+  - input_choice_list:
+      A: non hanno innervazione sensoriale.
+      B: sono separati da uno spazio di 2 mm.
+      C: estendersi nel collo.
+      D: sono costituiti da epitelio respiratorio.
+    input_correct_responses:
+    - C
+    input_question: La pleura
+  - input_choice_list:
+      A: overbite eccessivo degli incisivi laterali superiori.
+      B: overjet negativo degli incisivi centrali superiori.
+      C: eccesso di overjet degli incisivi laterali superiori.
+      D: eccesso di overjet degli incisivi centrali superiori.
+    input_correct_responses:
+    - C
+    input_question: "Nell&#39;occlusione di Classe II Div 2 di Angle c&#39;\xE8"
+  - input_choice_list:
+      A: Addominale
+      B: Craniale
+      C: Pleurico
+      D: Spinale
+    input_correct_responses:
+    - B
+    input_question: "Quale delle seguenti \xE8 la cavit\xE0 corporea che contiene\
+      \ la ghiandola pituitaria?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_anatomy
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_anatomy
+task_alias: anatomy

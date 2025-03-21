@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: moins
+      B: plus
+      C: "le m\xEAme"
+      D: "z\xE9ro"
+    input_correct_responses:
+    - A
+    input_question: "Compar\xE9es \xE0 la masse d&#39;un atome d&#39;uranium subissant\
+      \ une fission, les masses combin\xE9es des produits apr\xE8s fission sont"
+  - input_choice_list:
+      A: l&#39;espace et le temps.
+      B: un jumeau voyageur et un jumeau au foyer.
+      C: "gravit\xE9 et acc\xE9l\xE9ration."
+      D: "masse et \xE9nergie."
+    input_correct_responses:
+    - C
+    input_question: "Les choses qui sont \xE9quivalentes selon le principe d&#39;\xE9\
+      quivalence sont"
+  - input_choice_list:
+      A: "converti \xE0 une autre fr\xE9quence"
+      B: "d\xE9viation"
+      C: "ing\xE9rence"
+      D: polarisation
+    input_correct_responses:
+    - C
+    input_question: "Les couleurs d&#39;une bulle de savon r\xE9sultent de la lumi\xE8\
+      re"
+  - input_choice_list:
+      A: "le m\xEAme"
+      B: plus grand
+      C: moins
+      D: plus ou moins selon la vitesse du vent
+    input_correct_responses:
+    - B
+    input_question: "Un mod\xE8le r\xE9duit d&#39;avion vole plus lentement lorsqu&#39;il\
+      \ vole face au vent et plus vite avec le vent dans le dos. Lorsqu&#39;il est\
+      \ lanc\xE9 perpendiculairement au vent par vent de travers, sa vitesse au sol\
+      \ par rapport au vol en air calme est"
+  - input_choice_list:
+      A: "Hydrog\xE8ne"
+      B: Fer
+      C: Uranium
+      D: Idem dans chaque
+    input_correct_responses:
+    - A
+    input_question: "Lequel de ces trois \xE9l\xE9ments a le plus de masse par nucl\xE9\
+      on ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_conceptual_physics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_conceptual_physics
+task_alias: conceptual_physics

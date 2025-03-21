@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: El arcoiris
+      B: "Circuncisi\xF3n"
+      C: Un hijo
+      D: "Bar mitzv\xE1"
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l es la se\xF1al del pacto para los varones jud\xED\
+      os?"
+  - input_choice_list:
+      A: El Dharma
+      B: La sangha
+      C: El Buda
+      D: El Bodhisattva
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l es la segunda joya del budismo?"
+  - input_choice_list:
+      A: shang
+      B: zhou
+      C: han
+      D: Xia
+    input_correct_responses:
+    - B
+    input_question: "\xBFEn qu\xE9 dinast\xEDa se desarroll\xF3 el &quot;Mandato del\
+      \ Cielo&quot; para legitimar a los nuevos gobernantes?"
+  - input_choice_list:
+      A: Honen
+      B: Tanaka
+      C: Tokugawa
+      D: Meiji
+    input_correct_responses:
+    - D
+    input_question: "\xBFQu\xE9 gobierno japon\xE9s promovi\xF3 una especie de culto\
+      \ nacional basado en el emperador y sus asociaciones con los kami?"
+  - input_choice_list:
+      A: Textos rituales
+      B: "Textos filos\xF3ficos"
+      C: Himnos
+      D: Historias de origen
+    input_correct_responses:
+    - B
+    input_question: "\xBFC\xF3mo se pueden caracterizar los Upanishads?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_world_religions
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_world_religions
+task_alias: world_religions

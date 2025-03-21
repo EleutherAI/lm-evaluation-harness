@@ -1,0 +1,138 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Das Gesetz ist wegen Unbestimmtheit gem\xE4\xDF der Klausel \xFCber ein\
+        \ ordnungsgem\xE4\xDFes Verfahren der vierzehnten \xC4nderung ung\xFCltig."
+      B: "das Gesetz ist ung\xFCltig, weil es die Meinungsfreiheit des Petenten gem\xE4\
+        \xDF dem ersten Zusatzartikel verletzt."
+      C: "Das Gesetz ist eine K\xFCrzung der Meinungsfreiheit gem\xE4\xDF dem ersten\
+        \ Zusatzartikel, da weniger restriktive Mittel zur Verf\xFCgung stehen, um\
+        \ denselben Zweck zu erreichen."
+      D: "Das Gesetz ist zu weit gefasst und daher gem\xE4\xDF der ersten und der\
+        \ vierzehnten \xC4nderung ung\xFCltig."
+    input_correct_responses:
+    - D
+    input_question: "Ein staatlicher Gesetzgeber hat k\xFCrzlich ein Gesetz erlassen,\
+      \ das es zu einem Vergehen macht, einen Polizeibeamten, der seine Pflichten\
+      \ erf\xFCllt, zu verfluchen oder zu beschimpfen oder obsz\xF6ne oder anst\xF6\
+      \xDFige Sprache zu verwenden oder sich auf ihn zu beziehen. Ein Student einer\
+      \ staatlichen Universit\xE4t organisierte eine Demonstration auf dem Campus,\
+      \ um gegen den Krieg zu protestieren. An der Kundgebung nahm eine Gruppe von\
+      \ 50 Studenten teil, die vorbeifahrenden Autos Antikriegsbotschaften zuriefen.\
+      \ Um seine Verachtung f\xFCr die Vereinigten Staaten zu zeigen, n\xE4hte der\
+      \ Student die amerikanische Flagge hinten auf seine Jeans. Als ein Polizist\
+      \ die Flagge sah, die auf die Jeans des Studenten gestickt war, n\xE4herte er\
+      \ sich und forderte ihn auf, die Flagge zu entfernen, sonst w\xFCrde er verhaftet.\
+      \ Der Student wurde w\xFCtend und schrie den Polizisten an: \u201EH\xF6ren Sie,\
+      \ Sie Bastard, ich werde diesen Lappen \xFCberall tragen, wo es mir gef\xE4\
+      llt.\u201C Der Student wurde daraufhin verhaftet und wegen Versto\xDFes gegen\
+      \ das staatliche Gesetz angeklagt. Der Student erhebt daraufhin Klage vor einem\
+      \ staatlichen Gericht und stellt die Verfassungsm\xE4\xDFigkeit des Gesetzes\
+      \ in Frage. Das st\xE4rkste verfassungsrechtliche Argument f\xFCr den Studenten\
+      \ ist das"
+  - input_choice_list:
+      A: Die Handelsklausel.
+      B: Die Gleichschutzklausel des vierzehnten Zusatzartikels.
+      C: "Die Vorzugs- und Immunit\xE4tsklausel von Artikel IV, Abschnitt 2."
+      D: Die Vertragsklausel.
+    input_correct_responses:
+    - A
+    input_question: "Ein Bundesstaat hat k\xFCrzlich ein Gesetz erlassen, das die\
+      \ Entsorgung von Atomm\xFCll innerhalb des Bundesstaates verbietet. Dieses Gesetz\
+      \ widerspricht oder widerspricht keinem Bundesgesetz. Ein Mann betreibt in dem\
+      \ Staat ein Unternehmen, das sich mit der Entsorgung von Atomm\xFCll besch\xE4\
+      ftigt. Nach der Verabschiedung des staatlichen Gesetzes schloss der Mann, der\
+      \ das neue Gesetz noch nicht kannte, Vertr\xE4ge mit vielen au\xDFerstaatlichen\
+      \ Firmen, um deren Atomm\xFCll im Staat zu entsorgen. Aufgrund dieses neuen\
+      \ Gesetzes wird der Mann jedoch nicht in der Lage sein, diese Vertr\xE4ge zu\
+      \ erf\xFCllen. Gehen Sie davon aus, dass der Mann berechtigt ist, dieses staatliche\
+      \ Gesetz anzufechten. Welcher der folgenden stellt seine st\xE4rksten verfassungsrechtlichen\
+      \ Gr\xFCnde dar, das staatliche Gesetz anzufechten, das die Entsorgung nuklearer\
+      \ Abf\xE4lle innerhalb des Staates verbietet?"
+  - input_choice_list:
+      A: Unbestreitbare Tatsachen.
+      B: Tatsachen, die von einzelnen politischen Organisationen behauptet wurden.
+      C: Tatsachen, die nach allgemeinem Wissen als wahr anerkannt sind.
+      D: "Tatsachen, die wissenschaftlich \xFCberpr\xFCft werden k\xF6nnen."
+    input_correct_responses:
+    - B
+    input_question: "Der Richter nahm zu Beginn des Prozesses einige Tatsachen amtlich\
+      \ zur Kenntnis. Welche der folgenden Tatsachen ist f\xFCr eine gerichtliche\
+      \ Benachrichtigung nicht geeignet?"
+  - input_choice_list:
+      A: "Entlastung gew\xE4hren, weil der Zaun gegen die Dienstbarkeitsbeschr\xE4\
+        nkung verstie\xDF."
+      B: "Entlastung gew\xE4hren, weil der Eingriff in den Zaun gegen die Beschr\xE4\
+        nkung im urspr\xFCnglichen Plan verstie\xDF."
+      C: "Entlastung verweigern, weil der Lehrer es vers\xE4umt hat, die Beschr\xE4\
+        nkung gegen\xFCber dem Rentner durchzusetzen."
+      D: "Entlastung verweigern, weil der Zaun nicht als &quot;Bauwerk&quot; im Sinne\
+        \ der Beschr\xE4nkung ausgelegt w\xFCrde."
+    input_correct_responses:
+    - B
+    input_question: "Am 1. Oktober 1980 entwarf ein Entwickler, Eigent\xFCmer von\
+      \ mehreren hundert Morgen in einem l\xE4ndlichen Bezirk, einen allgemeinen Entwicklungsplan\
+      \ f\xFCr das Gebiet. Der ordnungsgem\xE4\xDF aufgezeichnete Plan erlegte dem\
+      \ Land im Plan, das als Wohngebiet entwickelt werden sollte, ausf\xFChrliche\
+      \ Beschr\xE4nkungen und Beschr\xE4nkungen auf. Die Beschr\xE4nkungen sollten\
+      \ sich auf alle Personen erstrecken, die eines der Grundst\xFCcke erwerben,\
+      \ sowie auf ihre Erben, Abtretungsempf\xE4nger und P\xE4chter. Ferner wurde\
+      \ vorgesehen, dass alle nachfolgenden Eigent\xFCmer zur fristgerechten Benachrichtigung\
+      \ der Beschr\xE4nkungen verpflichtet w\xFCrden. Zu diesen Einschr\xE4nkungen\
+      \ im allgemeinen Plan geh\xF6rten die folgenden: (22) Ein Konzessionsrecht wird\
+      \ in einem 10 Fu\xDF breiten Landstreifen entlang der R\xFCckseite jedes Grundst\xFC\
+      cks f\xFCr die Nutzung durch \xF6ffentliche Versorgungsunternehmen mit Ein-\
+      \ und Ausstiegsrecht geschaffen. (23) Auf dem vorgenannten Landstreifen, der\
+      \ durch die genannten Bl\xF6cke verl\xE4uft, d\xFCrfen keine H\xE4user oder\
+      \ Bauwerke jeglicher Art gebaut werden. Im Jahr 2000 kaufte ein Rentner eines\
+      \ der Grundst\xFCcke, baute ein Haus und errichtete einen Zaun hinter seinem\
+      \ Grundst\xFCck innerhalb des Sperrgebiets. 2004 kaufte ein Lehrer ein Grundst\xFC\
+      ck neben dem Grundst\xFCck des Rentners und baute ein neues Haus. Zwei Jahre\
+      \ sp\xE4ter kaufte ein Bibliothekar das Grundst\xFCck, das an das Grundst\xFC\
+      ck des Lehrers angrenzte. Die drei Urkunden zu diesen Grundst\xFCcken enthielten\
+      \ jeweils Verweise auf das Urkundenbuch, in dem der allgemeine Plan aufgezeichnet\
+      \ war. Im Jahr 2008 begann der Bibliothekar mit dem Bau eines zwei Meter hohen\
+      \ Pfosten-und-Eisen-Zauns entlang der Linie, die sein Grundst\xFCck mit dem\
+      \ des Lehrers trennt, und entlang der Mitte des Bereichs, der dem Franchiserecht\
+      \ unterliegt. Obwohl der Lehrer Einw\xE4nde gegen den Bau erhob, wurde der Zaun\
+      \ fertiggestellt. Wenn der Lehrer eine einstweilige Verf\xFCgung beantragt,\
+      \ um die Entfernung des Zauns des Bibliothekars zu erzwingen, wird das Gericht\
+      \ h\xF6chstwahrscheinlich dies tun"
+  - input_choice_list:
+      A: "Das Versprechen des Vaters und das Vertrauen des Gl\xE4ubigers darauf f\xFC\
+        hrten, falls nachgewiesen, zu einem g\xFCltigen Anspruch des Gl\xE4ubigers\
+        \ gegen den Vater, basierend auf der Doktrin des schuldrechtlichen Estoppels."
+      B: "Da absehbar war, dass die Zusage des Vaters den Gl\xE4ubiger dazu veranlassen\
+        \ w\xFCrde, jegliche Ma\xDFnahmen gegen den Sohn zu unterlassen, handelte\
+        \ es sich rechtlich um eine erkaufte Gegenleistung f\xFCr die Zusage des Vaters."
+      C: "Die f\xFCnf Zahlungen des Vaters an den Gl\xE4ubiger in H\xF6he von insgesamt\
+        \ 2.500 $ zeigten eine ernsthafte Absicht des Vaters, vertraglich gebunden\
+        \ zu sein, und eine solche Manifestation wird allgemein als wirksamer Ersatz\
+        \ f\xFCr eine Gegenleistung anerkannt."
+      D: "Durch die \xDCbernahme der Vorschuldverpflichtung des Sohnes gegen\xFCber\
+        \ dem Gl\xE4ubiger wurde der Vater zum B\xFCrgen, dessen Versprechen gegen\xFC\
+        ber dem Gl\xE4ubiger durchsetzbar war, da es schriftlich und durch eine angemessene\
+        \ Gegenleistung belegt war."
+    input_correct_responses:
+    - A
+    input_question: "Ein Sohn schuldete einem Gl\xE4ubiger 5.000 Dollar. Der Vater\
+      \ des Sohnes kontaktierte den Gl\xE4ubiger und teilte ihm mit, dass er die Schulden\
+      \ des Sohnes begleichen wolle. Der Vater unterzeichnete ein Dokument, das besagte,\
+      \ dass der Vater die Schulden des Sohnes mit einer Rate von 500 Dollar pro Monat\
+      \ f\xFCr 10 Monate bezahlen w\xFCrde. Der Gl\xE4ubiger verpflichtete sich weder\
+      \ schriftlich noch m\xFCndlich, den Sohn auf die Beitreibung der Schulden in\
+      \ H\xF6he von 5.000 Dollar zu verklagen, und der Vater stellte weder m\xFCndlich\
+      \ noch schriftlich einen solchen Nachlass. F\xFCr die n\xE4chsten f\xFCnf Monate\
+      \ leistete der Vater die vereinbarten monatlichen Zahlungen in H\xF6he von 500\
+      \ USD, und der Gl\xE4ubiger akzeptierte sie. Tats\xE4chlich verzichtete der\
+      \ Gl\xE4ubiger w\xE4hrend dieser Zeit darauf, rechtliche Schritte gegen den\
+      \ Sohn einzuleiten. Daraufhin teilte der Vater dem Gl\xE4ubiger jedoch mit,\
+      \ dass er keine weiteren Zahlungen auf die Schuld leisten werde. Welches der\
+      \ folgenden Argumente ist das \xFCberzeugendste, dass der Vater gegen\xFCber\
+      \ dem Gl\xE4ubiger gem\xE4\xDF den Bedingungen ihrer Vereinbarung haftet?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_law
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_professional_law
+task_alias: professional_law

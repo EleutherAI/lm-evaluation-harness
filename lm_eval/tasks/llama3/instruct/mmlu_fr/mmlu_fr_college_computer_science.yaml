@@ -1,0 +1,86 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: a*(c + d)+ b(c + d)
+      B: "a*(c + r\xE9)* + b(c + r\xE9)*"
+      C: a*(c + d)+ b*(c + d)
+      D: (a + b)*c +(a + b)*d
+    input_correct_responses:
+    - D
+    input_question: "Laquelle des expressions r\xE9guli\xE8res suivantes est \xE9\
+      quivalente \xE0 (d\xE9crit le m\xEAme ensemble de cha\xEEnes que) (a* + b)*(c\
+      \ + d)\_?"
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '8'
+    input_correct_responses:
+    - B
+    input_question: "Une certaine machine RISC en pipeline a 8 registres \xE0 usage\
+      \ g\xE9n\xE9ral R0, R1, . . . , R7 et prend en charge les op\xE9rations suivantes.\
+      \ AJOUTER Rs1, Rs2, Rd Ajouter Rs1 \xE0 Rs2 et mettre la somme dans Rd MUL Rs1,\
+      \ Rs2, Rd Multiplier Rs1 par Rs2 et mettre le produit dans Rd Une op\xE9ration\
+      \ prend normalement un cycle ; cependant, une op\xE9ration prend deux cycles\
+      \ si elle produit un r\xE9sultat requis par l&#39;op\xE9ration imm\xE9diatement\
+      \ suivante dans une s\xE9quence d&#39;op\xE9rations. Consid\xE9rons l&#39;expression\
+      \ AB + ABC + BC, o\xF9 les variables A, B, C sont situ\xE9es dans les registres\
+      \ R0, R1, R2. Si le contenu de ces trois registres ne doit pas \xEAtre modifi\xE9\
+      , quel est le nombre minimum de cycles d&#39;horloge requis pour une s\xE9quence\
+      \ d&#39;op\xE9rations qui calcule la valeur de AB + ABC + BC ?"
+  - input_choice_list:
+      A: moi seulement
+      B: II seulement
+      C: III seulement
+      D: I, II et III
+    input_correct_responses:
+    - D
+    input_question: "Le mod\xE8le de conception Singleton est utilis\xE9 pour garantir\
+      \ qu&#39;une seule instance d&#39;une classe peut \xEAtre instanci\xE9e. Laquelle\
+      \ des affirmations suivantes est (sont) vraie(s) pour ce mod\xE8le de conception\_\
+      ? I. La classe Singleton a une m\xE9thode de fabrique statique pour fournir\
+      \ son instance. II. La classe Singleton peut \xEAtre une sous-classe d&#39;une\
+      \ autre classe. III. La classe Singleton a un constructeur priv\xE9."
+  - input_choice_list:
+      A: '5'
+      B: '6'
+      C: '7'
+      D: '9'
+    input_correct_responses:
+    - D
+    input_question: "Un compilateur g\xE9n\xE8re du code pour l&#39;instruction d&#39;affectation\
+      \ suivante. G := (A + B) * C - (D + E) * F La machine cible a un seul accumulateur\
+      \ et un jeu d&#39;instructions \xE0 adresse unique compos\xE9 d&#39;instructions\
+      \ de chargement, de stockage, d&#39;addition, de soustraction et de multiplication.\
+      \ Pour les op\xE9rations arithm\xE9tiques, l&#39;op\xE9rande de gauche est extrait\
+      \ de l&#39;accumulateur et le r\xE9sultat appara\xEEt dans l&#39;accumulateur.\
+      \ Le plus petit nombre d&#39;instructions possible dans le code r\xE9sultant\
+      \ est"
+  - input_choice_list:
+      A: 1/50
+      B: 1/27
+      C: 1/25
+      D: 2/27
+    input_correct_responses:
+    - B
+    input_question: "Consid\xE9rez une conception d&#39;ordinateur dans laquelle plusieurs\
+      \ processeurs, chacun avec une m\xE9moire cache priv\xE9e, partagent la m\xE9\
+      moire globale \xE0 l&#39;aide d&#39;un seul bus. Ce bus est la ressource syst\xE8\
+      me critique. Chaque processeur peut ex\xE9cuter une instruction toutes les 500\
+      \ nanosecondes tant que les r\xE9f\xE9rences m\xE9moire sont satisfaites par\
+      \ son cache local. Lorsqu&#39;un manque de cache se produit, le processeur est\
+      \ retard\xE9 de 2 000 nanosecondes suppl\xE9mentaires. Pendant la moiti\xE9\
+      \ de ce d\xE9lai suppl\xE9mentaire, le bus est d\xE9di\xE9 \xE0 servir le manque\
+      \ de cache. Pendant l&#39;autre moiti\xE9, le processeur ne peut pas continuer,\
+      \ mais le bus est libre de r\xE9pondre aux demandes des autres processeurs.\
+      \ En moyenne, chaque instruction n\xE9cessite 2 r\xE9f\xE9rences m\xE9moire.\
+      \ En moyenne, les \xE9checs de cache se produisent sur 1\_% des r\xE9f\xE9rences.\
+      \ Quelle proportion de la capacit\xE9 du bus un seul processeur consommerait-il,\
+      \ sans tenir compte des retards dus \xE0 la concurrence des autres processeurs\_\
+      ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_computer_science
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_college_computer_science
+task_alias: college_computer_science

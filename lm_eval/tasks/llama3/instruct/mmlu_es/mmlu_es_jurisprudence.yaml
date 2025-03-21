@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "El POP elegir\xEDa la igualdad por encima de la libertad."
+      B: "El POP optar\xEDa por la estrategia &#39;maximin&#39;."
+      C: "El POP optar\xEDa por el &#39;principio de diferencia&#39;."
+      D: "El POP rechazar\xEDa el &quot;sistema de libertad natural&quot;."
+    input_correct_responses:
+    - A
+    input_question: "\xBFQu\xE9 posici\xF3n, seg\xFAn Rawls, es la que tiene menos\
+      \ probabilidades de ser adoptada por el POP (las personas en la posici\xF3n\
+      \ original)?"
+  - input_choice_list:
+      A: maximizar la libertad individual
+      B: proporcionando una base para el compromiso
+      C: manteniendo la paz
+      D: promover los principios del sistema de libre empresa
+    input_correct_responses:
+    - D
+    input_question: "\xBFLas funciones de la ley incluyen todas menos cu\xE1l de las\
+      \ siguientes?"
+  - input_choice_list:
+      A: Autoridad.
+      B: Carisma.
+      C: "Cooperaci\xF3n."
+      D: Capitalismo.
+    input_correct_responses:
+    - D
+    input_question: "\xBFQu\xE9 palabra resume mejor la explicaci\xF3n de Weber sobre\
+      \ el desarrollo del derecho formalmente racional?"
+  - input_choice_list:
+      A: La Ley natural
+      B: "Anal\xEDtico"
+      C: "Hist\xF3rico"
+      D: "Sociol\xF3gico"
+    input_correct_responses:
+    - A
+    input_question: La Escuela ________ de jurisprudencia postula que el derecho se
+      basa en lo que es &quot;correcto&quot;.
+  - input_choice_list:
+      A: La carta es una oferta de venta.
+      B: "No se puede hacer una oferta v\xE1lida por carta."
+      C: "La carta contiene una oferta v\xE1lida que finalizar\xE1 en un plazo razonable."
+      D: La carta carece de uno de los elementos esenciales de una oferta.
+    input_correct_responses:
+    - D
+    input_question: "Iverson Jewelers escribi\xF3 una carta a Miller: &quot;Hemos\
+      \ recibido un reloj Rolox de cuerda autom\xE1tica excepcionalmente fino que\
+      \ le venderemos a un precio muy favorable&quot;."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_jurisprudence
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_jurisprudence
+task_alias: jurisprudence

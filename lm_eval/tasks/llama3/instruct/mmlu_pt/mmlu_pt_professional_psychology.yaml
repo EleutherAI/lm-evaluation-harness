@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "informe ao seu cliente os pr\xF3s e os contras de cada programa que voc\xEA\
+        \ conhece, exceto aquele em que voc\xEA est\xE1 inscrito"
+      B: "recomende ao seu cliente o programa no qual voc\xEA est\xE1 inscrito e explique\
+        \ o b\xF4nus de US$ 50 que voc\xEA receber\xE1"
+      C: "recomende ao seu cliente o programa no qual voc\xEA est\xE1 inscrito e ofere\xE7\
+        a o b\xF4nus de $ 50 creditado na conta do seu cliente no programa"
+      D: "diga ao seu cliente os pr\xF3s e os contras de cada programa que voc\xEA\
+        \ conhece, mas n\xE3o reivindique o b\xF4nus de $ 50 se o seu cliente se inscrever\
+        \ no seu programa"
+    input_correct_responses:
+    - D
+    input_question: "Um de seus clientes de terapia pede seu conselho sobre um bom\
+      \ programa de redu\xE7\xE3o de peso. Voc\xEA investigou os programas da comunidade\
+      \ e est\xE1 inscrito naquele que considera o melhor. Este programa oferece um\
+      \ b\xF4nus de US$ 50 aos seus clientes para cada nova pessoa que eles trazem\
+      \ para o programa. Nestas circunst\xE2ncias, a sua resposta mais adequada seria"
+  - input_choice_list:
+      A: "menos sens\xEDvel a pontua\xE7\xF5es extremas do que a m\xE9dia"
+      B: "mais \xFAtil para distribui\xE7\xF5es distorcidas"
+      C: "sens\xEDvel a valores extremos e distribui\xE7\xF5es altamente distorcidas"
+      D: "o n\xFAmero que ocorre com mais frequ\xEAncia"
+    input_correct_responses:
+    - D
+    input_question: "Existem tr\xEAs formas de medir a Tend\xEAncia Central: a M\xE9\
+      dia, a Mediana e a Moda. Pelo seu conhecimento sobre eles, qual \xE9 o modo?"
+  - input_choice_list:
+      A: individualismo.
+      B: "individualismo e dist\xE2ncia do poder."
+      C: "dist\xE2ncia do poder e masculinidade."
+      D: "evita\xE7\xE3o da incerteza."
+    input_correct_responses:
+    - A
+    input_question: "Em termos das cinco dimens\xF5es culturais de Hofstede (1980),\
+      \ os Estados Unidos pontuam no topo da escala em:"
+  - input_choice_list:
+      A: "\xE9 uma fantasia que distrai o cliente da realidade."
+      B: "representa \u201Csentimentos confusos\u201D em rela\xE7\xE3o ao terapeuta."
+      C: "&quot;\xE9 uma forma de &quot;&quot;atua\xE7\xE3o.&quot;&quot;&quot;"
+      D: reflete o inconsciente pessoal e coletivo do cliente.
+    input_correct_responses:
+    - D
+    input_question: "Carl Jung acreditava que a transfer\xEAncia de um cliente:"
+  - input_choice_list:
+      A: "n\xE3o est\xE3o correlacionados entre si, mas est\xE3o moderadamente correlacionados\
+        \ com o crit\xE9rio"
+      B: "t\xEAm correla\xE7\xF5es baixas entre si e correla\xE7\xF5es baixas com\
+        \ o crit\xE9rio"
+      C: "s\xE3o altamente intercorrelacionados entre si e moderadamente correlacionados\
+        \ com o crit\xE9rio"
+      D: "t\xEAm correla\xE7\xF5es baixas com o crit\xE9rio, mas est\xE3o moderadamente\
+        \ correlacionados entre si"
+    input_correct_responses:
+    - A
+    input_question: "Na constru\xE7\xE3o de uma equa\xE7\xE3o de regress\xE3o m\xFA\
+      ltipla para fins de previs\xE3o, a combina\xE7\xE3o \xF3tima de medidas \xE9\
+      \ aquela em que os preditores"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_psychology
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_professional_psychology
+task_alias: professional_psychology

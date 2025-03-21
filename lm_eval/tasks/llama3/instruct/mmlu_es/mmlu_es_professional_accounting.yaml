@@ -1,0 +1,74 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: $70,000
+      B: $75,000
+      C: $80,000
+      D: '100000'
+    input_correct_responses:
+    - D
+    input_question: "Box una organizaci\xF3n no gubernamental sin fines de lucro tuvo\
+      \ las siguientes transacciones durante el a\xF1o: Producto de la venta de inversiones\
+      \ $80000 Compra de propiedades, planta y equipo $10000 Producto de la deuda\
+      \ a largo plazo $100000 P\xE9rdida en la venta de la inversi\xF3n $5000 \xBF\
+      Qu\xE9 monto debe declararse como neto? \xBFEl efectivo proporcionado por las\
+      \ actividades de financiaci\xF3n en el estado de flujos de efectivo de Box?"
+  - input_choice_list:
+      A: $13,000
+      B: $600
+      C: $15,000
+      D: $28,000
+    input_correct_responses:
+    - A
+    input_question: "Hace cien a\xF1os, su tatarabuela invirti\xF3 $100 al 5% de inter\xE9\
+      s anual. \xBFCu\xE1l es el valor de la inversi\xF3n hoy?"
+  - input_choice_list:
+      A: $0
+      B: $500
+      C: $1,650
+      D: $16,500
+    input_correct_responses:
+    - A
+    input_question: "Krete es un contribuyente soltero con ingresos exclusivamente\
+      \ provenientes de salarios. Al 31 de diciembre del a\xF1o 1, el empleador de\
+      \ Krete hab\xEDa retenido $16,000 en impuestos federales sobre la renta y Krete\
+      \ no hab\xEDa realizado pagos de impuestos estimados. El 15 de abril del a\xF1\
+      o 2, Krete present\xF3 oportunamente una solicitud de extensi\xF3n para presentar\
+      \ su declaraci\xF3n de impuestos individual y pag\xF3 $300 de impuestos adicionales.\
+      \ La obligaci\xF3n tributaria del a\xF1o 1 de Krete fue de $16,500 cuando present\xF3\
+      \ oportunamente su declaraci\xF3n el 30 de abril del a\xF1o 2 y pag\xF3 el saldo\
+      \ restante de la obligaci\xF3n tributaria. \xBFA qu\xE9 monto estar\xEDa sujeto\
+      \ la sanci\xF3n por pago insuficiente de impuestos estimados?"
+  - input_choice_list:
+      A: $5,000
+      B: $13,500
+      C: $16,000
+      D: $20,000
+    input_correct_responses:
+    - B
+    input_question: "El 1 de enero del a\xF1o 1, Alpha Co. firm\xF3 un acuerdo de\
+      \ mantenimiento anual con un proveedor de software por $15 000 y el per\xED\
+      odo de mantenimiento comienza el 1 de marzo del a\xF1o 2. Alpha tambi\xE9n incurri\xF3\
+      \ en costos de $5 000 el 1 de enero del a\xF1o 1 relacionados con la modificaci\xF3\
+      n del software. solicitudes que aumentar\xE1n la funcionalidad del software.\
+      \ Alpha deprecia y amortiza sus activos inform\xE1ticos y de software en cinco\
+      \ a\xF1os utilizando el m\xE9todo de l\xEDnea recta. \xBFCu\xE1l es el gasto\
+      \ total que Alpha deber\xEDa reconocer relacionado con el acuerdo de mantenimiento\
+      \ y las modificaciones de software para el a\xF1o terminado el 31 de diciembre\
+      \ del a\xF1o 1?"
+  - input_choice_list:
+      A: "Valoraci\xF3n y asignaci\xF3n"
+      B: Lo completo
+      C: Derechos y obligaciones
+      D: "Presentaci\xF3n y divulgaci\xF3n"
+    input_correct_responses:
+    - B
+    input_question: "Un auditor rastrea los n\xFAmeros de serie de los equipos hasta\
+      \ el libro auxiliar de un no emisor. \xBFCu\xE1l de las siguientes afirmaciones\
+      \ de la gerencia est\xE1 respaldada por esta prueba?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_accounting
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_professional_accounting
+task_alias: professional_accounting

@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "D\xEDgale a su cliente los pros y los contras de cada programa que conozca,\
+        \ excepto aquel en el que est\xE1 inscrito."
+      B: "recomienda a tu cliente el programa en el que est\xE1s inscrito y expl\xED\
+        cale el bono de $50 que recibir\xE1s"
+      C: "Recomiende a su cliente el programa en el que est\xE1 inscrito y ofr\xE9\
+        zcale que el bono de $50 se acredite en la cuenta de su cliente en el programa."
+      D: "D\xEDgale a su cliente los pros y los contras de cada programa que conozca,\
+        \ pero no reclame el bono de $50 si su cliente se inscribe en su programa."
+    input_correct_responses:
+    - D
+    input_question: "Uno de sus clientes de terapia le pide consejo sobre un buen\
+      \ programa de reducci\xF3n de peso. Has investigado los programas de la comunidad\
+      \ y est\xE1s inscrito en el que consideras mejor. Este programa ofrece un bono\
+      \ de $50 a sus patrocinadores por cada nueva persona que traen al programa.\
+      \ En estas circunstancias, su respuesta m\xE1s apropiada ser\xEDa"
+  - input_choice_list:
+      A: menos sensible a puntuaciones extremas que la media
+      B: "m\xE1s \xFAtil para distribuciones asim\xE9tricas"
+      C: sensible a valores extremos y distribuciones muy sesgadas
+      D: "el n\xFAmero que ocurre con m\xE1s frecuencia"
+    input_correct_responses:
+    - D
+    input_question: "Hay tres formas de medir la Tendencia Central: la Media, la Mediana\
+      \ y la Moda. Seg\xFAn tu conocimiento sobre ellos, \xBFcu\xE1l es la moda?"
+  - input_choice_list:
+      A: individualismo.
+      B: Individualismo y distancia de poder.
+      C: Distancia de poder y masculinidad.
+      D: "evitaci\xF3n de la incertidumbre."
+    input_correct_responses:
+    - A
+    input_question: "En t\xE9rminos de las cinco dimensiones culturales de Hofstede\
+      \ (1980), Estados Unidos ocupa el primer lugar de la escala en:"
+  - input_choice_list:
+      A: "Es una fantas\xEDa que distrae al cliente de la realidad."
+      B: representa &quot;sentimientos encontrados&quot; hacia el terapeuta.
+      C: '&quot;es una forma de &quot;actuar&quot;.&quot;'
+      D: refleja el inconsciente personal y colectivo del cliente.
+    input_correct_responses:
+    - D
+    input_question: "Carl Jung cre\xEDa que la transferencia de un cliente:"
+  - input_choice_list:
+      A: "no est\xE1n correlacionados entre s\xED pero est\xE1n moderadamente correlacionados\
+        \ con el criterio"
+      B: "tienen bajas correlaciones entre s\xED y bajas correlaciones con el criterio"
+      C: "est\xE1n altamente intercorrelacionados entre s\xED y moderadamente correlacionados\
+        \ con el criterio"
+      D: "tienen correlaciones bajas con el criterio pero est\xE1n moderadamente correlacionadas\
+        \ entre s\xED"
+    input_correct_responses:
+    - A
+    input_question: "En la construcci\xF3n de una ecuaci\xF3n de regresi\xF3n m\xFA\
+      ltiple con fines de predicci\xF3n, la combinaci\xF3n \xF3ptima de medidas es\
+      \ aquella en la que los predictores"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_psychology
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_professional_psychology
+task_alias: professional_psychology

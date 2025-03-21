@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "\xDCbersetzung"
+      B: Konjugation
+      C: Spezialisierte Transduktion
+      D: Transformation
+    input_correct_responses:
+    - A
+    input_question: "Welche der folgenden Methoden ist keine M\xF6glichkeit, rekombinante\
+      \ DNA zu bilden?"
+  - input_choice_list:
+      A: "Durch Ver\xE4nderung des pH-Optimums des Enzyms"
+      B: "Durch Ver\xE4nderung der Position des Enzyms in der Zelle"
+      C: "Durch die Ver\xE4nderung der Form des Proteins"
+      D: "Ein Aminos\xE4urewechsel weg von der aktiven Stelle kann die Substratspezifit\xE4\
+        t des Enzyms nicht ver\xE4ndern."
+    input_correct_responses:
+    - C
+    input_question: "Eine Mutation in einem bakteriellen Enzym ver\xE4nderte eine\
+      \ zuvor polare Aminos\xE4ure in eine unpolare Aminos\xE4ure. Diese Aminos\xE4\
+      ure befand sich an einer von der aktiven Stelle des Enzyms entfernten Stelle.\
+      \ Wie k\xF6nnte diese Mutation die Substratspezifit\xE4t des Enzyms ver\xE4\
+      ndern?"
+  - input_choice_list:
+      A: "Plasmamembran \u2013 Golgi-Apparat \u2013 Ribosom \u2013 sekretorisches\
+        \ Vesikel \u2013 raues ER"
+      B: "Ribosom \u2013 Golgi-Apparat \u2013 raues ER \u2013 sekretorisches Vesikel\
+        \ \u2013 Plasmamembran"
+      C: "Plasmamembran \u2013 Golgi-Apparat \u2013 Ribosom \u2013 sekretorisches\
+        \ Vesikel \u2013 raues ER"
+      D: "Ribosom \u2013 raues ER \u2013 Golgi-Apparat \u2013 sekretorisches Vesikel\
+        \ \u2013 Plasmamembran"
+    input_correct_responses:
+    - D
+    input_question: Welcher der folgenden Wege stellt in tierischen Zellen den wahrscheinlichsten
+      Weg dar, den ein sekretorisches Protein nimmt, wenn es in einer Zelle synthetisiert
+      wird?
+  - input_choice_list:
+      A: Cycline
+      B: Proteinkinasen
+      C: Kontrollpunkte
+      D: Fibroblastenzellen
+    input_correct_responses:
+    - D
+    input_question: Von welchem der folgenden ist nicht bekannt, dass es an der Kontrolle
+      der Zellteilung beteiligt ist?
+  - input_choice_list:
+      A: "die Fl\xFCgel eines Vogels und die Fl\xFCgel einer Fledermaus"
+      B: die Flossen eines Wals und die Arme eines Mannes
+      C: die Brustflossen eines Schweinswals und die Flossen einer Robbe
+      D: die Vorderbeine eines Insekts und die Vorderbeine eines Hundes
+    input_correct_responses:
+    - D
+    input_question: "Homologe Strukturen werden oft als Beweis f\xFCr den Prozess\
+      \ der nat\xFCrlichen Selektion angef\xFChrt. Alle der folgenden sind Beispiele\
+      \ f\xFCr homologe Strukturen AUSSER"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_biology
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_high_school_biology
+task_alias: high_school_biology

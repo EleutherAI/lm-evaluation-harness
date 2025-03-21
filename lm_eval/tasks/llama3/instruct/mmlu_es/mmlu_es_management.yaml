@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Posici\xF3n inicial y posici\xF3n final."
+      B: Entorno inicial y entorno modificado.
+      C: Estructura organizacional y condicionamiento.
+      D: Estructura inicial y consideraciones.
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1les son las dos dimensiones principales de los Estudios\
+      \ de Ohio sobre liderazgo?"
+  - input_choice_list:
+      A: Federico Hertzberg
+      B: DC McClelland
+      C: Abraham Maslow
+      D: Douglas McGregor
+    input_correct_responses:
+    - A
+    input_question: "\xBFLos factores de higiene est\xE1n asociados con qu\xE9 escritor?"
+  - input_choice_list:
+      A: "S\xEDmbolos"
+      B: Rituales y rutinas
+      C: Estructuras de poder
+      D: Sistemas de control
+    input_correct_responses:
+    - A
+    input_question: "\xBFQu\xE9 elemento de la red cultural forma insignias?"
+  - input_choice_list:
+      A: Moral
+      B: "Innovaci\xF3n"
+      C: Recurso de crecimiento
+      D: "Adaptaci\xF3n"
+    input_correct_responses:
+    - A
+    input_question: "\xBFQu\xE9 caracter\xEDstica no es clave en el modelo de gesti\xF3\
+      n de los &#39;sistemas abiertos&#39;?"
+  - input_choice_list:
+      A: "Jer\xE1rquico"
+      B: "Burocr\xE1tico"
+      C: Departamento
+      D: Funcional
+    input_correct_responses:
+    - C
+    input_question: "\xBFC\xF3mo se pueden describir las estructuras organizativas\
+      \ que se caracterizan por estilos de gesti\xF3n democr\xE1ticos e inclusivos?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_management
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_management
+task_alias: management

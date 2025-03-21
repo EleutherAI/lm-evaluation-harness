@@ -1,0 +1,108 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: hinduismo
+      B: Budismo
+      C: "sinto\xEDsmo"
+      D: zoroastrismo
+    input_correct_responses:
+    - A
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. \xC9\
+      l contiene todas las obras y deseos y todos los perfumes y todos los gustos.\
+      \ \xC9l envuelve todo el universo y en silencio ama a todos. Este es el Esp\xED\
+      ritu que est\xE1 en mi coraz\xF3n, este es Brahman. A \xE9l vendr\xE9 cuando\
+      \ pase m\xE1s all\xE1 de esta vida, y a \xE9l vendr\xE1 el que tenga fe y no\
+      \ dude. \u2014Los Upanishads, India, c. 1000 a. C. \xBFA qu\xE9 religi\xF3n\
+      \ pertenece m\xE1s probablemente el hablante?"
+  - input_choice_list:
+      A: "La revoluci\xF3n industrial"
+      B: "Descolonizaci\xF3n"
+      C: Asociaciones Regionales de Libre Comercio
+      D: "autarqu\xEDa"
+    input_correct_responses:
+    - B
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. &quot;La\
+      \ lucha contra el neocolonialismo no tiene como objetivo excluir el capital\
+      \ del mundo desarrollado de operar en los pa\xEDses menos desarrollados. Su\
+      \ objetivo es impedir que el poder financiero de los pa\xEDses desarrollados\
+      \ sea utilizado de tal manera que empobrezca a los menos desarrollados. La no\
+      \ alineaci\xF3n, como la practican Ghana y muchos otros pa\xEDses, se basa en\
+      \ la cooperaci\xF3n con todos los Estados, ya sean capitalistas, socialistas\
+      \ o de econom\xEDa mixta. Por lo tanto, esa pol\xEDtica implica inversiones\
+      \ extranjeras de pa\xEDses capitalistas, pero debe invertirse de acuerdo con\
+      \ un plan nacional elaborado por el gobierno del Estado no alineado teniendo\
+      \ en cuenta sus propios intereses. La cuesti\xF3n no es qu\xE9 rendimiento recibe\
+      \ el inversor extranjero sobre sus inversiones... La cuesti\xF3n es de poder.\
+      \ Un Estado en Las garras del neocolonialismo no son due\xF1as de su propio\
+      \ destino.&quot; Kwame Nkrumah, Neocolonialismo, 1965 \xBFCu\xE1l de los siguientes\
+      \ proporciona el mejor contexto para los escritos de Nkrumah?"
+  - input_choice_list:
+      A: "Aceptaci\xF3n social del trabajo infantil"
+      B: "Disminuci\xF3n de la esperanza de vida en Alemania"
+      C: "Cr\xEDticas a los aranceles comerciales alemanes"
+      D: Efectos negativos atribuidos al capitalismo industrial
+    input_correct_responses:
+    - D
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. &quot;El\
+      \ verdadero agravio del trabajador es la inseguridad de su existencia; no est\xE1\
+      \ seguro de que siempre tendr\xE1 trabajo, no est\xE1 seguro de que siempre\
+      \ estar\xE1 sano, y prev\xE9 que alg\xFAn d\xEDa ser\xE1 viejo y no apto para\
+      \ trabajar. Si cae en la pobreza, aunque s\xF3lo sea a causa de una enfermedad\
+      \ prolongada, entonces queda completamente indefenso, se examina a su suerte,\
+      \ y la sociedad no reconoce actualmente ninguna obligaci\xF3n real hacia \xE9\
+      l m\xE1s all\xE1 de la ayuda habitual a los pobres, incluso si tiene &quot;Trabajamos\
+      \ todo el tiempo con mucha fidelidad y diligencia. La ayuda habitual a los pobres,\
+      \ sin embargo, deja mucho que desear, especialmente en las grandes ciudades,\
+      \ donde es mucho peor que en el campo.&quot; Otto von Bismarck, 1884 \xBFProbablemente\
+      \ Otto von Bismarck pronunci\xF3 este discurso en reacci\xF3n a cu\xE1l de las\
+      \ siguientes cuestiones?"
+  - input_choice_list:
+      A: "El mantenimiento de la supremac\xEDa militar a toda costa"
+      B: Crecientes tensiones entre sectas religiosas
+      C: Factores que provocaron el colapso del Imperio Otomano
+      D: "Esfuerzos de paz entre los imperios isl\xE1micos"
+    input_correct_responses:
+    - B
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. \xAB\
+      De hecho, tanto las fatwas de distinguidos [eruditos] que basan su opini\xF3\
+      n tanto en la raz\xF3n como en la tradici\xF3n y el consenso de la comunidad\
+      \ sunita coinciden en que la antigua obligaci\xF3n de extirpar, exterminar y\
+      \ expulsar las innovaciones malignas debe ser el objetivo de nuestra exaltada\
+      \ aspiraci\xF3n, porque &quot;El celo religioso es una victoria para la Fe de\
+      \ Dios el Compasivo&quot;; luego, de acuerdo con las palabras del Profeta (\xA1\
+      la paz sea con \xE9l!) &quot;Quien introduzca innovaciones malignas en nuestra\
+      \ orden debe ser expulsado&quot; y &quot;Quien lo haga Todo lo que vaya en contra\
+      \ de nuestra orden debe ser expulsado, &quot;la acci\xF3n se ha vuelto necesaria\
+      \ y exigente...&quot; Carta del sult\xE1n otomano Selim I al saf\xE1vida Shah\
+      \ Ismail I, 1514 \xBFLa carta de Selim I es m\xE1s claramente un ejemplo de\
+      \ cu\xE1l de los siguientes?"
+  - input_choice_list:
+      A: Una ruptura de las rutas comerciales debido al colapso de la estructura estatal
+        establecida
+      B: "Un aumento de la poblaci\xF3n mundial debido a un suministro m\xE1s abundante\
+        \ de alimentos."
+      C: "La difusi\xF3n de los sistemas de creencias chinos e indios en todo el mundo."
+      D: Un aumento del malestar social
+    input_correct_responses:
+    - B
+    input_question: "Esta pregunta se refiere a la siguiente informaci\xF3n. &quot;Al\
+      \ menos una de las sociedades [del mundo] tendr\xEDa que aumentar de alguna\
+      \ manera enormemente su productividad [para lograr la hegemon\xEDa global].\
+      \ Ese salto cu\xE1ntico tendr\xEDa que darse antes de las diversas revoluciones\
+      \ cient\xEDficas, tecnol\xF3gicas, agr\xEDcolas e industriales en las que se\
+      \ basan nuestras sociedades. Restos del mundo posterior al salto cu\xE1ntico.\
+      \ S\xF3lo podr\xEDa lograrse explotando los ecosistemas, los recursos minerales\
+      \ y los activos humanos de continentes enteros fuera de las tierras de la sociedad\
+      \ que dio el salto. Europa Occidental hizo precisamente eso por medio de su\
+      \ brutalidad, sus armas y sus armas. , m\xE1s importante a\xFAn, por suerte\
+      \ geogr\xE1fica y ecol\xF3gica.&quot; Copyright \xA9 2015 Cambridge University\
+      \ Press. Alfred Crosby, historiador, Imperialismo ecol\xF3gico, 2004 \xBFEl\
+      \ &quot;salto cu\xE1ntico&quot; mencionado en el pasaje contribuy\xF3 m\xE1\
+      s directamente a cu\xE1l de los siguientes desarrollos en el per\xEDodo 1450-1750\
+      \ d.C.?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_world_history
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_high_school_world_history
+task_alias: high_school_world_history

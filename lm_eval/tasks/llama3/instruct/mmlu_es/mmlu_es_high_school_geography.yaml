@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: tasa bruta de mortalidad a partir de la fecha bruta de nacimiento.
+      B: tasa bruta de natalidad a partir de la tasa bruta de mortalidad.
+      C: duplicar el tiempo respecto de la tasa bruta de natalidad.
+      D: tasa de fertilidad de la tasa bruta de mortalidad.
+    input_correct_responses:
+    - A
+    input_question: "La tasa de crecimiento natural de una poblaci\xF3n se encuentra\
+      \ restando la"
+  - input_choice_list:
+      A: "Las tasas de natalidad aumentan y la tasa de crecimiento demogr\xE1fico\
+        \ es menos r\xE1pida."
+      B: "Las tasas de natalidad disminuyen y la tasa de crecimiento demogr\xE1fico\
+        \ es menos r\xE1pida."
+      C: "Las tasas de natalidad aumentan y la tasa de crecimiento demogr\xE1fico\
+        \ aumenta."
+      D: "Las tasas de natalidad disminuyen y la tasa de crecimiento demogr\xE1fico\
+        \ aumenta."
+    input_correct_responses:
+    - B
+    input_question: "Durante la tercera etapa del modelo de transici\xF3n demogr\xE1\
+      fica, \xBFcu\xE1l de las siguientes afirmaciones es cierta?"
+  - input_choice_list:
+      A: "La duplicaci\xF3n de esfuerzos ocurre con frecuencia."
+      B: Los problemas sociales del centro de la ciudad se extienden a los suburbios
+        residenciales circundantes.
+      C: "La ineficiencia en la prestaci\xF3n de servicios ocurre con frecuencia."
+      D: "Los esfuerzos de un vecindario para reducir la contaminaci\xF3n siempre\
+        \ cuentan con el apoyo de las comunidades vecinas."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones NO es exacta con respecto\
+      \ a los servicios prestados por los gobiernos locales en los Estados Unidos?"
+  - input_choice_list:
+      A: "subcontrataci\xF3n."
+      B: "deslocalizaci\xF3n."
+      C: maquiladoras.
+      D: interdependencia local.
+    input_correct_responses:
+    - B
+    input_question: "La pr\xE1ctica de contratar a un tercero proveedor de servicios\
+      \ extranjero para realizar una operaci\xF3n se denomina"
+  - input_choice_list:
+      A: "jab\xF3n de paloma"
+      B: barra de chocolate paloma
+      C: "s\xEDmbolo de la paloma"
+      D: "Una paloma (p\xE1jaro)"
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de los siguientes elementos es un ejemplo de cultura\
+      \ no material?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_geography
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_high_school_geography
+task_alias: high_school_geography

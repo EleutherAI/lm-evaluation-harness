@@ -1,0 +1,73 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Si la pente de la droite de r\xE9gression est exactement de 1, alors la\
+        \ corr\xE9lation est exactement de 1."
+      B: "Si la corr\xE9lation est de 0, alors la pente de la droite de r\xE9gression\
+        \ est ind\xE9finie."
+      C: "Changer quelle variable est appel\xE9e x et laquelle est appel\xE9e y change\
+        \ le signe de la corr\xE9lation."
+      D: "La corr\xE9lation r est \xE9gale \xE0 la pente de la droite de r\xE9gression\
+        \ lorsque les scores z de la variable y sont trac\xE9s par rapport aux scores\
+        \ z de la variable x."
+    input_correct_responses:
+    - D
+    input_question: "Lequel des \xE9nonc\xE9s suivants est une affirmation correcte\
+      \ sur la corr\xE9lation\_?"
+  - input_choice_list:
+      A: E(X + Y) = 99, var(X + Y) = 8,5
+      B: E(X + Y) = 99, var(X + Y) = 13
+      C: E(X + Y) = 99, var(X + Y) = 17
+      D: "Les informations sont insuffisantes pour r\xE9pondre \xE0 cette question."
+    input_correct_responses:
+    - D
+    input_question: "Supposons que X et Y sont des variables al\xE9atoires avec E(X)\
+      \ = 37, var(X) = 5, E(Y) = 62 et var(Y) = 12. Quelles sont la valeur attendue\
+      \ et la variance de la variable al\xE9atoire X + Y\_?"
+  - input_choice_list:
+      A: La proportion d&#39;arbres qui ont subi plus de 50 % de dommages dus au gel.
+      B: "Le nombre d&#39;arbres touch\xE9s par le gel."
+      C: "Le nombre d&#39;arbres \xE9chantillonn\xE9s dans le bosquet."
+      D: "Pour chaque arbre \xE9chantillonn\xE9, s&#39;il a subi plus de 50 % de dommages\
+        \ ou au plus 50 % de dommages."
+    input_correct_responses:
+    - D
+    input_question: "Apr\xE8s qu&#39;un avertissement de gel a \xE9t\xE9 \xE9mis,\
+      \ le propri\xE9taire d&#39;une grande orangeraie a demand\xE9 \xE0 ses ouvriers\
+      \ d&#39;arroser tous ses arbres avec de l&#39;eau. L&#39;eau \xE9tait cens\xE9\
+      e geler et former une couche protectrice de glace autour de la fleur d&#39;oranger.\
+      \ N\xE9anmoins, le propri\xE9taire soup\xE7onne que certains arbres ont subi\
+      \ des dommages consid\xE9rables \xE0 cause du gel. Pour estimer la proportion\
+      \ d&#39;arbres qui ont subi plus de 50 % de dommages dus au gel, il a pr\xE9\
+      lev\xE9 un \xE9chantillon al\xE9atoire de 100 arbres de son bosquet. Quelle\
+      \ est la variable de r\xE9ponse dans cette exp\xE9rience\_?"
+  - input_choice_list:
+      A: "Moyenne 518 grammes; \xE9cart type 7,0 grammes"
+      B: "Moyenne 518 grammes ; \xE9cart type 3,5 grammes"
+      C: "Moyenne 518 grammes ; \xE9cart type 6,1 grammes"
+      D: "Moyenne 394 grammes; \xE9cart type 6,1 grammes"
+    input_correct_responses:
+    - C
+    input_question: "Une nouvelle smartwatch est fabriqu\xE9e dans une partie d&#39;une\
+      \ usine, puis s\xE9curis\xE9e pour l&#39;exp\xE9dition dans une autre partie\
+      \ ind\xE9pendante de l&#39;usine. Le poids de la smartwatch a une moyenne de\
+      \ 62 grammes et un \xE9cart type de 1,0 gramme. Le poids de l&#39;emballage\
+      \ (bo\xEEte, notice d&#39;utilisation, papier bulle...) a une moyenne de 456\
+      \ grammes et un \xE9cart type de 6 grammes. Ensemble, la distribution du poids\
+      \ de la montre connect\xE9e et de son emballage aurait la moyenne et l&#39;\xE9\
+      cart type suivants\_:"
+  - input_choice_list:
+      A: je, je
+      B: II, III
+      C: III, je
+      D: III, II
+    input_correct_responses:
+    - D
+    input_question: "Lequel des ensembles suivants a le plus petit \xE9cart-type\_\
+      ? Lequel a le plus gros ? Je\_: {1,2,3} II\_: {-10,10} III\_: {100}"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_statistics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_high_school_statistics
+task_alias: high_school_statistics

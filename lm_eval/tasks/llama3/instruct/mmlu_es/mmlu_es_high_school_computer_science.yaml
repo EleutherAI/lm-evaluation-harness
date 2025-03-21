@@ -1,0 +1,80 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Un coche alerta a un conductor que est\xE1 a punto de chocar contra un objeto."
+      B: "Un excursionista utiliza un reloj GPS para realizar un seguimiento de su\
+        \ posici\xF3n."
+      C: "Un refrigerador pide leche a un servicio de entrega en l\xEDnea cuando la\
+        \ leche del refrigerador casi se ha acabado."
+      D: "Un corredor utiliza un reloj con sensores \xF3pticos para controlar su frecuencia\
+        \ card\xEDaca."
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de los siguientes es un ejemplo del uso de un dispositivo\
+      \ en Internet de las cosas (IoT)?"
+  - input_choice_list:
+      A: "Las actividades de un usuario que navega en una ventana an\xF3nima no ser\xE1\
+        n visibles para las personas que monitorean la red del usuario, como el administrador\
+        \ del sistema."
+      B: "Los art\xEDculos colocados en el carrito de compras de una tienda web para\
+        \ compras futuras durante la sesi\xF3n de navegaci\xF3n an\xF3nima no se guardar\xE1\
+        n en la computadora del usuario."
+      C: "Un usuario no podr\xE1 iniciar sesi\xF3n en cuentas de correo electr\xF3\
+        nico o de redes sociales durante la sesi\xF3n de navegaci\xF3n an\xF3nima."
+      D: "Un usuario que navegue en una ventana an\xF3nima estar\xE1 protegido de\
+        \ los virus lanzados desde cualquier sitio web visitado o archivos descargados."
+    input_correct_responses:
+    - B
+    input_question: "Muchos navegadores web permiten a los usuarios abrir ventanas\
+      \ an\xF3nimas. Durante una sesi\xF3n de navegaci\xF3n en una ventana an\xF3\
+      nima, el navegador no registra un historial de navegaci\xF3n ni una lista de\
+      \ archivos descargados. Cuando se sale de la ventana an\xF3nima, las cookies\
+      \ creadas durante la sesi\xF3n se eliminan. \xBFCu\xE1l de las siguientes afirmaciones\
+      \ sobre sesiones de navegaci\xF3n en una ventana an\xF3nima es cierta?"
+  - input_choice_list:
+      A: Error
+      B: a B C
+      C: cba
+      D: C
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l es el resultado de &quot;abc&quot;[::-1] en Python\
+      \ 3?"
+  - input_choice_list:
+      A: Fox
+      B: Hotel
+      C: Noviembre
+      D: yanqui
+    input_correct_responses:
+    - C
+    input_question: "En el programa siguiente, el valor inicial de x es 5 y el valor\
+      \ inicial de y es 10. IF (X &lt; O) { DISPLAY (&quot;Foxtrot&quot;) } ELSE {\
+      \ IF (X &gt; y) { DISPLAY (&quot;Hotel&quot;) } ELSE { IF (y &gt; O) { DISPLAY\
+      \ (&quot;Noviembre&quot;) } ELSE { DISPLAY (&quot;Yankee&quot;) } } } \xBFQu\xE9\
+      \ se muestra como resultado de ejecutar el programa?"
+  - input_choice_list:
+      A: "Paso 3: aumente el valor de la posici\xF3n en 1. Paso 4: repita los pasos\
+        \ 2 y 3 hasta que el valor del recuento sea mayor que 100."
+      B: "Paso 3: Aumente el valor de la posici\xF3n en 1. Paso 4: Repita los pasos\
+        \ 2 y 3 hasta que el valor de la posici\xF3n sea mayor que n."
+      C: "Paso 3: repita el paso 2 hasta que el valor del recuento sea mayor que 100.\
+        \ Paso 4: aumente el valor de la posici\xF3n en 1."
+      D: "Paso 3: repita el paso 2 hasta que el valor de la posici\xF3n sea mayor\
+        \ que n. Paso 4: aumente el valor del recuento en 1."
+    input_correct_responses:
+    - D
+    input_question: "Una lista de n\xFAmeros tiene n elementos, indexados del 1 al\
+      \ n. El siguiente algoritmo est\xE1 destinado a mostrar la cantidad de elementos\
+      \ en la lista que tienen un valor mayor que 100. El algoritmo utiliza las variables\
+      \ recuento y posici\xF3n. Faltan los pasos 3 y 4. Paso 1: establezca el recuento\
+      \ en 0 y la posici\xF3n en 1. Paso 2: si el valor del elemento en la posici\xF3\
+      n del \xEDndice es mayor que 100, aumente el valor del recuento en 1. Paso 3:\
+      \ (paso faltante) Paso 4: (paso faltante ) Paso 5: Mostrar el valor del recuento.\
+      \ \xBFCu\xE1l de los siguientes podr\xEDa usarse para reemplazar los pasos 3\
+      \ y 4 para que el algoritmo funcione seg\xFAn lo previsto?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_computer_science
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_high_school_computer_science
+task_alias: high_school_computer_science

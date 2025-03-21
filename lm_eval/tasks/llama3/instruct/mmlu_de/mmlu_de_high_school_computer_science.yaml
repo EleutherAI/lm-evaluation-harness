@@ -1,0 +1,78 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Ein Auto warnt einen Fahrer, dass es im Begriff ist, ein Objekt zu treffen.
+      B: Ein Wanderer verwendet eine GPS-Uhr, um seine Position zu verfolgen.
+      C: "Ein K\xFChlschrank bestellt Milch bei einem Online-Lieferservice, wenn die\
+        \ Milch im K\xFChlschrank fast aufgebraucht ist."
+      D: "Ein L\xE4ufer verwendet eine Uhr mit optischen Sensoren, um seine Herzfrequenz\
+        \ zu \xFCberwachen."
+    input_correct_responses:
+    - C
+    input_question: "Welches der folgenden ist ein Beispiel f\xFCr die Verwendung\
+      \ eines Ger\xE4ts im Internet der Dinge (IoT)?"
+  - input_choice_list:
+      A: "Die Aktivit\xE4ten eines Benutzers, der in einem anonymen Fenster surft,\
+        \ sind f\xFCr Personen, die das Netzwerk des Benutzers \xFCberwachen, wie\
+        \ z. B. der Systemadministrator, nicht sichtbar."
+      B: "Artikel, die w\xE4hrend der anonymen Browsersitzung f\xFCr zuk\xFCnftige\
+        \ Eink\xE4ufe in den Warenkorb eines Webshops gelegt werden, werden nicht\
+        \ auf dem Computer des Benutzers gespeichert."
+      C: "Ein Benutzer kann sich w\xE4hrend der anonymen Browsersitzung nicht bei\
+        \ E-Mail- oder Social-Media-Konten anmelden."
+      D: "Ein Benutzer, der in einem anonymen Fenster surft, wird vor Viren gesch\xFC\
+        tzt, die von besuchten Websites oder heruntergeladenen Dateien gestartet werden."
+    input_correct_responses:
+    - B
+    input_question: "Viele Webbrowser erm\xF6glichen es Benutzern, anonyme Fenster\
+      \ zu \xF6ffnen. W\xE4hrend einer Browsersitzung in einem anonymen Fenster zeichnet\
+      \ der Browser keinen Browserverlauf oder eine Liste heruntergeladener Dateien\
+      \ auf. Beim Verlassen des anonymen Fensters werden w\xE4hrend der Sitzung erstellte\
+      \ Cookies gel\xF6scht. Welche der folgenden Aussagen zu Browsersitzungen in\
+      \ einem anonymen Fenster ist richtig?"
+  - input_choice_list:
+      A: Fehler
+      B: ABC
+      C: cba
+      D: C
+    input_correct_responses:
+    - C
+    input_question: Was ist die Ausgabe von &quot;abc&quot;[::-1] in Python 3?
+  - input_choice_list:
+      A: Foxtrott
+      B: Hotel
+      C: November
+      D: Yankee
+    input_correct_responses:
+    - C
+    input_question: "Im folgenden Programm ist der Anfangswert von x 5 und der Anfangswert\
+      \ von y 10. IF (X &lt; O) { DISPLAY (&quot;Foxtrot&quot;) } ELSE { IF (X &gt;\
+      \ y) { DISPLAY (&quot;Hotel&quot;) } ELSE { IF (y &gt; O) { DISPLAY (&quot;November&quot;)\
+      \ } ELSE { DISPLAY (&quot;Yankee&quot;) } } } Was wird als Ergebnis der Ausf\xFC\
+      hrung des Programms angezeigt?"
+  - input_choice_list:
+      A: "Schritt 3: Erh\xF6hen Sie den Wert von position um 1. Schritt 4: Wiederholen\
+        \ Sie die Schritte 2 und 3, bis der Wert von count gr\xF6\xDFer als 100 ist."
+      B: "Schritt 3: Erh\xF6hen Sie den Wert von Position um 1. Schritt 4: Wiederholen\
+        \ Sie die Schritte 2 und 3, bis der Wert von Position gr\xF6\xDFer als n ist."
+      C: "Schritt 3: Wiederholen Sie Schritt 2, bis der Wert von count gr\xF6\xDF\
+        er als 100 ist. Schritt 4: Erh\xF6hen Sie den Wert von position um 1."
+      D: "Schritt 3: Wiederholen Sie Schritt 2, bis der Wert von Position gr\xF6\xDF\
+        er als n ist. Schritt 4: Erh\xF6hen Sie den Wert von count um 1."
+    input_correct_responses:
+    - D
+    input_question: "Eine Liste von Zahlen hat n Elemente, die von 1 bis n indiziert\
+      \ sind. Der folgende Algorithmus soll die Anzahl der Elemente in der Liste anzeigen,\
+      \ die einen Wert gr\xF6\xDFer als 100 haben. Der Algorithmus verwendet die Variablen\
+      \ count und position. Die Schritte 3 und 4 fehlen. Schritt 1: Z\xE4hler auf\
+      \ 0 und Position auf 1 setzen. Schritt 2: Wenn der Wert des Elements an der\
+      \ Indexposition gr\xF6\xDFer als 100 ist, den Wert von Z\xE4hler um 1 erh\xF6\
+      hen. Schritt 3: (fehlender Schritt) Schritt 4: (fehlender Schritt ) Schritt\
+      \ 5: Zeigen Sie den Wert von count an. Was k\xF6nnte verwendet werden, um die\
+      \ Schritte 3 und 4 zu ersetzen, damit der Algorithmus wie beabsichtigt funktioniert?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_computer_science
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_high_school_computer_science
+task_alias: high_school_computer_science

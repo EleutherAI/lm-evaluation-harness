@@ -1,0 +1,69 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Es w\xE4re schwieriger, da der Lastwagen auf dem Mars schwerer ist."
+      B: "Es w\xE4re einfacher, da der Lastwagen auf dem Mars leichter ist."
+      C: "Es w\xE4re schwieriger, da der Lastwagen auf dem Mars leichter ist."
+      D: "Es w\xE4re das gleiche, egal wo du bist."
+    input_correct_responses:
+    - D
+    input_question: "Sie schieben einen LKW auf einer Stra\xDFe. W\xE4re es einfacher,\
+      \ diesen Truck auf dem Mars zu beschleunigen? Warum? (Angenommen, es gibt keine\
+      \ Reibung)"
+  - input_choice_list:
+      A: "Der Kuiperg\xFCrtel; Kometen mit kurzer Periode befinden sich in der Regel\
+        \ in der Ebene des Sonnensystems, genau wie der Kuiperg\xFCrtel."
+      B: "Der Kuiperg\xFCrtel; Kurzperiodische Kometen neigen dazu, aus zuf\xE4lligen\
+        \ Richtungen zu kommen, was auf eine kugelf\xF6rmige Verteilung von Kometen\
+        \ hinweist, die als Kuiperg\xFCrtel bezeichnet wird."
+      C: "Der Asteroideng\xFCrtel; Kometen mit kurzer Periode haben \xE4hnliche Umlaufzeiten\
+        \ wie Asteroiden wie Vesta und befinden sich genau wie der Asteroideng\xFC\
+        rtel in der Ebene des Sonnensystems."
+      D: Die Oortsche Wolke; Kurzperiodische Kometen befinden sich in der Regel in
+        der Ebene des Sonnensystems, genau wie die Oortsche Wolke.
+    input_correct_responses:
+    - A
+    input_question: Woher kommen die meisten kurzperiodischen Kometen und woher wissen
+      wir das?
+  - input_choice_list:
+      A: 10000 mal mehr
+      B: 100 Mal mehr
+      C: 1000 mal mehr
+      D: 10 mal mehr
+    input_correct_responses:
+    - A
+    input_question: "Angenommen, die Pupille Ihres Auges hat einen Durchmesser von\
+      \ 5 mm und Sie haben ein Teleskop mit einer \xD6ffnung von 50 cm. Wie viel mehr\
+      \ Licht kann das Teleskop sammeln als Ihr Auge?"
+  - input_choice_list:
+      A: Hier hat sich einst ein Planet gebildet, der jedoch durch eine katastrophale
+        Kollision auseinandergebrochen ist.
+      B: In diesem Teil des Sonnennebels gab es nicht genug Material, um einen Planeten
+        zu bilden.
+      C: "Es gab zu viel felsiges Material, um einen terrestrischen Planeten zu bilden,\
+        \ aber nicht genug gasf\xF6rmiges Material, um einen jovianischen Planeten\
+        \ zu bilden."
+      D: Die Resonanz mit Jupiter verhinderte, dass sich Material zu einem Planeten
+        sammelte.
+    input_correct_responses:
+    - D
+    input_question: "Warum gibt es keinen Planeten, auf dem sich der Asteroideng\xFC\
+      rtel befindet?"
+  - input_choice_list:
+      A: "Denn die Oberfl\xE4che ist mit stark oxidierten (&quot;verrosteten&quot;)\
+        \ Mineralien bedeckt."
+      B: "Weil die Atmosph\xE4re mehr Licht bei blauen Wellenl\xE4ngen streut und\
+        \ haupts\xE4chlich rotes Licht durchl\xE4sst."
+      C: "Weil der Mars mit uralten Lavastr\xF6men bedeckt ist, die eine rote Farbe\
+        \ haben."
+      D: "Weil flie\xDFendes Wasser auf der Marsoberfl\xE4che vor mehreren Milliarden\
+        \ Jahren die Oberfl\xE4chenmineralien ver\xE4nderte."
+    input_correct_responses:
+    - A
+    input_question: Warum ist der Mars rot?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_astronomy
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_astronomy
+task_alias: astronomy

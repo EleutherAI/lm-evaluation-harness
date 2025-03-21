@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Un salario m\xEDnimo efectivo impuesto a este mercado laboral."
+      B: Un aumento en el precio de los galones de pintura.
+      C: "Un aumento en la construcci\xF3n de nuevas viviendas."
+      D: "Un aumento en el precio de los pintores mec\xE1nicos siempre que el efecto\
+        \ producci\xF3n supere el efecto sustituci\xF3n."
+    input_correct_responses:
+    - C
+    input_question: "En un mercado laboral competitivo para pintores de casas, \xBF\
+      cu\xE1l de las siguientes opciones aumentar\xEDa la demanda de pintores de casas?"
+  - input_choice_list:
+      A: "la demanda del producto aumentar\xE1"
+      B: "La demanda del producto disminuir\xE1."
+      C: "el excedente del consumidor aumentar\xE1"
+      D: "el excedente del consumidor disminuir\xE1"
+    input_correct_responses:
+    - C
+    input_question: Si el gobierno subsidia a los productores en un mercado perfectamente
+      competitivo, entonces
+  - input_choice_list:
+      A: '0'
+      B: '5'
+      C: '10'
+      D: '100'
+    input_correct_responses:
+    - D
+    input_question: "La relaci\xF3n de concentraci\xF3n de un monopolio es"
+  - input_choice_list:
+      A: "El precio m\xEDnimo desplaza la curva de demanda hacia la izquierda."
+      B: Un piso efectivo crea una escasez del bien.
+      C: "El precio m\xEDnimo desplaza la curva de oferta del bien hacia la derecha."
+      D: Para que sea un piso efectivo, debe fijarse por encima del precio de equilibrio.
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones es cierta respecto\
+      \ del precio m\xEDnimo?"
+  - input_choice_list:
+      A: Entrada y salida gratuita del mercado
+      B: Algunos grandes productores
+      C: Un productor de un bien sin sustitutos cercanos.
+      D: "Un producto homog\xE9neo"
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de las siguientes es necesariamente una caracter\xED\
+      stica del oligopolio?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_microeconomics
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_high_school_microeconomics
+task_alias: high_school_microeconomics

@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Externalit\xE9s, Pouvoir, Ind\xE9pendance"
+      B: "Publicit\xE9, Ressources non substantielles, D\xE9pendance mutuelle"
+      C: "Publicit\xE9, Pouvoir, Ind\xE9pendance"
+      D: "Externalit\xE9s, Pouvoir, D\xE9pendance mutuelle"
+    input_correct_responses:
+    - D
+    input_question: "Au-del\xE0 de l&#39;analyse de rentabilisation pour s&#39;engager\
+      \ dans la RSE, il existe un certain nombre d&#39;arguments moraux concernant\_\
+      : le _______ n\xE9gatif, le _______ que les entreprises poss\xE8dent et le ________\
+      \ des entreprises et de la soci\xE9t\xE9."
+  - input_choice_list:
+      A: "Responsabilit\xE9 sociale des entreprises"
+      B: "Gestion de l&#39;\xE9thique des affaires"
+      C: "Durabilit\xE9"
+      D: Gestion de l&#39;environnement
+    input_correct_responses:
+    - B
+    input_question: "_______ est la tentative directe de g\xE9rer de mani\xE8re formelle\
+      \ ou informelle des questions ou des probl\xE8mes \xE9thiques, par le biais\
+      \ de politiques, de pratiques et de programmes sp\xE9cifiques."
+  - input_choice_list:
+      A: "\xC0 l&#39;ext\xE9rieur, limit\xE9, ind\xE9pendant"
+      B: "\xC0 l&#39;int\xE9rieur, limit\xE9, par intermittence"
+      C: "Dehors, Illimit\xE9, Par intermittence"
+      D: "Int\xE9rieur, Illimit\xE9, Ind\xE9pendant"
+    input_correct_responses:
+    - A
+    input_question: "Pour garantir l&#39;ind\xE9pendance des membres non ex\xE9cutifs\
+      \ du conseil d&#39;administration, plusieurs mesures peuvent \xEAtre prises,\
+      \ parmi lesquelles des non-ex\xE9cutifs issus de _______ de la soci\xE9t\xE9\
+      , nomm\xE9s pour une dur\xE9e de _________ et nomm\xE9s _________."
+  - input_choice_list:
+      A: Action directe non violente, Action directe violente, Action indirecte, Boycott
+      B: Action indirecte, Action instrumentale, Action directe non violente, Campagne
+        d&#39;information
+      C: Action indirecte, Action directe violente, Action directe non violente Boycott
+      D: Action directe non violente, Action instrumentale, Action indirecte, Campagne
+        d&#39;information
+    input_correct_responses:
+    - C
+    input_question: "Trois tactiques contrast\xE9es que les OSC peuvent utiliser pour\
+      \ atteindre leurs objectifs sont ________ qui implique g\xE9n\xE9ralement la\
+      \ recherche et la communication, ________, qui peut impliquer d&#39;attaquer\
+      \ physiquement les op\xE9rations d&#39;une entreprise ou ________, impliquant\
+      \ souvent une certaine forme de _______."
+  - input_choice_list:
+      A: Buycotts, Boycotts, Technologie Blockchain, Dons caritatifs
+      B: "Buycotts, Boycotts, Technologie num\xE9rique, Augmentation des ventes"
+      C: Boycotts, Buyalls, Technologie Blockchain, Dons caritatifs
+      D: "Boycotts, Buycotts, Technologie num\xE9rique, Augmentation des ventes"
+    input_correct_responses:
+    - D
+    input_question: "Contrairement aux _______, les _______ visent \xE0 r\xE9compenser\
+      \ les comportements favorables des entreprises. Le succ\xE8s de ces campagnes\
+      \ a \xE9t\xE9 renforc\xE9 par l&#39;utilisation de ___________, qui permet aux\
+      \ campagnes d&#39;aider l&#39;entreprise \xE0 atteindre _________ ."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_business_ethics
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_business_ethics
+task_alias: business_ethics

@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 160 bit
+      B: 512 bit
+      C: 628 bit
+      D: 820 bit
+    input_correct_responses:
+    - A
+    input_question: SHA-1 ha un digest del messaggio
+  - input_choice_list:
+      A: "IM \u2013 Trojan"
+      B: Trojan backdoor
+      C: Downloader di trojan
+      D: Trojan di riscatto
+    input_correct_responses:
+    - D
+    input_question: "_____________ pu\xF2 modificare i dati sul tuo sistema, in modo\
+      \ che il tuo sistema non funzioni correttamente o non sia pi\xF9 possibile accedere\
+      \ a dati specifici, o potrebbe persino chiedere un riscatto per concederti l&#39;accesso."
+  - input_choice_list:
+      A: '&quot;Hackerare&quot; l&#39;etica in modo da giustificare un comportamento
+        egoistico non intenzionale'
+      B: "Sistemi di hacking (ad esempio durante i penetration test) per esporre le\
+        \ vulnerabilit\xE0 in modo che possano essere riparate, anzich\xE9 sfruttate"
+      C: Hacking nei sistemi gestiti da coloro con la cui etica non sei d&#39;accordo
+      D: Un termine gergale per lo sviluppo rapido di software, ad esempio, come parte
+        degli hackathon
+    input_correct_responses:
+    - B
+    input_question: "Cos\u2019\xE8 l\u2019hacking etico?"
+  - input_choice_list:
+      A: sovrascrivendo le chiavi crittografiche in memoria
+      B: una sorta di iniezione di codice
+      C: una lettura al di fuori dei limiti di un buffer
+      D: un attacco di stringa di formato
+    input_correct_responses:
+    - C
+    input_question: "Lo sfruttamento del bug Heartbleed \xE8 consentito"
+  - input_choice_list:
+      A: Rete infestata
+      B: World Wide Web
+      C: Rete di superficie
+      D: Deep Web
+    input_correct_responses:
+    - D
+    input_question: "Il ____________ \xE8 tutto ci\xF2 che il tuo motore di ricerca\
+      \ non pu\xF2 cercare."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_computer_security
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_computer_security
+task_alias: computer_security

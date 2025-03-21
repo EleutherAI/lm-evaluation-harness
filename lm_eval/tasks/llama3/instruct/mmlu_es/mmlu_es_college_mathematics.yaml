@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: EST = 0
+      B: ST = T
+      C: ST = TS
+      D: "ST - TS es el mapa de identidad de V sobre s\xED mismo."
+    input_correct_responses:
+    - D
+    input_question: "Sea V el conjunto de todos los polinomios reales p(x). Definamos\
+      \ las transformaciones T, S en V por T:p(x) -&gt; xp(x) y S:p(x) -&gt; p&#39;(x)\
+      \ = d/dx p(x), e interpretemos (ST) (p(x)) como S(T(p(x))). \xBFCual de los\
+      \ siguientes es verdadero?"
+  - input_choice_list:
+      A: '2'
+      B: 2-e^-2
+      C: 2 + e^-2
+      D: 2 + e^-4
+    input_correct_responses:
+    - D
+    input_question: "Un tanque contiene inicialmente una soluci\xF3n salina de 3 gramos\
+      \ de sal disueltos en 100 litros de agua. Se pulveriza en el tanque una soluci\xF3\
+      n salina que contiene 0,02 gramos de sal por litro de agua a una velocidad de\
+      \ 4 litros por minuto. La soluci\xF3n pulverizada se mezcla continuamente con\
+      \ la soluci\xF3n salina en el tanque y la mezcla sale del tanque a una velocidad\
+      \ de 4 litros por minuto. Si la mezcla es instant\xE1nea \xBFcu\xE1ntos gramos\
+      \ de sal quedan en el tanque despu\xE9s de transcurridos 100 minutos?"
+  - input_choice_list:
+      A: yo solo
+      B: Yo solo
+      C: solo III
+      D: "S\xF3lo II y III"
+    input_correct_responses:
+    - B
+    input_question: "Sea A una matriz real de 2x2. \xBFCu\xE1l de las siguientes afirmaciones\
+      \ debe ser cierta? I. Todas las entradas de A^2 no son negativas. II. El determinante\
+      \ de A^2 no es negativo. III. Si A tiene dos valores propios distintos, entonces\
+      \ A^2 tiene dos valores propios distintos."
+  - input_choice_list:
+      A: '-11'
+      B: '0'
+      C: '11'
+      D: 33/2
+    input_correct_responses:
+    - C
+    input_question: Supongamos que f(1 + x) = f(x) para todo x real. Si f es un polinomio
+      y f(5) = 11, entonces f(15/2)
+  - input_choice_list:
+      A: '-5'
+      B: '-4'
+      C: '-3'
+      D: '-2'
+    input_correct_responses:
+    - B
+    input_question: "Sea A el conjunto de todos los pares ordenados de enteros (m,\
+      \ n) tales que 7m + 12n = 22. \xBFCu\xE1l es el mayor n\xFAmero negativo del\
+      \ conjunto B = {m + n : (m, n) \\in A}?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_mathematics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_college_mathematics
+task_alias: college_mathematics

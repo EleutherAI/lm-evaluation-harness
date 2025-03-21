@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "O estado de oxida\xE7\xE3o mais comum para os elementos lantan\xEDdeos \xE9\
+        \ +3."
+      B: "Os complexos de lantan\xEDdeos geralmente apresentam n\xFAmeros de coordena\xE7\
+        \xE3o elevados (&gt; 6)."
+      C: "Todos os elementos lantan\xEDdeos reagem com \xE1cido aquoso para liberar\
+        \ hidrog\xEAnio."
+      D: "Os raios at\xF4micos dos elementos lantan\xEDdeos aumentam ao longo do per\xED\
+        odo de La a Lu."
+    input_correct_responses:
+    - D
+    input_question: "Qual das seguintes afirma\xE7\xF5es sobre os elementos lantan\xED\
+      deos N\xC3O \xE9 verdadeira?"
+  - input_choice_list:
+      A: 1,0 mL
+      B: 10ml
+      C: 20ml
+      D: 50ml
+    input_correct_responses:
+    - C
+    input_question: "Uma amostra de 0,217 g de HgO (massa molar = 217 g) reage com\
+      \ excesso de \xEDons iodeto de acordo com a rea\xE7\xE3o mostrada acima. A titula\xE7\
+      \xE3o da solu\xE7\xE3o resultante requer quantos mL de HCl 0,10 M para atingir\
+      \ o ponto de equival\xEAncia?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '6'
+      D: '24'
+    input_correct_responses:
+    - A
+    input_question: "Preveja o n\xFAmero de linhas no espectro EPR de uma solu\xE7\
+      \xE3o de radical metila marcado com 13C (13CH3\u2022), assumindo que as linhas\
+      \ n\xE3o se sobrep\xF5em."
+  - input_choice_list:
+      A: "um \xE1cido"
+      B: humilhar
+      C: um catalisador
+      D: um agente redutor
+    input_correct_responses:
+    - D
+    input_question: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq)\
+      \ + 4 Cr3+(aq) + 10 H2O(l). Na rea\xE7\xE3o mostrada acima, Cl\u2212(aq) se\
+      \ comporta como"
+  - input_choice_list:
+      A: PbH4 &lt;SnH4 &lt;GeH4 &lt;SiH4 &lt;CH4
+      B: PbH4 &lt;SnH4 &lt;CH4 &lt;GeH4 &lt;SiH4
+      C: CH4 &lt;SiH4 &lt;GeH4 &lt;SnH4 &lt;PbH4
+      D: CH4 &lt;PbH4 &lt;GeH4 &lt;SnH4 &lt;SiH4
+    input_correct_responses:
+    - A
+    input_question: "Qual das alternativas a seguir lista os hidretos dos elementos\
+      \ do grupo 14 em ordem de estabilidade t\xE9rmica, do menor para o maior?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_chemistry
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_college_chemistry
+task_alias: college_chemistry

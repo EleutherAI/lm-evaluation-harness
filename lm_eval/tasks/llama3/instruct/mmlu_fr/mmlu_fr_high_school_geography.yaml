@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "taux de mortalit\xE9 brut \xE0 partir de la date de naissance brute."
+      B: "taux brut de natalit\xE9 \xE0 partir du taux brut de mortalit\xE9."
+      C: "temps de doublement du taux brut de natalit\xE9."
+      D: "taux de f\xE9condit\xE9 \xE0 partir du taux brut de mortalit\xE9."
+    input_correct_responses:
+    - A
+    input_question: Le taux d&#39;accroissement naturel d&#39;une population s&#39;obtient
+      en soustrayant
+  - input_choice_list:
+      A: "Les taux de natalit\xE9 augmentent et le taux de croissance d\xE9mographique\
+        \ est moins rapide."
+      B: "Les taux de natalit\xE9 diminuent et le taux de croissance d\xE9mographique\
+        \ est moins rapide."
+      C: "Les taux de natalit\xE9 augmentent et le taux de croissance d\xE9mographique\
+        \ augmente."
+      D: "Les taux de natalit\xE9 diminuent et le taux de croissance d\xE9mographique\
+        \ augmente."
+    input_correct_responses:
+    - B
+    input_question: "Au cours de la troisi\xE8me \xE9tape du mod\xE8le de transition\
+      \ d\xE9mographique, laquelle des affirmations suivantes est vraie\_?"
+  - input_choice_list:
+      A: La duplication des efforts se produit souvent.
+      B: "Les probl\xE8mes sociaux de la ville centrale d\xE9bordent sur les banlieues\
+        \ r\xE9sidentielles environnantes."
+      C: "L&#39;inefficacit\xE9 dans la prestation de services se produit souvent."
+      D: "Les efforts d&#39;un quartier pour r\xE9duire la pollution sont toujours\
+        \ soutenus par les communaut\xE9s voisines."
+    input_correct_responses:
+    - D
+    input_question: "Laquelle des affirmations suivantes n&#39;est PAS exacte concernant\
+      \ les services fournis par les gouvernements locaux aux \xC9tats-Unis\_?"
+  - input_choice_list:
+      A: externalisation.
+      B: "d\xE9localisation."
+      C: maquiladoras.
+      D: "interd\xE9pendance g\xE9ographique."
+    input_correct_responses:
+    - B
+    input_question: "La pratique consistant \xE0 embaucher un fournisseur de services\
+      \ tiers \xE9tranger pour g\xE9rer une op\xE9ration est appel\xE9e"
+  - input_choice_list:
+      A: Savon colombe
+      B: Barre de chocolat colombe
+      C: Symbole de la colombe
+      D: Une colombe (oiseau)
+    input_correct_responses:
+    - C
+    input_question: "Lequel des \xE9l\xE9ments suivants est un exemple de culture\
+      \ immat\xE9rielle\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_geography
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_high_school_geography
+task_alias: high_school_geography

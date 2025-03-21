@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: du quoque
+      B: Pferd lachen
+      C: Argument gegen die Person
+      D: Ignoranz elenchi
+    input_correct_responses:
+    - C
+    input_question: "Wenn jemand den Charakter eines gegnerischen Arguments angreift,\
+      \ anstatt auf die Argumente dieses Gegners zu antworten, hat die erste Person\
+      \ wahrscheinlich einen der folgenden Irrt\xFCmer begangen?"
+  - input_choice_list:
+      A: etwas zu argumentieren ist minderwertig, nur weil es etwas nicht tut, was
+        es nie tun sollte.
+      B: "Aufnahme von mehr als einer Behauptung in den Satz und Behandlung eines\
+        \ Beweises f\xFCr eine Behauptung als Beweis f\xFCr alle Behauptungen."
+      C: "eine Schlussfolgerung ziehen, bevor die Beweise gepr\xFCft werden, und nur\
+        \ Beweise ber\xFCcksichtigen, die diese Schlussfolgerung st\xFCtzen."
+      D: "Stellen einer Frage, die entweder eine unbewiesene Annahme oder mehr als\
+        \ eine Frage enth\xE4lt, wodurch eine einfache Ja- oder Nein-Antwort bedeutungslos\
+        \ wird."
+    input_correct_responses:
+    - D
+    input_question: Die komplexe Frage Fehlschluss besteht aus
+  - input_choice_list:
+      A: "Die Unterpr\xE4misse muss den Vordersatz verneinen"
+      B: "Die Hauptpr\xE4misse muss die Konsequenz best\xE4tigen"
+      C: "Der mittlere Begriff muss in mindestens einer Pr\xE4misse in einem universellen\
+        \ oder uneingeschr\xE4nkten Sinn verwendet werden"
+      D: Alles das oben Genannte
+    input_correct_responses:
+    - C
+    input_question: "Welche der folgenden Aussagen trifft auf einen g\xFCltigen kategorischen\
+      \ Syllogismus zu?"
+  - input_choice_list:
+      A: Aufteilung
+      B: Komposition
+      C: An die Person appellieren
+      D: Appell an Unwissenheit
+    input_correct_responses:
+    - B
+    input_question: "Zu argumentieren, dass das, was f\xFCr die Teile gilt, auch f\xFC\
+      r das Ganze gelten muss, ist der Trugschluss von ..."
+  - input_choice_list:
+      A: schlechte Sportlichkeit
+      B: "Appell an Mitgef\xFChl"
+      C: Argument gegen die Person
+      D: Unkenntnis der Widerlegung
+    input_correct_responses:
+    - D
+    input_question: "Wenn ein Argumentator w\xE4hrend der Widerlegung Verwirrung stiftet,\
+      \ weil er wirklich oder vorget\xE4uscht nicht in der Lage ist, sich auf eine\
+      \ Widerlegung einzulassen, hat dieser Argumentator m\xF6glicherweise den Irrtum\
+      \ begangen"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_logical_fallacies
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_logical_fallacies
+task_alias: logical_fallacies

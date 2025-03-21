@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 160 bits
+      B: 512 bits
+      C: 628 bits
+      D: 820 bits
+    input_correct_responses:
+    - A
+    input_question: "SHA-1 a un r\xE9sum\xE9 de message de"
+  - input_choice_list:
+      A: "IM \u2013 chevaux de Troie"
+      B: "Chevaux de Troie de porte d\xE9rob\xE9e"
+      C: Trojan-Downloader
+      D: "Cheval de Troie ran\xE7on"
+    input_correct_responses:
+    - D
+    input_question: "_____________ peut modifier les donn\xE9es de votre syst\xE8\
+      me - afin que votre syst\xE8me ne fonctionne pas correctement ou que vous ne\
+      \ puissiez plus acc\xE9der \xE0 des donn\xE9es sp\xE9cifiques, ou il peut m\xEA\
+      me demander une ran\xE7on afin de vous donner l&#39;acc\xE8s."
+  - input_choice_list:
+      A: "&quot;Pirater&quot; l&#39;\xE9thique pour justifier un comportement \xE9\
+        go\xEFste involontaire"
+      B: "Piratage de syst\xE8mes (par exemple, lors de tests d&#39;intrusion) pour\
+        \ exposer les vuln\xE9rabilit\xE9s afin qu&#39;elles puissent \xEAtre corrig\xE9\
+        es plut\xF4t qu&#39;exploit\xE9es"
+      C: "Le piratage des syst\xE8mes g\xE9r\xE9s par ceux dont vous n&#39;\xEAtes\
+        \ pas d&#39;accord avec l&#39;\xE9thique"
+      D: "Un terme d&#39;argot pour le d\xE9veloppement rapide de logiciels, par exemple,\
+        \ dans le cadre de hackathons"
+    input_correct_responses:
+    - B
+    input_question: "Qu&#39;est-ce que le piratage \xE9thique ?"
+  - input_choice_list:
+      A: "\xE9craser les cl\xE9s cryptographiques en m\xE9moire"
+      B: une sorte d&#39;injection de code
+      C: une lecture en dehors des limites d&#39;un tampon
+      D: "une attaque par cha\xEEne de format"
+    input_correct_responses:
+    - C
+    input_question: L&#39;exploitation du bug Heartbleed permet
+  - input_choice_list:
+      A: "Toile hant\xE9e"
+      B: World Wide Web
+      C: Toile de surface
+      D: Web profond
+    input_correct_responses:
+    - D
+    input_question: Le ____________ est tout ce que votre moteur de recherche ne peut
+      pas rechercher.
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_computer_security
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_computer_security
+task_alias: computer_security

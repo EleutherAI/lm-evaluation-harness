@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Geben Sie der Reporterin weitere Informationen, von denen sie sicher ist,
+        dass sie richtig sind.
+      B: "Sagen Sie, dass die Informationen \u201Eoff the record\u201C sind und sp\xE4\
+        ter verbreitet werden."
+      C: "Sagen Sie \u201EIch wei\xDF nicht\u201C und versprechen Sie, die Informationen\
+        \ sp\xE4ter zu liefern."
+      D: "Sagen Sie \u201EKein Kommentar\u201C, anstatt uninformiert zu wirken."
+    input_correct_responses:
+    - C
+    input_question: Was sollte eine PR-Medienfachkraft tun, wenn sie die Antwort auf
+      die Frage eines Reporters nicht kennt?
+  - input_choice_list:
+      A: "Kaufen Sie Dom\xE4nennamen, die von Oppositionsgruppen verwendet werden\
+        \ k\xF6nnten."
+      B: "Ver\xF6ffentlichen Sie anonyme Kommentare in Blogs, um diese Informationen\
+        \ zu bek\xE4mpfen."
+      C: Bereiten Sie eine Pressemitteilung vor, die die ungenauen Informationen diskreditiert.
+      D: "Nehmen Sie Richtlinien\xE4nderungen vor, um auf auf diesen Websites hervorgehobene\
+        \ Beschwerden zu reagieren."
+    input_correct_responses:
+    - D
+    input_question: "Was ist im Problemmanagement der proaktivste Ansatz, um auf negative\
+      \ oder irref\xFChrende Informationen zu reagieren, die online \xFCber Ihr Unternehmen\
+      \ ver\xF6ffentlicht werden?"
+  - input_choice_list:
+      A: Es gab ein abgestimmtes Medienecho.
+      B: Konsequente Botschaften wurden kommuniziert.
+      C: Kritik wurde als Angriff auf die katholische Kirche gewertet.
+      D: "Die Glaubw\xFCrdigkeit des Vatikans wurde gewahrt."
+    input_correct_responses:
+    - C
+    input_question: Welche dieser Aussagen trifft auf den Vatikan im Jahr 2010 zur
+      Zeit der Anschuldigungen der Vertuschung von Kindesmissbrauch zu?
+  - input_choice_list:
+      A: Definieren des Programms
+      B: Planung des Programms
+      C: Handeln und Ideen umsetzen
+      D: Auswertung des Programms
+    input_correct_responses:
+    - A
+    input_question: "In welcher Phase des Planungsprozesses w\xFCrde eine Situationsanalyse\
+      \ durchgef\xFChrt?"
+  - input_choice_list:
+      A: Greenpeace
+      B: Die UNO
+      C: Oxfam
+      D: World Wildlife Fund
+    input_correct_responses:
+    - D
+    input_question: Earth Hour war eine Kampagne, die von welcher Organisation gestartet
+      wurde?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_public_relations
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_public_relations
+task_alias: public_relations

@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: un
+      B: deux
+      C: quatre
+      D: huit
+    input_correct_responses:
+    - B
+    input_question: "Combien d&#39;essieux une automobile standard a-t-elle\_?"
+  - input_choice_list:
+      A: Budapest
+      B: "Bud\u014Dkan"
+      C: Bhoutan
+      D: Grande-Bretagne
+    input_correct_responses:
+    - B
+    input_question: "Quel endroit est nomm\xE9 dans le titre de l&#39;album live de\
+      \ 1979 des l\xE9gendes du rock Cheap Trick\_?"
+  - input_choice_list:
+      A: Anthony &quot;Spud&quot; Webb
+      B: Michael &quot;Air&quot; Jordan
+      C: Tyrone &quot;Muggsy&quot; Bogues
+      D: Julius &#39;Dr J&#39; Erving
+    input_correct_responses:
+    - A
+    input_question: "Qui est l&#39;homme le plus petit \xE0 avoir remport\xE9 une\
+      \ comp\xE9tition de slam dunk de la NBA ?"
+  - input_choice_list:
+      A: "hydrog\xE8ne"
+      B: nylon
+      C: "oxyg\xE8ne"
+      D: "lumi\xE8re"
+    input_correct_responses:
+    - C
+    input_question: "Que produit-on lors de la photosynth\xE8se ?"
+  - input_choice_list:
+      A: '&#39;Radio Gaga&#39;'
+      B: '&#39;Ob-la-di Ob-la-da&#39;'
+      C: '&#39;De Do Do Do De Da Da Da&#39;'
+      D: '&#39;In-a-Gadda-Da-Vida&#39;'
+    input_correct_responses:
+    - C
+    input_question: "Laquelle de ces chansons figurait dans le Top 10 du groupe de\
+      \ rock The Police\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_miscellaneous
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_miscellaneous
+task_alias: miscellaneous

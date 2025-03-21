@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Esternalit\xE0, potere, indipendenza"
+      B: "Pubblicit\xE0, Risorse inconsistenti, Dipendenza reciproca"
+      C: "Pubblicit\xE0, potere, indipendenza"
+      D: "Esternalit\xE0, Potere, Dipendenza reciproca"
+    input_correct_responses:
+    - D
+    input_question: "Al di l\xE0 delle ragioni aziendali per impegnarsi nella RSI,\
+      \ ci sono una serie di argomenti morali relativi al _______ negativo, al _______\
+      \ che le aziende possiedono e al ________ delle imprese e della societ\xE0."
+  - input_choice_list:
+      A: "Responsabilit\xE0 sociale delle imprese"
+      B: "Gestione dell\u2019etica aziendale"
+      C: "Sostenibilit\xE0"
+      D: Gestione ambientale
+    input_correct_responses:
+    - B
+    input_question: "_______ \xE8 il tentativo diretto di gestire in modo formale\
+      \ o informale questioni o problemi etici, attraverso politiche, pratiche e programmi\
+      \ specifici."
+  - input_choice_list:
+      A: Esterno, limitato, indipendente
+      B: Dentro, limitato, a intermittenza
+      C: Fuori, Illimitato, A intermittenza
+      D: Dentro, Illimitato, Indipendente
+    input_correct_responses:
+    - A
+    input_question: "Per garantire l&#39;indipendenza dei consiglieri non esecutivi,\
+      \ \xE8 possibile adottare una serie di misure, tra cui la nomina di non esecutivi\
+      \ provenienti da _______ la societ\xE0, la nomina per un periodo di _________\
+      \ nonch\xE9 la nomina a _________."
+  - input_choice_list:
+      A: Azione diretta non violenta, Azione diretta violenta, Azione indiretta, Boicottaggio
+      B: Azione indiretta, Azione strumentale, Azione diretta non violenta, Campagna
+        di informazione
+      C: Azione indiretta, Azione diretta violenta, Azione diretta non violenta Boicottaggio
+      D: Azione diretta non violenta, Azione strumentale, Azione indiretta, Campagna
+        di informazione
+    input_correct_responses:
+    - C
+    input_question: "Tre tattiche contrastanti che le organizzazioni della societ\xE0\
+      \ civile possono adottare per raggiungere i propri obiettivi sono ________,\
+      \ che in genere implica ricerca e comunicazione, ________, che pu\xF2 comportare\
+      \ l&#39;attacco fisico alle operazioni di un&#39;azienda o ________, che spesso\
+      \ implica una qualche forma di _______."
+  - input_choice_list:
+      A: Buycott, boicottaggi, tecnologia Blockchain, donazioni di beneficenza
+      B: Buycott, boicottaggi, tecnologia digitale, aumento delle vendite
+      C: Boicottaggi, Buyalls, tecnologia Blockchain, donazioni di beneficenza
+      D: Boicottaggi, buycott, tecnologia digitale, aumento delle vendite
+    input_correct_responses:
+    - D
+    input_question: "A differenza di _______, _______ mira a premiare il comportamento\
+      \ favorevole delle aziende. Il successo di tali campagne \xE8 stato incrementato\
+      \ attraverso l&#39;uso di ___________, che consente alle campagne di facilitare\
+      \ l&#39;azienda nel raggiungimento di _________."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_business_ethics
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_business_ethics
+task_alias: business_ethics

@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ~Pd
+      B: "(\u2200x)(Px \u2228 ~Dx)"
+      C: "(\u2200x)(Px \u2283 ~Dx)"
+      D: ~Dp
+    input_correct_responses:
+    - C
+    input_question: "Seleccione la mejor traducci\xF3n a la l\xF3gica de predicados:\
+      \ Nadie conduce en Marte."
+  - input_choice_list:
+      A: Blgh
+      B: Bhlg
+      C: Bglh
+      D: Bghl
+    input_correct_responses:
+    - C
+    input_question: "Seleccione la mejor traducci\xF3n a la l\xF3gica de predicados.\
+      \ George toma prestada la cortadora de c\xE9sped de H\xE9ctor. (g: George; h:\
+      \ H\xE9ctor; l: la cortadora de c\xE9sped de H\xE9ctor; Bxyx: x toma prestado\
+      \ y de z)"
+  - input_choice_list:
+      A: "Marina es bailarina. Algunos d\xE9biles no son bailarines. O todo es un\
+        \ debilucho o Georgia juega al voleibol. Entonces algo juega voleibol."
+      B: "Marina es bailarina. Ning\xFAn debilucho es bailar\xEDn. Todo es un debilucho\
+        \ o juega al voleibol. Entonces algo juega voleibol."
+      C: "Marina es bailarina. Algunos d\xE9biles no son bailarines. Todo es un debilucho\
+        \ o juega al voleibol. Entonces algo juega voleibol."
+      D: "Marina es bailarina. Ning\xFAn debilucho es bailar\xEDn. O todo es un debilucho\
+        \ o Georgia juega al voleibol. Entonces algo juega voleibol."
+    input_correct_responses:
+    - D
+    input_question: "Seleccione la mejor interpretaci\xF3n en ingl\xE9s de los argumentos\
+      \ dados en l\xF3gica de predicados. Dm (\u2200x)(Wx \u2283 ~Dx) (\u2200x)Wx\
+      \ \u2228 Ag / (\u2203x)Ax"
+  - input_choice_list:
+      A: "L\xF3gicamente equivalente"
+      B: Contradictorio
+      C: "Ni l\xF3gicamente equivalente ni contradictorio, pero s\xED consistente"
+      D: Inconsistente
+    input_correct_responses:
+    - C
+    input_question: "Construya una tabla de verdad completa para los siguientes pares\
+      \ de proposiciones. Luego, usando las tablas de verdad, determine si los enunciados\
+      \ son l\xF3gicamente equivalentes o contradictorios. En caso negativo, determine\
+      \ si son consistentes o inconsistentes. Justifica tus respuestas. E \u2283 (F\
+      \ \xB7 E) y ~E \xB7 F"
+  - input_choice_list:
+      A: "(L\xB7H) \u2261 Yo"
+      B: "(L\xB7H) \u2228 Yo"
+      C: "L\xB7(H\u2228I)"
+      D: "L\xB7(H\u2283R)"
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de las f\xF3rmulas dadas de PL es la mejor simbolizaci\xF3\
+      n de la siguiente oraci\xF3n? Las tortugas viven largas vidas y son criaturas\
+      \ felices, a menos que resulten heridas."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_formal_logic
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_formal_logic
+task_alias: formal_logic

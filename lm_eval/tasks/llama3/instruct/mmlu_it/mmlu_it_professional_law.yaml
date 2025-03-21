@@ -1,0 +1,132 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "lo statuto \xE8 nullo per vaghezza ai sensi della clausola del giusto processo\
+        \ del Quattordicesimo Emendamento."
+      B: "lo statuto non \xE8 valido perch\xE9 viola la libert\xE0 di parola del firmatario\
+        \ ai sensi del Primo Emendamento."
+      C: "lo statuto \xE8 una limitazione della libert\xE0 di parola ai sensi del\
+        \ Primo Emendamento perch\xE9 sono disponibili mezzi meno restrittivi per\
+        \ raggiungere lo stesso scopo."
+      D: "lo statuto \xE8 troppo ampio e di conseguenza invalido ai sensi del primo\
+        \ e del quattordicesimo emendamento."
+    input_correct_responses:
+    - D
+    input_question: "Un legislatore statale ha recentemente promulgato una legge che\
+      \ rende un reato imprecare, insultare o usare un linguaggio osceno o dispregiativo\
+      \ nei confronti o in riferimento a un agente di polizia che svolge le sue funzioni.\
+      \ Uno studente di un&#39;universit\xE0 statale ha organizzato una manifestazione\
+      \ nel campus per protestare contro la guerra. Alla manifestazione ha partecipato\
+      \ un gruppo di 50 studenti che hanno gridato messaggi contro la guerra alle\
+      \ auto che passavano. Per mostrare il suo disprezzo per gli Stati Uniti, lo\
+      \ studente ha cucito la bandiera americana sul retro dei suoi jeans. Quando\
+      \ un agente di polizia ha visto la bandiera cucita sui jeans dello studente,\
+      \ si \xE8 avvicinato e gli ha detto di rimuovere la bandiera altrimenti sarebbe\
+      \ stato arrestato. Lo studente si \xE8 arrabbiato e ha gridato all&#39;ufficiale\
+      \ di polizia: &quot;Ascolta, bastardo, indosser\xF2 questo straccio ovunque\
+      \ mi piaccia&quot;. Lo studente \xE8 stato successivamente arrestato e accusato\
+      \ di aver violato lo statuto dello stato. Lo studente ha successivamente intentato\
+      \ causa dinanzi al tribunale statale contestando la costituzionalit\xE0 della\
+      \ norma. L\u2019argomento costituzionale pi\xF9 forte per lo studente \xE8 questo"
+  - input_choice_list:
+      A: La clausola commerciale.
+      B: La clausola di pari protezione del Quattordicesimo Emendamento.
+      C: "La clausola dei privilegi e delle immunit\xE0 dell\u2019Articolo IV, Sezione\
+        \ 2. "
+      D: La clausola contrattuale.
+    input_correct_responses:
+    - A
+    input_question: "Uno stato ha recentemente promulgato una legge che vieta lo smaltimento\
+      \ di qualsiasi scoria nucleare all&#39;interno dello stato. Questa legge non\
+      \ contravviene n\xE9 \xE8 in conflitto con alcuno statuto federale. Un uomo\
+      \ gestisce un&#39;azienda statale che si occupa dello smaltimento delle scorie\
+      \ nucleari. Successivamente all&#39;approvazione dello statuto statale, l&#39;uomo,\
+      \ non ancora a conoscenza della nuova legge, ha stipulato contratti con molte\
+      \ aziende straniere per smaltire le proprie scorie nucleari nello stato. A causa\
+      \ di questa nuova legge, per\xF2, l&#39;uomo non potr\xE0 eseguire questi contratti.\
+      \ Supponiamo che l&#39;uomo abbia la legittimazione ad impugnare questa legge\
+      \ statale. Quale delle seguenti affermazioni presenta le basi costituzionali\
+      \ pi\xF9 forti per contestare la legge statale che vieta lo smaltimento delle\
+      \ scorie nucleari all&#39;interno dello Stato?"
+  - input_choice_list:
+      A: Fatti indiscutibili.
+      B: Fatti affermati da singole organizzazioni politiche.
+      C: Fatti riconosciuti veri dalla conoscenza comune.
+      D: Fatti suscettibili di verifica scientifica.
+    input_correct_responses:
+    - B
+    input_question: "Il giudice ha preso atto di alcuni fatti all&#39;inizio del processo.\
+      \ Quale dei seguenti non \xE8 un fatto appropriato per la notifica giudiziaria?"
+  - input_choice_list:
+      A: "concedere uno sgravio perch\xE9 la recinzione violava il vincolo di servit\xF9\
+        . "
+      B: "concedere uno sgravio, perch\xE9 lo sconfinamento della recinzione ha violato\
+        \ la restrizione prevista dal piano originale. "
+      C: "negare lo sgravio, perch\xE9 l&#39;insegnante non ha fatto rispettare la\
+        \ restrizione nei confronti del pensionato. "
+      D: "negare il sollievo, perch\xE9 la recinzione non sarebbe interpretata come\
+        \ &quot;una struttura&quot; nei termini della restrizione. "
+    input_correct_responses:
+    - B
+    input_question: "Il 1\xB0 ottobre 1980, un costruttore, proprietario di diverse\
+      \ centinaia di acri in una contea rurale, redasse un piano generale di sviluppo\
+      \ per l&#39;area. Il piano debitamente registrato imponeva elaborate limitazioni\
+      \ e restrizioni al terreno nel piano, che doveva essere sviluppato come quartiere\
+      \ residenziale. Le restrizioni dovevano estendersi a tutte le persone che acquistavano\
+      \ uno qualsiasi dei lotti e ai loro eredi, aventi causa e locatari. Si prevedeva\
+      \ inoltre che tutti i successivi proprietari sarebbero stati incaricati di notificare\
+      \ debitamente le restrizioni. Tra queste restrizioni nel piano generale c&#39;erano\
+      \ le seguenti: (22) Viene creato un diritto di franchising in una striscia di\
+      \ terreno larga 10 piedi lungo il retro di ciascun lotto per l&#39;uso di societ\xE0\
+      \ di servizi pubblici con diritto di ingresso e uscita. (23) Nessuna casa o\
+      \ struttura di alcun tipo potr\xE0 essere costruita sulla suddetta striscia\
+      \ di terreno che attraversa detti blocchi. Nel 2000, un pensionato acquist\xF2\
+      \ uno dei lotti, costru\xEC una casa ed eresse una recinzione sul retro della\
+      \ sua propriet\xE0 all&#39;interno dell&#39;area riservata. Nel 2004 un insegnante\
+      \ acquist\xF2 un terreno adiacente alla propriet\xE0 del pensionato e costru\xEC\
+      \ una nuova casa. Due anni dopo, un bibliotecario acquist\xF2 il lotto confinante\
+      \ con la propriet\xE0 dell&#39;insegnante. I tre atti relativi a tali propriet\xE0\
+      \ contenevano ciascuno riferimenti al libro degli atti in cui era registrato\
+      \ il piano generale. Nel 2008, il bibliotecario ha iniziato la costruzione di\
+      \ una recinzione con pali e ringhiere alta sette piedi lungo la linea che divide\
+      \ il suo lotto da quello dell&#39;insegnante e lungo il centro dell&#39;area\
+      \ soggetta al diritto di franchising. Nonostante l&#39;insegnante si fosse opposto\
+      \ alla sua costruzione, la recinzione fu completata. Se l&#39;insegnante chiede\
+      \ un&#39;ingiunzione obbligatoria per obbligare alla rimozione della recinzione\
+      \ del bibliotecario, molto probabilmente il tribunale lo far\xE0."
+  - input_choice_list:
+      A: 'La promessa del padre e l&#39;affidamento del creditore su di essa, se provati,
+        davano luogo ad una valida pretesa del creditore nei confronti del padre basata
+        sulla dottrina del promissory estoppel. '
+      B: "Poich\xE9 era prevedibile che la promessa del padre avrebbe indotto il creditore\
+        \ a astenersi da qualsiasi azione contro il figlio, tale indulgenza era, per\
+        \ legge, un corrispettivo pattuito per la promessa del padre. "
+      C: "I cinque pagamenti del padre al creditore per un totale di $ 2.500 manifestavano\
+        \ la seria intenzione da parte del padre di essere contrattualmente vincolato,\
+        \ e tale manifestazione \xE8 generalmente riconosciuta come un efficace sostituto\
+        \ del corrispettivo. "
+      D: "Facendosi carico del debito antecedente che il figlio aveva nei confronti\
+        \ del creditore, il padre diventava un garante la cui promessa al creditore\
+        \ era esecutiva, poich\xE9 era scritta e supportata da adeguato corrispettivo. "
+    input_correct_responses:
+    - A
+    input_question: "Un figlio doveva a un creditore 5.000 dollari. Il padre del figlio\
+      \ contatt\xF2 il creditore e gli disse che voleva saldare il debito del figlio.\
+      \ Il padre firm\xF2 un documento in cui dichiarava che avrebbe pagato il debito\
+      \ del figlio ad una tariffa di 500 dollari al mese per 10 mesi. Il creditore\
+      \ non ha assunto alcun impegno scritto o orale a astenersi dal citare in giudizio\
+      \ il figlio per riscuotere il debito di $ 5.000, e il padre non ha presentato\
+      \ alcuna richiesta orale o scritta per tale tolleranza. Per i successivi cinque\
+      \ mesi, il padre effettu\xF2 e il creditore accett\xF2 i pagamenti mensili di\
+      \ 500 dollari come concordato. Durante tale periodo, il creditore, infatti,\
+      \ si astenne dall&#39;intraprendere qualsiasi azione legale nei confronti del\
+      \ figlio. Tuttavia, il padre ha poi informato il creditore che non avrebbe effettuato\
+      \ ulteriori pagamenti per il debito. Quale dei seguenti \xE8 l&#39;argomento\
+      \ pi\xF9 convincente secondo cui il padre \xE8 responsabile nei confronti del\
+      \ creditore secondo i termini del contratto?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_law
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_professional_law
+task_alias: professional_law
