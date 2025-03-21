@@ -1,0 +1,9 @@
+description: 'निम्नलिखित अर्थशास्त्र के बारे में बहुविकल्पीय प्रश्न (उत्तरों के साथ)
+  हैं। चरण-दर-चरण सोचें और फिर अपने उत्तर को "उत्तर है (X)" के साथ समाप्त करें जहां
+  X सही विकल्प का अक्षर है।
+
+  '
+include: _hi_template_yaml
+task: mmlu_prox_hi_economics
+task_alias: economics
+process_docs: !function utils.process_economics
