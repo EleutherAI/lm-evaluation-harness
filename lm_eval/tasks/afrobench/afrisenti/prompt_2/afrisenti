@@ -1,0 +1,38 @@
+tag:
+    - afrobench_sentiment_tasks
+    - afrisent_prompt_2
+dataset_path: masakhane/afrisenti
+dataset_name: null
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+fewshot_split: train
+doc_to_target: label
+doc_to_choice:
+    - "negative"
+    - "positive"
+    - "neutral"
+should_decontaminate: true
+doc_to_decontamination_query: 'text: {{tweet}} \nlabel: '
+metric_list:
+  - metric: f1
+    aggregation: !function utils.weighted_f1_score
+    # aggregation: mean
+    average: weighted
+    hf_evaluate: true
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+metadata:
+  version: 1.0
