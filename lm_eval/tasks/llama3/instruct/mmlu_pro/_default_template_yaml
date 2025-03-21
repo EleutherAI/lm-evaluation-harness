@@ -21,8 +21,7 @@ generation_kwargs:
   do_sample: false
   temperature: 0
   max_gen_toks: 1024
-  until:
-    - []
+  until: []
 filter_list:
   - name: strict_match
     filter:
