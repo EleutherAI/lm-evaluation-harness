@@ -1,0 +1,19 @@
+
+tag:
+  - longbench
+task: longbench_lsht
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: lsht
+doc_to_text: '请判断给定新闻的类别，下面是一些例子。\n\n{{context}}\n{{input}}'
+doc_to_target: '{{answers}}'
+generation_kwargs:
+  max_gen_toks: 64
+  temperature: 1
+  do_sample: True
+metric_list:
+  - metric: !function metrics.classification_score
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 1.0

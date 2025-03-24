@@ -1,0 +1,5 @@
+include: _spanish_few_shot_en_template_yaml
+description: The following are multiple-choice questions (with answers) about Health
+  oriented education.
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_spanish_few_shot_en_health_oriented_education

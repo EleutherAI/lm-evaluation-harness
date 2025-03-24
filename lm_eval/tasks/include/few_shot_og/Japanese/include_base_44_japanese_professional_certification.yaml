@@ -1,0 +1,4 @@
+include: _japanese_few_shot_og_template_yaml
+description: 以下は、Professional certification に関する複数選択の質問（回答付き）です。
+process_docs: !function 'utils.process_professional_certification'
+task: include_base_44_japanese_few_shot_og_professional_certification
