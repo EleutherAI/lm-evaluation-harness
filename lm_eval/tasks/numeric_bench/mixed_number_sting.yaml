@@ -2,7 +2,7 @@ tag:
   - NumericBench
 task: mixed_number_sting
 dataset_path: TreeAILab/NumericBench
-dataset_name: mixed_number_sting
+dataset_name: mixed_number_string
 test_split: test
 process_docs: !function utils.process_docs_without_cot
 doc_to_text: "{{prompt}}"
