@@ -8,7 +8,7 @@ process_docs: !function utils.process_docs_with_cot
 doc_to_text: "{{prompt}}"
 doc_to_target: "{{answer}}"
 metric_list:
-  - metric: !function utils.QA_accuracy
+  - metric: !function utils.number_accuracy
     aggregation: mean
     higher_is_better: true
 metadata:

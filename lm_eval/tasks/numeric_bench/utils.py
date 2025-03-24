@@ -30,32 +30,35 @@ def choice_accuracy(predictions: list[str], references: list[str], **kwargs) -> 
         prediction, ground_truth = predictions[0], references[0]
     except:
         return 0.0
-    pattern = r"(?<=The answer is )[A-Za-z]"
-    
-    if re.search(pattern, prediction) is not None:
-        prediction = re.search(pattern, prediction).group(0)
-    else:
-        return 0.0
+    pattern = re.compile(r'\bis\s*(\()?\s*([A-Z])\b|\b([A-Z])\b(?=\s*$)|boxed\{([A-Z])\}')
 
-    if prediction != ground_truth:
+    match = pattern.search(prediction)
+    if match is None:
+        return 0.0
+    
+    pred_answer = match.group(2) or match.group(3) or match.group(4)
+
+    if pred_answer != ground_truth:
         return 0.0
     
     return 1.0
 
-def QA_accuracy(predictions: list[str], references: list[str], **kwargs) -> float:
+def number_accuracy(predictions: list[str], references: list[str], **kwargs) -> float:
     try:
         prediction, ground_truth = predictions[0], references[0]
     except:
         return 0.0
     
     # 查找所有符合条件的数字（整数或小数）
-    matches = re.findall(r"(?<=The answer is )\d+(?:\.\d+)?", prediction)
+    pattern = re.compile(r"\s*([-+]?\d+(\.\d+)?)")
+    match = pattern.search(prediction)
 
-    if len(matches) != 1:
+    if match is None:
         return 0.0
+
+    pred_answer = match.group(1)
     
-    prediction = matches[0]
-    if prediction != str(ground_truth):
+    if pred_answer != str(ground_truth):
         return 0.0
 
     return 1.0
