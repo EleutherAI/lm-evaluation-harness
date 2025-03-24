@@ -43,7 +43,7 @@ Due to the limitations of the lm-eval framework, we have only integrated most of
 #### Tasks without CoT
 
 - arithmetic_operation
-- mixed_number_sting
+- mixed_number_string
 - num_list
 - sequence
 - stock_single_turn
@@ -51,7 +51,7 @@ Due to the limitations of the lm-eval framework, we have only integrated most of
 
 #### Tasks with CoT
 - arithmetic_operation-cot
-- mixed_number_sting-cot
+- mixed_number_string-cot
 - num_list-cot
 - sequence-cot
 - stock_single_turn-cot

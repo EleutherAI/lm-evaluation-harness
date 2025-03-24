@@ -1,8 +1,8 @@
 tag:
   - NumericBench-cot
-task: mixed_number_sting-cot
+task: mixed_number_string-cot
 dataset_path: TreeAILab/NumericBench
-dataset_name: mixed_number_sting
+dataset_name: mixed_number_string
 test_split: test
 process_docs: !function utils.process_docs_with_cot
 doc_to_text: "{{prompt}}"
