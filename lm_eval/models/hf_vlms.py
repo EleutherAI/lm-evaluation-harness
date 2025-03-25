@@ -316,9 +316,6 @@ class HFMultimodalLM(HFLM):
         if self.rgb:
             images = [[img.convert("RGB") for img in sublist] for sublist in images]
 
-        print("BEGIN")
-        print(strings)
-        print("END")
         # certain models like llava expect a single-level image list even for bs>1, multi-image. TODO: port this over to loglikelihoods
         model_type = getattr(self.config, "model_type", "")
         if model_type == "llava":
