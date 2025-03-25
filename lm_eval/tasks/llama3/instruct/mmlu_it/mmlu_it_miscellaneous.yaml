@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: uno
+      B: due
+      C: quattro
+      D: otto
+    input_correct_responses:
+    - B
+    input_question: Quanti assi ha un&#39;automobile standard?
+  - input_choice_list:
+      A: Budapest
+      B: Budokan
+      C: Bhutan
+      D: Gran Bretagna
+    input_correct_responses:
+    - B
+    input_question: "Quale luogo \xE8 nominato nel titolo dell&#39;album live del\
+      \ 1979 delle leggende del rock Cheap Trick?"
+  - input_choice_list:
+      A: Anthony &quot;Spud&quot; Webb
+      B: Michael &quot;Air&quot; Jordan
+      C: Tyrone &#39;Muggsy&#39; Bogue
+      D: Julius &quot;Dr J&quot; Erving
+    input_correct_responses:
+    - A
+    input_question: "Chi \xE8 l&#39;uomo pi\xF9 basso che abbia mai vinto una gara\
+      \ di schiacciata NBA?"
+  - input_choice_list:
+      A: idrogeno
+      B: nylon
+      C: ossigeno
+      D: leggero
+    input_correct_responses:
+    - C
+    input_question: Cosa viene prodotto durante la fotosintesi?
+  - input_choice_list:
+      A: '&#39;Radio ga ga&#39;'
+      B: '&#39;Ob-la-di Ob-la-da&#39;'
+      C: '&quot;De Do Do Do De Da Da Da&quot;'
+      D: '&quot;In-a-Gadda-Da-Vida&quot;'
+    input_correct_responses:
+    - C
+    input_question: "Quale di queste canzoni \xE8 stata una delle prime 10 hit del\
+      \ gruppo rock The Police?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_miscellaneous
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_miscellaneous
+task_alias: miscellaneous

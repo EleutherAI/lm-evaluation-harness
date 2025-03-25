@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "satisfazer os poderosos sacerdotes astr\xF4nomos maias."
+      B: "mostrar sua generosidade para com as pessoas comuns, j\xE1 que lhes era\
+        \ permitido viver nos templos."
+      C: "assustar os inimigos, em particular os espanh\xF3is."
+      D: "legitimar sua realeza, j\xE1 que seu pai n\xE3o era da realeza."
+    input_correct_responses:
+    - D
+    input_question: 'O grande rei maia Pacal construiu templos na cidade de Palenque
+      para:'
+  - input_choice_list:
+      A: "um centro da civiliza\xE7\xE3o do Mississippi com condi\xE7\xF5es semelhantes\
+        \ \xE0s da ascens\xE3o dos primeiros estados."
+      B: "as limita\xE7\xF5es de autoridade em uma sociedade nativa americana de forrageadores\
+        \ igualit\xE1rios."
+      C: uma chefia simples ou talvez uma chefia complexa evoluiu por volta de 1500
+        DC.
+      D: "um centro da civiliza\xE7\xE3o do Mississippi com condi\xE7\xF5es semelhantes\
+        \ \xE0s sociedades da costa noroeste da Am\xE9rica do Norte."
+    input_correct_responses:
+    - A
+    input_question: "De acordo com Timothy Pauketat, as evid\xEAncias da estratifica\xE7\
+      \xE3o social e do poder pol\xEDtico em Cahokia sugerem:"
+  - input_choice_list:
+      A: "algum tipo de cataclismo, como um terremoto, vulc\xE3o ou tsunami."
+      B: "degrada\xE7\xE3o ecol\xF3gica resultante de t\xE9cnicas agr\xEDcolas de\
+        \ corte e queima."
+      C: "guerras intermin\xE1veis entre cidades-estado maias vizinhas."
+      D: "pr\xE1ticas de cruzamento que levaram a um aumento acentuado nas doen\xE7\
+        as cong\xEAnitas."
+    input_correct_responses:
+    - B
+    input_question: "Os investigadores acreditam agora que o decl\xEDnio dos maias\
+      \ foi causado principalmente por:"
+  - input_choice_list:
+      A: "uma grande diversidade de esp\xE9cies, ou uma \xFAnica esp\xE9cie que exibia\
+        \ muita diversidade."
+      B: "muito pouca diversidade de esp\xE9cies durante este per\xEDodo e muito poucos\
+        \ homin\xEDdeos."
+      C: "diminui\xE7\xE3o da diversidade de esp\xE9cies devido a uma era glacial\
+        \ prolongada seguida por uma seca severa."
+      D: "diminui\xE7\xE3o da diversidade de esp\xE9cies, mas aumento do n\xFAmero\
+        \ de martelos e lascas, indicando fabrica\xE7\xE3o de ferramentas de pedra."
+    input_correct_responses:
+    - A
+    input_question: "Pesquisas recentes sobre esp\xE9cies de homin\xEDdeos datadas\
+      \ do Plioceno M\xE9dio indicam que houve (em 2020):"
+  - input_choice_list:
+      A: abaixo de 650 cc
+      B: cerca de 800 cc
+      C: pouco menos de 1000 cc
+      D: 1200 cc
+    input_correct_responses:
+    - C
+    input_question: "Qual \xE9 a capacidade craniana m\xE9dia aproximada do Homo erectus?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_prehistory
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_prehistory
+task_alias: prehistory

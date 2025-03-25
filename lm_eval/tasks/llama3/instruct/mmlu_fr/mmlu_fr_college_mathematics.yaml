@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ST = 0
+      B: ST = T
+      C: ST = TS
+      D: "ST - TS est la carte identit\xE9 de V sur lui-m\xEAme."
+    input_correct_responses:
+    - D
+    input_question: "Soit V l&#39;ensemble de tous les polyn\xF4mes r\xE9els p(x).\
+      \ Soit les transformations T, S d\xE9finies sur V par T:p(x) -&gt; xp(x) et\
+      \ S:p(x) -&gt; p&#39;(x) = d/dx p(x), et interpr\xE9tons (ST) (p(x)) comme S(T(p(x))).\
+      \ Lequel des \xE9nonc\xE9s suivants est vrai?"
+  - input_choice_list:
+      A: '2'
+      B: 2 - e^-2
+      C: 2 + e^-2
+      D: 2 + e^-4
+    input_correct_responses:
+    - D
+    input_question: "Un r\xE9servoir contient initialement une solution saline de\
+      \ 3 grammes de sel dissous dans 100 litres d&#39;eau. Une solution saline contenant\
+      \ 0,02 gramme de sel par litre d&#39;eau est pulv\xE9ris\xE9e dans le r\xE9\
+      servoir \xE0 un d\xE9bit de 4 litres par minute. La solution pulv\xE9ris\xE9\
+      e est continuellement m\xE9lang\xE9e avec la solution saline dans le r\xE9servoir,\
+      \ et le m\xE9lange s&#39;\xE9coule du r\xE9servoir \xE0 un d\xE9bit de 4 litres\
+      \ par minute. Si le m\xE9lange est instantan\xE9, combien de grammes de sel\
+      \ reste-t-il dans le r\xE9servoir au bout de 100 minutes ?"
+  - input_choice_list:
+      A: moi seulement
+      B: II seulement
+      C: III seulement
+      D: II et III seulement
+    input_correct_responses:
+    - B
+    input_question: "Soit A une vraie matrice 2x2. Laquelle des affirmations suivantes\
+      \ doit \xEAtre vraie\_? I. Toutes les entr\xE9es de A^2 sont non n\xE9gatives.\
+      \ II. Le d\xE9terminant de A^2 est non n\xE9gatif. III. Si A a deux valeurs\
+      \ propres distinctes, alors A^2 a deux valeurs propres distinctes."
+  - input_choice_list:
+      A: '-11'
+      B: '0'
+      C: '11'
+      D: 33/2
+    input_correct_responses:
+    - C
+    input_question: "Supposons que f(1 + x) = f(x) pour tout r\xE9el x. Si f est un\
+      \ polyn\xF4me et f(5) = 11, alors f(15/2)"
+  - input_choice_list:
+      A: '-5'
+      B: '-4'
+      C: '-3'
+      D: '-2'
+    input_correct_responses:
+    - B
+    input_question: "Soit A l&#39;ensemble de toutes les paires ordonn\xE9es d&#39;entiers\
+      \ (m, n) tels que 7m + 12n = 22. Quel est le plus grand nombre n\xE9gatif de\
+      \ l&#39;ensemble B = {m + n : (m, n) \\in A}\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_mathematics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_college_mathematics
+task_alias: college_mathematics

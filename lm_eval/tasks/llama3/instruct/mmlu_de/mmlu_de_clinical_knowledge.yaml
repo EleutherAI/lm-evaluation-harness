@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ATP.
+      B: ADP.
+      C: Phosphokreatin.
+      D: oxidative Phosphorylierung.
+    input_correct_responses:
+    - A
+    input_question: "Die Energie f\xFCr alle Formen der Muskelkontraktion wird bereitgestellt\
+      \ von:"
+  - input_choice_list:
+      A: "M\xE4nnliche und weibliche Katheter haben unterschiedliche Farben."
+      B: "M\xE4nnliche Katheter sind l\xE4nger als weibliche Katheter."
+      C: "M\xE4nnliche Katheter sind gr\xF6\xDFer als weibliche Katheter."
+      D: "Weibliche Katheter sind l\xE4nger als m\xE4nnliche Katheter."
+    input_correct_responses:
+    - B
+    input_question: "Was ist der Unterschied zwischen einem m\xE4nnlichen und einem\
+      \ weiblichen Katheter?"
+  - input_choice_list:
+      A: Die Abduktion des Daumens wird von der Spinalwurzel T2 versorgt
+      B: Die Opposition des Daumens durch opponens policis wird von der Spinalwurzel
+        T1 versorgt
+      C: Die Fingeradduktion wird vom Nervus medianus versorgt
+      D: Die Fingerabduktion wird durch das palmare Interossei vermittelt
+    input_correct_responses:
+    - B
+    input_question: Welche der folgenden Aussagen trifft bei der Beurteilung der Handfunktion
+      zu?
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '2'
+      D: '1'
+    input_correct_responses:
+    - C
+    input_question: "Wie viele Versuche sollten Sie unternehmen, um einen Patienten\
+      \ zu kan\xFClieren, bevor Sie den Job nach den medizinischen Erkenntnissen von\
+      \ 2020 an einen leitenden Kollegen \xFCbergeben?"
+  - input_choice_list:
+      A: Glykogen zu Glucose-1-Phosphat.
+      B: Glykogen oder Glucose zu Fructose.
+      C: Glykogen oder Glukose zu Pyruvat oder Laktat.
+      D: Glykogen oder Glucose zu Pyruvat oder Acetyl-CoA.
+    input_correct_responses:
+    - C
+    input_question: "Glykolyse ist der Name f\xFCr den Weg, der die Umwandlung von:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_clinical_knowledge
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_clinical_knowledge
+task_alias: clinical_knowledge

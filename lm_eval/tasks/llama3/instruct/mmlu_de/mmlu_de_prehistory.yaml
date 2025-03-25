@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Befriedigen Sie die m\xE4chtigen Maya-Astronomenpriester."
+      B: "dem einfachen Volk seine Gro\xDFz\xFCgigkeit zeigen, da es ihnen erlaubt\
+        \ war, in den Tempeln zu leben."
+      C: Schrecken Sie Feinde, insbesondere die Spanier, ab.
+      D: "legitimieren sein K\xF6nigtum, da sein Vater nicht k\xF6niglich war."
+    input_correct_responses:
+    - D
+    input_question: "Der gro\xDFe Maya-K\xF6nig Pacal baute Tempel in der Stadt Palenque,\
+      \ um:"
+  - input_choice_list:
+      A: "ein Zentrum der Mississippi-Zivilisation mit Bedingungen, die denen des\
+        \ Aufstiegs fr\xFCher Staaten \xE4hneln."
+      B: "die Grenzen der Autorit\xE4t in einer indianischen Gesellschaft von egalit\xE4\
+        ren Sammlern."
+      C: "ein einfaches H\xE4uptlingstum oder vielleicht ein komplexes H\xE4uptlingstum\
+        \ hatte sich um 1500 n. Chr. entwickelt."
+      D: "ein Zentrum der Mississippi-Zivilisation mit \xE4hnlichen Bedingungen wie\
+        \ Gesellschaften an der Nordwestk\xFCste Nordamerikas."
+    input_correct_responses:
+    - A
+    input_question: "Laut Timothy Pauketat deuten die Beweise f\xFCr soziale Schichtung\
+      \ und politische Macht in Cahokia darauf hin:"
+  - input_choice_list:
+      A: eine Art Katastrophe, wie ein Erdbeben, Vulkan oder Tsunami.
+      B: "Umweltzerst\xF6rung durch Brandrodung in der Landwirtschaft."
+      C: endlose Kriege zwischen benachbarten Maya-Stadtstaaten.
+      D: "Praktiken der Kreuzung, die zu einem steilen Anstieg angeborener St\xF6\
+        rungen f\xFChrten."
+    input_correct_responses:
+    - B
+    input_question: "Forscher glauben nun, dass der Niedergang der Maya haupts\xE4\
+      chlich verursacht wurde durch:"
+  - input_choice_list:
+      A: "eine gro\xDFe Artenvielfalt oder eine einzelne Art, die eine gro\xDFe Vielfalt\
+        \ aufwies."
+      B: sehr geringe Artenvielfalt in dieser Zeit und sehr wenige Hominiden.
+      C: "verringerte Artenvielfalt aufgrund einer anhaltenden Eiszeit, gefolgt von\
+        \ einer schweren D\xFCrre."
+      D: "verringerte Artenvielfalt, aber erh\xF6hte Anzahl von Hammersteinen und\
+        \ Flocken, was auf die Herstellung von Steinwerkzeugen hinweist."
+    input_correct_responses:
+    - A
+    input_question: "J\xFCngste Forschungen zu Hominidenarten aus dem mittleren Plioz\xE4\
+      n zeigen (Stand 2020):"
+  - input_choice_list:
+      A: unter 650 ccm
+      B: etwa 800 ccm
+      C: knapp unter 1000 ccm
+      D: 1200 ccm
+    input_correct_responses:
+    - C
+    input_question: "Was ist die ungef\xE4hre mittlere Sch\xE4delkapazit\xE4t des\
+      \ Homo erectus?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_prehistory
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_prehistory
+task_alias: prehistory

@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "w\xE4hrend des ersten Trimesters"
+      B: "w\xE4hrend des zweiten Trimesters"
+      C: "w\xE4hrend des dritten Trimesters"
+      D: "die ganze schwangerschaft \xFCber"
+    input_correct_responses:
+    - A
+    input_question: "\xDCbelkeit am Morgen ist typischerweise ein Problem:"
+  - input_choice_list:
+      A: ein starkes Ego
+      B: "ein schwaches \xDCber-Ich"
+      C: eine schwache ID
+      D: "ein starkes \xDCber-Ich"
+    input_correct_responses:
+    - B
+    input_question: "Eine Frau, die wei\xDF, dass sie aktiven Herpes und unbehandelte\
+      \ Syphilis hat, aber weiterhin Sex hat, ohne ihre Partner \xFCber ihren Zustand\
+      \ zu informieren, hat in psychoanalytischer Hinsicht:"
+  - input_choice_list:
+      A: "die Tatsache, dass sie keine Refrakt\xE4rzeit haben."
+      B: die Reaktion der inneren Schichten der Vagina.
+      C: abwechselnde Orgasmen an verschiedenen Orten haben.
+      D: der G-Punkt.
+    input_correct_responses:
+    - A
+    input_question: "Die F\xE4higkeit von Frauen, multiple Orgasmen zu haben, ist\
+      \ haupts\xE4chlich zur\xFCckzuf\xFChren auf:"
+  - input_choice_list:
+      A: Geschlechtsverkehr
+      B: Kreis wichst
+      C: Exhibitionismus
+      D: "gegenseitig die Genitalien ber\xFChren"
+    input_correct_responses:
+    - A
+    input_question: "Die Art der homosexuellen Aktivit\xE4ten, die w\xE4hrend der\
+      \ Pubert\xE4t auftreten, umfassen alle bis auf welche der folgenden?"
+  - input_choice_list:
+      A: vorzeitiger Samenerguss
+      B: gehemmte Ejakulation
+      C: "Erektionsst\xF6rung"
+      D: "Ejakulationsst\xF6rung"
+    input_correct_responses:
+    - C
+    input_question: "Die h\xE4ufigste St\xF6rung bei M\xE4nnern, die eine Sexualtherapie\
+      \ suchen, ist:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_sexuality
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_human_sexuality
+task_alias: human_sexuality

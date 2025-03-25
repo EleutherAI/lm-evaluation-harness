@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: un forte Super-Io.
+      B: bassa autostima.
+      C: bassa autoefficacia.
+      D: un locus of control interno.
+    input_correct_responses:
+    - D
+    input_question: "Ani crede che i suoi atteggiamenti e comportamenti giochino un\
+      \ ruolo centrale in ci\xF2 che le accade. \xC8 probabile che tale convinzione\
+      \ sia associata a"
+  - input_choice_list:
+      A: identificare le cause e le soluzioni dei problemi presentati dal cliente
+      B: "identificare ed eliminare le cause delle difficolt\xE0 del consultato nella\
+        \ gestione di un problema"
+      C: "stabilire una gerarchia di autorit\xE0 per consentire un processo decisionale\
+        \ efficace"
+      D: "presentare una linea d&#39;azione unica, ben definita e inequivocabile affinch\xE9\
+        \ il consulente possa superare i deficit di competenze"
+    input_correct_responses:
+    - B
+    input_question: "Secondo il modello di Caplan della consultazione del caso centrata\
+      \ sul consultato, il consulente \xE8 principalmente interessato a"
+  - input_choice_list:
+      A: I messaggi vengono inviati dal talamo direttamente all&#39;amigdala.
+      B: I messaggi vengono inviati dal talamo ai percorsi &quot;cosa&quot; e &quot;dove&quot;.
+      C: I messaggi vengono inviati dal sistema nervoso parasimpatico alla corteccia
+        cerebrale.
+      D: I messaggi vengono inviati dai lobi frontali alla ghiandola pituitaria.
+    input_correct_responses:
+    - A
+    input_question: "Mentre nuota nell&#39;oceano, Ivan viene spaventato da un&#39;ombra\
+      \ scura nell&#39;acqua ancor prima che abbia la possibilit\xE0 di identificare\
+      \ di cosa si tratta. Le connessioni sinaptiche che hanno luogo durante questo\
+      \ episodio di paura sono meglio descritte da quale dei seguenti?"
+  - input_choice_list:
+      A: Date al bambino un periodo di prova nel nuovo ambiente
+      B: Avvisare per iscritto i genitori
+      C: Ottieni l&#39;approvazione del consiglio scolastico
+      D: Ottieni il consenso dei genitori
+    input_correct_responses:
+    - B
+    input_question: "Secondo l\u2019Individuals with Disabilities Education Improvement\
+      \ Act, quale delle seguenti azioni deve fare un\u2019agenzia educativa prima\
+      \ di modificare l\u2019inserimento scolastico di uno studente con disabilit\xE0\
+      ?"
+  - input_choice_list:
+      A: Socioculturale
+      B: clinico
+      C: cognitivo
+      D: comportamentista
+    input_correct_responses:
+    - C
+    input_question: "Pascale \xE8 interessata alle strategie di elaborazione che i\
+      \ bambini utilizzano per apprendere nuove informazioni. In che tipo di psicologo\
+      \ sarebbe meglio classificare Pascale?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_psychology
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_high_school_psychology
+task_alias: high_school_psychology
