@@ -3,6 +3,7 @@ tag:
     - afrisenti_prompt_5
 dataset_path: masakhane/afrisenti
 dataset_name: null
+dataset_kwargs: {trust_remote_code: True}
 output_type: multiple_choice
 validation_split: validation
 test_split: test
