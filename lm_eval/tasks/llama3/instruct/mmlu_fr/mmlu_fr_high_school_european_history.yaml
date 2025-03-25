@@ -1,0 +1,214 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Jean-Jacques Rousseau
+      B: Baron de Montesquieu
+      C: Marie Wolstonecraft
+      D: Adam Smith
+    input_correct_responses:
+    - B
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ L&#39;extrait suivant est tir\xE9 d&#39;une brochure. Vous me ferez la justice\
+      \ de me rappeler que j&#39;ai toujours vigoureusement soutenu le droit de chacun\
+      \ \xE0 sa propre opinion, si diff\xE9rente que cette opinion puisse \xEAtre\
+      \ de la mienne. Celui qui refuse \xE0 un autre ce droit, se rend esclave de\
+      \ son opinion pr\xE9sente, parce qu&#39;il s&#39;interdit le droit de la changer.\
+      \ L&#39;arme la plus redoutable contre les erreurs de toutes sortes est la Raison.\
+      \ Je n&#39;en ai jamais utilis\xE9 d&#39;autre et j&#39;esp\xE8re que je ne\
+      \ le ferai jamais. La circonstance qui a eu lieu maintenant en France de l&#39;abolition\
+      \ totale de tout l&#39;ordre national du sacerdoce, et de tout ce qui appartient\
+      \ aux syst\xE8mes compulsifs de religion et aux articles de foi compulsifs,\
+      \ a non seulement pr\xE9cipit\xE9 mon intention, mais rendu une \u0153uvre de\
+      \ ce genre extr\xEAmement n\xE9cessaire, de peur que dans le naufrage g\xE9\
+      n\xE9ral de la superstition, des faux syst\xE8mes de gouvernement et de la fausse\
+      \ th\xE9ologie, nous perdions de vue la moralit\xE9, l&#39;humanit\xE9 et la\
+      \ th\xE9ologie qui est vraie. Je crois en un seul Dieu, et rien de plus ; et\
+      \ j&#39;esp\xE8re le bonheur au-del\xE0 de cette vie. Je crois \xE0 l&#39;\xE9\
+      galit\xE9 de l&#39;homme ; et je crois que les devoirs religieux consistent\
+      \ \xE0 faire justice, \xE0 aimer la mis\xE9ricorde et \xE0 s&#39;efforcer de\
+      \ rendre nos semblables heureux. Je ne crois pas au credo profess\xE9 par l&#39;\xE9\
+      glise juive, par l&#39;\xE9glise romaine, par l&#39;\xE9glise grecque, par l&#39;\xE9\
+      glise turque, par l&#39;\xE9glise protestante, ni par aucune \xE9glise que je\
+      \ connaisse. Mon propre esprit est ma propre \xE9glise. Toutes les institutions\
+      \ nationales des \xE9glises, qu&#39;elles soient juives, chr\xE9tiennes ou turques,\
+      \ ne me paraissent que des inventions humaines, mises en place pour terrifier\
+      \ et asservir l&#39;humanit\xE9, et monopoliser le pouvoir et le profit. Je\
+      \ n&#39;entends pas par cette d\xE9claration condamner ceux qui croient le contraire\
+      \ ; ils ont le m\xEAme droit \xE0 leur croyance que moi \xE0 la mienne. \u2014\
+      Thomas Paine, The Age of Reason, 1794\u20131795 Lequel des philosophes des Lumi\xE8\
+      res suivants a con\xE7u un syst\xE8me de freins et contrepoids pour que le gouvernement\
+      \ \xE9vite les abus de pouvoir\_?"
+  - input_choice_list:
+      A: "Les id\xE9es de libert\xE9 individuelle et de nationalisme con\xE7ues au\
+        \ si\xE8cle des Lumi\xE8res ont entra\xEEn\xE9 des r\xE9volutions radicales\
+        \ qui ont pu se propager dans toute l&#39;Europe."
+      B: "La conqu\xEAte de l&#39;Europe par Napol\xE9on a conduit \xE0 la cr\xE9\
+        ation de nouvelles factions et a modifi\xE9 l&#39;\xE9quilibre europ\xE9en\
+        \ des pouvoirs."
+      C: "Le pouvoir des monarques avait grandi au point o\xF9 il devait \xEAtre contr\xF4\
+        l\xE9 par d&#39;autres pouvoirs au sein de chaque nation ou la domination\
+        \ des civils se produirait."
+      D: "Le cycle \xE9conomique ascendant et descendant de la nouvelle \xE9conomie\
+        \ capitaliste \xE9mergente pourrait conduire \xE0 des troubles civils qui\
+        \ doivent \xEAtre r\xE9prim\xE9s."
+    input_correct_responses:
+    - A
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ Lisez l&#39;extrait suivant. La semence r\xE9volutionnaire avait p\xE9n\xE9\
+      tr\xE9 dans tous les pays et s&#39;\xE9tait plus ou moins r\xE9pandue. Elle\
+      \ s&#39;est beaucoup d\xE9velopp\xE9e sous le r\xE9gime du despotisme militaire\
+      \ de Bonaparte. Ses conqu\xEAtes ont d\xE9plac\xE9 nombre de lois, d&#39;institutions\
+      \ et de coutumes ; rompu les liens sacr\xE9s entre toutes les nations, assez\
+      \ forts pour r\xE9sister au temps lui-m\xEAme ; ce qui est plus que ce que l&#39;on\
+      \ peut dire de certains avantages conf\xE9r\xE9s par ces innovateurs. Les monarques\
+      \ rempliront les devoirs qui leur sont impos\xE9s par Celui qui, en leur confiant\
+      \ le pouvoir, les a charg\xE9s de veiller au maintien de la justice et des droits\
+      \ de tous, d&#39;\xE9viter les voies de l&#39;erreur et de s&#39;engager r\xE9\
+      solument dans la voie de v\xE9rit\xE9. Plac\xE9s au-del\xE0 des passions qui\
+      \ agitent la soci\xE9t\xE9, c&#39;est dans les jours d&#39;\xE9preuve surtout\
+      \ qu&#39;ils sont appel\xE9s \xE0 d\xE9pouiller les r\xE9alit\xE9s de leurs\
+      \ fausses apparences, et \xE0 se montrer tels qu&#39;ils sont, p\xE8res investis\
+      \ de l&#39;autorit\xE9 appartenant de droit aux chefs de famille, prouver qu&#39;aux\
+      \ jours de deuil, ils savent \xEAtre justes, sages, donc forts, et qu&#39;ils\
+      \ n&#39;abandonneront pas le peuple qu&#39;ils doivent gouverner pour \xEAtre\
+      \ le jouet des factions, \xE0 l&#39;erreur et \xE0 ses cons\xE9quences, qui\
+      \ doivent impliquent la perte de la soci\xE9t\xE9. L&#39;union entre les monarques\
+      \ est la base de la politique qui doit maintenant \xEAtre suivie pour sauver\
+      \ la soci\xE9t\xE9 de la ruine totale. . . . Qu&#39;ils ne confondent pas les\
+      \ concessions faites aux partis avec le bien qu&#39;ils doivent faire \xE0 leur\
+      \ peuple, en modifiant, selon leurs besoins reconnus, les branches de l&#39;administration\
+      \ qui l&#39;exigent. Qu&#39;ils soient justes, mais forts ; bienfaisant, mais\
+      \ strict. Qu&#39;ils maintiennent les principes religieux dans toute leur puret\xE9\
+      , et ne permettent pas que la foi soit attaqu\xE9e et la morale interpr\xE9\
+      t\xE9e selon le contrat social ou les visions de sectaires insens\xE9s. Qu&#39;ils\
+      \ suppriment les Soci\xE9t\xE9s Secr\xE8tes ; cette gangr\xE8ne de la soci\xE9\
+      t\xE9. \u2014Klemens von Metternich, Confession de foi politique, 1820 Laquelle\
+      \ des affirmations suivantes a \xE9t\xE9 la plus grande cause des craintes exprim\xE9\
+      es par Metternich dans le document ci-dessus\_?"
+  - input_choice_list:
+      A: Capitaliste
+      B: Scientifique
+      C: communiste
+      D: Existentialiste
+    input_correct_responses:
+    - C
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ En Russie, rien n&#39;allait bien, et [Souvarine] \xE9tait d\xE9sesp\xE9r\xE9\
+      \ des nouvelles qu&#39;il avait re\xE7ues. Ses anciens compagnons se tournaient\
+      \ tous vers les politiciens ; les fameux nihilistes qui faisaient trembler l&#39;Europe\
+      \ - fils de cur\xE9s de village, de petits bourgeois, de commer\xE7ants - ne\
+      \ pouvaient s&#39;\xE9lever au-dessus de l&#39;id\xE9e de lib\xE9ration nationale,\
+      \ et semblaient croire que le monde serait d\xE9livr\xE9 - lorsqu&#39;ils avaient\
+      \ tu\xE9 leur despote... &quot;Sottises! Ils ne s&#39;en tireront jamais avec\
+      \ leurs sottises.&quot; Puis, baissant encore la voix, il d\xE9crivait en quelques\
+      \ mots amers son vieux r\xEAve de fraternit\xE9. Il avait renonc\xE9 \xE0 son\
+      \ rang et \xE0 sa fortune ; il n&#39;\xE9tait all\xE9 parmi les ouvriers que\
+      \ dans l&#39;espoir de voir enfin la fondation d&#39;une nouvelle soci\xE9t\xE9\
+      \ de travail en commun. Tous les sous de ses poches \xE9taient depuis longtemps\
+      \ all\xE9s aux gamins du coron ; il avait \xE9t\xE9 aussi tendre qu&#39;un fr\xE8\
+      re avec les charbonniers, souriant \xE0 leurs soup\xE7ons, les conqu\xE9rant\
+      \ par ses mani\xE8res tranquilles d&#39;ouvrier et son aversion pour le bavardage.\
+      \ Mais d\xE9cid\xE9ment la fusion n&#39;avait pas eu lieu. Sa voix changea,\
+      \ ses yeux s&#39;\xE9claircirent, il les fixa sur Etienne en s&#39;adressant\
+      \ directement \xE0 lui : \xAB Maintenant, comprends-tu cela ? en d\xE9clarant\
+      \ qu&#39;ils vont vivre sans rien faire !... Oui, c&#39;est votre id\xE9e, vous\
+      \ tous les ouvriers fran\xE7ais, vous voulez d\xE9nicher un tr\xE9sor pour le\
+      \ d\xE9vorer seul ensuite dans quelque coin paresseux et \xE9go\xEFste. autant\
+      \ que tu aimes contre les riches, tu n&#39;as pas le courage de rendre aux pauvres\
+      \ l&#39;argent que la chance te rapporte. Tu ne seras jamais digne du bonheur\
+      \ tant que tu poss\xE9deras quelque chose, et ta haine des bourgeois uniquement\
+      \ par un d\xE9sir furieux d&#39;\xEAtre vous-m\xEAmes bourgeois \xE0 leur place.&quot;\
+      \ \xE9mile Zola, \xE9crivain fran\xE7ais, Germinal, 1885 Le passage montre la\
+      \ pr\xE9occupation directe pour le bien-\xEAtre des classes ouvri\xE8res qui\
+      \ faisait typiquement partie de quel mouvement ?"
+  - input_choice_list:
+      A: "Ils ont servi de catalyseur \xE0 la croissance de la navigation anglaise\
+        \ et du commerce outre-mer, mais n&#39;ont gu\xE8re limit\xE9 les perspectives\
+        \ des N\xE9erlandais au XVIIe si\xE8cle."
+      B: "Ils ont provoqu\xE9 des difficult\xE9s presque imm\xE9diates pour l&#39;\xE9\
+        conomie n\xE9erlandaise car leur domination du commerce ext\xE9rieur a rapidement\
+        \ pris fin."
+      C: "Ils ont \xE9t\xE9 annul\xE9s lors de la restauration des Stuarts alors qu&#39;ils\
+        \ recherchaient des relations diplomatiques normales avec les N\xE9erlandais\
+        \ afin de ne pas avoir besoin du soutien financier du Parlement pour la guerre."
+      D: "Ils ont conduit \xE0 pr\xE8s d&#39;un si\xE8cle de guerre r\xE9currente\
+        \ entre l&#39;Angleterre et les Pays-Bas, qui ne s&#39;est termin\xE9e qu&#39;apr\xE8\
+        s l&#39;ind\xE9pendance am\xE9ricaine."
+    input_correct_responses:
+    - A
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ Les extraits ci-dessous sont tir\xE9s des actes de navigation de 1651. [A]pr\xE8\
+      s le premier jour de d\xE9cembre mil six cent cinquante et un, et \xE0 partir\
+      \ de l\xE0, aucun bien ou marchandise de la croissance, de la production ou\
+      \ de la fabrication de l&#39;Asie, de l&#39;Afrique ou l&#39;Am\xE9rique, ou\
+      \ d&#39;une partie de celle-ci\_; ou de toutes \xEEles leur appartenant, ou\
+      \ qui sont d\xE9crites ou indiqu\xE9es sur les cartes ou cartes habituelles\
+      \ de ces lieux, ainsi que des plantations anglaises comme d&#39;autres, seront\
+      \ import\xE9es ou introduites dans ce Commonwealth d&#39;Angleterre, ou en Irlande,\
+      \ ou toutes autres terres, \xEEles, plantations ou territoires appartenant \xE0\
+      \ ce Commonwealth, ou en leur possession, sur tout autre navire ou navires,\
+      \ navire ou navires que ce soit, mais uniquement dans ceux qui appartiennent\
+      \ v\xE9ritablement et sans fraude au seul peuple de ce Commonwealth , ou leurs\
+      \ plantations, en tant que propri\xE9taires ou ayants droit; et dont le capitaine\
+      \ et les marins sont \xE9galement du peuple de ce Commonwealth, sous peine de\
+      \ confiscation et de perte de toutes les marchandises qui seront import\xE9\
+      es contrairement \xE0 la pr\xE9sente loi, , , , [A]ucune marchandise ou marchandise\
+      \ de la croissance, la production ou la fabrication de l&#39;Europe, ou d&#39;une\
+      \ partie de celle-ci, sera, apr\xE8s le premier jour de d\xE9cembre mil six\
+      \ cent cinquante et un, import\xE9e ou introduite dans ce Commonwealth d&#39;Angleterre,\
+      \ ou dans tout autre pays ou territoire appartenant \xE0 ce Commonwealth, ou\
+      \ en leur possession, dans n&#39;importe quel navire ou navires, navire ou navires\
+      \ que ce soit, mais dans ceux qui appartiennent vraiment et sans fraude uniquement\
+      \ au peuple de ce Commonwealth, et dans aucun autre, \xE0 l&#39;exception seulement\
+      \ des navires et navires \xE9trangers qui le font v\xE9ritablement et sans fraude.\
+      \ appartiennent en propre au peuple de ce pays ou de ce lieu, dont lesdits biens\
+      \ sont la croissance, la production ou la fabrication. Lequel des \xE9nonc\xE9\
+      s suivants d\xE9crit le mieux le r\xE9sultat des actes de navigation de 1651\_\
+      ?"
+  - input_choice_list:
+      A: "donner au roi d&#39;Angleterre une nouvelle position d&#39;autorit\xE9"
+      B: "donner le poste de chef de l&#39;\xC9glise d&#39;Angleterre \xE0 Henri VIII\
+        \ seul et exclure ses h\xE9ritiers"
+      C: "\xE9tablir le calvinisme comme la seule vraie th\xE9ologie en Angleterre"
+      D: "mettre fin \xE0 diverses formes de corruption qui affligent l&#39;\xC9glise\
+        \ en Angleterre"
+    input_correct_responses:
+    - D
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ Bien que la majest\xE9 du roi soit et doive \xEAtre \xE0 juste titre et \xE0\
+      \ juste titre le chef supr\xEAme de l&#39;\xC9glise d&#39;Angleterre, et qu&#39;elle\
+      \ soit ainsi reconnue par le clerg\xE9 de ce royaume dans leurs convocations,\
+      \ n\xE9anmoins, pour la corroboration et la confirmation de celle-ci, et pour\
+      \ l&#39;augmentation de la vertu dans la religion du Christ dans ce royaume\
+      \ d&#39;Angleterre, et de r\xE9primer et d&#39;extirper toutes les erreurs,\
+      \ h\xE9r\xE9sies et autres \xE9normit\xE9s et abus utilis\xE9s jusqu&#39;ici\
+      \ dans le m\xEAme, qu&#39;il soit d\xE9cr\xE9t\xE9, par l&#39;autorit\xE9 de\
+      \ ce Parlement actuel, que le roi, notre seigneur souverain, ses h\xE9ritiers\
+      \ et les successeurs, rois de ce royaume, seront pris, accept\xE9s et r\xE9\
+      put\xE9s le seul chef supr\xEAme sur la terre de l&#39;\xC9glise d&#39;Angleterre,\
+      \ appel\xE9s Anglicans Ecclesia; et aura et jouira, annex\xE9 et uni \xE0 la\
+      \ couronne imp\xE9riale de ce royaume, ainsi que le titre et le style de celle-ci,\
+      \ ainsi que tous les honneurs, dignit\xE9s, pr\xE9\xE9minences, juridictions,\
+      \ privil\xE8ges, autorit\xE9s, immunit\xE9s, profits, et commodit\xE9s \xE0\
+      \ ladite dignit\xE9 de le chef supr\xEAme de la m\xEAme \xC9glise appartenant\
+      \ et relevant; et que notre dit seigneur souverain, ses h\xE9ritiers et successeurs,\
+      \ rois de ce royaume, auront plein pouvoir et autorit\xE9 de temps en temps\
+      \ pour visiter, r\xE9primer, redresser, enregistrer, ordonner, corriger, restreindre\
+      \ et amender toutes ces erreurs, h\xE9r\xE9sies, les abus, les offenses, les\
+      \ outrages et les \xE9normit\xE9s, quels qu&#39;ils soient, qui, par quelque\
+      \ autorit\xE9 ou juridiction spirituelle que ce soit, doivent ou peuvent l\xE9\
+      galement \xEAtre r\xE9form\xE9s, r\xE9prim\xE9s, ordonn\xE9s, redress\xE9s,\
+      \ corrig\xE9s, restreints ou amend\xE9s, au plus grand plaisir de Dieu Tout-Puissant,\
+      \ l&#39;accroissement de la vertu dans la religion du Christ, et pour la conservation\
+      \ de la paix, de l&#39;unit\xE9 et de la tranquillit\xE9 de ce royaume ; nonobstant\
+      \ tout usage, terrain \xE9tranger, autorit\xE9 \xE9trang\xE8re, prescription\
+      \ ou toute autre chose ou choses contraires aux pr\xE9sentes. Parlement anglais,\
+      \ Acte de supr\xE9matie, 1534 D&#39;apr\xE8s ce passage, on peut d\xE9duire\
+      \ que le Parlement anglais souhaitait faire valoir que l&#39;Acte de supr\xE9\
+      matie serait"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_european_history
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_high_school_european_history
+task_alias: high_school_european_history

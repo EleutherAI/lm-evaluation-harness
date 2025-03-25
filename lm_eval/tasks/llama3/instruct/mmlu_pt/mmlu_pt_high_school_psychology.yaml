@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: um superego forte.
+      B: baixa auto-estima.
+      C: "baixa autoefic\xE1cia."
+      D: um locus de controle interno.
+    input_correct_responses:
+    - D
+    input_question: "Ani acredita que suas atitudes e comportamento desempenham um\
+      \ papel central no que acontece com ela. \xC9 prov\xE1vel que tal cren\xE7a\
+      \ esteja associada a"
+  - input_choice_list:
+      A: "identificar as causas e solu\xE7\xF5es dos problemas apresentados pelo cliente"
+      B: identificar e eliminar as causas das dificuldades do consultado em lidar
+        com um problema
+      C: "estabelecer uma hierarquia de autoridade para permitir uma tomada de decis\xE3\
+        o eficaz"
+      D: "apresentar um curso de a\xE7\xE3o \xFAnico, bem definido e inequ\xEDvoco\
+        \ para o consultor superar d\xE9ficits de compet\xEAncias"
+    input_correct_responses:
+    - B
+    input_question: "De acordo com o modelo de consulta de caso centrada no consultado\
+      \ de Caplan, o consultor est\xE1 principalmente interessado em"
+  - input_choice_list:
+      A: "As mensagens s\xE3o enviadas do t\xE1lamo diretamente para a am\xEDgdala."
+      B: "As mensagens s\xE3o enviadas do t\xE1lamo para as vias \u201Co qu\xEA\u201D\
+        \ e \u201Conde\u201D."
+      C: "As mensagens s\xE3o enviadas do sistema nervoso parassimp\xE1tico para o\
+        \ c\xF3rtex cerebral."
+      D: "As mensagens s\xE3o enviadas dos lobos frontais para a gl\xE2ndula pituit\xE1\
+        ria."
+    input_correct_responses:
+    - A
+    input_question: "Ao nadar no oceano, Ivan se assusta com uma sombra escura na\
+      \ \xE1gua antes mesmo de ter a chance de identificar o que \xE9 essa sombra.\
+      \ As conex\xF5es sin\xE1pticas que ocorrem durante este incidente de medo s\xE3\
+      o melhor descritas por qual das seguintes op\xE7\xF5es?"
+  - input_choice_list:
+      A: "D\xEA \xE0 crian\xE7a um per\xEDodo experimental no novo ambiente"
+      B: Notifique os pais por escrito
+      C: "Obtenha a aprova\xE7\xE3o do conselho escolar"
+      D: Obtenha o consentimento dos pais
+    input_correct_responses:
+    - B
+    input_question: "De acordo com a Lei de Melhoria da Educa\xE7\xE3o de Indiv\xED\
+      duos com Defici\xEAncia, qual das seguintes op\xE7\xF5es uma ag\xEAncia educacional\
+      \ deve fazer antes de alterar a coloca\xE7\xE3o educacional de um aluno com\
+      \ defici\xEAncia?"
+  - input_choice_list:
+      A: "s\xF3cio cultural"
+      B: "cl\xEDnico"
+      C: cognitivo
+      D: behaviorista
+    input_correct_responses:
+    - C
+    input_question: "Pascale est\xE1 interessada nas estrat\xE9gias de processamento\
+      \ que as crian\xE7as usam para aprender novas informa\xE7\xF5es. Pascale seria\
+      \ melhor classificado como que tipo de psic\xF3logo?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_psychology
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_high_school_psychology
+task_alias: high_school_psychology

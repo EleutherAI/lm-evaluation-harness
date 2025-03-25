@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Da\xF1\xF3 el apoyo al modelo estadounidense de econom\xEDa pol\xEDtica\
+        \ y capitalismo."
+      B: "Cre\xF3 ira contra Estados Unidos por exagerar la crisis."
+      C: "Aument\xF3 el apoyo al liderazgo global estadounidense bajo el presidente\
+        \ Obama."
+      D: "Redujo el uso global del d\xF3lar estadounidense."
+    input_correct_responses:
+    - A
+    input_question: "\xBFC\xF3mo afect\xF3 la crisis financiera de 2008 a la reputaci\xF3\
+      n internacional de Estados Unidos?"
+  - input_choice_list:
+      A: "Globaliz\xF3 la contenci\xF3n."
+      B: "Militariz\xF3 la contenci\xF3n."
+      C: "Pidi\xF3 el desarrollo de la bomba de hidr\xF3geno."
+      D: Todo lo anterior
+    input_correct_responses:
+    - D
+    input_question: "\xBFC\xF3mo cambi\xF3 el NSC-68 la estrategia estadounidense?"
+  - input_choice_list:
+      A: "pol\xEDtica terrorista."
+      B: "pol\xEDtica econ\xF3mica."
+      C: "la pol\xEDtica exterior."
+      D: "pol\xEDtica internacional."
+    input_correct_responses:
+    - C
+    input_question: "El \xE1mbito de las decisiones pol\xEDticas relacionadas principalmente\
+      \ con las relaciones entre Estados Unidos y el resto del mundo se conoce como"
+  - input_choice_list:
+      A: "Los realistas defensivos ponen mayor \xE9nfasis en el papel de las instituciones\
+        \ internacionales"
+      B: "Los realistas defensivos ponen menos \xE9nfasis en los factores geogr\xE1\
+        ficos"
+      C: "Los realistas ofensivos dan m\xE1s prioridad al inter\xE9s nacional que\
+        \ los realistas defensivos."
+      D: Los realistas defensivos creen que los estados maximizan la seguridad, mientras
+        que los realistas ofensivos creen que los estados maximizan el poder.
+    input_correct_responses:
+    - D
+    input_question: "\xBFEn qu\xE9 se diferencian el realismo defensivo y el realismo\
+      \ ofensivo en su explicaci\xF3n del comportamiento del Estado?"
+  - input_choice_list:
+      A: "La globalizaci\xF3n hab\xEDa hecho demasiado ricos a hombres como \xE9l"
+      B: "La globalizaci\xF3n solo benefici\xF3 a ciertos estados americanos, como\
+        \ Nueva York"
+      C: "Las elites liberales hab\xEDan alentado la globalizaci\xF3n, mientras que\
+        \ los &quot;estadounidenses comunes y corrientes&quot; perdieron empleos a\
+        \ causa de ella."
+      D: "La globalizaci\xF3n foment\xF3 guerras comerciales da\xF1inas"
+    input_correct_responses:
+    - C
+    input_question: "\xBFC\xF3mo atac\xF3 Donald Trump la globalizaci\xF3n en la campa\xF1\
+      a de 2016?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_us_foreign_policy
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_us_foreign_policy
+task_alias: us_foreign_policy

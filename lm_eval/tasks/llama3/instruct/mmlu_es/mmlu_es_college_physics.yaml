@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: Un telescopio refractor consta de dos lentes convergentes separadas
+      por 100 cm. La lente del ocular tiene una distancia focal de 20 cm. El aumento
+      angular del telescopio es
+  - input_choice_list:
+      A: Temperatura constante
+      B: Volumen constante
+      C: "Presi\xF3n constante"
+      D: "Adiab\xE1tico"
+    input_correct_responses:
+    - B
+    input_question: "\xBFPara cu\xE1l de los siguientes procesos termodin\xE1micos\
+      \ el aumento de la energ\xEDa interna de un gas ideal es igual al calor a\xF1\
+      adido al gas?"
+  - input_choice_list:
+      A: 2,4 voltios
+      B: 3,3 voltios
+      C: 4,5 voltios
+      D: 5,7 voltios
+    input_correct_responses:
+    - A
+    input_question: "Un extremo de un alambre de nicromo de longitud 2L y \xE1rea\
+      \ de secci\xF3n transversal A est\xE1 unido a un extremo de otro alambre de\
+      \ nicromo de longitud L y \xE1rea de secci\xF3n transversal 2A. Si el extremo\
+      \ libre del cable m\xE1s largo tiene un potencial el\xE9ctrico de 8,0 voltios\
+      \ y el extremo libre del cable m\xE1s corto tiene un potencial el\xE9ctrico\
+      \ de 1,0 voltios, el potencial en la uni\xF3n de los dos cables es casi igual\
+      \ a"
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: Un telescopio refractor consta de dos lentes convergentes separadas
+      por 100 cm. La lente del ocular tiene una distancia focal de 20 cm. El aumento
+      angular del telescopio es
+  - input_choice_list:
+      A: cargar
+      B: masa
+      C: "energ\xEDa y impulso"
+      D: "n\xFAmero lept\xF3nico"
+    input_correct_responses:
+    - D
+    input_question: "El mu\xF3n se desintegra con una vida \xFAtil caracter\xEDstica\
+      \ de aproximadamente 10 ^ -6 segundos en un electr\xF3n, un neutrino mu\xF3\
+      nico y un antineutrino electr\xF3nico. El mu\xF3n tiene prohibido desintegrarse\
+      \ en un electr\xF3n y un solo neutrino por la ley de conservaci\xF3n de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_physics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_college_physics
+task_alias: college_physics
