@@ -68,6 +68,13 @@ class HFMultimodalLM(HFLM):
         self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
             {"max_pixels": max_pixels} if max_pixels else {}
         )
+        self._set_image_token(image_token_id, image_string)
+
+    def _set_image_token(
+        self,
+        image_token_id: Optional[int] = None,
+        image_string: Optional[str] = None
+    ) -> None:
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
             self.image_token_id = (
@@ -287,6 +294,7 @@ class HFMultimodalLM(HFLM):
     ]:  # note that this return signature differs from HFLM tok_batch_encode.
         # NOTE: here, we replace <image> tags with our model's corresponding image_token string value.
         if not self.chat_applied:
+            # TODO make that branch work with phi3.5, currently is NOT working because there is no image token
             # TODO<baber>: This still keeps the whitespace in the image placeholder, which is not ideal.
             strings = [
                 replace_placeholders(
@@ -306,8 +314,13 @@ class HFMultimodalLM(HFLM):
             images = [[img.convert("RGB") for img in sublist] for sublist in images]
 
         # certain models like llava expect a single-level image list even for bs>1, multi-image. TODO: port this over to loglikelihoods
-        if getattr(self.config, "model_type", "") == "llava":
-            images = flatten_image_list(images)
+        model_type = getattr(self.config, "model_type", "")
+        if model_type == "llava":
+             images = flatten_image_list(images)
+        if model_type == "phi3_v":
+            # only bs = 1 for phi3_v
+            images = images[0]
+            strings = strings[0]
 
         encoding = self.processor(
             images=images,
@@ -720,3 +733,76 @@ class HFMultimodalLM(HFLM):
 
         pbar.close()
         return res
+
+
+@register_model("hf-multimodal-phi3")
+class HFMultimodalLMPhi3(HFMultimodalLM):
+    AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+
+    def __init__(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        interleave: bool = True,
+        max_images: Optional[int] = 999,
+        convert_img_format=False,
+        **kwargs,
+    ):
+        super().__init__(
+            pretrained,
+            interleave=interleave,
+            max_images=max_images,
+            convert_img_format=convert_img_format,
+            **kwargs,
+        )
+        assert (
+            self.batch_size == 1
+        ), "Batch size bigger than 1 is not yet supported for hf-multimodal-phi3 models"
+
+    def _set_image_token(self, image_token_id = None, image_string = None):
+        # Phi3 models doesn't have explicit image token
+        return
+
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+        self.chat_applied = True
+        if not self.interleave:
+            for content in chat_history:
+                text = content["content"]
+
+                # Count and remove image placeholders
+                image_count = min(
+                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                )
+                text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
+
+                # Add image entries
+                for i in range(image_count):
+                    text += f"<|image_{i + 1}|>"
+
+                content["content"] = text
+        else:
+            for content in chat_history:
+                text = content["content"]
+                expected_image_count = min(
+                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                )
+                actual_image_count = 0
+
+                text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
+                final_text = ""
+                for i, part in enumerate(text_parts):
+                    final_text += part
+                    # Add image placeholder after each split except the last
+                    if i < min(len(text_parts) - 1, self.max_images):
+                        actual_image_count += 1
+                        final_text += f"<|image_{actual_image_count}|>"
+
+                content["content"] = final_text
+
+                if actual_image_count != expected_image_count:
+                    raise ValueError(
+                        f"Mismatch in image placeholder count. Expected: {expected_image_count}, Actual: {actual_image_count}"
+                    )
+
+        return self.processor.tokenizer.apply_chat_template(
+            chat_history, add_generation_prompt=True, tokenize=False,
+        )
