@@ -46,7 +46,7 @@ Homepage: https://ibm.github.io/ACPBench/
 * `acp_land_bool`
 * `acp_prog_bool`
 * `acp_reach_bool`
-* `acp_val_bool` 
+* `acp_val_bool`
 
 7 MCQ tasks
 * `acp_areach_mcq`
@@ -55,7 +55,7 @@ Homepage: https://ibm.github.io/ACPBench/
 * `acp_land_mcq`
 * `acp_prog_mcq`
 * `acp_reach_mcq`
-* `acp_val_mcq` 
+* `acp_val_mcq`
 
 > ! The evaluation scripts are taken from original github https://github.com/IBM/ACPBench
 
