@@ -12,9 +12,9 @@ class FunctionTag:
 def prompt_func(mode, lang):
     prompt_map = {
         "prompt_4": "Answer the given question with the step by step solution appropriate numerical value, ensuring that the response is "
-                    "clear and without any supplementary information. \n\nQuestion: {{question}} \nStep by step answer: ",
+         "clear and without any supplementary information. \n\nQuestion: {{question}} \nStep by step answer: ",
         "prompt_5": f"For mathematical questions provided in {lang} language. Supply the accurate step by step answer to the "
-                    "provided question. \n\nQuestion: {{question}} \nStep by step answer: "
+        "provided question. \n\nQuestion: {{question}} \nStep by step answer: "
     }
     return prompt_map[mode]
 
@@ -46,18 +46,18 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "hau": "Hausa",
         "sot": "Sesotho",
         "swa": "Swahili",
-        "vai": "Vai"
+        "vai": "Vai",
     }
 
     for lang in languages.keys():
         try:
             file_name = f"afrimgsm_cot_{lang}.yaml"
             task_name = f"afrimgsm_cot_{lang}_{mode}"
-            yaml_template = f"afrimgsm_cot_yaml"
+            yaml_template = "afrimgsm_cot_yaml"
             if 'translate' in output_dir.split('/')[-1]:
                 file_name = f"afrimgsm_cot_translate_{lang}.yaml"
                 task_name = f"afrimgsm_cot_translate_{lang}_{mode}"
-                yaml_template = f"afrimgsm_cot_translate_yaml"
+                yaml_template = "afrimgsm_cot_translate_yaml"
             if int(mode.split("_")[-1]) > 3:
                 yaml_details = {
                         "include": yaml_template,

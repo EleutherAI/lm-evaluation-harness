@@ -7,5 +7,3 @@ aggregate_metric_list:
     weight_by_size: true
 metadata:
   version: 2
-
-

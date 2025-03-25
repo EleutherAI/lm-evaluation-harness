@@ -72,14 +72,13 @@ class POSFilter(Filter):
         `fallback` defines the output returned if no matches for the regex are located.
         """
         if fallback is None:
-            fallback = ['invalid']
+            fallback = ["invalid"]
         self.regex_pattern = regex_pattern
         self.regex = re.compile(regex_pattern)
         self.group_select = group_select
         self.fallback = fallback
 
     def apply(self, resps, docs):
-
         def extract_tagged_tokens(text):
             # Extract tagged tokens list from text input using regex
             tokens = re.findall(r"\('([^']*)', '([^']*)'\)", text)
@@ -100,6 +99,7 @@ class POSFilter(Filter):
             return filtered
 
         filtered_resps = map(lambda x: filter_set(x), resps)
+
         return filtered_resps
 
 

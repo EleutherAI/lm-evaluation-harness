@@ -17,7 +17,7 @@ def prompt_func(mode, lang, lang_dict):
         "prompt_1_reverse": "You are an advanced Translator, a specialized assistant designed to translate documents "
                             f"from English into {lang_dict[lang]}. \nYour main goal is to ensure translations are "
                             f"grammatically correct and human-oriented. "
-                            f"\nEnglish: {eng_col} \n{lang_dict[lang]}: ",
+                            f"\nEnglish: {{eng_text}} \n{lang_dict[lang]}: ",
         "prompt_2": f"{lang_dict[lang]} sentence: {{{{{language_column_name}}}}} \nEnglish sentence: ",
         "prompt_2_reverse": "English sentence: {{eng_text}} "
                             f"\n{lang_dict[lang]} sentence: ",
