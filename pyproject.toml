@@ -59,51 +59,68 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 [project.optional-dependencies]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
+gptqmodel = ["gptqmodel>=1.0.9"]
 hf_transfer = ["hf_transfer"]
-ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22"]
+ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
-neuronx = ["optimum[neuronx]"]
+ipex = ["optimum"]
+japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
+longbench=["jeiba", "fuzzywuzzy", "rouge"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
+neuronx = ["optimum[neuronx]"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
+ruler = ["nltk", "wonderwords", "scipy"]
 sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
-sparsify = ["sparsify"]
 sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
+sparsify = ["sparsify"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
-zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
-gptqmodel = ["gptqmodel>=1.0.9"]
-japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
+zeno = ["pandas", "zeno-client"]
 all = [
-    "lm_eval[anthropic]",
-    "lm_eval[dev]",
+    "lm_eval[api]",
+    "lm_eval[audiolm_qwen]",
     "lm_eval[deepsparse]",
+    "lm_eval[dev]",
     "lm_eval[gptq]",
+    "lm_eval[gptqmodel]",
     "lm_eval[hf_transfer]",
     "lm_eval[ibm_watsonx_ai]",
     "lm_eval[ifeval]",
+    "lm_eval[ipex]",
+    "lm_eval[japanese_leaderboard]",
+    "lm_eval[longbench]",
     "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
-    "lm_eval[openai]",
+    "lm_eval[neuronx]",
+    "lm_eval[optimum]",
     "lm_eval[promptsource]",
+    "lm_eval[ruler]",
     "lm_eval[sae_lens]",
     "lm_eval[sentencepiece]",
-    "lm_eval[sparsify]",
     "lm_eval[sparseml]",
+    "lm_eval[sparsify]",
     "lm_eval[testing]",
     "lm_eval[vllm]",
-    "lm_eval[zeno]",
     "lm_eval[wandb]",
-    "lm_eval[japanese_leaderboard]",
+    "lm_eval[zeno]",
 ]
+
+[tool.pymarkdown]
+plugins.md013.enabled = false # line-length
+plugins.md024.allow_different_nesting = true # no-duplicate-headers
+plugins.md025.enabled = false # single-header
+plugins.md028.enabled = false # no-blanks-blockquote
+plugins.md029.allow_extended_start_values = true # ol-prefix
+plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
 extend-select = ["I"]

@@ -1,0 +1,89 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Une voiture avertit un conducteur qu&#39;elle est sur le point de heurter
+        un objet.
+      B: Une randonneuse utilise une montre GPS pour suivre sa position.
+      C: "Un r\xE9frig\xE9rateur commande du lait \xE0 un service de livraison en\
+        \ ligne alors qu&#39;il n&#39;y a presque plus de lait dans le r\xE9frig\xE9\
+        rateur."
+      D: "Un coureur utilise une montre avec des capteurs optiques pour surveiller\
+        \ sa fr\xE9quence cardiaque."
+    input_correct_responses:
+    - C
+    input_question: "Lequel des \xE9l\xE9ments suivants est un exemple d&#39;utilisation\
+      \ d&#39;un appareil sur l&#39;Internet des objets (IoT)\_?"
+  - input_choice_list:
+      A: "Les activit\xE9s d&#39;un utilisateur naviguant dans une fen\xEAtre anonyme\
+        \ ne seront pas visibles par les personnes qui surveillent le r\xE9seau de\
+        \ l&#39;utilisateur, telles que l&#39;administrateur syst\xE8me."
+      B: "Les articles plac\xE9s dans le panier d&#39;achat d&#39;une boutique Web\
+        \ pour un achat futur au cours de la session de navigation anonyme ne seront\
+        \ pas enregistr\xE9s sur l&#39;ordinateur de l&#39;utilisateur."
+      C: "Un utilisateur ne pourra pas se connecter \xE0 des comptes de courrier \xE9\
+        lectronique ou de m\xE9dias sociaux pendant la session de navigation anonyme."
+      D: "Un utilisateur naviguant dans une fen\xEAtre anonyme sera prot\xE9g\xE9\
+        \ contre les virus lanc\xE9s \xE0 partir des sites Web visit\xE9s ou des fichiers\
+        \ t\xE9l\xE9charg\xE9s."
+    input_correct_responses:
+    - B
+    input_question: "De nombreux navigateurs Web permettent aux utilisateurs d&#39;ouvrir\
+      \ des fen\xEAtres anonymes. Lors d&#39;une session de navigation dans une fen\xEA\
+      tre anonyme, le navigateur n&#39;enregistre pas d&#39;historique de navigation\
+      \ ni de liste de fichiers t\xE9l\xE9charg\xE9s. Lorsque la fen\xEAtre anonyme\
+      \ est ferm\xE9e, les cookies cr\xE9\xE9s pendant la session sont supprim\xE9\
+      s. Laquelle des affirmations suivantes concernant les sessions de navigation\
+      \ dans une fen\xEAtre anonyme est vraie\_?"
+  - input_choice_list:
+      A: Erreur
+      B: abc
+      C: ABC
+      D: c
+    input_correct_responses:
+    - C
+    input_question: "Quelle est la sortie de &quot;abc&quot;[::-1] en Python\_3\_?"
+  - input_choice_list:
+      A: Fox-trot
+      B: "H\xF4tel"
+      C: Novembre
+      D: Yankee
+    input_correct_responses:
+    - C
+    input_question: "Dans le programme ci-dessous, la valeur initiale de x est 5 et\
+      \ la valeur initiale de y est 10. IF (X &lt; O) { DISPLAY (&quot;Foxtrot&quot;)\
+      \ } ELSE { IF (X &gt; y) { DISPLAY (&quot;Hotel&quot;) } SINON { SI (y &gt;\
+      \ O) { AFFICHAGE (&quot;Novembre&quot;) } SINON { AFFICHAGE (&quot;Yankee&quot;)\
+      \ } } } Qu&#39;est-ce qui s&#39;affiche \xE0 la suite de l&#39;ex\xE9cution\
+      \ du programme\_?"
+  - input_choice_list:
+      A: "\xC9tape 3 : Augmentez la valeur de position de 1. \xC9tape 4 : R\xE9p\xE9\
+        tez les \xE9tapes 2 et 3 jusqu&#39;\xE0 ce que la valeur de count soit sup\xE9\
+        rieure \xE0 100."
+      B: "\xC9tape 3 : Augmentez la valeur de position de 1. \xC9tape 4 : R\xE9p\xE9\
+        tez les \xE9tapes 2 et 3 jusqu&#39;\xE0 ce que la valeur de position soit\
+        \ sup\xE9rieure \xE0 n."
+      C: "\xC9tape 3 : R\xE9p\xE9tez l&#39;\xE9tape 2 jusqu&#39;\xE0 ce que la valeur\
+        \ de count soit sup\xE9rieure \xE0 100. \xC9tape 4 : Augmentez la valeur de\
+        \ position de 1."
+      D: "\xC9tape 3 : r\xE9p\xE9tez l&#39;\xE9tape 2 jusqu&#39;\xE0 ce que la valeur\
+        \ de position soit sup\xE9rieure \xE0 n. \xC9tape 4 : Augmentez la valeur\
+        \ de count de 1."
+    input_correct_responses:
+    - D
+    input_question: "Une liste de nombres comporte n \xE9l\xE9ments, index\xE9s de\
+      \ 1 \xE0 n. L&#39;algorithme suivant est destin\xE9 \xE0 afficher le nombre\
+      \ d&#39;\xE9l\xE9ments de la liste qui ont une valeur sup\xE9rieure \xE0 100.\
+      \ L&#39;algorithme utilise les variables count et position. Les \xE9tapes 3\
+      \ et 4 manquent. \xC9tape 1 : d\xE9finissez count sur 0 et position sur 1. \xC9\
+      tape 2 : si la valeur de l&#39;\xE9l\xE9ment \xE0 la position d&#39;index est\
+      \ sup\xE9rieure \xE0 100, augmentez la valeur de count de 1. \xC9tape 3 : (\xE9\
+      tape manquante) \xC9tape 4 : (\xE9tape manquante ) \xC9tape 5 : Affichez la\
+      \ valeur de comptage. Lequel des \xE9l\xE9ments suivants pourrait \xEAtre utilis\xE9\
+      \ pour remplacer les \xE9tapes 3 et 4 afin que l&#39;algorithme fonctionne comme\
+      \ pr\xE9vu\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_computer_science
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_high_school_computer_science
+task_alias: high_school_computer_science

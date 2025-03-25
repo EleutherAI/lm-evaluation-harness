@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: menos
+      B: "m\xE1s"
+      C: lo mismo
+      D: cero
+    input_correct_responses:
+    - A
+    input_question: "En comparaci\xF3n con la masa de un \xE1tomo de uranio sometido\
+      \ a fisi\xF3n, las masas combinadas de los productos despu\xE9s de la fisi\xF3\
+      n son"
+  - input_choice_list:
+      A: espacio y tiempo.
+      B: un gemelo que viaja y un gemelo que se queda en casa.
+      C: "gravedad y aceleraci\xF3n."
+      D: "masa y energ\xEDa."
+    input_correct_responses:
+    - C
+    input_question: "Las cosas que son equivalentes seg\xFAn el principio de equivalencia\
+      \ son"
+  - input_choice_list:
+      A: convertido a una frecuencia diferente
+      B: "desviaci\xF3n"
+      C: interferencia
+      D: "polarizaci\xF3n"
+    input_correct_responses:
+    - C
+    input_question: "Los colores de una pompa de jab\xF3n son el resultado de la luz."
+  - input_choice_list:
+      A: lo mismo
+      B: mayor que
+      C: menos
+      D: mayor o menor dependiendo de la velocidad del viento
+    input_correct_responses:
+    - B
+    input_question: "Un modelo de avi\xF3n vuela m\xE1s lento cuando vuela contra\
+      \ el viento y m\xE1s r\xE1pido con el viento a favor. Cuando se lanza en \xE1\
+      ngulo recto con el viento (viento cruzado), su velocidad respecto al suelo en\
+      \ comparaci\xF3n con volar en aire en calma es"
+  - input_choice_list:
+      A: "Hidr\xF3geno"
+      B: Hierro
+      C: Uranio
+      D: Lo mismo en cada
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de estos tres elementos tiene mayor masa por nucle\xF3\
+      n?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_conceptual_physics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_conceptual_physics
+task_alias: conceptual_physics

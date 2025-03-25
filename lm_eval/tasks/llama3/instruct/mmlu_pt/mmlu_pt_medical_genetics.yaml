@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "rea\xE7\xE3o em cadeia da polimerase."
+      B: "an\xE1lise de polimorfismo conformacional de fita simples."
+      C: Mancha do sul.
+      D: Mancha ocidental.
+    input_correct_responses:
+    - C
+    input_question: "Grandes expans\xF5es de repeti\xE7\xE3o tripla podem ser detectadas\
+      \ por:"
+  - input_choice_list:
+      A: "uma enzima que une fragmentos na replica\xE7\xE3o normal do DNA"
+      B: "uma enzima de origem bacteriana que corta o DNA em sequ\xEAncias de bases\
+        \ definidas"
+      C: "uma enzima que facilita a transcri\xE7\xE3o de genes espec\xEDficos"
+      D: "uma enzima que limita o n\xEDvel a que um determinado nutriente atinge"
+    input_correct_responses:
+    - A
+    input_question: "DNA ligase \xE9"
+  - input_choice_list:
+      A: tem ambos os alelos expressos independentemente no heterozigoto
+      B: tem um alelo dominante para o outro
+      C: tem alelos fortemente ligados no mesmo cromossomo
+      D: tem alelos expressos ao mesmo tempo no desenvolvimento
+    input_correct_responses:
+    - A
+    input_question: "Um gene mostrando codomin\xE2ncia"
+  - input_choice_list:
+      A: "Estenose pil\xF3rica"
+      B: Esquizofrenia
+      C: "Espinha b\xEDfida (defeitos do tubo neural)"
+      D: "s\xEDndrome de Marfan"
+    input_correct_responses:
+    - D
+    input_question: "Qual das seguintes condi\xE7\xF5es n\xE3o mostra heran\xE7a multifatorial?"
+  - input_choice_list:
+      A: "pr\xF3fase I"
+      B: "met\xE1fase I"
+      C: "pr\xF3fase II"
+      D: "met\xE1fase II"
+    input_correct_responses:
+    - A
+    input_question: "O est\xE1gio da meiose em que os cromossomos se emparelham e\
+      \ se cruzam \xE9:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_medical_genetics
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_medical_genetics
+task_alias: medical_genetics
