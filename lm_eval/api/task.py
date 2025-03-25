@@ -382,7 +382,7 @@ class Task(abc.ABC):
         self,
         *,
         limit: Union[int, None] = None,
-        examples: Optional[List[int]] = None,
+        samples: Optional[List[int]] = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
@@ -436,7 +436,7 @@ class Task(abc.ABC):
 
         doc_id_docs = list(
             self.doc_iterator(
-                rank=rank, limit=limit, examples=examples, world_size=world_size
+                rank=rank, limit=limit, samples=samples, world_size=world_size
             )
         )
 
@@ -690,18 +690,18 @@ class Task(abc.ABC):
         rank: int = 0,
         limit: Union[int, None] = None,
         world_size: int = 1,
-        examples: Optional[List[int]] = None,
+        samples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
-        if examples:
+        if samples:
             n = len(self.eval_docs)
-            assert all([e < n for e in examples]), (
-                f"Elements of --examples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            assert all([e < n for e in samples]), (
+                f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
             eval_logger.info(
-                f"{self.config.task}: Evaluating on {len(examples)} examples"
+                f"{self.config.task}: Evaluating on {len(samples)} examples"
             )
             doc_iterator = utils.create_iterator(
-                enumerate(x for i, x in enumerate(self.eval_docs) if i in examples),
+                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
                 rank=int(rank),
                 limit=None,  # limit does not matter here since we are selecting samples directly
                 world_size=int(world_size),

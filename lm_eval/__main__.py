@@ -130,12 +130,12 @@ def setup_parser() -> argparse.ArgumentParser:
         "If <1, limit is a percentage of the total number of examples.",
     )
     parser.add_argument(
-        "--examples",
+        "--samples",
         "-E",
         default=None,
         type=str,
         metavar="/path/to/json",
-        help='JSON string or path to JSON file containing doc indices of examples to test. Format: {"task_name":[indices],...}',
+        help='JSON string or path to JSON file containing doc indices of selected examples to test. Format: {"task_name":[indices],...}',
     )
     parser.add_argument(
         "--use_cache",
@@ -326,14 +326,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-    if args.examples:
+    if args.samples:
         assert args.limit is None, (
-            "If --examples is not None, then --limit must be None."
+            "If --samples is not None, then --limit must be None."
         )
-        if (examples := Path(args.examples)).is_file():
-            args.examples = json.loads(examples.read_text())
+        if (samples := Path(args.samples)).is_file():
+            args.samples = json.loads(samples.read_text())
         else:
-            args.examples = json.loads(args.examples)
+            args.samples = json.loads(args.samples)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -413,7 +413,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
-        examples=args.examples,
+        samples=args.samples,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
