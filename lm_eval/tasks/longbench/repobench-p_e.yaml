@@ -1,0 +1,19 @@
+
+tag:
+  - longbench_e
+task: longbench_repobench-p_e
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: repobench-p_e
+doc_to_text: 'Please complete the code given below. \n{{context}}{{input}}Next line of code:\n'
+doc_to_target: '{{answers}}'
+generation_kwargs:
+  max_gen_toks: 64
+  temperature: 1
+  do_sample: True
+metric_list:
+  - metric: !function metrics.code_sim_score
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 1.0

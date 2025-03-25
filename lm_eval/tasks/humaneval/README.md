@@ -49,3 +49,4 @@ If other tasks on this dataset are already supported:
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+v2 20-MAR-2025: `humaneval_instruct`, `humaneval_instruct_64`: fixed typo in gen_prefix

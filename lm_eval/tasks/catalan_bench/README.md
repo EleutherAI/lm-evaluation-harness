@@ -23,6 +23,8 @@ The datasets included in CatalanBench that have been made public in previous pub
 | caBREU | Summarization | [Building a Data Infrastructure for a Mid-Resource Language: The Case of Catalan](https://aclanthology.org/2024.lrec-main.231/) | https://huggingface.co/datasets/projecte-aina/caBreu |
 | CatalanQA | Question Answering | [Building a Data Infrastructure for a Mid-Resource Language: The Case of Catalan](https://aclanthology.org/2024.lrec-main.231/) | https://huggingface.co/datasets/projecte-aina/catalanqa |
 | CatCoLA | Linguistic Acceptability | CatCoLA: Catalan Corpus of Linguistic Acceptability | https://huggingface.co/datasets/nbel/CatCoLA |
+| Cocoteros_va | Commonsense Reasoning | COCOTEROS_VA: Valencian translation of the COCOTEROS Spanish dataset | https://huggingface.co/datasets/gplsi/cocoteros_va |
+ | EsCoLA | Linguistic Acceptability | [EsCoLA: Spanish Corpus of Linguistic Acceptability](https://aclanthology.org/2024.lrec-main.554/) |
 | COPA-ca | Commonsense Reasoning | [Building a Data Infrastructure for a Mid-Resource Language: The Case of Catalan](https://aclanthology.org/2024.lrec-main.231/) | https://huggingface.co/datasets/projecte-aina/COPA-ca |
 | CoQCat | Question Answering | [Building a Data Infrastructure for a Mid-Resource Language: The Case of Catalan](https://aclanthology.org/2024.lrec-main.231/) | https://huggingface.co/datasets/projecte-aina/CoQCat |
 | FLORES_ca | Translation | [The FLORES-101  Evaluation Benchmark for Low-Resource and Multilingual Machine Translation](https://arxiv.org/abs/2106.03193) | https://huggingface.co/datasets/facebook/flores |
@@ -91,6 +93,7 @@ The following tasks evaluate tasks on CatalanBench dataset using various scoring
   - `cabreu`
   - `catalanqa`
   - `catcola`
+  - `cocoteros_va`
   - `copa_ca`
   - `coqcat`
   - `flores_ca`
@@ -141,3 +144,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+
+### Changelog
+version 2.0: (2025-Mar-18) add [`cococteros_va`](./cocoteros_va.yaml) task.

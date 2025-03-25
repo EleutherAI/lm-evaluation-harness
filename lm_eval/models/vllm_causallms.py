@@ -113,11 +113,11 @@ class VLLM(TemplateLM):
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
-            from transformers import AutoConfig
+        from transformers import AutoConfig
 
-            self._config = AutoConfig.from_pretrained(
-                pretrained, trust_remote_code=trust_remote_code, revision=revision
-            )
+        self._config = AutoConfig.from_pretrained(
+            pretrained, trust_remote_code=trust_remote_code, revision=revision
+        )
         self.tokenizer = get_tokenizer(
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
@@ -125,7 +125,7 @@ class VLLM(TemplateLM):
             revision=tokenizer_revision,
             add_bos_token=add_bos_token,
         )
-        self.tokenizer = configure_pad_token(self.tokenizer)
+        self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
@@ -559,6 +559,7 @@ class VLLM(TemplateLM):
     @staticmethod
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
+        kwargs["temperature"] = kwargs.get("temperature", 0.0)
         do_sample = kwargs.pop("do_sample", None)
         if do_sample is False and "temperature" not in kwargs:
             eval_logger.debug(
