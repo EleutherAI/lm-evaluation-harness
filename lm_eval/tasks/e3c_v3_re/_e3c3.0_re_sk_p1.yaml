@@ -1,6 +1,6 @@
 tag: e3c3.0_re_sk_tasks
 include: _re_sk_template_yaml
-task: e3c3.0_re_sk_prompt-1
+task: e3c3.0_re_sk_task
 fewshot_split: dev
 task_alias: prompt-1
 

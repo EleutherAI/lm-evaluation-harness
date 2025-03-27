@@ -1,6 +1,6 @@
 tag: e3c3.0_re_gr_tasks
 include: _re_gr_template_yaml
-task: e3c3.0_re_gr_prompt-1
+task: e3c3.0_re_gr_task
 fewshot_split: dev
 task_alias: prompt-1
 
