@@ -411,6 +411,7 @@ class TemplateAPI(TemplateLM):
                 self.base_url,
                 json=payload,
                 headers=self.header,
+                ssl=self.verify_certificate,
             ) as response:
                 if not response.ok:
                     error_text = await response.text()
