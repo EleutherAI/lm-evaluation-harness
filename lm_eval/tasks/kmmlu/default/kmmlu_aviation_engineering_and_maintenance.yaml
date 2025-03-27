@@ -1,0 +1,4 @@
+dataset_name: Aviation-Engineering-and-Maintenance
+include: _default_kmmlu_yaml
+task: kmmlu_aviation_engineering_and_maintenance
+tag: kmmlu_applied_science_tasks
