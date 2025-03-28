@@ -30,7 +30,18 @@ BibTeX-formatted citation goes here
 #### Tasks
 
 * `mmlu_llama`: `generation variant of MMLU`
+* `mmlu_pro_llama`: `generation variant of MMLU-PRO`
+* `mmlu_cot_llama`: `Chain-of-thought variant of MMLU`
+* `mmlu_it_llama`: `Italian version of generation MMLU`
+* `mmlu_fr_llama`: `French version of generation MMLU`
+* `mmlu_pt_llama`: `Portuguese version of generation MMLU`
+* `mmlu_th_llama`: `Thai version of generation MMLU`
+* `mmlu_hi_llama`: `Hindi version of generation MMLU`
+* `mmlu_es_llama`: `Spanish version of generation MMLU`
+* `mmlu_de_llama`: `German version of generation MMLU`
 * `arc_chalenge_chat`: `generation variant of ARC-Challenge using MMLU format`
+* `arc_challenge_llama`: `generation variant of ARC-Challenge following Meta pre-processing`
+* `gsm8k_llama`: `Chain-of-though variant of GSM8k`
 
 ### Checklist
 
