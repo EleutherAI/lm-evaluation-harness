@@ -1,0 +1,4 @@
+include: _chinese_few_shot_og_template_yaml
+description: 以下是关于 Applied Science 的多项选择题（附答案）。
+process_docs: !function 'utils.process_applied_science'
+task: include_base_44_chinese_few_shot_og_applied_science

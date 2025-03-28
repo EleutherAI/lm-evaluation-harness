@@ -1,0 +1,75 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Si la pendiente de la recta de regresi\xF3n es exactamente 1, entonces la\
+        \ correlaci\xF3n es exactamente 1."
+      B: "Si la correlaci\xF3n es 0, entonces la pendiente de la recta de regresi\xF3\
+        n no est\xE1 definida."
+      C: "Cambiar qu\xE9 variable se llama x y cu\xE1l se llama y cambia el signo\
+        \ de la correlaci\xF3n."
+      D: "La correlaci\xF3n r es igual a la pendiente de la l\xEDnea de regresi\xF3\
+        n cuando las puntuaciones z de la variable y se trazan frente a las puntuaciones\
+        \ z de la variable x."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes es una afirmaci\xF3n correcta sobre\
+      \ la correlaci\xF3n?"
+  - input_choice_list:
+      A: E(X + Y) = 99, var(X + Y) = 8,5
+      B: E(X + Y) = 99, var(X + Y) = 13
+      C: E(X + Y) = 99, var(X + Y) = 17
+      D: "No hay informaci\xF3n suficiente para responder a esta pregunta."
+    input_correct_responses:
+    - D
+    input_question: "Supongamos que X e Y son variables aleatorias con E(X) = 37,\
+      \ var(X) = 5, E(Y) = 62 y var(Y) = 12. \xBFCu\xE1les son el valor esperado y\
+      \ la varianza de la variable aleatoria X +? \xBFY?"
+  - input_choice_list:
+      A: "La proporci\xF3n de \xE1rboles que sufrieron m\xE1s del 50 por ciento de\
+        \ da\xF1os debido a las heladas."
+      B: "El n\xFAmero de \xE1rboles afectados por las heladas."
+      C: "El n\xFAmero de \xE1rboles muestreados de la arboleda."
+      D: "Para cada \xE1rbol muestreado, si sufri\xF3 m\xE1s del 50 por ciento de\
+        \ da\xF1o o como m\xE1ximo un 50 por ciento de da\xF1o."
+    input_correct_responses:
+    - D
+    input_question: "Despu\xE9s de que se emitiera una advertencia de heladas, el\
+      \ propietario de un gran huerto de naranjos pidi\xF3 a sus trabajadores que\
+      \ rociaran todos sus \xE1rboles con agua. Se supon\xEDa que el agua se congelar\xED\
+      a y formar\xEDa una capa protectora de hielo alrededor de la flor de naranjo.\
+      \ Sin embargo, el propietario sospechaba que algunos \xE1rboles hab\xEDan sufrido\
+      \ da\xF1os considerables debido a las heladas. Para estimar la proporci\xF3\
+      n de \xE1rboles que sufrieron m\xE1s del 50 por ciento de da\xF1os debido a\
+      \ las heladas, tom\xF3 una muestra aleatoria de 100 \xE1rboles de su arboleda.\
+      \ \xBFCu\xE1l es la variable de respuesta en este experimento?"
+  - input_choice_list:
+      A: "Media 518 gramos; desviaci\xF3n est\xE1ndar 7,0 gramos"
+      B: "Media 518 gramos; desviaci\xF3n est\xE1ndar 3,5 gramos"
+      C: "Media 518 gramos; desviaci\xF3n est\xE1ndar 6,1 gramos"
+      D: "Media 394 gramos; desviaci\xF3n est\xE1ndar 6,1 gramos"
+    input_correct_responses:
+    - C
+    input_question: "Un nuevo reloj inteligente se fabrica en una parte de una f\xE1\
+      brica y luego se asegura para su env\xEDo en otra parte independiente de la\
+      \ f\xE1brica. El peso del reloj inteligente tiene una media de 62 gramos y una\
+      \ desviaci\xF3n est\xE1ndar de 1,0 gramos. El peso del embalaje (caja, gu\xED\
+      a de usuario, pl\xE1stico de burbujas, etc.) tiene una media de 456 gramos y\
+      \ una desviaci\xF3n est\xE1ndar de 6 gramos. En conjunto, la distribuci\xF3\
+      n del peso del reloj inteligente y su embalaje tendr\xEDa la siguiente media\
+      \ y desviaci\xF3n est\xE1ndar:"
+  - input_choice_list:
+      A: yo, yo
+      B: II, III
+      C: III, yo
+      D: III,II
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de los siguientes conjuntos tiene la desviaci\xF3\
+      n est\xE1ndar m\xE1s peque\xF1a? \xBFCu\xE1l tiene el mayor? Yo: {1,2,3} II:\
+      \ {-10,10} III: {100}"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_statistics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_high_school_statistics
+task_alias: high_school_statistics

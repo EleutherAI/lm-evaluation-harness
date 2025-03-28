@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: durante el primer trimestre
+      B: durante el segundo trimestre
+      C: durante el tercer trimestre
+      D: durante todo el embarazo
+    input_correct_responses:
+    - A
+    input_question: "Las n\xE1useas matutinas suelen ser un problema:"
+  - input_choice_list:
+      A: un ego fuerte
+      B: "un supery\xF3 d\xE9bil"
+      C: "una identificaci\xF3n d\xE9bil"
+      D: "un supery\xF3 fuerte"
+    input_correct_responses:
+    - B
+    input_question: "Una mujer que sabe que tiene herpes activo y s\xEDfilis no tratada\
+      \ pero contin\xFAa teniendo relaciones sexuales sin informar a sus parejas de\
+      \ su condici\xF3n tiene, en t\xE9rminos psicoanal\xEDticos:"
+  - input_choice_list:
+      A: "el hecho de que no tienen un per\xEDodo refractario."
+      B: la respuesta de las capas internas de la vagina.
+      C: tener orgasmos alternos en diferentes lugares.
+      D: el punto G.
+    input_correct_responses:
+    - A
+    input_question: "La capacidad de las mujeres para tener orgasmos m\xFAltiples\
+      \ se debe principalmente a:"
+  - input_choice_list:
+      A: relaciones sexuales
+      B: idiotas circulares
+      C: exhibicionismo
+      D: tocarse los genitales el uno al otro
+    input_correct_responses:
+    - A
+    input_question: "\xBFLa naturaleza de las actividades homosexuales que ocurren\
+      \ durante la preadolescencia incluye todas menos cu\xE1l de las siguientes?"
+  - input_choice_list:
+      A: "eyaculaci\xF3n precoz"
+      B: "eyaculaci\xF3n inhibida"
+      C: "trastorno er\xE9ctil"
+      D: trastorno eyaculatorio
+    input_correct_responses:
+    - C
+    input_question: "El trastorno m\xE1s com\xFAn entre los hombres que buscan terapia\
+      \ sexual es:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_sexuality
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_human_sexuality
+task_alias: human_sexuality

@@ -1,0 +1,49 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Der erste Schlundbogen
+      B: Der erste und der zweite Schlundbogen
+      C: Der zweite Schlundbogen
+      D: Der zweite und dritte Schlundbogen
+    input_correct_responses:
+    - D
+    input_question: Was ist der embryologische Ursprung des Zungenbeins?
+  - input_choice_list:
+      A: Der Nervus supraorbitalis
+      B: Der Nervus infraorbitalis
+      C: Der mentale Nerv
+      D: Nichts des oben Genannten
+    input_correct_responses:
+    - D
+    input_question: "Welche dieser \xC4ste des Trigeminusnervs enthalten somatische\
+      \ motorische Prozesse?"
+  - input_choice_list:
+      A: haben keine sensorische Innervation.
+      B: sind durch einen Abstand von 2 mm voneinander getrennt.
+      C: bis in den Hals reichen.
+      D: bestehen aus respiratorischem Epithel.
+    input_correct_responses:
+    - C
+    input_question: Die Pleura
+  - input_choice_list:
+      A: "\xFCberm\xE4\xDFiger \xDCberbiss der oberen seitlichen Schneidez\xE4hne."
+      B: "negativer Overjet der oberen mittleren Schneidez\xE4hne."
+      C: "\xFCbersch\xFCssiger \xDCberbiss der oberen seitlichen Schneidez\xE4hne."
+      D: "\xFCbersch\xFCssiger Overjet der oberen mittleren Schneidez\xE4hne."
+    input_correct_responses:
+    - C
+    input_question: In Angles Klasse II Div 2 Okklusion gibt es
+  - input_choice_list:
+      A: Bauch
+      B: Kranial
+      C: Pleural
+      D: "Wirbels\xE4ule"
+    input_correct_responses:
+    - B
+    input_question: "Welche der folgenden K\xF6rperh\xF6hlen enth\xE4lt die Hypophyse?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_anatomy
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_anatomy
+task_alias: anatomy

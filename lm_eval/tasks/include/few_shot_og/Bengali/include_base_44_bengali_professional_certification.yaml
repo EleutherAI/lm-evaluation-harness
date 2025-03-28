@@ -1,0 +1,5 @@
+include: _bengali_few_shot_og_template_yaml
+description: নিম্নলিখিতগুলি Professional certification সম্পর্কে বহু-পছন্দের প্রশ্ন
+  (উত্তর সহ)।
+process_docs: !function 'utils.process_professional_certification'
+task: include_base_44_bengali_few_shot_og_professional_certification

@@ -1,0 +1,194 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Jean-Jacques Rousseau
+      B: Barone Montesquieu
+      C: Mary Wollstonecraft
+      D: Adam Smith
+    input_correct_responses:
+    - B
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. Il seguente\
+      \ estratto \xE8 tratto da un opuscolo. Mi renderai giustizia ricordando che\
+      \ ho sempre strenuamente sostenuto il diritto di ogni uomo alla propria opinione,\
+      \ per quanto diversa possa essere dalla mia. Chi nega a un altro questo diritto,\
+      \ si rende schiavo della sua opinione presente, perch\xE9 si preclude il diritto\
+      \ di cambiarla. L&#39;arma pi\xF9 formidabile contro gli errori di ogni genere\
+      \ \xE8 la Ragione. Non ne ho mai usato nessun altro e confido che non lo far\xF2\
+      \ mai. La circostanza che si \xE8 verificata ora in Francia, dell\u2019abolizione\
+      \ totale dell\u2019intero ordine nazionale del sacerdozio e di tutto ci\xF2\
+      \ che appartiene ai sistemi compulsivi di religione e agli articoli di fede\
+      \ compulsivi, non solo ha accelerato la mia intenzione, ma ha reso l\u2019opera\
+      \ di questo un genere estremamente necessario, affinch\xE9 nel generale naufragio\
+      \ della superstizione, dei falsi sistemi di governo e della falsa teologia,\
+      \ perdiamo di vista la moralit\xE0, l&#39;umanit\xE0 e la teologia che \xE8\
+      \ vera. Credo in un solo Dio, e niente di pi\xF9; e spero nella felicit\xE0\
+      \ oltre questa vita. Credo nell&#39;uguaglianza dell&#39;uomo; e credo che i\
+      \ doveri religiosi consistano nel fare giustizia, amare la misericordia e sforzarsi\
+      \ di rendere felici i nostri simili. Non credo nel credo professato dalla chiesa\
+      \ ebraica, dalla chiesa romana, dalla chiesa greca, dalla chiesa turca, dalla\
+      \ chiesa protestante, n\xE9 da alcuna chiesa che io conosca. La mia mente \xE8\
+      \ la mia chiesa. Tutte le istituzioni nazionali delle chiese, siano esse ebraiche,\
+      \ cristiane o turche, non mi sembrano altro che invenzioni umane, istituite\
+      \ per terrorizzare e schiavizzare l\u2019umanit\xE0 e monopolizzare il potere\
+      \ e il profitto. Con questa dichiarazione non intendo condannare coloro che\
+      \ credono il contrario; hanno lo stesso diritto alla loro convinzione che io\
+      \ ho alla mia. \u2014Thomas Paine, The Age of Reason, 1794\u20131795 Quale dei\
+      \ seguenti filosofi illuministi progett\xF2 un sistema di controlli ed equilibri\
+      \ affinch\xE9 il governo evitasse abusi di potere?"
+  - input_choice_list:
+      A: "Le idee di libert\xE0 personale e nazionalismo concepite durante l\u2019\
+        Illuminismo portarono a rivoluzioni radicali che poterono diffondersi in tutta\
+        \ Europa."
+      B: "La conquista dell&#39;Europa da parte di Napoleone port\xF2 alla creazione\
+        \ di nuove fazioni e spost\xF2 gli equilibri di potere europei."
+      C: Il potere dei monarchi era cresciuto al punto che doveva essere controllato
+        da altri poteri all&#39;interno di ciascuna nazione o si sarebbe verificata
+        la dominazione dei civili.
+      D: Il ciclo economico in salita e in discesa della nuova economia capitalista
+        emergente potrebbe portare a disordini civili che devono essere repressi.
+    input_correct_responses:
+    - A
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. Leggi\
+      \ il seguente estratto. Il seme rivoluzionario era penetrato in tutti i paesi\
+      \ e si era pi\xF9 o meno diffuso. Si svilupp\xF2 molto sotto il regime del dispotismo\
+      \ militare di Bonaparte. Le sue conquiste hanno spostato una serie di leggi,\
+      \ istituzioni e costumi; ruppe i legami sacri tra tutte le nazioni, abbastanza\
+      \ forti da resistere al tempo stesso; il che \xE8 pi\xF9 di quanto si possa\
+      \ dire di alcuni benefici conferiti da questi innovatori. I monarchi adempiranno\
+      \ i doveri imposti loro da Colui che, affidando loro il potere, li ha incaricati\
+      \ di vigilare sul mantenimento della giustizia e dei diritti di tutti, di evitare\
+      \ le vie dell&#39;errore e di percorrere con fermezza la via dell&#39;errore.\
+      \ verit\xE0. Posti al di l\xE0 delle passioni che agitano la societ\xE0, \xE8\
+      \ soprattutto nei giorni della prova che sono chiamati a spogliare la realt\xE0\
+      \ delle loro false apparenze, e a mostrarsi quali sono, padri investiti dell&#39;autorit\xE0\
+      \ che spetta di diritto ai capi famiglia, per dimostrare che, nei giorni di\
+      \ lutto, sanno essere giusti, saggi e quindi forti, e che non abbandoneranno\
+      \ il popolo che dovrebbero governare come gioco delle fazioni, all\u2019errore\
+      \ e alle sue conseguenze, che devono implicano la perdita della societ\xE0.\
+      \ L&#39;unione tra i monarchi \xE8 la base della politica che ora deve essere\
+      \ seguita per salvare la societ\xE0 dalla rovina totale. . . . Non confondano\
+      \ le concessioni fatte ai partiti con il bene che dovrebbero fare al popolo,\
+      \ modificando, secondo i bisogni riconosciuti, i rami dell&#39;amministrazione\
+      \ che lo richiedono. Siano giusti, ma forti; benefico, ma severo. Mantengano\
+      \ i principi religiosi in tutta la loro purezza e non permettano che la fede\
+      \ venga attaccata e la moralit\xE0 interpretata secondo il contratto sociale\
+      \ o le visioni di sciocchi settari. Sopprimano le societ\xE0 segrete; quella\
+      \ cancrena della societ\xE0. \u2014Klemens von Metternich, Confessione politica\
+      \ di fede, 1820 Quale delle seguenti \xE8 stata la causa principale dei timori\
+      \ espressi da Metternich nel documento di cui sopra?"
+  - input_choice_list:
+      A: Capitalista
+      B: Scientifico
+      C: comunista
+      D: Esistenzialista
+    input_correct_responses:
+    - C
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. In Russia\
+      \ non andava tutto bene e [Souvarine] era disperato per la notizia che aveva\
+      \ ricevuto. I suoi vecchi compagni si rivolgevano tutti ai politici; i famosi\
+      \ nichilisti che facevano tremare l\u2019Europa \u2013 figli di preti di villaggio,\
+      \ di piccoli borghesi, di commercianti \u2013 non potevano elevarsi al di sopra\
+      \ dell\u2019idea di liberazione nazionale, e sembravano credere che il mondo\
+      \ sarebbe stato liberato \u2013 dopo aver ucciso il loro despota\u2026 &quot;Sciocchezze!\
+      \ Con le loro sciocchezze non ne usciranno mai.&quot; Poi, abbassando ancora\
+      \ di pi\xF9 la voce, con poche parole amare descrisse il suo vecchio sogno di\
+      \ fraternit\xE0. Aveva rinunciato al suo rango e alla sua fortuna; era andato\
+      \ tra gli operai, solo nella speranza di vedere finalmente la fondazione di\
+      \ una nuova societ\xE0 di lavoro in comune. Tutti i soldi che aveva in tasca\
+      \ erano andati da tempo ai monelli del villaggio; era stato tenero come un fratello\
+      \ con i minatori, sorridendo dei loro sospetti, conquistandoli con i suoi modi\
+      \ tranquilli da operaio e la sua avversione per le chiacchiere. Ma decisamente\
+      \ la fusione non era avvenuta. La sua voce cambi\xF2, i suoi occhi si illuminarono,\
+      \ li fiss\xF2 su \xC9tienne, rivolgendosi direttamente a lui: &quot;Adesso capisci?\
+      \ Questi cappellai di Marsiglia che hanno vinto il grande premio di centomila\
+      \ franchi della lotteria, sono subito partiti e hanno investito voi, voi tutti,\
+      \ operai francesi, volete dissotterrare un tesoro per divorarlo poi da soli,\
+      \ in qualche angolo pigro ed egoista. per quanto tu voglia contro i ricchi,\
+      \ non hai abbastanza coraggio per restituire ai poveri il denaro che la fortuna\
+      \ ti porta. Non sarai mai degno di felicit\xE0 finch\xE9 possiedi qualcosa,\
+      \ e il tuo odio contro i borghesi procede unicamente per il desiderio rabbioso\
+      \ di essere voi stessi borghesi al loro posto.&quot; \xE9mile Zola, scrittore\
+      \ francese, Germinal, 1885 Il passaggio mostra la preoccupazione diretta per\
+      \ il benessere delle classi lavoratrici che tipicamente faceva parte di quale\
+      \ movimento?"
+  - input_choice_list:
+      A: Servirono da catalizzatore per la crescita della navigazione inglese e del
+        commercio estero, ma fecero ben poco per limitare le prospettive degli olandesi
+        nel XVII secolo.
+      B: "Causarono difficolt\xE0 quasi immediate per l\u2019economia olandese poich\xE9\
+        \ il loro dominio sul commercio estero fin\xEC rapidamente."
+      C: "Furono annullati durante la restaurazione degli Stuart poich\xE9 cercavano\
+        \ normali relazioni diplomatiche con gli olandesi in modo da non aver bisogno\
+        \ del sostegno finanziario del Parlamento per la guerra."
+      D: "Portarono a quasi un secolo di guerre ricorrenti tra Inghilterra e Paesi\
+        \ Bassi, che non sarebbero finite fino a dopo l\u2019indipendenza americana."
+    input_correct_responses:
+    - A
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. Gli estratti\
+      \ seguenti provengono dagli Atti di navigazione del 1651. [Dopo il primo giorno\
+      \ di dicembre milleseicentocinquantuno, e da allora in poi, nessun bene o merce\
+      \ di sorta derivante dalla crescita, produzione o manifattura dell&#39;Asia,\
+      \ dell&#39;Africa o l&#39;America, o qualsiasi parte di essa; o di qualsiasi\
+      \ isola ad essi appartenente, o che sono descritte o indicate nelle consuete\
+      \ mappe o carte di quei luoghi, cos\xEC come delle piantagioni inglesi come\
+      \ altre, saranno importate o portate in questo Commonwealth d&#39;Inghilterra,\
+      \ o in Irlanda, o qualsiasi altra terra, isola, piantagione o territorio di\
+      \ questo Commonwealth appartenente, o in loro possesso, in qualsiasi altra nave\
+      \ o nave, vascello o vascello di sorta, ma solo in quelli che veramente e senza\
+      \ frode appartengono solo al popolo di questo Commonwealth , o le relative piantagioni,\
+      \ in qualit\xE0 di proprietari o titolari dei diritti; e di cui il capitano\
+      \ e i marinai appartengono anche al popolo di questo Commonwealth, sotto pena\
+      \ di confisca e perdita di tutti i beni che saranno importati contrariamente\
+      \ a questo atto, , , , [N] o beni o merci della crescita, la produzione, o la\
+      \ manifattura dell&#39;Europa, o di qualsiasi parte di essa, dopo il primo giorno\
+      \ di dicembre milleseicentocinquantuno, sar\xE0 importata o portata in questo\
+      \ Commonwealth d&#39;Inghilterra, o in qualsiasi altra terra o territorio appartenente\
+      \ a questo Commonwealth, o in loro possesso, in qualsiasi nave o navi, vascello\
+      \ o vascelli di qualsiasi genere, ma in quelli che appartengono veramente e\
+      \ senza frode solo al popolo di questo Commonwealth, e in nessun altro, eccetto\
+      \ solo le navi e i vascelli stranieri che appartengono veramente e appartengono\
+      \ propriamente al popolo di quel paese o luogo di cui detti beni sono la crescita,\
+      \ la produzione o la manifattura. Quale delle seguenti affermazioni descrive\
+      \ meglio l&#39;esito dei Navigation Acts del 1651?"
+  - input_choice_list:
+      A: "dare al re inglese una nuova posizione di autorit\xE0"
+      B: dare la carica di capo della Chiesa d&#39;Inghilterra al solo Enrico VIII
+        ed escludere i suoi eredi
+      C: "stabilire il calvinismo come l\u2019unica vera teologia in Inghilterra"
+      D: porre fine alle varie forme di corruzione che affliggono la Chiesa in Inghilterra
+    input_correct_responses:
+    - D
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. Sebbene\
+      \ la Maest\xE0 del re sia giustamente e legittimamente il capo supremo della\
+      \ Chiesa d&#39;Inghilterra, e cos\xEC sia riconosciuta dal clero di questo regno\
+      \ nelle loro convocazioni, tuttavia, per corroborazione e conferma di ci\xF2\
+      , e per aumento della virt\xF9 in religione di Cristo in questo regno d&#39;Inghilterra,\
+      \ e per reprimere ed estirpare tutti gli errori, le eresie e le altre enormit\xE0\
+      \ e abusi finora utilizzati nella stessa, sia decretato, per autorit\xE0 di\
+      \ questo attuale Parlamento, che il re, il nostro signore sovrano, i suoi eredi\
+      \ e i successori, i re di questo regno, saranno presi, accettati e ritenuti\
+      \ l&#39;unico capo supremo sulla terra della Chiesa d&#39;Inghilterra, chiamata\
+      \ Ecclesia anglicana; e avranno e godranno, annessi e uniti alla corona imperiale\
+      \ di questo regno, nonch\xE9 il titolo e lo stile della stessa, come tutti gli\
+      \ onori, dignit\xE0, preminenze, giurisdizioni, privilegi, autorit\xE0, immunit\xE0\
+      , profitti e beni alla detta dignit\xE0 di il capo supremo della stessa Chiesa\
+      \ appartenente e appartenente; e che il nostro suddetto signore sovrano, i suoi\
+      \ eredi e successori, re di questo regno, avranno pieno potere e autorit\xE0\
+      \ di volta in volta per visitare, reprimere, riparare, registrare, ordinare,\
+      \ correggere, frenare ed emendare tutti questi errori, eresie, abusi, offese,\
+      \ disprezzi ed enormit\xE0, qualunque essi siano, che per qualsiasi tipo di\
+      \ autorit\xE0 o giurisdizione spirituale dovrebbero o potrebbero essere legittimamente\
+      \ riformati, repressi, ordinati, riparati, corretti, frenati o modificati, per\
+      \ il massimo piacere di Dio Onnipotente, l&#39;aumento della virt\xF9 nella\
+      \ religione di Cristo e per la conservazione della pace, dell&#39;unit\xE0 e\
+      \ della tranquillit\xE0 di questo regno; nonostante qualsiasi uso, terra straniera,\
+      \ autorit\xE0 straniera, prescrizione o qualsiasi altra cosa contraria al presente\
+      \ documento. Parlamento inglese, Atto di Supremazia, 1534 Dal passaggio si pu\xF2\
+      \ dedurre che il Parlamento inglese volesse sostenere che l&#39;Atto di Supremazia\
+      \ avrebbe"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_european_history
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_high_school_european_history
+task_alias: high_school_european_history

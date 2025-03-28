@@ -1,0 +1,3 @@
+task: arc_easy_unitxt
+include: ../../lm_eval/tasks/unitxt/unitxt
+recipe: card=cards.ai2_arc.arc_easy,template=templates.qa.multiple_choice.open.all

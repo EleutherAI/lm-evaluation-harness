@@ -1,0 +1,5 @@
+include: _italian_few_shot_og_template_yaml
+description: Di seguito sono riportate domande a scelta multipla (con risposte) su
+  STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_italian_few_shot_og_stem

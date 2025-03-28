@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "atrav\xE9s de transportadores de prote\xEDnas chamados GLUT4."
+      B: "apenas na presen\xE7a de insulina."
+      C: via hexoquinase.
+      D: "atrav\xE9s de transportadores de \xE1cido monocarb\xEDlico."
+    input_correct_responses:
+    - A
+    input_question: "A glicose \xE9 transportada para a c\xE9lula muscular:"
+  - input_choice_list:
+      A: "O glicog\xEAnio muscular \xE9 decomposto enzimaticamente em glicose-1-fosfato"
+      B: "Corredores de resist\xEAncia de elite t\xEAm uma alta propor\xE7\xE3o de\
+        \ fibras do Tipo I nos m\xFAsculos das pernas"
+      C: "O glicog\xEAnio hep\xE1tico \xE9 importante na manuten\xE7\xE3o da concentra\xE7\
+        \xE3o de glicose no sangue"
+      D: "A insulina promove a capta\xE7\xE3o de glicose por todos os tecidos do corpo"
+    input_correct_responses:
+    - D
+    input_question: "Qual das alternativas a seguir n\xE3o \xE9 uma afirma\xE7\xE3\
+      o verdadeira?"
+  - input_choice_list:
+      A: "Todos os descendentes do lado materno ter\xE3o o transtorno."
+      B: "As mulheres ser\xE3o aproximadamente duas vezes mais afetadas que os homens\
+        \ nesta fam\xEDlia."
+      C: "Todas as filhas de um homem afetado ser\xE3o afetadas."
+      D: "Haver\xE1 distribui\xE7\xE3o igual de homens e mulheres afetados."
+    input_correct_responses:
+    - C
+    input_question: "Em um teste gen\xE9tico de um rec\xE9m-nascido, \xE9 encontrada\
+      \ uma doen\xE7a gen\xE9tica rara que tem transmiss\xE3o recessiva ligada ao\
+      \ X. Qual das seguintes afirma\xE7\xF5es \xE9 provavelmente verdadeira em rela\xE7\
+      \xE3o ao pedigree deste transtorno?"
+  - input_choice_list:
+      A: "Aumentando a temperatura, aumentando o n\xFAmero de moles de g\xE1s"
+      B: Aumentando a temperatura, aumentando o volume
+      C: Diminuindo o volume, diminuindo a temperatura
+      D: "Diminuindo moles de g\xE1s, aumentando o volume"
+    input_correct_responses:
+    - A
+    input_question: "Um professor de ci\xEAncias do ensino m\xE9dio enche uma garrafa\
+      \ de 1 litro com nitrog\xEAnio puro e fecha a tampa. A press\xE3o \xE9 1,70\
+      \ atm e a temperatura ambiente \xE9 25\xB0C. Quais s\xE3o as duas vari\xE1veis\
+      \ que aumentar\xE3o a press\xE3o do sistema, se todas as outras vari\xE1veis\
+      \ forem mantidas constantes?"
+  - input_choice_list:
+      A: fraqueza muscular.
+      B: ganho de massa corporal.
+      C: "c\xE3ibras musculares."
+      D: "perda de eletr\xF3litos."
+    input_correct_responses:
+    - B
+    input_question: "Um efeito colateral esperado da suplementa\xE7\xE3o de creatina\
+      \ \xE9:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_medicine
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_college_medicine
+task_alias: college_medicine

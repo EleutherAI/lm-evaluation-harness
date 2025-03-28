@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
@@ -7,7 +8,6 @@ import transformers
 from tqdm import tqdm
 from transformers import BatchEncoding
 
-from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
@@ -24,7 +24,7 @@ from lm_eval.models.utils import (
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-multimodal")
@@ -45,6 +45,8 @@ class HFMultimodalLM(HFLM):
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
         convert_img_format=False,
+        min_pixels: Optional[int] = None,
+        max_pixels: Optional[int] = None,
         **kwargs,
     ):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
@@ -63,6 +65,9 @@ class HFMultimodalLM(HFLM):
         self.interleave = interleave
         self.max_images = max_images
         self.rgb = convert_img_format
+        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
+            {"max_pixels": max_pixels} if max_pixels else {}
+        )
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
             self.image_token_id = (
@@ -135,6 +140,7 @@ class HFMultimodalLM(HFLM):
             model_name,
             revision=revision,
             trust_remote_code=trust_remote_code,
+            **self.pixels,
             # use_fast=use_fast_tokenizer,
         )
 

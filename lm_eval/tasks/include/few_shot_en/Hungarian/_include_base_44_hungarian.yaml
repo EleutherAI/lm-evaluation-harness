@@ -1,0 +1,10 @@
+group: include_base_44_hungarian
+task:
+- include_base_44_hungarian_few_shot_en_stem
+- include_base_44_hungarian_few_shot_en_applied_science
+- include_base_44_hungarian_few_shot_en_social_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

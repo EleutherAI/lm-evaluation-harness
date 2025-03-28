@@ -1,0 +1,4 @@
+include: _uzbek_template_yaml
+description: The following is multiple-choice question about Medical License.
+process_docs: !function 'utils.process_medical_license'
+task: include_base_44_uzbek_medical_license
