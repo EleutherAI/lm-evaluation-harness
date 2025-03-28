@@ -1,0 +1,6 @@
+"dataset_name": "jurisprudence"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_jurisprudence"
+"task_alias": "jurisprudence"

@@ -1,0 +1,7 @@
+test_split: msda
+"include": "default_darija_sentiment_template_yaml"
+"tag":
+- "darija_sentiment_tasks"
+"task": "darija_sentiment_msda"
+"task_alias": "MSDA"
+doc_to_choice: !function utils.doc_to_choice_3
