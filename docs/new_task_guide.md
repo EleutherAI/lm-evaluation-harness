@@ -212,12 +212,12 @@ Our intended output is for the model to predict a single whitespace, and then th
 doc_to_target: "{{answer}}"
 ```
 
-> [!WARNING]
-> We add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_text(doc) + target_delimiter + doc_to_target(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively. For multiple choice the target will be each choice index concatenated with the delimiter.
-
 #### Multiple choice format
 
 For tasks which are multiple choice (a fixed, finite set of label words per each document) and evaluated via comparing loglikelihoods of all label words (the `multiple_choice` task output type) we enforce a particular convention on prompt format.
+
+> [!WARNING]
+> We add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_text(doc) + target_delimiter + doc_to_target(doc)`. `doc_to_text` and `doc_to_target` should not contain trailing right or left whitespace, respectively. For multiple choice the target will be each choice index concatenated with the delimiter.
 
 An annotated example in the case of SciQ is as follows:
 
