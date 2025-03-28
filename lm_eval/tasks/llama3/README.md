@@ -43,6 +43,12 @@ BibTeX-formatted citation goes here
 * `arc_challenge_llama`: `generation variant of ARC-Challenge following Meta pre-processing`
 * `gsm8k_llama`: `Chain-of-though variant of GSM8k`
 
+
+**Notes regarding arc_challenge_llama:**
+
+- The original ARC-Challenge dataset contains 8 samples with less than 4 options. Meta filtered these samples out, and `arc_challenge_llama` does the same.
+- A small number of samples use 1, 2, 3, 4 as labels. These are replaced by A, B, C, D like the rest in the doc preprocessing.
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
