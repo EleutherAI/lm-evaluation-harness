@@ -35,9 +35,10 @@ def get_result(logprobs, context_length):
 
 @register_model("gguf", "ggml")
 class GGUFLM(LM):
-    def __init__(self, base_url=None, max_length=2048, **kwargs):
+    def __init__(self, base_url=None, max_length=2048, api_key=None, **kwargs):
         super().__init__()
         self.base_url = base_url
+        self.api_key = api_key
         assert self.base_url, "must pass `base_url` to use GGUF LM!"
         self.logprobs = 10
         self.temperature = 0.0
@@ -59,8 +60,15 @@ class GGUFLM(LM):
                     request.update({"prompt": prompt, "max_tokens": 1, "echo": True})
                 if stop is not None:
                     request["stop"] = stop
+                
+                headers = {}
+                if self.api_key:
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+                
                 response = requests.post(
-                    f"{self.base_url}/v1/completions", json=request
+                    f"{self.base_url}/v1/completions", 
+                    json=request,
+                    headers=headers
                 )
                 response.raise_for_status()
                 return response.json()
