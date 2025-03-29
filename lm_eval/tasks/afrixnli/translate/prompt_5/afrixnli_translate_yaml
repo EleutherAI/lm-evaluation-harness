@@ -1,0 +1,27 @@
+tag: afrixnli_tt_tasks
+dataset_path: masakhane/afrixnli-translate-test
+dataset_name: null
+output_type: multiple_choice
+test_split: test
+fewshot_split: test
+doc_to_target: !function utils.doc_to_target
+doc_to_choice:
+  - "true"
+  - "inconclusive"
+  - "false"
+should_decontaminate: true
+doc_to_decontamination_query: premise
+metric_list:
+  - metric: f1
+    aggregation: !function utils.weighted_f1_score
+    average: weighted
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

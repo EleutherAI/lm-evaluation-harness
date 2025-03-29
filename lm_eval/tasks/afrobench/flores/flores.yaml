@@ -1,0 +1,14 @@
+group: african_flores
+task:
+  - flores_eng-afr_prompt_1
+  - flores_eng-afr_prompt_2
+  - flores_eng-afr_prompt_3
+  - flores_afr-eng_prompt_1
+  - flores_afr-eng_prompt_2
+  - flores_afr-eng_prompt_3
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
