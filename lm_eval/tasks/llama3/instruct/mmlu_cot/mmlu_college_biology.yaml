@@ -1,0 +1,6 @@
+"dataset_name": "college_biology"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_stem_tasks"
+"task": "mmlu_cot_llama_college_biology"
+"task_alias": "college biology"
