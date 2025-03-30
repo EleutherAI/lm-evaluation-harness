@@ -4,10 +4,13 @@ In the dynamic landscape of generative NLP, traditional text processing pipeline
 Addressing this need, we present Unitxt, an innovative library for customizable textual data preparation and evaluation tailored to generative language models. Unitxt natively integrates with common libraries like HuggingFace and LM-eval-harness and deconstructs processing flows into modular components, enabling easy customization and sharing between practitioners. These components encompass model-specific formats, task prompts, and many other comprehensive dataset processing definitions. The Unitxt-Catalog centralizes these components, fostering collaboration and exploration in modern textual data workflows. Beyond being a tool, Unitxt is a community-driven platform, empowering users to build, share, and advance their pipelines collaboratively.
 """
 
+import importlib.util
+import re
+from collections.abc import Callable
 from functools import partial
-from typing import Optional
+from typing import Any, Dict, Optional
 
-import evaluate
+import datasets
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
@@ -25,12 +28,30 @@ _CITATION = """
 """
 
 
+def assert_unitxt_installed():
+    if importlib.util.find_spec("unitxt") is None:
+        raise Exception(
+            "Please install unitxt via 'pip install unitxt'. For more information see: https://www.unitxt.ai/"
+        )
+
+    from unitxt import __version__ as unitxt_version
+
+    # Function argument change due to https://github.com/IBM/unitxt/pull/1564
+    unitxt_version = tuple(map(int, (unitxt_version.split("."))))
+    if unitxt_version < (1, 17, 2):
+        raise Exception(
+            "Please install a more recent version of unitxt via 'pip install --upgrade unitxt' to avoid errors due to breaking changes"
+        )
+
+
 def score(items, metric):
     predictions, references = zip(*items)
-    evaluator = evaluate.load("unitxt/metric")
+    assert_unitxt_installed()
+    from unitxt import evaluate
+
     for reference in references:
         reference["metrics"] = [metric]
-    results = evaluator.compute(predictions=predictions, references=references)
+    results = evaluate(predictions, references)
     return results[0]["score"]["global"]["score"]
 
 
@@ -41,16 +62,23 @@ class Unitxt(ConfigurableTask):
         self,
         config: Optional[dict] = None,
     ) -> None:
+        if config is None:
+            config = {}
         assert "recipe" in config, "Unitxt task must have a 'recipe' string."
         super().__init__(
             config={
                 "metadata": {"version": self.VERSION},
-                "dataset_kwargs": {"trust_remote_code": True},
                 "dataset_name": config["recipe"],
-                "dataset_path": "unitxt/data",
             }
         )
+        self.image_decoder = datasets.Image()
         self.metrics = self.dataset["test"][0]["metrics"]
+
+    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
+        assert_unitxt_installed()
+        from unitxt import load_dataset
+
+        self.dataset = load_dataset(self.DATASET_NAME, use_cache=True)
 
     def has_training_docs(self):
         return "train" in self.dataset
@@ -79,6 +107,31 @@ class Unitxt(ConfigurableTask):
     def doc_to_target(self, doc):
         doc["target"]
 
+    def get_arguments(self, doc, ctx):
+        return (ctx, {"until": ["\n"]})
+
+    def fewshot_context(
+        self,
+        doc: str,
+        num_fewshot: int,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable] = None,
+        gen_prefix: Optional[str] = None,
+    ) -> str:
+        source = self.doc_to_text(doc)
+        if isinstance(source, list):
+            if apply_chat_template:
+                formated_source = chat_template(self.doc_to_text(doc))
+                return formated_source
+            else:
+                raise Exception(
+                    "Got chat template format from Unitxt, but apply_chat_template is false. Add '--apply_chat_template' to command line."
+                )
+        else:
+            return source
+
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -90,12 +143,13 @@ class Unitxt(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-
+        kwargs.pop("apply_chat_template", False)  # Not used by unitxt
+        kwargs.pop("chat_template", False)  # Not used by unitxt
         return [
             Instance(
                 request_type="generate_until",
                 doc=doc,
-                arguments=(ctx, {"until": ["\n"]}),
+                arguments=self.get_arguments(doc, ctx),
                 idx=0,
                 **kwargs,
             )
@@ -140,3 +194,34 @@ class Unitxt(ConfigurableTask):
             whether a higher value of the submetric is better
         """
         return {metric.replace("metrics.", ""): True for metric in self.metrics}
+
+
+images_regex = r'<img\s+src=["\'](.*?)["\']\s*/?>'
+image_source_regex = r'<img\s+src=["\'](.*?)["\']'
+
+
+def extract_images(text, instance):
+    image_sources = re.findall(image_source_regex, text)
+    images = []
+    for image_source in image_sources:
+        current = instance
+        for key in image_source.split("/"):
+            if key.isdigit():
+                key = int(key)
+            current = current[key]
+        images.append(current)
+    return images
+
+
+class UnitxtMultiModal(Unitxt):
+    MULTIMODAL = True
+
+    def doc_to_text(self, doc):
+        return re.sub(images_regex, "<image>", doc["source"])
+
+    def doc_to_image(self, doc):
+        images = extract_images(doc["source"], doc)
+        return [self.image_decoder.decode_example(image) for image in images]
+
+    def get_arguments(self, doc, ctx):
+        return (ctx, {"until": ["\n"]}, {"visual": self.doc_to_image(doc)})

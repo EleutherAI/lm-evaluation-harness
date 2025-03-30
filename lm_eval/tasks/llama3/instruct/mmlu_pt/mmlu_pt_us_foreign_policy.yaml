@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Prejudicou o apoio ao modelo americano de economia pol\xEDtica e capitalismo"
+      B: Isso criou raiva nos Estados Unidos por exagerarem a crise
+      C: "Aumentou o apoio \xE0 lideran\xE7a global americana sob o presidente Obama"
+      D: "Reduziu o uso global do d\xF3lar americano"
+    input_correct_responses:
+    - A
+    input_question: "Como a crise financeira de 2008 afetou a reputa\xE7\xE3o internacional\
+      \ da Am\xE9rica?"
+  - input_choice_list:
+      A: "Globalizou a conten\xE7\xE3o."
+      B: "Militarizou a conten\xE7\xE3o."
+      C: "Apelava ao desenvolvimento da bomba de hidrog\xE9nio."
+      D: Tudo o que precede
+    input_correct_responses:
+    - D
+    input_question: "Como o NSC-68 mudou a estrat\xE9gia dos EUA?"
+  - input_choice_list:
+      A: "pol\xEDtica de terrorismo."
+      B: "pol\xEDtica econ\xF4mica."
+      C: "pol\xEDtica estrangeira."
+      D: "pol\xEDtica internacional."
+    input_correct_responses:
+    - C
+    input_question: "O dom\xEDnio das decis\xF5es pol\xEDticas relacionadas principalmente\
+      \ com as rela\xE7\xF5es entre os Estados Unidos e o resto do mundo \xE9 conhecido\
+      \ como"
+  - input_choice_list:
+      A: "Os realistas defensivos colocam maior \xEAnfase no papel das institui\xE7\
+        \xF5es internacionais"
+      B: "Os realistas defensivos colocam menos \xEAnfase nos fatores geogr\xE1ficos"
+      C: "Os realistas ofensivos d\xE3o mais prioridade ao interesse nacional do que\
+        \ os realistas defensivos."
+      D: "Os realistas defensivos acreditam que os estados s\xE3o maximizadores de\
+        \ seguran\xE7a, enquanto os realistas ofensivos acreditam que os estados s\xE3\
+        o maximizadores de poder"
+    input_correct_responses:
+    - D
+    input_question: "Como o Realismo Defensivo e o Realismo Ofensivo diferem na sua\
+      \ explica\xE7\xE3o do comportamento do Estado?"
+  - input_choice_list:
+      A: "A globaliza\xE7\xE3o tornou homens como ele ricos demais"
+      B: "A globaliza\xE7\xE3o beneficiou apenas alguns estados americanos, como Nova\
+        \ York"
+      C: "As elites liberais encorajaram a globaliza\xE7\xE3o, enquanto os \u201C\
+        americanos comuns\u201D perderam empregos por causa dela"
+      D: "A globaliza\xE7\xE3o incentivou guerras comerciais prejudiciais"
+    input_correct_responses:
+    - C
+    input_question: "Como Donald Trump atacou a globaliza\xE7\xE3o na campanha de\
+      \ 2016?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_us_foreign_policy
+tag: mmlu_pt_llama_social_sciences_tasks
+task: mmlu_pt_llama_us_foreign_policy
+task_alias: us_foreign_policy

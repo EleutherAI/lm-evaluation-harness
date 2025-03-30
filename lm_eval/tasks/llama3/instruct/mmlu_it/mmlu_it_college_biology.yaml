@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Possiedono un esoscheletro composto principalmente da peptidoglicano.
+      B: Possiedono un sistema circolatorio aperto con un cuore dorsale.
+      C: Sono membri di un phylum biologicamente fallito, incapace di sfruttare diversi
+        habitat e fonti di nutrimento.
+      D: Sono privi di appendici accoppiate e articolate.
+    input_correct_responses:
+    - B
+    input_question: Quale delle seguenti rappresenta un&#39;affermazione accurata
+      riguardo agli artropodi?
+  - input_choice_list:
+      A: 1/400
+      B: 19/400
+      C: 20/400
+      D: 38/400
+    input_correct_responses:
+    - D
+    input_question: "In una data popolazione, 1 persona su 400 ha un cancro causato\
+      \ da un allele completamente recessivo, b. Supponendo che la popolazione sia\
+      \ in equilibrio di Hardy-Weinberg, quale delle seguenti \xE8 la percentuale\
+      \ attesa di individui portatori dell&#39;allele b ma che non si prevede sviluppino\
+      \ il cancro?"
+  - input_choice_list:
+      A: l&#39;uomo e l&#39;uccello sono specie polifiletiche
+      B: "l&#39;evoluzione di un essere umano e di un uccello \xE8 convergente"
+      C: l&#39;umano e l&#39;uccello appartengono a un clade
+      D: l&#39;uomo e l&#39;uccello si sono sviluppati per analogia
+    input_correct_responses:
+    - C
+    input_question: La presenza di strutture omologhe in due organismi diversi, come
+      l&#39;omero nell&#39;arto anteriore di un essere umano e di un uccello, lo indica
+  - input_choice_list:
+      A: una pompa pressione-flusso dipendente dall&#39;ATP
+      B: "un gradiente potenziale della pressione dell\u2019acqua"
+      C: traspirazione
+      D: diffusione apoplastica
+    input_correct_responses:
+    - B
+    input_question: "Secondo il modello pressione-flusso del movimento del contenuto\
+      \ del floema, il movimento del fotosintetato dalla sorgente al pozzo \xE8 guidato\
+      \ da"
+  - input_choice_list:
+      A: Telomeri
+      B: Centromeri
+      C: Nucleosomi
+      D: Spliceosomi
+    input_correct_responses:
+    - B
+    input_question: Quale dei seguenti contiene sequenze di DNA necessarie per la
+      segregazione dei cromosomi nella mitosi e nella meiosi?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_biology
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_college_biology
+task_alias: college_biology

@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ~Pd
+      B: "(\u2200x)(Px \u2228 ~Dx)"
+      C: "(\u2200x)(Px \u2283 ~Dx)"
+      D: ~Dp
+    input_correct_responses:
+    - C
+    input_question: "S\xE9lectionnez la meilleure traduction en logique de pr\xE9\
+      dicat\_: personne ne conduit sur Mars."
+  - input_choice_list:
+      A: Blgh
+      B: Bhlg
+      C: Bglh
+      D: Bghl
+    input_correct_responses:
+    - C
+    input_question: "S\xE9lectionnez la meilleure traduction en logique de pr\xE9\
+      dicat. George emprunte la tondeuse \xE0 gazon d&#39;Hector. (g : George ; h\
+      \ : Hector ; l : la tondeuse \xE0 gazon d&#39;Hector ; Bxyx : x emprunte y \xE0\
+      \ z)"
+  - input_choice_list:
+      A: Marina est danseuse. Certains faibles ne sont pas des danseurs. Soit tout
+        est faible, soit Georgia joue au volley. Alors quelque chose joue au volley-ball.
+      B: Marina est danseuse. Aucun faible n&#39;est un danseur. Tout est soit un
+        faible ou joue au volley-ball. Alors quelque chose joue au volley-ball.
+      C: Marina est danseuse. Certains faibles ne sont pas des danseurs. Tout est
+        soit un faible ou joue au volley-ball. Alors quelque chose joue au volley-ball.
+      D: Marina est danseuse. Aucun faible n&#39;est un danseur. Soit tout est faible,
+        soit Georgia joue au volley. Alors quelque chose joue au volley-ball.
+    input_correct_responses:
+    - D
+    input_question: "S\xE9lectionnez la meilleure interpr\xE9tation anglaise des arguments\
+      \ donn\xE9s dans la logique des pr\xE9dicats. Dm (\u2200x)(Wx \u2283 ~Dx) (\u2200\
+      x)Wx \u2228 Ag / (\u2203x)Ax"
+  - input_choice_list:
+      A: "Logiquement \xE9quivalent"
+      B: Contradictoire
+      C: "Ni logiquement \xE9quivalent ni contradictoire, mais coh\xE9rent"
+      D: Inconsistant
+    input_correct_responses:
+    - C
+    input_question: "Construire une table de v\xE9rit\xE9 compl\xE8te pour les paires\
+      \ de propositions suivantes. Ensuite, \xE0 l&#39;aide des tables de v\xE9rit\xE9\
+      , d\xE9terminez si les \xE9nonc\xE9s sont logiquement \xE9quivalents ou contradictoires.\
+      \ Si ni l&#39;un ni l&#39;autre, d\xE9terminez s&#39;ils sont coh\xE9rents ou\
+      \ incoh\xE9rents. Justifiez vos r\xE9ponses. E \u2283 (F \xB7 E) et ~E \xB7\
+      \ F"
+  - input_choice_list:
+      A: "(L \u2022 H) \u2261 je"
+      B: "(L \u2022 H) \u2228 je"
+      C: "L \u2022 (H \u2228 I)"
+      D: "L \u2022 (H \u2283 R)"
+    input_correct_responses:
+    - B
+    input_question: "Laquelle des formules donn\xE9es de PL est la meilleure symbolisation\
+      \ de la phrase suivante\_? Les tortues vivent longtemps et sont des cr\xE9atures\
+      \ heureuses, \xE0 moins qu&#39;elles ne soient bless\xE9es."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_formal_logic
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_formal_logic
+task_alias: formal_logic

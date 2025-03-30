@@ -1,5 +1,4 @@
-group:
-  - mmlu
+tag:
   - afrimmlu
   - afrimmlu_direct
 task: null

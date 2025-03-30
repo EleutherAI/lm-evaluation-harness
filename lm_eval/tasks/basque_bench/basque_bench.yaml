@@ -1,0 +1,22 @@
+group: basque_bench
+task:
+    - arc_eu_challenge
+    - arc_eu_easy
+    - belebele_eus_Latn
+    - xstorycloze_eu
+    - flores_eu
+    - eus_reading
+    - eus_proficiency
+    - eus_trivia
+    - eus_exams_eu
+    - qnlieu
+    - xnli_eu
+    - xnli_eu_native
+    - wnli_eu
+    - xcopa_eu
+    - mgsm_direct_eu
+    - mgsm_native_cot_eu
+    - paws_eu
+    - piqa_eu
+metadata:
+  version: 1.0

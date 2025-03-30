@@ -1,3 +1,4 @@
 dataset_name: patent
 include: _hard_kmmlu_yaml
 task: kmmlu_hard_patent
+tag: kmmlu_hard_other_tasks

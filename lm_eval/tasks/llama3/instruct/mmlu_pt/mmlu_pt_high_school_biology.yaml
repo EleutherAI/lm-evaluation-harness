@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Tradu\xE7\xE3o"
+      B: "Conjuga\xE7\xE3o"
+      C: "Transdu\xE7\xE3o especializada"
+      D: "Transforma\xE7\xE3o"
+    input_correct_responses:
+    - A
+    input_question: "Qual das alternativas a seguir n\xE3o \xE9 uma forma de formar\
+      \ DNA recombinante?"
+  - input_choice_list:
+      A: Ao alterar o pH ideal da enzima
+      B: "Ao alterar a localiza\xE7\xE3o da enzima na c\xE9lula"
+      C: "Mudando a forma da prote\xEDna"
+      D: "Uma mudan\xE7a de amino\xE1cido longe do s\xEDtio ativo n\xE3o pode alterar\
+        \ a especificidade do substrato da enzima."
+    input_correct_responses:
+    - C
+    input_question: "Uma muta\xE7\xE3o em uma enzima bacteriana transformou um amino\xE1\
+      cido anteriormente polar em um amino\xE1cido apolar. Este amino\xE1cido estava\
+      \ localizado em um local distante do s\xEDtio ativo da enzima. Como essa muta\xE7\
+      \xE3o poderia alterar a especificidade do substrato da enzima?"
+  - input_choice_list:
+      A: "Membrana plasm\xE1tica \u2013 aparelho de Golgi \u2013 ribossomo \u2013\
+        \ ves\xEDcula secretora \u2013 RE rugoso"
+      B: "Ribossomo \u2013 aparelho de Golgi \u2013 RE rugoso \u2013 ves\xEDcula secretora\
+        \ \u2013 membrana plasm\xE1tica"
+      C: "Membrana plasm\xE1tica \u2013 aparelho de Golgi \u2013 ribossomo \u2013\
+        \ ves\xEDcula secretora \u2013 RE rugoso"
+      D: "Ribossomo \u2013 RE rugoso \u2013 aparelho de Golgi \u2013 ves\xEDcula secretora\
+        \ \u2013 membrana plasm\xE1tica"
+    input_correct_responses:
+    - D
+    input_question: "Nas c\xE9lulas animais, qual das alternativas a seguir representa\
+      \ o caminho mais prov\xE1vel que uma prote\xEDna secretora percorre ao ser sintetizada\
+      \ em uma c\xE9lula?"
+  - input_choice_list:
+      A: Ciclinas
+      B: "Prote\xEDnas quinases"
+      C: "Pontos de verifica\xE7\xE3o"
+      D: "C\xE9lulas fibrobl\xE1sticas"
+    input_correct_responses:
+    - D
+    input_question: "Qual das alternativas a seguir n\xE3o est\xE1 envolvida no controle\
+      \ da divis\xE3o celular?"
+  - input_choice_list:
+      A: "as asas de um p\xE1ssaro e as asas de um morcego"
+      B: "as nadadeiras de uma baleia e os bra\xE7os de um homem"
+      C: as barbatanas peitorais de uma toninha e as nadadeiras de uma foca
+      D: as patas dianteiras de um inseto e as patas dianteiras de um cachorro
+    input_correct_responses:
+    - D
+    input_question: "Estruturas hom\xF3logas s\xE3o frequentemente citadas como evid\xEA\
+      ncia do processo de sele\xE7\xE3o natural. Todas as alternativas a seguir s\xE3\
+      o exemplos de estruturas hom\xF3logas, EXCETO"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_biology
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_high_school_biology
+task_alias: high_school_biology

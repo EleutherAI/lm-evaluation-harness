@@ -1,4 +1,5 @@
-"fewshot_split": "tur_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_tur_Latn"
-"test_split": "tur_Latn"
+dataset_name: tur_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_tur_Latn
+test_split: test
