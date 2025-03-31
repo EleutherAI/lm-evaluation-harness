@@ -39,7 +39,6 @@ class BUILTIN_GGUFLM(LM):
     def __init__(self, model=None, max_length=2048, **kwargs):
         super().__init__()
         assert model, "must pass `model` to use MY_GGUF LM!"
-        print("mark\n")
         self.model = Llama(
             model_path=model,
             n_gpu_layers=-1, # use GPU acceleration 
