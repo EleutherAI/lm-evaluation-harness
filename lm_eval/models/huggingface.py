@@ -204,7 +204,7 @@ class HFLM(TemplateLM):
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
-                quantization_config=self.config.quantization_config,
+                quantization_config=getattr(self.config, "quantization_config", None),
                 **kwargs,
             )
 
