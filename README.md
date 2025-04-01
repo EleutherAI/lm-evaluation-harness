@@ -329,7 +329,7 @@ To call a hosted model, use:
 ```bash
 export OPENAI_API_KEY=YOUR_KEY_HERE
 lm_eval --model openai-completions \
-    --model_args model=davinci \
+    --model_args model=davinci-002 \
     --tasks lambada_openai,hellaswag
 ```
 
@@ -398,7 +398,7 @@ To verify the data integrity of the tasks you're performing in addition to runni
 
 ```bash
 lm_eval --model openai \
-    --model_args engine=davinci \
+    --model_args engine=davinci-002 \
     --tasks lambada_openai,hellaswag \
     --check_integrity
 ```
