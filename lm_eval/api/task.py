@@ -446,7 +446,7 @@ class Task(abc.ABC):
             total=num_docs,
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
-            fewshot_ctx = self.fewshot_context(
+            fewshot_ctx, multimodal_args = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
                 system_instruction,
@@ -460,6 +460,7 @@ class Task(abc.ABC):
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
+                multimodal_args=multimodal_args,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
@@ -1079,6 +1080,8 @@ class ConfigurableTask(Task):
         :returns: str
             The fewshot context.
         """
+        multimodal_args = {}
+
         if apply_chat_template:
             labeled_examples = []
         else:
@@ -1109,26 +1112,28 @@ class ConfigurableTask(Task):
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
-                labeled_examples.extend(
-                    self.sampler.get_chat_context(
-                        doc,
-                        num_fewshot,
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                )
+                chat_history, multimodal_args = self.sampler.get_chat_context(
+                                                                 doc,
+                                                                 num_fewshot,
+                                                                 fewshot_as_multiturn,
+                                                                 gen_prefix=gen_prefix,
+                                                             )
+                labeled_examples.extend(chat_history)
             else:
-                labeled_examples += self.sampler.get_context(
-                    doc, num_fewshot, gen_prefix=gen_prefix
-                )
+                context, multimodal_args = self.sampler.get_context(
+                                                            doc,
+                                                            num_fewshot,
+                                                            gen_prefix=gen_prefix,
+                                                        )
+                labeled_examples += context
 
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
                 # TODO: append prefill?
                 if not labeled_examples:
-                    return ""
-                return chat_template(labeled_examples)
+                    return "", multimodal_args
+                return chat_template(labeled_examples), multimodal_args
             if isinstance(example, str):
                 self.append_target_question(
                     labeled_examples,
@@ -1155,7 +1160,7 @@ class ConfigurableTask(Task):
                             add_generation_prompt=False if gen_prefix else True,
                         )
                     )
-                return labeled_examples_list
+                return labeled_examples_list, [multimodal_args] * len(example)
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
@@ -1177,7 +1182,7 @@ class ConfigurableTask(Task):
             return chat_template(
                 labeled_examples,
                 add_generation_prompt=False if gen_prefix else True,
-            )
+            ), multimodal_args
         else:
             prefix = (
                 self.config.target_delimiter + gen_prefix
@@ -1185,17 +1190,17 @@ class ConfigurableTask(Task):
                 else ""
             )
             if self.multiple_input:
-                return labeled_examples
+                return labeled_examples, multimodal_args
             if isinstance(example, str):
-                return labeled_examples + example + prefix
+                return labeled_examples + example + prefix, multimodal_args
             elif isinstance(example, list):
-                return [labeled_examples + ex + prefix for ex in example]
+                return [labeled_examples + ex + prefix for ex in example], [multimodal_args] * len(example)
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example] + prefix
+                    return labeled_examples + choices[example] + prefix, multimodal_args
                 else:
-                    return labeled_examples + str(example) + prefix
+                    return labeled_examples + str(example) + prefix, multimodal_args
 
     def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
@@ -1400,7 +1405,7 @@ class ConfigurableTask(Task):
         return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
+        self, doc: dict, ctx: str, multimodal_args: dict = {}, **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)
@@ -1452,28 +1457,21 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
-        multimodal_arg = {}
         if (
             self.config.doc_to_image
         ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
-            multimodal_arg = {
-                **multimodal_arg,
-                **{"visual": self.doc_to_image(doc)},
-            }
+            multimodal_args.setdefault("visual", []).extend(self.doc_to_image(doc))
 
         if (
             self.config.doc_to_audio
         ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
-            multimodal_arg = {
-                **multimodal_arg,
-                **{"audio": self.doc_to_audio(doc)},
-            }
+            multimodal_args.setdefault("audio", []).extend(self.doc_to_audio(doc))
 
-        if bool(multimodal_arg):
+        if bool(multimodal_args):
             if isinstance(arguments, list):
-                arguments = [arg + (multimodal_arg,) for arg in arguments]
+                arguments = [arg + (multimodal_args,) for arg in arguments]
             else:
-                arguments = arguments + (multimodal_arg,)
+                arguments = arguments + (multimodal_args,)
 
         if self.OUTPUT_TYPE == "multiple_choice":
             request_list = [
