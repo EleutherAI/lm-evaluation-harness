@@ -1,0 +1,382 @@
+tag:
+  - jsonschema_bench
+task: jsonschema_bench_easy
+dataset_path: epfl-dlab/JSONSchemaBench
+dataset_name: Github_easy
+training_split: train
+validation_split: valid
+test_split: test
+description: "Generate a JSON object that matches the following JSON schema."
+doc_to_text: 'JSON schema: {{json_schema}}\n\nJSON object: '
+doc_to_target: '{{json_object if json_object is defined else json_schema}}' # here we use the json_schema as the target at test time for evaluation
+output_type: generate_until
+metric_list:
+  - metric: !function metrics.json_validity
+    aggregation: mean
+    higher_is_better: True
+  - metric: !function metrics.schema_compliance
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 0.1
+fewshot_split: null
+num_fewshot: 2
+fewshot_config:
+  sampler: first_n
+  samples:
+  - json_schema: "{
+      \"$schema\": \"http://json-schema.org/draft-04/schema#\",
+      \"definitions\": {
+          \"address1\": {
+              \"type\": \"string\"
+          },
+          \"address2\": {
+              \"type\": \"string\"
+          },
+          \"city\": {
+              \"type\": \"string\"
+          },
+          \"country\": {
+              \"type\": \"string\"
+          },
+          \"postalCode\": {
+              \"type\": \"string\"
+          },
+          \"state\": {
+              \"type\": \"string\"
+          }
+      },
+      \"description\": \"A simple address schema\",
+      \"properties\": {
+          \"address1\": {
+              \"$ref\": \"#/definitions/address1\"
+          },
+          \"address2\": {
+              \"$ref\": \"#/definitions/address2\"
+          },
+          \"city\": {
+              \"$ref\": \"#/definitions/city\"
+          },
+          \"country\": {
+              \"$ref\": \"#/definitions/country\"
+          },
+          \"postalCode\": {
+              \"$ref\": \"#/definitions/postalCode\"
+          },
+          \"state\": {
+              \"$ref\": \"#/definitions/state\"
+          }
+      },
+      \"type\": \"object\"
+    }"
+    json_object: "{
+      \"address1\": \"123 Main Street\",
+      \"address2\": \"Apt 4B\",
+      \"city\": \"Seattle\",
+      \"country\": \"USA\",
+      \"postalCode\": \"98101\",
+      \"state\": \"WA\"
+    }"
+  - json_schema: "{
+      \"$schema\": \"http://json-schema.org/draft-06/schema#\",
+      \"definitions\": {
+          \"ElementType\": {
+              \"enum\": [
+                  \"component\",
+                  \"directive\"
+              ],
+              \"type\": \"string\"
+          },
+          \"SelectorChange\": {
+              \"properties\": {
+                  \"remove\": {
+                      \"description\": \"Remove directive/component\",
+                      \"type\": \"boolean\"
+                  },
+                  \"replaceWith\": {
+                      \"description\": \"Replace original selector with new one\",
+                      \"type\": \"string\"
+                  },
+                  \"selector\": {
+                      \"description\": \"Original selector to apply change to\",
+                      \"type\": \"string\"
+                  },
+                  \"type\": {
+                      \"$ref\": \"#/definitions/ElementType\",
+                      \"description\": \"Type of selector the change applies to - either component or directive\"
+                  }
+              },
+              \"required\": [
+                  \"selector\",
+                  \"type\"
+              ],
+              \"type\": \"object\"
+          }
+      },
+      \"properties\": {
+          \"changes\": {
+              \"description\": \"An array of changes to component/directive selectors\",
+              \"items\": {
+                  \"$ref\": \"#/definitions/SelectorChange\"
+              },
+              \"type\": \"array\"
+          }
+      },
+      \"required\": [
+          \"changes\"
+      ],
+      \"type\": \"object\"
+    }"
+    json_object: "{
+      \"changes\": [
+          {
+              \"selector\": \"app-root\",
+              \"type\": \"component\",
+              \"remove\": false,
+              \"replaceWith\": \"new-root\"
+          },
+          {
+              \"selector\": \"my-directive\",
+              \"type\": \"directive\",
+              \"remove\": true,
+              \"replaceWith\": \"new-directive\"
+          }
+      ]
+    }"
+  - json_schema: "{
+      \"additionalProperties\": false,
+      \"description\": \"Schema for tracking e-commerce transaction details and metadata.\",
+      \"properties\": {
+        \"store\": {
+          \"description\": \"The store or seller associated with the transaction.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"discountCode\": {
+          \"description\": \"Promotional code applied to the transaction.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"currencyCode\": {
+          \"description\": \"ISO 4217 currency code for the transaction.\",
+          \"maxLength\": 3,
+          \"minLength\": 3,
+          \"type\": \"string\"
+        },
+        \"transactionId\": {
+          \"description\": \"Unique identifier for the transaction.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"productList\": {
+          \"description\": \"Identifier for the product list from which the purchase was made.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"purchaseOption\": {
+          \"description\": \"Additional purchase options or preferences.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"totalAmount\": {
+          \"description\": \"Total revenue generated from the transaction.\",
+          \"multipleOf\": 0.01,
+          \"type\": \"number\"
+        },
+        \"deliveryCharge\": {
+          \"description\": \"Shipping cost associated with the order.\",
+          \"multipleOf\": 0.01,
+          \"type\": \"number\"
+        },
+        \"processStep\": {
+          \"description\": \"Current step in the purchase or checkout process.\",
+          \"maximum\": 2147483647,
+          \"minimum\": 0,
+          \"type\": \"integer\"
+        },
+        \"taxAmount\": {
+          \"description\": \"Total tax applied to the transaction.\",
+          \"multipleOf\": 0.01,
+          \"type\": \"number\"
+        }
+      },
+      \"self\": {
+        \"format\": \"jsonschema\",
+        \"name\": \"transactionDataObject\",
+        \"vendor\": \"com.ecommerce.analytics.tracking\",
+        \"version\": \"1-0-0\"
+      },
+      \"type\": \"object\"
+    }"
+    json_object: "{
+      \"asset_id\": \"minecraft:trim_pattern\",
+      \"description\": {
+          \"color\": \"#FFAA00\",
+          \"translate\": \"trim_pattern.description\"
+      },
+      \"template_item\": \"minecraft:template_item\"
+    }"
+  - json_schema: "{
+      \"$comment\": \"https://minecraft.fandom.com/wiki/Data_Pack\",
+      \"$id\": \"https://json.schemastore.org/minecraft-damage-type.json\",
+      \"$schema\": \"http://json-schema.org/draft-07/schema#\",
+      \"description\": \"A damage type's for a Minecraft data pack config schema\",
+      \"properties\": {
+          \"death_message_type\": {
+              \"enum\": [
+                  \"default\",
+                  \"fall_variants\",
+                  \"intentional_game_design\"
+              ],
+              \"type\": \"string\"
+          },
+          \"effects\": {
+              \"enum\": [
+                  \"hurt\",
+                  \"thorns\",
+                  \"drowning\",
+                  \"burning\",
+                  \"poking\",
+                  \"freezing\"
+              ],
+              \"type\": \"string\"
+          },
+          \"exhaustion\": {
+              \"type\": \"number\"
+          },
+          \"message_id\": {
+              \"type\": \"string\"
+          },
+          \"scaling\": {
+              \"enum\": [
+                  \"never\",
+                  \"always\",
+                  \"when_caused_by_living_non_player\"
+              ],
+              \"type\": \"string\"
+          }
+      },
+      \"required\": [
+          \"message_id\",
+          \"scaling\",
+          \"exhaustion\"
+      ],
+      \"title\": \"Minecraft Data Pack Damage Type\",
+      \"type\": \"object\"
+    }"
+    json_object: "{
+      \"message_id\": \"minecraft:damage.message\",
+      \"scaling\": \"always\",
+      \"exhaustion\": 0.3,
+      \"death_message_type\": \"default\",
+      \"effects\": \"hurt\"
+    }"
+  - json_schema: "{
+      \"additionalProperties\": false,
+      \"description\": \"Schema for tracking e-commerce transaction details and metadata.\",
+      \"properties\": {
+        \"store\": {
+          \"description\": \"The store or seller associated with the transaction.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"discountCode\": {
+          \"description\": \"Promotional code applied to the transaction.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"currencyCode\": {
+          \"description\": \"ISO 4217 currency code for the transaction.\",
+          \"maxLength\": 3,
+          \"minLength\": 3,
+          \"type\": \"string\"
+        },
+        \"transactionId\": {
+          \"description\": \"Unique identifier for the transaction.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"productList\": {
+          \"description\": \"Identifier for the product list from which the purchase was made.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"purchaseOption\": {
+          \"description\": \"Additional purchase options or preferences.\",
+          \"maxLength\": 500,
+          \"type\": \"string\"
+        },
+        \"totalAmount\": {
+          \"description\": \"Total revenue generated from the transaction.\",
+          \"multipleOf\": 0.01,
+          \"type\": \"number\"
+        },
+        \"deliveryCharge\": {
+          \"description\": \"Shipping cost associated with the order.\",
+          \"multipleOf\": 0.01,
+          \"type\": \"number\"
+        },
+        \"processStep\": {
+          \"description\": \"Current step in the purchase or checkout process.\",
+          \"maximum\": 2147483647,
+          \"minimum\": 0,
+          \"type\": \"integer\"
+        },
+        \"taxAmount\": {
+          \"description\": \"Total tax applied to the transaction.\",
+          \"multipleOf\": 0.01,
+          \"type\": \"number\"
+        }
+      },
+      \"self\": {
+        \"format\": \"jsonschema\",
+        \"name\": \"transactionDataObject\",
+        \"vendor\": \"com.ecommerce.analytics.tracking\",
+        \"version\": \"1-0-0\"
+      },
+      \"type\": \"object\"
+    }"
+    json_object: "{
+      \"store\": \"TechGadgets Online\",
+      \"discountCode\": \"SUMMER20\",
+      \"currencyCode\": \"USD\",
+      \"transactionId\": \"TXN123456789\",
+      \"productList\": \"Best Sellers\",
+      \"purchaseOption\": \"Express Shipping\",
+      \"totalAmount\": 299.99,
+      \"deliveryCharge\": 5.99,
+      \"processStep\": 3,
+      \"taxAmount\": 20.50
+    }"
+  - json_schema: "{
+      \"properties\": {
+          \"date\": {
+              \"description\": \"The date of the meeting\",
+              \"type\": \"string\"
+          },
+          \"time\": {
+              \"description\": \"The time of the meeting\",
+              \"type\": \"string\"
+          },
+          \"participants\": {
+              \"description\": \"List of participants' emails\",
+              \"type\": \"array\",
+              \"items\": {
+                  \"type\": \"string\"
+              }
+          }
+      },
+      \"required\": [
+          \"date\",
+          \"time\"
+      ],
+      \"type\": \"object\"
+    }"
+    json_object: "{
+      \"date\": \"2024-09-30\",
+      \"time\": \"10:00 AM\",
+      \"participants\": [
+          \"alice@example.com\",
+          \"bob@example.com\"
+      ]
+    }"
