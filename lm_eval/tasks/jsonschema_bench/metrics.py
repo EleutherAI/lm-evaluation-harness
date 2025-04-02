@@ -9,10 +9,9 @@ from transformers import AutoTokenizer
 # check if jsonschema is installed
 try:
     import jsonschema
-except ImportError:
-    print("jsonschema is not installed. Please install it using 'pip install jsonschema[format]'")
-    exit(1)
-from jsonschema import Draft202012Validator, FormatChecker, ValidationError
+    from jsonschema import Draft202012Validator, FormatChecker, ValidationError
+except ImportError as e:
+    raise ImportError("jsonschema is not installed. Please install it using 'pip install jsonschema[format]'") from e
 
 eval_logger = logging.getLogger(__name__)
 
