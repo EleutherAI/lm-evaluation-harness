@@ -215,7 +215,7 @@ fewshot_config:
           \"translate\": \"trim_pattern.description\"
       },
       \"template_item\": \"minecraft:template_item\"
-    }"  
+    }"
   - json_schema: "{
       \"$comment\": \"https://minecraft.fandom.com/wiki/Data_Pack\",
       \"$id\": \"https://json.schemastore.org/minecraft-damage-type.json\",
@@ -380,6 +380,3 @@ fewshot_config:
           \"bob@example.com\"
       ]
     }"
-
-
-

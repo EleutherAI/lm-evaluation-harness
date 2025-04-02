@@ -40,10 +40,10 @@ lm_eval \
     --batch_size auto \
     --limit 10 \
     --apply_chat_template \
-    --fewshot_as_multiturn 
+    --fewshot_as_multiturn
 ```
 
-The expected results is 
+The expected results is
 ```
 |         Tasks         |Version|Filter|n-shot|     Metric      |   |Value|   |Stderr|
 |-----------------------|------:|------|-----:|-----------------|---|----:|---|-----:|
@@ -57,7 +57,7 @@ Available at [HF hub](https://huggingface.co/datasets/epfl-dlab/JSONSchemaBench)
 
 ## Leaderboard
 
-We provide a [leaderboard](https://github.com/epfl-dlab/jsonschemabench-leaderboard) to track the progress of LLMs on the JSONSchema Bench tasks. 
+We provide a [leaderboard](https://github.com/epfl-dlab/jsonschemabench-leaderboard) to track the progress of LLMs on the JSONSchema Bench tasks.
 We welcome contributions to the leaderboard via pull requests.
 
 
@@ -71,13 +71,13 @@ Homepage: https://github.com/guidance-ai/jsonschemabench
 ## Citation
 ```
 @misc{geng2025jsonschemabench,
-      title={Generating Structured Outputs from Language Models: Benchmark and Studies}, 
+      title={Generating Structured Outputs from Language Models: Benchmark and Studies},
       author={Saibo Geng and Hudson Cooper and Michał Moskal and Samuel Jenkins and Julian Berman and Nathan Ranchin and Robert West and Eric Horvitz and Harsha Nori},
       year={2025},
       eprint={2501.10868},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2501.10868}, 
+      url={https://arxiv.org/abs/2501.10868},
 }
 ```
 
