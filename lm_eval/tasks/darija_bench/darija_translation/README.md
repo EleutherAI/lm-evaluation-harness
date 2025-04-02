@@ -16,13 +16,13 @@ Homepage: [https://huggingface.co/datasets/MBZUAI-Paris/DarijaBench](https://hug
 
 ```
 @article{shang2024atlaschatadaptinglargelanguage,
-      title={Atlas-Chat: Adapting Large Language Models for Low-Resource Moroccan Arabic Dialect}, 
+      title={Atlas-Chat: Adapting Large Language Models for Low-Resource Moroccan Arabic Dialect},
       author={Guokan Shang and Hadi Abdine and Yousef Khoubrane and Amr Mohamed and Yassine Abbahaddou and Sofiane Ennadir and Imane Momayiz and Xuguang Ren and Eric Moulines and Preslav Nakov and Michalis Vazirgiannis and Eric Xing},
       year={2024},
       eprint={2409.17912},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2409.17912}, 
+      url={https://arxiv.org/abs/2409.17912},
 }
 ```
 
