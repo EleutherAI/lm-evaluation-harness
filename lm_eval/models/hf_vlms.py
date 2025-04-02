@@ -770,6 +770,7 @@ class HFMultimodalLMPhi3(HFMultimodalLM):
 
     def apply_chat_template(self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True) -> str:
         self.chat_applied = True
+        img_index = 0
         if not self.interleave:
             for content in chat_history:
                 text = content["content"]
@@ -781,8 +782,9 @@ class HFMultimodalLMPhi3(HFMultimodalLM):
                 text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
 
                 # Add image entries
-                for i in range(image_count):
-                    text += self.image_positional_token(i)
+                for _ in range(image_count):
+                    text += self.image_positional_token(img_index)
+                    img_index += 1
 
                 content["content"] = text
         else:
@@ -799,8 +801,9 @@ class HFMultimodalLMPhi3(HFMultimodalLM):
                     final_text += part
                     # Add image placeholder after each split except the last
                     if i < min(len(text_parts) - 1, self.max_images):
-                        final_text += self.image_positional_token(actual_image_count)
+                        final_text += self.image_positional_token(img_index)
                         actual_image_count += 1
+                        img_index += 1
 
                 content["content"] = final_text
 
