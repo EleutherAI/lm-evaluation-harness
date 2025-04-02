@@ -412,10 +412,9 @@ class HFAUDIOLMMINICPM(HFLM):
         encoded = self.tok_encode(strings[0])
         question = encoded[0]["content"]
 
-        audio = audios[0]
         # sys_prompt = self.model.get_sys_prompt(mode='default', language='ru') 
 
-        msg = {"role":"user", "content": [question, audio]}
+        msg = {"role":"user", "content": [question, *audios]}
         # msgs = [sys_prompt, msg]
         msgs = [msg]
 
