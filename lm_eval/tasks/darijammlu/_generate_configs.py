@@ -61,7 +61,7 @@ ARABIC_MMLU_SUBJECTS = {
     "economics": "social_sciences",
     "arabic_language_(general)": "language",
     "arabic_language_(grammar)": "language",
-    "civics": "social_sciences"
+    "civics": "social_sciences",
 }
 
 DATASETS = {
@@ -93,15 +93,16 @@ if __name__ == "__main__":
 
             yaml_dict = {
                 "include": base_yaml_name,
-                "tag": [f"darijammlu_{category}_tasks", "darijammlu_"+dataset+"_tasks"],
+                "tag": [
+                    f"darijammlu_{category}_tasks",
+                    "darijammlu_" + dataset + "_tasks",
+                ],
                 "task": f"darijammlu_{subject}",
                 "task_alias": subject.replace("_", " "),
                 "dataset_name": subject,
             }
 
-            file_save_path = (
-                args.save_prefix_path + f"_{subject}.yaml"
-            )
+            file_save_path = args.save_prefix_path + f"_{subject}.yaml"
             eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
             with open(file_save_path, "w", encoding="utf-8") as yaml_file:
                 yaml.dump(
