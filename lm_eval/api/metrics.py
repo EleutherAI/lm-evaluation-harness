@@ -464,32 +464,15 @@ class _bootstrap_internal:
 
 
 def bootstrap_stderr(f, xs, iters):
-    import multiprocessing as mp
-
-    pool = mp.Pool(mp.cpu_count())
-    # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
-    # equivalent to stderr calculated without Bessel's correction in the stddev.
-    # Unfortunately, I haven't been able to figure out what the right correction is
-    # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
-    # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
-    # Thankfully, shouldn't matter because our samples are pretty big usually anyways
-    res = []
-    chunk_size = min(1000, iters)
-    from tqdm import tqdm
-
-    print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(
-        pool.imap(
-            _bootstrap_internal(f, chunk_size),
-            [(i, xs) for i in range(iters // chunk_size)],
-        ),
-        total=iters // chunk_size,
-    ):
-        # sample w replacement
-        res.extend(bootstrap)
-
-    pool.close()
-    return sample_stddev(res)
+      res = []
+      chunk_size = min(1000, iters)
+      from tqdm import tqdm
+      print("bootstrapping for stddev:", f.__name__)
+      for i in tqdm(range(iters // chunk_size)):
+          bootstrap = _bootstrap_internal(f, chunk_size)((i, xs))
+          # sample w replacement
+          res.extend(bootstrap)
+      return sample_stddev(res) 
 
 
 def stderr_for_metric(metric, bootstrap_iters: int):
