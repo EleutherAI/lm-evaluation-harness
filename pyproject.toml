@@ -59,6 +59,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 [project.optional-dependencies]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
+bedrock = ["boto3"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
@@ -87,6 +88,7 @@ zeno = ["pandas", "zeno-client"]
 all = [
     "lm_eval[api]",
     "lm_eval[audiolm_qwen]",
+    "lm_eval[bedrock]",
     "lm_eval[deepsparse]",
     "lm_eval[dev]",
     "lm_eval[gptq]",
