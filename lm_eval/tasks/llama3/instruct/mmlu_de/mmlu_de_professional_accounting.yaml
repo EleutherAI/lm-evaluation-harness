@@ -1,0 +1,73 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 70.000 $
+      B: 75.000 $
+      C: 80.000 $
+      D: '100000'
+    input_correct_responses:
+    - D
+    input_question: "Box, eine nichtstaatliche gemeinn\xFCtzige Organisation, hatte\
+      \ im Laufe des Jahres die folgenden Transaktionen: Erl\xF6se aus dem Verkauf\
+      \ von Investitionen 80.000 USD Kauf von Sachanlagen 10.000 USD Erl\xF6se aus\
+      \ langfristigen Schulden 100.000 USD Verlust aus dem Verkauf von Investitionen\
+      \ 5.000 USD Welcher Betrag sollte als Nettobetrag gemeldet werden? Einzahlungen\
+      \ aus Finanzierungst\xE4tigkeiten in der Kapitalflussrechnung von Box?"
+  - input_choice_list:
+      A: 13.000 $
+      B: $600
+      C: 15.000 $
+      D: 28.000 $
+    input_correct_responses:
+    - A
+    input_question: "Vor hundert Jahren investierte Ihre Ururgro\xDFmutter 100 Dollar\
+      \ zu 5 % Jahreszins. Was ist die Investition heute wert?"
+  - input_choice_list:
+      A: $0
+      B: $500
+      C: 1.650 $
+      D: 16.500 $
+    input_correct_responses:
+    - A
+    input_question: "Krete ist ein unverheirateter Steuerzahler mit Eink\xFCnften\
+      \ ausschlie\xDFlich aus Lohn. Bis zum 31. Dezember des ersten Jahres hat Kretes\
+      \ Arbeitgeber 16.000 US-Dollar an Bundeseinkommenssteuern einbehalten und Krete\
+      \ hat keine gesch\xE4tzten Steuerzahlungen geleistet. Am 15. April des zweiten\
+      \ Jahres reichte Krete rechtzeitig einen Verl\xE4ngerungsantrag ein, um ihre\
+      \ individuelle Steuererkl\xE4rung einzureichen, und zahlte 300 US-Dollar an\
+      \ zus\xE4tzlichen Steuern. Kretes Steuerschuld f\xFCr Jahr 1 betrug 16.500 US-Dollar,\
+      \ als sie ihre Steuererkl\xE4rung am 30. April des Jahres 2 rechtzeitig einreichte\
+      \ und die verbleibende Steuerschuld bezahlte. Welcher Betrag w\xFCrde der Strafe\
+      \ f\xFCr die Unterzahlung gesch\xE4tzter Steuern unterliegen?"
+  - input_choice_list:
+      A: 5.000 $
+      B: 13.500 $
+      C: 16.000 $
+      D: 20.000 $
+    input_correct_responses:
+    - B
+    input_question: "Am 1. Januar, Jahr 1, unterzeichnete Alpha Co. einen j\xE4hrlichen\
+      \ Wartungsvertrag mit einem Softwareanbieter f\xFCr 15.000 $ und der Wartungszeitraum\
+      \ beginnt am 1. M\xE4rz, Jahr 2. Alpha entstanden am 1. Januar, Jahr 1, au\xDF\
+      erdem Kosten in H\xF6he von 5.000 $ im Zusammenhang mit Softwaremodifikationen\
+      \ Anforderungen, die die Funktionalit\xE4t der Software erh\xF6hen. Alpha schreibt\
+      \ seine Computer- und Software-Assets \xFCber f\xFCnf Jahre nach der linearen\
+      \ Methode ab. Wie hoch sind die Gesamtausgaben, die Alpha im Zusammenhang mit\
+      \ dem Wartungsvertrag und den Softwaremodifikationen f\xFCr das am 31. Dezember,\
+      \ Jahr 1, endende Jahr erfassen sollte?"
+  - input_choice_list:
+      A: Bewertung und Zuordnung
+      B: "Vollst\xE4ndigkeit"
+      C: Rechte und Pflichten
+      D: "Pr\xE4sentation und Offenlegung"
+    input_correct_responses:
+    - B
+    input_question: "Ein Wirtschaftspr\xFCfer verfolgt die Seriennummern auf Ger\xE4\
+      ten bis zum Nebenbuch eines Nicht-Emittenten. Welche der folgenden Managementaussagen\
+      \ wird durch diesen Test gest\xFCtzt?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_accounting
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_professional_accounting
+task_alias: professional_accounting

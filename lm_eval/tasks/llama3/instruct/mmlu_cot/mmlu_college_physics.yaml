@@ -1,0 +1,6 @@
+"dataset_name": "college_physics"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_stem_tasks"
+"task": "mmlu_cot_llama_college_physics"
+"task_alias": "college physics"

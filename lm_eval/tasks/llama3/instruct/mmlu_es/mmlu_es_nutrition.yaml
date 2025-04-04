@@ -1,0 +1,68 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Los bebedores de t\xE9 tienen menor riesgo de desarrollar diabetes."
+      B: "Los bebedores de t\xE9 tienen mayor riesgo de desarrollar diabetes."
+      C: "Seg\xFAn la informaci\xF3n proporcionada, no podemos decir si la diferencia\
+        \ observada en el riesgo de enfermedad es resultado del azar."
+      D: "El \xEDndice de riesgo es cercano al valor uno, por lo que no hay diferencia\
+        \ en el riesgo de enfermedad entre los dos grupos."
+    input_correct_responses:
+    - C
+    input_question: "En un estudio de cohorte, la proporci\xF3n de riesgo de desarrollar\
+      \ diabetes fue de 0,86 al comparar a los consumidores de t\xE9 (los expuestos)\
+      \ con los que no beb\xEDan t\xE9 (los no expuestos). \xBFCu\xE1l afirmaci\xF3\
+      n es correcta (seg\xFAn el conocimiento en 2020)?"
+  - input_choice_list:
+      A: Los consumidores con fenilcetonuria deben evitar el consumo del edulcorante
+        aspartamo
+      B: Los consumidores con fenilcetonuria deben evitar el consumo del edulcorante
+        sacarina
+      C: Los consumidores con fenilcetonuria deben evitar el consumo del edulcorante
+        sucralosa
+      D: Los consumidores con fenilcetonuria deben evitar el consumo del edulcorante
+        acesulfamo K
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones es correcta (seg\xFA\
+      n conocimiento en 2020)?"
+  - input_choice_list:
+      A: "El \xE1cido propi\xF3nico, formado durante la fermentaci\xF3n de la fibra\
+        \ del colon, inhibe la s\xEDntesis de \xE1cidos grasos en el h\xEDgado."
+      B: "El \xE1cido but\xEDrico, formado durante la fermentaci\xF3n de la fibra\
+        \ del colon, estimula el &quot;silenciamiento&quot; del gen supresor de tumores\
+        \ SLC5A8."
+      C: Ninguna de estas opciones es correcta
+      D: "El \xE1cido but\xEDrico, formado durante la fermentaci\xF3n de la fibra\
+        \ del colon, estimula las defensas antioxidantes del colon."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes es la explicaci\xF3n m\xE1s plausible\
+      \ del efecto protector de la fibra diet\xE9tica contra el c\xE1ncer de colon,\
+      \ a partir de 2020?"
+  - input_choice_list:
+      A: El 50% de los adultos consume yodo en niveles inferiores al RNI
+      B: "Los productos l\xE1cteos son una mala fuente de yodo."
+      C: "El contenido de yodo de la leche org\xE1nica es generalmente menor que el\
+        \ nivel de la leche no org\xE1nica."
+      D: "Los valores de referencia diet\xE9ticos del Reino Unido recomiendan un aumento\
+        \ de la ingesta de yodo durante el embarazo"
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones sobre el yodo es correcta,\
+      \ a partir de 2020?"
+  - input_choice_list:
+      A: acarbosa
+      B: metformina
+      C: Sulfonilureas
+      D: Insulina
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l es el f\xE1rmaco de primera l\xEDnea para pacientes\
+      \ con diabetes tipo 2 y obesidad, a partir de 2020?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_nutrition
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_nutrition
+task_alias: nutrition

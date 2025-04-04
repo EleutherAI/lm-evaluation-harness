@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Donnez au journaliste d&#39;autres informations dont elle est certaine qu&#39;elles
+        sont correctes.
+      B: "Dites que l&#39;information est &quot;off the record&quot; et sera diffus\xE9\
+        e plus tard."
+      C: "Dites \xAB Je ne sais pas \xBB et promettez de fournir les informations\
+        \ plus tard."
+      D: "Dites &quot;pas de commentaire&quot; plut\xF4t que d&#39;avoir l&#39;air\
+        \ mal inform\xE9."
+    input_correct_responses:
+    - C
+    input_question: "Que doit faire une professionnelle des relations publiques dans\
+      \ les m\xE9dias si elle ne conna\xEEt pas la r\xE9ponse \xE0 la question d&#39;un\
+      \ journaliste\_?"
+  - input_choice_list:
+      A: "Achetez des noms de domaine qui pourraient \xEAtre utilis\xE9s par des groupes\
+        \ d&#39;opposition."
+      B: Postez des commentaires anonymes sur les blogs pour lutter contre ces informations.
+      C: "Pr\xE9parez un communiqu\xE9 de presse qui discr\xE9dite les informations\
+        \ inexactes."
+      D: "Apportez des modifications \xE0 la politique pour traiter les plaintes mises\
+        \ en \xE9vidence sur ces sites."
+    input_correct_responses:
+    - D
+    input_question: "Dans la gestion des probl\xE8mes, quelle est l&#39;approche la\
+      \ plus proactive pour traiter les informations n\xE9gatives ou trompeuses publi\xE9\
+      es en ligne sur votre organisation\_?"
+  - input_choice_list:
+      A: "Il y a eu une r\xE9ponse m\xE9diatique coordonn\xE9e."
+      B: "Des messages coh\xE9rents ont \xE9t\xE9 communiqu\xE9s."
+      C: "Les critiques ont \xE9t\xE9 consid\xE9r\xE9es comme des attaques contre\
+        \ l&#39;\xC9glise catholique."
+      D: "La cr\xE9dibilit\xE9 du Vatican a \xE9t\xE9 maintenue."
+    input_correct_responses:
+    - C
+    input_question: "Laquelle de ces d\xE9clarations est vraie du Vatican en 2010\
+      \ au moment des accusations de dissimulation de maltraitance d&#39;enfants\_\
+      ?"
+  - input_choice_list:
+      A: "D\xE9finir le programme"
+      B: Planification du programme
+      C: "Prendre des mesures et mettre en \u0153uvre des id\xE9es"
+      D: "\xC9valuation du programme"
+    input_correct_responses:
+    - A
+    input_question: "\xC0 quelle \xE9tape du processus de planification une analyse\
+      \ de la situation serait-elle effectu\xE9e\_?"
+  - input_choice_list:
+      A: Paix verte
+      B: L&#39;ONU
+      C: Oxfam
+      D: Fonds mondial pour la nature
+    input_correct_responses:
+    - D
+    input_question: "Earth Hour \xE9tait une campagne lanc\xE9e par quelle organisation\_\
+      ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_public_relations
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_public_relations
+task_alias: public_relations

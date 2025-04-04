@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Es ist noch unklar, ob die Todesstrafe Schaden von der Gemeinschaft abschreckt
+        oder nicht.
+      B: Es ist noch unklar, ob die Todesstrafe Personen vor Schaden abschreckt oder
+        nicht.
+      C: "Konsequentialismus wird nicht von afrikanischen Werten unterst\xFCtzt."
+      D: "Obwohl der Konsequentialismus von afrikanischen Werten unterst\xFCtzt wird,\
+        \ wurden keine konsequentialistischen Argumente vorgebracht, die auf afrikanische\
+        \ Werte bezogen sind."
+    input_correct_responses:
+    - A
+    input_question: Was ist laut Metz falsch an konsequentialistischen Argumenten
+      gegen die Todesstrafe auf der Grundlage afrikanischer Werte?
+  - input_choice_list:
+      A: eine Zygote.
+      B: ein Embryo.
+      C: "eine Lebensf\xE4higkeit."
+      D: eine Blastozyste.
+    input_correct_responses:
+    - A
+    input_question: Eine befruchtete Eizelle wird auch als bezeichnet
+  - input_choice_list:
+      A: in der Oberklasse zu sein
+      B: "die F\xE4higkeit zu lernen und Probleme zu l\xF6sen"
+      C: "sch\xF6ner sein als der Gro\xDFteil der Bev\xF6lkerung"
+      D: "k\xFCrzer als der Durchschnitt sein"
+    input_correct_responses:
+    - B
+    input_question: Welches der folgenden Dinge ist laut Singer ein intrinsisches
+      Gut?
+  - input_choice_list:
+      A: "SCNT ist keine andere Art der Vervielf\xE4ltigung, weil es keine moralisch\
+        \ relevanten Unterschiede zwischen ihr und anderen zul\xE4ssigen Vervielf\xE4\
+        ltigungsmethoden gibt."
+      B: "Da f\xFCr nat\xFCrliche Zwillinge ein geringes Schadensrisiko besteht, besteht\
+        \ f\xFCr SCNT ein geringes Schadensrisiko."
+      C: sowohl A als auch B
+      D: weder A noch B
+    input_correct_responses:
+    - A
+    input_question: "Pence vergleicht sechs verschiedene F\xE4lle von Fortpflanzung,\
+      \ von nat\xFCrlichen Zwillingen bis zu SCNT. Welche Schlussfolgerung zieht er\
+      \ aus diesem Vergleich?"
+  - input_choice_list:
+      A: die Dummheit der meisten traditionellen philosophischen Beispiele.
+      B: "ein allgemeiner Mangel an Intelligenz bei Menschen mit h\xF6heren Abschl\xFC\
+        ssen."
+      C: die Ungerechtigkeit der Folter.
+      D: "die Bereitschaft vieler intelligenter Menschen, Folter als die beste L\xF6\
+        sung im Umgang mit Terrorismus anzusehen."
+    input_correct_responses:
+    - D
+    input_question: "Baron gibt zu, dass die Versionen der tickenden Bombe, die sie\
+      \ diskutiert, \u201Eerstaunlich dumm\u201C sind, aber sie behauptet, dies sei\
+      \ tats\xE4chlich ein Beweis daf\xFCr"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_disputes
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_moral_disputes
+task_alias: moral_disputes

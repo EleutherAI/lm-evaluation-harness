@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Die h\xE4ufigste Oxidationsstufe f\xFCr die Lanthanidenelemente ist +3."
+      B: Lanthanoidkomplexe haben oft hohe Koordinationszahlen (&gt; 6).
+      C: "Alle Lanthanidenelemente reagieren mit w\xE4ssriger S\xE4ure, um Wasserstoff\
+        \ freizusetzen."
+      D: "Die Atomradien der Lanthanidenelemente nehmen \xFCber den Zeitraum von La\
+        \ nach Lu zu."
+    input_correct_responses:
+    - D
+    input_question: Welche der folgenden Aussagen zu den Lanthanoiden ist NICHT richtig?
+  - input_choice_list:
+      A: 1,0 ml
+      B: 10ml
+      C: 20 ml
+      D: 50 ml
+    input_correct_responses:
+    - C
+    input_question: "Eine Probe von 0,217 g HgO (Molmasse = 217 g) reagiert mit \xFC\
+      bersch\xFCssigen Jodidionen gem\xE4\xDF der oben gezeigten Reaktion. Die Titration\
+      \ der resultierenden L\xF6sung erfordert wie viele ml 0,10 M HCl, um den \xC4\
+      quivalenzpunkt zu erreichen?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '6'
+      D: '24'
+    input_correct_responses:
+    - A
+    input_question: "Sagen Sie die Anzahl der Linien im EPR-Spektrum einer L\xF6sung\
+      \ des 13C-markierten Methylradikals (13CH3\u2022) voraus, vorausgesetzt, die\
+      \ Linien \xFCberlappen sich nicht."
+  - input_choice_list:
+      A: "eine S\xE4ure"
+      B: eine Basis
+      C: ein Katalysator
+      D: ein Reduktionsmittel
+    input_correct_responses:
+    - D
+    input_question: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq)\
+      \ + 4 Cr3+(aq) + 10 H2O(l). In der oben gezeigten Reaktion verh\xE4lt sich Cl\u2212\
+      (aq) wie"
+  - input_choice_list:
+      A: PbH4 &lt; SnH4 &lt; GeH4 &lt; SiH4 &lt; CH4
+      B: PbH4 &lt; SnH4 &lt; CH4 &lt; GeH4 &lt; SiH4
+      C: CH4 &lt; SiH4 &lt; GeH4 &lt; SnH4 &lt; PbH4
+      D: CH4 &lt; PbH4 &lt; GeH4 &lt; SnH4 &lt; SiH4
+    input_correct_responses:
+    - A
+    input_question: "Welche der folgenden Listet die Hydride der Elemente der Gruppe\
+      \ 14 in der Reihenfolge ihrer thermischen Stabilit\xE4t auf, von der niedrigsten\
+      \ zur h\xF6chsten?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_chemistry
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_college_chemistry
+task_alias: college_chemistry
