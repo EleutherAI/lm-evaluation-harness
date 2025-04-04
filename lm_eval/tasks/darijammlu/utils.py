@@ -5,7 +5,6 @@ alpha = ["A.", "B.", "C.", "D.", "E."]
 
 
 def doc_to_text(doc):
-
     subject = doc["subject_darija"]
     question = (
         doc["question"]
@@ -23,4 +22,4 @@ def doc_to_text(doc):
 
 
 def doc_to_choice(doc):
-    return [alpha[i][0] for i in range(len(doc['choices']))]
+    return [alpha[i][0] for i in range(len(doc["choices"]))]
