@@ -1,9 +1,0 @@
-group: evalita-sp_ner_group
-group_alias: evalita NER
-task:
-  - evalita-sp_ner_tasks
-aggregate_metric_list:
-  - metric: f1
-    weight_by_size: True
-metadata:
-  version: 1

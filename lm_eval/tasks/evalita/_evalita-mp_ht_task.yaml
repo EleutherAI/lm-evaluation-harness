@@ -1,9 +1,0 @@
-group: evalita-mp_ht
-group_alias: headline-translation
-task: 
-- evalita-mp_ht_tasks
-aggregate_metric_list:
-  - metric: f1 
-    weight_by_size: True
-metadata:
-  version: 0.0

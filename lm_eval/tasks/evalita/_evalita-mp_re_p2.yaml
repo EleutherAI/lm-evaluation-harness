@@ -1,8 +1,0 @@
-tag: evalita-mp_re_tasks
-include: _re_template_yaml
-task: evalita-mp_re_prompt-2
-task_alias: prompt-2
-# English
-#doc_to_text: "Given the following text find the results of the measurements. The output must be as follows: measure1$result1%measure2$result2 that is, separate the different measurements with ‘%’ and the measure and the measurement with ‘$’. If no measurements are in the text answer with the string ‘&&NOREL&&’ Text: {{text}}"
-# Italian
-doc_to_text: "Dato il seguente testo, trova i risultati delle misurazioni. Il risultato deve essere nel seguente formato: misura1$result1%misure2$result2, cioè, separare le diverse misurazioni con ‘%’ e la misura e il risultato della misurazione con ‘$’. Se non ci sono misurazioni nel testo, rispondi con la stringa ‘&&NOREL&&’ Testo: {{text}}"
