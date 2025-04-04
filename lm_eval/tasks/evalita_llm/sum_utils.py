@@ -1,9 +1,6 @@
-import logging
 from evaluate import load
 
-# ---------------------- SUMMARIZATION ----------------------
 
-# Load ROUGE metric once and keep it in memory
 rouge = load("rouge", keep_in_memory=True)
 
 def rouge1_score(references, predictions, **kwargs):
