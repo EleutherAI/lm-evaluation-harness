@@ -39,11 +39,13 @@ def _verify_credentials(creds: dict) -> None:
         "project_id": "WATSONX_PROJECT_ID",
         "space_id": "WATSONX_SPACE_ID",
         "username": "WATSONX_USERNAME",
-        "password": "WATSONX_PASSWORD"
+        "password": "WATSONX_PASSWORD",
     }
 
     # Check authentication: Either ("username" and "password") or "apikey" must be provided
-    has_auth = (all(creds.get(key) for key in ["username", "password"]) or creds.get("apikey"))
+    has_auth = all(creds.get(key) for key in ["username", "password"]) or creds.get(
+        "apikey"
+    )
     # Check required fields: "url" must be present
     has_url = "url" in creds and creds["url"]
     # Check project/space ID requirement: Either "project_id" or "space_id" must be present
@@ -52,12 +54,15 @@ def _verify_credentials(creds: dict) -> None:
     if not (has_auth and has_url and has_project_or_space_id):
         missing_keys = []
         if not has_auth:
-            missing_keys.append(f"either ('username' and 'password') or 'apikey' ({env_var_map['apikey']})")
+            missing_keys.append(
+                f"either ('username' and 'password') or 'apikey' ({env_var_map['apikey']})"
+            )
         if not has_url:
             missing_keys.append(f"url ({env_var_map['url']})")
         if not has_project_or_space_id:
             missing_keys.append(
-                f"either 'project_id' ({env_var_map['project_id']}) or 'space_id' ({env_var_map['space_id']})")
+                f"either 'project_id' ({env_var_map['project_id']}) or 'space_id' ({env_var_map['space_id']})"
+            )
 
         error_msg = f"Missing required credentials: {', '.join(missing_keys)}. "
         error_msg += "Please set the environment variables indicated in parentheses."
@@ -94,7 +99,7 @@ def get_watsonx_credentials() -> Dict[str, str]:
         "project_id": os.getenv("WATSONX_PROJECT_ID", None),
         "space_id": os.getenv("WATSONX_SPACE_ID", None),
     }
-    if "cloud.ibm.com" not in credentials['url']:
+    if "cloud.ibm.com" not in credentials["url"]:
         credentials["instance_id"] = "openshift"
 
     if all(credentials.get(key) for key in ["username", "password", "apikey"]):
@@ -136,7 +141,9 @@ class WatsonxLLM(LM):
         model_id = args.pop("model_id", None)
         deployment_id = args.pop("deployment_id", None)
         if model_id is None and deployment_id is None:
-            raise ValueError("'model_id' or 'deployment_id' is required, please pass it in 'model_args'")
+            raise ValueError(
+                "'model_id' or 'deployment_id' is required, please pass it in 'model_args'"
+            )
 
         if not args.get("do_sample", None):
             args["temperature"] = None
