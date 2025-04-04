@@ -96,6 +96,7 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
+            "device": device,
         }
         self.model_args.update(kwargs)
         self.batch_size = (
