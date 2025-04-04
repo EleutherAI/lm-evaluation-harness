@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union, Any
 
 import jinja2
 import torch
@@ -204,6 +204,7 @@ class HFLM(TemplateLM):
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
+                quantization_config=getattr(self.config, "quantization_config", None),
                 **kwargs,
             )
 
@@ -546,6 +547,7 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
+        quantization_config: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> None:
         """
@@ -591,6 +593,7 @@ class HFLM(TemplateLM):
                 torch_dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
+                quantization_config=quantization_config,
                 **model_kwargs,
             )
         else:
