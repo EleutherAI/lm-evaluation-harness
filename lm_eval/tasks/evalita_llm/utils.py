@@ -522,6 +522,7 @@ def split_text_with_regex(text, pattern):
 
     return result
 
+
 def faq_doc_to_target(x):
     if x["correct_answer"] == "A":
         return 0
