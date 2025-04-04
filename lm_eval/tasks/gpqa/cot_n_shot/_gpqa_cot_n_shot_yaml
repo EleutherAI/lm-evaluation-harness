@@ -3,7 +3,7 @@ tag: gpqa
 output_type: generate_until
 process_docs: !function utils.process_docs
 validation_split: train
-test_split: null
+test_split: nsull
 description: "Here are some example questions from experts. An explanation is given before the final answer. Answer the final question yourself, giving your reasoning beforehand.\n"
 doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nGive step by step reasoning before you answer, and when you're ready to answer, please use the format \"The correct answer is (insert answer here)\":"
 doc_to_target: answer
