@@ -8,7 +8,7 @@ def doc_to_choice(doc):
     return ast.literal_eval(doc["choices"])
 
 
-DOC_TO_TEXT = "{narrative}\n\n" "{question}\n\n" "{choices}\n" "Answer:"
+DOC_TO_TEXT = "{narrative}\n\n{question}\n\n{choices}\nAnswer:"
 
 
 def doc_to_text(doc):
@@ -17,7 +17,7 @@ def doc_to_text(doc):
     """
     choices = ""
     for i, choice in enumerate(ast.literal_eval(doc["choices"])):
-        choices += f"{i+1} - {choice}\n"
+        choices += f"{i + 1} - {choice}\n"
 
     text = DOC_TO_TEXT.format(
         narrative=doc["narrative"], question=doc["question"], choices=choices

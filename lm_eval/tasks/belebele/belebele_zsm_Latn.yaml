@@ -1,4 +1,5 @@
-"fewshot_split": "zsm_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_zsm_Latn"
-"test_split": "zsm_Latn"
+dataset_name: zsm_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_zsm_Latn
+test_split: test

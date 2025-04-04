@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ~Pd
+      B: "(\u2200x)(Px \u2228 ~Dx)"
+      C: "(\u2200x)(Px \u2283 ~Dx)"
+      D: ~DP
+    input_correct_responses:
+    - C
+    input_question: "W\xE4hlen Sie die beste \xDCbersetzung in die Pr\xE4dikatenlogik\
+      \ aus: Auf dem Mars fahren keine Menschen."
+  - input_choice_list:
+      A: Blgh
+      B: Bhlg
+      C: Bglh
+      D: Bghl
+    input_correct_responses:
+    - C
+    input_question: "W\xE4hlen Sie die beste \xDCbersetzung in die Pr\xE4dikatenlogik\
+      \ aus. George leiht sich Hectors Rasenm\xE4her. (g: George; h: Hector; l: Hectors\
+      \ Rasenm\xE4her; Bxyx: x entlehnt y von z)"
+  - input_choice_list:
+      A: "Marina ist T\xE4nzerin. Manche Schw\xE4chlinge sind keine T\xE4nzer. Entweder\
+        \ ist alles ein Schw\xE4chling oder Georgien spielt Volleyball. So etwas spielt\
+        \ Volleyball."
+      B: "Marina ist T\xE4nzerin. Kein Schw\xE4chling ist ein T\xE4nzer. Alles ist\
+        \ entweder ein Schw\xE4chling oder spielt Volleyball. So etwas spielt Volleyball."
+      C: "Marina ist T\xE4nzerin. Manche Schw\xE4chlinge sind keine T\xE4nzer. Alles\
+        \ ist entweder ein Schw\xE4chling oder spielt Volleyball. So etwas spielt\
+        \ Volleyball."
+      D: "Marina ist T\xE4nzerin. Kein Schw\xE4chling ist ein T\xE4nzer. Entweder\
+        \ ist alles ein Schw\xE4chling oder Georgien spielt Volleyball. So etwas spielt\
+        \ Volleyball."
+    input_correct_responses:
+    - D
+    input_question: "W\xE4hlen Sie die beste englische Interpretation der gegebenen\
+      \ Argumente in der Pr\xE4dikatenlogik aus. Dm (\u2200x)(Wx \u2283 ~Dx) (\u2200\
+      x)Wx \u2228 Ag / (\u2203x)Ax"
+  - input_choice_list:
+      A: "Logisch \xE4quivalent"
+      B: "Widerspr\xFCchlich"
+      C: "Weder logisch \xE4quivalent noch widerspr\xFCchlich, sondern konsequent"
+      D: Inkonsistent
+    input_correct_responses:
+    - C
+    input_question: "Erstellen Sie eine vollst\xE4ndige Wahrheitstabelle f\xFCr die\
+      \ folgenden Satzpaare. Bestimmen Sie dann anhand der Wahrheitstabellen, ob die\
+      \ Aussagen logisch \xE4quivalent oder widerspr\xFCchlich sind. Wenn beides nicht\
+      \ der Fall ist, bestimmen Sie, ob sie konsistent oder inkonsistent sind. Begr\xFC\
+      nden Sie Ihre Antworten. E \u2283 (F \xB7 E) und ~E \xB7 F"
+  - input_choice_list:
+      A: "(L \u2022 H) \u2261 Ich"
+      B: "(L \u2022 H) \u2228 I"
+      C: "L \u2022 (H \u2228 I)"
+      D: "L \u2022 (H \u2283 R)"
+    input_correct_responses:
+    - B
+    input_question: "Welche der angegebenen Formeln von PL ist die beste Symbolisierung\
+      \ des folgenden Satzes? Schildkr\xF6ten haben ein langes Leben und sind gl\xFC\
+      ckliche Kreaturen, es sei denn, sie werden verletzt."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_formal_logic
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_formal_logic
+task_alias: formal_logic

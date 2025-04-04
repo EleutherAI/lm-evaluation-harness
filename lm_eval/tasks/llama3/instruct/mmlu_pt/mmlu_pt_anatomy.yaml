@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "O primeiro arco far\xEDngeo"
+      B: "O primeiro e segundo arcos far\xEDngeos"
+      C: "O segundo arco far\xEDngeo"
+      D: "O segundo e terceiro arcos far\xEDngeos"
+    input_correct_responses:
+    - D
+    input_question: "Qual \xE9 a origem embriol\xF3gica do osso hi\xF3ide?"
+  - input_choice_list:
+      A: O nervo supraorbital
+      B: O nervo infraorbital
+      C: O nervo mental
+      D: Nenhuma das acima
+    input_correct_responses:
+    - D
+    input_question: "Qual desses ramos do nervo trig\xEAmeo cont\xE9m processos motores\
+      \ som\xE1ticos?"
+  - input_choice_list:
+      A: "n\xE3o t\xEAm inerva\xE7\xE3o sensorial."
+      B: "est\xE3o separados por um espa\xE7o de 2 mm."
+      C: "estender-se at\xE9 o pesco\xE7o."
+      D: "s\xE3o compostos por epit\xE9lio respirat\xF3rio."
+    input_correct_responses:
+    - C
+    input_question: A pleura
+  - input_choice_list:
+      A: sobremordida excessiva dos incisivos laterais superiores.
+      B: overjet negativo dos incisivos centrais superiores.
+      C: overjet excessivo dos incisivos laterais superiores.
+      D: overjet excessivo dos incisivos centrais superiores.
+    input_correct_responses:
+    - C
+    input_question: "Na oclus\xE3o Classe II Div 2 de Angle h\xE1"
+  - input_choice_list:
+      A: Abdominal
+      B: Craniano
+      C: Pleural
+      D: Espinhal
+    input_correct_responses:
+    - B
+    input_question: "Qual das alternativas a seguir \xE9 a cavidade corporal que cont\xE9\
+      m a gl\xE2ndula pituit\xE1ria?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_anatomy
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_anatomy
+task_alias: anatomy

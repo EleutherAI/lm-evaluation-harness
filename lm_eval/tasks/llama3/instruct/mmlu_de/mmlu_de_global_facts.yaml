@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Die Menschen sind in der Regel optimistisch, was ihre eigene Zukunft und
+        die Zukunft ihres Landes oder der Welt betrifft.
+      B: Die Menschen sind in der Regel optimistisch, was ihre eigene Zukunft betrifft,
+        aber pessimistisch, was die Zukunft ihres Landes oder der Welt betrifft.
+      C: Die Menschen neigen dazu, pessimistisch in Bezug auf ihre eigene Zukunft
+        zu sein, aber optimistisch in Bezug auf die Zukunft ihres Landes oder der
+        Welt.
+      D: Menschen neigen dazu, in Bezug auf ihre eigene Zukunft und die Zukunft ihres
+        Landes oder der Welt pessimistisch zu sein.
+    input_correct_responses:
+    - B
+    input_question: Welche der folgenden Aussagenpaare sind beide wahr (Stand 2019)?
+  - input_choice_list:
+      A: 31%
+      B: 46%
+      C: 61%
+      D: 76%
+    input_correct_responses:
+    - B
+    input_question: "Wie viel Prozent der Amerikaner stimmen im Jahr 2019 zu, dass\
+      \ der Staat zum Wohle aller Menschen gef\xFChrt wird?"
+  - input_choice_list:
+      A: "erh\xF6ht, erh\xF6ht"
+      B: "erh\xF6ht, verringert"
+      C: "verringert, erh\xF6ht"
+      D: abgenommen, abgenommen
+    input_correct_responses:
+    - B
+    input_question: "Ab 2015 haben W\xE4lder seit 1990 ____ in Europa und ____ in\
+      \ Afrika und Amerika."
+  - input_choice_list:
+      A: 38%
+      B: 53%
+      C: 68%
+      D: 83%
+    input_correct_responses:
+    - A
+    input_question: "Wie viel Prozent der Russen (Stand 2019) halten es f\xFCr sehr\
+      \ wichtig, freie Medien in unserem Land ohne staatliche/staatliche Zensur zu\
+      \ haben?"
+  - input_choice_list:
+      A: 80%
+      B: 60%
+      C: 40%
+      D: 20%
+    input_correct_responses:
+    - A
+    input_question: "Bis 2017, wie viele der 1-j\xE4hrigen Kinder der Welt wurden\
+      \ heute gegen eine Krankheit geimpft? *"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_global_facts
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_global_facts
+task_alias: global_facts

@@ -1,0 +1,7 @@
+description: '以下是关于经济学的选择题（带有答案）。请逐步思考，然后以"答案是 (X)"结束您的回答，其中X是正确的选项字母。
+
+  '
+include: _zh_template_yaml
+task: mmlu_prox_zh_economics
+task_alias: economics
+process_docs: !function utils.process_economics

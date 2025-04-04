@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "kostenlose Gesundheitsversorgung und Bildung f\xFCr alle"
+      B: ein Mindestlohn
+      C: "Vollbesch\xE4ftigung"
+      D: universelle Wohlfahrt
+    input_correct_responses:
+    - B
+    input_question: 'Welche der folgenden Ziele hatte der Nachkriegswohlfahrtsstaat
+      von 1948 nicht zum Ziel:'
+  - input_choice_list:
+      A: eine Kirmesfahrt
+      B: ein Zirkus
+      C: ein Puppentheater
+      D: ein Ballett
+    input_correct_responses:
+    - C
+    input_question: "Was beschreibt Berger (1963) als Metapher f\xFCr die soziale\
+      \ Wirklichkeit?"
+  - input_choice_list:
+      A: "Die zunehmende B\xFCrokratie des Staates hat die Religion nur noch zu einem\
+        \ marginalen Teil unseres Lebens gemacht"
+      B: "Trotz der Schw\xE4chung traditioneller Autorit\xE4t bleiben unser Alltag\
+        \ und unser \u201Egesunder Menschenverstand\u201C von religi\xF6sen \xDCberzeugungen\
+        \ und Werten gepr\xE4gt"
+      C: "Die religi\xF6se Teilnahme an kollektiven Gottesdiensten mag zur\xFCckgegangen\
+        \ sein, aber die Menschen praktizieren ihren Glauben immer noch privat"
+      D: "Es ist viel wahrscheinlicher, dass Menschen ihre religi\xF6sen \xDCberzeugungen\
+        \ in \xF6ffentlichen, informellen Situationen diskutieren"
+    input_correct_responses:
+    - B
+    input_question: "Der Wechsel von \u201EZivilreligion\u201C zu \u201Eallgemeiner\
+      \ Religion\u201C bedeutet Folgendes:"
+  - input_choice_list:
+      A: die Tendenz der Arbeiterklasse, ihre eigenen Interessen nicht zu verwirklichen
+      B: eine dominante Ideologie, die wirtschaftliche, politische und kulturelle
+        Macht legitimiert
+      C: eine Form des dualen Bewusstseins basierend auf Ideologie und Alltagserfahrungen
+      D: "eine Zahlungsweise f\xFCr ausstehende Formschnitte"
+    input_correct_responses:
+    - B
+    input_question: "Der Begriff \u201EHegemonie\u201C bezieht sich auf:"
+  - input_choice_list:
+      A: Die meisten Streiks bleiben von den Arbeitgebern und den Massenmedien unbemerkt
+      B: "Nicht alle Arbeitsk\xE4mpfe werden vom Arbeitgeber gemeldet"
+      C: "Die Definition von Streiks schlie\xDFt Streiks aus, an denen weniger als\
+        \ zehn Arbeitnehmer beteiligt sind oder die weniger als einen Tag dauern"
+      D: Es ist schwierig, Streiks zu vergleichen, die auf unterschiedliche Weise
+        gemessen wurden
+    input_correct_responses:
+    - A
+    input_question: Was ist kein Problem im Zusammenhang mit offiziellen Streikstatistiken?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_sociology
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_sociology
+task_alias: sociology

@@ -1,0 +1,10 @@
+group: include_base_44_ukrainian
+task:
+- include_base_44_ukrainian_few_shot_en_arts_humanities
+- include_base_44_ukrainian_few_shot_en_social_science
+- include_base_44_ukrainian_few_shot_en_stem
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

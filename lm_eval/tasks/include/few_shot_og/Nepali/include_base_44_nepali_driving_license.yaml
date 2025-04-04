@@ -1,0 +1,4 @@
+include: _nepali_few_shot_og_template_yaml
+description: निम्न Driving License को बारेमा बहु-छनौट प्रश्नहरू (उत्तरहरू सहित) छन्।
+process_docs: !function 'utils.process_driving_license'
+task: include_base_44_nepali_few_shot_og_driving_license

@@ -1,0 +1,6 @@
+"dataset_name": "us_foreign_policy"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_social_sciences_tasks"
+"task": "mmlu_cot_llama_us_foreign_policy"
+"task_alias": "us foreign policy"
