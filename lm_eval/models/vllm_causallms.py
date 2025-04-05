@@ -66,7 +66,7 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
-        override_generation_config: str = '',
+        override_generation_config: Optional[str] = None,
         **kwargs,
     ):
         super().__init__()
@@ -98,7 +98,7 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
-            "override_generation_config": ast.literal_eval(override_generation_config),
+            "override_generation_config": ast.literal_eval(override_generation_config) if override_generation_config is not None else {},
         }
         self.model_args.update(kwargs)
         self.batch_size = (
