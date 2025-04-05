@@ -98,7 +98,8 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
-            "override_generation_config": ast.literal_eval(override_generation_config) if override_generation_config is not None else {},
+            "override_generation_config": ast.literal_eval(override_generation_config) \
+                if override_generation_config is not None else {},
         }
         self.model_args.update(kwargs)
         self.batch_size = (
