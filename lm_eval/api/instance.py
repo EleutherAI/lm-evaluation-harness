@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal, Optional, Tuple
+from typing import Callable, Literal, Optional, Tuple
 
 
 OutputType = Literal[
@@ -36,3 +36,31 @@ class Instance:
         return (
             self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
         )
+
+
+# Instance type for context-based tasks only
+# the same Instance, but with two additional args to handle context
+class ContextInstance(Instance):
+    def __init__(
+        self,
+        requests_updater: Optional[Callable] = None,
+        storage_updater: Optional[Callable] = None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self._update_request = requests_updater
+        self._update_storage = storage_updater
+
+    # used for updating requests from storage info
+    @property
+    def update_request(self):
+        if getattr(self, "_update_request") is not None:
+            return self._update_request
+        raise NotImplementedError("Method for updating request is not defined.")
+
+    # used for updating storage from request and LM answer info
+    @property
+    def update_storage(self):
+        if getattr(self, "_update_storage") is not None:
+            return self._update_storage
+        raise NotImplementedError("Method for updating storage is not defined.")
