@@ -25,10 +25,7 @@ generation_kwargs:
   top_p: 0.95
   n: 1
 metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true
 metadata:

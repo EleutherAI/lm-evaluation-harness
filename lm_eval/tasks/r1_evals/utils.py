@@ -63,7 +63,7 @@ def process_results_gpqa(doc: dict, results: List[str]) -> Dict[str, int]:
     if not gold:
         print(doc, candidate, gold)
     
-    retval =exact_match(gold,candidate)
+    retval =exact_match_fn(gold,candidate)
 
     results = {
         "exact_match": retval,
@@ -590,7 +590,7 @@ def symbolic_equal(a, b):
 
     return False
 
-def exact_match(gold: str, pred: str) -> float:
+def exact_match_fn(gold: str, pred: str) -> float:
     if not pred:
         return 0
 
