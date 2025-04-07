@@ -384,6 +384,7 @@ class Task(abc.ABC):
         self,
         *,
         limit: Union[int, None] = None,
+        samples: Optional[List[int]] = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
@@ -436,7 +437,9 @@ class Task(abc.ABC):
             limit = None
 
         doc_id_docs = list(
-            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+            self.doc_iterator(
+                rank=rank, limit=limit, samples=samples, world_size=world_size
+            )
         )
 
         num_docs = len(doc_id_docs)
@@ -684,15 +687,35 @@ class Task(abc.ABC):
             )
 
     def doc_iterator(
-        self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
+        self,
+        *,
+        rank: int = 0,
+        limit: Union[int, None] = None,
+        world_size: int = 1,
+        samples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
-        limit = int(limit) if limit else None
-        doc_iterator = utils.create_iterator(
-            enumerate(self.eval_docs),
-            rank=int(rank),
-            limit=limit,
-            world_size=int(world_size),
-        )
+        if samples:
+            n = len(self.eval_docs)
+            assert all([e < n for e in samples]), (
+                f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            )
+            eval_logger.info(
+                f"{self.config.task}: Evaluating on {len(samples)} examples"
+            )
+            doc_iterator = utils.create_iterator(
+                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
+                rank=int(rank),
+                limit=None,  # limit does not matter here since we are selecting samples directly
+                world_size=int(world_size),
+            )
+        else:
+            limit = int(limit) if limit else None
+            doc_iterator = utils.create_iterator(
+                enumerate(self.eval_docs),
+                rank=int(rank),
+                limit=limit,
+                world_size=int(world_size),
+            )
         return doc_iterator
 
 

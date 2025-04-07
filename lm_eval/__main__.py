@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from functools import partial
+from pathlib import Path
 from typing import Union
 
 from lm_eval import evaluator, utils
@@ -144,6 +145,14 @@ def setup_parser() -> argparse.ArgumentParser:
         metavar="N|0<N<1",
         help="Limit the number of examples per task. "
         "If <1, limit is a percentage of the total number of examples.",
+    )
+    parser.add_argument(
+        "--samples",
+        "-E",
+        default=None,
+        type=str,
+        metavar="/path/to/json",
+        help='JSON string or path to JSON file containing doc indices of selected examples to test. Format: {"task_name":[indices],...}',
     )
     parser.add_argument(
         "--use_cache",
@@ -360,6 +369,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+    if args.samples:
+        assert args.limit is None, (
+            "If --samples is not None, then --limit must be None."
+        )
+        if (samples := Path(args.samples)).is_file():
+            args.samples = json.loads(samples.read_text())
+        else:
+            args.samples = json.loads(args.samples)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -419,10 +436,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         args.model_args = args.model_args + ",trust_remote_code=True"
-    eval_logger.info(
-        f"Selected Tasks: {task_names}"
-    ) if eval_logger.getEffectiveLevel() >= logging.INFO else print(
-        f"Selected Tasks: {task_names}"
+    (
+        eval_logger.info(f"Selected Tasks: {task_names}")
+        if eval_logger.getEffectiveLevel() >= logging.INFO
+        else print(f"Selected Tasks: {task_names}")
     )
 
     request_caching_args = request_caching_arg_to_dict(
@@ -439,6 +456,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
+        samples=args.samples,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
