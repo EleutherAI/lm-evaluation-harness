@@ -1,0 +1,32 @@
+tag:
+- masakhapos_tasks
+- masakhapos_prompt_1
+dataset_path: masakhane/masakhapos
+dataset_name: null
+dataset_kwargs: {trust_remote_code: True}
+output_type: generate_until
+generation_kwargs:
+  do_sample: false
+  until:
+  - </s>
+  - <|im_end|>
+validation_split: validation
+test_split: test
+fewshot_split: train
+doc_to_target: !function utils.doc_to_target
+should_decontaminate: true
+doc_to_decontamination_query: "Sentence: {{token}}\nOutput:"
+filter_list:
+  - filter:
+    - function: regex_pos
+    name: flexible-extract
+metric_list:
+  - metric: acc
+    aggregation: !function utils.acc_score
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - ","
+metadata:
+  version: 1.0

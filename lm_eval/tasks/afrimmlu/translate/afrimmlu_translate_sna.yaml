@@ -1,3 +1,0 @@
-dataset_name: sna
-include: afrimmlu_common_translate_yaml
-task: afrimmlu_translate_sna
