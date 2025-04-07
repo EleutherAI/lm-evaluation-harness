@@ -29,6 +29,9 @@ BibTeX-formatted citation goes here
 
 #### Tasks
 
+### Tasks
+
+* `mgsm_chat`: 0-shot mgsm benchmark. Use with chat-template.
 * `mmlu_llama`: `generation variant of MMLU`
 * `mmlu_pro_llama`: `generation variant of MMLU-PRO`
 * `mmlu_cot_llama`: `Chain-of-thought variant of MMLU`
