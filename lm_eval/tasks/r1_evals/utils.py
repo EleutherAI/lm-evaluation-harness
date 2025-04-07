@@ -45,8 +45,6 @@ def process_results_math(doc: dict, results: List[str]) -> Dict[str, int]:
 
     results = {
         "exact_match": retval,
-        "candidate_response":candidate,
-        "gold_answer":gold,
     }
     return results
 
@@ -69,8 +67,6 @@ def process_results_gpqa(doc: dict, results: List[str]) -> Dict[str, int]:
 
     results = {
         "exact_match": retval,
-        "candidate_response":candidate,
-        "gold_answer":gold
 
     }
     return results
