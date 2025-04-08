@@ -1,3 +1,4 @@
+
 tag:
   - longbench_e
 task: longbench_2wikimqa_e
@@ -10,9 +11,10 @@ generation_kwargs:
   max_gen_toks: 32
   temperature: 1
   do_sample: True
+  until: []
 metric_list:
   - metric: !function metrics.qa_f1_score
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 1.0
+  version: 2.0
