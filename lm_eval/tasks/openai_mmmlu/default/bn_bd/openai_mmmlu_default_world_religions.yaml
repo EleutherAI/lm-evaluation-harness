@@ -1,0 +1,16 @@
+"dataset_name": "world_religions"
+"description": "The following are multiple choice questions (with answers) about world_religions.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nউত্তর:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_bn_bd_humanities"
+"task": "openai_mmmlu_default_bn_bd_world_religions"
+"task_alias": "bn_bd world religions"
+"test_split": "BN_BD"
