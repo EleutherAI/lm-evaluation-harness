@@ -1,4 +1,4 @@
-task: wikitext
+task: c4
 dataset_path: allenai/c4
 dataset_name: en
 output_type: loglikelihood_rolling
@@ -18,7 +18,8 @@ metric_list:
 #   version: 2.0
 dataset_kwargs:
   data_files:
-    train: "en/c4-train.00000-of-01024.json.gz"
-    validation: "en/c4-validation.00000-of-00008.json.gz"
+    train: en/c4-train.00000-of-01024.json.gz
+    validation: en/c4-validation.00000-of-00008.json.gz
   # following the implementation of https://arxiv.org/abs/2410.07461
   trust_remote_code: true
+  verification_mode: "no_checks"
