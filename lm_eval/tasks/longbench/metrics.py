@@ -144,8 +144,10 @@ def classification_score(
 
 
 def rouge_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    global rouge
+    if "rouge" not in globals():
+        rouge = Rouge()
     prediction, ground_truth = predictions[0], references[0]
-    rouge = Rouge()
     try:
         scores = rouge.get_scores([prediction], [ground_truth], avg=True)
         # ruff: noqa
