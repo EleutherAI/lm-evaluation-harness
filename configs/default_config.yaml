@@ -1,0 +1,13 @@
+model: vllm
+model_args:
+  pretrained: Qwen/Qwen2.5-0.5B-Instruct
+  dtype: bfloat16
+  tensor_parallel_size: 1
+tasks: hellaswag,gsm8k
+batch_size: 1
+trust_remote_code: true
+log_samples: true
+output_path: ./test
+apply_chat_template: true
+fewshot_as_multiturn: true
+limit: 5
