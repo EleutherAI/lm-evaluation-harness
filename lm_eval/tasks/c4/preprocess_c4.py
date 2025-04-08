@@ -2,7 +2,7 @@ import re
 
 
 def c4_detokenizer(doc):
-    string = doc["page"]
+    string = doc["text"]
     # contractions
     string = string.replace("s '", "s'")
     string = re.sub(r"/' [0-9]/", r"/'[0-9]/", string)
