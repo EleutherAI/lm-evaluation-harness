@@ -211,7 +211,7 @@ if __name__ == "__main__":
             "test_split": "test",
             "dataset_name": ds,
             "doc_to_text": raw_doc_to_text,
-            "doc_to_target": "{{answers}}",
+            "doc_to_target": "{{answers[0]}}",
             "generation_kwargs": generation_kwargs,
             "metric_list": metric_list,
             "metadata": {"version": "2.0"},

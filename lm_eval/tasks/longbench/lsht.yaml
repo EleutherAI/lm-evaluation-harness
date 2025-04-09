@@ -6,7 +6,7 @@ dataset_path: THUDM/LongBench
 test_split: test
 dataset_name: lsht
 doc_to_text: '请判断给定新闻的类别，下面是一些例子。\n\n{{context}}\n{{input}}'
-doc_to_target: '{{answers}}'
+doc_to_target: '{{answers[0]}}'
 generation_kwargs:
   max_gen_toks: 64
   temperature: 1
