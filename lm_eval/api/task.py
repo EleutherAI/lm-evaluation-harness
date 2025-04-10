@@ -113,6 +113,9 @@ class TaskConfig(dict):
                 )
 
             if "until" not in self.generation_kwargs:
+                eval_logger.warning(
+                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                )
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
             if self.output_type == "generate_until":
@@ -124,7 +127,11 @@ class TaskConfig(dict):
                         else [self.fewshot_delimiter]
                     ),
                     "do_sample": False,
+                    "temperature": 0,
                 }
+                eval_logger.warning(
+                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                )
 
     def __getitem__(self, item):
         return getattr(self, item)
