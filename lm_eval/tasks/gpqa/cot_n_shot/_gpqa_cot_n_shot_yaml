@@ -2,7 +2,6 @@ dataset_path: Idavidrein/gpqa
 tag: gpqa
 output_type: generate_until
 process_docs: !function utils.process_docs
-validation_split: train
 test_split: train
 fewshot_split: null
 description: "Here are some example questions from experts. An explanation is given before the final answer. Answer the final question yourself, giving your reasoning beforehand.\n"
