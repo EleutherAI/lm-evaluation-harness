@@ -134,7 +134,7 @@ class VLLM(TemplateLM):
                 "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
 
-        self.chat_template = resolve_hf_chat_template(
+        self.hf_chat_template = resolve_hf_chat_template(
             tokenizer=self.tokenizer, 
             chat_template=None, 
             tools=None,
@@ -203,7 +203,7 @@ class VLLM(TemplateLM):
             tokenize=False,
             add_generation_prompt=add_generation_prompt,
             continue_final_message=not add_generation_prompt,
-            chat_template=self.chat_template,
+            chat_template=self.hf_chat_template,
         )
 
         return chat_templated
