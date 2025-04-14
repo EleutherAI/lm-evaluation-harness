@@ -383,7 +383,7 @@ class HFAUDIOLMMINICPM(HFLM):
                 return tokenizer
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            "openbmb/MiniCPM-o-2_6", trust_remote_code=True
+            pretrained, trust_remote_code=True
         )
 
     def apply_chat_template(
