@@ -464,17 +464,28 @@ class HFAUDIOLMMINICPM(HFLM):
             audios = get_audios_from_args(aux_arguments)
             msgs = self.tok_batch_multimodal_encode(contexts, audios)
 
+            gen_kwargs = {}
+            if "temperature" in all_gen_kwargs[0]:
+                if all_gen_kwargs[0]["temperature"] == 0:
+                    gen_kwargs["sampling"] = False
+                else:
+                    gen_kwargs["temperature"] = all_gen_kwargs[0]["temperature"]
+            if "do_sample" in all_gen_kwargs[0]:
+                gen_kwargs["sampling"] = True
+            else:
+                gen_kwargs["sampling"] = False
+            if "max_gen_toks" in all_gen_kwargs[0]:
+                gen_kwargs["max_new_tokens"] = all_gen_kwargs[0]["max_gen_toks"]
+
             result = self.model.chat(
                 msgs=msgs,
                 tokenizer=self.tokenizer,
-                sampling=True,
-                temperature=0.5,
-                max_new_tokens=4096,
                 use_tts_template=False,
                 generate_audio=False,
                 max_slice_nums=1,
                 use_image_id=False,
                 return_dict=False,
+                **gen_kwargs,
             )
             res.append(result)
 
