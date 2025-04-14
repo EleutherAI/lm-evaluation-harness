@@ -669,7 +669,10 @@ def configure_pad_token(
 
 
 def replace_placeholders(
-    string: str, default_placeholder: str, image_token: str, max_images: int,
+    string: str,
+    default_placeholder: str,
+    image_token: str,
+    max_images: int,
     image_positional_token: Optional[Callable[[int], str]] = None,
 ):
     """

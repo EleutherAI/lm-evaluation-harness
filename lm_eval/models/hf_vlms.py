@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import Dict, List, Optional, Tuple, Union, Callable
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -74,9 +74,7 @@ class HFMultimodalLM(HFLM):
         self.image_positional_token = image_positional_token
 
     def _set_image_token(
-        self,
-        image_token_id: Optional[int] = None,
-        image_string: Optional[str] = None
+        self, image_token_id: Optional[int] = None, image_string: Optional[str] = None
     ) -> None:
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
@@ -300,7 +298,10 @@ class HFMultimodalLM(HFLM):
             # TODO<baber>: This still keeps the whitespace in the image placeholder, which is not ideal.
             strings = [
                 replace_placeholders(
-                    string, DEFAULT_IMAGE_PLACEHOLDER, self.image_token, self.max_images,
+                    string,
+                    DEFAULT_IMAGE_PLACEHOLDER,
+                    self.image_token,
+                    self.max_images,
                     image_positional_token=self.image_positional_token,
                 )
                 for string in strings
@@ -759,16 +760,18 @@ class HFMultimodalLMPhi3(HFMultimodalLM):
             image_positional_token=image_positional_token,
             **kwargs,
         )
-        assert (
-            self.batch_size == 1
-        ), "Batch size bigger than 1 is not yet supported for hf-multimodal-phi3 models"
+        assert self.batch_size == 1, (
+            "Batch size bigger than 1 is not yet supported for hf-multimodal-phi3 models"
+        )
 
-    def _set_image_token(self, image_token_id = None, image_string = None):
+    def _set_image_token(self, image_token_id=None, image_string=None):
         # Phi3 models doesn't have explicit image token
         self.image_token = None
         return
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         self.chat_applied = True
         img_index = 0
         if not self.interleave:
@@ -813,5 +816,7 @@ class HFMultimodalLMPhi3(HFMultimodalLM):
                     )
 
         return self.processor.tokenizer.apply_chat_template(
-            chat_history, add_generation_prompt=add_generation_prompt, tokenize=False,
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            tokenize=False,
         )
