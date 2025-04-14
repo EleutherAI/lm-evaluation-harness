@@ -1,0 +1,11 @@
+group: kmmlu
+task:
+  - kmmlu_stem
+  - kmmlu_other
+  - kmmlu_applied_science
+  - kmmlu_humss
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2.0
