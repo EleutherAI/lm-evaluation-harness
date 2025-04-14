@@ -20,11 +20,13 @@ from lm_eval.models.utils import (
 
 DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>"]
 
+
 def process_audios(y, orig_sr, target_sr=16000):
     if orig_sr != target_sr:
         y = librosa.resample(y, orig_sr=orig_sr, target_sr=target_sr)
     y = librosa.to_mono(y)
     return y
+
 
 def get_audios_from_args(aux_arguments, target_sr=16000):
     audios = []
@@ -34,6 +36,7 @@ def get_audios_from_args(aux_arguments, target_sr=16000):
                 process_audios(audio["array"], audio["sampling_rate"], target_sr)
             )
     return audios
+
 
 @register_model("hf-audiolm-qwen")
 class HFAUDIOLMQWEN(HFLM):
@@ -227,7 +230,9 @@ class HFAUDIOLMQWEN(HFLM):
             #     for audio in audio_lst_dict["audio"]:
             #         audios.append(audio["array"])
 
-            audios = get_audios_from_args(aux_arguments, target_sr=self.processor.feature_extractor.sampling_rate)
+            audios = get_audios_from_args(
+                aux_arguments, target_sr=self.processor.feature_extractor.sampling_rate
+            )
 
             if not isinstance(contexts, list):
                 contexts = list(
@@ -333,7 +338,7 @@ class HFAUDIOLMMINICPM(HFLM):
 
     AUTO_MODEL_CLASS = transformers.AutoModel
     MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
-    
+
     def __init__(
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
@@ -377,31 +382,33 @@ class HFAUDIOLMMINICPM(HFLM):
                 )  # TODO: check this condition
                 return tokenizer
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained('openbmb/MiniCPM-o-2_6', trust_remote_code=True)
-    
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "openbmb/MiniCPM-o-2_6", trust_remote_code=True
+        )
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
         self.chat_applied = True
         for ch_h in chat_history:
             for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                ch_h["content"] = ch_h["content"].replace(placeholder,'')
+                ch_h["content"] = ch_h["content"].replace(placeholder, "")
 
         return json.dumps(chat_history, ensure_ascii=False)
-    
+
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        audios: List[List], 
-
-    ) -> List[Dict]:  # note that this return signature differs from HFLM tok_batch_encode.
-
+        audios: List[List],
+    ) -> List[
+        Dict
+    ]:  # note that this return signature differs from HFLM tok_batch_encode.
         def _replace_placeholder(placeholder, strings):
             return [
-                replace_placeholders(
-                    string, placeholder, "", self.max_audios
-                )
+                replace_placeholders(string, placeholder, "", self.max_audios)
                 for string in strings
             ]
 
@@ -412,14 +419,14 @@ class HFAUDIOLMMINICPM(HFLM):
         encoded = self.tok_encode(strings[0])
         question = encoded[0]["content"]
 
-        # sys_prompt = self.model.get_sys_prompt(mode='default', language='ru') 
+        # sys_prompt = self.model.get_sys_prompt(mode='default', language='ru')
 
-        msg = {"role":"user", "content": [question, *audios]}
+        msg = {"role": "user", "content": [question, *audios]}
         # msgs = [sys_prompt, msg]
         msgs = [msg]
 
         return msgs
-    
+
     def tok_encode(self, x):
         return json.loads(x)
 
@@ -455,10 +462,7 @@ class HFAUDIOLMMINICPM(HFLM):
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
             audios = get_audios_from_args(aux_arguments)
-            msgs = self.tok_batch_multimodal_encode(
-                contexts,
-                audios
-            )
+            msgs = self.tok_batch_multimodal_encode(contexts, audios)
 
             result = self.model.chat(
                 msgs=msgs,
@@ -470,7 +474,7 @@ class HFAUDIOLMMINICPM(HFLM):
                 generate_audio=False,
                 max_slice_nums=1,
                 use_image_id=False,
-                return_dict=False
+                return_dict=False,
             )
             res.append(result)
 
