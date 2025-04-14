@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -24,6 +25,8 @@ DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>"]
 HF_HOME = os.getenv("HF_HOME", "~/.cache/huggingface/")
 HF_TASK_CACHE_DIR = "audio_data"
 CACHE_PATH = os.path.join(os.path.expanduser(HF_HOME), HF_TASK_CACHE_DIR)
+
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("hf-audiolm-qwen")
@@ -370,22 +373,39 @@ class HFAUDIOLM(HFLM):
                 return tokenizer
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            "Qwen/Qwen-Audio-Chat", trust_remote_code=True
+            pretrained, trust_remote_code=True
         )
 
     def save_audio(self, audios):
         if not os.path.exists(CACHE_PATH):
             os.makedirs(CACHE_PATH)
-        for audio in audios:
-            sr = audio["sampling_rate"]
-            audio_name = audio["path"]
-            data = audio["array"]
-            audio_path_on_disk = os.path.join(CACHE_PATH, audio_name)
-            sf.write(audio_path_on_disk, data, sr)
-            audio["path"] = audio_path_on_disk
+        for idx, audio in enumerate(audios):
+            if isinstance(audio, dict):
+                sr = audio["sampling_rate"]
+                if audio.get("path", False):
+                    audio_name = audio["path"]
+                else:
+                    audio_name = f"audio_{idx}.wav"
+                data = audio["array"]
+                audio_path_on_disk = os.path.join(CACHE_PATH, audio_name)
+                sf.write(audio_path_on_disk, data, sr)
+                audio["path"] = audio_path_on_disk
+            elif isinstance(audio, str):
+                # assume str contains a path on disk
+                if os.path.isfile(audio):
+                    audios[idx] = {"path": audio}
+                else:
+                    # else should be href (there could be some check on href)
+                    audios[idx] = {"path": audio}
+            else:
+                raise ValueError(
+                    "Audio file should be presented as either a dict (with keys: array, sampling_rate, path) or string containing path to audio on disk (or href)"
+                )
         return audios
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
