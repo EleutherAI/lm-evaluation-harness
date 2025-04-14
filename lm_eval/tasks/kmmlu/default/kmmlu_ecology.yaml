@@ -1,0 +1,4 @@
+dataset_name: Ecology
+include: _default_kmmlu_yaml
+task: kmmlu_ecology
+tag: kmmlu_stem_tasks

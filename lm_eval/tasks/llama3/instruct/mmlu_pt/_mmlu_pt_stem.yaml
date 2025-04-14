@@ -1,0 +1,11 @@
+group: mmlu_pt_llama_stem
+group_alias: stem
+task:
+  - mmlu_pt_llama_stem_tasks
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: True
+    filter_list: [strict_match]
+metadata:
+  version: 1

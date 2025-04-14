@@ -523,33 +523,6 @@ def split_text_with_regex(text, pattern):
     return result
 
 
-# ---------------------- SUMMARIZATION ----------------------
-
-
-def rouge1_score(references, predictions, **kwargs):
-    """
-    suboptimal way of compute rouge because of the following issue:
-    https://github.com/EleutherAI/lm-evaluation-harness/issues/1302
-    """
-    rouge = load("rouge")
-    return rouge.compute(predictions=predictions, references=references, **kwargs)[
-        "rouge1"
-    ]
-
-
-def process_results_sum(doc, results):
-    """
-    Process the results of the Evalita summarization task
-    """
-    ref = doc["summary"] if "summary" in doc.keys() else doc["target"]
-    rouge_scorer = load("rouge", keep_in_memory=True)
-    r1score = rouge_scorer.compute(predictions=results, references=[ref])["rouge1"]
-
-    return {
-        "rouge1": r1score,
-    }
-
-
 def faq_doc_to_target(x):
     if x["correct_answer"] == "A":
         return 0

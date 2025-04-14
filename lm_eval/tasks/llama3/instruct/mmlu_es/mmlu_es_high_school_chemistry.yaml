@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: HCl
+      B: H2SO3
+      C: SO2
+      D: Al(NO3)3
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de los siguientes se considera un anh\xEDdrido de\
+      \ \xE1cido?"
+  - input_choice_list:
+      A: PCl4F
+      B: BF3
+      C: CO2
+      D: Si(CH3)4
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de las siguientes se espera que sea una mol\xE9cula\
+      \ polar?"
+  - input_choice_list:
+      A: Todos los cloruros, bromuros y yoduros son solubles.
+      B: Todos los sulfatos son solubles.
+      C: "Todos los hidr\xF3xidos son solubles."
+      D: Todos los compuestos que contienen amonio son solubles.
+    input_correct_responses:
+    - D
+    input_question: "De las reglas de solubilidad, \xBFcu\xE1l de las siguientes afirmaciones\
+      \ es verdadera?"
+  - input_choice_list:
+      A: 3,89
+      B: 7,78
+      C: '5.78'
+      D: '2.33'
+    input_correct_responses:
+    - C
+    input_question: "Se sintetiza un nuevo compuesto y se descubre que es un \xE1\
+      cido monopr\xF3tico con una masa molar de 248 g/mol. Cuando se disuelven 0,0050\
+      \ moles de este \xE1cido en 0,500 litros de agua, el pH se mide como 3,89. \xBF\
+      Cu\xE1l es el pKa de este \xE1cido?"
+  - input_choice_list:
+      A: 0,500 moles
+      B: 1.00 mol
+      C: 2.00 moles
+      D: 3.00 moles
+    input_correct_responses:
+    - C
+    input_question: "Una soluci\xF3n contiene 2,00 moles de \xE1cido ac\xE9tico, CH3COOH,\
+      \ y 1,00 moles de acetato de calcio, Ca(CH3COO)2. La soluci\xF3n es capaz de\
+      \ resistir la adici\xF3n de una peque\xF1a cantidad de \xE1cido fuerte o base\
+      \ fuerte con s\xF3lo cambios menores en el pH de la soluci\xF3n. Cantidades\
+      \ mayores de \xE1cido fuerte o base fuerte pueden provocar un cambio significativo\
+      \ en el pH. \xBFCu\xE1ntos moles de \xE1cido n\xEDtrico, HNO3, se pueden agregar\
+      \ antes de que el pH comience a cambiar significativamente?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_chemistry
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_high_school_chemistry
+task_alias: high_school_chemistry

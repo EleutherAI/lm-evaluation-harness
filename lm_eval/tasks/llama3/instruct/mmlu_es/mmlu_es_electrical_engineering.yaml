@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: S=0,R=0
+      B: S=0, R=1
+      C: S=1, R=0
+      D: S=1, R=1
+    input_correct_responses:
+    - D
+    input_question: "En un pestillo SR construido a partir de puertas NOR, cuya condici\xF3\
+      n no est\xE1 permitida"
+  - input_choice_list:
+      A: "200\u03A9"
+      B: "100\u03A9"
+      C: "50\u03A9"
+      D: "10\u03A9"
+    input_correct_responses:
+    - C
+    input_question: "En una m\xE1quina de CC de bobinado superpuesto de 2 polos, la\
+      \ resistencia de un conductor es 2 \u03A9 y el n\xFAmero total de conductores\
+      \ es 100. Encuentre la resistencia total"
+  - input_choice_list:
+      A: 1 mA.
+      B: 2 mA.
+      C: 3 mA.
+      D: 4 mA.
+    input_correct_responses:
+    - B
+    input_question: "La bobina de un medidor de bobina m\xF3vil tiene 100 vueltas,\
+      \ mide 40 mm de largo y 30 mm de ancho. El par de control es de 240*10-6 Nm\
+      \ a escala completa. Si la densidad del flujo magn\xE9tico es 1Wb/m2, el rango\
+      \ del medidor es"
+  - input_choice_list:
+      A: 100 N.
+      B: 0,1 norte.
+      C: 1 n.
+      D: 0,01 norte.
+    input_correct_responses:
+    - B
+    input_question: "Dos conductores largos paralelos transportan 100 A. Si los conductores\
+      \ est\xE1n separados 20 mm, la fuerza por metro de longitud de cada conductor\
+      \ ser\xE1"
+  - input_choice_list:
+      A: 15 N.
+      B: 20 N.
+      C: 7,5 N.
+      D: 3,75 norte.
+    input_correct_responses:
+    - A
+    input_question: "Un polo puntual tiene una fuerza de 4\u03C0 * 10^-4 weber. La\
+      \ fuerza en newtons sobre un polo puntual de 4\u03C0 * 1,5 * 10^-4 weber colocado\
+      \ a una distancia de 10 cm de \xE9l ser\xE1"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_electrical_engineering
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_electrical_engineering
+task_alias: electrical_engineering

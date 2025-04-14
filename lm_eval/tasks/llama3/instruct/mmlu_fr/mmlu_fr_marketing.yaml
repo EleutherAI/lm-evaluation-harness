@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "G\xE9od\xE9mographie"
+      B: "Diff\xE9renciation de produit."
+      C: Matrice ANSOFF.
+      D: Gestion de la marque.
+    input_correct_responses:
+    - A
+    input_question: "_____________ est un r\xE9sultat naturel lorsque l&#39;on combine\
+      \ des variables d\xE9mographiques et g\xE9ographiques."
+  - input_choice_list:
+      A: "Unit\xE9 d&#39;externalisation."
+      B: Centre d&#39;approvisionnement.
+      C: "Unit\xE9 de direction g\xE9n\xE9rale."
+      D: "Unit\xE9 d\xE9cisionnelle."
+    input_correct_responses:
+    - D
+    input_question: "Dans une organisation, le groupe de personnes charg\xE9es des\
+      \ d\xE9cisions d&#39;achat est appel\xE9 _______________."
+  - input_choice_list:
+      A: "Les besoins d\xE9pendent de la culture et aussi de la classe sociale."
+      B: "Les besoins de niveau inf\xE9rieur doivent \xEAtre au moins partiellement\
+        \ satisfaits avant que des besoins plus \xE9lev\xE9s puissent affecter le\
+        \ comportement."
+      C: "Les besoins ne sont pas hi\xE9rarchis\xE9s ni class\xE9s dans un ordre particulier."
+      D: "Les besoins satisfaits sont des facteurs de motivation et de nouveaux besoins\
+        \ \xE9mergent lorsque les besoins actuels ne sont pas satisfaits."
+    input_correct_responses:
+    - B
+    input_question: "Lequel des \xE9nonc\xE9s suivants est une hypoth\xE8se dans la\
+      \ hi\xE9rarchie des besoins de Maslow\_?"
+  - input_choice_list:
+      A: "Le consommateur plus \xE2g\xE9 qui se sent quelque peu exclu."
+      B: "Les femmes mari\xE9es, dont beaucoup ressentent un besoin de stabilit\xE9\
+        \ dans leur vie."
+      C: "Les nouveaux immigrants qui veulent vraiment s&#39;assimiler \xE0 leur nouvelle\
+        \ culture."
+      D: "Les enfants, qui fondent la plupart de leurs d\xE9cisions d&#39;achat sur\
+        \ des influences ext\xE9rieures."
+    input_correct_responses:
+    - D
+    input_question: "Le seul groupe au sein de la soci\xE9t\xE9 qui est le plus vuln\xE9\
+      rable \xE0 l&#39;influence du groupe de r\xE9f\xE9rence est\_:"
+  - input_choice_list:
+      A: Lignes de soins.
+      B: Courrier direct.
+      C: Insertions.
+      D: "Porte \xE0 porte."
+    input_correct_responses:
+    - D
+    input_question: "Bien que le contenu et la qualit\xE9 puissent \xEAtre aussi contr\xF4\
+      l\xE9s que le publipostage, les taux de r\xE9ponse de ce m\xE9dia sont plus\
+      \ faibles en raison de l&#39;absence d&#39;un m\xE9canisme d&#39;adresse personnelle.\
+      \ Ce format de m\xE9dia est connu sous le nom de\_:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_marketing
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_marketing
+task_alias: marketing
