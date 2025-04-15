@@ -3,6 +3,7 @@ import logging
 from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+import ast
 
 from more_itertools import distribute
 from packaging.version import parse as parse_version
@@ -66,6 +67,7 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
+        override_generation_config: Optional[str] = None,
         **kwargs,
     ):
         super().__init__()
@@ -97,6 +99,8 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
+            "override_generation_config": ast.literal_eval(override_generation_config) \
+                if override_generation_config is not None else {},
         }
         self.model_args.update(kwargs)
         self.batch_size = (
