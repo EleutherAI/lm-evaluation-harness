@@ -1,0 +1,104 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: induismo
+      B: buddismo
+      C: Shintoismo
+      D: Zoroastrismo
+    input_correct_responses:
+    - A
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. Contiene\
+      \ tutte le opere e i desideri e tutti i profumi e tutti i gusti. Avvolge l&#39;universo\
+      \ intero e nel silenzio \xE8 amorevole con tutti. Questo \xE8 lo Spirito che\
+      \ \xE8 nel mio cuore, questo \xE8 Brahman. A lui verr\xF2 quando andr\xF2 oltre\
+      \ questa vita, e a lui verr\xE0 colui che ha fede e non dubita. \u2014Le Upanishad,\
+      \ India, ca. 1000 a.C. A quale religione appartiene molto probabilmente chi\
+      \ parla?"
+  - input_choice_list:
+      A: La rivoluzione industriale
+      B: Decolonizzazione
+      C: Associazioni regionali di libero scambio
+      D: Autarchia
+    input_correct_responses:
+    - B
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;La\
+      \ lotta contro il neocolonialismo non mira ad escludere il capitale del mondo\
+      \ sviluppato dall&#39;operare nei paesi meno sviluppati. Essa mira a impedire\
+      \ che il potere finanziario dei paesi sviluppati venga utilizzato in modo tale\
+      \ da impoverire i meno sviluppati. Il non allineamento, come praticato dal Ghana\
+      \ e da molti altri paesi, si basa sulla cooperazione con tutti gli Stati, siano\
+      \ essi capitalisti, socialisti o ad economia mista. Tale politica, quindi, implica\
+      \ investimenti esteri da parte dei paesi capitalisti, ma deve essere investito\
+      \ secondo un piano nazionale elaborato dal governo dello Stato non allineato\
+      \ tenendo conto dei propri interessi. La questione non \xE8 quale rendimento\
+      \ ottiene l&#39;investitore straniero dai suoi investimenti... La questione\
+      \ \xE8 di potere. Uno Stato in la morsa del neocolonialismo non \xE8 padrona\
+      \ del proprio destino.&quot; Kwame Nkrumah, Neo-Colonialism, 1965 Quale dei\
+      \ seguenti fornisce il contesto migliore per gli scritti di Nkrumah?"
+  - input_choice_list:
+      A: Accettazione sociale del lavoro minorile
+      B: Aspettativa di vita in calo in Germania
+      C: Critiche ai dazi commerciali tedeschi
+      D: Effetti negativi attribuiti al capitalismo industriale
+    input_correct_responses:
+    - D
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;La\
+      \ vera lamentela dell&#39;operaio \xE8 l&#39;insicurezza della sua esistenza;\
+      \ non \xE8 sicuro che avr\xE0 sempre lavoro, non \xE8 sicuro che sar\xE0 sempre\
+      \ sano, e prevede che un giorno sar\xE0 vecchio e inabile al lavoro Se cade\
+      \ in povert\xE0, anche solo a causa di una malattia prolungata, \xE8 del tutto\
+      \ indifeso, messo alla prova da solo, e la societ\xE0 attualmente non riconosce\
+      \ alcun obbligo reale nei suoi confronti oltre al consueto aiuto ai poveri,\
+      \ anche se ha &quot;Ho sempre lavorato fedelmente e diligentemente. Ma il solito\
+      \ aiuto ai poveri lascia molto a desiderare, soprattutto nelle grandi citt\xE0\
+      , dove \xE8 molto peggio che in campagna.&quot; Otto von Bismarck, 1884 Otto\
+      \ von Bismarck probabilmente fece questo discorso in reazione a quale dei seguenti\
+      \ problemi?"
+  - input_choice_list:
+      A: Il mantenimento della supremazia militare a tutti i costi
+      B: Crescenti tensioni tra sette religiose
+      C: "Fattori che portarono al crollo dell\u2019Impero Ottomano"
+      D: Sforzi di pace tra gli imperi islamici
+    input_correct_responses:
+    - B
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;In\
+      \ effetti, poich\xE9 sia le fatwa di illustri [studiosi] che basano la loro\
+      \ opinione sia sulla ragione che sulla tradizione, sia il consenso della comunit\xE0\
+      \ sunnita concordano sul fatto che l&#39;antico obbligo di estirpazione, sterminio\
+      \ ed espulsione del male innovativo deve essere lo scopo del nostro esaltato\
+      \ aspirazione, poich\xE9 &quot;Lo zelo religioso \xE8 una vittoria della Fede\
+      \ di Dio Benefico&quot;; poi, secondo le parole del Profeta (Pace su di lui!)\
+      \ &quot;Chiunque introdurr\xE0 cattive innovazioni nel nostro ordine sia espulso&quot;\
+      \ e &quot;Chiunque non qualsiasi cosa contraria al nostro ordine deve essere\
+      \ espulsa, &quot;l&#39;azione \xE8 diventata necessaria ed urgente...&quot;\
+      \ Lettera del sultano ottomano Selim I allo sci\xE0 safavide Ismail I, 1514\
+      \ La lettera di Selim I \xE8 pi\xF9 chiaramente un esempio di quale dei seguenti?"
+  - input_choice_list:
+      A: Una rottura delle rotte commerciali attraverso il crollo della struttura
+        statale stabilita
+      B: Un aumento della popolazione mondiale attraverso una maggiore abbondanza
+        di cibo
+      C: La diffusione dei sistemi di credenze cinesi e indiani nel mondo
+      D: Un aumento dei disordini sociali
+    input_correct_responses:
+    - B
+    input_question: "Questa domanda si riferisce alle seguenti informazioni. &quot;Almeno\
+      \ una delle societ\xE0 [del mondo] dovrebbe in qualche modo aumentare enormemente\
+      \ la propria produttivit\xE0 [al fine di raggiungere l&#39;egemonia globale].\
+      \ Questo salto quantico dovrebbe essere fatto prima delle varie rivoluzioni\
+      \ scientifiche, tecnologiche, agricole e industriali su cui si basa la nostra\
+      \ Il mondo dopo il salto quantico resta. Ci\xF2 potrebbe essere realizzato solo\
+      \ sfruttando gli ecosistemi, le risorse minerarie e le risorse umane di interi\
+      \ continenti al di fuori dei territori della societ\xE0 che ha compiuto il salto.\
+      \ L\u2019Europa occidentale ha fatto proprio questo attraverso la sua brutalit\xE0\
+      , le armi e le armi. , cosa pi\xF9 importante, per fortuna geografica ed ecologica.&quot;\
+      \ Copyright \xA9 2015Cambridge University Press. Alfred Crosby, storico, Ecological\
+      \ Imperialism, 2004 Il &quot;salto quantico&quot; menzionato nel passaggio ha\
+      \ contribuito pi\xF9 direttamente a quale dei seguenti sviluppi nel periodo\
+      \ 1450-1750 d.C.?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_world_history
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_high_school_world_history
+task_alias: high_school_world_history

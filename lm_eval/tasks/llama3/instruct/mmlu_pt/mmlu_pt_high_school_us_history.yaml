@@ -1,0 +1,169 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Resposta organizada \xE0 rebeli\xE3o de Bacon"
+      B: "Resposta federal \xE0 rebeli\xE3o de Shays"
+      C: "Resposta federal \xE0 rebeli\xE3o do u\xEDsque"
+      D: "Resposta federal \xE0 rebeli\xE3o de Pontiac"
+    input_correct_responses:
+    - C
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ \u201CA sociedade em todos os estados \xE9 uma b\xEAn\xE7\xE3o, mas o governo,\
+      \ mesmo no seu melhor estado, \xE9 apenas um mal necess\xE1rio; no seu pior\
+      \ estado, um mal intoler\xE1vel; pois quando sofremos ou somos expostos \xE0\
+      s mesmas mis\xE9rias por um governo, o que poder\xEDamos esperar num pa\xED\
+      s sem governo, a nossa calamidade \xE9 agravada ao reflectirmos que fornecemos\
+      \ os meios pelos quais sofremos. O governo, tal como o vestu\xE1rio, \xE9 o\
+      \ distintivo da inoc\xEAncia perdida; os pal\xE1cios dos reis s\xE3o constru\xED\
+      dos sobre as ru\xEDnas dos caramanch\xF5es do para\xEDso. Pois se os impulsos\
+      \ da consci\xEAncia fossem claros, uniformes e irresistivelmente obedecidos,\
+      \ o homem n\xE3o precisaria de outro legislador; mas n\xE3o sendo esse o caso,\
+      \ ele considera necess\xE1rio entregar uma parte de sua propriedade para fornecer\
+      \ meios para a prote\xE7\xE3o do resto; e isso ele \xE9 induzido a fazer pela\
+      \ mesma prud\xEAncia que em todos os outros casos o aconselha a escolher o menor\
+      \ entre dois males. Portanto, sendo a seguran\xE7a o verdadeiro des\xEDgnio\
+      \ e fim do governo, segue-se inquestionavelmente que qualquer forma dela pare\xE7\
+      a mais prov\xE1vel de garantir para n\xF3s, com o menor gasto e o maior benef\xED\
+      cio, \xE9 prefer\xEDvel a todos os outros.&quot; Thomas Paine, Common Sense,\
+      \ 1776 Quais das seguintes &quot;mis\xE9rias&quot; mencionadas acima foram mais\
+      \ condenadas pelos Antifederalistas da era p\xF3s-revolucion\xE1ria?"
+  - input_choice_list:
+      A: "Tens\xF5es entre as pol\xEDticas brit\xE2nicas e as aspira\xE7\xF5es dos\
+        \ colonos norte-americanos."
+      B: "Tens\xF5es entre os \xEDndios americanos aliados dos franceses e os aliados\
+        \ dos brit\xE2nicos."
+      C: "Tens\xF5es entre afro-americanos libertos e propriet\xE1rios brancos."
+      D: "Tens\xF5es entre colonos sertanejos e elites na Am\xE9rica colonial."
+    input_correct_responses:
+    - D
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ &quot;Como nossa conduta tardia em Conestoga Manor e Lancaster ocasionou muita\
+      \ especula\xE7\xE3o e uma grande diversidade de sentimentos neste e nos governos\
+      \ vizinhos; alguns justificando-o e outros condenando-o; alguns aliviando caridosamente\
+      \ o crime, e outros pintando-o maliciosamente da forma mais odiosa e Cores detest\xE1\
+      veis, achamos que \xE9 nosso dever apresentar ao Publick todo o assunto tal\
+      \ como apareceu, e ainda aparece, para n\xF3s... &quot;Se essas coisas n\xE3\
+      o forem suficientes para provar um apego injustific\xE1vel dos Quakers aos \xED\
+      ndios selvagens , uma resolu\xE7\xE3o fixa de fazer amizade com eles e uma total\
+      \ insensibilidade \xE0s ang\xFAstias humanas, consideremos alguns fatos mais\
+      \ recentes. Quando descobrimos, no Ver\xE3o passado, que provavelmente n\xE3\
+      o receber\xEDamos assist\xEAncia do Governo, alguns Volunt\xE1rios sa\xEDram\
+      \ \xE0s nossas pr\xF3prias custas, determinados a expulsar os nossos Inimigos\
+      \ das nossas Fronteiras; e quando nos aproximamos da grande ilha, compreendemos\
+      \ que v\xE1rios de seus guerreiros haviam sa\xEDdo contra nossas fronteiras.\
+      \ Ap\xF3s isso, voltamos e os encontramos e lutamos com eles em Munfey Hill,\
+      \ onde perdemos alguns de nossos homens e matamos alguns de seus guerreiros\
+      \ e, assim, salvamos nossas fronteiras desta hist\xF3ria em outra expedi\xE7\
+      \xE3o. Mas assim que destru\xEDmos suas provis\xF5es na grande ilha e arruinamos\
+      \ seu com\xE9rcio com o bom povo de Bel\xE9m, esses mesmos \xEDndios, que eram\
+      \ justamente suspeitos de terem assassinado nossos amigos no condado de Northampton,\
+      \ foram levados pela influ\xEAncia de alguns quacres. sob a prote\xE7\xE3o do\
+      \ governo para proteg\xEA-los dos ressentimentos dos amigos e parentes dos assassinados,\
+      \ e para apoi\xE1-los durante o inverno.&quot; \u2014 &quot;Apology of the Paxton\
+      \ Boys&quot; (panfleto), 1764 (Nota: &quot;pedido de desculpas&quot; em este\
+      \ contexto deve ser lido como uma explica\xE7\xE3o, n\xE3o como uma admiss\xE3\
+      o de culpa ou arrependimento.) Os sentimentos expressos na explica\xE7\xE3o\
+      \ acima refletem quais das tens\xF5es em curso durante o per\xEDodo colonial\
+      \ da hist\xF3ria americana?"
+  - input_choice_list:
+      A: a Emenda de Direitos Iguais
+      B: "sufr\xE1gio universal"
+      C: direitos dos estados
+      D: "proibi\xE7\xE3o"
+    input_correct_responses:
+    - B
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ &quot;No novo C\xF3digo de Leis que suponho que ser\xE1 necess\xE1rio que\
+      \ voc\xEA fa\xE7a, desejo que voc\xEA se lembre das Senhoras e seja mais generoso\
+      \ e favor\xE1vel a elas do que seus ancestrais. N\xE3o coloque esse poder ilimitado\
+      \ nas m\xE3os dos Maridos ... Lembre-se de que todos os homens seriam tiranos\
+      \ se pudessem. Se n\xE3o for dado cuidado e aten\xE7\xE3o especial \xE0s mulheres,\
+      \ estamos determinados a fomentar uma rebeli\xE3o e n\xE3o nos manteremos vinculados\
+      \ a quaisquer leis nas quais n\xE3o tenhamos voz ou representa\xE7\xE3o. Abigail\
+      \ Adams, em uma carta a John Adams, 1776 &quot;A legisla\xE7\xE3o especial para\
+      \ as mulheres nos colocou em uma posi\xE7\xE3o muito an\xF4mala. As mulheres\
+      \ investidas dos direitos dos cidad\xE3os em uma se\xE7\xE3o - eleitoras, jurados,\
+      \ titulares de cargos - cruzando uma linha imagin\xE1ria, s\xE3o assuntos no\
+      \ pr\xF3ximo. Em alguns Estados, uma mulher casada pode possuir propriedades\
+      \ e realizar neg\xF3cios em seu pr\xF3prio nome; em outros, seus rendimentos\
+      \ pertencem ao marido. Em alguns Estados, uma mulher pode testemunhar contra\
+      \ o marido, processar e ser processada em nos tribunais; em outros, ela n\xE3\
+      o tem repara\xE7\xE3o em caso de dano \xE0 pessoa, propriedade ou car\xE1ter.\
+      \ Em caso de div\xF3rcio por adult\xE9rio do marido, a esposa inocente \xE9\
+      \ considerada como n\xE3o possuindo nenhum direito aos filhos ou propriedade,\
+      \ a menos que por por decreto especial do tribunal. Mas em nenhum Estado da\
+      \ Uni\xE3o a esposa tem direito \xE0 sua pr\xF3pria pessoa, ou a qualquer parte\
+      \ dos rendimentos conjuntos da comparticipa\xE7\xE3o durante a vida do marido.\
+      \ Em alguns Estados as mulheres podem entrar no faculdades de direito e pr\xE1\
+      tica nos tribunais; em outras s\xE3o proibidas. Em algumas universidades, as\
+      \ raparigas desfrutam de vantagens educativas iguais \xE0s dos rapazes, enquanto\
+      \ muitas das institui\xE7\xF5es mais orgulhosas do pa\xEDs lhes negam a admiss\xE3\
+      o, embora os filhos da China, do Jap\xE3o e de \xC1frica sejam a\xED bem-vindos.\
+      \ Mas os privil\xE9gios j\xE1 concedidos nos v\xE1rios Estados n\xE3o s\xE3\
+      o de forma alguma seguros.&quot; Susan B. Anthony, &quot;Declara\xE7\xE3o de\
+      \ Direitos para as Mulheres&quot;, 4 de julho de 1876. Os sentimentos expressos\
+      \ no segundo trecho de Susan B. Anthony s\xE3o provavelmente em apoio de"
+  - input_choice_list:
+      A: "Os americanos devem maximizar a sua vantagem tecnol\xF3gica no Vietname."
+      B: "O bombardeio americano no Vietn\xE3 est\xE1 conduzindo passo a passo ao\
+        \ progresso da guerra."
+      C: "O bombardeio americano no Vietn\xE3 \xE9 um fracasso."
+      D: "A Am\xE9rica n\xE3o deve ceder ao derrotismo em rela\xE7\xE3o \xE0 guerra\
+        \ do Vietname."
+    input_correct_responses:
+    - C
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ Os nossos l\xEDderes falam em parar a agress\xE3o vinda do Norte, mas esta\
+      \ foi uma luta entre grupos de vietnamitas at\xE9 intervirmos. Parecemos empenhados\
+      \ em salvar os vietnamitas de Ho Chi Minh, mesmo que tenhamos de mat\xE1-los\
+      \ e demolir o seu pa\xEDs para o fazer. Enquanto os povos nativos examinam aldeias\
+      \ bombardeadas, mulheres e crian\xE7as queimadas pelo napalm, planta\xE7\xF5\
+      es de arroz destru\xEDdas e cidades invadidas pelo nosso pessoal militar, est\xE3\
+      o sem d\xFAvida a dizer secretamente sobre os guerrilheiros vietcongues e sobre\
+      \ as for\xE7as americanas: &quot;Uma praga em ambas as vossas casas. .&quot;\
+      \ \u2026 Acabar com os bombardeamentos, a norte e a sul, acabar com as buscas\
+      \ e destruir as opera\xE7\xF5es ofensivas e limitar a nossa ac\xE7\xE3o militar\
+      \ \xE0 realiza\xE7\xE3o de opera\xE7\xF5es no terreno. O bombardeamento do Norte\
+      \ n\xE3o conseguiu parar ou controlar seriamente o fluxo de tropas para o Sul\
+      \ e pode, de facto, ter provocado um esfor\xE7o de guerra muito maior por parte\
+      \ de Han\xF3i. \u2014Senador George McGovern, &quot;The Lessons of Vietnam&quot;,\
+      \ 25 de abril de 1967 Qual das seguintes opini\xF5es da d\xE9cada de 1960 reflete\
+      \ mais diretamente a perspectiva do discurso de George McGovern?"
+  - input_choice_list:
+      A: Abigail Adams
+      B: Clara Barton
+      C: Shirley Temple
+      D: Hillary Clinton
+    input_correct_responses:
+    - B
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ N\xE3o venho para fazer reivindica\xE7\xF5es pessoais, nem para buscar benef\xED\
+      cios individuais; Apare\xE7o como o advogado daqueles que n\xE3o podem defender\
+      \ a sua pr\xF3pria causa; Venho como amigo daqueles que est\xE3o abandonados,\
+      \ oprimidos e desolados. Na Provid\xEAncia de Deus, eu sou a voz do man\xED\
+      aco cujos gritos penetrantes das sombrias masmorras de suas pris\xF5es n\xE3\
+      o penetram em seus Sal\xF5es de Legisla\xE7\xE3o. Eu sou a Esperan\xE7a dos\
+      \ pobres seres enlouquecidos que definham nas celas, e est\xE1bulos, e jaulas,\
+      \ e quartos vazios de suas pobres casas. Eu sou a Revela\xE7\xE3o de centenas\
+      \ de criaturas chorosas e sofredoras, escondidas em suas resid\xEAncias particulares,\
+      \ e em cercados e cabanas \u2013 exclu\xEDdas, isoladas de todas as influ\xEA\
+      ncias curativas, de todos os cuidados restauradores da mente... Poderiam suas\
+      \ hist\xF3rias melanc\xF3licas ser espalhadas diante de voc\xEAs? conforme revelado\
+      \ ao meu esp\xEDrito entristecido durante os \xFAltimos tr\xEAs meses, com que\
+      \ rapidez e zelo voc\xEA procuraria os meios de al\xEDvio mais aprovados; qu\xE3\
+      o insignificantes, qu\xE3o insignificantes, em compara\xE7\xE3o, pareceriam\
+      \ os sacrif\xEDcios que voc\xEA \xE9 solicitado a fazer; como \xE9 que algumas\
+      \ moedas de dez centavos e d\xF3lares, recolhidas de cada cidad\xE3o, diminuiriam\
+      \ em valor como posse, em compara\xE7\xE3o com os certos benef\xEDcios e vasto\
+      \ bem a ser assegurado para os insanos sofredores... pela consagra\xE7\xE3o\
+      \ e aplica\xE7\xE3o de um fundo suficiente para a constru\xE7\xE3o de um hospital\
+      \ adequado.\u2026 \u2014Dorothea Dix, Memorial Solicitando um Hospital Estadual\
+      \ para a Prote\xE7\xE3o e Cura dos Insanos, apresentado \xE0 Assembleia Geral\
+      \ da Carolina do Norte, novembro de 1848 Dorothea Dix pode ser melhor comparada\
+      \ a quem?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_us_history
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_high_school_us_history
+task_alias: high_school_us_history

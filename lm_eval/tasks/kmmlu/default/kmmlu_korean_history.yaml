@@ -1,0 +1,4 @@
+dataset_name: Korean-History
+include: _default_kmmlu_yaml
+task: kmmlu_korean_history
+tag: kmmlu_humss_tasks

@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '3'
+      B: '15'
+      C: '6'
+      D: '5'
+    input_correct_responses:
+    - B
+    input_question: "Joe \xE9tait responsable des lumi\xE8res pour une danse. Le voyant\
+      \ rouge clignote toutes les deux secondes, le voyant jaune toutes les trois\
+      \ secondes et le voyant bleu toutes les cinq secondes. Si nous incluons le tout\
+      \ d\xE9but et la toute fin de la danse, combien de fois pendant une danse de\
+      \ sept minutes toutes les lumi\xE8res s&#39;allumeront-elles en m\xEAme temps\_\
+      ? (Supposons que les trois lumi\xE8res clignotent simultan\xE9ment au tout d\xE9\
+      but de la danse.)"
+  - input_choice_list:
+      A: '12'
+      B: '1'
+      C: '30'
+      D: '5'
+    input_correct_responses:
+    - C
+    input_question: "Cinq mille dollars compos\xE9s annuellement \xE0 un taux d&#39;int\xE9\
+      r\xEAt de x\\%$ mettent six ans \xE0 doubler. Au m\xEAme taux d&#39;int\xE9\
+      r\xEAt, combien d&#39;ann\xE9es faudra-t-il \xE0 $\\$300$ pour atteindre $\\\
+      $9600$\_?"
+  - input_choice_list:
+      A: '-1'
+      B: '16'
+      C: -\frac{1}{256}
+      D: \frac{1}{16}
+    input_correct_responses:
+    - C
+    input_question: "La variable $x$ varie directement comme le carr\xE9 de $y$, et\
+      \ $y$ varie directement comme le cube de $z$. Si $x$ est \xE9gal \xE0 $-16$\
+      \ lorsque $z$ est \xE9gal \xE0 2, quelle est la valeur de $x$ lorsque $z$ est\
+      \ \xE9gal \xE0 $\\frac{1}{2}$\_?"
+  - input_choice_list:
+      A: \frac{3\sqrt{3}}{3}
+      B: \frac{1}{3}
+      C: \sqrt{3}
+      D: \frac{\sqrt{3}}{3}
+    input_correct_responses:
+    - D
+    input_question: "Simplifiez et \xE9crivez le r\xE9sultat avec un d\xE9nominateur\
+      \ rationnel\_: $$\\sqrt{\\sqrt[3]{\\sqrt{\\frac{1}{729}}}}$$"
+  - input_choice_list:
+      A: '55'
+      B: '60'
+      C: '62'
+      D: '65'
+    input_correct_responses:
+    - D
+    input_question: "Dix \xE9tudiants passent un test de biologie et re\xE7oivent\
+      \ les notes suivantes\_: 45, 55, 50, 70, 65, 80, 40, 90, 70, 85. Quelle est\
+      \ la moyenne des notes des tests des \xE9tudiants\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_mathematics
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_high_school_mathematics
+task_alias: high_school_mathematics

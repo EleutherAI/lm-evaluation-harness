@@ -1,0 +1,6 @@
+"dataset_name": "sociology"
+"description": ""
+"include": "_mmlu_cot_llama_template_yaml"
+"tag": "mmlu_cot_llama_social_sciences_tasks"
+"task": "mmlu_cot_llama_sociology"
+"task_alias": "sociology"

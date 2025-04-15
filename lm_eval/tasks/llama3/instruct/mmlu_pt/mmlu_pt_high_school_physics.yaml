@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Somente I e II
+      B: Somente I e III
+      C: Apenas II e III
+      D: III apenas
+    input_correct_responses:
+    - D
+    input_question: "Qual das seguintes condi\xE7\xF5es garantir\xE1 que o momento\
+      \ angular seja conservado? I. Conserva\xE7\xE3o do momento linear II. For\xE7\
+      a externa l\xEDquida zero III. Torque externo l\xEDquido zero"
+  - input_choice_list:
+      A: "A press\xE3o est\xE1 em um n\xF3, mas o deslocamento da part\xEDcula est\xE1\
+        \ em um antinodo."
+      B: "A press\xE3o est\xE1 em um antinodo, mas o deslocamento da part\xEDcula\
+        \ est\xE1 em um n\xF3."
+      C: "A press\xE3o e o deslocamento das part\xEDculas est\xE3o ambos nos n\xF3\
+        s."
+      D: "A press\xE3o e o deslocamento das part\xEDculas est\xE3o ambos nos antinodos."
+    input_correct_responses:
+    - B
+    input_question: "Um cano cheio de ar est\xE1 fechado em uma das extremidades.\
+      \ Uma onda estacion\xE1ria \xE9 produzida no tubo, fazendo com que ele emita\
+      \ uma nota. Qual das alternativas a seguir \xE9 uma afirma\xE7\xE3o correta\
+      \ sobre as propriedades da onda na extremidade fechada do tubo?"
+  - input_choice_list:
+      A: 2h00
+      B: "6:00 DA MANH\xC3"
+      C: 12h00
+      D: 24A
+    input_correct_responses:
+    - D
+    input_question: "Uma fotoc\xE9lula de fun\xE7\xE3o trabalho \u03D5 = 2eV \xE9\
+      \ conectada em s\xE9rie a um resistor. A luz de frequ\xEAncia f = 1 \xD7 10\
+      \ ^ 15 Hz atinge uma placa met\xE1lica da fotoc\xE9lula. Se a pot\xEAncia da\
+      \ luz for P = 100 W, qual \xE9 a corrente que passa pelo resistor?"
+  - input_choice_list:
+      A: 10W
+      B: 30W
+      C: 60W
+      D: 240 W
+    input_correct_responses:
+    - D
+    input_question: "Um forno de micro-ondas est\xE1 conectado a uma tomada de 120\
+      \ V e consome uma corrente de 2 amperes. A que taxa a energia est\xE1 sendo\
+      \ utilizada pelo forno de micro-ondas?"
+  - input_choice_list:
+      A: 3,5J
+      B: 6,0J
+      C: 22,5J
+      D: 40J
+    input_correct_responses:
+    - B
+    input_question: "Uma carga pontual, Q = +1 mC, est\xE1 fixada na origem. Quanto\
+      \ trabalho \xE9 necess\xE1rio para mover uma carga, Q = +8 \xB5C, do ponto (0,4\
+      \ metros) para o ponto (3 metros, 0)?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_physics
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_high_school_physics
+task_alias: high_school_physics

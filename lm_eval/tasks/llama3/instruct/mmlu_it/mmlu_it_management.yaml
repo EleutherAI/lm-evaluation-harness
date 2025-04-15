@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Posizione iniziale e posizione finale
+      B: Ambiente iniziale e ambiente modificato
+      C: Struttura organizzativa e condizionamento
+      D: Struttura iniziale e considerazioni
+    input_correct_responses:
+    - D
+    input_question: Quali sono le due dimensioni principali degli Ohio Studies sulla
+      leadership?
+  - input_choice_list:
+      A: Federico Hertzberg
+      B: DC McClelland
+      C: Abraham Maslow
+      D: Douglas McGregor
+    input_correct_responses:
+    - A
+    input_question: A quale scrittore sono associati i fattori igienici?
+  - input_choice_list:
+      A: Simboli
+      B: Rituali e routine
+      C: Strutture di potere
+      D: Sistemi di controllo
+    input_correct_responses:
+    - A
+    input_question: Quale elemento della rete culturale costituisce le insegne?
+  - input_choice_list:
+      A: Morale
+      B: Innovazione
+      C: Risorsa di crescita
+      D: Adattamento
+    input_correct_responses:
+    - A
+    input_question: "Quale caratteristica non \xE8 una caratteristica chiave del modello\
+      \ di gestione dei &quot;sistemi aperti&quot;?"
+  - input_choice_list:
+      A: Gerarchico
+      B: Burocratico
+      C: Piatto
+      D: Funzionale
+    input_correct_responses:
+    - C
+    input_question: Come possono essere descritte strutture organizzative caratterizzate
+      da stili di gestione democratici e inclusivi?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_management
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_management
+task_alias: management

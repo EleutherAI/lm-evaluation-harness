@@ -1,0 +1,7 @@
+test_split: electro_maroc
+"include": "default_darija_sentiment_template_yaml"
+"tag":
+- "darija_sentiment_tasks"
+"task": "darija_sentiment_electrom"
+"task_alias": "Electro Maroc"
+doc_to_choice: !function utils.doc_to_choice_2

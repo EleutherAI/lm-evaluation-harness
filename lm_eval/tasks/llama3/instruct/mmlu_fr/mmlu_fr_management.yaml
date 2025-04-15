@@ -1,0 +1,52 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Position de d\xE9part et position finale"
+      B: "Environnement initial et environnement modifi\xE9"
+      C: Structure organisationnelle et conditionnement
+      D: "Structure initiale et consid\xE9rations"
+    input_correct_responses:
+    - D
+    input_question: "Quelles sont les deux principales dimensions des \xE9tudes de\
+      \ l&#39;Ohio sur le leadership\_?"
+  - input_choice_list:
+      A: "Fr\xE9d\xE9rick Hertzberg"
+      B: DC McClelland
+      C: Abraham Maslow
+      D: Douglas Mc Gregor
+    input_correct_responses:
+    - A
+    input_question: "Les facteurs d&#39;hygi\xE8ne sont associ\xE9s \xE0 quel \xE9\
+      crivain\_?"
+  - input_choice_list:
+      A: Symboles
+      B: Rituels et routines
+      C: Structures de pouvoir
+      D: "Syst\xE8mes de contr\xF4le"
+    input_correct_responses:
+    - A
+    input_question: "Quel \xE9l\xE9ment du web culturel forme des insignes ?"
+  - input_choice_list:
+      A: Moral
+      B: Innovation
+      C: Ressource de croissance
+      D: Adaptation
+    input_correct_responses:
+    - A
+    input_question: "Quelle caract\xE9ristique n&#39;est pas un \xE9l\xE9ment cl\xE9\
+      \ du mod\xE8le de gestion des \xAB syst\xE8mes ouverts \xBB ?"
+  - input_choice_list:
+      A: "Hi\xE9rarchique"
+      B: Bureaucratique
+      C: Plat
+      D: Fonctionnel
+    input_correct_responses:
+    - C
+    input_question: "Comment d\xE9crire des structures organisationnelles caract\xE9\
+      ris\xE9es par des styles de gestion d\xE9mocratiques et inclusifs ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_management
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_management
+task_alias: management

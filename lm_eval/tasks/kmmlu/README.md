@@ -32,6 +32,7 @@ Homepage: https://huggingface.co/datasets/HAERAE-HUB/KMMLU
 #### Tasks
 
 The following tasks evaluate subjects in the KMMLU dataset
+- `kmmlu_{subject_english}`
 - `kmmlu_direct_{subject_english}`
 
 The following tasks evaluate subjects in the KMMLU-Hard dataset
