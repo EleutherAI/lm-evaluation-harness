@@ -669,7 +669,11 @@ def configure_pad_token(
 
 
 def replace_placeholders(
-    string: str, default_placeholder: str, image_token: str, max_images: int
+    string: str,
+    default_placeholder: str,
+    image_token: str,
+    max_images: int,
+    image_positional_token: Optional[Callable[[int], str]] = None,
 ):
     """
     A utility function used for local multimodal models. It locates all `placeholder` string
@@ -692,7 +696,10 @@ def replace_placeholders(
     for part in parts[:-1]:  # Iterate through all but the last part
         result.append(part)
         if count < max_images:
-            result.append(image_token)
+            if image_positional_token:
+                result.append(image_positional_token(count))
+            else:
+                result.append(image_token)
             count += 1
         elif default_placeholder != image_token:
             result.append(default_placeholder)

@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -41,6 +41,7 @@ class HFMultimodalLM(HFLM):
         pretrained: Union[str, transformers.PreTrainedModel],
         image_token_id: Optional[int] = None,
         image_string: Optional[str] = None,
+        image_positional_token: Optional[Callable[[int], str]] = None,
         interleave: bool = True,
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
@@ -49,6 +50,11 @@ class HFMultimodalLM(HFLM):
         max_pixels: Optional[int] = None,
         **kwargs,
     ):
+        # Need it before super().__init__() because it is used in _create_tokenizer
+        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
+            {"max_pixels": max_pixels} if max_pixels else {}
+        )
+
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
@@ -57,7 +63,6 @@ class HFMultimodalLM(HFLM):
             "Batch size 'auto' is not yet supported for hf-multimodal models."
         )
         self.chat_applied: bool = False
-        # TODO: phi-3.5 "image placeholders" are <image_1>, <image_2>, ... in order. how to handle this case
 
         # HF AutoModelForVision2Seq models have an `image_token_id` value in their configs
         # denoting the token which indicates a location where an image will be substituted in.
@@ -65,9 +70,12 @@ class HFMultimodalLM(HFLM):
         self.interleave = interleave
         self.max_images = max_images
         self.rgb = convert_img_format
-        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
-            {"max_pixels": max_pixels} if max_pixels else {}
-        )
+        self._set_image_token(image_token_id, image_string)
+        self.image_positional_token = image_positional_token
+
+    def _set_image_token(
+        self, image_token_id: Optional[int] = None, image_string: Optional[str] = None
+    ) -> None:
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
             self.image_token_id = (
@@ -290,7 +298,11 @@ class HFMultimodalLM(HFLM):
             # TODO<baber>: This still keeps the whitespace in the image placeholder, which is not ideal.
             strings = [
                 replace_placeholders(
-                    string, DEFAULT_IMAGE_PLACEHOLDER, self.image_token, self.max_images
+                    string,
+                    DEFAULT_IMAGE_PLACEHOLDER,
+                    self.image_token,
+                    self.max_images,
+                    image_positional_token=self.image_positional_token,
                 )
                 for string in strings
             ]
@@ -306,8 +318,13 @@ class HFMultimodalLM(HFLM):
             images = [[img.convert("RGB") for img in sublist] for sublist in images]
 
         # certain models like llava expect a single-level image list even for bs>1, multi-image. TODO: port this over to loglikelihoods
-        if getattr(self.config, "model_type", "") == "llava":
+        model_type = getattr(self.config, "model_type", "")
+        if model_type == "llava":
             images = flatten_image_list(images)
+        if model_type == "phi3_v":
+            # only bs = 1 for phi3_v
+            images = images[0]
+            strings = strings[0]
 
         encoding = self.processor(
             images=images,
@@ -720,3 +737,86 @@ class HFMultimodalLM(HFLM):
 
         pbar.close()
         return res
+
+
+@register_model("hf-multimodal-phi3")
+class HFMultimodalLMPhi3(HFMultimodalLM):
+    AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+
+    def __init__(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        interleave: bool = True,
+        max_images: Optional[int] = 999,
+        convert_img_format=False,
+        image_positional_token: Callable[[int], str] = lambda x: f"<|image_{x + 1}|>",
+        **kwargs,
+    ):
+        super().__init__(
+            pretrained,
+            interleave=interleave,
+            max_images=max_images,
+            convert_img_format=convert_img_format,
+            image_positional_token=image_positional_token,
+            **kwargs,
+        )
+        assert self.batch_size == 1, (
+            "Batch size bigger than 1 is not yet supported for hf-multimodal-phi3 models"
+        )
+
+    def _set_image_token(self, image_token_id=None, image_string=None):
+        # Phi3 models doesn't have explicit image token
+        self.image_token = None
+        return
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        self.chat_applied = True
+        img_index = 0
+        if not self.interleave:
+            for content in chat_history:
+                text = content["content"]
+
+                # Count and remove image placeholders
+                image_count = min(
+                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                )
+                text = text.replace(DEFAULT_IMAGE_PLACEHOLDER, "")
+
+                # Add image entries
+                for _ in range(image_count):
+                    text += self.image_positional_token(img_index)
+                    img_index += 1
+
+                content["content"] = text
+        else:
+            for content in chat_history:
+                text = content["content"]
+                expected_image_count = min(
+                    self.max_images, text.count(DEFAULT_IMAGE_PLACEHOLDER)
+                )
+                actual_image_count = 0
+
+                text_parts = text.split(DEFAULT_IMAGE_PLACEHOLDER)
+                final_text = ""
+                for i, part in enumerate(text_parts):
+                    final_text += part
+                    # Add image placeholder after each split except the last
+                    if i < min(len(text_parts) - 1, self.max_images):
+                        final_text += self.image_positional_token(img_index)
+                        actual_image_count += 1
+                        img_index += 1
+
+                content["content"] = final_text
+
+                if actual_image_count != expected_image_count:
+                    raise ValueError(
+                        f"Mismatch in image placeholder count. Expected: {expected_image_count}, Actual: {actual_image_count}"
+                    )
+
+        return self.processor.tokenizer.apply_chat_template(
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            tokenize=False,
+        )
