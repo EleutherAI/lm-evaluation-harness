@@ -34,49 +34,11 @@ class ContextSampler:
         self.target_delimiter = self.config.target_delimiter
         self.fewshot_delimiter = self.config.fewshot_delimiter
 
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_text", None) is not None
-        ):
-            self.doc_to_text = partial(
-                self.task.doc_to_text,
-                doc_to_text=self.config.fewshot_config.get("doc_to_text", None),
-            )
-        else:
-            self.doc_to_text = self.task.doc_to_text
-
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_target", None) is not None
-        ):
-            self.doc_to_target = partial(
-                self.task.doc_to_target,
-                doc_to_target=self.config.fewshot_config.get("doc_to_target", None),
-            )
-        else:
-            self.doc_to_target = self.task.doc_to_target
-
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_choice", None) is not None
-        ):
-            self.doc_to_choice = partial(
-                self.task.doc_to_choice,
-                doc_to_choice=self.config.fewshot_config.get("doc_to_choice", None),
-            )
-        else:
-            self.doc_to_choice = self.task.doc_to_choice
-
-        if (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("doc_to_image", None) is not None
-        ):
-            self.doc_to_image = partial(
-                self.task.doc_to_image,
-                doc_to_image=self.config.fewshot_config.get("doc_to_image", None),
-            )
-        else:
-            self.doc_to_image = self.task.doc_to_image
+        self.configure_task_attribute("doc_to_text")
+        self.configure_task_attribute("doc_to_target")
+        self.configure_task_attribute("doc_to_choice")
+        self.configure_task_attribute("doc_to_image")
+        self.configure_task_attribute("doc_to_audio")
 
         self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
         if fewshot_indices:  # subset few-shot docs from
@@ -85,6 +47,21 @@ class ContextSampler:
                     "Got `fewshot_indices` but fewshot_docs are not a HF dataset. Don't use both `fewshot_indices` and a user-defined few-shot sample list simultaneously"
                 )
             self.docs = self.docs.select(fewshot_indices)
+
+    def configure_task_attribute(self, key: str):
+        # Fetch the configuration value if available.
+        fewshot_value = None
+        if self.config.fewshot_config is not None:
+            fewshot_value = self.config.fewshot_config.get(key)
+
+        # Get the corresponding method from self.task.
+        task_method = getattr(self.task, key)
+
+        # If the config value is provided, wrap the task method with partial.
+        if fewshot_value is not None:
+            setattr(self, key, partial(task_method, **{key: fewshot_value}))
+        else:
+            setattr(self, key, task_method)
 
     def _select_n_new_docs(self, doc: dict, num_fewshot: int):
         # draw an extra fewshot sample if using same split as evaluating on
@@ -140,6 +117,9 @@ class ContextSampler:
             if self.config.doc_to_image:
                 multimodal_args.setdefault("visual", []).extend(self.doc_to_image(doc))
 
+            if self.config.doc_to_audio:
+                multimodal_args.setdefault("audio", []).extend(self.doc_to_audio(doc))
+
         return labeled_examples, multimodal_args
 
     def get_chat_context(
@@ -180,10 +160,20 @@ class ContextSampler:
                     }
                 )
                 if self.config.doc_to_image:
-                    multimodal_args.setdefault("visual", []).extend(self.doc_to_image(doc))
+                    multimodal_args.setdefault("visual", []).extend(
+                        self.doc_to_image(doc)
+                    )
+
+                if self.config.doc_to_audio:
+                    multimodal_args.setdefault("audio", []).extend(
+                        self.doc_to_audio(doc)
+                    )
+
         else:
             # get fewshot context as one user turn
-            labeled_examples, multimodal_args = self.get_context(doc, num_fewshot, gen_prefix=gen_prefix)
+            labeled_examples, multimodal_args = self.get_context(
+                doc, num_fewshot, gen_prefix=gen_prefix
+            )
             chat_history.append(
                 {
                     "role": "user",
