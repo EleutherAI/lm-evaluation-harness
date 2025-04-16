@@ -8,7 +8,7 @@ fewshot_config:
 output_type: multiple_choice
 doc_to_text: "{{instruction.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nAnswer:"
 doc_to_choice: ["A", "B", "C", "D"]
-doc_to_target: answer
+doc_to_target: '{{["A", "B", "C", "D"].index(answer)}}'
 metric_list:
   - metric: acc
     aggregation: mean
