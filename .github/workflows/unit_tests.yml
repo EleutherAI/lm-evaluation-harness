@@ -61,7 +61,7 @@ jobs:
           ${{ runner.os }}-hf-cache-cpu
 
     - name: Install dependencies
-      run: uv sync --inexact --index https://download.pytorch.org/whl/cpu
+      run: uv sync --extra dev --inexact --index https://download.pytorch.org/whl/cpu
 #        python -m pip install --upgrade pip
 #        pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
 #        pip install hf_xet
