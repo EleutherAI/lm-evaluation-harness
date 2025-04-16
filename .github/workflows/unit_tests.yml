@@ -37,11 +37,10 @@ jobs:
     name: CPU Tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.9", "3.10" ]
     timeout-minutes: 30
-    env:
-      HF_ENDPOINT: "https://hf-mirror.com"
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -68,8 +67,6 @@ jobs:
     name: External LM Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      HF_ENDPOINT: "https://hf-mirror.com"
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -83,6 +80,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e '.[dev,optimum,deepsparse,sparseml,api]' --extra-index-url https://download.pytorch.org/whl/cpu
-        pip install -U transformers peft accelerate hf_xet
+        pip install -U transformers peft accelerate
     - name: Test with pytest
       run: python -m pytest tests/models --showlocals -s -vv
