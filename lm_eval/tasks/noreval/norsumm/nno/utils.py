@@ -1,8 +1,8 @@
 import datasets
 import numpy as np
 import sacrebleu
-from rouge_score import rouge_scorer, scoring
 from evaluate import load
+from rouge_score import rouge_scorer, scoring
 
 
 def process_results(doc, results):

@@ -10,7 +10,9 @@ def p1_nb(doc):
 
 
 def p2_nb(doc):
-    prompt = "{question}{choices}\n\nEr det riktige svaret {enumerated_choices}?\n\nSvar:"
+    prompt = (
+        "{question}{choices}\n\nEr det riktige svaret {enumerated_choices}?\n\nSvar:"
+    )
     choices = "".join(
         [
             f"\n{label}: {option}"

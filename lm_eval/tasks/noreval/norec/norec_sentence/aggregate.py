@@ -1,5 +1,5 @@
-import sklearn
 import numpy as np
+import sklearn
 
 
 def multi_f1(items):

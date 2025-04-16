@@ -1,5 +1,6 @@
-from string import punctuation
 from collections import Counter
+from string import punctuation
+
 import numpy as np
 
 
@@ -25,18 +26,12 @@ def f1(prediction, completion):
 
 def process_results(doc, results):
     prediction = normalize(results[0])
-    completions = [
-        normalize(completion) for completion in doc["accepted_completions"]
-    ]
+    completions = [normalize(completion) for completion in doc["accepted_completions"]]
     exact_match = np.nanmax(
-        [
-            int(prediction == completion) for completion in completions
-        ]
+        [int(prediction == completion) for completion in completions]
     )
     fscore = np.nanmax(
-        [
-            f1(prediction=prediction, completion=completion) for completion in completions
-        ]
+        [f1(prediction=prediction, completion=completion) for completion in completions]
     )
     return {"em": exact_match, "fscore": fscore}
 

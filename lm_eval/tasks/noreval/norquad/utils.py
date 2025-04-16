@@ -16,6 +16,7 @@ def process_docs(dataset: datasets.Dataset):
         doc["passage"] = "\n".join(doc["context"].strip().split("\n")[1:]).strip()
         doc["question"] = " ".join(doc["question"].strip().split())
         return doc
+
     return dataset.map(_helper)
 
 
@@ -39,7 +40,9 @@ def p2(doc):
     title = doc["title"]
     passage = doc["passage"]
     question = doc["question"]
-    prompt = f"Tittel: {title}\n\nTekst: {passage}\n\nSvar på følgende: {question}\n\nSvar:"
+    prompt = (
+        f"Tittel: {title}\n\nTekst: {passage}\n\nSvar på følgende: {question}\n\nSvar:"
+    )
     return prompt
 
 

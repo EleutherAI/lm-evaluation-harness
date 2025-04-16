@@ -1,6 +1,6 @@
 ### Evaluation example
 
-Here, we use the `--predict_only` argument and compute the performance metrics as described below. 
+Here, we use the `--predict_only` argument and compute the performance metrics as described below.
 
 **Step 1: Generate the predictions**
 

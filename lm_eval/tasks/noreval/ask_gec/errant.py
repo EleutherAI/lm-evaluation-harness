@@ -1,8 +1,9 @@
 import argparse
-import subprocess
 import json
-import pandas as pd
 import os
+import subprocess
+
+import pandas as pd
 
 
 def parse_args():
@@ -93,7 +94,7 @@ def main():
     args = parse_args()
     fpath = args.fpath
     print(f"Out: {args.out_fdir}", flush=True)
-    out_fpath = fpath.replace(".jsonl", f"_errant.json")
+    out_fpath = fpath.replace(".jsonl", "_errant.json")
     evaluate(fpath=fpath, out_fpath=out_fpath)
 
 
