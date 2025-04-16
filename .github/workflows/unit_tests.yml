@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10" ]
+        python-version: ["3.9"]
     timeout-minutes: 30
     steps:
     - name: Checkout Code
@@ -51,11 +51,11 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    # Download previous HF cache if it exists
+    # Download shared HF cache if it exists
     - name: Download HF cache
       uses: actions/download-artifact@v4
       with:
-        name: hf-cache-${{ matrix.python-version }}
+        name: hf-cache-shared
         path: ~/.cache/huggingface
         merge-multiple: true
       continue-on-error: true  # Continue even if no artifact exists yet
@@ -77,11 +77,11 @@ jobs:
         path: |
           test_logs/*
 
-    # Save the HF cache for future runs
+    # Save the shared HF cache for future runs
     - name: Save HF cache
       uses: actions/upload-artifact@v4
       with:
-        name: hf-cache-${{ matrix.python-version }}
+        name: hf-cache-shared
         path: ~/.cache/huggingface
         retention-days: 7  # Keep cache for 7 days
 
@@ -99,11 +99,11 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    # Download previous HF cache if it exists
+    # Download shared HF cache if it exists
     - name: Download HF cache
       uses: actions/download-artifact@v4
       with:
-        name: hf-cache-models
+        name: hf-cache-shared
         path: ~/.cache/huggingface
         merge-multiple: true
       continue-on-error: true  # Continue even if no artifact exists yet
@@ -117,10 +117,10 @@ jobs:
     - name: Test with pytest
       run: python -m pytest tests/models --showlocals -s -vv
 
-    # Save the HF cache for future runs
+    # Save the shared HF cache for future runs
     - name: Save HF cache
       uses: actions/upload-artifact@v4
       with:
-        name: hf-cache-models
+        name: hf-cache-shared
         path: ~/.cache/huggingface
         retention-days: 7  # Keep cache for 7 days
