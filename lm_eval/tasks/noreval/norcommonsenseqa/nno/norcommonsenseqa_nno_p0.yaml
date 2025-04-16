@@ -1,0 +1,4 @@
+task: norcommonsenseqa_nno_p0
+include: _norcommonsenseqa_nno_yaml
+doc_to_text: "Spørsmål: {{question}}\n\nSvar:"
+doc_to_choice: "{{choices.text}}"

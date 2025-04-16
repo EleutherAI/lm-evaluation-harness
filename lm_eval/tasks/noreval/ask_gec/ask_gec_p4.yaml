@@ -1,0 +1,3 @@
+task: ask_gec_p4
+doc_to_text: "Rett opp grammatiske feil i denne teksten: {{source}}\nKorreksjon:"
+include: _ask_gec_yaml

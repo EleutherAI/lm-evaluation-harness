@@ -1,0 +1,4 @@
+task: nortruthfulqa_mc_nno_p3
+include: _nortruthfulqa_mc_nno_yaml
+doc_to_text: !function utils.p3_nn
+target_delimiter: "\n"

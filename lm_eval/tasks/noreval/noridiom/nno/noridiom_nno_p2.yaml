@@ -1,0 +1,3 @@
+task: noridiom_nno_p2
+include: _noridiom_nno_yaml
+doc_to_text: "Korleis fortset uttrykket \"{{idiom_start}}\"?"

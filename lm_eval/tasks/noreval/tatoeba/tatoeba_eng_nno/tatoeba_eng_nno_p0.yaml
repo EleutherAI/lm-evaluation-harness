@@ -1,0 +1,3 @@
+task: tatoeba_eng_nno_p0
+include: _tatoeba_eng_nno_yaml
+doc_to_text: "Engelsk: {{sourceString}}\nNynorsk:"

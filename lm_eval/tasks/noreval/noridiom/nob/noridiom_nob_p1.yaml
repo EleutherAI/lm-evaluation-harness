@@ -1,0 +1,3 @@
+task: noridiom_nob_p1
+include: _noridiom_nob_yaml
+doc_to_text: "Skriv fortsettelsen av idiomet {{idiom_start}}"

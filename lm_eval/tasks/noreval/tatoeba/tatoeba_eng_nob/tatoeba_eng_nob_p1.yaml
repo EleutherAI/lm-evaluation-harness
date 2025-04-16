@@ -1,0 +1,3 @@
+task: tatoeba_eng_nob_p1
+include: _tatoeba_eng_nob_yaml
+doc_to_text: "Oversett følgende setning til norsk bokmål: {{sourceString}}\nBokmål:"

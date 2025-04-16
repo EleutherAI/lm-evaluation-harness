@@ -1,0 +1,3 @@
+task: tatoeba_nno_eng_p3
+include: _tatoeba_nno_eng_yaml
+doc_to_text: "Kva blir \"{{targetString}}\" på engelsk?\nEngelsk:"

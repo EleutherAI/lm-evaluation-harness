@@ -1,0 +1,4 @@
+task: nrk_quiz_qa_nno_p4
+include: _nrk_quiz_qa_nno_yaml
+doc_to_text: !function utils.p4_nn
+doc_to_choice: "{{choices.text}}"

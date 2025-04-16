@@ -1,0 +1,5 @@
+task: noropenbookqa_nno_p2
+include: _noropenbookqa_nno_yaml
+doc_to_text: "{{fact}}\n{{question_stem}}\nA: {{choices.text[0]}}\nB: {{choices.text[1]}}\nC: {{choices.text[2]}}\nD: {{choices.text[3]}}\n\nEr det rette svaret A, B, C, eller D?\n\nSvar:"
+doc_to_choice: "{{choices.label}}"
+process_docs: !function utils.filter_dataset

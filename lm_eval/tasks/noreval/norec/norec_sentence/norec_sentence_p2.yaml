@@ -1,0 +1,4 @@
+task: norec_sentence_p2
+include: _norec_sentence_yaml
+doc_to_text: "{{review}}\nHva slags sentiment uttrykker anmelderen?"
+doc_to_choice: ["negativ", "positiv"]
