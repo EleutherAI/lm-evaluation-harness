@@ -66,7 +66,6 @@ D. paralysis of the facial muscles, loss of taste, lacrimation and decreased sal
 Answer:"""
 
 
-@pytest.skip("HF datasets do download run on CI")
 @pytest.mark.parametrize(
     "task_names,sets,num_fewshot,seed,num_examples,expected_prompt",
     [
