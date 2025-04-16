@@ -2,6 +2,7 @@ import os
 import re
 from typing import List
 
+import datasets
 import pytest
 
 import lm_eval.api as api
@@ -11,6 +12,7 @@ from lm_eval.utils import make_table
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
 
@@ -25,13 +27,13 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
             0,
         ),
-        # (
-        #     ["mmlu_abstract_algebra"],
-        #     None,
-        #     "hf",
-        #     "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
-        #     10000,
-        # ),
+        (
+            ["mmlu_abstract_algebra"],
+            None,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+            10000,
+        ),
     ],
     ids=lambda d: f"{d}",
 )
@@ -89,24 +91,24 @@ def test_evaluator(
             "hf",
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
         ),
-        # (
-        #     ["mmlu_stem"],
-        #     10,
-        #     "hf",
-        #     "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
-        # ),
-        # (
-        #     ["lambada_openai"],
-        #     10,
-        #     "hf",
-        #     "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
-        # ),
-        # (
-        #     ["wikitext"],
-        #     10,
-        #     "hf",
-        #     "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
-        # ),
+        (
+            ["mmlu_stem"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+        ),
+        (
+            ["lambada_openai"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+        ),
+        (
+            ["wikitext"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+        ),
     ],
     ids=lambda d: f"{d}",
 )

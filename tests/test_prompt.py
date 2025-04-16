@@ -1,6 +1,7 @@
 import random
 from typing import List
 
+import datasets
 import numpy as np
 import pytest
 
@@ -8,6 +9,8 @@ from lm_eval import tasks
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import join_iters
 
+
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
 MMLU_ANATOMY_ZERO_SHOT = """The following are multiple choice questions (with answers) about anatomy.
 

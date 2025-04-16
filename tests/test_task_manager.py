@@ -1,9 +1,13 @@
 import tempfile
 from pathlib import Path
 
+import datasets
 import pytest
 
 from lm_eval.tasks import TaskManager
+
+
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
 
 @pytest.fixture(scope="module")
