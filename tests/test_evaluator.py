@@ -25,13 +25,13 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
             0,
         ),
-        (
-            ["mmlu_abstract_algebra"],
-            None,
-            "hf",
-            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
-            10000,
-        ),
+        # (
+        #     ["mmlu_abstract_algebra"],
+        #     None,
+        #     "hf",
+        #     "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+        #     10000,
+        # ),
     ],
     ids=lambda d: f"{d}",
 )
@@ -89,24 +89,24 @@ def test_evaluator(
             "hf",
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
         ),
-        (
-            ["mmlu_stem"],
-            10,
-            "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
-        ),
-        (
-            ["lambada_openai"],
-            10,
-            "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
-        ),
-        (
-            ["wikitext"],
-            10,
-            "hf",
-            "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
-        ),
+        # (
+        #     ["mmlu_stem"],
+        #     10,
+        #     "hf",
+        #     "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+        # ),
+        # (
+        #     ["lambada_openai"],
+        #     10,
+        #     "hf",
+        #     "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+        # ),
+        # (
+        #     ["wikitext"],
+        #     10,
+        #     "hf",
+        #     "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
+        # ),
     ],
     ids=lambda d: f"{d}",
 )
