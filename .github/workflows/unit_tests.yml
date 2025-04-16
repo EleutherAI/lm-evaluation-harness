@@ -51,14 +51,14 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    # Download shared HF cache if it exists
-    - name: Download HF cache
-      uses: actions/download-artifact@v4
+    # Cache HuggingFace cache directory
+    - name: Cache HuggingFace cache
+      uses: actions/cache@v3
       with:
-        name: hf-cache-shared
         path: ~/.cache/huggingface
-        merge-multiple: true
-      continue-on-error: true  # Continue even if no artifact exists yet
+        key: ${{ runner.os }}-hf-cache-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-hf-cache-
 
     - name: Install dependencies
       run: |
@@ -77,14 +77,6 @@ jobs:
         path: |
           test_logs/*
 
-    # Save the shared HF cache for future runs
-    - name: Save HF cache
-      uses: actions/upload-artifact@v4
-      with:
-        name: hf-cache-shared
-        path: ~/.cache/huggingface
-        retention-days: 7  # Keep cache for 7 days
-
   testmodels:
     name: External LM Tests
     runs-on: ubuntu-latest
@@ -99,14 +91,14 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    # Download shared HF cache if it exists
-    - name: Download HF cache
-      uses: actions/download-artifact@v4
+    # Cache HuggingFace cache directory
+    - name: Cache HuggingFace cache
+      uses: actions/cache@v3
       with:
-        name: hf-cache-shared
         path: ~/.cache/huggingface
-        merge-multiple: true
-      continue-on-error: true  # Continue even if no artifact exists yet
+        key: ${{ runner.os }}-hf-cache-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-hf-cache-
 
     - name: Install dependencies
       run: |
@@ -116,11 +108,3 @@ jobs:
 
     - name: Test with pytest
       run: python -m pytest tests/models --showlocals -s -vv
-
-    # Save the shared HF cache for future runs
-    - name: Save HF cache
-      uses: actions/upload-artifact@v4
-      with:
-        name: hf-cache-shared
-        path: ~/.cache/huggingface
-        retention-days: 7  # Keep cache for 7 days
