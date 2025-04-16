@@ -29,7 +29,7 @@ def get_new_tasks_else_default():
     return task_classes if task_classes else TASKS
 
 
-def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
+def task_class(task_names=None, task_manager=None) -> list[ConfigurableTask]:
     """
     Convert a list of task names to a list of ConfigurableTask instances
     """
