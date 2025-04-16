@@ -163,7 +163,7 @@
 | [xstorycloze](xstorycloze/README.md)                                     | Cross-lingual narrative understanding tasks to predict story endings in multiple languages.                                                                                                                                                                                                                                            | Russian, Simplified Chinese, Spanish, Arabic, Hindi, Indonesian, Telugu, Swahili, Basque, Burmese                     |
 | [xwinograd](xwinograd/README.md)                                         | Cross-lingual Winograd schema tasks for coreference resolution in multiple languages.                                                                                                                                                                                                                                                  | English, French, Japanese, Portuguese, Russian, Chinese                                                               |
 
-## Multilingual Tasks
+## Multimodal Tasks
 | Task Family                  | Description                                                                                             | Modality    |
 |------------------------------|---------------------------------------------------------------------------------------------------------|-------------|
 | [chartqa](chartqa/README.md) | A benchmark for question answering about charts that requires both visual and logical reasoning.        | Image, Text |
