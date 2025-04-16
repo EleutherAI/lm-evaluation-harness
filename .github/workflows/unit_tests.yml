@@ -51,14 +51,14 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    # Cache HuggingFace cache directory
-    - name: Cache HuggingFace cache
+    # Cache HuggingFace cache directory for CPU tests
+    - name: Cache HuggingFace cache (CPU tests)
       uses: actions/cache@v3
       with:
         path: ~/.cache/huggingface
-        key: ${{ runner.os }}-hf-cache-${{ hashFiles('pyproject.toml') }}
+        key: ${{ runner.os }}-hf-cache-cpu
         restore-keys: |
-          ${{ runner.os }}-hf-cache-
+          ${{ runner.os }}-hf-cache-cpu
 
     - name: Install dependencies
       run: |
@@ -91,14 +91,14 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
 
-    # Cache HuggingFace cache directory
-    - name: Cache HuggingFace cache
+    # Cache HuggingFace cache directory for External LM tests
+    - name: Cache HuggingFace cache (External LM tests)
       uses: actions/cache@v3
       with:
         path: ~/.cache/huggingface
-        key: ${{ runner.os }}-hf-cache-${{ hashFiles('pyproject.toml') }}
+        key: ${{ runner.os }}-hf-cache-external-lm
         restore-keys: |
-          ${{ runner.os }}-hf-cache-
+          ${{ runner.os }}-hf-cache-external-lm
 
     - name: Install dependencies
       run: |
