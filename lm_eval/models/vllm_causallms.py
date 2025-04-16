@@ -28,7 +28,9 @@ try:
     from vllm import LLM, SamplingParams
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
-    from vllm.entrypoints.chat_utils import resolve_hf_chat_template
+
+    if parse_version(version("vllm")) >= parse_version("0.8.3"):
+        from vllm.entrypoints.chat_utils import resolve_hf_chat_template
 except ModuleNotFoundError:
     pass
 
@@ -134,12 +136,15 @@ class VLLM(TemplateLM):
                 "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
 
-        self.hf_chat_template = resolve_hf_chat_template(
-            tokenizer=self.tokenizer, 
-            chat_template=None, 
-            tools=None,
-            trust_remote_code=trust_remote_code,
-        )
+        if parse_version(version("vllm")) >= parse_version("0.8.3"):
+            self.hf_chat_template = resolve_hf_chat_template(
+                tokenizer=self.tokenizer,
+                chat_template=None,
+                tools=None,
+                trust_remote_code=trust_remote_code,
+            )
+        else:
+            self.hf_chat_template = None
 
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
