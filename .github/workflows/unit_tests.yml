@@ -44,12 +44,11 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - name: Install uv and set the python version
+      uses: astral-sh/setup-uv@v5
       with:
+        enable-cache: true
         python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: pyproject.toml
 
     # Cache HuggingFace cache directory for CPU tests
     - name: Cache HuggingFace cache (CPU tests)
@@ -62,13 +61,13 @@ jobs:
           ${{ runner.os }}-hf-cache-cpu
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
-        pip install hf_xet
+      run: uv sync --inexact --index https://download.pytorch.org/whl/cpu
+#        python -m pip install --upgrade pip
+#        pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
+#        pip install hf_xet
 
     - name: Test with pytest
-      run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
+      run: uv run pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
       continue-on-error: true  # Continue workflow even if tests fail
 
     # Save test artifacts
