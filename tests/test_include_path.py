@@ -20,8 +20,8 @@ from lm_eval import tasks
 def test_include_correctness(limit: int, model: str, model_args: str):
     task_name = ["arc_easy"]
 
-    task_manager = tasks.TaskManager()
-    task_dict = tasks.get_task_dict(task_name, task_manager)
+    # task_manager = tasks.TaskManager()
+    # task_dict = tasks.get_task_dict(task_name, task_manager)
 
     e1 = evaluator.simple_evaluate(
         model=model,
