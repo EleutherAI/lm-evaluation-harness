@@ -11,6 +11,8 @@ on:
     branches:
       - 'main'
   workflow_dispatch:
+env:
+  UV_SYSTEM_PYTHON: 1
 # Jobs run concurrently and steps run sequentially within a job.
 # jobs: linter and cpu_tests. Add more jobs/steps as required.
 jobs:
@@ -61,13 +63,13 @@ jobs:
           ${{ runner.os }}-hf-cache-cpu
 
     - name: Install dependencies
-      run: uv sync --extra dev --inexact --index https://download.pytorch.org/whl/cpu
-#        python -m pip install --upgrade pip
-#        pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
-#        pip install hf_xet
+      run: |
+        uv pip install --upgrade pip
+        uv pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
+        uv pip install hf_xet
 
     - name: Test with pytest
-      run: uv run pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
+      run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
       continue-on-error: true  # Continue workflow even if tests fail
 
     # Save test artifacts
