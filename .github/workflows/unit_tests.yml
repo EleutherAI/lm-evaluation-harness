@@ -50,19 +50,41 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: pyproject.toml
+
+    # Download previous HF cache if it exists
+    - name: Download HF cache
+      uses: actions/download-artifact@v4
+      with:
+        name: hf-cache-${{ matrix.python-version }}
+        path: ~/.cache/huggingface
+        merge-multiple: true
+      continue-on-error: true  # Continue even if no artifact exists yet
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e '.[dev,sentencepiece,api]' --extra-index-url https://download.pytorch.org/whl/cpu
         pip install hf_xet
+
     - name: Test with pytest
       run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
-    - name: Archive artifacts
+
+    # Save test artifacts
+    - name: Archive test artifacts
       uses: actions/upload-artifact@v4
       with:
         name: output_testcpu${{ matrix.python-version }}
         path: |
           test_logs/*
+
+    # Save the HF cache for future runs
+    - name: Save HF cache
+      uses: actions/upload-artifact@v4
+      with:
+        name: hf-cache-${{ matrix.python-version }}
+        path: ~/.cache/huggingface
+        retention-days: 7  # Keep cache for 7 days
+
   testmodels:
     name: External LM Tests
     runs-on: ubuntu-latest
@@ -76,10 +98,29 @@ jobs:
         python-version: 3.9
         cache: pip
         cache-dependency-path: pyproject.toml
+
+    # Download previous HF cache if it exists
+    - name: Download HF cache
+      uses: actions/download-artifact@v4
+      with:
+        name: hf-cache-models
+        path: ~/.cache/huggingface
+        merge-multiple: true
+      continue-on-error: true  # Continue even if no artifact exists yet
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e '.[dev,optimum,deepsparse,sparseml,api]' --extra-index-url https://download.pytorch.org/whl/cpu
         pip install -U transformers peft accelerate
+
     - name: Test with pytest
       run: python -m pytest tests/models --showlocals -s -vv
+
+    # Save the HF cache for future runs
+    - name: Save HF cache
+      uses: actions/upload-artifact@v4
+      with:
+        name: hf-cache-models
+        path: ~/.cache/huggingface
+        retention-days: 7  # Keep cache for 7 days
