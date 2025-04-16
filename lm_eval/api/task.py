@@ -935,11 +935,17 @@ class ConfigurableTask(Task):
                 num_choice = len(test_choice)
 
             if isinstance(test_text, int):
+                eval_logger.debug(
+                    "doc_to_text returned an int. Assuming multiple inputs."
+                )
                 self.multiple_input = num_choice
         else:
             test_choice = None
 
         if isinstance(test_target, list):
+            eval_logger.debug(
+                "doc_to_target returned a list. Assuming multiple targets."
+            )
             self.multiple_target = len(test_target)
         else:
             if (isinstance(test_target, int)) and (test_choice is not None):
