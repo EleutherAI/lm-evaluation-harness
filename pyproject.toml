@@ -82,6 +82,7 @@ sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 sparsify = ["sparsify"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.8.3"]
+torchao = ["torchao>=0.10.0"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 all = [
