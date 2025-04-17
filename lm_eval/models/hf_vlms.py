@@ -1,6 +1,7 @@
 import copy
 import logging
 from typing import Dict, List, Optional, Tuple, Union
+from PIL import Image
 
 import torch
 import torch.nn.functional as F
@@ -45,10 +46,22 @@ class HFMultimodalLM(HFLM):
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
         convert_img_format=False,
+
+        # For image resizing
         min_pixels: Optional[int] = None,
         max_pixels: Optional[int] = None,
+        image_width: Optional[int] = None,
+        image_height: Optional[int] = None,
+        image_max_side: Optional[int] = None,
         **kwargs,
     ):
+        self.image_width = image_width
+        self.image_height = image_height
+        self.image_max_side = image_max_side
+        if self.image_max_side and (self.image_width or self.image_height):
+            raise ValueError("Ambiguous config for image resize: you can not specify both " \
+                             "image_max_side and (image_width or image_height)")
+
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
@@ -605,6 +618,39 @@ class HFMultimodalLM(HFLM):
 
         return re_ord.get_original(res)
 
+    def _resize_image(self, image):
+        image_width, image_height = None, None
+        if self.image_width:
+            image_width = self.image_width
+        if self.image_height:
+            image_height = self.image_height
+
+        if image_width and image_height:
+            if image.width <= image_width and image.height <= image_height:
+                return image
+        elif image_width:
+            if image.width <= image_width:
+                return image
+            image_height = int((image.height / image.width) * image_width)
+        elif image_height:
+            if image.height <= image_height:
+                return image
+            image_width = int((image.width / image.height) * image_height)
+        elif self.image_max_side:
+            if max(image.height, image.width) <= self.image_max_side:
+                return image
+            elif image.height > image.width:
+                image_height = self.image_max_side
+                image_width = int((image.width / image.height) * image_height)
+            else:
+                image_width = self.image_max_side
+                image_height = int((image.height / image.width) * image_width)
+        else:
+            return image
+
+        image = image.resize((image_width, image_height), Image.BICUBIC)
+        return image
+
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
@@ -644,7 +690,7 @@ class HFMultimodalLM(HFLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [arg["visual"] for arg in aux_arguments]
+            visuals = [self._resize_image(arg["visual"]) for arg in aux_arguments]
 
             if not isinstance(contexts, list):
                 contexts = list(
