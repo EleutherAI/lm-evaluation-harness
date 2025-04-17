@@ -1,0 +1,7 @@
+"dataset_name": "heb_Hebr-ars_Arab"
+"doc_to_target": "{{sentence_ars_Arab}}"
+"doc_to_text": "{{sentence_heb_Hebr}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_heb_Hebr-ars_Arab"
+"test_split": "dev"

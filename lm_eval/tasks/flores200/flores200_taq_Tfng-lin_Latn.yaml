@@ -1,0 +1,7 @@
+"dataset_name": "taq_Tfng-lin_Latn"
+"doc_to_target": "{{sentence_lin_Latn}}"
+"doc_to_text": "{{sentence_taq_Tfng}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_taq_Tfng-lin_Latn"
+"test_split": "dev"
