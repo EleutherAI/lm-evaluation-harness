@@ -690,7 +690,7 @@ class HFMultimodalLM(HFLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [self._resize_image(arg["visual"]) for arg in aux_arguments]
+            visuals = [[self._resize_image(img) for img in arg["visual"]] for arg in aux_arguments]
 
             if not isinstance(contexts, list):
                 contexts = list(
