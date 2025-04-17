@@ -16,7 +16,7 @@ from lm_eval.models.utils import (
 )
 
 
-DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>"]
+DEFAULT_AUDIO_PLACEHOLDER = "<audio>"
 
 
 @register_model("hf-audiolm-qwen")
@@ -32,6 +32,7 @@ class HFAUDIOLMQWEN(HFLM):
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
         max_audios: Optional[int] = 5,
+        interleave: bool = True,
         **kwargs,
     ):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
@@ -39,6 +40,7 @@ class HFAUDIOLMQWEN(HFLM):
         super().__init__(pretrained, **kwargs)
         self.max_audios = max_audios
         self.chat_applied: bool = False
+        self.interleave = interleave
 
     def _create_tokenizer(
         self,
@@ -95,8 +97,58 @@ class HFAUDIOLMQWEN(HFLM):
         Method to apply a chat template to a list of chat history between user and model.
         """
 
+        self.chat_applied = True
+        if not self.interleave:
+            for content in chat_history:
+                c = []
+                text = content["content"]
+
+                # Count and remove audio placeholders
+                audio_count = min(
+                    self.max_audios, text.count(DEFAULT_AUDIO_PLACEHOLDER)
+                )
+                text = text.replace(DEFAULT_AUDIO_PLACEHOLDER, "")
+
+                # Add audio entries
+                for _ in range(audio_count):
+                    c.append({"type": "audio", "audio_url": None})
+
+                # Add single text entry at the end
+                c.append({"type": "text", "text": text})
+
+                content["content"] = c
+        else:
+            for content in chat_history:
+                c = []
+                text = content["content"]
+                expected_audio_count = min(
+                    self.max_audios, text.count(DEFAULT_AUDIO_PLACEHOLDER)
+                )
+                actual_audio_count = 0
+
+                text_parts = text.split(DEFAULT_AUDIO_PLACEHOLDER)
+
+                for i, part in enumerate(text_parts):
+                    # TODO: concatenate text parts (esp. if skipping audios)?
+                    if part:  # Add non-empty text parts
+                        c.append({"type": "text", "text": part})
+                    if (
+                        (i < len(text_parts) - 1) and i < self.max_audios
+                    ):  # Add audio placeholder after each split except the last
+                        c.append({"type": "audio", "audio_url": None})
+                        actual_audio_count += 1
+
+                content["content"] = c
+
+                if actual_audio_count != expected_audio_count:
+                    raise ValueError(
+                        f"Mismatch in audio placeholder count. Expected: {expected_audio_count}, Actual: {actual_audio_count}"
+                    )
+
         chat_templated = self.processor.apply_chat_template(
-            chat_history, tokenize=False, add_generation_prompt=add_generation_prompt
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
         )
 
         return chat_templated
@@ -151,8 +203,7 @@ class HFAUDIOLMQWEN(HFLM):
 
         if not self.chat_applied:
             # TODO<baber>: This still keeps the whitespace in the image placeholder, which is not ideal.
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                strings = _replace_placeholder(placeholder, strings)
+            strings = _replace_placeholder(DEFAULT_AUDIO_PLACEHOLDER, strings)
 
         encoding = self.processor(
             audios=audios,
@@ -263,8 +314,8 @@ class HFAUDIOLMQWEN(HFLM):
 
             if "max_length" not in kwargs:
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
-            inputs["input_ids"] = inputs["input_ids"].to("cuda")
-            inputs.input_ids = inputs.input_ids.to("cuda")
+
+            inputs = {k: v.to("cuda") for k, v in inputs.items()}
             cont = self._model_multimodal_generate(inputs, stop=until, **kwargs)
 
             del inputs

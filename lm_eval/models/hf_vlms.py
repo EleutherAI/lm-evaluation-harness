@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import torch
 import torch.nn.functional as F
 import transformers
+import numpy as np
 from tqdm import tqdm
 from transformers import BatchEncoding
 
@@ -49,6 +50,9 @@ class HFMultimodalLM(HFLM):
         max_pixels: Optional[int] = None,
         **kwargs,
     ):
+        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
+            {"max_pixels": max_pixels} if max_pixels else {}
+        )
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
@@ -65,9 +69,7 @@ class HFMultimodalLM(HFLM):
         self.interleave = interleave
         self.max_images = max_images
         self.rgb = convert_img_format
-        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
-            {"max_pixels": max_pixels} if max_pixels else {}
-        )
+
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
             self.image_token_id = (
