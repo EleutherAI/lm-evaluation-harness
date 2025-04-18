@@ -74,6 +74,7 @@ class HFLM(TemplateLM):
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
+        softmax_dtype: Optional[Union[str, torch.dtype]] = None,
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 64,
         trust_remote_code: Optional[bool] = False,
@@ -92,7 +93,6 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
-        softmax_dtype: Optional[Union[str, torch.dtype]] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -235,7 +235,9 @@ class HFLM(TemplateLM):
         self.batch_schedule = 1
         self.batch_sizes = {}
         self.max_batch_size = max_batch_size
-        self.softmax_dtype = get_dtype(softmax_dtype) if softmax_dtype is not None else None
+        self.softmax_dtype = (
+            get_dtype(softmax_dtype) if softmax_dtype is not None else None
+        )
 
         if str(batch_size).startswith("auto"):
             batch_size = batch_size.split(":")
@@ -770,7 +772,11 @@ class HFLM(TemplateLM):
                     (batch_size, max_length), device=self.device
                 ).long()
             for _ in range(5):
-                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1, dtype=self.softmax_dtype)  # noqa: F841
+                _ = F.log_softmax(
+                    self._model_call(test_batch, **call_kwargs),
+                    dim=-1,
+                    dtype=self.softmax_dtype,
+                )
 
             return batch_size
 
@@ -1202,7 +1208,9 @@ class HFLM(TemplateLM):
                 }
 
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1, dtype=self.softmax_dtype
+                self._model_call(batched_inps, **call_kwargs),
+                dim=-1,
+                dtype=self.softmax_dtype,
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
