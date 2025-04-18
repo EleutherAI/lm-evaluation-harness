@@ -1,3 +1,4 @@
+import argparse
 import collections
 import fnmatch
 import functools
@@ -11,7 +12,7 @@ import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple
 
 import numpy as np
 import yaml
@@ -550,3 +551,96 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def parse_namespace(namespace: argparse.Namespace) -> Dict[str, Any]:
+    """
+    Convert an argparse Namespace object to a dictionary.
+
+    Handles all argument types including boolean flags, lists, and None values.
+    Only includes arguments that were explicitly set (ignores defaults unless used).
+
+    Args:
+        namespace: The argparse.Namespace object to convert
+
+    Returns:
+        Dictionary containing all the namespace arguments and their values
+    """
+
+    config = {key: value for key, value in vars(namespace).items()}
+    for key in config:
+        # TODO: pass this list as param
+        if key in [
+            "wandb_args",
+            "wandb_config_args",
+            "hf_hub_log_args",
+            "metadata",
+            "model_args",
+        ]:
+            if not isinstance(config[key], dict):
+                config[key] = simple_parse_args_string(config[key])
+    if "model_args" not in config:
+        config["model_args"] = {}
+    if "metadata" not in config:
+        config["metadata"] = {}
+
+    non_default_args = []
+    if hasattr(namespace, "_explicit_args"):
+        non_default_args = namespace._explicit_args
+
+    return config, non_default_args
+
+
+class TrackExplicitAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Create a set on the namespace to track explicitly set arguments if it doesn't exist
+        if not hasattr(namespace, "_explicit_args"):
+            setattr(namespace, "_explicit_args", set())
+        # Record that this argument was explicitly provided
+        namespace._explicit_args.add(self.dest)
+        setattr(namespace, self.dest, values)
+
+
+class TrackExplicitStoreTrue(argparse.Action):
+    def __init__(
+        self, option_strings, dest, nargs=0, const=True, default=False, **kwargs
+    ):
+        # Ensure that nargs is 0, as required by store_true actions.
+        if nargs != 0:
+            raise ValueError("nargs for store_true actions must be 0")
+        super().__init__(
+            option_strings, dest, nargs=0, const=const, default=default, **kwargs
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Initialize or update the set of explicitly provided arguments.
+        if not hasattr(namespace, "_explicit_args"):
+            setattr(namespace, "_explicit_args", set())
+        namespace._explicit_args.add(self.dest)
+        setattr(namespace, self.dest, self.const)
+
+
+def non_default_update(console_dict, local_dict, non_default_args):
+    """
+    Update local_dict by taking non-default values from console_dict.
+
+    Args:
+        console_dict (dict): The dictionary that potentially provides updates.
+        local_dict (dict): The dictionary to be updated.
+        non_default_args (list): The list of args passed by user in console.
+
+    Returns:
+        dict: The updated local_dict.
+    """
+    result_config = {}
+
+    for key in set(console_dict.keys()).union(local_dict.keys()):
+        if key in non_default_args:
+            result_config[key] = console_dict[key]
+        else:
+            if key in local_dict:
+                result_config[key] = local_dict[key]
+            else:
+                result_config[key] = console_dict[key]
+
+    return result_config
