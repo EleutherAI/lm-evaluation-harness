@@ -1,0 +1,3 @@
+task: norsumm_nno_p4
+include: _norsumm_nno_yaml
+doc_to_text: "Lag ein kort oppsummering som samanfattar den følgande teksten i nokre få punkt:\n{{article}}\n\nOppsummering:"

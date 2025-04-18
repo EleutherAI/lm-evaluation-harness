@@ -1,0 +1,3 @@
+task: noridiom_nob_p3
+include: _noridiom_nob_yaml
+doc_to_text: "Fullfør vendingen \"{{idiom_start}}\""

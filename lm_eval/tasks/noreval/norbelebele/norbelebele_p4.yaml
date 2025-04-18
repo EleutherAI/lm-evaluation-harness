@@ -1,0 +1,4 @@
+task: norbelebele_p4
+include: _norbelebele_yaml
+doc_to_text: "{{flores_passage}}\n\n{{question}}\n\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\n\nEr det riktige svaret A, B, C, eller D?"
+doc_to_choice: ["A", "B", "C", "D"]

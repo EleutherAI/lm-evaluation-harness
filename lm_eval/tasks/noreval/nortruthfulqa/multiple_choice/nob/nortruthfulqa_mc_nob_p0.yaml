@@ -1,0 +1,3 @@
+task: nortruthfulqa_mc_nob_p0
+include: _nortruthfulqa_mc_nob_yaml
+doc_to_text: !function utils.p0_nb

@@ -1,0 +1,4 @@
+task: norec_sentence_p0
+include: _norec_sentence_yaml
+doc_to_text: "Tekst: {{review}}\nSentiment:"
+doc_to_choice: ["negativ", "positiv"]

@@ -1,0 +1,3 @@
+task: norsumm_nno_p5
+include: _norsumm_nno_yaml
+doc_to_text: "Heile artikkelen:\n{{article}}\n\nHovudpunkt:"

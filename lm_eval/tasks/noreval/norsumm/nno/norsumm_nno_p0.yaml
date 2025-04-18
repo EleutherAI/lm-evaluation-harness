@@ -1,0 +1,3 @@
+task: norsumm_nno_p0
+include: _norsumm_nno_yaml
+doc_to_text: "Skriv ei oppsummering av følgande artikkel med berre nokre få punkt: {{article}}\nOppsummering:"

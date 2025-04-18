@@ -1,0 +1,3 @@
+task: nortruthfulqa_gen_nno_p0
+include: _nortruthfulqa_gen_nno_yaml
+doc_to_text: question

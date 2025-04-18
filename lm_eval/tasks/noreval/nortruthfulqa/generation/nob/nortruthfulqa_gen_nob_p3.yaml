@@ -1,0 +1,3 @@
+task: nortruthfulqa_gen_nob_p3
+include: _nortruthfulqa_gen_nob_yaml
+doc_to_text: "{{question}}\nHva er riktig svar på spørsmålet?\nSvar:"

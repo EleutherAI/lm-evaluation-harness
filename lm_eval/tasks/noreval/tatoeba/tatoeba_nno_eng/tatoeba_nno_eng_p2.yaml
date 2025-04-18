@@ -1,0 +1,3 @@
+task: tatoeba_nno_eng_p2
+include: _tatoeba_nno_eng_yaml
+doc_to_text: "Gje ei engelsk omsetjing av denne setninga: {{targetString}}\nEngelsk:"
