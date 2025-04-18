@@ -262,6 +262,12 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
     )
     parser.add_argument(
+        "--question_suffix",
+        type=str,
+        default=None,
+        help="Suffix to append to the target question before the <|assistant|>, e.g., Think for maximum 128 tokens",
+    )
+    parser.add_argument(
         "--predict_only",
         "-x",
         action="store_true",
