@@ -772,7 +772,7 @@ class HFLM(TemplateLM):
                     (batch_size, max_length), device=self.device
                 ).long()
             for _ in range(5):
-                F.log_softmax(
+                out = F.log_softmax(  # noqa: F841
                     self._model_call(test_batch, **call_kwargs),
                     dim=-1,
                     dtype=self.softmax_dtype,
