@@ -13,7 +13,7 @@ MULTI_CHOICE_EXAMPLE_FORMAT = """{}
 
 {}
 
-Answer with the option's letter from the given choices directly."""
+Answer the preceding multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where $LETTER is one of the options."""
 
 
 SHORT_ANS_EXAMPLE_FORMAT = """{}
@@ -74,23 +74,32 @@ def _doc_to_text(doc):
 
 
 def process_results(doc, results):
-    if doc["question_type"] == "multiple-choice":
-        # multichoice logic
-        option_strs = ast.literal_eval(doc["options"])
-        option_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+    if len(results) > 0 and len(results[0]) > 0:
+        missing = 0
+        if doc["question_type"] == "multiple-choice":
+            # multichoice logic
+            option_strs = ast.literal_eval(doc["options"])
+            option_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
-        all_choices = option_letters[: len(option_strs)]
-        index2ans = {index: ans for index, ans in zip(option_letters, option_strs)}
+            all_choices = option_letters[: len(option_strs)]
+            index2ans = {index: ans for index, ans in zip(option_letters, option_strs)}
 
-        pred = parse_multi_choice_response(results[0], all_choices, index2ans)
-        # print(pred, all_choices, index2ans)
-        is_correct = eval_multi_choice(doc["answer"], pred)
+            pred = parse_multi_choice_response(results[0], all_choices, index2ans)
+            # print(pred, all_choices, index2ans)
+            is_correct = eval_multi_choice(doc["answer"], pred)
+        else:
+            # freeform response handling
+            pred = parse_open_response(results[0])
+            is_correct = eval_open(doc["answer"], pred)
     else:
-        # freeform response handling
-        pred = parse_open_response(results[0])
-        is_correct = eval_open(doc["answer"], pred)
+        missing = 1
+        is_correct = False
 
-    return {"acc": float(is_correct)}
+    return {
+        "acc": float(is_correct),
+        "total": 1,
+        "missing": missing,
+    }
 
     # TODO: it would be better if we could use a Filter for this logic.
 
