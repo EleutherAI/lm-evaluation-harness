@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import jinja2
 import torch
@@ -74,6 +74,7 @@ class HFLM(TemplateLM):
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
+        softmax_dtype: Optional[Union[str, torch.dtype]] = None,
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 64,
         trust_remote_code: Optional[bool] = False,
@@ -204,6 +205,7 @@ class HFLM(TemplateLM):
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
+                quantization_config=getattr(self.config, "quantization_config", None),
                 **kwargs,
             )
 
@@ -233,6 +235,9 @@ class HFLM(TemplateLM):
         self.batch_schedule = 1
         self.batch_sizes = {}
         self.max_batch_size = max_batch_size
+        self.softmax_dtype = (
+            get_dtype(softmax_dtype) if softmax_dtype is not None else None
+        )
 
         if str(batch_size).startswith("auto"):
             batch_size = batch_size.split(":")
@@ -546,6 +551,7 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
+        quantization_config: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> None:
         """
@@ -591,6 +597,7 @@ class HFLM(TemplateLM):
                 torch_dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
+                quantization_config=quantization_config,
                 **model_kwargs,
             )
         else:
@@ -765,7 +772,11 @@ class HFLM(TemplateLM):
                     (batch_size, max_length), device=self.device
                 ).long()
             for _ in range(5):
-                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1)  # noqa: F841
+                out = F.log_softmax(  # noqa: F841
+                    self._model_call(test_batch, **call_kwargs),
+                    dim=-1,
+                    dtype=self.softmax_dtype,
+                )
 
             return batch_size
 
@@ -1197,7 +1208,9 @@ class HFLM(TemplateLM):
                 }
 
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1
+                self._model_call(batched_inps, **call_kwargs),
+                dim=-1,
+                dtype=self.softmax_dtype,
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
