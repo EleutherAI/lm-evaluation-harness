@@ -1,7 +1,8 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 RUN apt-get update \
-  && apt-get install -y python3 python3-pip python3-venv
+  && apt-get install -y python3 python3-pip python3-venv \
+  && rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
 COPY . /lm-evaluation-harness
 WORKDIR /lm-evaluation-harness
@@ -16,7 +17,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # prepare lm_eval and extra packages as defined by user
 ARG submodules
 ARG extra_packages
-RUN python3 -m pip install --upgrade pip \
+RUN python3 -m pip install --upgrade --no-cache-dir pip \
   && /lm-evaluation-harness/docker/install_submodules.sh ${submodules} \
   && /lm-evaluation-harness/docker/install_packages.sh ${extra_packages}
 
