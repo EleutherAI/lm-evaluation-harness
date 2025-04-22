@@ -8,17 +8,21 @@ from pathlib import Path
 from typing import Union
 
 from lm_eval import evaluator, utils
-from lm_eval.evaluator import request_caching_arg_to_dict
+# from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import (
-    TrackExplicitAction,
-    TrackExplicitStoreTrue,
     handle_non_serializable,
     load_yaml_config,
     make_table,
-    non_default_update,
-    parse_namespace,
+    request_caching_arg_to_dict,
+    # non_default_update,
+    # parse_namespace,
+)
+from lm_eval.api.eval_config import (
+    TrackExplicitAction,
+    TrackExplicitStoreTrue,
+    EvaluationConfig,
 )
 
 
@@ -353,96 +357,93 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         parser = setup_parser()
         args = parse_eval_args(parser)
 
-    # get namespace from console, including config arg
-    config, non_default_args = parse_namespace(args)
-
-    # if config is passed, load it
-    if config.get("config", False):
-        local_config = load_yaml_config(yaml_path=config["config"])
-        config = non_default_update(config, local_config, non_default_args)
+    config = EvaluationConfig.from_cli(args)
 
     if args.wandb_args:
-        wandb_logger = WandbLogger(config["wandb_args"], config["wandb_config_args"])
+        wandb_logger = WandbLogger(config.wandb_args, config.wandb_config_args)
 
-    utils.setup_logging(config["verbosity"])
-    # utils.setup_logging(args.verbosity)
+    utils.setup_logging(config.verbosity)
     eval_logger = logging.getLogger(__name__)
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
-    if config["output_path"]:
-        config.setdefault("hf_hub_log_args", {})["output_path"] = config["output_path"]
+    if config.output_path:
+        config.hf_hub_log_args["output_path"] = config.output_path
 
     if os.environ.get("HF_TOKEN", None):
-        config.setdefault("hf_hub_log_args", {})["token"] = os.environ.get("HF_TOKEN")
-    evaluation_tracker_args = config["hf_hub_log_args"]
+        config.hf_hub_log_args["token"] = os.environ.get("HF_TOKEN")
+
+    evaluation_tracker_args = config.hf_hub_log_args
     evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
 
-    if config["predict_only"]:
-        config["log_samples"] = True
+    if config.predict_only:
+        config.log_samples = True
 
-    if (config["log_samples"] or config["predict_only"]) and not config["output_path"]:
+    if (config.log_samples or config.predict_only) and not config.output_path:
         raise ValueError(
             "Specify --output_path if providing --log_samples or --predict_only"
         )
 
-    if config["fewshot_as_multiturn"] and config["apply_chat_template"] is False:
+    if config.fewshot_as_multiturn and config.apply_chat_template is False:
         raise ValueError(
             "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
         )
 
-    if config["include_path"] is not None:
-        eval_logger.info(f"Including path: {config['include_path']}")
+    if config.include_path is not None:
+        eval_logger.info(f"Including path: {config.include_path}")
 
-    metadata = (config["model_args"]) | (config["metadata"])
+    metadata = (config.model_args) | (config.metadata)
+    config.metadata = metadata
 
-    task_manager = TaskManager(include_path=config["include_path"], metadata=metadata)
+    # task_manager = TaskManager(include_path=config["include_path"], metadata=metadata)
+    task_manager = TaskManager(include_path=config.include_path, metadata=metadata)
 
-    if "push_samples_to_hub" in evaluation_tracker_args and not config["log_samples"]:
+    if "push_samples_to_hub" in evaluation_tracker_args and not config.log_samples:
         eval_logger.warning(
             "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
         )
 
-    if config["limit"]:
+    if config.limit:
         eval_logger.warning(
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-    if config["samples"]:
-        assert config["limit"] is None, (
+
+    if config.samples:
+        assert config.limit is None, (
             "If --samples is not None, then --limit must be None."
         )
-        if (samples := Path(config["samples"])).is_file():
-            config["samples"] = json.loads(samples.read_text())
+        if (samples := Path(config.samples)).is_file():
+            config.samples = json.loads(samples.read_text())
         else:
-            config["samples"] = json.loads(config["samples"])
+            config.samples = json.loads(config.samples)
 
-    if config["tasks"] is None:
+    if config.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
-    elif config["tasks"] == "list":
+    elif config.tasks == "list":
         print(task_manager.list_all_tasks())
         sys.exit()
-    elif config["tasks"] == "list_groups":
+    elif config.tasks == "list_groups":
         print(task_manager.list_all_tasks(list_subtasks=False, list_tags=False))
         sys.exit()
-    elif config["tasks"] == "list_tags":
+    elif config.tasks == "list_tags":
         print(task_manager.list_all_tasks(list_groups=False, list_subtasks=False))
         sys.exit()
-    elif config["tasks"] == "list_subtasks":
+    elif config.tasks == "list_subtasks":
         print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
     else:
-        if os.path.isdir(config["tasks"]):
+        if os.path.isdir(config.tasks):
             import glob
 
             task_names = []
-            yaml_path = os.path.join(config["tasks"], "*.yaml")
+            yaml_path = os.path.join(config.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
                 config = utils.load_yaml_config(yaml_file)
                 task_names.append(config)
         else:
-            task_list = config["tasks"].split(",")
+            task_list = config.tasks.split(",")
             task_names = task_manager.match_tasks(task_list)
             for task in [task for task in task_list if task not in task_names]:
                 if os.path.isfile(task):
@@ -461,9 +462,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 raise ValueError(
                     f"Tasks not found: {missing}. Try `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above, or pass '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
+        config.tasks = task_names
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
-    if config["trust_remote_code"]:
+    if config.trust_remote_code:
         eval_logger.info(
             "Passed `--trust_remote_code`, setting environment variable `HF_DATASETS_TRUST_REMOTE_CODE=true`"
         )
@@ -474,7 +476,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
-        config.setdefault("model_args", {})["trust_remote_code"] = True
+        config.model_args["trust_remote_code"] = True
     (
         eval_logger.info(f"Selected Tasks: {task_names}")
         if eval_logger.getEffectiveLevel() >= logging.INFO
@@ -482,56 +484,35 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     )
 
     request_caching_args = request_caching_arg_to_dict(
-        cache_requests=config["cache_requests"]
+        cache_requests=config.cache_requests
     )
+    config.request_caching_args = request_caching_args
+
+    print(f"CONFIG_AFTER: {config}")
 
     results = evaluator.simple_evaluate(
-        model=config["model"],
-        model_args=config["model_args"],
-        tasks=task_names,
-        num_fewshot=config["num_fewshot"],
-        batch_size=config["batch_size"],
-        max_batch_size=config["max_batch_size"],
-        device=config["device"],
-        use_cache=config["use_cache"],
-        limit=config["limit"],
-        samples=config["samples"],
-        check_integrity=config["check_integrity"],
-        write_out=config["write_out"],
-        log_samples=config["log_samples"],
+        config=config,
         evaluation_tracker=evaluation_tracker,
-        system_instruction=config["system_instruction"],
-        apply_chat_template=config["apply_chat_template"],
-        fewshot_as_multiturn=config["fewshot_as_multiturn"],
-        gen_kwargs=config["gen_kwargs"],
         task_manager=task_manager,
-        predict_only=config["predict_only"],
-        random_seed=config["seed"][0],
-        numpy_random_seed=config["seed"][1],
-        torch_random_seed=config["seed"][2],
-        fewshot_random_seed=config["seed"][3],
-        confirm_run_unsafe_code=config["confirm_run_unsafe_code"],
-        metadata=metadata,
-        **request_caching_args,
     )
 
     if results is not None:
-        if config["log_samples"]:
+        if config.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(
             results, indent=2, default=handle_non_serializable, ensure_ascii=False
         )
-        if config["show_config"]:
+        if config.show_config:
             print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         # Add W&B logging
-        if config["wandb_args"]:
+        if config.wandb_args:
             try:
                 wandb_logger.post_init(results)
                 wandb_logger.log_eval_result()
-                if config["log_samples"]:
+                if config.log_samples:
                     wandb_logger.log_eval_samples(samples)
             except Exception as e:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
@@ -540,7 +521,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             results=results, samples=samples if args.log_samples else None
         )
 
-        if config["log_samples"]:
+        if config.log_samples:
             for task_name, _ in results["configs"].items():
                 evaluation_tracker.save_results_samples(
                     task_name=task_name, samples=samples[task_name]
@@ -553,14 +534,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             evaluation_tracker.recreate_metadata_card()
 
         print(
-            f"{config['model']} ({config['model_args']}), gen_kwargs: ({config['gen_kwargs']}), limit: {config['limit']}, num_fewshot: {config['num_fewshot']}, "
-            f"batch_size: {config['batch_size']}{f' ({batch_sizes})' if batch_sizes else ''}"
+            f"{config.model} ({config.model_args}), gen_kwargs: ({config.gen_kwargs}), limit: {config.limit}, num_fewshot: {config.num_fewshot}, "
+            f"batch_size: {config.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(make_table(results))
         if "groups" in results:
             print(make_table(results, "groups"))
 
-        if config["wandb_args"]:
+        if config.wandb_args:
             # Tear down wandb run once all the logging is done.
             wandb_logger.run.finish()
 
