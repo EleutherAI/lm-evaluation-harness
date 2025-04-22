@@ -138,7 +138,7 @@ DATASETS = [
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--save_prefix_path", default="longbench")
+    parser.add_argument("--save_prefix_path", default="")
     return parser.parse_args()
 
 
@@ -156,6 +156,7 @@ generation_kwargs:
   max_gen_toks: {{ generation_kwargs.max_gen_toks }}
   temperature: {{ generation_kwargs.temperature }}
   do_sample: {{ generation_kwargs.do_sample }}
+  until: {{ generation_kwargs.until }}
 metric_list:
   - metric: {{ metric_list[0].metric }}
     aggregation: {{ metric_list[0].aggregation }}
@@ -171,10 +172,21 @@ if __name__ == "__main__":
     template = env.from_string(template_str)
     for ds in DATASETS:
         df = ds[:-2] if ds.endswith("_e") else ds
+        # from https://github.com/THUDM/LongBench/blob/2e00731f8d0bff23dc4325161044d0ed8af94c1e/LongBench/eval.py#L52C25-L52C29
+        if df in ["trec", "triviaqa", "samsum", "lsht"] + [
+            "trec_e",
+            "triviaqa_e",
+            "samsum_e",
+            "lsht_e",
+        ]:
+            until = ["\n"]
+        else:
+            until = []
         generation_kwargs = {
             "max_gen_toks": dataset2maxlen[df],
             "temperature": 1,
             "do_sample": True,
+            "until": until,
         }
         raw_doc_to_text = (
             dataset2prompt[df]
@@ -199,10 +211,10 @@ if __name__ == "__main__":
             "test_split": "test",
             "dataset_name": ds,
             "doc_to_text": raw_doc_to_text,
-            "doc_to_target": "{{answers}}",
+            "doc_to_target": "{{answers[0]}}",
             "generation_kwargs": generation_kwargs,
             "metric_list": metric_list,
-            "metadata": {"version": "1.0"},
+            "metadata": {"version": "2.0"},
         }
 
         # Render template
@@ -211,35 +223,3 @@ if __name__ == "__main__":
         # Save to file
         with open(args.save_prefix_path + f"{ds}.yaml", "w") as f:
             f.write(rendered_yaml)
-
-    # for ds in DATASETS:
-    #     df = ds[:-2] if ds.endswith("_e") else ds
-    #     generation_kwargs = {"max_gen_toks": dataset2maxlen[df], "temperature": 1, "do_sample": False}
-    #     # Escape newlines and curly braces
-    #     raw_doc_to_text = dataset2prompt[df].replace("\n", "\\n").replace("{", "{{").replace("}", "}}")
-    #     metric_list = [
-    #         {"metric": f"!function metrics.{dataset2metric[df]}", "aggregation": "mean", "higher_is_better": True}]
-    #     yaml_dict = {
-    #         "tag": ["longbench_e" if ds.endswith("_e") else "longbench"],
-    #         "task": f"longbench_{ds}",
-    #         "dataset_path": "THUDM/LongBench",
-    #         "test_split": "test",
-    #         "dataset_name": ds,
-    #         "doc_to_text": raw_doc_to_text,
-    #         "doc_to_target": "{{answers}}",
-    #         "generation_kwargs": generation_kwargs,
-    #         "metric_list": metric_list,
-    #         "metadata": {"version": "1.0"}
-    #     }
-    #     template = env.from_string(yaml_dict)
-    #
-    #
-    #     file_save_path = args.save_prefix_path + f"{ds}.yaml"
-    #     with open(file_save_path, "w", encoding="utf-8") as yaml_file:
-    #         yaml.dump(
-    #             yaml_dict,
-    #             yaml_file,
-    #             allow_unicode=True,
-    #             default_flow_style=False,
-    #             sort_keys=False
-    #         )
