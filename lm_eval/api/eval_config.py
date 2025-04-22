@@ -1,9 +1,11 @@
-import os
-import yaml
-from argparse import Namespace
-from typing import Any, Dict, Union, Optional
 import argparse
+import os
+from argparse import Namespace
+from typing import Any, Dict, Optional, Union
+
+import yaml
 from pydantic import BaseModel
+
 from lm_eval.utils import simple_parse_args_string
 
 
@@ -21,6 +23,7 @@ class EvaluationConfig(BaseModel):
     Simple config container for language-model evaluation.
     No content validation here—just holds whatever comes from YAML or CLI.
     """
+
     config: Optional[str]
     model: Optional[str]
     model_args: Optional[dict]
@@ -53,7 +56,6 @@ class EvaluationConfig(BaseModel):
     confirm_run_unsafe_code: Optional[bool]
     metadata: Optional[dict]
     request_caching_args: Optional[dict] = None
-
 
     @staticmethod
     def parse_namespace(namespace: argparse.Namespace) -> Dict[str, Any]:
@@ -90,7 +92,6 @@ class EvaluationConfig(BaseModel):
 
         return config, non_default_args
 
-
     @staticmethod
     def non_default_update(console_dict, local_dict, non_default_args):
         """
@@ -117,7 +118,6 @@ class EvaluationConfig(BaseModel):
 
         return result_config
 
-
     @classmethod
     def from_cli(cls, namespace: Namespace) -> "EvaluationConfig":
         """
@@ -142,7 +142,9 @@ class EvaluationConfig(BaseModel):
             except yaml.YAMLError as e:
                 raise ValueError(f"Invalid YAML in {cfg_path}: {e}")
             if not isinstance(yaml_data, dict):
-                raise ValueError(f"YAML root must be a mapping, got {type(yaml_data).__name__}")
+                raise ValueError(
+                    f"YAML root must be a mapping, got {type(yaml_data).__name__}"
+                )
             config_data.update(yaml_data)
 
         # 3. Override with any CLI args the user explicitly passed
@@ -153,7 +155,9 @@ class EvaluationConfig(BaseModel):
         #         config_data[key] = val
         print(f"YAML: {config_data}")
         print(f"CLI: {args_dict}")
-        dict_config = EvaluationConfig.non_default_update(args_dict, config_data, explicit_args)
+        dict_config = EvaluationConfig.non_default_update(
+            args_dict, config_data, explicit_args
+        )
 
         # 4. Instantiate the Pydantic model (no further validation here)
         return cls(**dict_config)

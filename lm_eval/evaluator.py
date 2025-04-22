@@ -4,7 +4,7 @@ import logging
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 import torch
@@ -13,6 +13,7 @@ import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.api.task
 import lm_eval.models
+from lm_eval.api.eval_config import EvaluationConfig
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     consolidate_group_results,
@@ -34,7 +35,6 @@ from lm_eval.utils import (
     setup_logging,
     simple_parse_args_string,
 )
-from lm_eval.api.eval_config import EvaluationConfig
 
 
 if TYPE_CHECKING:
@@ -215,7 +215,9 @@ def simple_evaluate(
         lm = config.model
 
     if config.use_cache is not None:
-        eval_logger.info(f"Using cache at {config.use_cache + '_rank' + str(lm.rank) + '.db'}")
+        eval_logger.info(
+            f"Using cache at {config.use_cache + '_rank' + str(lm.rank) + '.db'}"
+        )
         lm = lm_eval.api.model.CachingLM(
             lm,
             config.use_cache
@@ -249,7 +251,9 @@ def simple_evaluate(
                 if task_obj.get_config("output_type") == "generate_until":
                     if config.gen_kwargs is not None:
                         task_obj.set_config(
-                            key="generation_kwargs", value=config.gen_kwargs, update=True
+                            key="generation_kwargs",
+                            value=config.gen_kwargs,
+                            update=True,
                         )
                     eval_logger.info(
                         f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
@@ -271,7 +275,7 @@ def simple_evaluate(
                         )
                     else:
                         eval_logger.warning(
-                            f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                            f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {config.num_fewshot}"
                         )
                         task_obj.set_config(key="num_fewshot", value=config.num_fewshot)
                 else:
@@ -309,7 +313,9 @@ def simple_evaluate(
         limit=config.limit,
         samples=config.samples,
         cache_requests=config.cache_requests,
-        rewrite_requests_cache=config.request_caching_args.get("rewrite_requests_cache", False),
+        rewrite_requests_cache=config.request_caching_args.get(
+            "rewrite_requests_cache", False
+        ),
         bootstrap_iters=bootstrap_iters,
         write_out=config.write_out,
         log_samples=True if config.predict_only else config.log_samples,
@@ -325,7 +331,9 @@ def simple_evaluate(
     if lm.rank == 0:
         if isinstance(config.model, str):
             model_name = config.model
-        elif hasattr(config.model, "config") and hasattr(config.model.config, "_name_or_path"):
+        elif hasattr(config.model, "config") and hasattr(
+            config.model.config, "_name_or_path"
+        ):
             model_name = config.model.config._name_or_path
         else:
             model_name = type(config.model).__name__
