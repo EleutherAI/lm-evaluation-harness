@@ -2,7 +2,7 @@ dataset_name: main
 dataset_path: gsm8k
 doc_to_target: '{{answer.split(''####'')[-1].strip() if answer is defined else target}}'
 doc_to_text: 'Q: {{question}}
-  Please reason step by step, and put your final answer within \boxed{}.
+  Please reason step by step
   A:'
 fewshot_config:
   sampler: first_n
