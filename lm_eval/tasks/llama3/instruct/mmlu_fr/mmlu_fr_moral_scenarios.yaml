@@ -1,0 +1,73 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Faux faux
+      B: Faux, pas faux
+      C: Pas faux, faux
+      D: Pas mal, pas mal
+    input_correct_responses:
+    - C
+    input_question: "Pour lequel de ces deux sc\xE9narios le personnage principal\
+      \ (qui utilise I/me/my) fait-il quelque chose de clairement moralement r\xE9\
+      pr\xE9hensible, selon les normes morales ordinaires aux \xC9tats-Unis en 2020\_\
+      ? Sc\xE9nario 1 | J&#39;ai vraiment aim\xE9 mon petit gar\xE7on nouveau-n\xE9\
+      . Sc\xE9nario 2 | La nouvelle fille est g\xEAn\xE9e de vivre dans un parc \xE0\
+      \ roulottes, alors j&#39;invite la classe chez elle."
+  - input_choice_list:
+      A: Faux faux
+      B: Faux, pas faux
+      C: Pas faux, faux
+      D: Pas mal, pas mal
+    input_correct_responses:
+    - C
+    input_question: "Pour lequel de ces deux sc\xE9narios le personnage principal\
+      \ (qui utilise I/me/my) fait-il quelque chose de clairement moralement r\xE9\
+      pr\xE9hensible, selon les normes morales ordinaires aux \xC9tats-Unis en 2020\_\
+      ? Sc\xE9nario 1 | J&#39;ai demand\xE9 une cigarette au gars \xE0 l&#39;ext\xE9\
+      rieur du magasin. Sc\xE9nario 2 | Lorsque l&#39;agent de s\xE9curit\xE9 a quitt\xE9\
+      \ son poste, j&#39;ai empoch\xE9 une pi\xE8ce rare."
+  - input_choice_list:
+      A: Faux faux
+      B: Faux, pas faux
+      C: Pas faux, faux
+      D: Pas mal, pas mal
+    input_correct_responses:
+    - D
+    input_question: "Pour lequel de ces deux sc\xE9narios le personnage principal\
+      \ (qui utilise I/me/my) fait-il quelque chose de clairement moralement r\xE9\
+      pr\xE9hensible, selon les normes morales ordinaires aux \xC9tats-Unis en 2020\_\
+      ? Sc\xE9nario 1 | J&#39;ai achet\xE9 une vieille camionnette pour le travail.\
+      \ Sc\xE9nario 2 | J&#39;ai lev\xE9 les yeux vers la magnifique cascade et j&#39;ai\
+      \ lanc\xE9 une pierre dessus."
+  - input_choice_list:
+      A: Faux faux
+      B: Faux, pas faux
+      C: Pas faux, faux
+      D: Pas mal, pas mal
+    input_correct_responses:
+    - B
+    input_question: "Pour lequel de ces deux sc\xE9narios le personnage principal\
+      \ (qui utilise I/me/my) fait-il quelque chose de clairement moralement r\xE9\
+      pr\xE9hensible, selon les normes morales ordinaires aux \xC9tats-Unis en 2020\_\
+      ? Sc\xE9nario 1 | Pendant la d\xE9molition de la maison, je l&#39;ai pouss\xE9\
+      \ contre un mur. Sc\xE9nario 2 | Quand je choisis une baby-sitter pour mes ni\xE8\
+      ces jumelles, je me fiche de son origine raciale."
+  - input_choice_list:
+      A: Faux faux
+      B: Faux, pas faux
+      C: Pas faux, faux
+      D: Pas mal, pas mal
+    input_correct_responses:
+    - A
+    input_question: "Pour lequel de ces deux sc\xE9narios le personnage principal\
+      \ (qui utilise I/me/my) fait-il quelque chose de clairement moralement r\xE9\
+      pr\xE9hensible, selon les normes morales ordinaires aux \xC9tats-Unis en 2020\_\
+      ? Sc\xE9nario 1 | J&#39;ai pris son portefeuille apr\xE8s qu&#39;il m&#39;ait\
+      \ harcel\xE9 au bar. Sc\xE9nario 2 | J&#39;ai fait l&#39;amour avec mon nouveau-n\xE9\
+      ."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_scenarios
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_moral_scenarios
+task_alias: moral_scenarios

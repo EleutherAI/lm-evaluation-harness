@@ -113,6 +113,9 @@ class TaskConfig(dict):
                 )
 
             if "until" not in self.generation_kwargs:
+                eval_logger.warning(
+                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                )
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
             if self.output_type == "generate_until":
@@ -124,7 +127,11 @@ class TaskConfig(dict):
                         else [self.fewshot_delimiter]
                     ),
                     "do_sample": False,
+                    "temperature": 0,
                 }
+                eval_logger.warning(
+                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                )
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -384,6 +391,7 @@ class Task(abc.ABC):
         self,
         *,
         limit: Union[int, None] = None,
+        samples: Optional[List[int]] = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
@@ -436,7 +444,9 @@ class Task(abc.ABC):
             limit = None
 
         doc_id_docs = list(
-            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+            self.doc_iterator(
+                rank=rank, limit=limit, samples=samples, world_size=world_size
+            )
         )
 
         num_docs = len(doc_id_docs)
@@ -684,15 +694,35 @@ class Task(abc.ABC):
             )
 
     def doc_iterator(
-        self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
+        self,
+        *,
+        rank: int = 0,
+        limit: Union[int, None] = None,
+        world_size: int = 1,
+        samples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
-        limit = int(limit) if limit else None
-        doc_iterator = utils.create_iterator(
-            enumerate(self.eval_docs),
-            rank=int(rank),
-            limit=limit,
-            world_size=int(world_size),
-        )
+        if samples:
+            n = len(self.eval_docs)
+            assert all([e < n for e in samples]), (
+                f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            )
+            eval_logger.info(
+                f"{self.config.task}: Evaluating on {len(samples)} examples"
+            )
+            doc_iterator = utils.create_iterator(
+                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
+                rank=int(rank),
+                limit=None,  # limit does not matter here since we are selecting samples directly
+                world_size=int(world_size),
+            )
+        else:
+            limit = int(limit) if limit else None
+            doc_iterator = utils.create_iterator(
+                enumerate(self.eval_docs),
+                rank=int(rank),
+                limit=limit,
+                world_size=int(world_size),
+            )
         return doc_iterator
 
 
@@ -905,11 +935,17 @@ class ConfigurableTask(Task):
                 num_choice = len(test_choice)
 
             if isinstance(test_text, int):
+                eval_logger.debug(
+                    "doc_to_text returned an int. Assuming multiple inputs."
+                )
                 self.multiple_input = num_choice
         else:
             test_choice = None
 
         if isinstance(test_target, list):
+            eval_logger.debug(
+                "doc_to_target returned a list. Assuming multiple targets."
+            )
             self.multiple_target = len(test_target)
         else:
             if (isinstance(test_target, int)) and (test_choice is not None):

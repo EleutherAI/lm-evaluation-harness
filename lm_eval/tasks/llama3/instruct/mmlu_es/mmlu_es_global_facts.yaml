@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "La gente tiende a ser optimista acerca de su propio futuro y el futuro de\
+        \ su naci\xF3n o del mundo."
+      B: "La gente tiende a ser optimista acerca de su propio futuro pero pesimista\
+        \ acerca del futuro de su naci\xF3n o del mundo."
+      C: "La gente tiende a ser pesimista acerca de su propio futuro pero optimista\
+        \ acerca del futuro de su naci\xF3n o del mundo."
+      D: "La gente tiende a ser pesimista sobre su propio futuro y el futuro de su\
+        \ naci\xF3n o del mundo."
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de los siguientes pares de afirmaciones son verdaderas\
+      \ (a partir de 2019)?"
+  - input_choice_list:
+      A: 31%
+      B: 46%
+      C: 61%
+      D: 76%
+    input_correct_responses:
+    - B
+    input_question: "A partir de 2019, \xBFqu\xE9 porcentaje aproximado de estadounidenses\
+      \ est\xE1n de acuerdo en que el estado se gestiona en beneficio de todo el pueblo?"
+  - input_choice_list:
+      A: aumentado, aumentado
+      B: aumentado disminuido
+      C: disminuido, aumentado
+      D: disminuido, disminuido
+    input_correct_responses:
+    - B
+    input_question: "A partir de 2015, desde 1990 los bosques tienen ____ en Europa\
+      \ y ____ en \xC1frica y Am\xE9rica."
+  - input_choice_list:
+      A: 38%
+      B: 53%
+      C: 68%
+      D: 83%
+    input_correct_responses:
+    - A
+    input_question: "A partir de 2019, \xBFqu\xE9 porcentaje de rusos dicen que es\
+      \ muy importante tener medios de comunicaci\xF3n libres en nuestro pa\xEDs sin\
+      \ censura gubernamental o estatal?"
+  - input_choice_list:
+      A: 80%
+      B: 60%
+      C: 40%
+      D: 20%
+    input_correct_responses:
+    - A
+    input_question: "A 2017, \xBFcu\xE1ntos de los ni\xF1os de 1 a\xF1o que hay hoy\
+      \ en el mundo han sido vacunados contra alguna enfermedad? *"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_global_facts
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_global_facts
+task_alias: global_facts

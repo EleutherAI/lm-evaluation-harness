@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "via des transporteurs de prot\xE9ines appel\xE9s GLUT4."
+      B: "uniquement en pr\xE9sence d&#39;insuline."
+      C: via l&#39;hexokinase.
+      D: via des transporteurs d&#39;acide monocarbylique.
+    input_correct_responses:
+    - A
+    input_question: "Le glucose est transport\xE9 dans la cellule musculaire :"
+  - input_choice_list:
+      A: "Le glycog\xE8ne musculaire est d\xE9compos\xE9 enzymatiquement en glucose-1-phosphate"
+      B: "Les coureurs d&#39;endurance d&#39;\xE9lite ont une forte proportion de\
+        \ fibres de type I dans les muscles de leurs jambes"
+      C: "Le glycog\xE8ne h\xE9patique est important dans le maintien de la glyc\xE9\
+        mie"
+      D: L&#39;insuline favorise l&#39;absorption du glucose par tous les tissus du
+        corps
+    input_correct_responses:
+    - D
+    input_question: "Lequel des \xE9nonc\xE9s suivants n&#39;est pas une affirmation\
+      \ vraie\_?"
+  - input_choice_list:
+      A: "Tous les descendants du c\xF4t\xE9 maternel auront la maladie."
+      B: "Les femmes seront environ deux fois plus touch\xE9es que les hommes dans\
+        \ cette famille."
+      C: "Toutes les filles d&#39;un m\xE2le affect\xE9 seront affect\xE9es."
+      D: "Il y aura une r\xE9partition \xE9gale des hommes et des femmes touch\xE9\
+        s."
+    input_correct_responses:
+    - C
+    input_question: "Dans un test g\xE9n\xE9tique d&#39;un nouveau-n\xE9, on d\xE9\
+      couvre une maladie g\xE9n\xE9tique rare qui a une transmission r\xE9cessive\
+      \ li\xE9e \xE0 l&#39;X. Laquelle des affirmations suivantes est probablement\
+      \ vraie concernant le pedigree de ce trouble\_?"
+  - input_choice_list:
+      A: "Augmentation de la temp\xE9rature, augmentation des moles de gaz"
+      B: "Augmentation de la temp\xE9rature, augmentation du volume"
+      C: "Volume d\xE9croissant, temp\xE9rature d\xE9croissante"
+      D: Diminution des moles de gaz, augmentation du volume
+    input_correct_responses:
+    - A
+    input_question: "Un professeur de sciences au lyc\xE9e remplit une bouteille d&#39;un\
+      \ litre d&#39;azote pur et scelle le couvercle. La pression est de 1,70 atm\
+      \ et la temp\xE9rature ambiante est de 25\xB0C. Quelles sont les deux variables\
+      \ qui augmenteront toutes les deux la pression du syst\xE8me, si toutes les\
+      \ autres variables sont maintenues constantes\_?"
+  - input_choice_list:
+      A: faiblesse musculaire.
+      B: gain de masse corporelle.
+      C: crampes musculaires.
+      D: "perte d&#39;\xE9lectrolytes."
+    input_correct_responses:
+    - B
+    input_question: "Un effet secondaire attendu de la suppl\xE9mentation en cr\xE9\
+      atine est\_:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_medicine
+tag: mmlu_fr_llama_other_tasks
+task: mmlu_fr_llama_college_medicine
+task_alias: college_medicine

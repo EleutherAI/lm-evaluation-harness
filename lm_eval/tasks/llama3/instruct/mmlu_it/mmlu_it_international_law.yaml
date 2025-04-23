@@ -1,0 +1,71 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "L\u2019articolo 2, paragrafo 4 riguarda solo la forza armata"
+      B: "L\u2019articolo 2, paragrafo 4, comprende tutti i tipi di forza, comprese\
+        \ le sanzioni"
+      C: "L\u2019articolo 2, paragrafo 4, comprende tutte le ingerenze negli affari\
+        \ interni degli Stati"
+      D: "L&#39;articolo 2, paragrafo 4, comprende la forza diretta esclusivamente\
+        \ contro l&#39;integrit\xE0 territoriale di uno Stato"
+    input_correct_responses:
+    - A
+    input_question: "Quali tipi di forza vietano l\u2019articolo 2, paragrafo 4, della\
+      \ Carta delle Nazioni Unite?"
+  - input_choice_list:
+      A: Se una parte in un caso controverso dinanzi all&#39;ICJ non ha una seduta
+        nazionale come giudice, ha il diritto di nominare qualcuno come giudice esclusivamente
+        per quel caso, con il titolo di giudice ad hoc
+      B: "Il giudice ad hoc \xE8 il membro del collegio giudicante della Corte internazionale\
+        \ di giustizia con voto decisivo"
+      C: "Il giudice ad hoc \xE8 un giudice surrogato, nel caso in cui un giudice\
+        \ venga squalificato o muoia"
+      D: "Il giudice ad hoc \xE8 il giudice che ciascuna parte nominer\xE0 sempre\
+        \ in ogni causa controversa"
+    input_correct_responses:
+    - A
+    input_question: "Qual \xE8 il giudice ad hoc?"
+  - input_choice_list:
+      A: "Questa \xE8 una riserva accettabile se la legislazione del paese che effettua\
+        \ la riserva utilizza una definizione diversa"
+      B: "Si tratta di una riserva inaccettabile poich\xE9 contravviene all\u2019\
+        oggetto e allo scopo dell\u2019ICCPR"
+      C: "Si tratta di una riserva inaccettabile poich\xE9 la definizione di tortura\
+        \ contenuta nell\u2019ICCPR \xE8 coerente con il diritto internazionale consuetudinario"
+      D: "Questa \xE8 una riserva accettabile perch\xE9 secondo il diritto internazionale\
+        \ generale gli Stati hanno il diritto di apporre riserve ai trattati"
+    input_correct_responses:
+    - B
+    input_question: "Una riserva alla definizione di tortura contenuta nell\u2019\
+      ICCPR sarebbe accettabile nella pratica contemporanea?"
+  - input_choice_list:
+      A: "Il consenso pu\xF2 servire come circostanza escludente l&#39;illegittimit\xE0\
+        \ ogni volta che viene prestato"
+      B: "Il consenso non pu\xF2 mai costituire una circostanza ostativa all\u2019\
+        illegittimit\xE0"
+      C: "Il consenso pu\xF2 costituire una circostanza escludente l&#39;illegittimit\xE0\
+        , purch\xE9 il consenso sia valido e nella misura in cui la condotta rimanga\
+        \ nei limiti del consenso prestato"
+      D: "Il consenso pu\xF2 sempre costituire una circostanza ostativa all&#39;illegittimit\xE0\
+        , qualunque sia l&#39;organo dello Stato che lo presta"
+    input_correct_responses:
+    - C
+    input_question: "Quando il \u201Cconsenso\u201D pu\xF2 fungere da circostanza\
+      \ ostativa all&#39;illegittimit\xE0 di una condotta dello Stato?"
+  - input_choice_list:
+      A: Il consenso di uno Stato ad essere vincolato si esprime solo mediante ratifica
+      B: "Il consenso di uno Stato ad essere vincolato da un trattato pu\xF2 essere\
+        \ espresso mediante firma, ratifica, accettazione, approvazione o adesione"
+      C: Il consenso di uno Stato ad essere vincolato si esprime mediante la firma
+      D: "Il consenso di uno Stato ad essere vincolato \xE8 espresso con qualunque\
+        \ mezzo scelga"
+    input_correct_responses:
+    - B
+    input_question: "Come pu\xF2 essere espresso il consenso di uno Stato ad essere\
+      \ vincolato?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_international_law
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_international_law
+task_alias: international_law

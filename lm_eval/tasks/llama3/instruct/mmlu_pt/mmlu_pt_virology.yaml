@@ -1,0 +1,52 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Porque eles n\xE3o t\xEAm \xE1cido nucl\xE9ico"
+      B: "Eles exigem um v\xEDrus auxiliar"
+      C: "Replicar apenas em c\xE9lulas em divis\xE3o"
+      D: Pode integrar-se aos cromossomos do hospedeiro
+    input_correct_responses:
+    - A
+    input_question: "Por que os parvov\xEDrus s\xE3o um parasita altamente impactante?"
+  - input_choice_list:
+      A: "V\xEDrus fr\xE1geis frequentemente visualizados com RNA expelido de dentro"
+      B: "V\xEDrus alongados"
+      C: "V\xEDrus icosa\xE9dricos com envelope"
+      D: "V\xEDrus muito grandes"
+    input_correct_responses:
+    - A
+    input_question: "Qual das alternativas a seguir \xE9 uma caracter\xEDstica morfol\xF3\
+      gica dos paramixov\xEDrus."
+  - input_choice_list:
+      A: "Cole\xE7\xE3o de dados"
+      B: "Estabelecimento de um reposit\xF3rio de amostras biol\xF3gicas"
+      C: Interesse do participante
+      D: "Administra\xE7\xE3o do question\xE1rio pela equipe"
+    input_correct_responses:
+    - B
+    input_question: "Um fator chave que facilitou a aplica\xE7\xE3o de estudos de\
+      \ caso-controle aninhados do MACS foi:"
+  - input_choice_list:
+      A: "Mudan\xE7a de comportamento"
+      B: Cobertura abrangente
+      C: Uso eficaz da teoria comportamental
+      D: "Mudan\xE7a sustentada de comportamento"
+    input_correct_responses:
+    - D
+    input_question: "O objetivo mais importante de uma interven\xE7\xE3o comportamental\
+      \ \xE9:"
+  - input_choice_list:
+      A: "Indiv\xEDduos soroprevalentes infectados pelo HIV"
+      B: Soronegativos
+      C: Soroconversores
+      D: Soronegativos de alto risco
+    input_correct_responses:
+    - C
+    input_question: "O tempo m\xE9dio de sobreviv\xEAncia \xE0 SIDA e \xE0 morte foi\
+      \ estabelecido da seguinte forma:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_virology
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_virology
+task_alias: virology

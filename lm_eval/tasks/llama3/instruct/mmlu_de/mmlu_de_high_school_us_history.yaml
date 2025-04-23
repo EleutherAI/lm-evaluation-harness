@@ -1,0 +1,171 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Organisierte Reaktion auf Bacon&#39;s Rebellion
+      B: Bundesantwort auf Shays Rebellion
+      C: Reaktion des Bundes auf die Whisky-Rebellion
+      D: Bundesantwort auf Pontiacs Rebellion
+    input_correct_responses:
+    - C
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      Die Gesellschaft in jedem Staat ist ein Segen, aber die Regierung selbst in\
+      \ ihrem besten Zustand ist nur ein notwendiges \xDCbel; in ihrem schlimmsten\
+      \ Zustand ein unertr\xE4gliches; denn wenn wir leiden oder von einer Regierung\
+      \ demselben Elend ausgesetzt werden, das wir erwarten k\xF6nnten In einem Land\
+      \ ohne Regierung wird unser Ungl\xFCck noch verst\xE4rkt, wenn wir daran denken,\
+      \ dass wir die Mittel liefern, durch die wir leiden.Regierung ist wie Kleidung\
+      \ das Zeichen verlorener Unschuld;die Pal\xE4ste der K\xF6nige sind auf den\
+      \ Ruinen der Lauben des Paradieses gebaut W\xE4ren die Impulse des Gewissens\
+      \ klar, einheitlich und unwiderstehlich befolgt, br\xE4uchte der Mensch keinen\
+      \ anderen Gesetzgeber; da dies aber nicht der Fall ist, h\xE4lt er es f\xFC\
+      r notwendig, einen Teil seines Eigentums aufzugeben, um Mittel zum Schutz des\
+      \ \xFCbrigen bereitzustellen; und dies wird er durch die gleiche Klugheit veranla\xDF\
+      t, die ihm in jedem anderen Fall r\xE4t, von zwei \xDCbeln das geringste zu\
+      \ w\xE4hlen.Daher die Sicherheit das wahre Ziel und Ziel der Regierung ist,\
+      \ folgt unwiderlegbar, dass jede Form davon am wahrscheinlichsten zu gew\xE4\
+      hrleisten scheint es ist f\xFCr uns, mit dem geringsten Aufwand und dem gr\xF6\
+      \xDFten Nutzen, allen anderen vorzuziehen.&quot; Thomas Paine, Common Sense,\
+      \ 1776 Welches der oben erw\xE4hnten \u201EMiseren\u201C wurde von den Anti-F\xF6\
+      deralisten der postrevolution\xE4ren \xC4ra am meisten verurteilt?"
+  - input_choice_list:
+      A: Spannungen zwischen der britischen Politik und den Bestrebungen der nordamerikanischen
+        Kolonisten.
+      B: "Spannungen zwischen Indianern, die mit den Franzosen verb\xFCndet sind,\
+        \ und denen, die mit den Briten verb\xFCndet sind."
+      C: "Spannungen zwischen befreiten Afroamerikanern und wei\xDFen Pflanzern."
+      D: Spannungen zwischen Siedlern im Hinterland und Eliten im kolonialen Amerika.
+    input_correct_responses:
+    - D
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      Da unser letztes Verhalten im Conestoga Manor und in Lancaster viele Spekulationen\
+      \ und eine gro\xDFe Vielfalt von Stimmungen in dieser und benachbarten Regierungen\
+      \ ausgel\xF6st hat; einige rechtfertigen und andere verurteilen es; einige mildern\
+      \ das Verbrechen wohlt\xE4tig und andere malen es b\xF6swillig in den abscheulichsten\
+      \ &amp; verabscheuungsw\xFCrdige Farben, wir halten es f\xFCr unsere Pflicht,\
+      \ der \xD6ffentlichkeit die ganze Angelegenheit vorzulegen, wie sie uns erschienen\
+      \ ist und immer noch erscheint ... &quot;Wenn diese Dinge nicht ausreichen,\
+      \ um eine ungerechtfertigte Bindung der Qu\xE4ker an die Indianer-Wilden zu\
+      \ beweisen , eine feste Entschlossenheit, sich mit ihnen anzufreunden, und eine\
+      \ v\xF6llige Unempfindlichkeit gegen\xFCber menschlichen N\xF6ten, lassen Sie\
+      \ uns einige neuere Tatsachen betrachten. Als wir im letzten Sommer feststellten,\
+      \ dass wir wahrscheinlich keine Unterst\xFCtzung von der Regierung bekommen\
+      \ w\xFCrden, gingen einige Freiwillige auf unsere eigenen Kosten los, entschlossen,\
+      \ unsere Feinde von unseren Grenzen zu vertreiben; &amp; als wir uns der gro\xDF\
+      en Insel n\xE4herten, begriffen wir, dass eine Anzahl ihrer Krieger gegen unsere\
+      \ Grenzen ausgezogen waren. Daraufhin kehrten wir zur\xFCck und kamen mit ihnen\
+      \ herauf und k\xE4mpften mit ihnen am Munfey Hill, wo wir einige unserer M\xE4\
+      nner verloren und einige ihrer Krieger t\xF6teten und dadurch unsere Grenzen\
+      \ in einer anderen Expedition vor dieser Geschichte retteten. Aber kaum hatten\
+      \ wir ihre Vorr\xE4te auf der gro\xDFen Insel zerst\xF6rt und ihren Handel mit\
+      \ den guten Leuten in Bethlehem ruiniert, da wurden gerade diese Indianer, die\
+      \ zu Recht verd\xE4chtigt wurden, unsere Freunde in Northampton County ermordet\
+      \ zu haben, durch den Einfluss einiger Qu\xE4ker gefangen genommen unter dem\
+      \ Schutz der Regierung, um sie vor den Ressentiments der Freunde und Verwandten\
+      \ der Ermordeten zu sch\xFCtzen und sie durch den Winter zu unterst\xFCtzen.&quot;\
+      \ \u2014&quot;Apology of the Paxton Boys&quot; (Brosch\xFCre), 1764 (Anmerkung:\
+      \ &quot;Entschuldigung&quot; in dieser Zusammenhang sollte als Erkl\xE4rung\
+      \ gelesen werden, nicht als Eingest\xE4ndnis von Schuld oder Bedauern.) Welche\
+      \ der anhaltenden Spannungen w\xE4hrend der Kolonialzeit in der amerikanischen\
+      \ Geschichte spiegeln die in der obigen Erkl\xE4rung ausgedr\xFCckten Gef\xFC\
+      hle wider?"
+  - input_choice_list:
+      A: "die Gleichberechtigungs\xE4nderung"
+      B: allgemeines Wahlrecht
+      C: die Rechte der Staaten
+      D: Verbot
+    input_correct_responses:
+    - B
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. \u201E\
+      In dem neuen Gesetzbuch, von dem ich annehme, dass es f\xFCr Sie notwendig sein\
+      \ wird, m\xF6chte ich, dass Sie sich an die Damen erinnern und ihnen gegen\xFC\
+      ber gro\xDFz\xFCgiger und wohlwollender sind als Ihre Vorfahren. Legen Sie nicht\
+      \ eine solche unbegrenzte Macht in die H\xE4nde der Ehem\xE4nner . Denken Sie\
+      \ daran, dass alle M\xE4nner Tyrannen w\xE4ren, wenn sie k\xF6nnten. Wenn den\
+      \ Damen keine besondere Sorgfalt und Aufmerksamkeit geschenkt wird, sind wir\
+      \ entschlossen, eine Rebellion zu sch\xFCren, und werden uns nicht an Gesetze\
+      \ binden, in denen wir keine Stimme oder Vertretung haben. Abigail Adams schrieb\
+      \ 1776 in einem Brief an John Adams: \u201ESondergesetzgebung f\xFCr Frauen\
+      \ hat uns in eine \xE4u\xDFerst anomale Position gebracht Untertanen im n\xE4\
+      chsten. In einigen Staaten kann eine verheiratete Frau Eigentum besitzen und\
+      \ Gesch\xE4fte in ihrem eigenen Namen t\xE4tigen; in anderen geh\xF6ren ihre\
+      \ Eink\xFCnfte ihrem Ehemann. In einigen Staaten kann eine Frau gegen ihren\
+      \ Ehemann aussagen, klagen und verklagt werden die Gerichte; in anderen hat\
+      \ sie keinen Rechtsschutz im Falle von Personen-, Verm\xF6gens- oder Verm\xF6\
+      genssch\xE4den. Im Falle einer Scheidung wegen Ehebruchs des Ehemanns wird der\
+      \ unschuldigen Ehefrau kein Recht auf Kinder oder Eigentum zuerkannt, es sei\
+      \ denn durch Sondererlass des Gerichts. Aber in keinem Staat der Union hat die\
+      \ Ehefrau das Recht auf ihre eigene Person oder auf irgendeinen Teil des gemeinsamen\
+      \ Einkommens aus der Lebenspartnerschaft w\xE4hrend des Lebens ihres Ehemanns.\
+      \ In einigen Staaten k\xF6nnen Frauen in die Partnerschaft eintreten juristische\
+      \ Fakult\xE4ten und Praxis vor Gericht, in anderen sind sie verboten. An einigen\
+      \ Universit\xE4ten genie\xDFen M\xE4dchen die gleichen Bildungsvorteile wie\
+      \ Jungen, w\xE4hrend viele der stolzesten Institutionen des Landes ihnen den\
+      \ Zugang verweigern, obwohl die S\xF6hne Chinas, Japans und Afrikas dort willkommen\
+      \ sind. Aber die in den verschiedenen Staaten bereits gew\xE4hrten Privilegien\
+      \ sind keineswegs sicher.\u201C Susan B. Anthony, \u201EDeclaration of Rights\
+      \ for Women\u201C, 4. Juli 1876 Die im zweiten Auszug von Susan B. Anthony zum\
+      \ Ausdruck gebrachten Gef\xFChle sind h\xF6chstwahrscheinlich unterst\xFCtzend\
+      \ von"
+  - input_choice_list:
+      A: "Die Amerikaner m\xFCssen ihren technologischen Vorsprung in Vietnam maximieren."
+      B: "Die amerikanische Bombardierung Vietnams f\xFChrt Schritt f\xFCr Schritt\
+        \ zu Fortschritten im Krieg."
+      C: Die amerikanische Bombardierung Vietnams ist ein Fehlschlag.
+      D: "Amerika darf wegen des Vietnamkriegs nicht dem Def\xE4tismus nachgeben."
+    input_correct_responses:
+    - C
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Unsere\
+      \ F\xFChrer sprechen davon, die Aggression aus dem Norden zu stoppen, aber dies\
+      \ war ein Kampf zwischen Gruppen von Vietnamesen, bis wir intervenierten. Wir\
+      \ scheinen darauf aus zu sein, die Vietnamesen vor Ho Chi Minh zu retten, selbst\
+      \ wenn wir sie daf\xFCr t\xF6ten und ihr Land zerst\xF6ren m\xFCssen. W\xE4\
+      hrend die Ureinwohner ausgebombte D\xF6rfer, von Napalm verbrannte Frauen und\
+      \ Kinder, zerst\xF6rte Reisfelder und von unserem Milit\xE4rpersonal \xFCberrannte\
+      \ St\xE4dte begutachten, sagen sie zweifellos im Geheimen \xFCber die Vietcong-Guerillas\
+      \ und die amerikanischen Streitkr\xE4fte: \u201EEine Seuche \xFCber eure beiden\
+      \ H\xE4user .&quot; \u2026 Stoppen Sie die Bombenangriffe im Norden und S\xFC\
+      den, beenden Sie die Suche und zerst\xF6ren Sie offensive Sweeps und beschr\xE4\
+      nken Sie unsere Milit\xE4raktion darauf, Operationen am Boden durchzuf\xFChren.\
+      \ Die Bombardierung des Nordens hat den Truppenstrom nach S\xFCden nicht gestoppt\
+      \ oder ernsthaft aufgehalten und k\xF6nnte in der Tat zu einer viel gr\xF6\xDF\
+      eren Kriegsanstrengung von Hanoi gef\xFChrt haben. \u2013 Senator George McGovern,\
+      \ \u201EThe Lessons of Vietnam\u201C, 25. April 1967 Welche der folgenden Meinungen\
+      \ aus den 1960er Jahren spiegelt am direktesten die Perspektive von George McGoverns\
+      \ Rede wider?"
+  - input_choice_list:
+      A: Abigail Adams
+      B: Clara Barton
+      C: Shirley Temple
+      D: Hillary Clinton
+    input_correct_responses:
+    - B
+    input_question: "Diese Frage bezieht sich auf die folgenden Informationen. Ich\
+      \ komme nicht, um pers\xF6nliche Anspr\xFCche geltend zu machen oder individuelle\
+      \ Vorteile zu suchen; Ich trete als Anwalt derer auf, die ihre eigene Sache\
+      \ nicht vertreten k\xF6nnen; Ich komme als Freund der Verlassenen, Unterdr\xFC\
+      ckten und Verlassenen. In der Vorsehung Gottes bin ich die Stimme des Wahnsinnigen,\
+      \ dessen durchdringende Schreie aus den trostlosen Kerkern eurer Gef\xE4ngnisse\
+      \ nicht in eure Hallen der Gesetzgebung dringen. Ich bin die Hoffnung der armen,\
+      \ verr\xFCckten Wesen, die in den Zellen und St\xE4llen und K\xE4figen und verw\xFC\
+      steten R\xE4umen eurer Armenh\xE4user schmachtet. Ich bin die Offenbarung von\
+      \ Hunderten von klagenden, leidenden Gesch\xF6pfen, versteckt in euren Privatwohnungen\
+      \ und in Pferchen und H\xFCtten \u2013 ausgeschlossen, abgeschnitten von allen\
+      \ heilenden Einfl\xFCssen, von allen geisteswiederherstellenden Sorgen \u2026\
+      \ K\xF6nnten ihre melancholischen Geschichten vor euch ausgebreitet werden wie\
+      \ meinem bek\xFCmmerten Geist w\xE4hrend der letzten drei Monate offenbart wurde,\
+      \ wie schnell, wie ernsthaft w\xFCrden Sie die bew\xE4hrtesten Mittel zur Linderung\
+      \ suchen; wie unbedeutend, wie unbedeutend w\xFCrden im Vergleich dazu die Opfer\
+      \ erscheinen, die man von Ihnen verlangt; Wie w\xFCrden ein paar Cent und Dollar,\
+      \ die von jedem B\xFCrger gesammelt werden, als Besitz an Wert verlieren, verglichen\
+      \ mit den bestimmten Vorteilen und dem enormen Gut, das f\xFCr die leidenden\
+      \ Wahnsinnigen gesichert werden kann ... durch die Weihe und Anwendung eines\
+      \ ausreichenden Fonds f\xFCr den Bau eines geeigneten Krankenhauses \u2026 \u2013\
+      \ Dorothea Dix, Memorial Soliciting a State Hospital for the Protection and\
+      \ Cure of the Insane, eingereicht bei der Generalversammlung von North Carolina,\
+      \ November 1848 Dorothea Dix kann am besten mit wem verglichen werden?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_us_history
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_high_school_us_history
+task_alias: high_school_us_history

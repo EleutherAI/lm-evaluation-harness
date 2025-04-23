@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 5 Tausend
+      B: 5 Hundert
+      C: 5 Zehner
+      D: 5 Einsen
+    input_correct_responses:
+    - A
+    input_question: "Die Einwohnerzahl der Stadt, in der Michelle geboren wurde, betr\xE4\
+      gt 145.826. Welchen Wert hat die 5 in der Zahl 145.826?"
+  - input_choice_list:
+      A: Die 10. Zahl im Muster ist eine gerade Zahl.
+      B: Das Zahlenmuster wird niemals zwei gerade Zahlen nebeneinander haben.
+      C: "Die n\xE4chsten beiden Zahlen im Muster sind eine gerade Zahl und dann eine\
+        \ ungerade Zahl."
+      D: "Wenn das Zahlenmuster mit einer ungeraden Zahl beginnt, enth\xE4lt das Muster\
+        \ nur ungerade Zahlen."
+    input_correct_responses:
+    - B
+    input_question: "Olivia hat die Regel \u201EAddiere 11\u201C verwendet, um das\
+      \ unten gezeigte Zahlenmuster zu erstellen. 10, 21, 32, 43, 54 Welche Aussage\
+      \ zum Zahlenmuster ist richtig?"
+  - input_choice_list:
+      A: Addiere 5 zu 30, um 35 Teams zu finden.
+      B: Teilen Sie 30 durch 5, um 6 Teams zu finden.
+      C: Multiplizieren Sie 30 und 5, um 150 Teams zu finden.
+      D: Subtrahieren Sie 5 von 30, um 25 Teams zu finden.
+    input_correct_responses:
+    - B
+    input_question: "Insgesamt 30 Spieler werden in einem Park Basketball spielen.\
+      \ Es werden genau 5 Spieler in jedem Team sein. Welche Aussage erkl\xE4rt richtig,\
+      \ wie man die Anzahl der ben\xF6tigten Teams ermittelt?"
+  - input_choice_list:
+      A: '749'
+      B: '2.675'
+      C: '2.945'
+      D: '4.250'
+    input_correct_responses:
+    - B
+    input_question: "Ein Gesch\xE4ft verkauft 107 verschiedene Farben. Sie haben 25\
+      \ Dosen jeder Farbe auf Lager. Die Anzahl der Farbdosen, die das Gesch\xE4ft\
+      \ auf Lager hat, kann anhand des folgenden Ausdrucks ermittelt werden. 107 \xD7\
+      \ 25. Wie viele Farbdosen hat der Laden auf Lager?"
+  - input_choice_list:
+      A: (5 x 4) x (6 x 5)
+      B: (5 x 5) + (5 x 4)
+      C: (5 x 5) + (5 x 9)
+      D: (5 x 9) x (6 x 9)
+    input_correct_responses:
+    - B
+    input_question: Welcher Ausdruck entspricht 5 x 9?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_elementary_mathematics
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_elementary_mathematics
+task_alias: elementary_mathematics

@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Le premier arc pharyng\xE9"
+      B: "Les premier et deuxi\xE8me arcs pharyng\xE9s"
+      C: "Le deuxi\xE8me arc pharyng\xE9"
+      D: "Les deuxi\xE8me et troisi\xE8me arcs pharyng\xE9s"
+    input_correct_responses:
+    - D
+    input_question: "Quelle est l&#39;origine embryologique de l&#39;os hyo\xEFde\
+      \ ?"
+  - input_choice_list:
+      A: Le nerf supraorbitaire
+      B: Le nerf infraorbitaire
+      C: Le nerf mental
+      D: "Aucune de ces r\xE9ponses"
+    input_correct_responses:
+    - D
+    input_question: "Laquelle de ces branches du nerf trijumeau contient des processus\
+      \ moteurs somatiques\_?"
+  - input_choice_list:
+      A: n&#39;ont pas d&#39;innervation sensorielle.
+      B: "sont s\xE9par\xE9s par un espace de 2 mm."
+      C: "s&#39;\xE9tendre dans le cou."
+      D: "sont compos\xE9s d&#39;\xE9pith\xE9lium respiratoire."
+    input_correct_responses:
+    - C
+    input_question: "La pl\xE8vre"
+  - input_choice_list:
+      A: "supraclusion excessive des incisives lat\xE9rales sup\xE9rieures."
+      B: "overjet n\xE9gatif des incisives centrales sup\xE9rieures."
+      C: "overjet excessif des incisives lat\xE9rales sup\xE9rieures."
+      D: "overjet excessif des incisives centrales sup\xE9rieures."
+    input_correct_responses:
+    - C
+    input_question: Dans l&#39;occlusion Classe II Div 2 d&#39;Angle, il y a
+  - input_choice_list:
+      A: Abdominal
+      B: "Cr\xE2nien"
+      C: Pleural
+      D: Spinal
+    input_correct_responses:
+    - B
+    input_question: "Laquelle des cavit\xE9s suivantes est la cavit\xE9 corporelle\
+      \ qui contient la glande pituitaire\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_anatomy
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_anatomy
+task_alias: anatomy

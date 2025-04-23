@@ -30,7 +30,7 @@ try:
     from rouge import Rouge
 except ImportError:
     raise ImportError(
-        'Please install the required dependencies for this task with `pip install lm_eval["longbench"] or `pip install jeiba fuzzywuzzy rouge`'
+        'Please install the required dependencies for this task with `pip install lm_eval["longbench"] or `pip install jieba fuzzywuzzy rouge`'
     )
 
 # taken from https://github.com/THUDM/LongBench
@@ -124,12 +124,10 @@ def code_sim_score(predictions: list[str], references: list[str], **kwargs) -> f
     return fuzz.ratio(prediction, ground_truth) / 100
 
 
-def classification_score(
-    predictions: list[str], references: list[str], **kwargs
-) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def classification_score(doc: dict, results: list[str], **kwargs) -> dict:
+    prediction, ground_truth = results[0], doc["answers"][0]
     em_match_list = []
-    all_classes = kwargs["all_classes"]
+    all_classes = doc["all_classes"]
     for class_name in all_classes:
         if class_name in prediction:
             em_match_list.append(class_name)
@@ -140,12 +138,14 @@ def classification_score(
         score = 1.0 / len(em_match_list)
     else:
         score = 0.0
-    return score
+    return {"classification_score": score}
 
 
 def rouge_score(predictions: list[str], references: list[str], **kwargs) -> float:
+    global rouge
+    if "rouge" not in globals():
+        rouge = Rouge()
     prediction, ground_truth = predictions[0], references[0]
-    rouge = Rouge()
     try:
         scores = rouge.get_scores([prediction], [ground_truth], avg=True)
         # ruff: noqa
@@ -162,7 +162,7 @@ def rouge_zh_score(predictions: list[str], references: list[str], **kwargs) -> f
     return score
 
 
-def f1_score(predictions: list[str], references: list[str], **kwargs):
+def f1_score(predictions: list[str], references: list[str], **kwargs) -> float:
     try:
         prediction, ground_truth = predictions[0], references[0]
     except:

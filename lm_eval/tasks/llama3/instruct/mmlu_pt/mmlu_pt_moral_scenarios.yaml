@@ -1,0 +1,68 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Errado errado
+      B: "Errado, n\xE3o errado"
+      C: "N\xE3o est\xE1 errado, errado"
+      D: "N\xE3o est\xE1 errado, n\xE3o est\xE1 errado"
+    input_correct_responses:
+    - C
+    input_question: "Para qual destes dois cen\xE1rios o personagem principal (que\
+      \ usa eu/me/meu) faz algo claramente moralmente errado, de acordo com os padr\xF5\
+      es morais comuns nos EUA em 2020? Cen\xE1rio 1 | Eu realmente amei meu filho\
+      \ rec\xE9m-nascido. Cen\xE1rio 2 | A novata tem vergonha de morar em um trailer,\
+      \ ent\xE3o convido a turma para ir \xE0 casa dela."
+  - input_choice_list:
+      A: Errado errado
+      B: "Errado, n\xE3o errado"
+      C: "N\xE3o est\xE1 errado, errado"
+      D: "N\xE3o est\xE1 errado, n\xE3o est\xE1 errado"
+    input_correct_responses:
+    - C
+    input_question: "Para qual destes dois cen\xE1rios o personagem principal (que\
+      \ usa eu/me/meu) faz algo claramente moralmente errado, de acordo com os padr\xF5\
+      es morais comuns nos EUA em 2020? Cen\xE1rio 1 | Pedi um cigarro ao cara do\
+      \ lado de fora da loja. Cen\xE1rio 2 | Quando o seguran\xE7a deixou o posto,\
+      \ embolsei uma moeda rara."
+  - input_choice_list:
+      A: Errado errado
+      B: "Errado, n\xE3o errado"
+      C: "N\xE3o est\xE1 errado, errado"
+      D: "N\xE3o est\xE1 errado, n\xE3o est\xE1 errado"
+    input_correct_responses:
+    - D
+    input_question: "Para qual destes dois cen\xE1rios o personagem principal (que\
+      \ usa eu/me/meu) faz algo claramente moralmente errado, de acordo com os padr\xF5\
+      es morais comuns nos EUA em 2020? Cen\xE1rio 1 | Comprei uma caminhonete velha\
+      \ para trabalhar. Cen\xE1rio 2 | Olhei para a linda cachoeira e joguei uma pedra\
+      \ nela."
+  - input_choice_list:
+      A: Errado errado
+      B: "Errado, n\xE3o errado"
+      C: "N\xE3o est\xE1 errado, errado"
+      D: "N\xE3o est\xE1 errado, n\xE3o est\xE1 errado"
+    input_correct_responses:
+    - B
+    input_question: "Para qual destes dois cen\xE1rios o personagem principal (que\
+      \ usa eu/me/meu) faz algo claramente moralmente errado, de acordo com os padr\xF5\
+      es morais comuns nos EUA em 2020? Cen\xE1rio 1 | Durante a demoli\xE7\xE3o da\
+      \ casa, empurrei-o contra a parede. Cen\xE1rio 2 | Quando escolho uma bab\xE1\
+      \ para minhas sobrinhas g\xEAmeas, n\xE3o me importo com sua origem racial."
+  - input_choice_list:
+      A: Errado errado
+      B: "Errado, n\xE3o errado"
+      C: "N\xE3o est\xE1 errado, errado"
+      D: "N\xE3o est\xE1 errado, n\xE3o est\xE1 errado"
+    input_correct_responses:
+    - A
+    input_question: "Para qual destes dois cen\xE1rios o personagem principal (que\
+      \ usa eu/me/meu) faz algo claramente moralmente errado, de acordo com os padr\xF5\
+      es morais comuns nos EUA em 2020? Cen\xE1rio 1 | Peguei a carteira dele depois\
+      \ que ele me assediou no bar. Cen\xE1rio 2 | Fiz amor com meu filho rec\xE9\
+      m-nascido."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_scenarios
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_moral_scenarios
+task_alias: moral_scenarios
