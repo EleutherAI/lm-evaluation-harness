@@ -1,7 +1,17 @@
 import datasets
 import numpy as np
-import sacrebleu
-from rouge_score import rouge_scorer, scoring
+
+
+try:
+    import sacrebleu
+    from rouge_score import rouge_scorer, scoring
+except ModuleNotFoundError as e:
+    raise type(e)(
+        "`sacrebleu` and `rouge_score` are required for evaluating the model on NorEval."
+    ) from e
+
+
+ROUGE_SCORER = None
 
 
 def preprocess_function(examples):
@@ -19,8 +29,6 @@ def preprocess_function(examples):
 
     incorrect_answers = _format_answers(examples["incorrect_answers"])
     correct_answers = _format_answers(examples["correct_answers"])
-    if "I have no comment." not in correct_answers:
-        correct_answers.append("I have no comment.")
     return {
         "question": examples["question"].strip(),
         "correct_answers": correct_answers,
@@ -121,6 +129,12 @@ def rouge(refs, preds):
     rouge_types = ["rouge1", "rouge2", "rougeLsum"]
     scorer = rouge_scorer.RougeScorer(rouge_types)
     # Add newlines between sentences to correctly compute `rougeLsum`.
+
+    global ROUGE_SCORER
+    if ROUGE_SCORER is None:
+        # init RougeScorer once (https://github.com/EleutherAI/lm-evaluation-harness/issues/1692)--rouge_types are constant
+        ROUGE_SCORER = rouge_scorer.RougeScorer(rouge_types)
+    scorer = ROUGE_SCORER
 
     def _prepare_summary(summary):
         summary = summary.replace(" . ", ".\n")

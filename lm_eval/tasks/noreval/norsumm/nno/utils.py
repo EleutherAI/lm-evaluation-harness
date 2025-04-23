@@ -1,8 +1,20 @@
 import datasets
 import numpy as np
-import sacrebleu
 from evaluate import load
-from rouge_score import rouge_scorer, scoring
+
+
+try:
+    import bert_score
+    import sacrebleu
+    from rouge_score import rouge_scorer, scoring
+except ModuleNotFoundError as e:
+    raise type(e)(
+        "`sacrebleu`, `bert_score`, and `rouge_score` are required for evaluating the model on NorEval."
+    ) from e
+
+
+ROUGE_SCORER = None
+BERTSCORE = None
 
 
 def process_results(doc, results):
@@ -69,7 +81,13 @@ def rouge(refs, preds):
         A `list` of predicted `strs`.
     """
     rouge_types = ["rougeLsum"]
-    scorer = rouge_scorer.RougeScorer(rouge_types)
+
+    global ROUGE_SCORER
+    if ROUGE_SCORER is None:
+        # init RougeScorer once (https://github.com/EleutherAI/lm-evaluation-harness/issues/1692)--rouge_types are constant
+        ROUGE_SCORER = rouge_scorer.RougeScorer(rouge_types)
+    scorer = ROUGE_SCORER
+
     # Add newlines between sentences to correctly compute `rougeLsum`.
 
     def _prepare_summary(summary):
@@ -95,7 +113,11 @@ def bertscore_f1(references, predictions):
     Returns:
         The F1 score of the BERTScore metric.
     """
-    bertscore = load("bertscore")
+    global BERTSCORE
+    if BERTSCORE is None:
+        # init BERTScore once
+        BERTSCORE = load("bertscore")
+    bertscore = BERTSCORE
     return bertscore.compute(
         predictions=predictions,
         references=references,
