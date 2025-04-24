@@ -1,5 +1,5 @@
 tag: norsumm_nno
-dataset_path: ltg/norsumm
+dataset_path: SamiaT/NorSumm
 dataset_name: nn
 training_split: null
 validation_split: null
