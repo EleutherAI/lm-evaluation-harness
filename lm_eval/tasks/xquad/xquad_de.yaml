@@ -1,0 +1,4 @@
+include: xquad_common_yaml
+task: xquad_de
+dataset_name: xquad.de
+doc_to_text: "Kontext: {{context}}\n\nFrage: {{question}}\n\nAntwort:"

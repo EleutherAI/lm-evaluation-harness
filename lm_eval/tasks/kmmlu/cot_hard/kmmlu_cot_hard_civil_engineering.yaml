@@ -97,4 +97,5 @@ fewshot_config:
       것이며, 이 계약은 미국의 근대도시계획 성립기에 지역제의 바탕이 된 제도는 (A) 협약(covenant)이 가장 적절한 선택입니다. 따라서,
       정답은 (A) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_civil_engineering
+task: kmmlu_cot_hard_civil_engineering
+tag: kmmlu_cot_hard_stem_tasks

@@ -1,0 +1,5 @@
+include: _estonian_few_shot_og_template_yaml
+description: Järgmised on valikvastustega küsimused (koos vastustega) teemal Arts
+  & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_estonian_few_shot_og_arts_humanities

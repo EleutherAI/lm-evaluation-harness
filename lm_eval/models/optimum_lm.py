@@ -1,13 +1,13 @@
 import json
+import logging
 from importlib.util import find_spec
 from pathlib import Path
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("openvino")
@@ -45,7 +45,7 @@ class OptimumLM(HFLM):
         **kwargs,
     ) -> None:
         if not find_spec("optimum"):
-            raise Exception(
+            raise ModuleNotFoundError(
                 "package `optimum` is not installed. Please install it via `pip install optimum[openvino]`"
             )
         else:
@@ -66,6 +66,11 @@ class OptimumLM(HFLM):
         else:
             model_kwargs["ov_config"] = {}
         model_kwargs["ov_config"].setdefault("CACHE_DIR", "")
+        if "pipeline_parallel" in model_kwargs:
+            if model_kwargs["pipeline_parallel"]:
+                model_kwargs["ov_config"]["MODEL_DISTRIBUTION_POLICY"] = (
+                    "PIPELINE_PARALLEL"
+                )
         model_file = Path(pretrained) / "openvino_model.xml"
         if model_file.exists():
             export = False

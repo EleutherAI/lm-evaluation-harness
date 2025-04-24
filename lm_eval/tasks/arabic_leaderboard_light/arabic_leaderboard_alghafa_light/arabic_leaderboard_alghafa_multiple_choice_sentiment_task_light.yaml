@@ -1,0 +1,23 @@
+task: arabic_leaderboard_alghafa_multiple_choice_sentiment_task_light
+dataset_path: arcee-globe/AlGhafa-Arabic-LLM-Benchmark-Native-10percent
+dataset_name: multiple_choice_sentiment_task
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "{{query}}"
+doc_to_target: "{{gold}}"
+doc_to_choice: "choices"
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

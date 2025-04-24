@@ -1,0 +1,9 @@
+group: evalita-mp_te
+group_alias: text-entailment
+task:
+  - evalita-mp_te_tasks # this has to match the tag in the task yaml file
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1

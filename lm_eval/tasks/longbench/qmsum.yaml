@@ -1,0 +1,20 @@
+
+tag:
+  - longbench
+task: longbench_qmsum
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: qmsum
+doc_to_text: 'You are given a meeting transcript and a query containing a question or instruction. Answer the query in one or more sentences.\n\nTranscript:\n{{context}}\n\nNow, answer the query based on the above meeting transcript in one or more sentences.\n\nQuery: {{input}}\nAnswer:'
+doc_to_target: '{{answers[0]}}'
+generation_kwargs:
+  max_gen_toks: 512
+  temperature: 1
+  do_sample: True
+  until: []
+metric_list:
+  - metric: !function metrics.rouge_score
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 2.0

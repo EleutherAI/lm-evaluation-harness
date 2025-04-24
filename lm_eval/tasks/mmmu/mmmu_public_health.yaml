@@ -1,0 +1,4 @@
+task: mmmu_val_public_health
+include: _template_yaml
+task_alias: Public Health
+dataset_name: Public_Health

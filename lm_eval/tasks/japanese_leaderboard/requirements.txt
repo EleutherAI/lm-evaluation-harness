@@ -1,0 +1,4 @@
+emoji==2.14.0
+fugashi[unidic-lite]
+neologdn==0.5.3
+rouge_score>=0.1.2

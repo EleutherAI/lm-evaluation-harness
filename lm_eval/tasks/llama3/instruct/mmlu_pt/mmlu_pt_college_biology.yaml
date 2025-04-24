@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Eles possuem um exoesqueleto composto principalmente de peptidoglicano.
+      B: "Possuem sistema circulat\xF3rio aberto com cora\xE7\xE3o dorsal."
+      C: "Eles s\xE3o membros de um filo biologicamente malsucedido, incapaz de explorar\
+        \ diversos habitats e fontes de nutri\xE7\xE3o."
+      D: "Eles n\xE3o possuem ap\xEAndices emparelhados e articulados."
+    input_correct_responses:
+    - B
+    input_question: "Qual das alternativas a seguir representa uma afirma\xE7\xE3\
+      o precisa sobre os artr\xF3podes?"
+  - input_choice_list:
+      A: 1/400
+      B: 19/400
+      C: 20/400
+      D: 38/400
+    input_correct_responses:
+    - D
+    input_question: "Numa determinada popula\xE7\xE3o, 1 em cada 400 pessoas tem um\
+      \ cancro causado por um alelo completamente recessivo, b. Supondo que a popula\xE7\
+      \xE3o esteja em equil\xEDbrio de Hardy-Weinberg, qual das alternativas a seguir\
+      \ \xE9 a propor\xE7\xE3o esperada de indiv\xEDduos que carregam o alelo b, mas\
+      \ n\xE3o se espera que desenvolvam o c\xE2ncer?"
+  - input_choice_list:
+      A: "o humano e o p\xE1ssaro s\xE3o esp\xE9cies polifil\xE9ticas"
+      B: "a evolu\xE7\xE3o de um ser humano e de um p\xE1ssaro \xE9 convergente"
+      C: "o humano e o p\xE1ssaro pertencem a um clado"
+      D: "o humano e o p\xE1ssaro desenvolvidos por analogia"
+    input_correct_responses:
+    - C
+    input_question: "A presen\xE7a de estruturas hom\xF3logas em dois organismos diferentes,\
+      \ como o \xFAmero no membro anterior de um ser humano e de uma ave, indica que"
+  - input_choice_list:
+      A: "uma bomba de fluxo de press\xE3o dependente de ATP"
+      B: "um gradiente de potencial de press\xE3o da \xE1gua"
+      C: "transpira\xE7\xE3o"
+      D: "difus\xE3o apopl\xE1stica"
+    input_correct_responses:
+    - B
+    input_question: "De acordo com o modelo de fluxo de press\xE3o do movimento do\
+      \ conte\xFAdo do floema, o movimento do fotossintato da fonte ao sumidouro \xE9\
+      \ impulsionado por"
+  - input_choice_list:
+      A: "Tel\xF4meros"
+      B: "Centr\xF4meros"
+      C: Nucleossomos
+      D: Spliceossomas
+    input_correct_responses:
+    - B
+    input_question: "Qual das alternativas a seguir cont\xE9m sequ\xEAncias de DNA\
+      \ necess\xE1rias para a segrega\xE7\xE3o dos cromossomos na mitose e na meiose?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_biology
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_college_biology
+task_alias: college_biology

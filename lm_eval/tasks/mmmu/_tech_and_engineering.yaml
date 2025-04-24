@@ -1,0 +1,16 @@
+group: mmmu_val_tech_and_engineering
+group_alias: Tech and Engineering
+task:
+  - mmmu_val_agriculture
+  - mmmu_val_architecture_and_engineering
+  - mmmu_val_computer_science
+  - mmmu_val_electronics
+  - mmmu_val_energy_and_power
+  - mmmu_val_materials
+  - mmmu_val_mechanical_engineering
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

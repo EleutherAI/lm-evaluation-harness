@@ -1,0 +1,6 @@
+"dataset_name": "philosophy"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_philosophy"
+"task_alias": "philosophy"

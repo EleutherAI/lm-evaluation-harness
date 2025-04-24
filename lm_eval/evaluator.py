@@ -26,15 +26,12 @@ from lm_eval.evaluator_utils import (
 )
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
-from lm_eval.tasks import (
-    TaskManager,
-    get_task_dict,
-)
+from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
-    eval_logger,
     handle_non_serializable,
     hash_string,
     positional_deprecated,
+    setup_logging,
     simple_parse_args_string,
 )
 
@@ -42,6 +39,8 @@ from lm_eval.utils import (
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
+
+eval_logger = logging.getLogger(__name__)
 
 
 @positional_deprecated
@@ -58,6 +57,7 @@ def simple_evaluate(
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
     limit: Optional[Union[int, float]] = None,
+    samples: Optional[dict] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     write_out: bool = False,
@@ -66,14 +66,16 @@ def simple_evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
-    gen_kwargs: Optional[str] = None,
+    gen_kwargs: Union[str, dict, None] = None,
     task_manager: Optional[TaskManager] = None,
-    verbosity: str = "INFO",
+    verbosity=None,
     predict_only: bool = False,
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
+    confirm_run_unsafe_code: bool = False,
+    metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -97,11 +99,13 @@ def simple_evaluate(
     :param cache_requests: bool, optional
         Speed up evaluation by caching the building of dataset requests. `None` if not caching.
     :param rewrite_requests_cache: bool, optional
-        Rewrites all of the request cache if set to `True`. `None` if not desired.
+        Rewrites all the request cache if set to `True`. `None` if not desired.
     :param delete_requests_cache: bool, optional
-        Deletes all of the request cache if set to `True`. `None` if not desired.
+        Deletes all the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
+    :param samples: dictionary, optional
+        Dictionary indicating which examples should be tested in each task, e.g., {"mmlu_astronomy":[0,3,6],"mmlu_anatomy":[1,4,7,10]}.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics, used when calculating stderrs. set to 0 for no stderr calculations to be performed.
     :param check_integrity: bool
@@ -119,9 +123,11 @@ def simple_evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param gen_kwargs: str
-        String arguments for model generation
+    :param gen_kwargs: dict or comma-separated string
+        Arguments for model generation
         Ignored for all tasks with loglikelihood output_type
+    :param verbosity: str
+        Verbosity level for logging
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
     :param random_seed: int
@@ -132,12 +138,27 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param metadata: dict
+        Additional metadata to be added to the task manager. Will get passed to the download function of the task.
 
-    :return
+    return
         Dictionary of results
     """
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    if verbosity is not None:
+        setup_logging(verbosity=verbosity)
     start_date = time.time()
+
+    if limit is not None and samples is not None:
+        raise ValueError(
+            "Either 'limit' or 'samples' must be None, but both are not None."
+        )
+
+    if isinstance(model_args, str) and (
+        "instruct" in model_args and not apply_chat_template
+    ):
+        eval_logger.warning(
+            "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+        )
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
@@ -157,6 +178,9 @@ def simple_evaluate(
         seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
         torch.manual_seed(torch_random_seed)
 
+    if fewshot_random_seed is not None:
+        seed_message.append(f"Setting fewshot manual seed to {fewshot_random_seed}")
+
     if seed_message:
         eval_logger.info(" | ".join(seed_message))
 
@@ -168,12 +192,13 @@ def simple_evaluate(
         )
 
     if gen_kwargs is not None:
-        gen_kwargs = simple_parse_args_string(gen_kwargs)
+        if isinstance(gen_kwargs, str):
+            gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            "generation_kwargs specified through cli, these settings will update set parameters in yaml tasks. "
+            f"generation_kwargs: {gen_kwargs} specified through cli, these settings will update set parameters in yaml tasks. "
             "Ensure 'do_sample=True' for non-greedy decoding!"
         )
-        if gen_kwargs == "":
+        if not gen_kwargs:
             gen_kwargs = None
 
     if isinstance(model, str):
@@ -227,9 +252,19 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = TaskManager(verbosity)
+        metadata = (
+            simple_parse_args_string(model_args)
+            if isinstance(model_args, str)
+            else model_args
+            if isinstance(model_args, dict)
+            else {}
+        ) | (metadata or {})
+        task_manager = TaskManager(metadata=metadata)
 
-    task_dict = get_task_dict(tasks, task_manager)
+    task_dict = get_task_dict(
+        tasks,
+        task_manager,
+    )
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
@@ -248,6 +283,9 @@ def simple_evaluate(
                         task_obj.set_config(
                             key="generation_kwargs", value=gen_kwargs, update=True
                         )
+                    eval_logger.info(
+                        f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
+                    )
 
                 if predict_only:
                     eval_logger.info(
@@ -276,9 +314,6 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-                eval_logger.info(
-                    f"Setting fewshot random generator seed to {fewshot_random_seed}"
-                )
 
                 adjusted_task_dict[task_name] = task_obj
 
@@ -289,18 +324,14 @@ def simple_evaluate(
     if check_integrity:
         run_task_tests(task_list=tasks)
 
-    # hotfix: delete when chat_template fixed
-    try:
-        chat = lm.chat_template(apply_chat_template)
-    except:  # noqa: E722
-        chat = None
-
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=chat,
+            chat_template=lm.chat_template(apply_chat_template)
+            if apply_chat_template
+            else None,
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
@@ -308,6 +339,7 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         limit=limit,
+        samples=samples,
         cache_requests=cache_requests,
         rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
@@ -317,7 +349,10 @@ def simple_evaluate(
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
+        confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
+    if verbosity is not None:
+        setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -367,6 +402,7 @@ def evaluate(
     lm: "LM",
     task_dict,
     limit: Optional[int] = None,
+    samples: Optional[dict] = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     bootstrap_iters: Optional[int] = 100000,
@@ -376,6 +412,7 @@ def evaluate(
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
+    confirm_run_unsafe_code: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -385,6 +422,12 @@ def evaluate(
         Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
+    :param samples: dictionary, optional
+        Dictionary indicating which examples should be tested in each task, e.g., {"mmlu_astronomy":[0,3,6],"mmlu_anatomy":[1,4,7,10]}.
+    :param cache_requests: bool, optional
+        Speed up evaluation by caching the building of dataset requests.
+    :param rewrite_requests_cache: bool, optional
+        Rewrites all the request cache if set to `True`.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics, used when calculating stderr. Set to 0 for skipping all stderr calculations.
     :param write_out: bool
@@ -400,12 +443,24 @@ def evaluate(
         Defaults to False (no chat template applied).
     :param fewshot_as_multiturn: bool
         Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
+    :param verbosity: str
+        Verbosity level for logging
+    :param confirm_run_unsafe_code: bool
+        Whether to confirm running tasks marked as unsafe.
     :return
         Dictionary of results
     """
 
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
-
+    if limit is not None and samples is not None:
+        raise ValueError(
+            "Either 'limit' or 'samples' must be None, but both are not None."
+        )
+    if samples is not None:
+        eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
+    if apply_chat_template:
+        eval_logger.warning(
+            "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
+        )
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
@@ -420,11 +475,44 @@ def evaluate(
             for task_output in eval_tasks
         ):
             raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
+
+    # validation checks:
+    # 1.are we running multimodal task <-> non-multimodal model class, or vice-versa.
+    # 2.are we running code that is marked as unsafe.
+    incompatible_tasks = []
     for task_output in eval_tasks:
         task: Task = task_output.task
-        limit = get_sample_size(task, limit)
+
+        if getattr(lm, "MULTIMODAL", False) != getattr(task, "MULTIMODAL", False):
+            incompatible_tasks.append(task_output.task_name)
+        elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
+            raise ValueError(
+                f"Attempted to run task: {task_output.task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
+            )
+    if len(incompatible_tasks) > 0:
+        if not getattr(lm, "MULTIMODAL", False):
+            raise ValueError(
+                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
+            )
+        else:
+            raise ValueError(
+                f"Attempted to run tasks: {incompatible_tasks} which are text-only, but used a model type which only currently supports multimodal tasks."
+            )
+    # end validation check
+
+    # Cache the limit arg.
+    limit_arg = limit
+    limits = []
+    for task_output in eval_tasks:
+        task: Task = task_output.task
+
+        limit = get_sample_size(task, limit_arg)
+        limits.append(limit)
         task.build_all_requests(
             limit=limit,
+            samples=samples.get(task_output.task_name, None)
+            if samples is not None
+            else samples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -492,7 +580,7 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output in eval_tasks:
+    for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         task.apply_filters()
 
@@ -508,10 +596,22 @@ def evaluate(
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
+            indices = (
+                samples.get(task_output.task_name, None)
+                if samples is not None
+                else None
+            )
             doc_iterator = task.doc_iterator(
-                rank=RANK, limit=limit, world_size=WORLD_SIZE
+                rank=RANK,
+                limit=limit,
+                world_size=WORLD_SIZE,
+                samples=indices,
             )
             for doc_id, doc in doc_iterator:
+                if indices:
+                    doc_id_true = indices[doc_id]
+                else:
+                    doc_id_true = doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
@@ -519,7 +619,7 @@ def evaluate(
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
-                        "doc_id": doc_id,
+                        "doc_id": doc_id_true,
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],
@@ -527,6 +627,8 @@ def evaluate(
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
+                        "filter": filter_key,
+                        "metrics": list(metrics.keys()),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
@@ -641,7 +743,7 @@ def evaluate(
                         len(task_output.task.eval_docs),
                     ),
                 }
-                for task_output in eval_tasks
+                for task_output, limit in zip(eval_tasks, limits)
             },
         }
         if log_samples:

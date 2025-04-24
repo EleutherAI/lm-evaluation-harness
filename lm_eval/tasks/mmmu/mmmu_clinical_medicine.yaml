@@ -1,0 +1,4 @@
+task: mmmu_val_clinical_medicine
+include: _template_yaml
+task_alias: Clinical Medicine
+dataset_name: Clinical_Medicine

@@ -1,20 +1,27 @@
+import logging
 import re
 import signal
+from importlib.metadata import version
 from typing import Dict, List, Optional
 
 import datasets
 
-from lm_eval.utils import eval_logger
+
+eval_logger = logging.getLogger(__name__)
 
 
 try:
+    import antlr4
     import sympy
+    from math_verify import parse, verify
     from sympy.parsing.latex import parse_latex
-except ModuleNotFoundError:
-    raise ModuleNotFoundError(
-        "`sympy` is required for generating translation task prompt templates. \
-please install sympy via pip install lm-eval[math] or pip install -e .[math]",
-    )
+
+    assert version("antlr4-python3-runtime").startswith("4.11")
+except (ModuleNotFoundError, AssertionError) as e:
+    raise type(e)(
+        "`sympy`, `math_verify` and `antlr4-python3-runtime==4.11` are required for generating translation task prompt templates. "
+        "Please install the required packages via pip install lm-eval[math] or pip install -e .[math]"
+    ) from e
 
 
 # taken from
@@ -75,8 +82,13 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     else:
         retval = 0
 
+    # math_verify
+    res = verify(parse(doc["answer"]), parse(candidates))
+    mathval = 1 if res else 0
+
     results = {
         "exact_match": retval,
+        "math_verify": mathval,
     }
     return results
 
