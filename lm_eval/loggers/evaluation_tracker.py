@@ -295,12 +295,22 @@ class EvaluationTracker:
                 eval_logger.info(f"Saving per-sample results for: {task_name}")
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
-                path = path.joinpath(self.general_config_tracker.model_name_sanitized)
-                path.mkdir(parents=True, exist_ok=True)
 
-                file_results_samples = path.joinpath(
-                    f"samples_{task_name}_{self.date_id}.jsonl"
-                )
+                path = Path(self.output_path if self.output_path else Path.cwd())
+
+                if path.suffix.lower() == ".json":
+                    file_results_samples = path
+                    file_results_samples.parent.mkdir(parents=True, exist_ok=True)
+                else:
+                    path = path.joinpath(self.general_config_tracker.model_name_sanitized)
+                    path.mkdir(parents=True, exist_ok=True)
+                    self.date_id = datetime.now().isoformat().replace(":", "-")
+                    file_results_samples = path.joinpath(
+                        f"samples_{task_name}_{self.date_id}.jsonl"
+                    )
+
+
+                
 
                 for sample in samples:
                     # we first need to sanitize arguments and resps
