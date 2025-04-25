@@ -16,7 +16,9 @@ from typing import Any, Callable, Generator, List, Optional, Tuple
 import numpy as np
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
+import logging
 
+logger = logging.getLogger(__name__)
 
 SPACING = " " * 47
 
@@ -265,6 +267,9 @@ def get_rolling_token_windows(
     # +1 offset, going from input->preds
     pred_len = max_seq_len - context_len + 1
     predicted = 0
+
+    if len(token_list) > max_seq_len:
+        logger.warning(f"Processing a sequence of length {len(token_list)}, larger than max_length={max_seq_len}. The sequence will be split and processed in subsequences of at most {max_seq_len + 1} tokens, potentially impacting evaluation metrics.")
 
     # Special handling for first window: predict all tokens
     first_seq_len = min(max_seq_len, len(token_list))
