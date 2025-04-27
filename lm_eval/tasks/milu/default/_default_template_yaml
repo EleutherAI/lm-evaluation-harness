@@ -1,4 +1,4 @@
-dataset_path: ai4bharat/MILU
+dataset_path: murthyrudra/milu-cleaned
 dataset_kwargs:
   token: true
 output_type: multiple_choice
@@ -12,13 +12,7 @@ metric_list:
     higher_is_better: true
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
-doc_to_choice: "{{[option1, option2, option3, option4]}}"
+doc_to_choice: !function utils.doc_to_choice
+description: "You are a helpful and factual AI Assistant. The following is a Multiple Choice Question (MCQ) about {{ subject }} ({{ domain }}) in {{ language }}. Now, choose the correct option."
 metadata:
   version: 0.0
-generation_kwargs:
-  until:
-    - "</s>"
-    - "Q:"
-    - "<|im_end|>"
-  do_sample: false
-  temperature: 0.0

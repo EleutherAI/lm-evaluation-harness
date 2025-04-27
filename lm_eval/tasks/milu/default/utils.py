@@ -1,13 +1,5 @@
 def doc_to_text(line):
-    instruction = """## Task: You are a helpful and factual AI Assistant. The following is a Multiple Choice Question (MCQ) about {subject} ({domain}) in {language}. Now, choose the correct option.""".format(
-        subject=line["subject"],
-        domain=line["domain"],
-        language=line["language"],
-    ).strip()
-
-    query = """
-    {instruction}
-
+    return """
     ## Question: {question}
 
     ## Choices:
@@ -15,10 +7,9 @@ def doc_to_text(line):
     B. {option2}
     C. {option3}
     D. {option4}
-
+    
     ## Answer:
     """.format(
-        instruction=instruction,
         question=line["question"],
         option1=line["option1"],
         option2=line["option2"],
@@ -26,8 +17,8 @@ def doc_to_text(line):
         option4=line["option4"],
     ).strip()
 
-    return query
-
-
-def doc_to_target(line) -> int:
+def doc_to_target(line):
     return int(line["target"].replace('option', '')) - 1
+
+def doc_to_choice(line):
+    return ["A", "B", "C", "D"]

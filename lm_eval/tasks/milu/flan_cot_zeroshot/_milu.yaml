@@ -1,17 +1,17 @@
-group: milu_flan_cot_zeroshot
+group: flan_cot_zeroshot
 group_alias: milu (flan style, zeroshot cot)
 task:
-  - milu_English
-  - milu_Bengali
-  - milu_Hindi
-  - milu_Tamil
-  - milu_Telugu
-  - milu_Malayalam
-  - milu_Kannada
-  - milu_Marathi
-  - milu_Gujarati
-  - milu_Punjabi
-  - milu_Odia
+  - English
+  - Bengali
+  - Hindi
+  - Tamil
+  - Telugu
+  - Malayalam
+  - Kannada
+  - Marathi
+  - Gujarati
+  - Punjabi
+  - Odia
 
 aggregate_metric_list:
   - metric: acc
