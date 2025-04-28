@@ -1,5 +1,6 @@
 import abc
 import asyncio
+import base64
 import copy
 import itertools
 import json
@@ -349,6 +350,34 @@ class TemplateAPI(TemplateLM):
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
 
+    def normalize_payload(self, payload):
+        is_list = isinstance(payload, list)
+        if not is_list:
+            result = [copy.deepcopy(payload)]
+        else:
+            result = copy.deepcopy(payload)
+
+        for el in result:
+            for message in el["messages"]:
+                for content in message["content"]:
+                    if isinstance(content, str):
+                        continue
+                    if content["type"] != "image":
+                        continue
+
+                    b64 = base64.b64encode(content["image"]).decode("utf-8")
+                    data_uri = f"data:image/png;base64,{b64}"[:50]
+
+                    content["type"] = "image_url"
+                    content["image_url"] = {
+                        "url": data_uri,
+                    }
+                    del content["image"]
+
+        if is_list:
+            return result
+        return result[0]
+
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
@@ -360,16 +389,19 @@ class TemplateAPI(TemplateLM):
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
-            response = requests.post(
-                self.base_url,
-                json=self._create_payload(
+            payload = self.normalize_payload(
+                self._create_payload(
                     self.create_message(messages),
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     seed=self._seed,
                     eos=self.eos_string,
                     **kwargs,
-                ),
+                )
+            )
+            response = requests.post(
+                self.base_url,
+                json=payload,
                 headers=self.header,
                 verify=self.verify_certificate,
             )
@@ -398,12 +430,14 @@ class TemplateAPI(TemplateLM):
     ) -> Union[List[str], List[Tuple[float, bool]], None]:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
-        payload = self._create_payload(
-            self.create_message(messages),
-            generate=generate,
-            gen_kwargs=gen_kwargs,
-            seed=self._seed,
-            **kwargs,
+        payload = self.normalize_payload(
+            self._create_payload(
+                self.create_message(messages),
+                generate=generate,
+                gen_kwargs=gen_kwargs,
+                seed=self._seed,
+                **kwargs,
+            )
         )
         cache_method = "generate_until" if generate else "loglikelihood"
         try:

@@ -225,6 +225,8 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
 
 @register_model("openai-chat-completions")
 class OpenAIChatCompletion(LocalChatCompletion):
+    MULTIMODAL = True
+
     def __init__(
         self,
         base_url="https://api.openai.com/v1/chat/completions",

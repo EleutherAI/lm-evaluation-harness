@@ -20,10 +20,7 @@ from lm_eval.models.utils import (
     replace_placeholders,
     stop_sequences_criteria,
 )
-
-
-DEFAULT_IMAGE_PLACEHOLDER = "<image>"
-
+from lm_eval.api.task import DEFAULT_IMAGE_PLACEHOLDER
 
 eval_logger = logging.getLogger(__name__)
 

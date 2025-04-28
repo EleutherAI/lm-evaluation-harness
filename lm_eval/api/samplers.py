@@ -1,15 +1,25 @@
 import logging
 import warnings
 from functools import partial
+from io import BytesIO
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 
 import datasets
-
+from PIL import Image
 
 if TYPE_CHECKING:
     from random import Random
 
     from lm_eval.api.task import ConfigurableTask, Task
+
+
+def pil_image_to_bytes(img: Image.Image, fmt: str = "PNG") -> bytes:
+    buf = BytesIO()
+    img.save(buf, format=fmt)
+    byte_data = buf.getvalue()
+    buf.close()
+    return byte_data
+
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -121,6 +131,38 @@ class ContextSampler:
             multimodal_args.setdefault("audio", []).extend(self.doc_to_audio(doc))
         return multimodal_args
 
+    def update_user_content(self, user_content, doc=None, images=None, audios=None):
+        def add_image(image):
+            user_content.append(
+                {
+                    "type": "image",
+                    "image": pil_image_to_bytes(image) if isinstance(image, Image.Image) else image
+                }
+            )
+
+        def add_audio(audio):
+            user_content.append(
+                {
+                    "type": "audio",
+                    "audio_url" if isinstance(audio, str) else "audio": audio,
+                }
+            )
+
+        if self.config.doc_to_image and doc:
+            for image in self.doc_to_image(doc):
+                add_image(image)
+        if images:
+            for image in images:
+                add_image(image)
+        if self.config.doc_to_audio and doc:
+            for audio in self.doc_to_audio(doc):
+                add_audio(audio)
+        if audios:
+            for audio in audios:
+                add_audio(audio)
+
+        return user_content
+
     def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str = None):
         prefix = gen_prefix + " " if gen_prefix else ""
         selected_docs = self._select_n_new_docs(doc, num_fewshot)
@@ -161,6 +203,7 @@ class ContextSampler:
         self,
         doc: dict,
         num_fewshot: int,
+        pass_multimodal_args_to_chat_history: bool = False,
         fewshot_as_multiturn: bool = False,
         gen_prefix: Optional[str] = None,
     ):
@@ -174,34 +217,65 @@ class ContextSampler:
             for doc in selected_docs:
                 doc_content = self.doc_to_text(doc)
                 doc_target = self.doc_to_target(doc)
+                user_content = [
+                    {
+                        "type": "text",
+                        "text": doc_content
+                            if self.config.doc_to_choice is None
+                            or isinstance(doc_content, str)
+                            else self.doc_to_choice(doc)[doc_content]
+                    }
+                ]
+                if pass_multimodal_args_to_chat_history:
+                    user_content = self.update_user_content(user_content, doc)
+                else:
+                    multimodal_args = self.update_multimodal_args(multimodal_args, doc)
+
                 chat_history.append(
                     {
                         "role": "user",
-                        "content": doc_content
-                        if self.config.doc_to_choice is None
-                        or isinstance(doc_content, str)
-                        else self.doc_to_choice(doc)[doc_content],
+                        "content": user_content,
                     }
                 )
-                chat_history.append(
+                assistant_content = [
                     {
-                        "role": "assistant",
-                        "content": prefix + str(doc_target[0])
+                        "type": "text",
+                        "text": prefix + str(doc_target[0])
                         if isinstance(doc_target, list)
                         else prefix + doc_target
                         if self.config.doc_to_choice is None
                         or isinstance(doc_target, str)
                         else prefix + str(self.doc_to_choice(doc)[doc_target]),
                     }
+                ]
+                chat_history.append(
+                    {
+                        "role": "assistant",
+                        "content": assistant_content,
+                    }
                 )
-                multimodal_args = self.update_multimodal_args(multimodal_args, doc)
         else:
             # get fewshot context as one user turn
             labeled_examples, multimodal_args = self.get_context(doc, num_fewshot, gen_prefix=gen_prefix)
+            user_content = [
+                {
+                    "type": "text",
+                    "text": labeled_examples,
+                },
+            ]
+
+            if pass_multimodal_args_to_chat_history:
+                user_content = self.update_user_content(
+                    user_content,
+                    images=multimodal_args.get("visuals"),
+                    audios=multimodal_args.get("audios")
+                )
+                multimodal_args = {}
+
             chat_history.append(
                 {
                     "role": "user",
-                    "content": labeled_examples,
+                    "content": user_content
                 }
             )
 

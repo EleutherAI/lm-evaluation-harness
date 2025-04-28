@@ -14,9 +14,7 @@ from lm_eval.models.utils import (
     replace_placeholders,
     stop_sequences_criteria,
 )
-
-
-DEFAULT_AUDIO_PLACEHOLDER = "<audio>"
+from lm_eval.api.task import DEFAULT_AUDIO_PLACEHOLDER
 
 
 @register_model("hf-audiolm-qwen")

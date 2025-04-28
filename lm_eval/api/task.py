@@ -48,6 +48,9 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
+DEFAULT_IMAGE_PLACEHOLDER = "<image>"
+DEFAULT_AUDIO_PLACEHOLDER = "<audio>"
+
 eval_logger = logging.getLogger(__name__)
 
 
@@ -178,6 +181,49 @@ class TaskConfig(dict):
                 return getsource(value)
             except (TypeError, OSError):
                 return str(value)
+
+
+def sort_multimedia_content_in_chat(
+    messages,
+    image_token=DEFAULT_IMAGE_PLACEHOLDER,
+    audio_token=DEFAULT_AUDIO_PLACEHOLDER,
+):
+    images = []
+    audios = []
+    for msg in messages:
+        for item in msg["content"]:
+            if item["type"] == 'image':
+                images.append(item)
+            elif item["type"] == 'audio':
+                audios.append(item)
+
+    token_pattern = re.compile(
+        rf"({re.escape(image_token)}|{re.escape(audio_token)})"
+    )
+
+    result = []
+    for msg in messages:
+        new_content = []
+        for item in msg.get('content', []):
+            if item.get('type') == 'text':
+                parts = token_pattern.split(item.get('text', ''))
+                for part in parts:
+                    if part == image_token:
+                        new_content.append(images.pop(0))
+                    elif part == audio_token:
+                        new_content.append(audios.pop(0))
+                    elif part:
+                        new_content.append({'type': 'text', 'text': part})
+        if new_content:
+            result.append({
+                'role': msg.get('role'),
+                'content': new_content
+            })
+
+    if images or audios:
+        raise ValueError("Something went wrong, amount of image or audio placeholders in chat doesn't match true amount")
+
+    return result
 
 
 class Task(abc.ABC):
@@ -398,6 +444,7 @@ class Task(abc.ABC):
         rewrite_requests_cache: bool = False,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
+        pass_multimodal_args_to_chat_history: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
@@ -461,10 +508,14 @@ class Task(abc.ABC):
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
                 system_instruction,
                 apply_chat_template,
+                pass_multimodal_args_to_chat_history,
                 fewshot_as_multiturn,
                 chat_template,
                 gen_prefix=self.doc_to_prefix(doc),
             )
+
+            if pass_multimodal_args_to_chat_history:
+                fewshot_ctx = sort_multimedia_content_in_chat(fewshot_ctx)
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(
@@ -1075,18 +1126,30 @@ class ConfigurableTask(Task):
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
         Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
         """
+        question_content = [
+            {
+                "type": "text",
+                "text": question,
+            }
+        ]
+        gen_prefix_content = [
+            {
+                "type": "text",
+                "text": gen_prefix,
+            }
+        ]
         if not fewshot_as_multiturn:
             # if no messages or last message is system, append as new user entry
             if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
+                labeled_examples.append({"role": "user", "content": question_content})
             # if last message is user, append to it to avoid two user messages in a row
             else:
-                labeled_examples[-1]["content"] += question
+                labeled_examples[-1]["content"].append(question_content)
         else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append({"role": "user", "content": question})
+            labeled_examples.append({"role": "user", "content": question_content})
         if gen_prefix:
-            labeled_examples.append({"role": "assistant", "content": gen_prefix})
+            labeled_examples.append({"role": "assistant", "content": gen_prefix_content})
 
     @utils.positional_deprecated
     def fewshot_context(
@@ -1095,6 +1158,7 @@ class ConfigurableTask(Task):
         num_fewshot: int,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
+        pass_multimodal_args_to_chat_history: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
@@ -1110,6 +1174,9 @@ class ConfigurableTask(Task):
             System instruction to be applied to the prompt.
         :param apply_chat_template: bool
             Whether to apply the chat template to the fewshot context.
+        :param pass_multimodal_args_to_chat_history
+            If true, pass multimodal bytes to chat_history,
+            so that chat_template would contain info about multimodal values
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param chat_template:
@@ -1145,7 +1212,13 @@ class ConfigurableTask(Task):
         # add system prompt if specified
         if system_prompt:
             if apply_chat_template:
-                labeled_examples.append({"role": "system", "content": system_prompt})
+                system_content = [
+                    {
+                        "type": "text",
+                        "text": system_prompt,
+                    }
+                ]
+                labeled_examples.append({"role": "system", "content": system_content})
             else:
                 labeled_examples = system_prompt
         # if few-shot - append examples after the system prompt
@@ -1154,6 +1227,7 @@ class ConfigurableTask(Task):
                 chat_history, multimodal_args = self.sampler.get_chat_context(
                     doc,
                     num_fewshot,
+                    pass_multimodal_args_to_chat_history,
                     fewshot_as_multiturn,
                     gen_prefix=gen_prefix,
                 )
@@ -1165,12 +1239,26 @@ class ConfigurableTask(Task):
                 )
                 labeled_examples += context
 
+        if pass_multimodal_args_to_chat_history:
+            doc_multimodal_content = self.sampler.update_user_content([], doc)
+            labeled_examples.append(
+                {
+                    "role": "user",
+                    "content": doc_multimodal_content,
+                }
+            )
+            multimodal_args = {}
+        else:
+            multimodal_args = self.sampler.update_multimodal_args(multimodal_args, doc)
+
         example = self.doc_to_text(doc)
         if apply_chat_template:
             if self.multiple_input:
                 # TODO: append prefill?
                 if not labeled_examples:
                     return "", multimodal_args
+                if pass_multimodal_args_to_chat_history:
+                    return labeled_examples, multimodal_args
                 return chat_template(labeled_examples), multimodal_args
             if isinstance(example, str):
                 self.append_target_question(
@@ -1192,12 +1280,15 @@ class ConfigurableTask(Task):
                         gen_prefix=gen_prefix,
                     )
                     # TODO: append prefill?
-                    labeled_examples_list.append(
-                        chat_template(
-                            chat,
-                            add_generation_prompt=False if gen_prefix else True,
+                    if pass_multimodal_args_to_chat_history:
+                        labeled_examples_list.append(chat)
+                    else:
+                        labeled_examples_list.append(
+                            chat_template(
+                                chat,
+                                add_generation_prompt=False if gen_prefix else True,
+                            )
                         )
-                    )
                 return labeled_examples_list, [multimodal_args] * len(example)
             # if example is an integer, append the choice or convert to string
             elif isinstance(example, int):
@@ -1217,6 +1308,8 @@ class ConfigurableTask(Task):
                         gen_prefix=gen_prefix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
+            if pass_multimodal_args_to_chat_history:
+                return labeled_examples, multimodal_args
             return chat_template(
                 labeled_examples,
                 add_generation_prompt=False if gen_prefix else True,
@@ -1508,16 +1601,6 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
-
-        if (
-            self.config.doc_to_image
-        ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
-            multimodal_args.setdefault("visual", []).extend(self.doc_to_image(doc))
-
-        if (
-            self.config.doc_to_audio
-        ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
-            multimodal_args.setdefault("audio", []).extend(self.doc_to_audio(doc))
 
         if bool(multimodal_args):
             if isinstance(arguments, list):

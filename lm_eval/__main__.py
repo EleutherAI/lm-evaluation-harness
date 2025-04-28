@@ -208,6 +208,15 @@ def setup_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--pass_multimodal_args_to_chat_history",
+        action="store_true",
+        default=False,
+        help=(
+            "If true, pass multimodal bytes to chat_history,"
+            "so that chat_template would contain info about multimodal values"
+        ),
+    )
+    parser.add_argument(
         "--fewshot_as_multiturn",
         action="store_true",
         default=False,
@@ -463,6 +472,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         evaluation_tracker=evaluation_tracker,
         system_instruction=args.system_instruction,
         apply_chat_template=args.apply_chat_template,
+        pass_multimodal_args_to_chat_history=args.pass_multimodal_args_to_chat_history,
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
