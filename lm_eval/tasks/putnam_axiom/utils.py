@@ -5,11 +5,7 @@ from typing import Dict, List, Optional
 import antlr4
 import datasets
 
-from lm_eval.utils import eval_logger
-
 import numpy as np
-
-from lm_eval.tasks.minerva_math.utils import *
 
 # def first_boxed_only_string(string: str) -> Optional[str]:
 #     idx = string.find("\\boxed")
@@ -141,9 +137,9 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    # candidates = results[0]
-    completion_output = results[0].outputs[0]
-    candidates = completion_output.text
+    candidates = results[0]
+    # completion_output = results[0].outputs[0]
+    # candidates = completion_output.text
     
     try:
         answer = ground_truth_boxed_answer(candidates)
@@ -151,9 +147,6 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         answer = get_generated_answer(candidates)
 
     if is_equiv(answer, doc["answer"]):
-        # print(answer)
-        # print(doc['answer'])
-        # print(doc['year'] + '_' + doc['id'])
         retval = 1
     else:
         retval = 0
