@@ -1120,24 +1120,30 @@ class ConfigurableTask(Task):
         labeled_examples: List[Dict[str, str]],
         question: str,
         fewshot_as_multiturn: bool = False,
+        pass_multimodal_args_to_chat_history: bool = False,
         gen_prefix: Optional[str] = None,
     ) -> None:
         """Adds a target question to the labeled examples list.
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
         Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
         """
-        question_content = [
-            {
-                "type": "text",
-                "text": question,
-            }
-        ]
-        gen_prefix_content = [
-            {
-                "type": "text",
-                "text": gen_prefix,
-            }
-        ]
+        if pass_multimodal_args_to_chat_history:
+            question_content = [
+                {
+                    "type": "text",
+                    "text": question,
+                }
+            ]
+            gen_prefix_content = [
+                {
+                    "type": "text",
+                    "text": gen_prefix,
+                }
+            ]
+        else:
+            question_content = question
+            gen_prefix_content = gen_prefix
+            
         if not fewshot_as_multiturn:
             # if no messages or last message is system, append as new user entry
             if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
@@ -1212,12 +1218,15 @@ class ConfigurableTask(Task):
         # add system prompt if specified
         if system_prompt:
             if apply_chat_template:
-                system_content = [
-                    {
-                        "type": "text",
-                        "text": system_prompt,
-                    }
-                ]
+                if pass_multimodal_args_to_chat_history:
+                    system_content = [
+                        {
+                            "type": "text",
+                            "text": system_prompt,
+                        }
+                    ]
+                else:
+                    system_content = system_prompt
                 labeled_examples.append({"role": "system", "content": system_content})
             else:
                 labeled_examples = system_prompt
@@ -1265,6 +1274,7 @@ class ConfigurableTask(Task):
                     labeled_examples,
                     example,
                     fewshot_as_multiturn,
+                    pass_multimodal_args_to_chat_history,
                     gen_prefix=gen_prefix,
                 )
             # for loglikelihood create a list of questions with appended choices
@@ -1277,6 +1287,7 @@ class ConfigurableTask(Task):
                         chat,
                         ex,
                         fewshot_as_multiturn,
+                        pass_multimodal_args_to_chat_history,
                         gen_prefix=gen_prefix,
                     )
                     # TODO: append prefill?
@@ -1298,6 +1309,7 @@ class ConfigurableTask(Task):
                         labeled_examples,
                         choices[example],
                         fewshot_as_multiturn,
+                        pass_multimodal_args_to_chat_history,
                         gen_prefix=gen_prefix,
                     )
                 else:
@@ -1305,6 +1317,7 @@ class ConfigurableTask(Task):
                         labeled_examples,
                         str(example),
                         fewshot_as_multiturn,
+                        pass_multimodal_args_to_chat_history,
                         gen_prefix=gen_prefix,
                     )
                 # return lm.apply_chat_template(labeled_examples)

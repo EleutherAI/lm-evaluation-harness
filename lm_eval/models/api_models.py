@@ -366,7 +366,7 @@ class TemplateAPI(TemplateLM):
                         continue
 
                     b64 = base64.b64encode(content["image"]).decode("utf-8")
-                    data_uri = f"data:image/png;base64,{b64}"[:50]
+                    data_uri = f"data:image/png;base64,{b64}"
 
                     content["type"] = "image_url"
                     content["image_url"] = {

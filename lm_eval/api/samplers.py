@@ -217,19 +217,34 @@ class ContextSampler:
             for doc in selected_docs:
                 doc_content = self.doc_to_text(doc)
                 doc_target = self.doc_to_target(doc)
-                user_content = [
-                    {
-                        "type": "text",
-                        "text": doc_content
-                            if self.config.doc_to_choice is None
-                            or isinstance(doc_content, str)
-                            else self.doc_to_choice(doc)[doc_content]
-                    }
-                ]
+                user_text = doc_content \
+                    if self.config.doc_to_choice is None \
+                    or isinstance(doc_content, str) \
+                    else self.doc_to_choice(doc)[doc_content]
+                assistant_text = prefix + str(doc_target[0]) \
+                    if isinstance(doc_target, list) \
+                    else prefix + doc_target \
+                    if self.config.doc_to_choice is None \
+                    or isinstance(doc_target, str) \
+                    else prefix + str(self.doc_to_choice(doc)[doc_target])
                 if pass_multimodal_args_to_chat_history:
+                    user_content = [
+                        {
+                            "type": "text",
+                            "text": user_text,
+                        }
+                    ]
                     user_content = self.update_user_content(user_content, doc)
+                    assistant_content = [
+                        {
+                            "type": "text",
+                            "text": assistant_text,
+                        }
+                    ]
                 else:
+                    user_content = user_text
                     multimodal_args = self.update_multimodal_args(multimodal_args, doc)
+                    assistant_content = assistant_text
 
                 chat_history.append(
                     {
@@ -237,17 +252,6 @@ class ContextSampler:
                         "content": user_content,
                     }
                 )
-                assistant_content = [
-                    {
-                        "type": "text",
-                        "text": prefix + str(doc_target[0])
-                        if isinstance(doc_target, list)
-                        else prefix + doc_target
-                        if self.config.doc_to_choice is None
-                        or isinstance(doc_target, str)
-                        else prefix + str(self.doc_to_choice(doc)[doc_target]),
-                    }
-                ]
                 chat_history.append(
                     {
                         "role": "assistant",
