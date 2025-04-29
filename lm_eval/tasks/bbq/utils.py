@@ -4,6 +4,9 @@ import datasets
 import numpy as np
 
 
+if np.__version__ >= "2.0":
+    np.NaN = np.nan
+
 # Possible unknown responses, copied from the HELM implementation
 UNKNOWN_RESPONSES = [
     "Unknown",
