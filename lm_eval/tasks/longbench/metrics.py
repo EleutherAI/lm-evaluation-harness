@@ -179,9 +179,8 @@ def rouge_score(predictions: str, ground_truth: str, **kwargs) -> float:
     global rouge
     if "rouge" not in globals():
         rouge = Rouge()
-    prediction = predictions[0]
     try:
-        scores = rouge.get_scores([prediction], [ground_truth], avg=True)
+        scores = rouge.get_scores([predictions], [ground_truth], avg=True)
         # ruff: noqa
     except:
         return 0.0
