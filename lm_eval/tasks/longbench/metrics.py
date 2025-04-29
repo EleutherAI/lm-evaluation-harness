@@ -83,7 +83,7 @@ def count_score(prediction: str, ground_truth: str, **kwargs):
     return float(final_score)
 
 
-def get_count_score(doc, results, **kwargs):
+def get_count_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
     prediction = results[0]
     for ground_truth in doc["answers"]:
@@ -105,7 +105,7 @@ def retrieval_score(prediction: str, ground_truth: str, **kwargs):
     return float(final_score)
 
 
-def get_retrieval_score(doc, results, **kwargs):
+def get_retrieval_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
     prediction = results[0]
     for ground_truth in doc["answers"]:
@@ -127,7 +127,7 @@ def retrieval_zh_score(prediction: str, ground_truth: str, **kwargs):
     return float(final_score)
 
 
-def get_retrieval_zh_score(doc, results, **kwargs):
+def get_retrieval_zh_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
     prediction = results[0]
     for ground_truth in doc["answers"]:
@@ -146,7 +146,7 @@ def code_sim_score(prediction: str, ground_truth: str, **kwargs):
     return fuzz.ratio(prediction, ground_truth) / 100
 
 
-def get_code_sim_score(doc, results, **kwargs):
+def get_code_sim_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
     prediction = results[0]
     for ground_truth in doc["answers"]:
