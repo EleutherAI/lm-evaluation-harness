@@ -313,6 +313,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         parser = setup_parser()
         args = parse_eval_args(parser)
+        if args.model_args.endswith("json"):
+            with open(args.model_args, 'r') as f:  
+                args.model_args = json.load(f)  
 
     if args.wandb_args:
         wandb_args_dict = simple_parse_args_string(args.wandb_args)
