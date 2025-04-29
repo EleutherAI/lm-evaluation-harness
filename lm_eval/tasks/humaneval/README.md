@@ -8,6 +8,7 @@ We introduce Codex, a GPT language model fine-tuned on publicly available code f
 
 Homepage: https://github.com/openai/human-eval
 
+Note: For instruct tuned models, we recommend the instruct variant. That uses a gen_prefix to ensure the model completes the partial code snippet (might not work with all APIs)
 
 ## Citation
 ```
@@ -31,6 +32,8 @@ Homepage: https://github.com/openai/human-eval
 
 - `humaneval` pass@1
 - `humaneval_64` pass@64 variant
+- `humaneval_instruct`: pass@1 with config more appropriate for instruct models. (implementation taken from llama [evals](https://huggingface.co/datasets/meta-llama/Llama-3.1-8B-Instruct-evals/viewer/Llama-3.1-8B-Instruct-evals__human_eval__details?row=0))
+- `humaneval_instruct_64`: pass@64 variant
 
 ### Checklist
 
@@ -44,3 +47,6 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+v2 20-MAR-2025: `humaneval_instruct`, `humaneval_instruct_64`: fixed typo in gen_prefix

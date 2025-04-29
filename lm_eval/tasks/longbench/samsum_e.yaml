@@ -1,0 +1,20 @@
+
+tag:
+  - longbench_e
+task: longbench_samsum_e
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: samsum_e
+doc_to_text: 'Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n\n{{input}}'
+doc_to_target: '{{answers[0]}}'
+generation_kwargs:
+  max_gen_toks: 128
+  temperature: 1
+  do_sample: True
+  until: ['\n']
+metric_list:
+  - metric: !function metrics.rouge_score
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 2.0

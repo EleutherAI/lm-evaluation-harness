@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: S=0, R=0
+      B: S=0, R=1
+      C: S=1, R=0
+      D: S=1, R=1
+    input_correct_responses:
+    - D
+    input_question: "In einem aus NOR-Gattern aufgebauten SR-Latch ist diese Bedingung\
+      \ nicht zul\xE4ssig"
+  - input_choice_list:
+      A: "200\u03A9"
+      B: "100\u03A9"
+      C: "50\u03A9"
+      D: "10\u03A9"
+    input_correct_responses:
+    - C
+    input_question: "In einer 2-poligen Gleichstrommaschine mit Schleifenwicklung\
+      \ betr\xE4gt der Widerstand eines Leiters 2 \u03A9 und die Gesamtzahl der Leiter\
+      \ 100. Ermitteln Sie den Gesamtwiderstand"
+  - input_choice_list:
+      A: 1mA.
+      B: 2mA.
+      C: 3mA.
+      D: 4mA.
+    input_correct_responses:
+    - B
+    input_question: "Die Spule eines Drehspulz\xE4hlers hat 100 Windungen, ist 40\
+      \ mm lang und 30 mm breit. Das Steuerdrehmoment betr\xE4gt 240*10-6 Nm im Vollausschlag.\
+      \ Wenn die magnetische Flussdichte 1 Wb/m2 betr\xE4gt, ist der Messbereich"
+  - input_choice_list:
+      A: 100 N.
+      B: 0,1 N.
+      C: 1 N.
+      D: 0,01 N.
+    input_correct_responses:
+    - B
+    input_question: "Zwei lange parallele Leiter f\xFChren 100 A. Wenn die Leiter\
+      \ 20 mm voneinander entfernt sind, betr\xE4gt die Kraft pro Meter L\xE4nge jedes\
+      \ Leiters"
+  - input_choice_list:
+      A: 15 N.
+      B: 20 N.
+      C: 7,5 N.
+      D: 3,75 N.
+    input_correct_responses:
+    - A
+    input_question: "Ein Punktpol hat eine St\xE4rke von 4\u03C0 * 10^-4 Weber. Die\
+      \ Kraft in Newton auf einen Punktpol von 4\u03C0 * 1,5 * 10^-4 Weber, der in\
+      \ einem Abstand von 10 cm davon platziert wird, wird sein"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_electrical_engineering
+tag: mmlu_de_llama_stem_tasks
+task: mmlu_de_llama_electrical_engineering
+task_alias: electrical_engineering

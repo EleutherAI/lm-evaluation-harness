@@ -1,0 +1,72 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Ce serait plus difficile car le camion est plus lourd sur Mars.
+      B: "Ce serait plus facile puisque le camion est plus l\xE9ger sur Mars."
+      C: "Ce serait plus difficile puisque le camion est plus l\xE9ger sur Mars."
+      D: "Ce serait pareil o\xF9 que vous soyez."
+    input_correct_responses:
+    - D
+    input_question: "Vous poussez un camion sur une route. Serait-il plus simple d&#39;acc\xE9\
+      l\xE9rer ce camion sur Mars ? Pourquoi? (Supposons qu&#39;il n&#39;y a pas de\
+      \ frottement)"
+  - input_choice_list:
+      A: "La ceinture de Kuiper ; Les com\xE8tes \xE0 courte p\xE9riode ont tendance\
+        \ \xE0 se trouver dans le plan du syst\xE8me solaire, tout comme la ceinture\
+        \ de Kuiper."
+      B: "La ceinture de Kuiper ; les com\xE8tes \xE0 courte p\xE9riode ont tendance\
+        \ \xE0 provenir de directions al\xE9atoires indiquant une distribution sph\xE9\
+        rique des com\xE8tes appel\xE9e ceinture de Kuiper."
+      C: "La ceinture d&#39;ast\xE9ro\xEFdes; les com\xE8tes \xE0 courte p\xE9riode\
+        \ ont des p\xE9riodes orbitales similaires \xE0 celles des ast\xE9ro\xEFdes\
+        \ comme Vesta et se trouvent dans le plan du syst\xE8me solaire, tout comme\
+        \ la ceinture d&#39;ast\xE9ro\xEFdes."
+      D: "Le nuage d&#39;Oort\_; les com\xE8tes \xE0 courte p\xE9riode ont tendance\
+        \ \xE0 se trouver dans le plan du syst\xE8me solaire, tout comme le nuage\
+        \ d&#39;Oort."
+    input_correct_responses:
+    - A
+    input_question: "D&#39;o\xF9 viennent la plupart des com\xE8tes \xE0 courte p\xE9\
+      riode et comment le savons-nous ?"
+  - input_choice_list:
+      A: 10000 fois plus
+      B: 100 fois plus
+      C: 1000 fois plus
+      D: 10 fois plus
+    input_correct_responses:
+    - A
+    input_question: "Disons que la pupille de votre \u0153il a un diam\xE8tre de 5\
+      \ mm et que vous avez un t\xE9lescope avec une ouverture de 50 cm. Combien de\
+      \ lumi\xE8re le t\xE9lescope peut-il recueillir de plus que votre \u0153il\_\
+      ?"
+  - input_choice_list:
+      A: "Une plan\xE8te s&#39;est form\xE9e ici mais elle a \xE9t\xE9 bris\xE9e par\
+        \ une collision catastrophique."
+      B: "Il n&#39;y avait pas assez de mati\xE8re dans cette partie de la n\xE9buleuse\
+        \ solaire pour former une plan\xE8te."
+      C: "Il y avait trop de mati\xE8re rocheuse pour former une plan\xE8te tellurique\
+        \ mais pas assez de mati\xE8re gazeuse pour former une plan\xE8te jovienne."
+      D: "La r\xE9sonance avec Jupiter a emp\xEAch\xE9 la mati\xE8re de se rassembler\
+        \ pour former une plan\xE8te."
+    input_correct_responses:
+    - D
+    input_question: "Pourquoi n&#39;y a-t-il pas de plan\xE8te o\xF9 se trouve la\
+      \ ceinture d&#39;ast\xE9ro\xEFdes ?"
+  - input_choice_list:
+      A: "Parce que la surface est recouverte de min\xE9raux fortement oxyd\xE9s (\xAB\
+        \ rouill\xE9s \xBB)."
+      B: "Parce que l&#39;atmosph\xE8re diffuse plus de lumi\xE8re \xE0 des longueurs\
+        \ d&#39;onde plus bleues transmettant principalement de la lumi\xE8re rouge."
+      C: "Parce que Mars est recouvert d&#39;anciennes coul\xE9es de lave de couleur\
+        \ rouge."
+      D: "Parce que l&#39;eau qui coule \xE0 la surface de Mars a modifi\xE9 les min\xE9\
+        raux de surface il y a plusieurs milliards d&#39;ann\xE9es."
+    input_correct_responses:
+    - A
+    input_question: Pourquoi Mars est-elle rouge ?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_astronomy
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_astronomy
+task_alias: astronomy

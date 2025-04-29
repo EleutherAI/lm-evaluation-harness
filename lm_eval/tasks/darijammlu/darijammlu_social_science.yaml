@@ -1,0 +1,6 @@
+"dataset_name": "social_science"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_ar_mmlu_tasks"
+"task": "darijammlu_social_science"
+"task_alias": "social science"

@@ -1,0 +1,8 @@
+group: kmmlu_other
+task:
+  - kmmlu_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2.0

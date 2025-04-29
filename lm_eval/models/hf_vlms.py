@@ -45,8 +45,15 @@ class HFMultimodalLM(HFLM):
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
         convert_img_format=False,
+        min_pixels: Optional[int] = None,
+        max_pixels: Optional[int] = None,
         **kwargs,
     ):
+        # init pixels before calling tokenizer creation to avoid errors
+        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
+            {"max_pixels": max_pixels} if max_pixels else {}
+        )
+
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
@@ -135,6 +142,7 @@ class HFMultimodalLM(HFLM):
             model_name,
             revision=revision,
             trust_remote_code=trust_remote_code,
+            **self.pixels,
             # use_fast=use_fast_tokenizer,
         )
 

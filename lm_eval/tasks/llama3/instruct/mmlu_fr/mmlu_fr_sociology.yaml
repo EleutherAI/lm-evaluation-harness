@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "soins de sant\xE9 et \xE9ducation gratuits pour tous"
+      B: un salaire minimum
+      C: le plein emploi
+      D: "bien-\xEAtre universel"
+    input_correct_responses:
+    - B
+    input_question: "Lequel des \xE9l\xE9ments suivants l&#39;\xC9tat-providence d&#39;apr\xE8\
+      s-guerre de 1948 n&#39;a-t-il pas vis\xE9 \xE0 fournir\_:"
+  - input_choice_list:
+      A: "un man\xE8ge forain"
+      B: un cirque
+      C: "un th\xE9\xE2tre de marionnettes"
+      D: un ballet
+    input_correct_responses:
+    - C
+    input_question: "Que d\xE9crit Berger (1963) comme m\xE9taphore de la r\xE9alit\xE9\
+      \ sociale ?"
+  - input_choice_list:
+      A: "la bureaucratie croissante de l&#39;\xC9tat a fait de la religion une partie\
+        \ marginale de nos vies"
+      B: "malgr\xE9 l&#39;affaiblissement de l&#39;autorit\xE9 traditionnelle, nos\
+        \ vies quotidiennes et notre \xAB\_bon sens\_\xBB restent fa\xE7onn\xE9s par\
+        \ les croyances et les valeurs religieuses"
+      C: "la participation religieuse au culte collectif a peut-\xEAtre diminu\xE9\
+        , mais les gens pratiquent toujours leur religion en priv\xE9"
+      D: les gens sont beaucoup plus susceptibles de discuter de leurs croyances religieuses
+        dans des cadres publics et informels
+    input_correct_responses:
+    - B
+    input_question: "Le passage de la \xAB\_religion civile\_\xBB \xE0 la \xAB\_religion\
+      \ commune\_\xBB signifie que\_:"
+  - input_choice_list:
+      A: "la tendance de la classe ouvri\xE8re \xE0 ne pas r\xE9aliser ses propres\
+        \ int\xE9r\xEAts"
+      B: "une id\xE9ologie dominante qui l\xE9gitime le pouvoir \xE9conomique, politique\
+        \ et culturel"
+      C: "une forme de double conscience bas\xE9e sur l&#39;id\xE9ologie et les exp\xE9\
+        riences quotidiennes"
+      D: "un mode de paiement donn\xE9 pour les topiaires en circulation"
+    input_correct_responses:
+    - B
+    input_question: "Le terme \xAB h\xE9g\xE9monie \xBB d\xE9signe :"
+  - input_choice_list:
+      A: "la plupart des gr\xE8ves passent inaper\xE7ues des employeurs et des m\xE9\
+        dias"
+      B: "tous les conflits du travail ne seront pas signal\xE9s par l&#39;employeur"
+      C: "la d\xE9finition des gr\xE8ves exclut celles qui impliquent moins de dix\
+        \ travailleurs ou qui durent moins d&#39;un jour"
+      D: "il est difficile de comparer des gr\xE8ves qui ont \xE9t\xE9 mesur\xE9es\
+        \ de diff\xE9rentes mani\xE8res"
+    input_correct_responses:
+    - A
+    input_question: "Lequel des \xE9l\xE9ments suivants n&#39;est pas un probl\xE8\
+      me associ\xE9 aux statistiques officielles sur les gr\xE8ves\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_sociology
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_sociology
+task_alias: sociology

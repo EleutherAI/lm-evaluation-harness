@@ -1,0 +1,12 @@
+group: include_base_44_finnish
+task:
+- include_base_44_finnish_stem
+- include_base_44_finnish_arts_humanities
+- include_base_44_finnish_social_science
+- include_base_44_finnish_health_oriented_education
+- include_base_44_finnish_applied_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

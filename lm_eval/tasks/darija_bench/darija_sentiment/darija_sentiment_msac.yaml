@@ -1,0 +1,7 @@
+test_split: msac
+"include": "default_darija_sentiment_template_yaml"
+"tag":
+- "darija_sentiment_tasks"
+"task": "darija_sentiment_msac"
+"task_alias": "MSAC"
+doc_to_choice: !function utils.doc_to_choice_2

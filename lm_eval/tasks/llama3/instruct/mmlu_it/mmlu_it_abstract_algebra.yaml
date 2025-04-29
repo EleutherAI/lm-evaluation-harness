@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '0'
+      B: '1'
+      C: '2'
+      D: '3'
+    input_correct_responses:
+    - B
+    input_question: Trova tutto c in Z_3 tale che Z_3[x]/(x^2 + c) sia un campo.
+  - input_choice_list:
+      A: Vero vero
+      B: Falso, Falso
+      C: Vero falso
+      D: "Falsa verit\xE0"
+    input_correct_responses:
+    - B
+    input_question: "Dichiarazione 1 | Se aH \xE8 un elemento di un gruppo di fattori,\
+      \ allora |aH| divide |a|. Dichiarazione 2 | Se H e K sono sottogruppi di G allora\
+      \ HK \xE8 un sottogruppo di G."
+  - input_choice_list:
+      A: Vero vero
+      B: Falso, Falso
+      C: Vero falso
+      D: "Falsa verit\xE0"
+    input_correct_responses:
+    - C
+    input_question: Dichiarazione 1 | Ogni elemento di un gruppo genera un sottogruppo
+      ciclico del gruppo. Dichiarazione 2 | Il gruppo simmetrico S_10 ha 10 elementi.
+  - input_choice_list:
+      A: Vero vero
+      B: Falso, Falso
+      C: Vero falso
+      D: "Falsa verit\xE0"
+    input_correct_responses:
+    - A
+    input_question: "Dichiarazione 1| Ogni funzione da un insieme finito su se stessa\
+      \ deve essere uno a uno. Dichiarazione 2 | Ogni sottogruppo di un gruppo abeliano\
+      \ \xE8 abeliano."
+  - input_choice_list:
+      A: '0'
+      B: '3'
+      C: '12'
+      D: '30'
+    input_correct_responses:
+    - A
+    input_question: Trova la caratteristica dell&#39;anello 2Z.
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_abstract_algebra
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_abstract_algebra
+task_alias: abstract_algebra
