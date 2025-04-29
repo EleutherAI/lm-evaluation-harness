@@ -1,0 +1,4 @@
+dataset_name: mni
+include: _default_template_yaml
+task: igb_xorqa_mni
+task_alias: igb_xorqa_Manipuri

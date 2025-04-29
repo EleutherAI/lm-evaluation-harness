@@ -1,0 +1,4 @@
+dataset_name: as
+include: _default_template_yaml
+task: igb_xorqa_as
+task_alias: igb_xorqa_Assamese

@@ -1,0 +1,9 @@
+group: igb_flores
+task:
+  - igb_flores_xxen
+  - igb_flores_enxx
+aggregate_metric_list:
+  - metric: chrf
+  - metric: bleu
+metadata:
+  version: 0

@@ -1,0 +1,4 @@
+dataset_name: te
+include: _default_template_yaml
+task: igb_xsum_te
+task_alias: igb_xsum_Telugu

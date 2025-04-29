@@ -1,0 +1,4 @@
+dataset_name: gu
+include: _default_template_yaml
+task: igb_xorqa_gu
+task_alias: igb_xorqa_Gujarati

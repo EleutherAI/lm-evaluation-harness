@@ -1,0 +1,4 @@
+dataset_name: bo
+include: _default_template_yaml
+task: igb_xorqa_bo
+task_alias: igb_xorqa_Tibetan

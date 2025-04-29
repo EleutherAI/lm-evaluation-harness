@@ -1,0 +1,4 @@
+dataset_name: kn
+include: _default_template_yaml
+task: igb_xorqa_kn
+task_alias: igb_xorqa_Kannada

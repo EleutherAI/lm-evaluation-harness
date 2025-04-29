@@ -1,0 +1,4 @@
+dataset_name: pa
+include: _default_template_yaml
+task: igb_xquad_pa
+task_alias: igb_xquad_Punjabi

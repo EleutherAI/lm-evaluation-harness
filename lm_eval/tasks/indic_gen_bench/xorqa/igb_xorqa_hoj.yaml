@@ -1,0 +1,4 @@
+dataset_name: hoj
+include: _default_template_yaml
+task: igb_xorqa_hoj
+task_alias: igb_xorqa_Rajasthani

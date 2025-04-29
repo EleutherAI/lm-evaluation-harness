@@ -1,0 +1,4 @@
+dataset_name: hoj
+include: _default_template_yaml
+task: igb_xsum_hoj
+task_alias: igb_xsum_Rajasthani

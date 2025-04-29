@@ -1,0 +1,4 @@
+dataset_name: ps
+include: _default_template_yaml
+task: igb_xsum_ps
+task_alias: igb_xsum_Pashto

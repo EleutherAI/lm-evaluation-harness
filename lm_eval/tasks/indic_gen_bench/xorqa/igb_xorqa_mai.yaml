@@ -1,0 +1,4 @@
+dataset_name: mai
+include: _default_template_yaml
+task: igb_xorqa_mai
+task_alias: igb_xorqa_Maithili

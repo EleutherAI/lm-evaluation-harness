@@ -1,0 +1,28 @@
+# This file will be included in the generated language-specific task configs.
+# It doesn't have a yaml file extension as it is not meant to be imported directly
+# by the harness.
+dataset_path: VarunGumma/IGB_XorQA
+output_type: generate_until
+test_split: test
+gen_prefix: "## Answer: "
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results_qa
+description: "You are a helpful and factual AI Assistant. The following is a Cross-Lingual Question-Answering task in {{ lang }} and English. Now, find the exact answer to question based on the context provided."
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: prefix_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

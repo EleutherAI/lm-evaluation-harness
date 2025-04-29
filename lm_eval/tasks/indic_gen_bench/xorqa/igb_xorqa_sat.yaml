@@ -1,0 +1,4 @@
+dataset_name: sat
+include: _default_template_yaml
+task: igb_xorqa_sat
+task_alias: igb_xorqa_Santali

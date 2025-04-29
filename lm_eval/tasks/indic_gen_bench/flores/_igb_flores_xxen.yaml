@@ -1,0 +1,36 @@
+aggregate_metric_list:
+  - metric: chrf
+  - metric: bleu
+group: igb_flores_xxen
+metadata:
+  version: 0.0
+task:
+- igb_flores_xxen_as
+- igb_flores_xxen_awa
+- igb_flores_xxen_bgc
+- igb_flores_xxen_bho
+- igb_flores_xxen_bn
+- igb_flores_xxen_bo
+- igb_flores_xxen_brx
+- igb_flores_xxen_gbm
+- igb_flores_xxen_gom
+- igb_flores_xxen_gu
+- igb_flores_xxen_hi
+- igb_flores_xxen_hne
+- igb_flores_xxen_hoj
+- igb_flores_xxen_kn
+- igb_flores_xxen_mai
+- igb_flores_xxen_ml
+- igb_flores_xxen_mni
+- igb_flores_xxen_mr
+- igb_flores_xxen_mup
+- igb_flores_xxen_mwr
+- igb_flores_xxen_ne
+- igb_flores_xxen_or
+- igb_flores_xxen_pa
+- igb_flores_xxen_ps
+- igb_flores_xxen_sa
+- igb_flores_xxen_sat
+- igb_flores_xxen_ta
+- igb_flores_xxen_te
+- igb_flores_xxen_ur

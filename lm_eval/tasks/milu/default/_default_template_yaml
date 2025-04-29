@@ -1,4 +1,4 @@
-dataset_path: murthyrudra/milu-cleaned
+dataset_path: ai4bharat/MILU
 dataset_kwargs:
   token: true
 output_type: multiple_choice

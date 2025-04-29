@@ -1,0 +1,4 @@
+dataset_name: gom
+include: _default_template_yaml
+task: igb_xorqa_gom
+task_alias: igb_xorqa_Konkani

@@ -1,0 +1,3 @@
+dataset_name: awa
+include: _default_template_xxen_yaml
+task: igb_flores_xxen_awa

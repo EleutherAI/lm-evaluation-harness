@@ -1,0 +1,4 @@
+dataset_name: hi
+include: _default_template_yaml
+task: igb_xquad_hi
+task_alias: igb_xquad_Hindi

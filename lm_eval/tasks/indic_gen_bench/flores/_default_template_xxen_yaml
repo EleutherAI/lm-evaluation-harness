@@ -1,0 +1,19 @@
+dataset_path: VarunGumma/IGB_Flores_xxen
+output_type: generate_until
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+test_split: test
+metric_list:
+  - metric: chrf
+  - metric: bleu
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+metadata:
+  version: 0.0
+doc_to_text: "{{ source }}"
+doc_to_target: "{{ target }}"
+description: "You are a helpful and factual AI Assistant. Translate the following sentence from {{ translation_direction_verbalized }}."

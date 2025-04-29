@@ -1,0 +1,4 @@
+dataset_name: hne
+include: _default_template_yaml
+task: igb_xorqa_hne
+task_alias: igb_xorqa_Chhattisgarhi

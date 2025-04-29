@@ -1,0 +1,3 @@
+dataset_name: bgc
+include: _default_template_enxx_yaml
+task: igb_flores_enxx_bgc

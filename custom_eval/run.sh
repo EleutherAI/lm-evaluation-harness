@@ -1,8 +1,6 @@
 export NCCL_SOCKET_IFNAME=lo
 export NCCL_DEBUG=WARN
-export HF_HUB_ENABLE_HF_TRANSFER=1
 
-# rm -rf results logs
 mkdir -p logs
 mkdir -p results
 
@@ -26,7 +24,7 @@ bash dp.sh "google/gemma-3-4b-it" results > logs/gemma_3_4b.log 2>&1
 bash dp.sh "google/gemma-3-12b-it" results > logs/gemma_3_12b.log 2>&1
 bash dp.sh "google/gemma-3-27b-it" results > logs/gemma_3_27b.log 2>&1
 
-bash dp.sh "microsoft/phi-4-mini-instruct" results > logs/phi_4_mini.log 2>&1
+bash dp.sh "microsoft/phi-4-mini-instruct" results > logs/phi_4_mini_instruct.log 2>&1
 bash dp.sh "microsoft/phi-4" results > logs/phi_4.log 2>&1
 
 bash dp.sh "CohereLabs/aya-expanse-8b" results > logs/aya_expanse_8b.log 2>&1

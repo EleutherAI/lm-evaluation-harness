@@ -1,0 +1,4 @@
+dataset_name: mwr
+include: _default_template_yaml
+task: igb_xorqa_mwr
+task_alias: igb_xorqa_Marwari

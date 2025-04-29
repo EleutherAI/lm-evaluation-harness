@@ -1,0 +1,4 @@
+dataset_name: ml
+include: _default_template_yaml
+task: igb_xquad_ml
+task_alias: igb_xquad_Malayalam

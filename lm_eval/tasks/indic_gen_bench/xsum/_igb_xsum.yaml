@@ -1,0 +1,34 @@
+aggregate_metric_list:
+- metric: chrf
+group: igb_xsum
+metadata:
+  version: 0.0
+task:
+- igb_xsum_as
+- igb_xsum_awa
+- igb_xsum_bgc
+- igb_xsum_bho
+- igb_xsum_bn
+- igb_xsum_bo
+- igb_xsum_brx
+- igb_xsum_gbm
+- igb_xsum_gom
+- igb_xsum_gu
+- igb_xsum_hi
+- igb_xsum_hne
+- igb_xsum_hoj
+- igb_xsum_kn
+- igb_xsum_mai
+- igb_xsum_ml
+- igb_xsum_mni
+- igb_xsum_mr
+- igb_xsum_mup
+- igb_xsum_mwr
+- igb_xsum_or
+- igb_xsum_pa
+- igb_xsum_ps
+- igb_xsum_sa
+- igb_xsum_sat
+- igb_xsum_ta
+- igb_xsum_te
+- igb_xsum_ur

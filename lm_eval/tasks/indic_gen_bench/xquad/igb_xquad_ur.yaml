@@ -1,0 +1,4 @@
+dataset_name: ur
+include: _default_template_yaml
+task: igb_xquad_ur
+task_alias: igb_xquad_Urdu

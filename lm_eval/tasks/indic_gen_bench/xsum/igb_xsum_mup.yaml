@@ -1,0 +1,4 @@
+dataset_name: mup
+include: _default_template_yaml
+task: igb_xsum_mup
+task_alias: igb_xsum_Malvi

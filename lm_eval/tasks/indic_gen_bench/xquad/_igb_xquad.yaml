@@ -1,0 +1,20 @@
+group: igb_xquad
+task:
+  - igb_xquad_as
+  - igb_xquad_bn
+  - igb_xquad_gu
+  - igb_xquad_hi
+  - igb_xquad_kn
+  - igb_xquad_ml
+  - igb_xquad_mr
+  - igb_xquad_or
+  - igb_xquad_pa
+  - igb_xquad_ta
+  - igb_xquad_te
+  - igb_xquad_ur
+
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: false
+metadata:
+  version: 0.0

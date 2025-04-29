@@ -1,0 +1,4 @@
+dataset_name: mr
+include: _default_template_yaml
+task: igb_xorqa_mr
+task_alias: igb_xorqa_Marathi

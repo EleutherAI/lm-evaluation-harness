@@ -1,0 +1,19 @@
+dataset_path: VarunGumma/IGB_XSum
+output_type: generate_until
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+test_split: test
+metric_list:
+  - metric: chrf
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+metadata:
+  version: 0.0
+doc_to_text: "## Passage: {{ text }}"
+doc_to_target: "{{ summary }}"
+gen_prefix: "## Summary: "
+description: "You are a helpful and factual AI Assistant. Generate a concise summary of the give passage in {{ lang }}."

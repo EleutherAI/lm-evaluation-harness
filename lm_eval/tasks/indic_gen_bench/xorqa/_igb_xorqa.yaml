@@ -1,0 +1,20 @@
+group: igb_xorqa
+task:
+  - igb_xorqa_as
+  - igb_xorqa_bn
+  - igb_xorqa_gu
+  - igb_xorqa_hi
+  - igb_xorqa_kn
+  - igb_xorqa_ml
+  - igb_xorqa_mr
+  - igb_xorqa_or
+  - igb_xorqa_pa
+  - igb_xorqa_ta
+  - igb_xorqa_te
+  - igb_xorqa_ur
+
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: false
+metadata:
+  version: 0.0

@@ -1,0 +1,4 @@
+dataset_name: as
+include: _default_template_yaml
+task: igb_xquad_as
+task_alias: igb_xquad_Assamese
