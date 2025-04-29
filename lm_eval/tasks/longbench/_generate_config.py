@@ -152,6 +152,7 @@ test_split: {{ test_split }}
 dataset_name: {{ dataset_name }}
 doc_to_text: '{{ doc_to_text }}'
 doc_to_target: '{{ doc_to_target }}'
+process_results: {{ process_results }}
 generation_kwargs:
   max_gen_toks: {{ generation_kwargs.max_gen_toks }}
   temperature: {{ generation_kwargs.temperature }}
@@ -196,7 +197,7 @@ if __name__ == "__main__":
         )
         metric_list = [
             {
-                "metric": f"!function metrics.{dataset2metric[df]}",
+                "metric": f'"{dataset2metric[df]}"',
                 "aggregation": "mean",
                 "higher_is_better": True,
             }
@@ -212,6 +213,7 @@ if __name__ == "__main__":
             "dataset_name": ds,
             "doc_to_text": raw_doc_to_text,
             "doc_to_target": "{{answers[0]}}",
+            "process_results": f"!function metrics.get_{dataset2metric[df]}",
             "generation_kwargs": generation_kwargs,
             "metric_list": metric_list,
             "metadata": {"version": "2.0"},
