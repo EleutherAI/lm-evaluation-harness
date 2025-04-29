@@ -7,6 +7,9 @@ import datasets
 
 import numpy as np
 
+import logging
+eval_logger = logging.getLogger(__name__)
+
 try:
     import sympy
     from sympy.parsing.latex import parse_latex
