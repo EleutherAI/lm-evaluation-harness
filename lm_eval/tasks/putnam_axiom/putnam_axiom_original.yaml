@@ -1,6 +1,5 @@
 task: putnam_axiom_original
 dataset_path: kaifronsdal/Putnam-AXIOM
-# dataset_path: json
 process_docs: !function utils.process_docs
 dataset_name: original
 output_type: generate_until
@@ -23,8 +22,6 @@ metadata:
   version: 1.0
 dataset_kwargs:
   trust_remote_code: true
-# dataset_kwargs:
-#   data_files: 'putnam-axiom/data/Putnam_AXIOM_Original_v3.json'
 description: "Given a mathematics question, compose a detailed solution. Simplify your answer as much as possible. Always give the final answer inside a \\boxed{answer}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct. Here are some examples:"
 fewshot_config:
   sampler: first_n

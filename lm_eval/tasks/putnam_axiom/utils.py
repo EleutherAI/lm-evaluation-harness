@@ -7,33 +7,6 @@ import datasets
 
 import numpy as np
 
-# def first_boxed_only_string(string: str) -> Optional[str]:
-#     idx = string.find("\\boxed")
-#     if idx < 0:
-#         idx = string.find("\\fbox")
-#         if idx < 0:
-#             return None
-
-#     i = idx
-#     right_brace_idx = None
-#     num_left_braces_open = 0
-#     while i < len(string):
-#         if string[i] == "{":
-#             num_left_braces_open += 1
-#         if string[i] == "}":
-#             num_left_braces_open -= 1
-#             if num_left_braces_open == 0:
-#                 right_brace_idx = i
-#                 break
-#         i += 1
-
-#     if right_brace_idx is None:
-#         retval = None
-#     else:
-#         retval = string[idx : right_brace_idx + 1]
-
-#     return retval
-
 try:
     import sympy
     from sympy.parsing.latex import parse_latex
@@ -114,32 +87,11 @@ def list_fewshot_samples() -> list[dict]:
             "solution": "Let's think step by step. The change of variables $x_k \\to 1 - x_k$ yields\n\\[\n\\int_0^1 \\int_0^1 \\cdots \\int_0^1 \\cos^2 \\left(\\frac{\\pi}{2n}(x_1 + x_2 + \\cdots + x_n)\\right) dx_1 dx_2 \\cdots dx_n \\\\\n= \\int_0^1 \\int_0^1 \\cdots \\int_0^1 \\sin^2 \\left(\\frac{\\pi}{2n}(x_1 + x_2 + \\cdots + x_n)\\right) dx_1 dx_2 \\cdots dx_n.\n\\]\nEach of these expressions, being equal to half their sum, must equal $\\frac{1}{2}$. The limit is also $\\boxed{\\frac{1}{2}}$.",
             "few_shot": "1",
         }
-        # {
-        #     "problem": "Find the domain of the expression  $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.}",
-        #     "solution": "The expressions inside each square root must be non-negative. Therefore, $x-2 \\ge 0$, so $x\\ge2$, and $5 - x \\ge 0$, so $x \\le 5$. Also, the denominator cannot be equal to zero, so $5-x>0$, which gives $x<5$. Therefore, the domain of the expression is $[2,5)$.\nFinal Answer: The final answer is $\\boxed{[2,5)}$. I hope it is correct.",
-        #     "few_shot": "1",
-        # },
-        # {
-        #     "problem": "If $\\det \\mathbf{A} = 2$ and $\\det \\mathbf{B} = 12,$ then find $\\det (\\mathbf{A} \\mathbf{B}).$",
-        #     "solution": "We have that $\\det (\\mathbf{A} \\mathbf{B}) = (\\det \\mathbf{A})(\\det \\mathbf{B}) = (2)(12) = 24.$\nFinal Answer: The final answer is $\\boxed{24}$. I hope it is correct.",
-        #     "few_shot": "1",
-        # },
-        # {
-        #     "problem": "Terrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?",
-        #     "solution": "If Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\\cdot 12\\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\\cdot15\\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$:\n\\begin{align*}\n30n&=480\\\n\\Rightarrow\\qquad n&=480/30=16\n\\end{align*}\nFinal Answer: The final answer is $\\boxed{16}$. I hope it is correct.",
-        #     "few_shot": "1",
-        # },
-        # {
-        #     "problem": "If the system of equations\n\n\\begin{align*}\n6x-4y&=a,\\\n6y-9x &=b.\n\\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,\nfind $\\frac{a}{b},$ assuming $b$ is nonzero.",
-        #     "solution": "If we multiply the first equation by $-\\frac{3}{2}$, we obtain\n\n$$6y-9x=-\\frac{3}{2}a.$$Since we also know that $6y-9x=b$, we have\n\n$$-\\frac{3}{2}a=b\\Rightarrow\\frac{a}{b}=-\\frac{2}{3}.$$\nFinal Answer: The final answer is $\\boxed{-\\frac{2}{3}}$. I hope it is correct.",
-        #     "few_shot": "1",
-        # }
+
     ]
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidates = results[0]
-    # completion_output = results[0].outputs[0]
-    # candidates = completion_output.text
     
     try:
         answer = ground_truth_boxed_answer(candidates)
