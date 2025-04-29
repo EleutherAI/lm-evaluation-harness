@@ -259,3 +259,12 @@ def get_qa_f1_score(doc: dict, results: list[str], **kwargs):
         score = qa_f1_score(prediction, ground_truth)
         output = max(score, output)
     return {"qa_f1_score": output}
+
+
+def get_qa_f1_zh_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0]
+    for ground_truth in doc["answers"]:
+        score = qa_f1_zh_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"qa_f1_zh_score": output}
