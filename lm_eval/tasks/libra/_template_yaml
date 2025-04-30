@@ -1,0 +1,6 @@
+dataset_path: ai-forever/libra-v2
+dataset_kwargs: ...
+test_split: test
+output_type: generate_until
+doc_to_target: positive_outputs
+process_results: !function utils.process_results
