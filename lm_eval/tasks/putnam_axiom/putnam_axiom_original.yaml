@@ -1,10 +1,9 @@
 task: putnam_axiom_original
-dataset_path: kaifronsdal/Putnam-AXIOM
+dataset_path: Putnam-AXIOM/putnam-axiom-dataset
 process_docs: !function utils.process_docs
-dataset_name: original
 output_type: generate_until
 training_split: null
-test_split: train
+test_split: original
 doc_to_text:  !function utils.doc_to_text
 process_results: !function utils.process_results
 doc_to_target: "{{answer if few_shot is undefined else solution}}"

@@ -1,4 +1,4 @@
 include: putnam_axiom_original.yaml
-dataset_name: putnam_axiom_variations_org
+test_split: variations
 task: putnam_axiom_variations_org
 process_docs: !function utils.process_docs
