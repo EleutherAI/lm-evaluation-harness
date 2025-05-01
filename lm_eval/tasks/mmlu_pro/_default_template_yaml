@@ -18,7 +18,7 @@ filter_list:
 generation_kwargs:
   until:
     - "</s>"
-    - "Q:"
+    - "Question:"
     - "<|im_end|>"
   max_gen_toks: 2048
   do_sample: false
