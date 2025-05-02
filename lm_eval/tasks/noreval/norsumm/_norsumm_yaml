@@ -31,3 +31,5 @@ metric_list:
   - metric: bertscore_f1_avg
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 1.0

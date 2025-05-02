@@ -1,4 +1,4 @@
-tag: generative_qa
+tag: norquad
 dataset_path: ltg/norquad
 output_type: generate_until
 training_split: train

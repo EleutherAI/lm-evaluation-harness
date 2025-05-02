@@ -1,4 +1,4 @@
-tag: norwegian_language_knowledge
+tag: ask_gec
 dataset_path: ltg/ask-gec
 output_type: generate_until
 training_split: train

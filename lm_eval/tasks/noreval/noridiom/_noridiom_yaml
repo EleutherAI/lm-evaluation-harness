@@ -19,3 +19,5 @@ metric_list:
   - metric: fscore
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 1.0

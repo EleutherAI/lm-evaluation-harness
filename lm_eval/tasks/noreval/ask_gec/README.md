@@ -9,7 +9,6 @@ lm_eval \
   --model hf \
   --model_args pretrained=AI-Sweden-Models/Llama-3-8B \
   --tasks ask_gec \
-  --include_path ./noreval/ \
   --output results/ask_gec/0-shot/ \
   --log_samples \
   --show_config \
