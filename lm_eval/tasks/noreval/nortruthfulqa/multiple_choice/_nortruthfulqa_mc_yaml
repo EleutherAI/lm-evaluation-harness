@@ -1,6 +1,4 @@
-tag: nortruthfulqa_mc_nob
 dataset_path: ltg/nortruthfulqa_mc
-dataset_name: nb
 output_type: multiple_choice
 training_split: null
 validation_split: validation
@@ -12,5 +10,3 @@ metric_list:
   - metric: acc
     aggregation: mean
     higher_is_better: true
-metadata:
-  version: 1.0

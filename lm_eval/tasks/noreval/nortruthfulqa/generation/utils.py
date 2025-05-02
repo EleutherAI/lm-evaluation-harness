@@ -1,5 +1,7 @@
 import datasets
 import numpy as np
+import sacrebleu
+from rouge_score import rouge_scorer, scoring
 
 
 try:
@@ -36,11 +38,11 @@ def preprocess_function(examples):
     }
 
 
-def process_docs_gen(dataset: datasets.Dataset) -> datasets.Dataset:
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(preprocess_function)
 
 
-def process_results_gen(doc, results):
+def process_results(doc, results):
     completion = results[0]
     true_refs, false_refs = doc["correct_answers"], doc["incorrect_answers"]
     all_refs = true_refs + false_refs

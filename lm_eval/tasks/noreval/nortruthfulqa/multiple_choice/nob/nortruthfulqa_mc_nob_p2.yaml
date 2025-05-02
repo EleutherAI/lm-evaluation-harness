@@ -1,4 +1,6 @@
+tag: nortruthfulqa_mc_nob
 task: nortruthfulqa_mc_nob_p2
-include: _nortruthfulqa_mc_nob_yaml
+dataset_name: nb
+include: ../_nortruthfulqa_mc_yaml
 doc_to_text: !function utils.p2_nb
 target_delimiter: "\n"

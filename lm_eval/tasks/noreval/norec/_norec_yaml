@@ -1,5 +1,3 @@
-tag: norec_sentence
-dataset_path: ltg/norec_sentence
 dataset_name: binary
 output_type: multiple_choice
 training_split: train
@@ -10,7 +8,5 @@ metric_list:
     aggregation: mean
     higher_is_better: true
   - metric: f1
-    aggregation: !function "aggregate.multi_f1"
+    aggregation: !function utils.multi_f1
     higher_is_better: true
-metadata:
-  version: 1.0

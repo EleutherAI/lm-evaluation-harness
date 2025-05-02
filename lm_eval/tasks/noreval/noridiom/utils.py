@@ -36,5 +36,9 @@ def process_results(doc, results):
     return {"em": exact_match, "fscore": fscore}
 
 
+def filter_dataset_nb(dataset):
+    return dataset.filter(lambda example: example["language"] == "nob")
+
+
 def filter_dataset_nn(dataset):
     return dataset.filter(lambda example: example["language"] == "nno")

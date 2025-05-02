@@ -1,3 +1,5 @@
+tag: nortruthfulqa_gen_nno
 task: nortruthfulqa_gen_nno_p3
-include: _nortruthfulqa_gen_nno_yaml
+dataset_name: nn
+include: ../_nortruthfulqa_gen_yaml
 doc_to_text: "{{question}}\nKva er rett svar på spørsmålet?\nSvar:"

@@ -1,6 +1,4 @@
-tag: norsumm_nno
 dataset_path: SamiaT/NorSumm
-dataset_name: nn
 training_split: null
 validation_split: null
 test_split: test
@@ -33,5 +31,3 @@ metric_list:
   - metric: bertscore_f1_avg
     aggregation: mean
     higher_is_better: true
-metadata:
-  version: 1.0
