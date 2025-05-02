@@ -11,9 +11,9 @@ The Russian Benchmark of Linguistic Minimal Pairs (RuBLiMP) includes 45,000 pair
 
 ### Tasks
 
-`rublimp` can be used to run the zero-shot evaluation on all 45 benchmark datasets.
+`rublimp` can be used to run the zero-shot evaluation on all 45 benchmark datasets. The dataset-specific task names are provided below.
 
-The full documentation for each phenomenon is provided in [the GitHub repository](https://github.com/RussianNLP/RuBLiMP/tree/main/src/phenomena).
+Refer to more details about the phenomena in [the GitHub repository](https://github.com/RussianNLP/RuBLiMP/tree/main/src/phenomena).
 
 ### Morphology
 
