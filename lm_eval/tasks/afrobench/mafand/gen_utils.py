@@ -77,7 +77,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str, reverse: bool) -
             yaml_details = {
                 "include": yaml_template,
                 "task": task_name,
-                "dataset_name": dataset_name,
+                "dataset_name": reverse_lang,
             }
             file_dir = (
                 f"{output_dir}/{mode}/african-english"
@@ -129,7 +129,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--reverse",
-        default=False,
+        default=True,
         choices=[True, False],
         help="Reverse the translation direction",
     )
