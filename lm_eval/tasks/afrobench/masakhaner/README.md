@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `MasakhaNER 2.0: Africa-centric Transfer Learning for Named Entity Recognition`
@@ -74,4 +74,3 @@ HomePage: https://github.com/masakhane-io/masakhane-ner
     abstract = "African languages are spoken by over a billion people, but they are under-represented in NLP research and development. Multiple challenges exist, including the limited availability of annotated training and evaluation datasets as well as the lack of understanding of which settings, languages, and recently proposed methods like cross-lingual transfer will be effective. In this paper, we aim to move towards solutions for these challenges, focusing on the task of named entity recognition (NER). We present the creation of the largest to-date human-annotated NER dataset for 20 African languages. We study the behaviour of state-of-the-art cross-lingual transfer methods in an Africa-centric setting, empirically demonstrating that the choice of source transfer language significantly affects performance. While much previous work defaults to using English as the source language, our results show that choosing the best transfer language improves zero-shot F1 scores by an average of 14{\%} over 20 languages as compared to using English."
 }
 ```
-

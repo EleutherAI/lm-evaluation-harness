@@ -30,11 +30,11 @@ Dataset specific grouping that listing all prompts, allowing users to review or 
 * `afrobench_MT_tasks`: all datasets in this benchmark relating to Machine Translation task
 * `afrobench_TC_tasks`: all datasets in this benchmark relating to Topic Classification task
 * `afrobench_mmlu_tasks`: all datasets in this benchmark relating to MMLU task
-* `injongointent_tasks`: all datasets in this benchmark relating to Intent Detection task 
-* `masakhaner_tasks`: all datasets in this benchmark relating to Named Entity Recognition (NER) task 
-* `masakhapos_tasks`: all datasets in this benchmark relating to Part of Speech Tagging (POS) task 
+* `injongointent_tasks`: all datasets in this benchmark relating to Intent Detection task
+* `masakhaner_tasks`: all datasets in this benchmark relating to Named Entity Recognition (NER) task
+* `masakhapos_tasks`: all datasets in this benchmark relating to Part of Speech Tagging (POS) task
 * `RC_tasks`: all datasets in this benchmark relating to Reading Comprehension task
-* `uhura_arc_easy_tasks`: all datasets in this benchmark relating to Arc-Easy (XQA) task 
+* `uhura_arc_easy_tasks`: all datasets in this benchmark relating to Arc-Easy (XQA) task
 * `xlsum_tasks`: all datasets in this benchmark relating to Summarization task
 
 
@@ -48,13 +48,13 @@ All dataset used in this benchmark are available at [huggingface](https://huggin
 
 ```
 @misc{ojo2025afrobenchgoodlargelanguage,
-      title={AfroBench: How Good are Large Language Models on African Languages?}, 
+      title={AfroBench: How Good are Large Language Models on African Languages?},
       author={Jessica Ojo and Odunayo Ogundepo and Akintunde Oladipo and Kelechi Ogueji and Jimmy Lin and Pontus Stenetorp and David Ifeoluwa Adelani},
       year={2025},
       eprint={2311.07978},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2311.07978}, 
+      url={https://arxiv.org/abs/2311.07978},
 }
 ```
 Please cite datasets used. Citations for individual datasets are included in their respective repository readme files within this benchmark.
@@ -70,4 +70,3 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
-

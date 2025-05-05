@@ -1,5 +1,6 @@
 import argparse
 import os
+
 import yaml
 
 
@@ -11,35 +12,35 @@ class FunctionTag:
 def prompt_func(mode, lang):
     prompt_map = {
         "prompt_1": "Named entities refers to names of location, organisation and personal name. \n For example, "
-                    "'David is an employee of Amazon and he is visiting New York next week to see Esther' will be \n"
-                    "PERSON: David $ ORGANIZATION: Amazon $ LOCATION: New York $ PERSON: Esther \n\n"
-                    "Ensure the output strictly follows the format: label: entity $ label: entity, with each unique "
-                    "entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or "
-                    "irrelevant entries like none. \n\nText: {{text}} \n"
-                    "Return only the output",
+        "'David is an employee of Amazon and he is visiting New York next week to see Esther' will be \n"
+        "PERSON: David $ ORGANIZATION: Amazon $ LOCATION: New York $ PERSON: Esther \n\n"
+        "Ensure the output strictly follows the format: label: entity $ label: entity, with each unique "
+        "entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or "
+        "irrelevant entries like none. \n\nText: {{text}} \n"
+        "Return only the output",
         "prompt_2": "You are working as a named entity recognition expert and your task is to label a given text "
-                    "with named entity labels. Your task is to identify and label any named entities present in the "
-                    "text. The named entity labels that you will be using are PER (person), LOC (location), "
-                    "ORG (organization) and DATE (date). Label multi-word entities as a single named entity. "
-                    "For words which are not part of any named entity, do not return any value for it. \n"
-                    "Ensure the output strictly follows the format: label: entity $$ label: entity, with each unique "
-                    "entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or "
-                    "irrelevant entries like none. Return only the output \n\nText: {{text}}",
+        "with named entity labels. Your task is to identify and label any named entities present in the "
+        "text. The named entity labels that you will be using are PER (person), LOC (location), "
+        "ORG (organization) and DATE (date). Label multi-word entities as a single named entity. "
+        "For words which are not part of any named entity, do not return any value for it. \n"
+        "Ensure the output strictly follows the format: label: entity $$ label: entity, with each unique "
+        "entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or "
+        "irrelevant entries like none. Return only the output \n\nText: {{text}}",
         "prompt_3": f"You are a Named Entity Recognition expert in {lang} language. \nExtract all named entities from "
-                    f"the following {lang} text and categorize them into PERSON, LOCATION, ORGANIZATION, or DATE. "
-                    f"Ensure the output strictly follows the format: label: entity $$ label: entity, with each unique "
-                    "entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or "
-                    "irrelevant entries like none. Return only the output \n\nText: {{text}}",
+        f"the following {lang} text and categorize them into PERSON, LOCATION, ORGANIZATION, or DATE. "
+        f"Ensure the output strictly follows the format: label: entity $$ label: entity, with each unique "
+        "entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or "
+        "irrelevant entries like none. Return only the output \n\nText: {{text}}",
         "prompt_4": f"As a {lang} linguist, label all named entities in the {lang} text below with the categories: "
-                    "PERSON, LOCATION, ORGANIZATION, and DATE. Ensure the output strictly follows the format: label: "
-                    "entity $$ label: entity, with each unique entity on a separate label line, avoiding grouped "
-                    "entities (e.g., avoid LOC: entity, entity) or irrelevant entries like none. Return only the "
-                    "output. \n\nText: {{text}}",
+        "PERSON, LOCATION, ORGANIZATION, and DATE. Ensure the output strictly follows the format: label: "
+        "entity $$ label: entity, with each unique entity on a separate label line, avoiding grouped "
+        "entities (e.g., avoid LOC: entity, entity) or irrelevant entries like none. Return only the "
+        "output. \n\nText: {{text}}",
         "prompt_5": "Provide a concise list of named entities in the text below. Use the following labels: "
-                    "PERSON, LOCATION, ORGANIZATION, and DATE. Ensure the output strictly follows the format: label: "
-                    "entity $$ label: entity, with each unique entity on a separate label line, avoiding grouped "
-                    "entities (e.g., avoid LOC: entity, entity) or irrelevant entries like none. Return only the "
-                    "output.  \n\nText: {{text}}"
+        "PERSON, LOCATION, ORGANIZATION, and DATE. Ensure the output strictly follows the format: label: "
+        "entity $$ label: entity, with each unique entity on a separate label line, avoiding grouped "
+        "entities (e.g., avoid LOC: entity, entity) or irrelevant entries like none. Return only the "
+        "output.  \n\nText: {{text}}",
     }
     return prompt_map[mode]
 
@@ -72,25 +73,25 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         "wo": "Wolof",
         "xh": "isiXhosa",
         "yo": "Yoruba",
-        "zu": "isiZulu"
+        "zu": "isiZulu",
     }
 
     for lang in languages.keys():
         try:
             file_name = f"masakhaner_{lang}.yaml"
             task_name = f"masakhaner_{lang}_{mode}"
-            yaml_template = f"masakhaner"
+            yaml_template = "masakhaner"
             yaml_details = {
-                        "include": yaml_template,
-                        "task": task_name,
-                        "dataset_name": lang,
-                        "doc_to_text": prompt_func(mode, languages[lang])
-                    }
+                "include": yaml_template,
+                "task": task_name,
+                "dataset_name": lang,
+                "doc_to_text": prompt_func(mode, languages[lang]),
+            }
             os.makedirs(f"{output_dir}/{mode}", exist_ok=True)
             with open(
-                    f"{output_dir}/{mode}/{file_name}",
-                    "w" if overwrite else "x",
-                    encoding="utf8",
+                f"{output_dir}/{mode}/{file_name}",
+                "w" if overwrite else "x",
+                encoding="utf8",
             ) as f:
                 f.write("# Generated by utils.py\n")
                 yaml.dump(

@@ -7,7 +7,7 @@ def doc_to_choice(doc):
 
 
 def doc_to_text(doc):
-    output = """Given your proficiency in {subject}, please answer the subsequent multiple-choice question with 'A', 'B', 'C', or 'D'.                 
+    output = """Given your proficiency in {subject}, please answer the subsequent multiple-choice question with 'A', 'B', 'C', or 'D'.
 Question: {question}
 Choices:
         A: {choice1}

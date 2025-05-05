@@ -1,5 +1,7 @@
 from itertools import chain
+
 from sklearn.metrics import accuracy_score
+
 from lm_eval.utils import weighted_f1_score
 
 
@@ -22,7 +24,7 @@ def doc_to_target(doc):
         14: "ADV",
         15: "INTJ",
         16: "VERB",
-        17: "AUX"
+        17: "AUX",
     }
     return [pos_tag_map[tag] for tag in doc["upos"]]
 
@@ -47,5 +49,7 @@ def acc_score(items):
         accuracy = accuracy_score(gold, pred)
         accuracy_scores.append(accuracy)
 
-    mean_accuracy = sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0
+    mean_accuracy = (
+        sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0
+    )
     return mean_accuracy

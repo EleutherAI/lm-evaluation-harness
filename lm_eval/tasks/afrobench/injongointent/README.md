@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `INJONGO: A Multicultural Intent Detection and Slot-filling Dataset for 16 African Languages`
@@ -12,13 +12,12 @@ Paper Link: https://arxiv.org/abs/2502.09814
 
 ```
 @misc{yu2025injongomulticulturalintentdetection,
-      title={INJONGO: A Multicultural Intent Detection and Slot-filling Dataset for 16 African Languages}, 
+      title={INJONGO: A Multicultural Intent Detection and Slot-filling Dataset for 16 African Languages},
       author={Hao Yu and Jesujoba O. Alabi and Andiswa Bukula and Jian Yun Zhuang and En-Shiun Annie Lee and Tadesse Kebede Guge and Israel Abebe Azime and Happy Buzaaba and Blessing Kudzaishe Sibanda and Godson K. Kalipe and Jonathan Mukiibi and Salomon Kabongo Kabenamualu and Mmasibidi Setaka and Lolwethu Ndolela and Nkiruka Odu and Rooweither Mabuya and Shamsuddeen Hassan Muhammad and Salomey Osei and Sokhar Samb and Juliet W. Murage and Dietrich Klakow and David Ifeoluwa Adelani},
       year={2025},
       eprint={2502.09814},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2502.09814}, 
+      url={https://arxiv.org/abs/2502.09814},
 }
 ```
-

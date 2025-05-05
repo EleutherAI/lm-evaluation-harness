@@ -1,5 +1,6 @@
 import argparse
 import os
+
 import yaml
 
 
@@ -7,26 +8,26 @@ def prompt_func(mode, lang):
     prompt_map = {
         "prompt_1": "Given the categories technology, business, politics, sports, health, entertainment, or religion; what category does the text: '{{headline}}' belong to: \n\n",
         "prompt_2": f"Does this {lang} topic; "
-                    "'{{headline}}' belong to one of the following categories: technology, business, politics, sports, health, entertainment, or religion? category only\n\n",
+        "'{{headline}}' belong to one of the following categories: technology, business, politics, sports, health, entertainment, or religion? category only\n\n",
         "prompt_3": f"You are an assistant able to classify topics in texts. \n\n"
-                    f"Given the categories technology, religion, politics, sports, health, entertainment, or business; what is "
-                    f"the topic of the {lang} statement below? Return only the category. "
-                    "\n\ntext: {{headline}} \category:\n\n",
+        f"Given the categories technology, religion, politics, sports, health, entertainment, or business; what is "
+        f"the topic of the {lang} statement below? Return only the category. "
+        "\n\ntext: {{headline}} \category:\n\n",
         "prompt_4": "Label the following text as technology, religion, politics, sports, health, entertainment, or geography. Provide only the category as your "
-                    "response. \n\ntext: {{headline}} \category: \n\n",
+        "response. \n\ntext: {{headline}} \category: \n\n",
         "prompt_5": f"You are tasked with performing topic classification on the following {lang} text. "
-                    f"For each input, classify the topic as technology, business, politics, sports, health, entertainment, or religion. "
-                    f"Use the following guidelines: \n\n "
-                    f"technology: The text discusses scientific discoveries, technological advancements, or related topics. \n"
-                    f"politics: The text covers political events, policies, or related topics. \n"
-                    f"sports: The text talks about sports events, athletes, or related topics. \n"
-                    f"health: The text addresses health issues, medical advancements, or related topics. \n"
-                    f"entertainment: The text pertains to movies, music, celebrities, or related topics. \n"
-                    f"religion: The text talks about relgions, religious institutions and beliefs or related topics. \n\n"
-                    f"business: The text covers economy, business, or related topics. \n\n"
-                    f"If the text contains multiple topics, choose the dominant topic. "
-                    f"For ambiguous or unclear topics, select the category that best reflects the overall content. "
-                    'Please provide a single classification for each input.\n\ntext: {{headline}} \category: \n\n'
+        f"For each input, classify the topic as technology, business, politics, sports, health, entertainment, or religion. "
+        f"Use the following guidelines: \n\n "
+        f"technology: The text discusses scientific discoveries, technological advancements, or related topics. \n"
+        f"politics: The text covers political events, policies, or related topics. \n"
+        f"sports: The text talks about sports events, athletes, or related topics. \n"
+        f"health: The text addresses health issues, medical advancements, or related topics. \n"
+        f"entertainment: The text pertains to movies, music, celebrities, or related topics. \n"
+        f"religion: The text talks about relgions, religious institutions and beliefs or related topics. \n\n"
+        f"business: The text covers economy, business, or related topics. \n\n"
+        f"If the text contains multiple topics, choose the dominant topic. "
+        f"For ambiguous or unclear topics, select the category that best reflects the overall content. "
+        "Please provide a single classification for each input.\n\ntext: {{headline}} \category: \n\n",
     }
     return prompt_map[mode]
 
@@ -62,20 +63,20 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
         try:
             file_name = f"masakhanews_{lang}.yaml"
             task_name = f"masakhanews_{lang}_{mode}"
-            yaml_template = f"masakhanews"
+            yaml_template = "masakhanews"
             yaml_details = {
-                    "include": yaml_template,
-                    "task": task_name,
-                    "dataset_name": lang,
-                    "doc_to_text": prompt_func(mode, languages[lang])
-                }
+                "include": yaml_template,
+                "task": task_name,
+                "dataset_name": lang,
+                "doc_to_text": prompt_func(mode, languages[lang]),
+            }
             file_path = os.path.join(output_dir, mode)
             os.makedirs(file_path, exist_ok=True)
 
             with open(
-                    f"{output_dir}/{mode}/{file_name}",
-                    "w" if overwrite else "x",
-                    encoding="utf8",
+                f"{output_dir}/{mode}/{file_name}",
+                "w" if overwrite else "x",
+                encoding="utf8",
             ) as f:
                 f.write("# Generated by utils.py\n")
                 yaml.dump(
@@ -108,7 +109,7 @@ def main() -> None:
         help="Directory to write yaml files to",
     )
 
-    PROMPT_CHOICES=["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"]
+    PROMPT_CHOICES = ["prompt_1", "prompt_2", "prompt_3", "prompt_4", "prompt_5"]
     parser.add_argument(
         "--mode",
         nargs="*",

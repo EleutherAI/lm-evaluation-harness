@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `MasakhaNEWS: News Topic Classification for African languages`
@@ -97,4 +97,3 @@ HomePage: https://github.com/masakhane-io/masakhane-news
     pages = "144--159"
 }
 ```
-

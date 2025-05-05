@@ -1,10 +1,11 @@
-import re
 import collections
+import re
+
 from lm_eval.utils import weighted_f1_score
 
 
 def doc_to_target(doc):
-    return transform_text(doc['ner_tags'])
+    return transform_text(doc["ner_tags"])
 
 
 def transform_text(text):
@@ -12,19 +13,19 @@ def transform_text(text):
     current_entity = ""
     current_tag = ""
 
-    for pair in text.split('\n'):
+    for pair in text.split("\n"):
         if pair:  # Check if the line is not empty
-            word, tag = pair.strip().split(': ')
+            word, tag = pair.strip().split(": ")
             tag = tag.upper()
             word = word.lower()
-            word = word.strip(',.').strip()
+            word = word.strip(",.").strip()
 
-            if tag.startswith('B-'):
+            if tag.startswith("B-"):
                 if current_entity:
                     entities.append(f"{current_tag}: {current_entity}")
-                current_tag = tag.split('-')[1]
+                current_tag = tag.split("-")[1]
                 current_entity = word
-            elif tag.startswith('I-') and tag.split('-')[1] == current_tag:
+            elif tag.startswith("I-") and tag.split("-")[1] == current_tag:
                 current_entity += word
             else:
                 if current_entity:
@@ -35,7 +36,7 @@ def transform_text(text):
         entities.append(f"{current_tag}: {current_entity}")
 
         # Join all the transformed output lines with $$ as separator
-    return ' $$ '.join(entities)
+    return " $$ ".join(entities)
 
 
 def span_f1_agg(items):
@@ -62,16 +63,18 @@ def span_f1_agg(items):
 
     def normalize_text(strings):
         def get_blank_spaces_pattern():
-            return re.compile(r'\s{3,}|\t')
+            return re.compile(r"\s{3,}|\t")
 
         def remove_blank_spaces(text):
-            text = re.sub(pattern=get_blank_spaces_pattern(), repl='', string=text)
-            text = re.sub('\s+', ' ', text)
+            text = re.sub(pattern=get_blank_spaces_pattern(), repl="", string=text)
+            text = re.sub("\s+", " ", text)
             return text
 
         def remove_punctuation(text):
             my_punctuation = '!"$%&\'()*+,-./:;<=>?[\\]^_`{|}~•@.""-,`'
-            text = re.sub('[' + my_punctuation + ']+', ' ', str(text))  # strip punctuation
+            text = re.sub(
+                "[" + my_punctuation + "]+", " ", str(text)
+            )  # strip punctuation
             return text
 
         def remove_articles(text):
@@ -93,8 +96,18 @@ def span_f1_agg(items):
         """Extract spans from IOB1 or BIO tags."""
         if isinstance(tag_sequence, list):
             tag_sequence = " ".join(i.strip() for i in tag_sequence)
-        tag_sequence_split = [item.strip() for sub in tag_sequence.strip().split(delimiter) for item in sub.split('$') if item]
-        tag_sequence_split = [item.strip() for value in tag_sequence_split for sub in value.split(". ") for item in sub.split(", ")]
+        tag_sequence_split = [
+            item.strip()
+            for sub in tag_sequence.strip().split(delimiter)
+            for item in sub.split("$")
+            if item
+        ]
+        tag_sequence_split = [
+            item.strip()
+            for value in tag_sequence_split
+            for sub in value.split(". ")
+            for item in sub.split(", ")
+        ]
         tags_entities = []
         for tag_entity in tag_sequence_split:
             tag_entity_split = tag_entity.split(": ")
@@ -106,12 +119,8 @@ def span_f1_agg(items):
         return tags_entities
 
     def compute_f1_metrics(true_positive, false_positive, false_negative):
-        precision = float(true_positive) / float(
-            true_positive + false_positive + 1e-13
-        )
-        recall = float(true_positive) / float(
-            true_positive + false_negative + 1e-13
-        )
+        precision = float(true_positive) / float(true_positive + false_positive + 1e-13)
+        recall = float(true_positive) / float(true_positive + false_negative + 1e-13)
         f1_measures = 2.0 * ((precision * recall) / (precision + recall + 1e-13))
         return precision, recall, f1_measures
 
