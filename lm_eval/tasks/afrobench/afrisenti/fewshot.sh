@@ -100,11 +100,10 @@ lm_eval --model hf \
 
 lm_eval --model hf \
         --model_args pretrained=google/gemma-3-27b-it,parallelize=true \
-        --tasks  flores_eng-afr_prompt_1\
+        --tasks  afrobench_sentiment_tasks\
         --device 'cuda'  \
         --batch_size 1 \
         --num_fewshot 0 \
         --verbosity DEBUG \
-        --output_path './flores_results/' \
-        --log_samples \
-        --limit 5
+        --output_path './senti_results/' \
+        --log_samples

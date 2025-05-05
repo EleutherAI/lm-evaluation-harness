@@ -2,7 +2,7 @@ group: afrobench
 task:
   - adr_tasks
   - afrihate_tasks
-  - afrimgsm_tasks
+  - afrimgsm_cot_tasks
   - afrixnli_tasks
   - afrobench_xqa_tasks
   - afrobench_sentiment_tasks

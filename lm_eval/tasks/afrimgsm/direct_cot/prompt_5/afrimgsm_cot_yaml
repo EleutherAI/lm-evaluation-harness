@@ -1,4 +1,6 @@
-tag: afrimgsm_cot_tasks
+tag:
+    - afrimgsm_cot_tasks
+    - afrimgsm_cot_tasks_prompt_5
 dataset_path: masakhane/afrimgsm
 dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until

@@ -1,6 +1,6 @@
 group: afrobench_lite
 task:
-  - afrimgsm_tasks
+  - afrimgsm_cot_tasks
   - afrimmlu_tasks
   - afrixnli_tasks
   - belebele_tasks
