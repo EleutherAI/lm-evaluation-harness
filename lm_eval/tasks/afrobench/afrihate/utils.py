@@ -3,11 +3,9 @@ import argparse
 import yaml
 
 
-
 class FunctionTag:
     def __init__(self, value):
         self.value = value
-
 
 
 def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:

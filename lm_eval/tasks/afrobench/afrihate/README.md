@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `AfriHate: A Multilingual Collection of Hate Speech and Abusive Language Datasets for African Languages`
@@ -14,8 +14,7 @@ HomePage: https://github.com/AfriHate/AfriHate
 
 ```
 @misc{muhammad2025afrihatemultilingualcollectionhate,
-      title={AfriHate: A Multilingual Collection of Hate Speech and Abusive Language Datasets for African Languages}, 
+      title={AfriHate: A Multilingual Collection of Hate Speech and Abusive Language Datasets for African Languages},
       author={Shamsuddeen Hassan Muhammad and Idris Abdulmumin and Abinew Ali Ayele and David Ifeoluwa Adelani and Ibrahim Said Ahmad and Saminu Mohammad Aliyu and Nelson Odhiambo Onyango and Lilian D. A. Wanzare and Samuel Rutunda and Lukman Jibril Aliyu and Esubalew Alemneh and Oumaima Hourrane and Hagos Tesfahun Gebremichael and Elyas Abdi Ismail and Meriem Beloucif and Ebrahim Chekol Jibril and Andiswa Bukula and Rooweither Mabuya and Salomey Osei and Abigail Oppong and Tadesse Destaw Belay and Tadesse Kebede Guge and Tesfa Tegegne Asfaw and Chiamaka Ijeoma Chukwuneke and Paul Röttger and Seid Muhie Yimam and Nedjma Ousidhoum},
       year={2025}
 ```
-

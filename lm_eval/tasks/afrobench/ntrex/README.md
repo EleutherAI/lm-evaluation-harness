@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `NTREX-128 – News Test References for MT Evaluation of 128 Languages`
@@ -36,4 +36,3 @@ HomePage: https://github.com/MicrosoftTranslator/NTREX
     pages = "21--24"
 }
 ```
-

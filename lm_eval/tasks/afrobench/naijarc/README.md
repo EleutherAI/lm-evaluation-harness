@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `NaijaRC: A Multi-choice Reading Comprehension Dataset for Nigerian Languages`
@@ -14,13 +14,12 @@ HomePage: https://huggingface.co/datasets/aremuadeolajr/NaijaRC
 
 ```
 @misc{aremu2024naijarcmultichoicereadingcomprehension,
-      title={NaijaRC: A Multi-choice Reading Comprehension Dataset for Nigerian Languages}, 
+      title={NaijaRC: A Multi-choice Reading Comprehension Dataset for Nigerian Languages},
       author={Anuoluwapo Aremu and Jesujoba O. Alabi and Daud Abolade and Nkechinyere F. Aguobi and Shamsuddeen Hassan Muhammad and David Ifeoluwa Adelani},
       year={2024},
       eprint={2308.09768},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2308.09768}, 
+      url={https://arxiv.org/abs/2308.09768},
 }
 ```
-

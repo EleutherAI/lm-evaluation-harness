@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `Uhura: A Benchmark for Evaluating Scientific Question Answering and Truthfulness in Low-Resource African Languages`
@@ -14,13 +14,12 @@ HomePage: https://huggingface.co/datasets/masakhane/uhura-arc-easy
 
 ```
 @misc{bayes2024uhurabenchmarkevaluatingscientific,
-      title={Uhura: A Benchmark for Evaluating Scientific Question Answering and Truthfulness in Low-Resource African Languages}, 
+      title={Uhura: A Benchmark for Evaluating Scientific Question Answering and Truthfulness in Low-Resource African Languages},
       author={Edward Bayes and Israel Abebe Azime and Jesujoba O. Alabi and Jonas Kgomo and Tyna Eloundou and Elizabeth Proehl and Kai Chen and Imaan Khadir and Naome A. Etori and Shamsuddeen Hassan Muhammad and Choice Mpanza and Igneciah Pocia Thete and Dietrich Klakow and David Ifeoluwa Adelani},
       year={2024},
       eprint={2412.00948},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2412.00948}, 
+      url={https://arxiv.org/abs/2412.00948},
 }
 ```
-

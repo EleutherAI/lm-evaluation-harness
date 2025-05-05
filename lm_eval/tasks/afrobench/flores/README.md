@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `The FLORES-200 Evaluation Benchmark for Low-Resource and Multilingual Machine Translation`
@@ -29,4 +29,3 @@ HomePage: https://huggingface.co/datasets/facebook/flores
   year={2019}
 }
 ```
-

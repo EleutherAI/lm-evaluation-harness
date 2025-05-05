@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `Multilingual Massive Multitask Language Understanding (MMMLU)`
@@ -14,13 +14,12 @@ HomePage: https://huggingface.co/datasets/openai/MMMLU
 
 ```
 @misc{hendrycks2021measuringmassivemultitasklanguage,
-      title={Measuring Massive Multitask Language Understanding}, 
+      title={Measuring Massive Multitask Language Understanding},
       author={Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
       year={2021},
       eprint={2009.03300},
       archivePrefix={arXiv},
       primaryClass={cs.CY},
-      url={https://arxiv.org/abs/2009.03300}, 
+      url={https://arxiv.org/abs/2009.03300},
 }
 ```
-

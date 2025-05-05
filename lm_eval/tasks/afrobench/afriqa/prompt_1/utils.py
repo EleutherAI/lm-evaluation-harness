@@ -42,13 +42,12 @@ def f1(items):
         common = Counter(prediction_tokens) & Counter(references_tokens)
         num_same = sum(common.values())
         if num_same == 0:
-            f1_score =  0
+            f1_score = 0
         else:
             precision = 1.0 * num_same / len(prediction_tokens)
             recall = 1.0 * num_same / len(references_tokens)
             f1_score = (2 * precision * recall) / (precision + recall)
 
         f1_list.append(f1_score)
-    
+
     return sum(f1_list) / len(f1_list)
-        

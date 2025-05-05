@@ -1,4 +1,4 @@
-# 
+#
 
 ## Paper
 Title: `Sunbird African Language Technology (SALT) dataset`
@@ -15,5 +15,3 @@ HomePage: https://github.com/SunbirdAI/salt
 Multilingual Model and Data Resources for Text-To-Speech in Ugandan Languages. Isaac Owomugisha, Benjamin Akera, Ernest Tonny Mwebaze, John Quinn. 4th Workshop on African Natural Language Processing, 2023. [pdf](https://openreview.net/pdf?id=vaxG0WAPzL)
 
 Machine Translation For African Languages: Community Creation Of Datasets And Models In Uganda. Benjamin Akera, Jonathan Mukiibi, Lydia Sanyu Naggayi, Claire Babirye, Isaac Owomugisha, Solomon Nsumba, Joyce Nakatumba-Nabende, Engineer Bainomugisha, Ernest Mwebaze, John Quinn. 3rd Workshop on African Natural Language Processing, 2022. [pdf](https://openreview.net/pdf?id=BK-z5qzEU-9)
-
-

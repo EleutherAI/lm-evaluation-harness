@@ -66,21 +66,21 @@ class SPANFilter(Filter):
     def apply(self, resps, docs):
         def format_ner_text(text):
             label_dict = {
-                'person': 'PER',
-                'location': 'LOC',
-                'organization': 'ORG',
-                'counties': 'LOC',
-                'places': 'LOC',
-                'people': 'PER',
-                'persons': 'PER',
-                'company': 'ORG',
-                'country': 'LOC',
-                'continent': 'LOC',
-                'time': 'DATE',
-                'date': 'DATE',
-                'per': 'PER',
-                'loc': 'LOC',
-                'org': 'ORG'
+                "person": "PER",
+                "location": "LOC",
+                "organization": "ORG",
+                "counties": "LOC",
+                "places": "LOC",
+                "people": "PER",
+                "persons": "PER",
+                "company": "ORG",
+                "country": "LOC",
+                "continent": "LOC",
+                "time": "DATE",
+                "date": "DATE",
+                "per": "PER",
+                "loc": "LOC",
+                "org": "ORG",
             }
             text = text.lower()
             for key, value in label_dict.items():
@@ -115,7 +115,8 @@ class SPANFilter(Filter):
             return " $ ".join(formatted_entities)
 
         def filter_set(inst):
-            return [format_named_entities(format_ner_text(resp.lower())) for resp in inst]
-        return [
-            filter_set(resp) for resp in resps
-        ]
+            return [
+                format_named_entities(format_ner_text(resp.lower())) for resp in inst
+            ]
+
+        return [filter_set(resp) for resp in resps]
