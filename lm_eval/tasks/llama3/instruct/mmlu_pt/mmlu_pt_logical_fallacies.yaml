@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "voc\xEA \xE9 quem"
+      B: risada de cavalo
+      C: argumento contra a pessoa
+      D: ignoratio elenchi
+    input_correct_responses:
+    - C
+    input_question: "Se algu\xE9m atacar o car\xE1ter de um argumentador advers\xE1\
+      rio, em vez de responder aos argumentos desse oponente, a primeira pessoa provavelmente\
+      \ cometeu qual das seguintes fal\xE1cias?"
+  - input_choice_list:
+      A: "argumentar que algo \xE9 inferior s\xF3 porque n\xE3o faz algo que nunca\
+        \ foi planejado."
+      B: "incluir mais de uma afirma\xE7\xE3o na proposi\xE7\xE3o e tratar a prova\
+        \ de uma afirma\xE7\xE3o como prova de todas as afirma\xE7\xF5es."
+      C: "tirar uma conclus\xE3o antes de examinar as evid\xEAncias e considerar apenas\
+        \ as evid\xEAncias que apoiam essa conclus\xE3o."
+      D: "fazer uma pergunta que inclua uma suposi\xE7\xE3o n\xE3o comprovada ou mais\
+        \ de uma pergunta, tornando assim uma resposta direta, sim ou n\xE3o, sem\
+        \ sentido."
+    input_correct_responses:
+    - D
+    input_question: "A fal\xE1cia da quest\xE3o complexa consiste em"
+  - input_choice_list:
+      A: A premissa menor deve negar o antecedente
+      B: A premissa maior deve afirmar o consequente
+      C: "O termo m\xE9dio deve ser usado em pelo menos uma premissa em um sentido\
+        \ universal ou n\xE3o qualificado"
+      D: Tudo o que precede
+    input_correct_responses:
+    - C
+    input_question: "Qual das afirma\xE7\xF5es a seguir \xE9 verdadeira sobre um silogismo\
+      \ categ\xF3rico v\xE1lido?"
+  - input_choice_list:
+      A: "Divis\xE3o"
+      B: "Composi\xE7\xE3o"
+      C: "Apelo \xE0 pessoa"
+      D: "Apelo \xE0 ignor\xE2ncia"
+    input_correct_responses:
+    - B
+    input_question: "Argumentar que o que \xE9 verdade para as partes deve ser verdade\
+      \ para o todo \xE9 a fal\xE1cia de..."
+  - input_choice_list:
+      A: "mau esp\xEDrito esportivo"
+      B: "apelo \xE0 compaix\xE3o"
+      C: argumento contra a pessoa
+      D: "ignor\xE2ncia da refuta\xE7\xE3o"
+    input_correct_responses:
+    - D
+    input_question: "Quando um argumentador causa confus\xE3o durante a refuta\xE7\
+      \xE3o devido \xE0 falta real ou fingida de capacidade de se envolver na refuta\xE7\
+      \xE3o, esse argumentador pode ter cometido a fal\xE1cia de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_logical_fallacies
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_logical_fallacies
+task_alias: logical_fallacies

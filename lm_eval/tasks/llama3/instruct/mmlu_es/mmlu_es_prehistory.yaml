@@ -1,0 +1,65 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "satisfacer a los poderosos sacerdotes astr\xF3nomos mayas."
+      B: "mostrar su generosidad hacia la gente com\xFAn, ya que se les permit\xED\
+        a vivir en los templos."
+      C: "ahuyentar a los enemigos, en particular a los espa\xF1oles."
+      D: legitimar su realeza, ya que su padre no era real.
+    input_correct_responses:
+    - D
+    input_question: "El gran rey maya Pacal construy\xF3 templos en la ciudad de Palenque\
+      \ con el fin de:"
+  - input_choice_list:
+      A: "un centro de la civilizaci\xF3n del Mississippi con condiciones similares\
+        \ al surgimiento de los primeros estados."
+      B: las limitaciones de la autoridad en una sociedad nativa americana de recolectores
+        igualitarios.
+      C: "una jefatura simple o tal vez una jefatura compleja hab\xEDa evolucionado\
+        \ hacia el a\xF1o 1500 d.C."
+      D: "un centro de la civilizaci\xF3n del Mississippi con condiciones similares\
+        \ a las sociedades de la costa noroeste de Am\xE9rica del Norte."
+    input_correct_responses:
+    - A
+    input_question: "Seg\xFAn Timothy Pauketat, la evidencia de la estratificaci\xF3\
+      n social y el poder pol\xEDtico en Cahokia sugiere:"
+  - input_choice_list:
+      A: "un cataclismo de alg\xFAn tipo, como un terremoto, un volc\xE1n o un tsunami."
+      B: "degradaci\xF3n ecol\xF3gica resultante de las t\xE9cnicas agr\xEDcolas de\
+        \ tala y quema."
+      C: guerras interminables entre ciudades-estado mayas vecinas.
+      D: "pr\xE1cticas de mestizaje que condujeron a un fuerte aumento de los trastornos\
+        \ cong\xE9nitos."
+    input_correct_responses:
+    - B
+    input_question: 'Los investigadores ahora creen que el declive de los mayas fue
+      causado principalmente por:'
+  - input_choice_list:
+      A: "una gran cantidad de diversidad de especies, o una sola especie que exhibi\xF3\
+        \ mucha diversidad."
+      B: "muy poca diversidad de especies durante este per\xEDodo y muy pocos hom\xED\
+        nidos."
+      C: "Disminuci\xF3n de la diversidad de especies debido a una prolongada edad\
+        \ de hielo seguida de una grave sequ\xEDa."
+      D: "Disminuci\xF3n de la diversidad de especies pero aumento del n\xFAmero de\
+        \ piedras de martillo y lascas, lo que indica la fabricaci\xF3n de herramientas\
+        \ de piedra."
+    input_correct_responses:
+    - A
+    input_question: "Investigaciones recientes sobre especies de hom\xEDnidos que\
+      \ datan del Plioceno Medio indican que hubo (a partir de 2020):"
+  - input_choice_list:
+      A: menos de 650 cc
+      B: alrededor de 800 cc
+      C: poco menos de 1000 cc
+      D: 1200 cc
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l es la capacidad craneal media aproximada del Homo\
+      \ erectus?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_prehistory
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_prehistory
+task_alias: prehistory

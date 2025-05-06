@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Geodemographie
+      B: Produktunterscheidung.
+      C: ANSOFF-Matrix.
+      D: "Markenf\xFChrung."
+    input_correct_responses:
+    - A
+    input_question: "_____________ ist ein nat\xFCrliches Ergebnis bei der Kombination\
+      \ von demografischen und geografischen Variablen."
+  - input_choice_list:
+      A: Outsourcing-Einheit.
+      B: Beschaffungszentrum.
+      C: "Hauptgesch\xE4ftsf\xFChrer."
+      D: Entscheidungseinheit.
+    input_correct_responses:
+    - D
+    input_question: In einer Organisation wird die Gruppe von Personen, die mit Kaufentscheidungen
+      beauftragt ist, als _______________ bezeichnet.
+  - input_choice_list:
+      A: "Bed\xFCrfnisse sind abh\xE4ngig von der Kultur und auch von der sozialen\
+        \ Klasse."
+      B: "Niedrigere Bed\xFCrfnisse m\xFCssen zumindest teilweise befriedigt werden,\
+        \ bevor h\xF6here Bed\xFCrfnisse das Verhalten beeinflussen k\xF6nnen."
+      C: "Bed\xFCrfnisse werden nicht priorisiert oder in einer bestimmten Reihenfolge\
+        \ angeordnet."
+      D: "Befriedigte Bed\xFCrfnisse sind Motivatoren, und neue Bed\xFCrfnisse entstehen,\
+        \ wenn aktuelle Bed\xFCrfnisse unbefriedigt bleiben."
+    input_correct_responses:
+    - B
+    input_question: "Welche der folgenden Aussagen ist eine Annahme in Maslows Bed\xFC\
+      rfnispyramide?"
+  - input_choice_list:
+      A: "Der \xE4ltere Verbraucher, der sich etwas ausgeschlossen f\xFChlt."
+      B: "Die verheirateten Frauen, von denen viele das Bed\xFCrfnis nach Stabilit\xE4\
+        t in ihrem Leben versp\xFCren."
+      C: Neue Einwanderer, die sich wirklich in ihre neue Kultur integrieren wollen.
+      D: "Kinder, die die meisten ihrer Kaufentscheidungen auf \xE4u\xDFere Einfl\xFC\
+        sse st\xFCtzen."
+    input_correct_responses:
+    - D
+    input_question: "Die einzelne Gruppe innerhalb der Gesellschaft, die am anf\xE4\
+      lligsten f\xFCr den Einfluss der Bezugsgruppe ist, ist:"
+  - input_choice_list:
+      A: Pflegelinien.
+      B: Direktwerbung.
+      C: "Eins\xE4tze."
+      D: "T\xFCr zu T\xFCr."
+    input_correct_responses:
+    - D
+    input_question: "Obwohl Inhalt und Qualit\xE4t so kontrolliert werden k\xF6nnen\
+      \ wie Direktwerbung, sind die R\xFCcklaufquoten dieses Mediums aufgrund des\
+      \ Fehlens eines pers\xF6nlichen Adressierungsmechanismus geringer. Dieses Medienformat\
+      \ ist bekannt als:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_marketing
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_marketing
+task_alias: marketing

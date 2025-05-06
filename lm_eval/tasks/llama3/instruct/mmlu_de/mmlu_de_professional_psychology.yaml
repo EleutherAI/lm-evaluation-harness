@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Teilen Sie Ihrem Kunden die Vor- und Nachteile jedes Programms mit, das Sie
+        kennen, mit Ausnahme des Programms, in dem Sie eingeschrieben sind
+      B: "Empfehlen Sie Ihrem Kunden das Programm, f\xFCr das Sie angemeldet sind,\
+        \ und erl\xE4utern Sie den 50-Dollar-Bonus, den Sie erhalten"
+      C: "Empfehlen Sie Ihrem Kunden das Programm, f\xFCr das Sie angemeldet sind,\
+        \ und bieten Sie an, den $50-Bonus dem Konto Ihres Kunden im Programm gutschreiben\
+        \ zu lassen"
+      D: "Teilen Sie Ihrem Kunden die Vor- und Nachteile jedes Programms mit, das\
+        \ Sie kennen, aber beanspruchen Sie nicht den 50-Dollar-Bonus, wenn sich Ihr\
+        \ Kunde f\xFCr Ihr Programm anmeldet"
+    input_correct_responses:
+    - D
+    input_question: "Einer Ihrer Therapieklienten bittet Sie um Rat zu einem guten\
+      \ Programm zur Gewichtsreduktion. Sie haben die Programme in der Community untersucht\
+      \ und sind bei dem Programm angemeldet, das Sie f\xFCr das beste halten. Dieses\
+      \ Programm bietet seinen Patrons einen Bonus von 50 $ f\xFCr jede neue Person,\
+      \ die sie in das Programm einbringen. Unter diesen Umst\xE4nden w\xE4re Ihre\
+      \ angemessenste Antwort zu"
+  - input_choice_list:
+      A: "weniger empfindlich gegen\xFCber Extremwerten als der Mittelwert"
+      B: "n\xFCtzlicher f\xFCr schiefe Verteilungen"
+      C: "empfindlich gegen\xFCber Extremwerten und stark schiefen Verteilungen"
+      D: "die am h\xE4ufigsten vorkommende Zahl"
+    input_correct_responses:
+    - D
+    input_question: "Es gibt drei M\xF6glichkeiten, die zentrale Tendenz zu messen:\
+      \ den Mittelwert, den Median und den Modus. Was ist nach Ihrem Wissen \xFCber\
+      \ sie der Modus?"
+  - input_choice_list:
+      A: Individualismus.
+      B: Individualismus und Machtdistanz.
+      C: "Machtdistanz und M\xE4nnlichkeit."
+      D: Unsicherheitsvermeidung.
+    input_correct_responses:
+    - A
+    input_question: "In Bezug auf die f\xFCnf kulturellen Dimensionen von Hofstede\
+      \ (1980) stehen die Vereinigten Staaten an der Spitze der Skala bei:"
+  - input_choice_list:
+      A: "ist eine Fantasie, die den Klienten von der Realit\xE4t ablenkt."
+      B: "steht f\xFCr \u201Egemischte Gef\xFChle\u201C gegen\xFCber dem Therapeuten."
+      C: "\u201Eist eine Form des \u201EAusagierens.\u201C\u201C"
+      D: "spiegelt das pers\xF6nliche und kollektive Unbewusste des Klienten wider."
+    input_correct_responses:
+    - D
+    input_question: "Carl Jung glaubte, dass die \xDCbertragung eines Klienten:"
+  - input_choice_list:
+      A: "sind nicht miteinander korreliert, aber m\xE4\xDFig mit dem Kriterium korreliert"
+      B: haben geringe Korrelationen untereinander und geringe Korrelationen mit dem
+        Kriterium
+      C: "sind stark miteinander korreliert und m\xE4\xDFig mit dem Kriterium korreliert"
+      D: "haben geringe Korrelationen mit dem Kriterium, sind aber m\xE4\xDFig miteinander\
+        \ korreliert"
+    input_correct_responses:
+    - A
+    input_question: "Bei der Konstruktion einer multiplen Regressionsgleichung f\xFC\
+      r Vorhersagezwecke ist die optimale Kombination von Ma\xDFen eine, bei der die\
+      \ Pr\xE4diktoren"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_psychology
+tag: mmlu_de_llama_social_sciences_tasks
+task: mmlu_de_llama_professional_psychology
+task_alias: professional_psychology

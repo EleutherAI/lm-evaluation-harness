@@ -1,0 +1,72 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Se a inclina\xE7\xE3o da linha de regress\xE3o for exatamente 1, ent\xE3\
+        o a correla\xE7\xE3o ser\xE1 exatamente 1."
+      B: "Se a correla\xE7\xE3o for 0, ent\xE3o a inclina\xE7\xE3o da linha de regress\xE3\
+        o \xE9 indefinida."
+      C: "Mudar qual vari\xE1vel \xE9 chamada de x e qual \xE9 chamada de y altera\
+        \ o sinal da correla\xE7\xE3o."
+      D: "A correla\xE7\xE3o r \xE9 igual \xE0 inclina\xE7\xE3o da linha de regress\xE3\
+        o quando os escores z da vari\xE1vel y s\xE3o plotados em rela\xE7\xE3o aos\
+        \ escores z da vari\xE1vel x."
+    input_correct_responses:
+    - D
+    input_question: "Qual das alternativas a seguir \xE9 uma afirma\xE7\xE3o correta\
+      \ sobre correla\xE7\xE3o?"
+  - input_choice_list:
+      A: E(X + Y) = 99, var(X + Y) = 8,5
+      B: E(X + Y) = 99, var(X + Y) = 13
+      C: E(X + Y) = 99, var(X + Y) = 17
+      D: "N\xE3o h\xE1 informa\xE7\xF5es suficientes para responder a esta pergunta."
+    input_correct_responses:
+    - D
+    input_question: "Suponha que X e Y sejam vari\xE1veis aleat\xF3rias com E(X) =\
+      \ 37, var(X) = 5, E(Y) = 62 e var(Y) = 12. Quais s\xE3o o valor esperado e a\
+      \ vari\xE2ncia da vari\xE1vel aleat\xF3ria X + Sim?"
+  - input_choice_list:
+      A: "A propor\xE7\xE3o de \xE1rvores que sofreram mais de 50% de danos devido\
+        \ \xE0 geada."
+      B: "O n\xFAmero de \xE1rvores afetadas pela geada."
+      C: "O n\xFAmero de \xE1rvores amostradas no bosque."
+      D: "Para cada \xE1rvore amostrada, se ela sofreu mais de 50% de danos ou no\
+        \ m\xE1ximo 50% de danos."
+    input_correct_responses:
+    - D
+    input_question: "Depois que um alerta de geada foi emitido, o propriet\xE1rio\
+      \ de um grande laranjal pediu aos seus trabalhadores que borrifassem \xE1gua\
+      \ em todas as suas \xE1rvores. A \xE1gua deveria congelar e formar uma camada\
+      \ protetora de gelo ao redor da flor de laranjeira. No entanto, o propriet\xE1\
+      rio suspeitou que algumas \xE1rvores sofreram danos consider\xE1veis devido\
+      \ \xE0 geada. Para estimar a propor\xE7\xE3o de \xE1rvores que sofreram mais\
+      \ de 50% de danos devido \xE0 geada, ele retirou uma amostra aleat\xF3ria de\
+      \ 100 \xE1rvores do seu bosque. Qual \xE9 a vari\xE1vel de resposta neste experimento?"
+  - input_choice_list:
+      A: "M\xE9dia de 518 gramas; desvio padr\xE3o 7,0 gramas"
+      B: "M\xE9dia de 518 gramas; desvio padr\xE3o 3,5 gramas"
+      C: "M\xE9dia de 518 gramas; desvio padr\xE3o 6,1 gramas"
+      D: "M\xE9dia de 394 gramas; desvio padr\xE3o 6,1 gramas"
+    input_correct_responses:
+    - C
+    input_question: "Um novo smartwatch \xE9 fabricado em uma parte da f\xE1brica\
+      \ e depois protegido para envio em outra parte independente da f\xE1brica. O\
+      \ peso do smartwatch tem m\xE9dia de 62 gramas e desvio padr\xE3o de 1,0 gramas.\
+      \ O peso da embalagem (caixa, manual do usu\xE1rio, pl\xE1stico bolha, etc.)\
+      \ tem m\xE9dia de 456 gramas e desvio padr\xE3o de 6 gramas. Juntos, a distribui\xE7\
+      \xE3o do peso do smartwatch e sua embalagem teria a seguinte m\xE9dia e desvio\
+      \ padr\xE3o:"
+  - input_choice_list:
+      A: eu, eu
+      B: II, III
+      C: III, eu
+      D: III, II
+    input_correct_responses:
+    - D
+    input_question: "Qual dos seguintes conjuntos tem o menor desvio padr\xE3o? Qual\
+      \ tem o maior? I: {1,2,3} II: {-10,10} III: {100}"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_statistics
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_high_school_statistics
+task_alias: high_school_statistics

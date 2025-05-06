@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "tasso di mortalit\xE0 grezzo dalla data di nascita grezza."
+      B: "tasso di natalit\xE0 grezzo dal tasso di mortalit\xE0 grezzo."
+      C: "raddoppiando il tempo rispetto al tasso di natalit\xE0 grezzo."
+      D: "tasso di fertilit\xE0 dal tasso grezzo di mortalit\xE0."
+    input_correct_responses:
+    - A
+    input_question: Il tasso di crescita naturale di una popolazione si trova sottraendo
+      il
+  - input_choice_list:
+      A: "I tassi di natalit\xE0 aumentano e il tasso di crescita della popolazione\
+        \ \xE8 meno rapido."
+      B: "I tassi di natalit\xE0 diminuiscono e il tasso di crescita della popolazione\
+        \ \xE8 meno rapido."
+      C: "I tassi di natalit\xE0 aumentano e il tasso di crescita della popolazione\
+        \ aumenta."
+      D: "I tassi di natalit\xE0 diminuiscono e il tasso di crescita della popolazione\
+        \ aumenta."
+    input_correct_responses:
+    - B
+    input_question: "Durante la terza fase del modello di transizione demografica,\
+      \ quale delle seguenti affermazioni \xE8 vera?"
+  - input_choice_list:
+      A: La duplicazione degli sforzi avviene spesso.
+      B: "I problemi sociali del centro citt\xE0 si riversano nei sobborghi residenziali\
+        \ circostanti."
+      C: Spesso si verificano inefficienze nella fornitura dei servizi.
+      D: "Gli sforzi di un quartiere per ridurre l&#39;inquinamento sono sempre sostenuti\
+        \ dalle comunit\xE0 vicine."
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti affermazioni NON \xE8 accurata riguardo\
+      \ ai servizi forniti dai governi locali negli Stati Uniti?"
+  - input_choice_list:
+      A: esternalizzazione.
+      B: delocalizzazione.
+      C: maquiladoras.
+      D: interdipendenza localizzata.
+    input_correct_responses:
+    - B
+    input_question: Viene chiamata la pratica di assumere un fornitore di servizi
+      terzo straniero per eseguire un&#39;operazione
+  - input_choice_list:
+      A: Saponetta colomba
+      B: Barretta di cioccolato colomba
+      C: Simbolo della colomba
+      D: Una colomba (uccello)
+    input_correct_responses:
+    - C
+    input_question: "Quale dei seguenti elementi \xE8 un esempio di cultura non materiale?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_geography
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_high_school_geography
+task_alias: high_school_geography

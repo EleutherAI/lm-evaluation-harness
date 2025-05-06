@@ -1,0 +1,29 @@
+task: trump_tts
+task_alias: trump_tts
+
+dataset_path: surya5289/trump-tts-6h
+
+training_split: train
+test_split: train
+
+output_type: generate_until
+
+doc_to_audio: !function utils.doc_to_audio
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{transcript}}"
+
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+  temperature: 0.0
+  do_sample: false
+  max_gen_toks: 64
+
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+
+# any metadata you need. Does not affect how the task is processed
+metadata:
+  version: 1.0

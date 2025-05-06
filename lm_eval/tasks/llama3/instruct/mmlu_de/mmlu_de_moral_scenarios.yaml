@@ -1,0 +1,70 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Falsch falsch
+      B: Falsch, nicht falsch
+      C: Nicht falsch, falsch
+      D: Nicht falsch, nicht falsch
+    input_correct_responses:
+    - C
+    input_question: "F\xFCr welches dieser beiden Szenarien macht die Hauptfigur (die\
+      \ I/me/my verwendet) etwas eindeutig moralisch Falsches, gem\xE4\xDF den gew\xF6\
+      hnlichen moralischen Standards in den USA ab 2020? Szenario 1 | Ich habe meinen\
+      \ neugeborenen Jungen wirklich geliebt. Szenario 2 | Dem neuen M\xE4dchen ist\
+      \ es peinlich, in einer Wohnwagensiedlung zu leben, also lade ich die Klasse\
+      \ zu ihr nach Hause ein."
+  - input_choice_list:
+      A: Falsch falsch
+      B: Falsch, nicht falsch
+      C: Nicht falsch, falsch
+      D: Nicht falsch, nicht falsch
+    input_correct_responses:
+    - C
+    input_question: "F\xFCr welches dieser beiden Szenarien macht die Hauptfigur (die\
+      \ I/me/my verwendet) etwas eindeutig moralisch Falsches, gem\xE4\xDF den gew\xF6\
+      hnlichen moralischen Standards in den USA ab 2020? Szenario 1 | Ich bat den\
+      \ Typen vor dem Laden um eine Zigarette. Szenario 2 | Als der Wachmann seinen\
+      \ Posten verlie\xDF, steckte ich eine seltene M\xFCnze ein."
+  - input_choice_list:
+      A: Falsch falsch
+      B: Falsch, nicht falsch
+      C: Nicht falsch, falsch
+      D: Nicht falsch, nicht falsch
+    input_correct_responses:
+    - D
+    input_question: "F\xFCr welches dieser beiden Szenarien macht die Hauptfigur (die\
+      \ I/me/my verwendet) etwas eindeutig moralisch Falsches, gem\xE4\xDF den gew\xF6\
+      hnlichen moralischen Standards in den USA ab 2020? Szenario 1 | Ich habe einen\
+      \ alten Lieferwagen f\xFCr die Arbeit gekauft. Szenario 2 | Ich blickte zu dem\
+      \ wundersch\xF6nen Wasserfall hoch und warf einen Stein darauf."
+  - input_choice_list:
+      A: Falsch falsch
+      B: Falsch, nicht falsch
+      C: Nicht falsch, falsch
+      D: Nicht falsch, nicht falsch
+    input_correct_responses:
+    - B
+    input_question: "F\xFCr welches dieser beiden Szenarien macht die Hauptfigur (die\
+      \ I/me/my verwendet) etwas eindeutig moralisch Falsches, gem\xE4\xDF den gew\xF6\
+      hnlichen moralischen Standards in den USA ab 2020? Szenario 1 | Beim Abriss\
+      \ des Hauses stie\xDF ich ihn gegen eine Wand. Szenario 2 | Wenn ich einen Babysitter\
+      \ f\xFCr meine Zwillingsnichten ausw\xE4hle, ist mir ihre ethnische Herkunft\
+      \ egal."
+  - input_choice_list:
+      A: Falsch falsch
+      B: Falsch, nicht falsch
+      C: Nicht falsch, falsch
+      D: Nicht falsch, nicht falsch
+    input_correct_responses:
+    - A
+    input_question: "F\xFCr welches dieser beiden Szenarien macht die Hauptfigur (die\
+      \ I/me/my verwendet) etwas eindeutig moralisch Falsches, gem\xE4\xDF den gew\xF6\
+      hnlichen moralischen Standards in den USA ab 2020? Szenario 1 | Ich nahm seine\
+      \ Brieftasche, nachdem er mich an der Bar bel\xE4stigt hatte. Szenario 2 | Ich\
+      \ habe mit meinem neugeborenen Jungen geschlafen."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_scenarios
+tag: mmlu_de_llama_humanities_tasks
+task: mmlu_de_llama_moral_scenarios
+task_alias: moral_scenarios

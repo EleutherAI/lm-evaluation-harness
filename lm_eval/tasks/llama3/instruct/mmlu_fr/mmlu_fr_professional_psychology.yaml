@@ -1,0 +1,71 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "expliquez \xE0 votre client les avantages et les inconv\xE9nients de chaque\
+        \ programme que vous connaissez, \xE0 l&#39;exception de celui auquel vous\
+        \ \xEAtes inscrit"
+      B: "recommander \xE0 votre client le programme auquel vous \xEAtes inscrit et\
+        \ expliquer la prime de 50 $ que vous recevrez"
+      C: "recommander \xE0 votre client le programme auquel vous \xEAtes inscrit et\
+        \ offrir que la prime de 50 $ soit cr\xE9dit\xE9e au compte de votre client\
+        \ dans le programme"
+      D: "expliquez \xE0 votre client les avantages et les inconv\xE9nients de chaque\
+        \ programme que vous connaissez, mais ne r\xE9clamez pas la prime de 50\_\
+        $ si votre client s&#39;inscrit \xE0 votre programme"
+    input_correct_responses:
+    - D
+    input_question: "Un de vos clients en th\xE9rapie vous demande conseil sur un\
+      \ bon programme de perte de poids. Vous avez enqu\xEAt\xE9 sur les programmes\
+      \ de la communaut\xE9 et \xEAtes inscrit \xE0 celui que vous consid\xE9rez comme\
+      \ le meilleur. Ce programme offre un bonus de 50\_$ \xE0 ses clients pour chaque\
+      \ nouvelle personne qu&#39;ils int\xE8grent au programme. Dans ces circonstances,\
+      \ votre r\xE9ponse la plus appropri\xE9e serait de"
+  - input_choice_list:
+      A: "moins sensible aux scores extr\xEAmes que la moyenne"
+      B: "plus utile pour les distributions asym\xE9triques"
+      C: "sensible aux valeurs extr\xEAmes et aux distributions fortement asym\xE9\
+        triques"
+      D: "le nombre le plus fr\xE9quent"
+    input_correct_responses:
+    - D
+    input_question: "Il existe trois fa\xE7ons de mesurer la tendance centrale\_:\
+      \ la moyenne, la m\xE9diane et le mode. D&#39;apr\xE8s vos connaissances \xE0\
+      \ leur sujet, quel est le mode\_?"
+  - input_choice_list:
+      A: individualisme.
+      B: "individualisme et distance hi\xE9rarchique."
+      C: "distance de pouvoir et masculinit\xE9."
+      D: "\xE9vitement de l&#39;incertitude."
+    input_correct_responses:
+    - A
+    input_question: "En ce qui concerne les cinq dimensions culturelles de Hofstede\
+      \ (1980), les \xC9tats-Unis se classent en t\xEAte de l&#39;\xE9chelle pour\_\
+      :"
+  - input_choice_list:
+      A: "est un fantasme qui d\xE9tourne le client de la r\xE9alit\xE9."
+      B: "repr\xE9sente des \xAB\_sentiments mitig\xE9s\_\xBB envers le th\xE9rapeute."
+      C: "&quot;est une forme de &quot;&quot; passage \xE0 l&#39;acte &quot;&quot;&quot;"
+      D: "refl\xE8te l&#39;inconscient personnel et collectif du client."
+    input_correct_responses:
+    - D
+    input_question: "Carl Jung pensait que le transfert d&#39;un client\_:"
+  - input_choice_list:
+      A: "ne sont pas corr\xE9l\xE9s entre eux mais sont mod\xE9r\xE9ment corr\xE9\
+        l\xE9s avec le crit\xE8re"
+      B: "ont de faibles corr\xE9lations entre eux et de faibles corr\xE9lations avec\
+        \ le crit\xE8re"
+      C: "sont fortement intercorr\xE9l\xE9s entre eux et mod\xE9r\xE9ment corr\xE9\
+        l\xE9s avec le crit\xE8re"
+      D: "ont de faibles corr\xE9lations avec le crit\xE8re mais sont mod\xE9r\xE9\
+        ment corr\xE9l\xE9s entre eux"
+    input_correct_responses:
+    - A
+    input_question: "Dans la construction d&#39;une \xE9quation de r\xE9gression multiple\
+      \ \xE0 des fins de pr\xE9diction, la combinaison optimale de mesures est celle\
+      \ dans laquelle les pr\xE9dicteurs"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_psychology
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_professional_psychology
+task_alias: professional_psychology

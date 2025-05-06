@@ -1,0 +1,63 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: "Um telesc\xF3pio refrator consiste em duas lentes convergentes\
+      \ separadas por 100 cm. A lente ocular tem uma dist\xE2ncia focal de 20 cm.\
+      \ A amplia\xE7\xE3o angular do telesc\xF3pio \xE9"
+  - input_choice_list:
+      A: Temperatura constante
+      B: Volume constante
+      C: "Press\xE3o constante"
+      D: "Adiab\xE1tico"
+    input_correct_responses:
+    - B
+    input_question: "Para qual dos seguintes processos termodin\xE2micos o aumento\
+      \ na energia interna de um g\xE1s ideal \xE9 igual ao calor adicionado ao g\xE1\
+      s?"
+  - input_choice_list:
+      A: 2,4V
+      B: 3,3V
+      C: 4,5V
+      D: 5,7V
+    input_correct_responses:
+    - A
+    input_question: "Uma extremidade de um fio de nicromo de comprimento 2L e \xE1\
+      rea de se\xE7\xE3o transversal A est\xE1 presa a uma extremidade de outro fio\
+      \ de nicromo de comprimento L e \xE1rea de se\xE7\xE3o transversal 2A. Se a\
+      \ extremidade livre do fio mais longo estiver com um potencial el\xE9trico de\
+      \ 8,0 volts, e a extremidade livre do fio mais curto estiver com um potencial\
+      \ el\xE9trico de 1,0 volt, o potencial na jun\xE7\xE3o dos dois fios ser\xE1\
+      \ quase igual a"
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: "Um telesc\xF3pio refrator consiste em duas lentes convergentes\
+      \ separadas por 100 cm. A lente ocular tem uma dist\xE2ncia focal de 20 cm.\
+      \ A amplia\xE7\xE3o angular do telesc\xF3pio \xE9"
+  - input_choice_list:
+      A: cobrar
+      B: massa
+      C: energia e impulso
+      D: "n\xFAmero lept\xF4nico"
+    input_correct_responses:
+    - D
+    input_question: "O m\xFAon decai com um tempo de vida caracter\xEDstico de cerca\
+      \ de 10 ^ -6 segundos em um el\xE9tron, um neutrino do m\xFAon e um antineutrino\
+      \ do el\xE9tron. O m\xFAon est\xE1 proibido de decair em um el\xE9tron e em\
+      \ apenas um \xFAnico neutrino pela lei da conserva\xE7\xE3o de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_physics
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_college_physics
+task_alias: college_physics

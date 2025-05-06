@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Traducci\xF3n"
+      B: "Conjugaci\xF3n"
+      C: "Transducci\xF3n especializada"
+      D: "Transformaci\xF3n"
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de las siguientes no es una forma de formar ADN recombinante?"
+  - input_choice_list:
+      A: "Al cambiar el pH \xF3ptimo de la enzima"
+      B: "Cambiando la ubicaci\xF3n de la enzima en la c\xE9lula."
+      C: "Cambiando la forma de la prote\xEDna."
+      D: "Un cambio de amino\xE1cido fuera del sitio activo no puede alterar la especificidad\
+        \ del sustrato de la enzima."
+    input_correct_responses:
+    - C
+    input_question: "Una mutaci\xF3n en una enzima bacteriana transform\xF3 un amino\xE1\
+      cido previamente polar en un amino\xE1cido no polar. Este amino\xE1cido estaba\
+      \ ubicado en un sitio distante del sitio activo de la enzima. \xBFC\xF3mo podr\xED\
+      a esta mutaci\xF3n alterar la especificidad del sustrato de la enzima?"
+  - input_choice_list:
+      A: "Membrana plasm\xE1tica-aparato de Golgi-ribosoma-ves\xEDcula secretora-RE\
+        \ rugoso"
+      B: "Ribosoma-aparato de Golgi-RE rugoso-ves\xEDcula secretora-membrana plasm\xE1\
+        tica"
+      C: "Membrana plasm\xE1tica-aparato de Golgi-ribosoma-ves\xEDcula secretora-RE\
+        \ rugoso"
+      D: "Ribosoma\u2013RE rugoso\u2013aparato de Golgi\u2013ves\xEDcula secretora\u2013\
+        membrana plasm\xE1tica"
+    input_correct_responses:
+    - D
+    input_question: "En las c\xE9lulas animales, \xBFcu\xE1l de las siguientes representa\
+      \ la v\xEDa m\xE1s probable que sigue una prote\xEDna secretora cuando se sintetiza\
+      \ en una c\xE9lula?"
+  - input_choice_list:
+      A: ciclinas
+      B: "Prote\xEDnas quinasas"
+      C: Puntos de control
+      D: "C\xE9lulas de fibroblastos"
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de los siguientes no se sabe que est\xE9 involucrado\
+      \ en el control de la divisi\xF3n celular?"
+  - input_choice_list:
+      A: "las alas de un p\xE1jaro y las alas de un murci\xE9lago"
+      B: las aletas de una ballena y los brazos de un hombre
+      C: las aletas pectorales de una marsopa y las aletas de una foca
+      D: las patas delanteras de un insecto y las patas delanteras de un perro
+    input_correct_responses:
+    - D
+    input_question: "A menudo se citan estructuras hom\xF3logas como evidencia del\
+      \ proceso de selecci\xF3n natural. Todos los siguientes son ejemplos de estructuras\
+      \ hom\xF3logas EXCEPTO"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_biology
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_high_school_biology
+task_alias: high_school_biology

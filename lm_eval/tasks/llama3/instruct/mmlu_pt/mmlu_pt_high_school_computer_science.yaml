@@ -1,0 +1,78 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Um carro alerta um motorista que est\xE1 prestes a bater em um objeto."
+      B: "Uma caminhante usa um rel\xF3gio GPS para monitorar sua posi\xE7\xE3o."
+      C: "Uma geladeira pede leite de um servi\xE7o de entrega on-line quando o leite\
+        \ na geladeira est\xE1 quase acabando."
+      D: "Um corredor usa um rel\xF3gio com sensores \xF3pticos para monitorar sua\
+        \ frequ\xEAncia card\xEDaca."
+    input_correct_responses:
+    - C
+    input_question: "Qual das alternativas a seguir \xE9 um exemplo do uso de um dispositivo\
+      \ na Internet das Coisas (IoT)?"
+  - input_choice_list:
+      A: "As atividades de um usu\xE1rio navegando em uma janela an\xF4nima n\xE3\
+        o ser\xE3o vis\xEDveis para as pessoas que monitoram a rede do usu\xE1rio,\
+        \ como o administrador do sistema."
+      B: "Os itens colocados no carrinho de compras de uma loja virtual para compras\
+        \ futuras durante a sess\xE3o de navega\xE7\xE3o an\xF4nima n\xE3o ser\xE3\
+        o salvos no computador do usu\xE1rio."
+      C: "Um usu\xE1rio n\xE3o poder\xE1 fazer login em contas de e-mail ou de m\xED\
+        dia social durante a sess\xE3o de navega\xE7\xE3o an\xF4nima."
+      D: "Um usu\xE1rio que navega em uma janela an\xF4nima estar\xE1 protegido contra\
+        \ v\xEDrus lan\xE7ados em quaisquer sites visitados ou arquivos baixados."
+    input_correct_responses:
+    - B
+    input_question: "Muitos navegadores da Web permitem que os usu\xE1rios abram janelas\
+      \ an\xF4nimas. Durante uma sess\xE3o de navega\xE7\xE3o em uma janela an\xF4\
+      nima, o navegador n\xE3o registra um hist\xF3rico de navega\xE7\xE3o ou uma\
+      \ lista de arquivos baixados. Ao sair da janela an\xF4nima, os cookies criados\
+      \ durante a sess\xE3o s\xE3o exclu\xEDdos. Qual das seguintes afirma\xE7\xF5\
+      es sobre sess\xF5es de navega\xE7\xE3o em uma janela an\xF4nima \xE9 verdadeira?"
+  - input_choice_list:
+      A: Erro
+      B: abc
+      C: cba
+      D: c
+    input_correct_responses:
+    - C
+    input_question: "Qual \xE9 a sa\xEDda de &quot;abc&quot;[::-1] em Python 3?"
+  - input_choice_list:
+      A: Foxtrot
+      B: Hotel
+      C: novembro
+      D: ianque
+    input_correct_responses:
+    - C
+    input_question: "No programa abaixo, o valor inicial de x \xE9 5 e o valor inicial\
+      \ de y \xE9 10. IF (X &lt; O) { DISPLAY (&quot;Foxtrot&quot;) } ELSE { IF (X\
+      \ &gt; y) { DISPLAY (&quot;Hotel&quot;) } ELSE { IF (y &gt; O) { DISPLAY (&quot;November&quot;)\
+      \ } ELSE { DISPLAY (&quot;Yankee&quot;) } } } O que \xE9 exibido como resultado\
+      \ da execu\xE7\xE3o do programa?"
+  - input_choice_list:
+      A: "Etapa 3: Aumente o valor da posi\xE7\xE3o em 1. Etapa 4: Repita as etapas\
+        \ 2 e 3 at\xE9 que o valor da contagem seja maior que 100."
+      B: "Passo 3: Aumente o valor da posi\xE7\xE3o em 1. Passo 4: Repita os passos\
+        \ 2 e 3 at\xE9 que o valor da posi\xE7\xE3o seja maior que n."
+      C: "Etapa 3: Repita a etapa 2 at\xE9 que o valor da contagem seja maior que\
+        \ 100. Etapa 4: Aumente o valor da posi\xE7\xE3o em 1."
+      D: "Etapa 3: Repita a etapa 2 at\xE9 que o valor da posi\xE7\xE3o seja maior\
+        \ que n. Etapa 4: aumente o valor da contagem em 1."
+    input_correct_responses:
+    - D
+    input_question: "Uma lista de n\xFAmeros possui n elementos, indexados de 1 a\
+      \ n. O algoritmo a seguir tem como objetivo exibir o n\xFAmero de elementos\
+      \ na lista que possuem um valor maior que 100. O algoritmo usa as vari\xE1veis\
+      \ contagem e posi\xE7\xE3o. As etapas 3 e 4 est\xE3o faltando. Etapa 1: Defina\
+      \ a contagem como 0 e a posi\xE7\xE3o como 1. Etapa 2: Se o valor do elemento\
+      \ na posi\xE7\xE3o do \xEDndice for maior que 100, aumente o valor da contagem\
+      \ em 1. Etapa 3: (etapa ausente) Etapa 4: (etapa ausente ) Etapa 5: Exiba o\
+      \ valor da contagem. Qual das alternativas a seguir poderia ser usada para substituir\
+      \ as etapas 3 e 4 para que o algoritmo funcione conforme planejado?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_computer_science
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_high_school_computer_science
+task_alias: high_school_computer_science

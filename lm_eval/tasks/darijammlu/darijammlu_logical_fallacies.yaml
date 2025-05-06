@@ -1,0 +1,6 @@
+"dataset_name": "logical_fallacies"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_logical_fallacies"
+"task_alias": "logical fallacies"

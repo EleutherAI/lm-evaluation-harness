@@ -1,0 +1,20 @@
+
+tag:
+  - longbench
+task: longbench_multi_news
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: multi_news
+doc_to_text: 'You are given several news passages. Write a one-page summary of all news. \n\nNews:\n{{context}}\n\nNow, write a one-page summary of all the news.\n\nSummary:'
+doc_to_target: '{{answers[0]}}'
+generation_kwargs:
+  max_gen_toks: 512
+  temperature: 1
+  do_sample: True
+  until: []
+metric_list:
+  - metric: !function metrics.rouge_score
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 2.0

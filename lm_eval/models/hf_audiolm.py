@@ -20,11 +20,13 @@ from lm_eval.models.utils import (
 
 DEFAULT_AUDIO_PLACEHOLDERS = ["<audio>"]
 
+
 def process_audios(y, orig_sr, target_sr=16000):
     if orig_sr != target_sr:
         y = librosa.resample(y, orig_sr=orig_sr, target_sr=target_sr)
     y = librosa.to_mono(y)
     return y
+
 
 def get_audios_from_args(aux_arguments, target_sr=16000):
     audios = []
@@ -34,6 +36,7 @@ def get_audios_from_args(aux_arguments, target_sr=16000):
                 process_audios(audio["array"], audio["sampling_rate"], target_sr)
             )
     return audios
+
 
 @register_model("hf-audiolm-qwen")
 class HFAUDIOLMQWEN(HFLM):
@@ -331,7 +334,7 @@ class HFAUDIOLMULTRAVOX(HFLM):
 
     AUTO_MODEL_CLASS = transformers.AutoModel
     MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
-    
+
     def __init__(
         self,
         pretrained: Union[str, transformers.PreTrainedModel],
@@ -378,7 +381,9 @@ class HFAUDIOLMULTRAVOX(HFLM):
             # get the HF hub name via accessor on model
             model_name = self.model.name_or_path
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            model_name, trust_remote_code=True
+        )
 
     def _create_model(
         self,
@@ -400,32 +405,34 @@ class HFAUDIOLMULTRAVOX(HFLM):
         autogptq: Optional[Union[bool, str]] = False,
         **kwargs,
     ) -> None:
-        self.pipe = transformers.pipeline(model=pretrained, trust_remote_code=True, device=0)
+        self.pipe = transformers.pipeline(
+            model=pretrained, trust_remote_code=True, device=0
+        )
         self._model = self.pipe.model
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
         self.chat_applied = True
         for ch_h in chat_history:
             for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                ch_h["content"] = ch_h["content"].replace(placeholder,'')
+                ch_h["content"] = ch_h["content"].replace(placeholder, "")
 
         return json.dumps(chat_history, ensure_ascii=False)
-    
+
     def tok_batch_multimodal_encode(
         self,
         strings: List[str],  # note that input signature of this fn is different
-        # audios: List[List], 
-
-    ) -> List[Dict]:  # note that this return signature differs from HFLM tok_batch_encode.
-
+        # audios: List[List],
+    ) -> List[
+        Dict
+    ]:  # note that this return signature differs from HFLM tok_batch_encode.
         def _replace_placeholder(placeholder, strings):
             return [
-                replace_placeholders(
-                    string, placeholder, "", self.max_audios
-                )
+                replace_placeholders(string, placeholder, "", self.max_audios)
                 for string in strings
             ]
 
@@ -437,17 +444,14 @@ class HFAUDIOLMULTRAVOX(HFLM):
         question = encoded[0]["content"]
 
         turns = [
-        # {
-        #   "role": "system",
-        #   "content": "You are a friendly and helpful character. You love to answer questions for people."
-        # },
-        {
-            "role": "assistant",
-            "content": question
-        },
+            # {
+            #   "role": "system",
+            #   "content": "You are a friendly and helpful character. You love to answer questions for people."
+            # },
+            {"role": "assistant", "content": question},
         ]
         return turns
-    
+
     def tok_encode(self, x):
         return json.loads(x)
 
@@ -485,11 +489,12 @@ class HFAUDIOLMULTRAVOX(HFLM):
             target_sr = 16000
             audios = get_audios_from_args(aux_arguments, target_sr)
 
-            turns = self.tok_batch_multimodal_encode(
-                contexts
-            )
+            turns = self.tok_batch_multimodal_encode(contexts)
 
-            result = self.pipe({'audio': audios[0], 'turns': turns, 'sampling_rate': target_sr}, max_new_tokens=30)
+            result = self.pipe(
+                {"audio": audios[0], "turns": turns, "sampling_rate": target_sr},
+                max_new_tokens=30,
+            )
             res.append(result)
 
         pbar.close()

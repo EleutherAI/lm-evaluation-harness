@@ -4,13 +4,31 @@ import logging
 import os
 import sys
 from functools import partial
+from pathlib import Path
 from typing import Union
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
+from lm_eval.utils import (
+    handle_non_serializable,
+    make_table,
+    simple_parse_args_string,
+)
+
+
+def try_parse_json(value: str) -> Union[str, dict, None]:
+    if value is None:
+        return None
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        if "{" in value:
+            raise argparse.ArgumentTypeError(
+                f"Invalid JSON: {value}. Hint: Use double quotes for JSON strings."
+            )
+        return value
 
 
 def _int_or_none_list_arg_type(
@@ -79,8 +97,8 @@ def setup_parser() -> argparse.ArgumentParser:
         "--model_args",
         "-a",
         default="",
-        type=str,
-        help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
+        type=try_parse_json,
+        help="""Comma separated string or JSON formatted arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32` or '{"pretrained":"EleutherAI/pythia-160m","dtype":"float32"}'""",
     )
     parser.add_argument(
         "--num_fewshot",
@@ -127,6 +145,14 @@ def setup_parser() -> argparse.ArgumentParser:
         metavar="N|0<N<1",
         help="Limit the number of examples per task. "
         "If <1, limit is a percentage of the total number of examples.",
+    )
+    parser.add_argument(
+        "--samples",
+        "-E",
+        default=None,
+        type=str,
+        metavar="/path/to/json",
+        help='JSON string or path to JSON file containing doc indices of selected examples to test. Format: {"task_name":[indices],...}',
     )
     parser.add_argument(
         "--use_cache",
@@ -202,11 +228,11 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--gen_kwargs",
-        type=str,
+        type=try_parse_json,
         default=None,
         help=(
-            "String arguments for model generation on greedy_until tasks,"
-            " e.g. `temperature=0,top_k=0,top_p=0`."
+            "Either comma delimited string or JSON formatted arguments for model generation on greedy_until tasks,"
+            """ e.g. '{"temperature":0.7,"until":["hello"]}' or temperature=0,top_p=0.1."""
         ),
     )
     parser.add_argument(
@@ -222,6 +248,12 @@ def setup_parser() -> argparse.ArgumentParser:
         type=str,
         default="",
         help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
+    )
+    parser.add_argument(
+        "--wandb_config_args",
+        type=str,
+        default="",
+        help="Comma separated string arguments passed to wandb.config.update. Use this to trace parameters that aren't already traced by default. eg. `lr=0.01,repeats=3",
     )
     parser.add_argument(
         "--hf_hub_log_args",
@@ -262,6 +294,12 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Confirm that you understand the risks of running unsafe code for tasks that require it",
     )
+    parser.add_argument(
+        "--metadata",
+        type=json.loads,
+        default=None,
+        help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192]}'. Will be merged with model_args. Can also be set in task config.""",
+    )
     return parser
 
 
@@ -277,7 +315,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         args = parse_eval_args(parser)
 
     if args.wandb_args:
-        wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
+        wandb_args_dict = simple_parse_args_string(args.wandb_args)
+        wandb_config_args_dict = simple_parse_args_string(args.wandb_config_args)
+        wandb_logger = WandbLogger(wandb_args_dict, wandb_config_args_dict)
 
     utils.setup_logging(args.verbosity)
     eval_logger = logging.getLogger(__name__)
@@ -305,7 +345,19 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-    task_manager = TaskManager(include_path=args.include_path)
+    metadata = (
+        simple_parse_args_string(args.model_args)
+        if isinstance(args.model_args, str)
+        else args.model_args
+        if isinstance(args.model_args, dict)
+        else {}
+    ) | (
+        args.metadata
+        if isinstance(args.metadata, dict)
+        else simple_parse_args_string(args.metadata)
+    )
+
+    task_manager = TaskManager(include_path=args.include_path, metadata=metadata)
 
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
@@ -317,6 +369,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+    if args.samples:
+        assert args.limit is None, (
+            "If --samples is not None, then --limit must be None."
+        )
+        if (samples := Path(args.samples)).is_file():
+            args.samples = json.loads(samples.read_text())
+        else:
+            args.samples = json.loads(args.samples)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
@@ -376,10 +436,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         args.model_args = args.model_args + ",trust_remote_code=True"
-    eval_logger.info(
-        f"Selected Tasks: {task_names}"
-    ) if eval_logger.getEffectiveLevel() >= logging.INFO else print(
-        f"Selected Tasks: {task_names}"
+    (
+        eval_logger.info(f"Selected Tasks: {task_names}")
+        if eval_logger.getEffectiveLevel() >= logging.INFO
+        else print(f"Selected Tasks: {task_names}")
     )
 
     request_caching_args = request_caching_arg_to_dict(
@@ -396,6 +456,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
+        samples=args.samples,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
@@ -411,6 +472,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
         confirm_run_unsafe_code=args.confirm_run_unsafe_code,
+        metadata=metadata,
         **request_caching_args,
     )
 

@@ -1,0 +1,20 @@
+
+tag:
+  - longbench
+task: longbench_vcsum
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: vcsum
+doc_to_text: '下面有一段会议记录，请你阅读后，写一段总结，总结会议的内容。\n会议记录：\n{{context}}\n\n会议总结：'
+doc_to_target: '{{answers[0]}}'
+generation_kwargs:
+  max_gen_toks: 512
+  temperature: 1
+  do_sample: True
+  until: []
+metric_list:
+  - metric: !function metrics.rouge_zh_score
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 2.0

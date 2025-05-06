@@ -2,8 +2,10 @@ task: common_voice_en
 task_alias: common_voice_en
 
 # subset only. The real dataset (mozilla-foundation/common_voice_17_0) is to huge
-dataset_path: fixie-ai/endpointing-audio
-dataset_name: common_voice_17_0-en
+# dataset_path: fixie-ai/endpointing-audio
+# dataset_name: common_voice_17_0-en
+dataset_path: mozilla-foundation/common_voice_17_0
+dataset_name: ro
 
 training_split: train
 test_split: test

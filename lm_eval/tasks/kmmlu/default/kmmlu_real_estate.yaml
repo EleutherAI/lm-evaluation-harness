@@ -1,0 +1,4 @@
+dataset_name: Real-Estate
+include: _default_kmmlu_yaml
+task: kmmlu_real_estate
+tag: kmmlu_other_tasks

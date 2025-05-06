@@ -20,6 +20,7 @@ generation_kwargs:
     - "</s>"
     - "Q:"
     - "<|im_end|>"
+  max_gen_toks: 2048
   do_sample: false
   temperature: 0.0
 num_fewshot: 5
@@ -30,4 +31,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 1.0
+  version: 2.1

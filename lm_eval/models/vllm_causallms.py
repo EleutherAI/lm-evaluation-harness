@@ -28,6 +28,9 @@ try:
     from vllm import LLM, SamplingParams
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
+
+    if parse_version(version("vllm")) >= parse_version("0.8.3"):
+        from vllm.entrypoints.chat_utils import resolve_hf_chat_template
 except ModuleNotFoundError:
     pass
 
@@ -113,11 +116,11 @@ class VLLM(TemplateLM):
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
-            from transformers import AutoConfig
+        from transformers import AutoConfig
 
-            self._config = AutoConfig.from_pretrained(
-                pretrained, trust_remote_code=trust_remote_code, revision=revision
-            )
+        self._config = AutoConfig.from_pretrained(
+            pretrained, trust_remote_code=trust_remote_code, revision=revision
+        )
         self.tokenizer = get_tokenizer(
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
@@ -125,13 +128,23 @@ class VLLM(TemplateLM):
             revision=tokenizer_revision,
             add_bos_token=add_bos_token,
         )
-        self.tokenizer = configure_pad_token(self.tokenizer)
+        self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
             eval_logger.info(
                 "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
+
+        if parse_version(version("vllm")) >= parse_version("0.8.3"):
+            self.hf_chat_template = resolve_hf_chat_template(
+                tokenizer=self.tokenizer,
+                chat_template=None,
+                tools=None,
+                trust_remote_code=trust_remote_code,
+            )
+        else:
+            self.hf_chat_template = None
 
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
@@ -195,6 +208,7 @@ class VLLM(TemplateLM):
             tokenize=False,
             add_generation_prompt=add_generation_prompt,
             continue_final_message=not add_generation_prompt,
+            chat_template=self.hf_chat_template,
         )
 
         return chat_templated
@@ -559,6 +573,7 @@ class VLLM(TemplateLM):
     @staticmethod
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
+        kwargs["temperature"] = kwargs.get("temperature", 0.0)
         do_sample = kwargs.pop("do_sample", None)
         if do_sample is False and "temperature" not in kwargs:
             eval_logger.debug(
