@@ -1,7 +1,6 @@
 import copy
 import logging
 from typing import Dict, List, Optional, Tuple, Union
-from PIL import Image
 
 import torch
 import torch.nn.functional as F
@@ -18,6 +17,7 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
     pad_and_concat,
     replace_placeholders,
+    resize_image,
     stop_sequences_criteria,
 )
 
@@ -46,7 +46,6 @@ class HFMultimodalLM(HFLM):
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
         convert_img_format=False,
-
         # For image resizing
         min_pixels: Optional[int] = None,
         max_pixels: Optional[int] = None,
@@ -59,8 +58,15 @@ class HFMultimodalLM(HFLM):
         self.image_height = image_height
         self.image_max_side = image_max_side
         if self.image_max_side and (self.image_width or self.image_height):
-            raise ValueError("Ambiguous config for image resize: you can not specify both " \
-                             "image_max_side and (image_width or image_height)")
+            raise ValueError(
+                "Ambiguous config for image resize: you can not specify both "
+                "image_max_side and (image_width or image_height)"
+            )
+
+        # init pixels before calling tokenizer creation to avoid errors
+        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
+            {"max_pixels": max_pixels} if max_pixels else {}
+        )
 
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
@@ -78,9 +84,6 @@ class HFMultimodalLM(HFLM):
         self.interleave = interleave
         self.max_images = max_images
         self.rgb = convert_img_format
-        self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
-            {"max_pixels": max_pixels} if max_pixels else {}
-        )
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
             self.image_token_id = (
@@ -618,39 +621,6 @@ class HFMultimodalLM(HFLM):
 
         return re_ord.get_original(res)
 
-    def _resize_image(self, image):
-        image_width, image_height = None, None
-        if self.image_width:
-            image_width = self.image_width
-        if self.image_height:
-            image_height = self.image_height
-
-        if image_width and image_height:
-            if image.width <= image_width and image.height <= image_height:
-                return image
-        elif image_width:
-            if image.width <= image_width:
-                return image
-            image_height = int((image.height / image.width) * image_width)
-        elif image_height:
-            if image.height <= image_height:
-                return image
-            image_width = int((image.width / image.height) * image_height)
-        elif self.image_max_side:
-            if max(image.height, image.width) <= self.image_max_side:
-                return image
-            elif image.height > image.width:
-                image_height = self.image_max_side
-                image_width = int((image.width / image.height) * image_height)
-            else:
-                image_width = self.image_max_side
-                image_height = int((image.height / image.width) * image_width)
-        else:
-            return image
-
-        image = image.resize((image_width, image_height), Image.BICUBIC)
-        return image
-
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
@@ -690,7 +660,15 @@ class HFMultimodalLM(HFLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [[self._resize_image(img) for img in arg["visual"]] for arg in aux_arguments]
+            visuals = [
+                [
+                    resize_image(
+                        img, self.image_width, self.image_height, self.image_max_side
+                    )
+                    for img in arg["visual"]
+                ]
+                for arg in aux_arguments
+            ]
 
             if not isinstance(contexts, list):
                 contexts = list(

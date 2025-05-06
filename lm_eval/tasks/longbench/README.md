@@ -95,3 +95,4 @@ If other tasks on this dataset are already supported:
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
+v2.: fix doc_to_target; add vcsum
