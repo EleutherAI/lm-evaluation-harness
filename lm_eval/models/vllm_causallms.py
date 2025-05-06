@@ -68,6 +68,7 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
+        enable_thinking: bool = False,
         **kwargs,
     ):
         super().__init__()
@@ -129,6 +130,7 @@ class VLLM(TemplateLM):
             add_bos_token=add_bos_token,
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
+        self.enable_thinking = enable_thinking
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
@@ -209,6 +211,7 @@ class VLLM(TemplateLM):
             add_generation_prompt=add_generation_prompt,
             continue_final_message=not add_generation_prompt,
             chat_template=self.hf_chat_template,
+            enable_thinking=self.enable_thinking,
         )
 
         return chat_templated
