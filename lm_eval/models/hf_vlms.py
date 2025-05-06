@@ -47,6 +47,7 @@ class HFMultimodalLM(HFLM):
         max_pixels: Optional[int] = None,
         **kwargs,
     ):
+    # init pixels before calling tokenizer creation to avoid errors
         self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
             {"max_pixels": max_pixels} if max_pixels else {}
         )
@@ -66,7 +67,6 @@ class HFMultimodalLM(HFLM):
         self.interleave = interleave
         self.max_images = max_images
         self.rgb = convert_img_format
-
         # WARNING: improperly set image_token_id can lead to ignored image input or other (potentially silent) errors!
         if not image_string:
             self.image_token_id = (
