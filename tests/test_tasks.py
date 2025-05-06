@@ -14,7 +14,7 @@ from .utils import new_tasks
 datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Default Task
-TASKS = ["include_base_44_dutch_few_shot_en_applied_science"]
+TASKS = ["arc_easy"]
 
 
 def get_new_tasks_else_default():
