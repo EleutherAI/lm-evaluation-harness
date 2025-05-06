@@ -51,6 +51,7 @@ class HFMultimodalLM(HFLM):
         self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
             {"max_pixels": max_pixels} if max_pixels else {}
         )
+
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
