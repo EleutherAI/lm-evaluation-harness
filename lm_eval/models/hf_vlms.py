@@ -47,7 +47,7 @@ class HFMultimodalLM(HFLM):
         max_pixels: Optional[int] = None,
         **kwargs,
     ):
-    # init pixels before calling tokenizer creation to avoid errors
+        # init pixels before calling tokenizer creation to avoid errors
         self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
             {"max_pixels": max_pixels} if max_pixels else {}
         )
