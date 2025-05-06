@@ -24,6 +24,7 @@ from datasets import Dataset
 from lm_eval.tasks.score import utils
 from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
 
+
 eval_logger = logging.getLogger(__name__)
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")

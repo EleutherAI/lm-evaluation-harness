@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import logging
+import os
 from functools import partial
 from typing import Any, Dict, List
 
@@ -21,6 +21,7 @@ import numpy as np
 
 from lm_eval.tasks.score import utils
 from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
+
 
 eval_logger = logging.getLogger(__name__)
 

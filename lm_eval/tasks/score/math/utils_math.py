@@ -30,6 +30,7 @@ from lm_eval.tasks.score.math.math_grader import (
 )
 from lm_eval.tasks.score.utils import robustness_doc_to_text
 
+
 eval_logger = logging.getLogger(__name__)
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
