@@ -16,6 +16,7 @@ from lm_eval.utils import (
     make_table,
     simple_parse_args_string,
 )
+from lm_eval.custom_simple_evals import custom_simple_evals
 
 
 def try_parse_json(value: str) -> Union[str, dict, None]:
@@ -475,6 +476,39 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         metadata=metadata,
         **request_caching_args,
     )
+
+    pairs = args.model_args.split(',')
+    model_value = None
+    base_url_value = None
+
+    for pair in pairs:
+        key, value = pair.split('=')
+        if key == 'model':
+            model_value = value
+        elif key == 'base_url':
+            base_url_value = value
+
+    # print(results, "\n\n\n")
+
+    if "humaneval" in task_names:
+        try:
+            print("Running custom simple evals for humaneval")
+            humaneval_evaluation_result = custom_simple_evals(
+                model_value if model_value else "gpt-4o-mini",
+                base_url_value if base_url_value else "https://api.openai.com/v1"
+            )
+            val = humaneval_evaluation_result["metrics"]["pass@1"]
+            stderr = humaneval_evaluation_result["metrics"]["pass@1:std"]
+
+            results["results"]["humaneval"]["pass@1,create_test"] = val
+            results["results"]["humaneval"]["pass@1_stderr,create_test"] = stderr
+        except Exception as e:
+            eval_logger.error(
+                f"Custom simple evals for humaneval failed with error: {e}"
+            )
+            humaneval_evaluation_result = None
+
+    print(humaneval_evaluation_result, "\n\n\n")
 
     if results is not None:
         if args.log_samples:
