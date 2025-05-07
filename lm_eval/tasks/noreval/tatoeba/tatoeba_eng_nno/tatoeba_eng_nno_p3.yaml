@@ -1,0 +1,6 @@
+tag: tatoeba_eng_nno
+dataset_name: eng-nno
+doc_to_target: targetString
+task: tatoeba_eng_nno_p3
+include: ../_tatoeba_yaml
+doc_to_text: "Kva blir \"{{sourceString}}\" på nynorsk?\nNynorsk:"
