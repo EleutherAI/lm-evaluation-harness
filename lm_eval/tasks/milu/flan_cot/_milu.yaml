@@ -1,4 +1,4 @@
-group: milu_flan_cot_zeroshot
+group: milu_flan_cot
 task:
   - milu_English
   - milu_Bengali

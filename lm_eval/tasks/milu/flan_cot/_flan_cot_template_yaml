@@ -9,7 +9,7 @@ output_type: generate_until
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
 description: "You are a helpful and factual AI Assistant. The following is a Multiple Choice Question (MCQ) about {{ subject }} ({{ domain }}) in {{ language }}. Now, think step-by-step and choose the correct option. At the end, wrap the final option in <answer> </answer> tags"
-gen_prefix: "## Answer: Let's think step-by-step."
+gen_prefix: "## Answer: "
 filter_list:
   - name: "flexible-extract"
     filter:
@@ -27,7 +27,6 @@ filter_list:
 generation_kwargs:
   until:
     - "</s>"
-    - "Q:"
     - "<|im_end|>"
   do_sample: false
   temperature: 0.0

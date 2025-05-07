@@ -1,5 +1,0 @@
-dataset_name: Hindi
-include: _flan_cot_zeroshot_template_yaml
-tag: milu-flan-cot-zeroshot
-task: milu_flan_cot_zeroshot_Hindi
-task_alias: milu_flan_cot_zeroshot_Hindi

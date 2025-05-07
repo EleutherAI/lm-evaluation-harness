@@ -1,0 +1,3 @@
+dataset_name: Marathi
+include: _flan_cot_template_yaml
+task: milu_Marathi

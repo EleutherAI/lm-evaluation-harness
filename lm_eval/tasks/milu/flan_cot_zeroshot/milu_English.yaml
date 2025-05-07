@@ -1,5 +1,0 @@
-dataset_name: English
-include: _flan_cot_zeroshot_template_yaml
-tag: milu-flan-cot-zeroshot
-task: milu_flan_cot_zeroshot_English
-task_alias: milu_flan_cot_zeroshot_English

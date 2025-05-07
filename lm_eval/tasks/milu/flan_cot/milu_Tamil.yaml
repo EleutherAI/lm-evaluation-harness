@@ -1,0 +1,3 @@
+dataset_name: Tamil
+include: _flan_cot_template_yaml
+task: milu_Tamil
