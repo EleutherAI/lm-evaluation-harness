@@ -355,21 +355,28 @@ class TemplateAPI(TemplateLM):
         *,
         generate: bool = True,
         gen_kwargs: Optional[Dict] = None,
+        enable_thinking: bool = False,
         **kwargs,
     ) -> Optional[dict]:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
+            payload = self._create_payload(
+                self.create_message(messages),
+                generate=generate,
+                gen_kwargs=gen_kwargs,
+                seed=self._seed,
+                eos=self.eos_string,
+                **kwargs,
+            )
+
+            payload["chat_template_kwargs"] = {
+                "enable_thinking": enable_thinking
+            }
+
             response = requests.post(
                 self.base_url,
-                json=self._create_payload(
-                    self.create_message(messages),
-                    generate=generate,
-                    gen_kwargs=gen_kwargs,
-                    seed=self._seed,
-                    eos=self.eos_string,
-                    **kwargs,
-                ),
+                json=payload,
                 headers=self.header,
                 verify=self.verify_certificate,
             )
