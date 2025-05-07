@@ -1,0 +1,6 @@
+tag: norcommonsenseqa_nno
+dataset_name: nn
+task: norcommonsenseqa_nno_p1
+include: ../_norcommonsenseqa_yaml
+doc_to_text: "{{question}}\nKva av følgande moglege svar er det rette?\nA: {{choices.text[0]}}\nB: {{choices.text[1]}}\nC: {{choices.text[2]}}\nD: {{choices.text[3]}}\nE: {{choices.text[4]}}\n\nSvar:"
+doc_to_choice: "{{choices.label}}"
