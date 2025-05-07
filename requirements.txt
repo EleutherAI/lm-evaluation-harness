@@ -1,1 +1,11 @@
 -e .
+-e ."[api]"
+-e "human-eval"
+sentence_transformers
+langdetect
+immutabledict
+markdown
+pytablewriter
+argparse
+openai
+Pillow
