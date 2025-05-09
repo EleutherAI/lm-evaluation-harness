@@ -1,0 +1,6 @@
+tag: norcommonsenseqa_nno
+dataset_name: nn
+task: norcommonsenseqa_nno_p4
+include: ../_norcommonsenseqa_yaml
+doc_to_text: "{{question}}\nA: {{choices.text[0]}}\nB: {{choices.text[1]}}\nC: {{choices.text[2]}}\nD: {{choices.text[3]}}\nE: {{choices.text[4]}}\n\nEr det rette svaret A, B, C, D, eller E?\n\nSvar:"
+doc_to_choice: "{{choices.label}}"

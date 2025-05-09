@@ -1,0 +1,5 @@
+tag: norsumm_nno
+dataset_name: nn
+task: norsumm_nno_p0
+include: ../_norsumm_yaml
+doc_to_text: "Skriv ei oppsummering av følgande artikkel med berre nokre få punkt: {{article}}\nOppsummering:"
