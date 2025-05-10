@@ -1,0 +1,6 @@
+group: libra_complex_reasoning_and_mathematical_problems
+group_alias: Complex Reasoning and Mathematical Problems
+task:
+  - ru_sci_passage_count
+  - ru_qasper
+  - ru_gsm100
