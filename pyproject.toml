@@ -60,7 +60,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt==1.22.0", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 hf_transfer = ["hf_transfer"]
