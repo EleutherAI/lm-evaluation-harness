@@ -571,8 +571,6 @@ def hash_dict_images(data_dict):
 
     Parameters:
         data_dict (dict): The input dictionary with arbitrary nesting of dicts and lists.
-        convert_bytes_to_hash (callable): Function that takes bytes and returns a hash (e.g., str).
-        convert_pil_to_hash (callable): Function that takes a PIL.Image.Image and returns a hash.
 
     Returns:
         dict: A new dictionary with the same structure as `data_dict`, but with all
