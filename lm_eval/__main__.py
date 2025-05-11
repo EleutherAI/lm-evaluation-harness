@@ -300,6 +300,11 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192]}'. Will be merged with model_args. Can also be set in task config.""",
     )
+    parser.add_argument(
+        "--hash_images",
+        action="store_true",
+        help="Sets hash_images to True to convert images to hashes to reduce memory that is taken by jsonl file with samples (if log_samples=True)",
+    )
     return parser
 
 
@@ -473,6 +478,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         fewshot_random_seed=args.seed[3],
         confirm_run_unsafe_code=args.confirm_run_unsafe_code,
         metadata=metadata,
+        hash_images=args.hash_images,
         **request_caching_args,
     )
 

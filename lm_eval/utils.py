@@ -9,6 +9,7 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
+from io import BytesIO
 from itertools import islice
 from pathlib import Path
 from typing import Any, Callable, Generator, List, Optional, Tuple
@@ -16,6 +17,7 @@ from typing import Any, Callable, Generator, List, Optional, Tuple
 import numpy as np
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
+from PIL import Image
 
 
 SPACING = " " * 47
@@ -550,3 +552,53 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def convert_pil_to_hash(value):
+    img_bytes = BytesIO()
+    value.save(img_bytes, format="PNG")
+    return hashlib.sha256(str(img_bytes).encode()).hexdigest()
+
+
+def convert_bytes_to_hash(value):
+    return hashlib.sha256(str(value).encode()).hexdigest()
+
+
+def hash_dict_images(data_dict):
+    """
+    Create a deep copy of `data_dict` where all bytes and PIL.Image.Image values
+    are replaced by their respective hashes using the provided converter functions.
+
+    Parameters:
+        data_dict (dict): The input dictionary with arbitrary nesting of dicts and lists.
+        convert_bytes_to_hash (callable): Function that takes bytes and returns a hash (e.g., str).
+        convert_pil_to_hash (callable): Function that takes a PIL.Image.Image and returns a hash.
+
+    Returns:
+        dict: A new dictionary with the same structure as `data_dict`, but with all
+              bytes and PIL.Image.Image objects replaced by their hashes.
+    """
+
+    def _process_value(value):
+        # Bytes -> hash
+        if isinstance(value, (bytes, bytearray)):
+            return convert_bytes_to_hash(value)
+        # PIL Image -> hash
+        if isinstance(value, Image.Image):
+            return convert_pil_to_hash(value)
+        # Nested dictionary -> recurse
+        if isinstance(value, dict):
+            return {k: _process_value(v) for k, v in value.items()}
+        # List or tuple -> recurse, preserving type
+        if isinstance(value, list):
+            return [_process_value(v) for v in value]
+        if isinstance(value, tuple):
+            return tuple(_process_value(v) for v in value)
+        # Other types remain unchanged
+        return value
+
+    # Ensure the top-level is a dict
+    if not isinstance(data_dict, dict):
+        raise TypeError("Input must be a dictionary")
+
+    return {key: _process_value(val) for key, val in data_dict.items()}

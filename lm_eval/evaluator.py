@@ -29,6 +29,7 @@ from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_comm
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     handle_non_serializable,
+    hash_dict_images,
     hash_string,
     positional_deprecated,
     setup_logging,
@@ -76,6 +77,7 @@ def simple_evaluate(
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
     metadata: Optional[dict] = None,
+    hash_images: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -140,7 +142,8 @@ def simple_evaluate(
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
-
+    :param hash_images: bool
+        Whether to convert images to hashes to memory json takes to be stored.
     return
         Dictionary of results
     """
@@ -350,6 +353,7 @@ def simple_evaluate(
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
+        hash_images=hash_images,
     )
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
@@ -413,6 +417,7 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
+    hash_images: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -447,6 +452,8 @@ def evaluate(
         Verbosity level for logging
     :param confirm_run_unsafe_code: bool
         Whether to confirm running tasks marked as unsafe.
+    :param hash_images: bool
+        Whether to convert images to hashes to memory json takes to be stored.
     :return
         Dictionary of results
     """
@@ -747,6 +754,8 @@ def evaluate(
             },
         }
         if log_samples:
+            if hash_images:
+                samples = hash_dict_images(samples)
             results_dict["samples"] = dict(samples)
 
         return results_dict
