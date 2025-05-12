@@ -22,17 +22,6 @@ def api_tokenized():
     )
 
 
-@pytest.fixture
-def api_batch_ssl_tokenized():
-    return LocalCompletionsAPI(
-        base_url="https://test-url.com",
-        model="EleutherAI/pythia-1b",
-        verify_certificate=False,
-        num_concurrent=2,
-        tokenizer_backend="huggingface",
-    )
-
-
 def test_create_payload_generate(api):
     messages = ["Generate a story"]
     gen_kwargs = {
@@ -188,12 +177,10 @@ class DummyAsyncContextManager:
     ],
 )
 def test_get_batched_requests_with_no_ssl(
-    api_batch_ssl_tokenized, expected_inputs, expected_ctxlens, expected_cache_keys
+    expected_inputs, expected_ctxlens, expected_cache_keys
 ):
     with (
-        patch(
-            "lm_eval.models.api_models.TCPConnector", autospec=True
-        ) as mock_connector,
+        patch("lm_eval.models.api_models.Semaphore", autospec=True) as mock_semaphore,
         patch(
             "lm_eval.models.api_models.ClientSession", autospec=True
         ) as mock_client_session,
@@ -202,15 +189,30 @@ def test_get_batched_requests_with_no_ssl(
             autospec=True,
         ) as mock_parse,
     ):
-        mock_session_instance = AsyncMock()
-        mock_post_response = AsyncMock()
-        mock_post_response.status = 200
-        mock_post_response.ok = True
-        mock_post_response.json = AsyncMock(return_value={"mocked": "response"})
-        mock_post_response.raise_for_status = lambda: None
-        mock_session_instance.post = lambda *args, **kwargs: DummyAsyncContextManager(
-            mock_post_response
+        # Create API instance
+        api_batch_ssl_tokenized = LocalCompletionsAPI(
+            base_url="https://test-url.com",
+            model="EleutherAI/pythia-1b",
+            verify_certificate=False,
+            num_concurrent=2,
+            tokenizer_backend="huggingface",
         )
+
+        # Track post calls and arguments
+        post_calls = []
+
+        def capture_post_args(*args, **kwargs):
+            post_calls.append(kwargs)
+            mock_post_response = AsyncMock()
+            mock_post_response.status = 200
+            mock_post_response.ok = True
+            mock_post_response.json = AsyncMock(return_value={"mocked": "response"})
+            mock_post_response.raise_for_status = lambda: None
+            return DummyAsyncContextManager(mock_post_response)
+
+        # Use the tracking function instead of lambda
+        mock_session_instance = AsyncMock()
+        mock_session_instance.post = capture_post_args
         mock_client_session.return_value.__aenter__.return_value = mock_session_instance
         mock_parse.return_value = [(1.23, True), (4.56, False)]
 
@@ -223,6 +225,16 @@ def test_get_batched_requests_with_no_ssl(
             )
 
         result_batches = asyncio.run(run())
-
-        mock_connector.assert_called_with(limit=2, ssl=False)
         assert result_batches
+
+        mock_semaphore.assert_called_once_with(value=2)
+
+        # Verify post was called with ssl=False
+        assert len(post_calls) > 0, "session.post was not called"
+        for call_kwargs in post_calls:
+            assert "ssl" in call_kwargs, (
+                "ssl parameter was not provided to session.post"
+            )
+            assert call_kwargs["ssl"] is False, (
+                "session.post was not called with ssl=False"
+            )
