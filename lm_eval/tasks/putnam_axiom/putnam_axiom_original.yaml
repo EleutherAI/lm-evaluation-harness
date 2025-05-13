@@ -1,9 +1,9 @@
 task: putnam_axiom_original
-dataset_path: Putnam-AXIOM/putnam-axiom-dataset
+dataset_path: Putnam-AXIOM/putnam-axiom-dataset-ICML-2025-522
 process_docs: !function utils.process_docs
 output_type: generate_until
 training_split: null
-test_split: original
+test_split: full_eval
 doc_to_text:  !function utils.doc_to_text
 process_results: !function utils.process_results
 doc_to_target: "{{answer if few_shot is undefined else solution}}"
