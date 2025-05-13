@@ -1,6 +1,5 @@
 import abc
 import asyncio
-import base64
 import copy
 import itertools
 import json
@@ -36,7 +35,7 @@ from importlib.util import find_spec
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
-from lm_eval.models.utils import Collator, chunks, configure_pad_token
+from lm_eval.models.utils import Collator, chunks, configure_pad_token, content_image_to_content_image_url
 
 
 eval_logger = logging.getLogger(__name__)
@@ -359,20 +358,8 @@ class TemplateAPI(TemplateLM):
 
         for el in result:
             for message in el["messages"]:
-                for content in message["content"]:
-                    if isinstance(content, str):
-                        continue
-                    if content["type"] != "image":
-                        continue
-
-                    b64 = base64.b64encode(content["image"]).decode("utf-8")
-                    data_uri = f"data:image/png;base64,{b64}"
-
-                    content["type"] = "image_url"
-                    content["image_url"] = {
-                        "url": data_uri,
-                    }
-                    del content["image"]
+                for i, content in enumerate(message["content"]):
+                    message["content"][i] = content_image_to_content_image_url(content)
 
         if is_list:
             return result

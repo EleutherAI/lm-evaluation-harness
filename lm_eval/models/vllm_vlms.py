@@ -13,6 +13,7 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
     replace_placeholders,
     undistribute,
+    content_image_to_content_image_url,
 )
 from lm_eval.models.vllm_causallms import VLLM
 
@@ -99,6 +100,7 @@ class VLLM_VLM(VLLM):
         generate: bool = False,
         max_tokens: int = None,
         stop: Optional[List[str]] = None,
+        pass_multimodal_args_to_chat_history: Optional[bool] = False,
         **kwargs,
     ):
         if generate:
@@ -117,7 +119,8 @@ class VLLM_VLM(VLLM):
                 model_args: dict, sampling_params, requests: List[List[dict]]
             ):
                 llm = LLM(**model_args)
-                return llm.generate(requests, sampling_params=sampling_params)
+                fn = llm.chat if pass_multimodal_args_to_chat_history else llm.generate
+                return fn(requests, sampling_params=sampling_params)
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
@@ -130,15 +133,17 @@ class VLLM_VLM(VLLM):
             # flatten results
             return undistribute(results)
 
+        fn = self.model.chat if pass_multimodal_args_to_chat_history else self.model.generate
+
         if self.lora_request is not None:
-            outputs = self.model.generate(
+            outputs = fn(
                 requests,
                 sampling_params=sampling_params,
                 use_tqdm=True if self.batch_size == "auto" else False,
                 lora_request=self.lora_request,
             )
         else:
-            outputs = self.model.generate(
+            outputs = fn(
                 requests,
                 sampling_params=sampling_params,
                 use_tqdm=True if self.batch_size == "auto" else False,
@@ -237,7 +242,13 @@ class VLLM_VLM(VLLM):
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
         eos = self.tokenizer.decode(self.eot_token_id)
         for chunk in chunks:
-            contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
+            if len(chunk[0]) == 2:
+                contexts, all_gen_kwargs = zip(*chunk)
+                aux_arguments = []
+                pass_multimodal_args_to_chat_history = True
+            else:
+                pass_multimodal_args_to_chat_history = False
+                contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
             visuals = [arg["visual"] for arg in aux_arguments]
 
@@ -266,14 +277,31 @@ class VLLM_VLM(VLLM):
 
             max_ctx_len = self.max_length - max_gen_toks
 
-            inputs = self.tok_batch_multimodal_encode(
-                contexts,
-                visuals,
-                left_truncate_len=max_ctx_len,
-            )
+            if not pass_multimodal_args_to_chat_history:
+                inputs = self.tok_batch_multimodal_encode(
+                    contexts,
+                    visuals,
+                    left_truncate_len=max_ctx_len,
+                )
+            else:
+                inputs = []
+                for chat_history in contexts:
+                    new_chat_history = []
+                    for message in chat_history:
+                        new_content = []
+                        for content in message["content"]:
+                            new_content.append(content_image_to_content_image_url(content))
+                        message["content"] = new_content
+                        new_chat_history.append(message)
+                    inputs.append(new_chat_history)
 
             cont = self._model_generate(
-                inputs, stop=until, generate=True, max_tokens=max_gen_toks, **kwargs
+                inputs,
+                stop=until,
+                generate=True,
+                max_tokens=max_gen_toks,
+                pass_multimodal_args_to_chat_history=pass_multimodal_args_to_chat_history,
+                **kwargs
             )
 
             for output, context in zip(cont, contexts):

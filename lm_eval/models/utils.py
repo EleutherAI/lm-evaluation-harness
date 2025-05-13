@@ -1,4 +1,6 @@
+import base64
 import collections
+import copy
 import fnmatch
 import gc
 import itertools
@@ -729,3 +731,23 @@ def handle_stop_sequences(
     if eos is not None and eos not in until:
         until.append(eos)
     return until
+
+
+def content_image_to_content_image_url(content):
+    if isinstance(content, str):
+        return content
+    if content["type"] != "image":
+        return content
+
+    new_content = copy.deepcopy(content)
+
+    b64 = base64.b64encode(new_content["image"]).decode("utf-8")
+    data_uri = f"data:image/png;base64,{b64}"
+
+    new_content["type"] = "image_url"
+    new_content["image_url"] = {
+        "url": data_uri,
+    }
+    del new_content["image"]
+
+    return new_content

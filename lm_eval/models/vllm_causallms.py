@@ -226,12 +226,21 @@ class VLLM(TemplateLM):
     ) -> Union[List[int], List[List[int]]]:
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
-            string,
-            add_special_tokens=add_special_tokens,
-            truncation=truncation,
-            return_attention_mask=False,
-        ).input_ids
+        if isinstance(string, str) or isinstance(string[0], str):
+            encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+                string,
+                add_special_tokens=add_special_tokens,
+                truncation=truncation,
+                return_attention_mask=False,
+            ).input_ids
+        else:
+            # It must be a formatted chat history dict then
+            encoding: Union[List[List[int]], List[int]] = self.tokenizer.apply_chat_template(
+                string,
+                add_special_tokens=add_special_tokens,
+                truncation=truncation,
+                return_attention_mask=False,
+            )
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
