@@ -1,0 +1,7 @@
+"dataset_name": "kab_Latn-hin_Deva"
+"doc_to_target": "{{sentence_hin_Deva}}"
+"doc_to_text": "{{sentence_kab_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kab_Latn-hin_Deva"
+"test_split": "dev"

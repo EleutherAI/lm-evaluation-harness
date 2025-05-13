@@ -1,0 +1,7 @@
+"dataset_name": "kan_Knda-kas_Deva"
+"doc_to_target": "{{sentence_kas_Deva}}"
+"doc_to_text": "{{sentence_kan_Knda}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kan_Knda-kas_Deva"
+"test_split": "dev"
