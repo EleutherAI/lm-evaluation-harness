@@ -41,9 +41,9 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
-    index = np.random.randint(0, 5) + 1
+    # Always filter for variation=1, as that's all that exists in the variations split
     def filter_doc(doc: dict) -> bool:
-        return int(doc.get("variation")) == index
+        return int(doc.get("variation")) == 1
 
     filtered_dataset = dataset.filter(filter_doc)
 
