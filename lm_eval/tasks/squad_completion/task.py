@@ -1,8 +1,8 @@
 import re
+from copy import deepcopy
 from typing import List
 
 import numpy as np
-from deepcopy import deepcopy
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.task import ConfigurableTask
