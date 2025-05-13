@@ -1,0 +1,5 @@
+task: physics_gre_additional
+dataset_path: shayekh/physics_gre
+dataset_name: physics_gre_additional
+
+include: "default.yaml"
