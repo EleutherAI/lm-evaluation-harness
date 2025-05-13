@@ -24,4 +24,4 @@ dataset_kwargs:
 description: "Given a mathematics question, compose a detailed solution. Simplify your answer as much as possible. Always give the final answer inside a \\boxed{answer}. Give your answer in the format: \nFinal Answer: The final answer is $\\boxed{answer}$. I hope it is correct. Here are some examples:"
 fewshot_config:
   sampler: first_n
-  samples: !function utils.list_fewshot_samples
+  samples: !function utils.list_fewshot_samples 
