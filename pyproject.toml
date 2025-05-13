@@ -57,7 +57,7 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
-acpbench = ["lark>=1.1.9", "tarski==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2","clingo==5.6.2"]
+acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]

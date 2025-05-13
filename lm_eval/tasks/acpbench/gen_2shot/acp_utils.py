@@ -30,7 +30,7 @@ try:
     from tarski.util import SymbolIndex
 except ModuleNotFoundError:
     raise ModuleNotFoundError(
-        "`lark>=1.1.9`, `tarski==0.8.2`, `pddl==0.4.2`, `clingo==5.6.2` and `kstar-planner==1.4.2` are required for evaluating the generative tasks. \
+        "`lark>=1.1.9`, `tarski[clingo]==0.8.2`, `pddl==0.4.2` and `kstar-planner==1.4.2` are required for evaluating the generative tasks. \
 Please install via pip install lm-eval[acpbench] or pip install -e .[acpbench]",
     )
 
