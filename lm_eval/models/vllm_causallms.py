@@ -427,7 +427,23 @@ class VLLM(TemplateLM):
             # set the max length in tokens of inputs ("context_enc")
             # max len for inputs = max length, minus room to generate the max new tokens
             max_ctx_len = self.max_length - max_gen_toks
-            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+            result = []
+            for x in context_encoding:
+                # truncate from the middle
+                if len(x) > max_ctx_len:
+                    half_len = max_ctx_len // 2
+                    # If max_ctx_len is odd, we'll keep one extra token at the beginning
+                    beginning = x[: half_len + (max_ctx_len % 2)]
+                    end = x[-half_len:]
+
+                    # Combine beginning and end parts
+                    truncated = beginning + end
+                    result.append(truncated)
+                else:
+                    result.append(x)
+
+            # context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+            context_encoding = result
 
             # perform batched generation
             cont = self._model_generate(
