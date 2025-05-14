@@ -457,6 +457,10 @@ class VLLM(TemplateLM):
             # cache generations
             for output, context in zip(cont, context):
                 generated_text = output.outputs[0].text
+                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
+                for term in until:
+                    if len(term) > 0:
+                        generated_text = generated_text.split(term)[0]
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text
