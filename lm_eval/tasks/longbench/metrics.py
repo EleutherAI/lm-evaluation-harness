@@ -232,7 +232,7 @@ def f1_score(prediction: Union[str, list], ground_truth: Union[str, list], **kwa
 
 def get_f1_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = f1_score(prediction, ground_truth)
         output = max(score, output)
