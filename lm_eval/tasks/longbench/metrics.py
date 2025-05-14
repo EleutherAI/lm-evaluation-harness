@@ -173,7 +173,7 @@ def classification_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_classification_score(doc: dict, results: list[str]) -> dict:
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = classification_score(
             prediction, ground_truth, all_classes=doc["all_classes"]
