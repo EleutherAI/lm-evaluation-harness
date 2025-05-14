@@ -85,7 +85,7 @@ def count_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_count_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = count_score(prediction, ground_truth)
         output = max(score, output)
@@ -107,7 +107,7 @@ def retrieval_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_retrieval_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = retrieval_score(prediction, ground_truth)
         output = max(score, output)
@@ -129,7 +129,7 @@ def retrieval_zh_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_retrieval_zh_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = retrieval_zh_score(prediction, ground_truth)
         output = max(score, output)
@@ -148,7 +148,7 @@ def code_sim_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_code_sim_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = code_sim_score(prediction, ground_truth)
         output = max(score, output)
@@ -196,7 +196,7 @@ def rouge_score(predictions: str, ground_truth: str, **kwargs) -> float:
 
 def get_rouge_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = rouge_score(prediction, ground_truth)
         output = max(score, output)
@@ -212,7 +212,7 @@ def rouge_zh_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_rouge_zh_score(doc, results, **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = rouge_zh_score(prediction, ground_truth)
         output = max(score, output)
@@ -260,7 +260,7 @@ def qa_f1_zh_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_qa_f1_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = qa_f1_score(prediction, ground_truth)
         output = max(score, output)
@@ -269,7 +269,7 @@ def get_qa_f1_score(doc: dict, results: list[str], **kwargs):
 
 def get_qa_f1_zh_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0]
+    prediction = results[0].strip()
     for ground_truth in doc["answers"]:
         score = qa_f1_zh_score(prediction, ground_truth)
         output = max(score, output)
