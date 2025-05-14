@@ -884,7 +884,7 @@ class ConfigurableTask(Task):
             eval_logger.debug(
                 "No custom filters defined. Using default 'take_first' filter for handling repeats."
             )
-            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+            # self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
