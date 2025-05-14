@@ -13,19 +13,19 @@ def prompt_func(mode, lang, lang_dict):
     language_column_name = f"{lang}_text"
     prompt_map = {
         "prompt_1": f"{lang_dict[lang]} sentence: {{{{{language_column_name}}}}} \nEnglish sentence: ",
-        "prompt_1_reverse": "English sentence: {{eng_text}} "
+        "prompt_1_reverse": "English sentence: {{eng_source_text}} "
         f"\n{lang_dict[lang]} sentence: ",
         "prompt_2": f"You are a translation expert. Translate the following {lang_dict[lang]} sentences to English \n"
         f"{lang_dict[lang]} sentence: {{{{{language_column_name}}}}}\nEnglish sentence: ",
         "prompt_2_reverse": f"You are a translation expert. Translate the following English sentences to "
         f"{lang_dict[lang]} "
-        "\nEnglish sentence: {{eng_text}} "
+        "\nEnglish sentence: {{eng_source_text}} "
         f"\n{lang_dict[lang]} sentence: ",
         "prompt_3": f"As a {lang_dict[lang]} and English linguist, translate the following {lang_dict[lang]} sentences "
         f"to English. \n{lang_dict[lang]} sentence: {{{{{language_column_name}}}}}\nEnglish sentence: ",
         "prompt_3_reverse": f"As a {lang_dict[lang]} and English linguist, translate the following English sentences to "
         f"{lang_dict[lang]}. "
-        "\nEnglish sentence: {{eng_text}} "
+        "\nEnglish sentence: {{eng_source_text}} "
         f"\n{lang_dict[lang]} sentence: ",
     }
     return prompt_map[mode]
@@ -61,7 +61,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str, reverse: bool) -
                         "include": yaml_template,
                         "task": task_name,
                         "dataset_name": "text-all",
-                        "doc_to_target": "eng_text",
+                        "doc_to_target": "eng_target_text",
                         "doc_to_text": prompt_func(mode, lang, languages),
                     }
                     os.makedirs(f"{output_dir}/{mode}", exist_ok=True)
@@ -125,13 +125,13 @@ def main() -> None:
     )
     parser.add_argument(
         "--mode",
-        default="prompt_3",
+        default="prompt_1",
         choices=["prompt_1", "prompt_2", "prompt_3"],
         help="Prompt number",
     )
     parser.add_argument(
         "--reverse",
-        default=False,
+        default=True,
         choices=[True, False],
         help="Reverse the translation direction",
     )

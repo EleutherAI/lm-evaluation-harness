@@ -7,6 +7,7 @@ doc_to_target: target
 output_type: generate_until
 fewshot_split: dev
 test_split: test
+training_split: train
 metric_list:
   - metric: bleu
     aggregation: bleu
