@@ -155,22 +155,29 @@ def get_code_sim_score(doc: dict, results: list[str], **kwargs):
     return {"code_sim_score": output}
 
 
-def get_classification_score(doc: dict, results: list[str], **kwargs) -> dict:
+def classification_score(prediction: str, ground_truth: str, **kwargs):
+    em_match_list = []
+    all_classes = kwargs["all_classes"]
+    for class_name in all_classes:
+        if class_name in prediction:
+            em_match_list.append(class_name)
+    for match_term in em_match_list:
+        if match_term in ground_truth and match_term != ground_truth:
+            em_match_list.remove(match_term)
+    if ground_truth in em_match_list:
+        score = 1.0 / len(em_match_list)
+    else:
+        score = 0.0
+    return score
+
+
+def get_classification_score(doc: dict, results: list[str]) -> dict:
     output = 0.0
     prediction = results[0]
     for ground_truth in doc["answers"]:
-        em_match_list = []
-        all_classes = doc["all_classes"]
-        for class_name in all_classes:
-            if class_name in prediction:
-                em_match_list.append(class_name)
-        for match_term in em_match_list:
-            if match_term in ground_truth and match_term != ground_truth:
-                em_match_list.remove(match_term)
-        if ground_truth in em_match_list:
-            score = 1.0 / len(em_match_list)
-        else:
-            score = 0.0
+        score = classification_score(
+            prediction, ground_truth, all_classes=doc["all_classes"]
+        )
         output = max(score, output)
     return {"classification_score": output}
 
