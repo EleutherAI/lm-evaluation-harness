@@ -613,9 +613,11 @@ def evaluate(
                 else:
                     doc_id_true = doc_id
                 requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
-                )
+                metrics: list[dict] = [
+                    task.process_results(doc, response)
+                    for req in requests
+                    for response in req.filtered_resps[filter_key]
+                ]
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
@@ -628,7 +630,7 @@ def evaluate(
                             req.filtered_resps[filter_key] for req in requests
                         ],
                         "filter": filter_key,
-                        "metrics": list(metrics.keys()),
+                        "metrics": list(set(m.keys() for m in metrics)),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
