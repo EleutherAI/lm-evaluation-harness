@@ -1,5 +1,5 @@
 dataset_path: ai-forever/libra-v2
-dataset_kwargs: ...
+custom_dataset: !function utils.filter_dataset_by_page_lengths
 test_split: test
 output_type: generate_until
 doc_to_target: positive_outputs

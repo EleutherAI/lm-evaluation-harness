@@ -1,14 +1,19 @@
 import re
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Callable, Dict, List
 
-import numpy as np
+import datasets
+
+
 try:
     import pymorphy2
+
     normalizer = pymorphy2.MorphAnalyzer()
 except ImportError:
-    print("Can not import pymorphy2. If you try to score libra, do `pip install pymorphy2`")
+    print(
+        "Can not import pymorphy2. If you try to score libra, do `pip install pymorphy2`"
+    )
 
 
 @dataclass
@@ -16,6 +21,33 @@ class PredictionResult:
     pred_answer: str
     answers: List[str]
     length: str
+
+
+def filter_dataset_by_page_lengths(*args, **kwargs) -> Dict[str, datasets.Dataset]:
+    """Filter dataset by page lengths for Libra task.
+
+    in CLI metadata --metadata '{"valid_pages": ["8p", "32p"], "dataset_repo_name": "ai-forever/libra-v2"}'
+    """
+    valid_pages = kwargs.get("valid_pages", [])
+
+    dataset_repo_name = kwargs.get("dataset_repo_name", "ai-forever/libra-v2")
+    dataset_name = kwargs.get("dataset_name", None)
+    filter_colname = kwargs.get("filter_colname", "length")
+    token = kwargs.get("token", None)
+
+    dataset_columns = list(datasets.load_dataset(dataset_repo_name, dataset_name, token=token)["test"].features.keys())
+    if filter_colname not in dataset_columns:
+        raise ValueError(f"Column {filter_colname} not found in dataset {dataset_name}")
+
+    if valid_pages:
+        dataset_filtered = datasets.load_dataset(
+            dataset_repo_name, dataset_name, token=token
+        )["test"].filter(lambda doc: doc.get(filter_colname) in valid_pages)
+    else:
+        dataset_filtered = datasets.load_dataset(
+            dataset_repo_name, dataset_name, token=token
+        )["test"]
+    return {"test": dataset_filtered}
 
 
 def normalize_answer(sentence: str) -> str:
@@ -89,7 +121,9 @@ def count_score(prediction: str, ground_truth: str) -> float:
     return float(final_score)
 
 
-def aggregate_results(results: List[PredictionResult], scoring_function: Callable) -> Dict[str, float]:
+def aggregate_results(
+    results: List[PredictionResult], scoring_function: Callable
+) -> Dict[str, float]:
     """Aggregates score by 'length' by scoring_function.
 
     :param results: List of dictionaries containing 'pred_answer', 'answers', and 'length'.

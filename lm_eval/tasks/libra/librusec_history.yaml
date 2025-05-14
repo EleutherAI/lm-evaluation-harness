@@ -3,6 +3,8 @@ tag:
 task: librusec_history
 task_alias: LibrusecHistory
 dataset_name: librusec_history
+dataset_kwargs:
+  dataset_name: librusec_history
 include: _template_yaml
 doc_to_text: 'Тебе предоставляется длинный текст, в котором нужно найти ответ на вопрос.
 

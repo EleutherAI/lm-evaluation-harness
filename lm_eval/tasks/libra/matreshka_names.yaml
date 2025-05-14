@@ -3,6 +3,8 @@ tag:
 task: matreshka_names
 task_alias: MatreshkaNames
 dataset_name: matreshka_names
+dataset_kwargs:
+  dataset_name: matreshka_names
 include: _template_yaml
 doc_to_text: 'Тебе предоставляются несколько диалогов. Запомни имена людей и темы,
   на которые они говорили.

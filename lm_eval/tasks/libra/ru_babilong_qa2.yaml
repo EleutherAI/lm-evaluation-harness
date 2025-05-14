@@ -3,6 +3,8 @@ tag:
 task: ru_babilong_qa2
 task_alias: ruBABILongQA2
 dataset_name: ru_babilong_qa2
+dataset_kwargs:
+  dataset_name: ru_babilong_qa2
 include: _template_yaml
 doc_to_text: 'Я даю тебе контекст с фактами о местоположении и действиях разных людей.
   Тебе нужно ответить на вопрос, основываясь только на фактической информации. Если

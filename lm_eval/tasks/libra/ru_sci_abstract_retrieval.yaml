@@ -3,6 +3,8 @@ tag:
 task: ru_sci_abstract_retrieval
 task_alias: ruSciAbstractRetrieval
 dataset_name: ru_sci_abstract_retrieval
+dataset_kwargs:
+  dataset_name: ru_sci_abstract_retrieval
 include: _template_yaml
 doc_to_text: 'Ниже приведены несколько параграфов. Определи какому параграфу соответствует
   краткое описание.

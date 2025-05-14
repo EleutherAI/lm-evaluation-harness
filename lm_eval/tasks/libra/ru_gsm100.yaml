@@ -3,6 +3,8 @@ tag:
 task: ru_gsm100
 task_alias: ruGSM100
 dataset_name: ru_gsm100
+dataset_kwargs:
+  dataset_name: ru_gsm100
 include: _template_yaml
 doc_to_text: 'Ниже приведены п��имеры математических задач. Размышляй шаг за шагом
   и дай ответ на вопрос.

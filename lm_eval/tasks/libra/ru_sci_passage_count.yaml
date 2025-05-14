@@ -3,6 +3,8 @@ tag:
 task: ru_sci_passage_count
 task_alias: ruSciPassageCount
 dataset_name: ru_sci_passage_count
+dataset_kwargs:
+  dataset_name: ru_sci_passage_count
 include: _template_yaml
 doc_to_text: 'Ниже приведены несколько параграфов. Прочти их и определи количество
   уникальных параграфов.

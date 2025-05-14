@@ -3,6 +3,8 @@ tag:
 task: ru_qasper
 task_alias: ruQasper
 dataset_name: ru_qasper
+dataset_kwargs:
+  dataset_name: ru_qasper
 include: _template_yaml
 doc_to_text: 'Тебе предоставляется научная статья и вопрос.
 

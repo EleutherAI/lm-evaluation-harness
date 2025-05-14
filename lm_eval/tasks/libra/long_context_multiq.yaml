@@ -3,6 +3,8 @@ tag:
 task: long_context_multiq
 task_alias: LongContextMultiQ
 dataset_name: long_context_multiq
+dataset_kwargs:
+  dataset_name: long_context_multiq
 include: _template_yaml
 doc_to_text: 'Тебе предоставляется длинный текст, в котором нужно найти ответ на вопрос.
 

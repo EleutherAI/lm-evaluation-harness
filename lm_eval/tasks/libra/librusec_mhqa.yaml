@@ -3,6 +3,8 @@ tag:
 task: librusec_mhqa
 task_alias: LibrusecMHQA
 dataset_name: librusec_mhqa
+dataset_kwargs:
+  dataset_name: librusec_mhqa
 include: _template_yaml
 doc_to_text: 'Тебе предоставляется длинный текст, в котором нужно найти ответ на вопрос.
 

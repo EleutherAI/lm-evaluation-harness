@@ -3,6 +3,8 @@ tag:
 task: ru_2wikimultihopqa
 task_alias: ru2WikiMultihopQA
 dataset_name: ru_2wikimultihopqa
+dataset_kwargs:
+  dataset_name: ru_2wikimultihopqa
 include: _template_yaml
 doc_to_text: 'Ответь на вопрос, основываясь на приведенных отрывках.
 
