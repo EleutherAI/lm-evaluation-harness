@@ -1,0 +1,6 @@
+tag: norcommonsenseqa_nno
+dataset_name: nn
+task: norcommonsenseqa_nno_p3
+include: ../_norcommonsenseqa_yaml
+doc_to_text: "{{question}}\nVel rett svar blant desse alternativa:\n– {{choices.text[0]}}\n– {{choices.text[1]}}\n– {{choices.text[2]}}\n– {{choices.text[3]}}\n– {{choices.text[4]}}\n\nSvar:"
+doc_to_choice: "{{choices.text}}"
