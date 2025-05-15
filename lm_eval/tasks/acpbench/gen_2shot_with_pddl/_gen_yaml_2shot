@@ -1,0 +1,26 @@
+tag:
+  - acp_gen_2shot_with_pddl
+  - acp_bench_hard_with_pddl
+dataset_path: ibm-research/acp_bench
+test_split: test
+description: "Answer the question based on the provided PDDL domain and PDDL problem. The current state is the initial state described in the PDDL problem below.\n\n"
+doc_to_target: "{{answer}}"
+output_type: generate_until
+num_fewshot: 2
+generation_kwargs:
+  until:
+    - "\n\n\n\n"
+    - "\n\n"
+    - "**Question**:"
+    - "**Question:**"
+    - "Q:"
+  do_sample: false
+  max_gen_toks: 1000
+  temperature: 0.0
+metadata:
+  version: 1.0
+process_results: !function acp_utils.process_acp_results
+metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
