@@ -6,7 +6,7 @@ dataset_path: THUDM/LongBench
 test_split: test
 dataset_name: repobench-p_e
 doc_to_text: 'Please complete the code given below. \n{{context}}{{input}}Next line of code:\n'
-doc_to_target: '{{answers[0]}}'
+doc_to_target: '{{answers}}'
 process_results: !function metrics.get_code_sim_score
 generation_kwargs:
   max_gen_toks: 64
@@ -18,4 +18,4 @@ metric_list:
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 2.0
+  version: 3.0
