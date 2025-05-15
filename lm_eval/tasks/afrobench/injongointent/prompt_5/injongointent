@@ -1,0 +1,75 @@
+tag:
+- injongointent_tasks
+- injongointent_prompt_5
+dataset_path: masakhane/InjongoIntent
+dataset_name: null
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+fewshot_split: validation
+doc_to_target: intent
+doc_to_choice:
+  - alarm
+  - balance
+  - bill_balance
+  - book_flight
+  - book_hotel
+  - calendar_update
+  - cancel_reservation
+  - car_rental
+  - confirm_reservation
+  - cook_time
+  - exchange_rate
+  - food_last
+  - freeze_account
+  - ingredients_list
+  - interest_rate
+  - international_visa
+  - make_call
+  - meal_suggestion
+  - min_payment
+  - pay_bill
+  - pin_change
+  - play_music
+  - plug_type
+  - recipe
+  - restaurant_reservation
+  - restaurant_reviews
+  - restaurant_suggestion
+  - share_location
+  - shopping_list_update
+  - spending_history
+  - text
+  - time
+  - timezone
+  - transactions
+  - transfer
+  - translate
+  - travel_notification
+  - travel_suggestion
+  - update_playlist
+  - weather
+should_decontaminate: true
+doc_to_decontamination_query: text
+metric_list:
+  - metric: f1
+    aggregation: !function utils.weighted_f1_score
+    # aggregation: mean
+    average: weighted
+    hf_evaluate: true
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+metadata:
+  version: 1.0
