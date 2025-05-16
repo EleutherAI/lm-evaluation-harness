@@ -1,6 +1,8 @@
 from functools import partial
 
+
 choices = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+
 
 def format_cot_example(example, including_answer=True):
     prompt = "Question:\n"
@@ -21,14 +23,17 @@ def format_cot_example(example, including_answer=True):
         prompt += cot_content + "\n\n"
     else:
         prompt += "Answer: Let's think step by step."
-    
+
     return prompt
+
 
 doc_to_text = partial(format_cot_example, including_answer=False)
 fewshot_to_text = partial(format_cot_example, including_answer=True)
 
+
 def process_docs(dataset, subject):
     return dataset.filter(lambda x: x["category"] == subject)
+
 
 process_biology = partial(process_docs, subject="biology")
 process_business = partial(process_docs, subject="business")

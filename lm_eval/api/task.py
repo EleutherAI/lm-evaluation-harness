@@ -401,7 +401,7 @@ class Task(abc.ABC):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
-        question_suffix: str = ""
+        question_suffix: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -1077,13 +1077,23 @@ class ConfigurableTask(Task):
         if not fewshot_as_multiturn:
             # if no messages or last message is system, append as new user entry
             if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question + question_suffix} if question_suffix else {"role": "user", "content": question}  )
+                labeled_examples.append(
+                    {"role": "user", "content": question + question_suffix}
+                    if question_suffix
+                    else {"role": "user", "content": question}
+                )
             # if last message is user, append to it to avoid two user messages in a row
             else:
-                labeled_examples[-1]["content"] += question + question_suffix if question_suffix else question
+                labeled_examples[-1]["content"] += (
+                    question + question_suffix if question_suffix else question
+                )
         else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append({"role": "user", "content": question + question_suffix} if question_suffix else {"role": "user", "content": question}  )
+            labeled_examples.append(
+                {"role": "user", "content": question + question_suffix}
+                if question_suffix
+                else {"role": "user", "content": question}
+            )
         if gen_prefix:
             labeled_examples.append({"role": "assistant", "content": gen_prefix})
 

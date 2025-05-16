@@ -1,0 +1,53 @@
+group: rublimp
+task:
+  - rublimp_add_new_suffix
+  - rublimp_add_verb_prefix
+  - rublimp_adposition_government
+  - rublimp_anaphor_agreement_gender
+  - rublimp_anaphor_agreement_number
+  - rublimp_change_declension_ending_has_dep
+  - rublimp_change_declension_ending
+  - rublimp_change_duration_aspect
+  - rublimp_change_repetition_aspect
+  - rublimp_change_verb_conjugation
+  - rublimp_change_verb_prefixes_order
+  - rublimp_clause_subj_predicate_agreement_gender
+  - rublimp_clause_subj_predicate_agreement_number
+  - rublimp_clause_subj_predicate_agreement_person
+  - rublimp_conj_verb_tense
+  - rublimp_deontic_imperative_aspect
+  - rublimp_external_possessor
+  - rublimp_floating_quantifier_agreement_case
+  - rublimp_floating_quantifier_agreement_gender
+  - rublimp_floating_quantifier_agreement_number
+  - rublimp_genitive_subj_predicate_agreement_gender
+  - rublimp_genitive_subj_predicate_agreement_number
+  - rublimp_genitive_subj_predicate_agreement_person
+  - rublimp_indefinite_pronoun_to_negative
+  - rublimp_negative_concord
+  - rublimp_negative_pronoun_to_indefinite
+  - rublimp_nominalization_case
+  - rublimp_noun_subj_predicate_agreement_gender
+  - rublimp_noun_subj_predicate_agreement_number
+  - rublimp_noun_subj_predicate_agreement_person
+  - rublimp_np_agreement_case
+  - rublimp_np_agreement_gender
+  - rublimp_np_agreement_number
+  - rublimp_single_verb_tense
+  - rublimp_subj_predicate_agreement_gender_attractor
+  - rublimp_subj_predicate_agreement_number_attractor
+  - rublimp_tense_marker
+  - rublimp_transitive_verb_iobject
+  - rublimp_transitive_verb_object
+  - rublimp_transitive_verb_passive
+  - rublimp_transitive_verb_subject
+  - rublimp_transitive_verb
+  - rublimp_verb_acc_object
+  - rublimp_verb_gen_object
+  - rublimp_verb_ins_object
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: False
+metadata:
+  version: 1.0
