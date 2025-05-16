@@ -1,0 +1,11 @@
+group: xlum
+task:
+  - xlsum_prompt_1
+  - xlsum_prompt_2
+  - xlsum_prompt_3
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 2
