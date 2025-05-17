@@ -23,6 +23,7 @@
 import re
 import string
 from collections import Counter
+from typing import Union
 
 try:
     import jieba
@@ -33,7 +34,7 @@ except ImportError:
         'Please install the required dependencies for this task with `pip install lm_eval["longbench"] or `pip install jieba fuzzywuzzy rouge`'
     )
 
-# taken from https://github.com/THUDM/LongBench
+# taken and slightly modified from https://github.com/THUDM/LongBench
 
 
 def normalize_answer(s: str) -> str:
@@ -72,8 +73,7 @@ def normalize_zh_answer(s: str) -> str:
     return white_space_fix(remove_punc(lower(s)))
 
 
-def count_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def count_score(prediction: str, ground_truth: str, **kwargs):
     numbers = re.findall(r"\d+", prediction)
     right_num = 0
     for number in numbers:
@@ -83,8 +83,16 @@ def count_score(predictions: list[str], references: list[str], **kwargs) -> floa
     return float(final_score)
 
 
-def retrieval_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def get_count_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = count_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"count_score": output}
+
+
+def retrieval_score(prediction: str, ground_truth: str, **kwargs):
     pattern = r"Paragraph (\d+)"
     matches = re.findall(pattern, ground_truth)
     ground_truth_id = matches[0]
@@ -97,10 +105,16 @@ def retrieval_score(predictions: list[str], references: list[str], **kwargs) -> 
     return float(final_score)
 
 
-def retrieval_zh_score(
-    predictions: list[str], references: list[str], **kwargs
-) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def get_retrieval_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = retrieval_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"retrieval_score": output}
+
+
+def retrieval_zh_score(prediction: str, ground_truth: str, **kwargs):
     pattern = r"段落(\d+)"
     matches = re.findall(pattern, ground_truth)
     ground_truth_id = matches[0]
@@ -113,8 +127,16 @@ def retrieval_zh_score(
     return float(final_score)
 
 
-def code_sim_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def get_retrieval_zh_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = retrieval_zh_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"retrieval_zh_score": output}
+
+
+def code_sim_score(prediction: str, ground_truth: str, **kwargs):
     all_lines = prediction.lstrip("\n").split("\n")
     prediction = ""
     for line in all_lines:
@@ -124,10 +146,18 @@ def code_sim_score(predictions: list[str], references: list[str], **kwargs) -> f
     return fuzz.ratio(prediction, ground_truth) / 100
 
 
-def classification_score(doc: dict, results: list[str], **kwargs) -> dict:
-    prediction, ground_truth = results[0], doc["answers"][0]
+def get_code_sim_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0]  ## important! do not strip the prediction!
+    for ground_truth in doc["answers"]:
+        score = code_sim_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"code_sim_score": output}
+
+
+def classification_score(prediction: str, ground_truth: str, **kwargs):
     em_match_list = []
-    all_classes = doc["all_classes"]
+    all_classes = kwargs["all_classes"]
     for class_name in all_classes:
         if class_name in prediction:
             em_match_list.append(class_name)
@@ -138,35 +168,58 @@ def classification_score(doc: dict, results: list[str], **kwargs) -> dict:
         score = 1.0 / len(em_match_list)
     else:
         score = 0.0
-    return {"classification_score": score}
+    return score
 
 
-def rouge_score(predictions: list[str], references: list[str], **kwargs) -> float:
+def get_classification_score(doc: dict, results: list[str]) -> dict:
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = classification_score(
+            prediction, ground_truth, all_classes=doc["all_classes"]
+        )
+        output = max(score, output)
+    return {"classification_score": output}
+
+
+def rouge_score(predictions: str, ground_truth: str, **kwargs) -> float:
     global rouge
     if "rouge" not in globals():
         rouge = Rouge()
-    prediction, ground_truth = predictions[0], references[0]
     try:
-        scores = rouge.get_scores([prediction], [ground_truth], avg=True)
+        scores = rouge.get_scores([predictions], [ground_truth], avg=True)
         # ruff: noqa
     except:
         return 0.0
     return scores["rouge-l"]["f"]
 
 
-def rouge_zh_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def get_rouge_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = rouge_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"rouge_score": output}
+
+
+def rouge_zh_score(prediction: str, ground_truth: str, **kwargs):
     prediction = " ".join(list(jieba.cut(prediction, cut_all=False)))
     ground_truth = " ".join(list(jieba.cut(ground_truth, cut_all=False)))
-    score = rouge_score([prediction], [ground_truth])
+    score = rouge_score(prediction, ground_truth)
     return score
 
 
-def f1_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    try:
-        prediction, ground_truth = predictions[0], references[0]
-    except:
-        return 0.0
+def get_rouge_zh_score(doc, results, **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = rouge_zh_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"rouge_zh_score": output}
+
+
+def f1_score(prediction: Union[str, list], ground_truth: Union[str, list], **kwargs):
     common = Counter(prediction) & Counter(ground_truth)
     num_same = sum(common.values())
     if num_same == 0:
@@ -177,22 +230,25 @@ def f1_score(predictions: list[str], references: list[str], **kwargs) -> float:
     return f1
 
 
-def qa_f1_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def get_f1_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = f1_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"f1_score": output}
+
+
+def qa_f1_score(prediction: str, ground_truth: str, **kwargs):
     normalized_prediction = normalize_answer(prediction)
     normalized_ground_truth = normalize_answer(ground_truth)
 
     prediction_tokens = normalized_prediction.split()
     ground_truth_tokens = normalized_ground_truth.split()
-    try:
-        res = f1_score(prediction_tokens, ground_truth_tokens)
-    except:
-        return 0.0
-    return res
+    return f1_score(prediction_tokens, ground_truth_tokens)
 
 
-def qa_f1_zh_score(predictions: list[str], references: list[str], **kwargs) -> float:
-    prediction, ground_truth = predictions[0], references[0]
+def qa_f1_zh_score(prediction: str, ground_truth: str, **kwargs):
     prediction_tokens = list(jieba.cut(prediction, cut_all=False))
     ground_truth_tokens = list(jieba.cut(ground_truth, cut_all=False))
     prediction_tokens = [normalize_zh_answer(token) for token in prediction_tokens]
@@ -200,3 +256,21 @@ def qa_f1_zh_score(predictions: list[str], references: list[str], **kwargs) -> f
     prediction_tokens = [token for token in prediction_tokens if len(token) > 0]
     ground_truth_tokens = [token for token in ground_truth_tokens if len(token) > 0]
     return f1_score(prediction_tokens, ground_truth_tokens)
+
+
+def get_qa_f1_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = qa_f1_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"qa_f1_score": output}
+
+
+def get_qa_f1_zh_score(doc: dict, results: list[str], **kwargs):
+    output = 0.0
+    prediction = results[0].strip()
+    for ground_truth in doc["answers"]:
+        score = qa_f1_zh_score(prediction, ground_truth)
+        output = max(score, output)
+    return {"qa_f1_zh_score": output}
