@@ -34,7 +34,7 @@ except ImportError:
         'Please install the required dependencies for this task with `pip install lm_eval["longbench"] or `pip install jieba fuzzywuzzy rouge`'
     )
 
-# taken from https://github.com/THUDM/LongBench
+# taken and slightly modified from https://github.com/THUDM/LongBench
 
 
 def normalize_answer(s: str) -> str:
@@ -148,7 +148,7 @@ def code_sim_score(prediction: str, ground_truth: str, **kwargs):
 
 def get_code_sim_score(doc: dict, results: list[str], **kwargs):
     output = 0.0
-    prediction = results[0].strip()
+    prediction = results[0]  ## important! do not strip the prediction!
     for ground_truth in doc["answers"]:
         score = code_sim_score(prediction, ground_truth)
         output = max(score, output)
