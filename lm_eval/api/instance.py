@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Generic, Literal, Optional, Tuple, TypeVar
+from typing import Generic, Literal, Optional, Tuple, TypeVar, Union
 
 from lm_eval.api.types import GenerateInput, LoglikelihoodInput
 
@@ -20,7 +20,7 @@ class Instance(Generic[T]):
     metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
         default_factory=lambda: (None, None, None)
     )
-    resps: list = field(default_factory=list)
+    resps: list[Union[GenerateInput, LoglikelihoodInput]] = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
     # initialized after init
