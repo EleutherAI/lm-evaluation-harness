@@ -10,6 +10,11 @@ from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
+from lm_eval.api.instance import Instance
+from lm_eval.api.types import (
+    LoglikelihoodInput,
+    LoglikelihoodOutput,
+)
 
 
 eval_logger = logging.getLogger(__name__)
@@ -30,7 +35,7 @@ class LM(abc.ABC):
         self.cache_hook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: list[Instance]) -> List[Tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -55,7 +60,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> List[float]:
+    def loglikelihood_rolling(self, requests: list[Instance]) -> List[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -97,7 +102,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests: list[Instance]) -> List[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -338,7 +343,7 @@ class TemplateLM(LM):
         pass
 
     @abc.abstractmethod
-    def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
+    def _loglikelihood_tokens(self, requests, **kwargs) -> List[LoglikelihoodOutput]:
         pass
 
     def _encode_pair(
@@ -364,10 +369,12 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+        self, requests: list[Instance[LoglikelihoodInput]], disable_tqdm: bool = False
+    ) -> List[LoglikelihoodOutput]:
         new_reqs = []
-        for context, continuation in [req.args for req in requests]:
+        for context, continuation in (
+            (req.args.context, req.args.continuation) for req in requests
+        ):
             if context == "":
                 # BOS or EOS as context
                 context_enc, continuation_enc = (
@@ -383,12 +390,14 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def loglikelihood_rolling(
-        self, requests, disable_tqdm: bool = False
+        self, requests: list[Instance], disable_tqdm: bool = False
     ) -> List[float]:
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
+    def generate_until(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         pass
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
