@@ -14,7 +14,7 @@ except Exception as e:
     raise e
 
 
-def pass_at_1(references, predictions):
+def pass_at_1(references: list[str], predictions: list[list[str]]) -> float:
     return pass_at_k.compute(
         references=references,
         predictions=predictions,
