@@ -1,0 +1,8 @@
+include: mbpp_instruct.yaml
+task: mbpp_plus
+dataset_path: evalplus/mbppplus
+dataset_name: null
+doc_to_text: "{{prompt if prompt is defined else text}} Your code should satisfy the following assertion:\n{{test_list[0]}}"
+doc_to_target: "{{test_list[0]}}"
+gen_prefix: "Here is a solution to this programming problem:\n```python\n"
+num_fewshot: 0
