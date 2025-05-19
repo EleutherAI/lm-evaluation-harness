@@ -1,0 +1,4 @@
+dataset_name: pcm
+include: nollysenti
+doc_to_text: 'Does this Naija Pidgin movie description; "{{review}}" have a Positive or Negative sentiment? Labels only\n'
+task: nollysenti_pcm_prompt_2
