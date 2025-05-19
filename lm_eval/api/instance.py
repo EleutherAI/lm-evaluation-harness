@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Generic, Literal, Optional, Tuple, TypeVar, Union
 
-from lm_eval.api.types import GenerateInput, LoglikelihoodInput
+from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput
 
 
 OutputType = Literal[

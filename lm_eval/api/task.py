@@ -36,7 +36,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.api.types import GenerateInput, LoglikelihoodInput
+from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
