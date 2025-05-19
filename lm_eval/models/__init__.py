@@ -16,6 +16,7 @@ from . import (
     optimum_ipex,
     optimum_lm,
     sglang_causallms,
+    sglang_generate_API,
     textsynth,
     vllm_causallms,
     vllm_vlms,
