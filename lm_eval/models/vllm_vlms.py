@@ -17,6 +17,7 @@ from lm_eval.models.utils import (
 )
 from lm_eval.models.vllm_causallms import VLLM
 
+from vllm.transformers_utils.tokenizers.mistral import MistralTokenizer
 
 eval_logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ class VLLM_VLM(VLLM):
             pretrained,
             revision=revision,
             trust_remote_code=trust_remote_code,
-        )
+        ) if not isinstance(self.tokenizer, MistralTokenizer) else None
         self.chat_applied: bool = False
 
     def tok_batch_multimodal_encode(
@@ -220,7 +221,7 @@ class VLLM_VLM(VLLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(x[0])
+            toks = self.tok_encode(copy.deepcopy(x[0]))
             return -len(toks), x[0]
 
         pbar = tqdm(

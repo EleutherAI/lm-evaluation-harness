@@ -25,6 +25,7 @@ from typing import (
 import torch
 import transformers
 
+from vllm.transformers_utils.tokenizers.mistral import MistralTokenizer
 
 eval_logger = logging.getLogger(__name__)
 
@@ -643,6 +644,10 @@ def configure_pad_token(
     Raises:
         AssertionError: If the tokenizer is of type RWKVWorldTokenizer or Rwkv5Tokenizer and the padding token id is not 0.
     """
+    if isinstance(tokenizer, MistralTokenizer):
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+        return tokenizer
+
     if tokenizer.pad_token:
         pass
     elif tokenizer.unk_token:
@@ -728,7 +733,7 @@ def handle_stop_sequences(
             f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
         )
 
-    if eos is not None and eos not in until:
+    if eos is not None and eos not in until and eos:
         until.append(eos)
     return until
 

@@ -34,6 +34,8 @@ try:
 except ModuleNotFoundError:
     pass
 
+from vllm.transformers_utils.tokenizers.mistral import MistralTokenizer
+
 if TYPE_CHECKING:
     pass
 
@@ -136,7 +138,7 @@ class VLLM(TemplateLM):
                 "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
 
-        if parse_version(version("vllm")) >= parse_version("0.8.3"):
+        if parse_version(version("vllm")) >= parse_version("0.8.3") and not isinstance(self.tokenizer, MistralTokenizer):
             self.hf_chat_template = resolve_hf_chat_template(
                 tokenizer=self.tokenizer,
                 chat_template=None,
