@@ -560,6 +560,8 @@ def evaluate(
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
+            # Note: [req] * req.repeats creates multiple references to the same request object,
+            # not separate copies. This means all repeated entries point to the same req.resps list
             cloned_reqs.extend([req] * req.repeats)
 
         if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
@@ -567,6 +569,8 @@ def evaluate(
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
+        # Since cloned_reqs contains references to original objects, each response
+        # automatically gets appended to the correct req.resps list
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.

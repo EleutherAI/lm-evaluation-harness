@@ -36,6 +36,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.api.types import GenerateInput, LoglikelihoodInput
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -1493,6 +1494,13 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
+        else:
+            raise ValueError(
+                f"Unsupported OUTPUT_TYPE: '{self.OUTPUT_TYPE}'. "
+                f"Expected one of: 'loglikelihood', 'loglikelihood_rolling', "
+                f"'multiple_choice', 'generate_until'"
+            )
+
         multimodal_arg = {}
         if (
             self.config.doc_to_image
@@ -1521,7 +1529,7 @@ class ConfigurableTask(Task):
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
-                    arguments=arg,
+                    arguments=LoglikelihoodInput(context=arg[0], continuation=arg[1]),
                     idx=i,
                     **kwargs,
                 )
@@ -1533,7 +1541,9 @@ class ConfigurableTask(Task):
         return Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
-            arguments=arguments,
+            arguments=LoglikelihoodInput(*arguments)
+            if self.OUTPUT_TYPE in ["loglikelihood", "loglikelihood_rolling"]
+            else GenerateInput(*arguments),
             idx=0,
             **kwargs,
         )
@@ -1846,7 +1856,7 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task):
-    OUTPUT_TYPE = "loglikelihood_rolling"
+    OUTPUT_TYPE: OutputType = "loglikelihood_rolling"
 
     def has_training_docs(self) -> bool:
         return False

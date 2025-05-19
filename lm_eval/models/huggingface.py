@@ -27,6 +27,7 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
+from lm_eval.api.types import GenerateInput, GenerateOutput, LoglikelihoodOutput
 from lm_eval.models.utils import (
     Collator,
     clear_torch_cache,
@@ -965,7 +966,7 @@ class HFLM(TemplateLM):
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+    ) -> list[LoglikelihoodOutput]:
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -1025,7 +1026,7 @@ class HFLM(TemplateLM):
                 override_bs=len(batch_windows),
             )
             # Store results with their request indices
-            all_nlls.extend(zip(batch_indices, batch_nlls))
+            all_nlls.extend(zip(batch_indices, (x.loglikelihood for x in batch_nlls)))
 
         # Remove padding if necessary
         if (self.world_size > 1) and (pad_amnt > 0):
@@ -1038,8 +1039,8 @@ class HFLM(TemplateLM):
             # Get all nlls for this request
             request_nlls = all_nlls[current_idx : current_idx + window_count]
             # Sum up the nlls for this request (discarding is_greedy)
-            request_total = sum(nll[0] for _, nll in request_nlls)
-            loglikelihoods.append(request_total)
+            request_total = sum(nll for nll in request_nlls)
+            loglikelihoods.append(LoglikelihoodOutput(loglikelihood=request_total))
             current_idx += window_count
 
             string = requests[len(loglikelihoods) - 1].args[0]
@@ -1071,7 +1072,7 @@ class HFLM(TemplateLM):
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
         override_bs: int = None,
-    ) -> List[Tuple[float, bool]]:
+    ) -> List[LoglikelihoodOutput]:
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
@@ -1286,7 +1287,13 @@ class HFLM(TemplateLM):
                     # Answer: (log prob, is-exact-match)
                     answer = (float(logits.sum()), bool(max_equal))
 
-                    res.append(answer)
+                    res.append(
+                        LoglikelihoodOutput(
+                            *answer,
+                            ctx_tokens=ctx_tokens,
+                            cont_tokens=cont_toks.tolist(),
+                        )
+                    )
 
                     if request_str is not None:
                         # special case: loglikelihood_rolling produces a number of loglikelihood requests
@@ -1302,8 +1309,8 @@ class HFLM(TemplateLM):
         return re_ord.get_original(res)
 
     def generate_until(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+        self, requests: List[Instance[GenerateInput]], disable_tqdm: bool = False
+    ) -> List[GenerateOutput]:
         res = []
 
         def _collate(req: Tuple[str, dict]):
@@ -1420,7 +1427,7 @@ class HFLM(TemplateLM):
                         # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
                         s = s.split(term)[0]
 
-                res.append(s)
+                res.append(GenerateOutput(text=s))
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                 pbar.update(1)
