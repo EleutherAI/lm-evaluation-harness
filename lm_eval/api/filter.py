@@ -44,6 +44,7 @@ class FilterEnsemble:
 
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
+        # TODO: add backward
         resps, docs = list([r.text] for y in resps for r in y), list(docs)
 
         for f in self.filters:
