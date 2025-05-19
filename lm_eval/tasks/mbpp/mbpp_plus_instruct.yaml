@@ -1,5 +1,5 @@
 include: mbpp_instruct.yaml
-task: mbpp_plus
+task: mbpp_plus_instruct
 dataset_path: evalplus/mbppplus
 dataset_name: null
 doc_to_text: "{{prompt if prompt is defined else text}} Your code should satisfy the following assertion:\n{{test_list[0]}}"
