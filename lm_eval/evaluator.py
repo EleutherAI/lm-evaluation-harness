@@ -484,7 +484,7 @@ def evaluate(
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        if getattr(lm, "MULTIMODAL", False) != getattr(task, "MULTIMODAL", False):
+        if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
             incompatible_tasks.append(task_output.task_name)
         elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
             raise ValueError(
@@ -494,10 +494,6 @@ def evaluate(
         if not getattr(lm, "MULTIMODAL", False):
             raise ValueError(
                 f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
-            )
-        else:
-            raise ValueError(
-                f"Attempted to run tasks: {incompatible_tasks} which are text-only, but used a model type which only currently supports multimodal tasks."
             )
     # end validation check
 
