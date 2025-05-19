@@ -1757,6 +1757,46 @@ class ConfigurableTask(Task):
             f"num_samples={len(self.eval_docs)})"
         )
 
+    def calculate_metrics(
+        self, instances_by_doc_id, filter_key, samples, rank, limit, world_size
+    ):
+        """Calculate metrics for all datapoints in the task.
+
+        Args:
+            instances_by_doc_id (dict): Dictionary mapping doc_ids to lists of instances.
+            filter_key (str): The filter key to use for filtered responses.
+            samples (dict, optional): Dictionary of sample indices to evaluate.
+            rank (int): The process rank.
+            limit (int, optional): Limit on number of examples to evaluate.
+            world_size (int): Total number of processes.
+
+        Returns:
+            list: A list of metrics calculated for each document.
+        """
+        all_metrics = []
+        # indices = samples.get(self.config.task, None) if samples is not None else None
+
+        doc_iterator = self.doc_iterator(
+            rank=rank,
+            limit=limit,
+            world_size=world_size,
+            # samples=indices,
+        )
+
+        for doc_id, doc in doc_iterator:
+            # doc_id_true = indices[doc_id] if indices else doc_id
+            requests = instances_by_doc_id[doc_id]
+
+            metrics = [
+                self.process_results(doc, response)
+                for req in requests
+                for response in req.filtered_resps[filter_key]
+            ]
+
+            all_metrics.extend(metrics)
+
+        return all_metrics
+
 
 class MultipleChoiceTask(Task):
     OUTPUT_TYPE = "loglikelihood"
