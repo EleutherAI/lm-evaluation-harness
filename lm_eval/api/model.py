@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.types import (
+from lm_eval.api.schemas import (
     LoglikelihoodInput,
     LoglikelihoodOutput,
 )
