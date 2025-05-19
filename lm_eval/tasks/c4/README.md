@@ -14,13 +14,13 @@ This is the processed version of Google's C4 dataset.
 
 ```text
 @misc{raffel2023exploringlimitstransferlearning,
-      title={Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer}, 
+      title={Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer},
       author={Colin Raffel and Noam Shazeer and Adam Roberts and Katherine Lee and Sharan Narang and Michael Matena and Yanqi Zhou and Wei Li and Peter J. Liu},
       year={2023},
       eprint={1910.10683},
       archivePrefix={arXiv},
       primaryClass={cs.LG},
-      url={https://arxiv.org/abs/1910.10683}, 
+      url={https://arxiv.org/abs/1910.10683},
 }
 ```
 
