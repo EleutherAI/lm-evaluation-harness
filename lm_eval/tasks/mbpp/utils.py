@@ -25,10 +25,12 @@ def pass_at_1(references: list[str], predictions: list[list[str]]) -> float:
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
-    matches = re.findall(pattern, text, re.DOTALL)
+    # + ``` as we add the opening "```python" to the gen_prefix
+    matches = re.findall(pattern, r"```" + text, re.DOTALL)
+    # if no matches, try to match ```...``` blocks (after removing the language)
     if not matches:
-        text = r"```" + text
-        matches = re.findall(pattern, text, re.DOTALL)
+        text_without_lang = re.sub(r"```python", "```", text)
+        matches = re.findall(pattern, text_without_lang, re.DOTALL)
     if not matches:
         return ""
     else:
