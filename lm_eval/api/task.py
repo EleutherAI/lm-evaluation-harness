@@ -1714,7 +1714,6 @@ class ConfigurableTask(Task):
                             **self._metric_fn_kwargs[metric],
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        print(self._metric_fn_list)
                         result_score = self._metric_fn_list[metric]([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
