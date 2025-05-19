@@ -1,0 +1,6 @@
+tag: noropenbookqa_nob
+task: noropenbookqa_nob_p1
+dataset_name: nb
+include: ../_noropenbookqa_yaml
+doc_to_text: "Faktatekst: {{fact}}\nSpørsmål til teksten: {{question_stem}}\n\nSvaralternativer:\n- {{choices.text[0]}}\n- {{choices.text[1]}}\n- {{choices.text[2]}}\n- {{choices.text[3]}}\n\nHva er riktig svar?"
+doc_to_choice: "{{choices.text}}"

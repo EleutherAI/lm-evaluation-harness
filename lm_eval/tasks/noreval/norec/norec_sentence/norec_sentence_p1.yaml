@@ -1,0 +1,6 @@
+tag: norec_sentence
+dataset_path: ltg/norec_sentence
+task: norec_sentence_p1
+include: ../_norec_yaml
+doc_to_text: "{{review}}\nEr denne setningen \"positiv\" eller \"negativ\"?"
+doc_to_choice: ["negativ", "positiv"]

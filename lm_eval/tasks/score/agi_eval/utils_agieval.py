@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import re
 from functools import partial
@@ -22,8 +23,9 @@ from datasets import Dataset
 
 from lm_eval.tasks.score import utils
 from lm_eval.tasks.score.utils import prompt_consistency_rate, robustness_doc_to_text
-from lm_eval.utils import eval_logger
 
+
+eval_logger = logging.getLogger(__name__)
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 

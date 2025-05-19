@@ -1,0 +1,13 @@
+group: afriqa
+task:
+  - afriqa_prompt_1
+  - afriqa_prompt_2
+  - afriqa_prompt_3
+  - afriqa_prompt_4
+  - afriqa_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
