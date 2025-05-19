@@ -17,7 +17,7 @@ except Exception as e:
 def pass_at_1(references, predictions):
     return pass_at_k.compute(
         references=references,
-        predictions=[predictions],
+        predictions=predictions,
         k=[1],
     )[0]["pass@1"]
 
