@@ -77,7 +77,7 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
             assert ctxlen > 0, "Context length must be greater than 0"
             logprobs = sum(x[0] for x in choice["input_token_logprobs"][ctxlen:])
             is_greedy = all(
-                x[1] != y[1]
+                x[1] != y[0][1]
                 for x, y in zip(
                     choice["input_token_logprobs"][ctxlen:],
                     choice["input_top_logprobs"][ctxlen:],
