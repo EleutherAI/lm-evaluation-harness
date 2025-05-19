@@ -44,7 +44,7 @@ class FilterEnsemble:
 
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
-        resps, docs = list(resps), list(docs)
+        resps, docs = list([r.text] for y in resps for r in y), list(docs)
 
         for f in self.filters:
             # apply filters in sequence

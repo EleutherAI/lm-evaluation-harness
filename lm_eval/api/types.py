@@ -12,6 +12,13 @@ class GenerateInput:
     gen_kwargs: dict
     multimodal_arg: Optional[dict] = None
 
+    def __iter__(self):
+        return (
+            iter((self.prompt, self.gen_kwargs))
+            if not self.multimodal_arg
+            else iter((self.prompt, self.gen_kwargs, self.multimodal_arg))
+        )
+
 
 @dataclass
 class GenerateOutput:

@@ -1293,8 +1293,8 @@ class HFLM(TemplateLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(req[0])
-            return -len(toks), req[0]
+            toks = self.tok_encode(req.prompt)
+            return -len(toks), req.prompt
 
         pbar = tqdm(
             total=len(requests),
@@ -1330,7 +1330,7 @@ class HFLM(TemplateLM):
             [reg.args for reg in requests],
             sort_fn=_collate,
             group_by="gen_kwargs",
-            group_fn=lambda x: x[1],
+            group_fn=lambda x: x.gen_kwargs,
         )
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
