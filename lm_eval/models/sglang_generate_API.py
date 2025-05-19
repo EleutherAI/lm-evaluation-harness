@@ -57,6 +57,7 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
                 "input_ids": messages,
                 "sampling_params": {"max_new_tokens": 1, "temperature": 0},
                 "logprob_start_len": 0,
+                "top_logprobs_num": 1,
                 "return_logprob": True,
             }
             return request
