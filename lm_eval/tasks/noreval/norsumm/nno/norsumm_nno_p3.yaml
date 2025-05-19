@@ -1,0 +1,6 @@
+tag: norsumm_nno
+dataset_name: nn
+task: norsumm_nno_p3
+include: ../_norsumm_yaml
+doc_to_text: "Gje eit kortfatta samandrag av følgande tekst: {{article}}"
+target_delimiter: "\n"

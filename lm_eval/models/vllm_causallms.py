@@ -68,6 +68,7 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
+        enable_thinking: bool = False,
         **kwargs,
     ):
         super().__init__()
@@ -129,6 +130,7 @@ class VLLM(TemplateLM):
             add_bos_token=add_bos_token,
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
+        self.enable_thinking = enable_thinking
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
@@ -209,6 +211,7 @@ class VLLM(TemplateLM):
             add_generation_prompt=add_generation_prompt,
             continue_final_message=not add_generation_prompt,
             chat_template=self.hf_chat_template,
+            enable_thinking=self.enable_thinking,
         )
 
         return chat_templated
@@ -427,6 +430,12 @@ class VLLM(TemplateLM):
             # set the max length in tokens of inputs ("context_enc")
             # max len for inputs = max length, minus room to generate the max new tokens
             max_ctx_len = self.max_length - max_gen_toks
+            all_lengths = [len(x) for x in context_encoding]
+            for length in all_lengths:
+                if length > max_ctx_len:
+                    eval_logger.warning(
+                        f"Context length {length} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
+                    )
             context_encoding = [x[-max_ctx_len:] for x in context_encoding]
 
             # perform batched generation
@@ -477,6 +486,10 @@ class VLLM(TemplateLM):
             inputs = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
+                if full_length := (context_enc + continuation_enc) >= self.max_length:
+                    eval_logger.warning(
+                        f"Context length {full_length} exceeds max length ({self.max_length}). Truncating context."
+                    )
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)

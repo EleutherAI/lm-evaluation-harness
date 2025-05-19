@@ -1,0 +1,5 @@
+tag: noridiom_nno
+task: noridiom_nno_p2
+include: ../_noridiom_yaml
+process_docs: !function ../utils.filter_dataset_nn
+doc_to_text: "Korleis fortset uttrykket \"{{idiom_start}}\"?"

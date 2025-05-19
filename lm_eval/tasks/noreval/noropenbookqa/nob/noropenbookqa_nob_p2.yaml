@@ -1,0 +1,6 @@
+tag: noropenbookqa_nob
+task: noropenbookqa_nob_p2
+dataset_name: nb
+include: ../_noropenbookqa_yaml
+doc_to_text: "{{fact}}\n{{question_stem}}\nA: {{choices.text[0]}}\nB: {{choices.text[1]}}\nC: {{choices.text[2]}}\nD: {{choices.text[3]}}\n\nEr det riktige svaret A, B, C, eller D?\n\nSvar:"
+doc_to_choice: "{{choices.label}}"
