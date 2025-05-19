@@ -630,7 +630,7 @@ def evaluate(
                             req.filtered_resps[filter_key] for req in requests
                         ],
                         "filter": filter_key,
-                        "metrics": list(set(m.keys() for m in metrics)),
+                        "metrics": list({k for m in metrics for k in m.keys()}),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
