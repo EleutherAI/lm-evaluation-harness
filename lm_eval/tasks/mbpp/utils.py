@@ -1,3 +1,5 @@
+import re
+
 import evaluate as hf_evaluate
 
 
@@ -18,6 +20,23 @@ def pass_at_1(references, predictions):
         predictions=[predictions],
         k=[1],
     )[0]["pass@1"]
+
+
+def extract_code_blocks(text: str) -> str:
+    # Pattern to match ```...``` blocks
+    pattern = r"```(?:\w+)?\n?(.*?)\n?```"
+    matches = re.findall(pattern, text, re.DOTALL)
+    if not matches:
+        text = r"```" + text
+        matches = re.findall(pattern, text, re.DOTALL)
+    if not matches:
+        return ""
+    else:
+        return matches[0]
+
+
+def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+    return [[extract_code_blocks(r) for r in resp] for resp in resps]
 
 
 def list_fewshot_samples():
