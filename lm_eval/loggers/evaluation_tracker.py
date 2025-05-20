@@ -232,11 +232,17 @@ class EvaluationTracker:
                 self.date_id = datetime.now().isoformat().replace(":", "-")
                 if path.suffix == ".json":
                     path.parent.mkdir(parents=True, exist_ok=True)
-                    file_results_aggregated = path.with_name(f"{path.stem}_{self.date_id}.json")
+                    file_results_aggregated = path.with_name(
+                        f"{path.stem}_{self.date_id}.json"
+                    )
                 else:
-                    path = path.joinpath(self.general_config_tracker.model_name_sanitized)
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
                     path.mkdir(parents=True, exist_ok=True)
-                    file_results_aggregated = path.joinpath(f"results_{self.date_id}.json")
+                    file_results_aggregated = path.joinpath(
+                        f"results_{self.date_id}.json"
+                    )
 
                 file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
@@ -257,7 +263,7 @@ class EvaluationTracker:
                         path_or_fileobj=str(file_results_aggregated),
                         path_in_repo=os.path.join(
                             self.general_config_tracker.model_name,
-                            file_results_aggregated.name
+                            file_results_aggregated.name,
                         ),
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
@@ -295,7 +301,9 @@ class EvaluationTracker:
                 if path.suffix == ".json":
                     path = path.parent
                 else:
-                    path = path.joinpath(self.general_config_tracker.model_name_sanitized)
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
                 path.mkdir(parents=True, exist_ok=True)
 
                 file_results_samples = path.joinpath(
