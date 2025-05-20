@@ -57,6 +57,8 @@ class VLLM_VLM(VLLM):
             revision=revision,
             **kwargs,
         )
+        if "phi-3.5" in pretrained and self.batch_size > 1:
+            raise ValueError("For phi-3.5 models only batch_size = 1 is now supported")
         self.interleave = interleave
         self.max_images = max_images
         self.processor = transformers.AutoProcessor.from_pretrained(
@@ -221,7 +223,10 @@ class VLLM_VLM(VLLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(copy.deepcopy(x[0]))
+            if "phi-3.5" in self.model_args["model"].lower():
+                toks = []
+            else:
+                toks = self.tok_encode(copy.deepcopy(x[0]))
             return -len(toks), x[0]
 
         pbar = tqdm(
