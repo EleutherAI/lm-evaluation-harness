@@ -240,7 +240,7 @@ class VLLM_VLM(VLLM):
                 toks = []
             else:
                 toks = self.tok_encode(copy.deepcopy(x[0]))
-            return -len(toks), x[0]
+            return -len(toks), str(x[0])
 
         pbar = tqdm(
             total=len(requests),
