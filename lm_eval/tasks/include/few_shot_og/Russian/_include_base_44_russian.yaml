@@ -1,0 +1,15 @@
+group: include_base_44_russian
+task:
+- include_base_44_russian_few_shot_og_stem
+- include_base_44_russian_few_shot_og_health_oriented_education
+- include_base_44_russian_few_shot_og_arts_humanities
+- include_base_44_russian_few_shot_og_driving_license
+- include_base_44_russian_few_shot_og_social_science
+- include_base_44_russian_few_shot_og_business_commerce
+- include_base_44_russian_few_shot_og_marine_license
+- include_base_44_russian_few_shot_og_applied_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

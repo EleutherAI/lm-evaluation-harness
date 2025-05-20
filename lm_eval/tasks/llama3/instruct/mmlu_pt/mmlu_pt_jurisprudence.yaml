@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: O POP escolheria a igualdade acima da liberdade.
+      B: "O POP optaria pela estrat\xE9gia &#39;maximin&#39;."
+      C: "O POP optaria pelo \u201Cprinc\xEDpio da diferen\xE7a\u201D."
+      D: "O POP rejeitaria o \u201Csistema de liberdade natural\u201D."
+    input_correct_responses:
+    - A
+    input_question: "Qual posi\xE7\xE3o Rawls afirma ser a menos prov\xE1vel de ser\
+      \ adotada pelo POP (pessoas na posi\xE7\xE3o original)?"
+  - input_choice_list:
+      A: maximizando a liberdade individual
+      B: fornecendo uma base para um compromisso
+      C: mantendo a paz
+      D: "promovendo os princ\xEDpios do sistema de livre iniciativa"
+    input_correct_responses:
+    - D
+    input_question: "As fun\xE7\xF5es da lei incluem todas as op\xE7\xF5es a seguir,\
+      \ exceto quais?"
+  - input_choice_list:
+      A: Autoridade.
+      B: Carisma.
+      C: "Coopera\xE7\xE3o."
+      D: Capitalismo.
+    input_correct_responses:
+    - D
+    input_question: "Qual palavra resume melhor a explica\xE7\xE3o de Weber sobre\
+      \ o desenvolvimento do direito formalmente racional?"
+  - input_choice_list:
+      A: Lei natural
+      B: "Anal\xEDtico"
+      C: "Hist\xF3rico"
+      D: "Sociol\xF3gico"
+    input_correct_responses:
+    - A
+    input_question: "A Escola ________ de jurisprud\xEAncia postula que a lei se baseia\
+      \ no que \xE9 &quot;correto&quot;."
+  - input_choice_list:
+      A: "A carta \xE9 uma oferta de venda"
+      B: "Uma oferta v\xE1lida n\xE3o pode ser feita por carta."
+      C: "A carta cont\xE9m uma oferta v\xE1lida que ser\xE1 encerrada dentro de um\
+        \ prazo razo\xE1vel."
+      D: A carta carece de um dos elementos essenciais de uma oferta.
+    input_correct_responses:
+    - D
+    input_question: "A Iverson Jewelers escreveu uma carta a Miller: &#39;Recebemos\
+      \ um rel\xF3gio Rolox de corda autom\xE1tica excepcionalmente fino que venderemos\
+      \ a voc\xEA por um pre\xE7o muito favor\xE1vel.&#39;"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_jurisprudence
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_jurisprudence
+task_alias: jurisprudence

@@ -29,7 +29,7 @@ in order to ensure linters and other checks will be run upon committing.
 
 We use [pytest](https://docs.pytest.org/en/latest/) for running unit tests. All library unit tests can be run via:
 
-```
+```bash
 python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py
 ```
 
@@ -38,27 +38,30 @@ python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralma
 We ask that new contributors agree to a Contributor License Agreement affirming that EleutherAI has the rights to use your contribution to our library.
 First-time pull requests will have a reply added by @CLAassistant containing instructions for how to confirm this, and we require it before merging your PR.
 
-
 ## Contribution Best Practices
 
 We recommend a few best practices to make your contributions or reported errors easier to assist with.
 
 **For Pull Requests:**
+
 - PRs should be titled descriptively, and be opened with a brief description of the scope and intent of the new contribution.
 - New features should have appropriate documentation added alongside them.
 - Aim for code maintainability, and minimize code copying.
 - If opening a task, try to share test results on the task using a publicly-available model, and if any public results are available on the task, compare to them.
 
 **For Feature Requests:**
+
 - Provide a short paragraph's worth of description. What is the feature you are requesting? What is its motivation, and an example use case of it? How does this differ from what is currently supported?
 
 **For Bug Reports**:
+
 - Provide a short description of the bug.
 - Provide a *reproducible example*--what is the command you run with our library that results in this error? Have you tried any other steps to resolve it?
 - Provide a *full error traceback* of the error that occurs, if applicable. A one-line error message or small screenshot snippet is unhelpful without the surrounding context.
 - Note what version of the codebase you are using, and any specifics of your environment and setup that may be relevant.
 
 **For Requesting New Tasks**:
+
 - Provide a 1-2 sentence description of what the task is and what it evaluates.
 - Provide a link to the paper introducing the task.
 - Provide a link to where the dataset can be found.
@@ -70,6 +73,7 @@ We recommend a few best practices to make your contributions or reported errors 
 To quickly get started, we maintain a list of good first issues, which can be found [on our project board](https://github.com/orgs/EleutherAI/projects/25/views/8) or by [filtering GH Issues](https://github.com/EleutherAI/lm-evaluation-harness/issues?q=is%3Aopen+label%3A%22good+first+issue%22+label%3A%22help+wanted%22). These are typically smaller code changes or self-contained features which can be added without extensive familiarity with library internals, and we recommend new contributors consider taking a stab at one of these first if they are feeling uncertain where to begin.
 
 There are a number of distinct ways to contribute to LM Evaluation Harness, and all are extremely helpful! A sampling of ways to contribute include:
+
 - **Implementing and verifying new evaluation tasks**: Is there a task you'd like to see LM Evaluation Harness support? Consider opening an issue requesting it, or helping add it! Verifying and cross-checking task implementations with their original versions is also a very valuable form of assistance in ensuring standardized evaluation.
 - **Improving documentation** - Improvements to the documentation, or noting pain points / gaps in documentation, are helpful in order for us to improve the user experience of the library and clarity + coverage of documentation.
 - **Testing and devops** - We are very grateful for any assistance in adding tests for the library that can be run for new PRs, and other devops workflows.

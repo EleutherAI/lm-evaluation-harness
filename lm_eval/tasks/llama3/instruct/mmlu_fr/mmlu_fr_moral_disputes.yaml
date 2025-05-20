@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "On ne sait pas encore si la peine capitale dissuade ou non de nuire \xE0\
+        \ la communaut\xE9."
+      B: "On ne sait pas encore si la peine capitale dissuade ou non de nuire \xE0\
+        \ des individus."
+      C: "Le cons\xE9quentialisme n&#39;est pas soutenu par les valeurs africaines."
+      D: "M\xEAme si le cons\xE9quentialisme est soutenu par les valeurs africaines,\
+        \ aucun argument cons\xE9quentialiste formul\xE9 en termes de valeurs africaines\
+        \ n&#39;a \xE9t\xE9 propos\xE9."
+    input_correct_responses:
+    - A
+    input_question: "Selon Metz, qu&#39;est-ce qui ne va pas avec les arguments cons\xE9\
+      quentialistes contre la peine capitale bas\xE9s sur les valeurs africaines ?"
+  - input_choice_list:
+      A: un zygote.
+      B: un embryon.
+      C: "une viabilit\xE9."
+      D: un blastocyste.
+    input_correct_responses:
+    - A
+    input_question: "Un ovule f\xE9cond\xE9 est \xE9galement appel\xE9"
+  - input_choice_list:
+      A: "\xEAtre dans la classe sup\xE9rieure"
+      B: "la capacit\xE9 d&#39;apprendre et de r\xE9soudre des probl\xE8mes"
+      C: "\xEAtre plus belle que la plupart de la population"
+      D: "\xEAtre plus petit que la moyenne"
+    input_correct_responses:
+    - B
+    input_question: "Lequel des \xE9l\xE9ments suivants est un bien intrins\xE8que,\
+      \ selon Singer\_?"
+  - input_choice_list:
+      A: "Le SCNT n&#39;est pas un type de reproduction diff\xE9rent car il n&#39;y\
+        \ a pas de diff\xE9rences moralement pertinentes entre celui-ci et d&#39;autres\
+        \ moyens de reproduction autoris\xE9s."
+      B: "Parce qu&#39;il y a un faible risque de pr\xE9judice pour le jumelage naturel,\
+        \ il y aura un faible risque de pr\xE9judice pour le SCNT."
+      C: les deux, A et B
+      D: ni A ni B
+    input_correct_responses:
+    - A
+    input_question: "Pence compare six cas diff\xE9rents de reproduction, du jumelage\
+      \ naturel au SCNT. Quelle conclusion tire-t-il de cette comparaison ?"
+  - input_choice_list:
+      A: "la stupidit\xE9 de la plupart des exemples philosophiques traditionnels."
+      B: "un manque g\xE9n\xE9ral d&#39;intelligence chez les personnes ayant des\
+        \ dipl\xF4mes sup\xE9rieurs."
+      C: le mal de la torture.
+      D: "la volont\xE9 de nombreuses personnes intelligentes de consid\xE9rer la\
+        \ torture comme la meilleure solution pour faire face au terrorisme."
+    input_correct_responses:
+    - D
+    input_question: "Baron admet que les versions de la bombe \xE0 retardement hypoth\xE9\
+      tique dont elle parle sont &quot;incroyablement stupides&quot;, mais elle affirme\
+      \ que c&#39;est en fait la preuve de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_moral_disputes
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_moral_disputes
+task_alias: moral_disputes

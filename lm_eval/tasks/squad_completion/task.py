@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 from typing import List
 
 import numpy as np
@@ -33,7 +34,9 @@ class SQUADCompletion(ConfigurableTask):
     def doc_to_target(self, doc):
         return doc["value"]
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(
+        self, doc, ctx, chat_template=None, apply_chat_template=False, **kwargs
+    ):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
@@ -44,12 +47,14 @@ class SQUADCompletion(ConfigurableTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-
+        arguments = deepcopy(self.config.generation_kwargs)
+        arguments["until"] = arguments.get("until", ["\n"])
+        arguments["max_gen_toks"] = arguments.get("max_gen_toks", 48)
         return [
             Instance(
                 request_type="generate_until",
                 doc=doc,
-                arguments=(ctx, {"until": ["\n"], "max_gen_toks": 48}),
+                arguments=(ctx, arguments),
                 idx=0,
                 **kwargs,
             )

@@ -1,0 +1,3 @@
+task: niah_multikey_1
+include: niah_single_1.yaml
+custom_dataset: !function niah_utils.niah_multikey_1

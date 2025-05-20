@@ -1,0 +1,4 @@
+include: _korean_few_shot_og_template_yaml
+description: 다음은 Professional certification에 대한 객관식 질문(답변 포함)입니다.
+process_docs: !function 'utils.process_professional_certification'
+task: include_base_44_korean_few_shot_og_professional_certification

@@ -1,0 +1,4 @@
+include: _bengali_few_shot_og_template_yaml
+description: নিম্নলিখিতগুলি Arts & Humanities সম্পর্কে বহু-পছন্দের প্রশ্ন (উত্তর সহ)।
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_bengali_few_shot_og_arts_humanities

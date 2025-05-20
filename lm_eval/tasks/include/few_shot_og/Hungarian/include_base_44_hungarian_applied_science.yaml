@@ -1,0 +1,5 @@
+include: _hungarian_few_shot_og_template_yaml
+description: 'Az alábbiak feleletválasztós kérdések (válaszokkal) a következővel kapcsolatban:
+  Applied Science.'
+process_docs: !function 'utils.process_applied_science'
+task: include_base_44_hungarian_few_shot_og_applied_science

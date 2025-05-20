@@ -1,0 +1,5 @@
+tag: norsumm_nno
+dataset_name: nn
+task: norsumm_nno_p5
+include: ../_norsumm_yaml
+doc_to_text: "Heile artikkelen:\n{{article}}\n\nHovudpunkt:"

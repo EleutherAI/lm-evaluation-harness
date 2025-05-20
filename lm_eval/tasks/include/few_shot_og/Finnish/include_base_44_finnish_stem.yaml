@@ -1,0 +1,4 @@
+include: _finnish_few_shot_og_template_yaml
+description: Seuraavat ovat monivalintakysymyksiä (vastauksineen) aiheesta STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_finnish_few_shot_og_stem

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import time
@@ -18,7 +19,6 @@ from huggingface_hub import (
 from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
 
 from lm_eval.utils import (
-    eval_logger,
     get_file_datetime,
     get_file_task_name,
     get_results_filenames,
@@ -29,6 +29,9 @@ from lm_eval.utils import (
     sanitize_model_name,
     sanitize_task_name,
 )
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass(init=False)

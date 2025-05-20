@@ -1,0 +1,12 @@
+group: include_base_44_estonian
+task:
+- include_base_44_estonian_health_oriented_education
+- include_base_44_estonian_social_science
+- include_base_44_estonian_applied_science
+- include_base_44_estonian_stem
+- include_base_44_estonian_arts_humanities
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

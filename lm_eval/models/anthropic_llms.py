@@ -1,17 +1,17 @@
+import logging
 import os
 from functools import cached_property
 from typing import Any, Dict, List, Tuple, Union
 
 from tqdm import tqdm
 
-from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 from lm_eval.models.utils import handle_stop_sequences, retry_on_specific_exceptions
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 def anthropic_completion(

@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: S=0, R=0
+      B: S=0, R=1
+      C: S=1, R=0
+      D: S=1, R=1
+    input_correct_responses:
+    - D
+    input_question: In un dispositivo di chiusura SR costruito con porte NOR, condizione
+      non consentita
+  - input_choice_list:
+      A: "200\u03A9"
+      B: "100\u03A9"
+      C: "50\u03A9"
+      D: "10\u03A9"
+    input_correct_responses:
+    - C
+    input_question: "In una macchina CC con avvolgimento a 2 poli, la resistenza di\
+      \ un conduttore \xE8 2\u03A9 e il numero totale di conduttori \xE8 100. Trova\
+      \ la resistenza totale"
+  - input_choice_list:
+      A: 1mA.
+      B: 2mA.
+      C: 3mA.
+      D: 4mA.
+    input_correct_responses:
+    - B
+    input_question: "La bobina di un misuratore a bobina mobile ha 100 spire, \xE8\
+      \ lunga 40 mm e larga 30 mm. La coppia di controllo \xE8 di 240*10-6 Nm a fondo\
+      \ scala. Se la densit\xE0 del flusso magnetico \xE8 1Wb/m2, l&#39;intervallo\
+      \ del misuratore \xE8"
+  - input_choice_list:
+      A: 100N.
+      B: 0,1 N.
+      C: 1 n.
+      D: 0,01 N.
+    input_correct_responses:
+    - B
+    input_question: "Due conduttori paralleli lunghi trasportano 100 A. Se i conduttori\
+      \ sono separati di 20 mm, la forza per metro di lunghezza di ciascun conduttore\
+      \ sar\xE0"
+  - input_choice_list:
+      A: 15 n.
+      B: 20 N.
+      C: 7,5 N.
+      D: 3,75N.
+    input_correct_responses:
+    - A
+    input_question: "Un polo puntiforme ha una forza di 4\u03C0 * 10^-4 weber. La\
+      \ forza in newton su un polo puntiforme di 4\u03C0 * 1.5 * 10^-4 weber posto\
+      \ a una distanza di 10 cm da esso sar\xE0"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_electrical_engineering
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_electrical_engineering
+task_alias: electrical_engineering

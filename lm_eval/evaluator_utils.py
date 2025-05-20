@@ -1,4 +1,5 @@
 import collections
+import logging
 import math
 import pathlib
 import sys
@@ -12,7 +13,10 @@ from lm_eval.api.metrics import (
     stderr_for_metric,
 )
 from lm_eval.api.task import Task
-from lm_eval.utils import eval_logger, positional_deprecated
+from lm_eval.utils import positional_deprecated
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 class TaskOutput:

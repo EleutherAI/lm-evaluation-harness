@@ -48,7 +48,7 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -60,6 +60,7 @@ class TaskConfig(dict):
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
+    custom_dataset: Optional[Callable] = None
     dataset_path: Optional[str] = None
     dataset_name: Optional[str] = None
     dataset_kwargs: Optional[dict] = None
@@ -76,6 +77,7 @@ class TaskConfig(dict):
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
     doc_to_video: Union[Callable, str] = None
+    doc_to_audio: Union[Callable, str] = None
     unsafe_code: bool = False
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
@@ -112,6 +114,9 @@ class TaskConfig(dict):
                 )
 
             if "until" not in self.generation_kwargs:
+                eval_logger.warning(
+                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                )
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
             if self.output_type == "generate_until":
@@ -123,7 +128,11 @@ class TaskConfig(dict):
                         else [self.fewshot_delimiter]
                     ),
                     "do_sample": False,
+                    "temperature": 0,
                 }
+                eval_logger.warning(
+                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                )
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -325,10 +334,11 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            eval_logger.warning(
-                f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
-                ", using test_docs as fewshot_docs but this is not recommended."
-            )
+            if self.config.get("num_fewshot", 0) > 0:
+                eval_logger.warning(
+                    f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
+                    ", using test_docs as fewshot_docs but this is not recommended."
+                )
             return self.test_docs()
 
     def _process_doc(self, doc: dict) -> dict:
@@ -371,8 +381,11 @@ class Task(abc.ABC):
     # not an abstractmethod because not every language-only task has to implement this
     def doc_to_image(self, doc):
         raise NotImplementedError
-    
+
     def doc_to_video(self, doc):
+        raise NotImplementedError
+
+    def doc_to_audio(self, doc):
         raise NotImplementedError
 
     def doc_to_prefix(self, doc):
@@ -382,6 +395,7 @@ class Task(abc.ABC):
         self,
         *,
         limit: Union[int, None] = None,
+        samples: Optional[List[int]] = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
@@ -391,6 +405,7 @@ class Task(abc.ABC):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
+        question_suffix: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -434,7 +449,9 @@ class Task(abc.ABC):
             limit = None
 
         doc_id_docs = list(
-            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+            self.doc_iterator(
+                rank=rank, limit=limit, samples=samples, world_size=world_size
+            )
         )
 
         num_docs = len(doc_id_docs)
@@ -452,6 +469,7 @@ class Task(abc.ABC):
                 fewshot_as_multiturn,
                 chat_template,
                 gen_prefix=self.doc_to_prefix(doc),
+                question_suffix=question_suffix,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -682,15 +700,35 @@ class Task(abc.ABC):
             )
 
     def doc_iterator(
-        self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
+        self,
+        *,
+        rank: int = 0,
+        limit: Union[int, None] = None,
+        world_size: int = 1,
+        samples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
-        limit = int(limit) if limit else None
-        doc_iterator = utils.create_iterator(
-            enumerate(self.eval_docs),
-            rank=int(rank),
-            limit=limit,
-            world_size=int(world_size),
-        )
+        if samples:
+            n = len(self.eval_docs)
+            assert all([e < n for e in samples]), (
+                f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            )
+            eval_logger.info(
+                f"{self.config.task}: Evaluating on {len(samples)} examples"
+            )
+            doc_iterator = utils.create_iterator(
+                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
+                rank=int(rank),
+                limit=None,  # limit does not matter here since we are selecting samples directly
+                world_size=int(world_size),
+            )
+        else:
+            limit = int(limit) if limit else None
+            doc_iterator = utils.create_iterator(
+                enumerate(self.eval_docs),
+                rank=int(rank),
+                limit=limit,
+                world_size=int(world_size),
+            )
         return doc_iterator
 
 
@@ -736,8 +774,12 @@ class ConfigurableTask(Task):
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
-        
+
         if self.config.doc_to_video:
+            # mark the task as requiring multimodality.
+            self.MULTIMODAL = True
+
+        if self.config.doc_to_audio:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
 
@@ -846,6 +888,10 @@ class ConfigurableTask(Task):
                 filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
+            # TODO: handle repeats in a more general way rather than just discarding
+            eval_logger.debug(
+                "No custom filters defined. Using default 'take_first' filter for handling repeats."
+            )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
@@ -899,11 +945,17 @@ class ConfigurableTask(Task):
                 num_choice = len(test_choice)
 
             if isinstance(test_text, int):
+                eval_logger.debug(
+                    "doc_to_text returned an int. Assuming multiple inputs."
+                )
                 self.multiple_input = num_choice
         else:
             test_choice = None
 
         if isinstance(test_target, list):
+            eval_logger.debug(
+                "doc_to_target returned a list. Assuming multiple targets."
+            )
             self.multiple_target = len(test_target)
         else:
             if (isinstance(test_target, int)) and (test_choice is not None):
@@ -934,12 +986,23 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
-    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
-        self.dataset = datasets.load_dataset(
-            path=self.DATASET_PATH,
-            name=self.DATASET_NAME,
-            **dataset_kwargs if dataset_kwargs is not None else {},
-        )
+    def download(
+        self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> None:
+        if isinstance(self.config.custom_dataset, Callable):
+            eval_logger.warning(
+                f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
+                + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
+            )
+            self.dataset = self.config.custom_dataset(
+                **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
+            )
+        else:
+            self.dataset = datasets.load_dataset(
+                path=self.DATASET_PATH,
+                name=self.DATASET_NAME,
+                **dataset_kwargs if dataset_kwargs is not None else {},
+            )
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:
@@ -1013,6 +1076,7 @@ class ConfigurableTask(Task):
         question: str,
         fewshot_as_multiturn: bool = False,
         gen_prefix: Optional[str] = None,
+        question_suffix: Optional[str] = None,
     ) -> None:
         """Adds a target question to the labeled examples list.
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
@@ -1021,13 +1085,23 @@ class ConfigurableTask(Task):
         if not fewshot_as_multiturn:
             # if no messages or last message is system, append as new user entry
             if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
+                labeled_examples.append(
+                    {"role": "user", "content": question + question_suffix}
+                    if question_suffix
+                    else {"role": "user", "content": question}
+                )
             # if last message is user, append to it to avoid two user messages in a row
             else:
-                labeled_examples[-1]["content"] += question
+                labeled_examples[-1]["content"] += (
+                    question + question_suffix if question_suffix else question
+                )
         else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append({"role": "user", "content": question})
+            labeled_examples.append(
+                {"role": "user", "content": question + question_suffix}
+                if question_suffix
+                else {"role": "user", "content": question}
+            )
         if gen_prefix:
             labeled_examples.append({"role": "assistant", "content": gen_prefix})
 
@@ -1041,6 +1115,7 @@ class ConfigurableTask(Task):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
+        question_suffix: Optional[str] = None,
     ) -> Union[str, List[str]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1057,6 +1132,8 @@ class ConfigurableTask(Task):
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param chat_template:
             callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
+        :param gen_prefix:
+            String to append after the <|assistant|> token.
         :returns: str
             The fewshot context.
         """
@@ -1116,6 +1193,7 @@ class ConfigurableTask(Task):
                     example,
                     fewshot_as_multiturn,
                     gen_prefix=gen_prefix,
+                    question_suffix=question_suffix,
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
@@ -1128,6 +1206,7 @@ class ConfigurableTask(Task):
                         ex,
                         fewshot_as_multiturn,
                         gen_prefix=gen_prefix,
+                        question_suffix=question_suffix,
                     )
                     # TODO: append prefill?
                     labeled_examples_list.append(
@@ -1146,6 +1225,7 @@ class ConfigurableTask(Task):
                         choices[example],
                         fewshot_as_multiturn,
                         gen_prefix=gen_prefix,
+                        question_suffix=question_suffix,
                     )
                 else:
                     self.append_target_question(
@@ -1153,6 +1233,7 @@ class ConfigurableTask(Task):
                         str(example),
                         fewshot_as_multiturn,
                         gen_prefix=gen_prefix,
+                        question_suffix=question_suffix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(
@@ -1348,7 +1429,7 @@ class ConfigurableTask(Task):
             return doc_to_image(doc)
         else:
             return None
-    
+
     def doc_to_video(self, doc: Any, doc_to_video=None) -> Union[int, str, list]:
         if doc_to_video is not None:
             doc_to_video = doc_to_video
@@ -1369,6 +1450,29 @@ class ConfigurableTask(Task):
                 return ast.literal_eval(utils.apply_template(doc_to_video, doc))
         elif callable(doc_to_video):
             return doc_to_video(doc)
+        else:
+            return None
+
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
+        if doc_to_audio is not None:
+            doc_to_audio = doc_to_audio
+        elif self.config.doc_to_audio is not None:
+            doc_to_audio = self.config.doc_to_audio
+        else:
+            return None
+
+        if isinstance(doc_to_audio, list):
+            audio_feature = [
+                self.doc_to_audio(doc, feature) for feature in doc_to_audio
+            ]
+            return [feature for feature in audio_feature if feature is not None]
+        elif isinstance(doc_to_audio, str):
+            if doc_to_audio in self.features:
+                return doc[doc_to_audio]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_audio, doc))
+        elif callable(doc_to_audio):
+            return doc_to_audio(doc)
         else:
             return None
 
@@ -1441,13 +1545,21 @@ class ConfigurableTask(Task):
                 **multimodal_arg,
                 **{"visual": self.doc_to_image(doc)},
             }
-        
+
         if (
             self.config.doc_to_video
         ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
             multimodal_arg = {
                 **multimodal_arg,
                 **{"video": self.doc_to_video(doc)},
+            }
+
+        if (
+            self.config.doc_to_audio
+        ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
+            multimodal_arg = {
+                **multimodal_arg,
+                **{"audio": self.doc_to_audio(doc)},
             }
 
         if bool(multimodal_arg):

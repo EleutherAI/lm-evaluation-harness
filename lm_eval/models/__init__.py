@@ -3,6 +3,8 @@ from . import (
     api_models,
     dummy,
     gguf,
+    hf_audiolm,
+    hf_steered,
     hf_vlms,
     huggingface,
     ibm_watsonx_ai,
@@ -13,10 +15,12 @@ from . import (
     openai_completions,
     optimum_ipex,
     optimum_lm,
+    sglang_causallms,
+    sglang_generate_API,
     textsynth,
+    video_llava,
     vllm_causallms,
     vllm_vlms,
-    video_llava
 )
 
 

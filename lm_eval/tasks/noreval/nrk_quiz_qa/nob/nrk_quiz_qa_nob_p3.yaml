@@ -1,0 +1,6 @@
+tag: nrk_quiz_qa_nob
+task: nrk_quiz_qa_nob_p3
+dataset_name: nb
+include: ../_nrk_quiz_qa_yaml
+doc_to_text: !function utils.p3_nb
+doc_to_choice: "{{choices.label}}"

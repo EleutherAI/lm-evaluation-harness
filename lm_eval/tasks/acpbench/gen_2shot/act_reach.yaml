@@ -1,0 +1,19 @@
+task: acp_areach_gen
+dataset_name: acp_areach_gen
+include: _gen_yaml_2shot
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: "A robot is in a grid and can only move to places that are connected to its current position. The grid size is 5x5, and the locations are of the form fi-jf (e.g., f3-2f or f0-1f). The grid cells are connected to their neighbors (e.g., f1-2f is connected to the four neighbors f0-2f, f2-2f, f1-1f, and f1-3f). Some positions on the grid are locked and can be opened with a key of a matching shape. The robot has an arm that can pick up a key when the key is in same location as the robot and the arm is empty.  There are 2 keys in 0 different shapes: Key key0-0 is of shape shape0, Key key0-1 is of shape shape0.  Currently, the robot is at position f2-2f and its arm is empty. All the positions are open except the following: f2-0f has shape0 shaped lock, f4-2f has shape0 shaped lock. Key key0-0 is at position f1-2f. Key key0-1 is at position f1-3f. The available actions are: (unlock ?curpos ?lockpos ?key ?shape) - unlock the place ?lockpos with key ?key of shape ?shape from the current position place ?curpos, (move ?curpos ?nextpos) - move from place ?curpos to place ?nextpos, (pickup ?curpos ?key) - retrieve the key ?key from its current position ?curpos, (pickup-and-loose ?curpos ?newkey ?oldkey) - pick up the key ?newkey from the current position ?curpos and loose the key ?oldkey which is being held, and (putdown ?curpos ?key) - put the key ?key at the current position place ?curpos."
+    question: "What action can never become applicable, in any state reachable from the current state?"
+    answer: "(unlock f0-3f f0-4f key0-0 shape0)"
+  - context: "There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations. There are 2 trucks and 1 airplane, as well as 4 packages. There are 4 locations across 2 cities. The locations are in cities as follows: l1-1 and l1-0 are in c1; l0-0 and l0-1 are in c0. Currently, t1 is at l1-1, a0 is at l1-0, p0 is at l0-0, t0 is at l0-1, p2 is in a0, p1 is in t1, p3 is in t0. The available actions are: (load-truck ?obj ?truck ?loc) - load the object ?obj from location ?loc into the truck ?truck, (load-airplane ?obj ?airplane ?loc) - load object ?obj into airplane ?airplane at location ?loc, (unload-truck ?obj ?truck ?loc) - offload the object ?obj from the truck ?truck at location ?loc, (unload-airplane ?obj ?airplane ?loc) - offload the object ?obj from the airplane ?airplane at location ?loc, (drive-truck ?truck ?loc-from ?loc-to ?city) - navigate the truck ?truck from location ?loc-from in city ?city to location ?loc-to in the same city, and (fly-airplane ?airplane ?loc-from ?loc-to) - operate the airplane ?airplane from airport ?loc-from to airport ?loc-to."
+    question: "What action can never become applicable, in any state reachable from the current state?"
+    answer: "(drive-truck t0 l1-1 l0-0 c0)"
+doc_to_text: "**Question**: {{context}} {{question}} Each action starts with an opening parenthesis and ends with closing parenthesis. Provide one action or None. **Final Answer**:"
+filter_list:
+  - name: "acp_grammar_parse"
+    filter:
+      - function: "ACP_grammar_filter"
+        grammar_task: "act"
+      - function: "take_first"
