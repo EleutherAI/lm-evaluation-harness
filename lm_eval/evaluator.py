@@ -413,7 +413,6 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
-    question_suffix: Optional[str] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -527,7 +526,6 @@ def evaluate(
             tokenizer_name=getattr(lm, "tokenizer_name", "")
             if apply_chat_template
             else "",
-            question_suffix=question_suffix,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
