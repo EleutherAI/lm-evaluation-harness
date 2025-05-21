@@ -1248,8 +1248,8 @@ class HFLM(TemplateLM):
                         cont_toks, dtype=torch.long, device=self.device
                     ).unsqueeze(0)  # [1, seq]
                     # Use trailing slice [-cont_toks.shape[1]:] to handle variable length cont_len (but same ctx+cont[:-1]).
-                    # i.e. continuations can be sliced at diff points. Collator ensures we have sufficient greedy_tokens by
-                    # choosing key with longest cont if group_by="contexts".
+                    # i.e. continuations can be sliced at diff points. Collator ensures we have sufficient greedy_tokens
+                    # by choosing key with longest cont if group_by="contexts".
                     max_equal = (
                         greedy_tokens[:, -cont_toks.shape[1] :] == cont_toks
                     ).all()
