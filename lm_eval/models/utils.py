@@ -729,3 +729,21 @@ def handle_stop_sequences(
     if eos is not None and eos not in until:
         until.append(eos)
     return until
+
+
+def truncate_tokens(
+    tokens: List[int],
+    max_length: int,
+    tokenizer: "PreTrainedTokenizerBase",
+    strategy: str = "left",
+):
+    if strategy == "left":
+        return tokens[-max_length:]
+    elif strategy == "right":
+        return tokens[:max_length]
+    elif strategy == "middle":
+        # Truncate the middle of the sequence
+        left_length = max_length // 2
+        right_length = max_length - left_length
+        return tokens[:left_length] + tokens[-right_length:]
+    return None

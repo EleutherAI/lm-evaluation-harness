@@ -431,13 +431,23 @@ class VLLM(TemplateLM):
             # set the max length in tokens of inputs ("context_enc")
             # max len for inputs = max length, minus room to generate the max new tokens
             max_ctx_len = self.max_length - max_gen_toks
-            all_lengths = [len(x) for x in context_encoding]
-            for length in all_lengths:
-                if length > max_ctx_len:
-                    eval_logger.warning(
-                        f"Context length {length} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
-                    )
-            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+            result = []
+            for x in context_encoding:
+                # truncate from the middle
+                if len(x) > max_ctx_len:
+                    half_len = max_ctx_len // 2
+                    # If max_ctx_len is odd, we'll keep one extra token at the beginning
+                    beginning = x[: half_len + (max_ctx_len % 2)]
+                    end = x[-half_len:]
+
+                    # Combine beginning and end parts
+                    truncated = beginning + end
+                    result.append(truncated)
+                else:
+                    result.append(x)
+
+            # context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+            context_encoding = result
 
             # perform batched generation
             cont = self._model_generate(
@@ -451,6 +461,10 @@ class VLLM(TemplateLM):
             # cache generations
             for output, context in zip(cont, context):
                 generated_text = output.outputs[0].text
+                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
+                for term in until:
+                    if len(term) > 0:
+                        generated_text = generated_text.split(term)[0]
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text
