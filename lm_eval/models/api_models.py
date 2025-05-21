@@ -597,6 +597,10 @@ class TemplateAPI(TemplateLM):
         chunked = re_ord.get_batched(
             n=self._batch_size if self._concurrent <= 1 else 0, batch_fn=None
         )
+        if not self.tokenized_requests:
+            eval_logger.info(
+                "Tokenized requests are disabled. Context + generation length is not checked."
+            )
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
@@ -615,10 +619,7 @@ class TemplateAPI(TemplateLM):
                         eval_logger.warning(
                             f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks: ({max_gen_toks}). They were left truncated."
                         )
-                else:
-                    eval_logger.info(
-                        "Tokenized requests are disabled. Context + generation length is not checked."
-                    )
+
                 req = encodings_list if self.tokenized_requests else contexts
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
@@ -664,10 +665,7 @@ class TemplateAPI(TemplateLM):
                         eval_logger.warning(
                             f"Some contexts exceeded (max length: ({self.max_length}) - max_gen_toks ({max_gen_toks}). They were left truncated."
                         )
-                else:
-                    eval_logger.info(
-                        "Tokenized requests are disabled. Context + generation length is not checked."
-                    )
+
                 req = encodings_list if self.tokenized_requests else contexts
                 results = itertools.chain.from_iterable(
                     asyncio.run(
