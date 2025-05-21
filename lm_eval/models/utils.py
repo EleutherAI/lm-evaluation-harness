@@ -427,14 +427,13 @@ class Collator:
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
         elif self._group_by == "contexts":
-            # Get one sample from each key
-
-            def _get_longest_cont(val_list_):
-                # Get the request with the longest continuation in the group
-                return sorted(val_list_, key=lambda x_: len(x_[1][-1]), reverse=True)[0]
-
+            # Get one sample from each key.
+            # Select longest continuation per group to ensure sufficient context logits
             values = self._reorder(
-                [_get_longest_cont(value) for value in self._arr_with_indices.values()]
+                [
+                    max(value, key=lambda x: len(x[1][-1]))
+                    for value in self._arr_with_indices.values()
+                ]
             )
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
