@@ -135,7 +135,7 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         type=str,
         metavar="DIR|DIR/file.json",
-        help="The path to the output file where the result metrics will be saved. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
+        help="Path where result metrics will be saved. Can be either a directory or a .json file. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
     )
     parser.add_argument(
         "--limit",
@@ -260,12 +260,6 @@ def setup_parser() -> argparse.ArgumentParser:
         type=str,
         default="",
         help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
-    )
-    parser.add_argument(
-        "--question_suffix",
-        type=str,
-        default=None,
-        help="Suffix to append to the target question before the <|assistant|>, e.g., Think for maximum 128 tokens",
     )
     parser.add_argument(
         "--predict_only",
