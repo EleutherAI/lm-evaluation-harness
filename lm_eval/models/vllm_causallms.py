@@ -1,7 +1,10 @@
 import copy
 import logging
+import os
 from importlib.metadata import version
 from importlib.util import find_spec
+from multiprocessing import Pool
+from time import sleep
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 from more_itertools import distribute
@@ -28,6 +31,7 @@ try:
     from vllm import LLM, SamplingParams
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
+    from vllm.utils import get_open_port
 
     if parse_version(version("vllm")) >= parse_version("0.8.3"):
         from vllm.entrypoints.chat_utils import resolve_hf_chat_template
@@ -38,6 +42,35 @@ if TYPE_CHECKING:
     pass
 
 eval_logger = logging.getLogger(__name__)
+
+
+def _vllm_mp_worker(
+    model_args: dict,
+    sampling_params: "SamplingParams",
+    requests: List[List[int]],
+    lora_request: "LoRARequest",
+    dp_size: int,
+    local_dp_rank: int,
+    dp_master_port: int,
+    dp_master_ip: str = "127.0.0.1",
+    # worker_global_dp_rank: int,
+):
+    if not requests:
+        return []
+    os.environ["VLLM_DP_RANK"] = os.environ["VLLM_DP_RANK_LOCAL"] = str(local_dp_rank)
+    os.environ["VLLM_DP_SIZE"] = str(dp_size)
+    os.environ["VLLM_DP_MASTER_IP"] = str(dp_master_ip)
+    os.environ["VLLM_DP_MASTER_PORT"] = str(dp_master_port)
+
+    llm = LLM(**model_args)
+    res = llm.generate(
+        prompt_token_ids=requests,
+        sampling_params=sampling_params,
+        lora_request=lora_request,
+    )
+    # Give engines time to pause their processing loops before exiting.
+    sleep(1)
+    return res
 
 
 @register_model("vllm")
@@ -82,7 +115,7 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
-
+        self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
         self.data_parallel_size = int(data_parallel_size)
@@ -114,7 +147,7 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            self.model_args["distributed_executor_backend"] = "ray"
+            # self.model_args["distributed_executor_backend"] = "ray"
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
@@ -261,7 +294,7 @@ class VLLM(TemplateLM):
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
-        if self.data_parallel_size > 1:
+        if self.data_parallel_size > 1 and not self.V1:
             # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
@@ -291,6 +324,29 @@ class VLLM(TemplateLM):
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
             ray.shutdown()
             # flatten results
+            return undistribute(results)
+        elif self.data_parallel_size > 1:
+            dp_size = self.data_parallel_size
+            dp_master_ip = os.environ.get("VLLM_DP_MASTER_IP", "127.0.0.1")
+            dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT", get_open_port())
+
+            requests = (list(x) for x in distribute(self.data_parallel_size, requests))
+            inputs = (
+                (
+                    self.model_args.copy(),
+                    sampling_params,
+                    req,
+                    self.lora_request,
+                    dp_size,
+                    i,  # local_dp_rank
+                    dp_master_port,
+                    dp_master_ip,
+                )
+                for i, req in enumerate(requests)
+            )
+
+            with Pool(processes=dp_size) as pool:
+                results = pool.starmap(_vllm_mp_worker, inputs)
             return undistribute(results)
 
         outputs = self.model.generate(
