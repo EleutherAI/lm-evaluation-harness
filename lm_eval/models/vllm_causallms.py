@@ -151,7 +151,11 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            # self.model_args["distributed_executor_backend"] = "ray"
+            self.model_args["distributed_executor_backend"] = (
+                "ray"
+                if not self.V1
+                else self.model_args.get("distributed_executor_backend", None)
+            )
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
@@ -338,6 +342,7 @@ class VLLM(TemplateLM):
 
             procs = []
             result_queue = Queue()
+            # We use Process as it is non-daemonic
             for i, req in enumerate(requests):
                 proc = Process(
                     target=_vllm_mp_worker,
