@@ -3,7 +3,7 @@ import logging
 import os
 from importlib.metadata import version
 from importlib.util import find_spec
-from multiprocessing import Pool
+from multiprocessing import Process, Queue
 from time import sleep
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
@@ -49,6 +49,7 @@ def _vllm_mp_worker(
     sampling_params: "SamplingParams",
     requests: List[List[int]],
     lora_request: "LoRARequest",
+    result_queue: "Queue",
     dp_size: int,
     local_dp_rank: int,
     dp_master_port: int,
@@ -56,7 +57,9 @@ def _vllm_mp_worker(
     # worker_global_dp_rank: int,
 ):
     if not requests:
-        return []
+        result_queue.put((local_dp_rank, []))
+        return None
+
     os.environ["VLLM_DP_RANK"] = os.environ["VLLM_DP_RANK_LOCAL"] = str(local_dp_rank)
     os.environ["VLLM_DP_SIZE"] = str(dp_size)
     os.environ["VLLM_DP_MASTER_IP"] = str(dp_master_ip)
@@ -70,7 +73,8 @@ def _vllm_mp_worker(
     )
     # Give engines time to pause their processing loops before exiting.
     sleep(1)
-    return res
+    result_queue.put((local_dp_rank, res))
+    return None
 
 
 @register_model("vllm")
@@ -331,22 +335,37 @@ class VLLM(TemplateLM):
             dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT", get_open_port())
 
             requests = (list(x) for x in distribute(self.data_parallel_size, requests))
-            inputs = (
-                (
-                    self.model_args.copy(),
-                    sampling_params,
-                    req,
-                    self.lora_request,
-                    dp_size,
-                    i,  # local_dp_rank
-                    dp_master_port,
-                    dp_master_ip,
-                )
-                for i, req in enumerate(requests)
-            )
 
-            with Pool(processes=dp_size) as pool:
-                results = pool.starmap(_vllm_mp_worker, inputs)
+            procs = []
+            result_queue = Queue()
+            for i, req in enumerate(requests):
+                proc = Process(
+                    target=_vllm_mp_worker,
+                    args=(
+                        self.model_args.copy(),
+                        sampling_params,
+                        req,
+                        self.lora_request,
+                        result_queue,
+                        dp_size,
+                        i,  # local_dp_rank
+                        dp_master_port,
+                        dp_master_ip,
+                    ),
+                )
+                proc.start()
+                procs.append(proc)
+
+            # Collect results
+            results_dict = {}
+            for _ in range(len(procs)):
+                index, result = result_queue.get()
+                results_dict[index] = result
+
+            for proc in procs:
+                proc.join()
+
+            results = [results_dict[i] for i in range(len(procs))]
             return undistribute(results)
 
         outputs = self.model.generate(
