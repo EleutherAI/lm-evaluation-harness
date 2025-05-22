@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 
 eval_logger = logging.getLogger(__name__)
 
-@register_model("ollama")
+@register_model("openwebui")
 class OllamaLM(LocalCompletionsAPI):
     def __init__(
         self,
