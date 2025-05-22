@@ -655,7 +655,9 @@ def evaluate(
                                         ensure_ascii=False,
                                     )
                                 ),
-                                "prompt_hash": hash_string(requests[0].arguments[0]),
+                                "prompt_hash": hash_string(
+                                    requests[0].arguments.prompt
+                                ),
                                 "target_hash": hash_string(str(target)),
                             }
                             task_output.logged_samples.append(example)
