@@ -12,6 +12,7 @@ from lm_eval.models.utils import (
     Collator,
     handle_stop_sequences,
     replace_placeholders,
+    resize_image,
     undistribute,
 )
 from lm_eval.models.vllm_causallms import VLLM
@@ -44,8 +45,20 @@ class VLLM_VLM(VLLM):
         interleave: bool = True,
         # TODO<baber>: handle max_images and limit_mm_per_prompt better
         max_images: int = 999,
+        image_width: Optional[int] = None,
+        image_height: Optional[int] = None,
+        image_max_side: Optional[int] = None,
         **kwargs,
     ):
+        self.image_width = image_width
+        self.image_height = image_height
+        self.image_max_side = image_max_side
+        if self.image_max_side and (self.image_width or self.image_height):
+            raise ValueError(
+                "Ambiguous config for image resize: you can not specify both "
+                "image_max_side and (image_width or image_height)"
+            )
+
         if max_images != 999:
             kwargs["limit_mm_per_prompt"] = {"image": max_images}
             eval_logger.info(f"Setting limit_mm_per_prompt[image] to {max_images}")
@@ -239,7 +252,15 @@ class VLLM_VLM(VLLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [arg["visual"] for arg in aux_arguments]
+            visuals = [
+                [
+                    resize_image(
+                        img, self.image_width, self.image_height, self.image_max_side
+                    )
+                    for img in arg["visual"]
+                ]
+                for arg in aux_arguments
+            ]
 
             if not isinstance(contexts, list):
                 contexts = list(
