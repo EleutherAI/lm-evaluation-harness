@@ -1,4 +1,5 @@
 import copy
+import inspect
 import logging
 from importlib.metadata import version
 from importlib.util import find_spec
@@ -140,11 +141,28 @@ class VLLM(TemplateLM):
             )
 
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
+            kwargs_resolve_hf_chat_template = {
+                "tokenizer": self.tokenizer,
+                "chat_template": None,
+                "tools": None,
+            }
+
+            if parse_version(version("vllm")) >= parse_version("0.9.0"):
+                kwargs_resolve_hf_chat_template["model_config"] = (
+                    self.model.llm_engine.model_config
+                )
+
+            # https://github.com/vllm-project/vllm/pull/18259
+            if (
+                "trsut_remote_code"
+                in inspect.signature(resolve_hf_chat_template).parameters
+            ):
+                kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
+            else:
+                kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
+
             self.hf_chat_template = resolve_hf_chat_template(
-                tokenizer=self.tokenizer,
-                chat_template=None,
-                tools=None,
-                trust_remote_code=trust_remote_code,
+                **kwargs_resolve_hf_chat_template
             )
         else:
             self.hf_chat_template = None
