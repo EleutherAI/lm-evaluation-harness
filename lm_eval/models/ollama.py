@@ -10,6 +10,7 @@ from lm_eval.models.openai_completions import LocalCompletionsAPI
 from ollama import Client
 from lm_eval.api.model import LM
 import logging
+from ollama import show, chat, ChatResponse
 
 try:
     from tenacity import RetryError
@@ -22,13 +23,14 @@ eval_logger = logging.getLogger(__name__)
 class OllamaLM(LocalCompletionsAPI):
     def __init__(
         self,
+        model=None,
         base_url=None,
-        tokenizer_backend="huggingface",
+        tokenizer_backend=None,
         hf_tokenizer=None,
         **kwargs,
     ):
         super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, hf_tokenizer=hf_tokenizer, **kwargs
+            base_url=base_url, model=model, tokenizer_backend=tokenizer_backend, hf_tokenizer=hf_tokenizer, **kwargs
         )
 
 
@@ -75,34 +77,21 @@ class OllamaLM(LocalCompletionsAPI):
         **kwargs,
     ) -> Optional[dict]:
         # !!! Copy: shared dict for each request, need new object !!!
-        gen_kwargs = copy.deepcopy(gen_kwargs)
+        # gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
             prompt = [{'role': 'user', 'content': self.create_message(messages)}]
 
-            response = requests.post(
-                self.base_url,
-                json={
-                    'messages': prompt, # self.create_message(messages)
-                    'model': self.model,
-                    "logprobs": 5,  
-                    "top_logprobs": 5,
-                    "stream": False
-                    #generate=generate,
-                    #gen_kwargs=gen_kwargs,
-                    #seed=self._seed,
-                    #eos=self.eos_string,
-                    #**kwargs,
-                },
-                headers=self.header,
-                #verify=self.verify_certificate,
-            )
-            if not response.ok:
-                eval_logger.warning(
-                    f"API request failed with error message: {response.text}. Retrying..."
-                )
-            print("DEBUG: API response:", response.text)
-            response.raise_for_status()
-            return response.json()
+            response: ChatResponse = chat(model=self.model, messages=prompt)
+
+            return {
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": response.message.content
+                }
+            }]
+        }
         except RetryError:
             eval_logger.error(
                 "API request failed after multiple retries. Please check the API status."
