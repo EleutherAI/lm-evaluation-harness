@@ -1,6 +1,6 @@
 import copy
-import logging
 import inspect
+import logging
 from importlib.metadata import version
 from importlib.util import find_spec
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
@@ -146,12 +146,17 @@ class VLLM(TemplateLM):
                 "chat_template": None,
                 "tools": None,
             }
-            
+
             if parse_version(version("vllm")) >= parse_version("0.9.0"):
-                kwargs_resolve_hf_chat_template["model_config"] = self.model.llm_engine.model_config
+                kwargs_resolve_hf_chat_template["model_config"] = (
+                    self.model.llm_engine.model_config
+                )
 
             # https://github.com/vllm-project/vllm/pull/18259
-            if "trsut_remote_code" in inspect.signature(resolve_hf_chat_template).parameters:
+            if (
+                "trsut_remote_code"
+                in inspect.signature(resolve_hf_chat_template).parameters
+            ):
                 kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
             else:
                 kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
