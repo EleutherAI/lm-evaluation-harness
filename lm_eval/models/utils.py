@@ -428,9 +428,13 @@ class Collator:
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
         elif self._group_by == "contexts":
-            # Get one sample from each key
+            # Get one sample from each key.
+            # Select longest continuation per group to ensure sufficient context logits
             values = self._reorder(
-                [value[0] for value in self._arr_with_indices.values()]
+                [
+                    max(value, key=lambda x: len(x[1][-1]))
+                    for value in self._arr_with_indices.values()
+                ]
             )
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
