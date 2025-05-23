@@ -643,9 +643,8 @@ class VLLM(TemplateLM):
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
                 if (
-                    full_length := (len(context_enc + continuation_enc))
-                    >= self.max_length
-                ):
+                    full_length := len(context_enc + continuation_enc)
+                ) >= self.max_length:
                     eval_logger.warning(
                         f"Context length {full_length} exceeds max length ({self.max_length}). Truncating context."
                     )
