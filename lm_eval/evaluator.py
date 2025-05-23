@@ -38,7 +38,7 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
-    from lm_eval.api.task import Task
+    from lm_eval.api.task import ConfigurableTask, Task
 
 eval_logger = logging.getLogger(__name__)
 
@@ -585,7 +585,7 @@ def evaluate(
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output, limit in zip(eval_tasks, limits):
-        task = task_output.task
+        task: ConfigurableTask = task_output.task
         task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
@@ -599,17 +599,25 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
+        if hasattr(task, "calculate_metrics"):
+            metrics = task.calculate_metrics(
+                instances_by_doc_id=instances_by_doc_id,
+                samples=samples,
+                rank=RANK,
+                limit=limit,
+                world_size=WORLD_SIZE,
+            )
         for filter_key in task.instances[0].filtered_resps.keys():
             if hasattr(task, "calculate_metrics"):
                 # Use the new method if it exists (ConfigurableTask)
-                metrics = task.calculate_metrics(
-                    instances_by_doc_id=instances_by_doc_id,
-                    filter_key=filter_key,
-                    samples=samples,
-                    rank=RANK,
-                    limit=limit,
-                    world_size=WORLD_SIZE,
-                )
+                # metrics = task.calculate_metrics(
+                #     instances_by_doc_id=instances_by_doc_id,
+                #     filter_keys=filter_key,
+                #     samples=samples,
+                #     rank=RANK,
+                #     limit=limit,
+                #     world_size=WORLD_SIZE,
+                # )
 
                 # Add sample logging here too - similar to what's done in the else branch
                 if log_samples:
@@ -663,9 +671,19 @@ def evaluate(
                             task_output.logged_samples.append(example)
 
                 # Process all metrics returned from calculate_metrics
-                for x in metrics:
-                    for metric, value in x.items():
-                        task_output.sample_metrics[(metric, filter_key)].append(value)
+                for filter_key in metrics:
+                    for sample_metric in metrics[filter_key]:
+                        for metric_key, value in sample_metric:
+                            task_output.sample_metrics[(metric_key, filter_key)].append(
+                                value
+                            )
+                    # metrics is a list of dictionaries, each containing metric names and their values
+                    # e.g., [{"accuracy": 0.9}, {"f1": 0.8}]
+                    # We need to iterate through each dictionary and extract the metric names and values
+
+                # for x in metrics:
+                #     for metric, value in x.items():
+                #         task_output.sample_metrics[(metric, filter_key)].append(value)
             else:
                 # Fall back to the original approach for non-ConfigurableTask instances
                 indices = (

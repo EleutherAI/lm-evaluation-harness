@@ -1,5 +1,6 @@
 import abc
 import ast
+import collections
 import logging
 import random
 import re
@@ -1768,8 +1769,14 @@ class ConfigurableTask(Task):
         )
 
     def calculate_metrics(
-        self, instances_by_doc_id, filter_key, samples, rank, limit, world_size
-    ) -> list[list[dict]]:
+        self,
+        instances_by_doc_id,
+        filter_keys=None,
+        samples=None,
+        rank=1,
+        limit=None,
+        world_size=1,
+    ) -> dict[str, list[dict]]:
         """Calculate metrics for all datapoints in the task.
 
         Args:
@@ -1783,28 +1790,35 @@ class ConfigurableTask(Task):
         Returns:
             list: A list of metrics calculated for each document.
         """
-        all_metrics = []
+        if filter_keys is None:
+            filter_keys = [x.name for x in self._filters]
+        if isinstance(filter_keys, str):
+            filter_keys = [filter_keys]
+        all_metrics = collections.defaultdict(list)
         # indices = samples.get(self.config.task, None) if samples is not None else None
+        for filter_key in filter_keys:
+            doc_iterator = self.doc_iterator(
+                rank=rank,
+                limit=limit,
+                world_size=world_size,
+                # samples=indices,
+            )
 
-        doc_iterator = self.doc_iterator(
-            rank=rank,
-            limit=limit,
-            world_size=world_size,
-            # samples=indices,
-        )
+            for doc_id, doc in doc_iterator:
+                # doc_id_true = indices[doc_id] if indices else doc_id
+                requests = instances_by_doc_id[doc_id]
 
-        for doc_id, doc in doc_iterator:
-            # doc_id_true = indices[doc_id] if indices else doc_id
-            requests = instances_by_doc_id[doc_id]
+                metrics = [
+                    self.process_results(doc, response)
+                    for req in requests
+                    for response in (
+                        req.filtered_resps[filter_key]
+                        if isinstance(req.filtered_resps[filter_key], list)
+                        else [req.filtered_resps[filter_key]]
+                    )
+                ]
 
-            metrics: list[list[dict]] = [
-                self.process_results(doc, response)
-                for req in requests
-                for response in req.filtered_resps[filter_key]
-            ]
-
-            # TODO: This turns metrics into a list of lists of dicts rather than flat list.
-            all_metrics.append(metrics)
+                all_metrics[filter_key].append(metrics)
 
         return all_metrics
 
