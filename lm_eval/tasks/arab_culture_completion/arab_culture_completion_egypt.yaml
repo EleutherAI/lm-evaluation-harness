@@ -1,0 +1,5 @@
+"dataset_name": "Egypt"
+"include": "_default_arab_culture_completion_template_yaml"
+"tag": "arab_culture_completion_nile_valley_tasks"
+"task": "arab_culture_completion_egypt"
+"task_alias": "Egypt"

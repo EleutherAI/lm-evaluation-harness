@@ -1,0 +1,10 @@
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+group: arab_culture_nile_valley
+group_alias: Nile Valley
+metadata:
+    description: arab Culture tasks
+    version: 0
+task:
+- arab_culture_nile_valley_tasks
