@@ -1,9 +1,11 @@
 import copy
+import gc
 import logging
 import os
 from importlib.metadata import version
 from importlib.util import find_spec
 from multiprocessing import Process, Queue
+from queue import Empty
 from time import sleep
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
@@ -47,15 +49,20 @@ eval_logger = logging.getLogger(__name__)
 def _vllm_mp_worker(
     model_args: dict,
     sampling_params: "SamplingParams",
-    requests: List[List[int]],
+    requests: list[list[int]],
     lora_request: "LoRARequest",
     result_queue: "Queue",
     dp_size: int,
     local_dp_rank: int,
     dp_master_port: int,
     dp_master_ip: str = "127.0.0.1",
-    # worker_global_dp_rank: int,
-):
+) -> None:
+    """
+    Worker process for vLLM multiprocessing.
+    Initializes a vLLM engine, processes requests, and puts results or errors
+    onto the result_queue.
+    """
+
     if not requests:
         result_queue.put((local_dp_rank, []))
         return None
@@ -65,15 +72,34 @@ def _vllm_mp_worker(
     os.environ["VLLM_DP_MASTER_IP"] = str(dp_master_ip)
     os.environ["VLLM_DP_MASTER_PORT"] = str(dp_master_port)
 
-    llm = LLM(**model_args)
-    res = llm.generate(
-        prompt_token_ids=requests,
-        sampling_params=sampling_params,
-        lora_request=lora_request,
-    )
-    # Give engines time to pause their processing loops before exiting.
-    sleep(1)
-    result_queue.put((local_dp_rank, res))
+    llm = None
+    try:
+        llm = LLM(**model_args)
+        res = llm.generate(
+            prompt_token_ids=requests,
+            sampling_params=sampling_params,
+            lora_request=lora_request,
+        )
+        # Give engines time to pause their processing loops before exiting."
+        sleep(1)
+        result_queue.put((local_dp_rank, res))
+
+    except Exception as e:
+        error_message = f"Worker {local_dp_rank} failed during generation: {type(e).__name__}: {str(e)}"
+        eval_logger.error(error_message, exc_info=True)
+        result_queue.put((local_dp_rank, {"error": error_message}))
+
+    finally:
+        if llm is not None:
+            try:
+                del llm
+                gc.collect()
+            except Exception as e_cleanup:
+                eval_logger.warning(
+                    f"Worker {local_dp_rank} encountered an error during LLM cleanup: {type(e_cleanup).__name__}: {str(e_cleanup)}",
+                    exc_info=True,
+                )
+
     return None
 
 
@@ -134,6 +160,7 @@ class VLLM(TemplateLM):
             "trust_remote_code": trust_remote_code,
             "tensor_parallel_size": int(tensor_parallel_size),
             "max_model_len": int(self._max_length) if self._max_length else None,
+            "max_num_seqs": kwargs.get("max_num_seqs", max_batch_size),
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
@@ -334,52 +361,82 @@ class VLLM(TemplateLM):
             # flatten results
             return undistribute(results)
         elif self.data_parallel_size > 1:
+            # based on https://github.com/vllm-project/vllm/blob/a04720bc36401d831cb048c3917b9e58173d9c1d/examples/offline_inference/data_parallel.py
             dp_size = self.data_parallel_size
             dp_master_ip = os.environ.get("VLLM_DP_MASTER_IP", "127.0.0.1")
-            dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT", get_open_port())
+            dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT") or get_open_port()
 
             requests = (list(x) for x in distribute(self.data_parallel_size, requests))
 
-            procs = []
-            result_queue = Queue()
+            procs, resq = [], Queue()
             # We use Process as it is non-daemonic
-            for i, req in enumerate(requests):
-                proc = Process(
-                    target=_vllm_mp_worker,
-                    args=(
-                        self.model_args.copy(),
-                        sampling_params,
-                        req,
-                        self.lora_request,
-                        result_queue,
-                        dp_size,
-                        i,  # local_dp_rank
-                        dp_master_port,
-                        dp_master_ip,
-                    ),
-                )
-                proc.start()
-                procs.append(proc)
+            try:
+                for rank, req in enumerate(requests):
+                    proc = Process(
+                        target=_vllm_mp_worker,
+                        args=(
+                            self.model_args.copy(),
+                            sampling_params,
+                            req,
+                            self.lora_request,
+                            resq,
+                            dp_size,
+                            rank,
+                            dp_master_port,
+                            dp_master_ip,
+                        ),
+                    )
+                    proc.start()
+                    procs.append(proc)
 
-            # Collect results
-            results_dict = {}
-            for _ in range(len(procs)):
-                index, result = result_queue.get()
-                results_dict[index] = result
+                # Collect results
+                rank_res = {}
+                while len(rank_res) < len(procs):
+                    try:
+                        rank, result = resq.get(timeout=30)
+                        if isinstance(result, dict) and "error" in result:
+                            raise RuntimeError(result["error"])
+                        rank_res[rank] = result
+                    except Empty:
+                        dead_procs = [
+                            idx
+                            for idx, p in enumerate(procs)
+                            if not p.is_alive() and idx not in rank_res
+                        ]
+                        if dead_procs:
+                            raise RuntimeError(
+                                f"Worker processes {dead_procs} died unexpectedly"
+                            )
+                        continue
 
-            for proc in procs:
-                proc.join()
+                results = [rank_res[i] for i in range(len(procs))]
+                return undistribute(results)
 
-            results = [results_dict[i] for i in range(len(procs))]
-            return undistribute(results)
+            # cleanup
+            finally:
+                try:
+                    resq.close()
+                    resq.join_thread()
+                except Exception:
+                    eval_logger.debug(
+                        "Failed to close vllm DP results queue", exc_info=True
+                    )
+                for proc in procs:
+                    proc.join(timeout=10)
+                    if proc.is_alive():
+                        proc.terminate()
+                        proc.join(timeout=5)
+                        if proc.is_alive():
+                            proc.kill()
 
-        outputs = self.model.generate(
-            prompt_token_ids=requests,
-            sampling_params=sampling_params,
-            use_tqdm=True if self.batch_size == "auto" else False,
-            lora_request=self.lora_request,
-        )
-        return outputs
+        else:
+            outputs = self.model.generate(
+                prompt_token_ids=requests,
+                sampling_params=sampling_params,
+                use_tqdm=True if self.batch_size == "auto" else False,
+                lora_request=self.lora_request,
+            )
+            return outputs
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
