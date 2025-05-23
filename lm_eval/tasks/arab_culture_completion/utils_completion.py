@@ -83,7 +83,6 @@ def doc_to_text(doc):
             doc_text = JAIS_CHAT_AR.format(question=doc_text)
         else:
             doc_text = JAIS_CHAT_EN.format(question=doc_text)
-        # print(doc_text)
 
     return doc_text
 
@@ -99,25 +98,5 @@ def doc_to_target(doc):
     answer_text = doc["options"]["text"][
         doc["options"]["english_keys"].index(answer_key)
     ]
+    answer_text = answer_text.strip()
     return answer_text
-
-
-# doc = {'worker_id': 'Egypt-1',
-#  'sample_id': '1 | Breakfast',
-#  'sub_topic': 'الافطار',
-#  'first_statement': 'يقوم أحمد بتحضير الفول للإفطار',
-#  'options': {'arabic_keys': ['أ', 'ب', 'ج'],
-#   'english_keys': ['A', 'B', 'C'],
-#   'text': ['يتم تناول الفول مع الأرز',
-#    ' يتم تناول الفول بالخبز',
-#    ' يتم تناول الفول مع الفواكه']},
-#  'answer_key': {'arabic_answer_key': 'ب', 'english_answer_key': 'B'},
-#  'relevant_to_this_country': 'Yes',
-#  'relevant_to_other_countries': 'No',
-#  'should_discard': 'No',
-#  'country': 'Egypt',
-#  'region': 'Nile Valley'}
-
-# print(doc_to_text(doc))
-# print(doc_to_choice(doc))
-# print(doc_to_target(doc))
