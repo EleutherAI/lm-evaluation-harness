@@ -1769,7 +1769,7 @@ class ConfigurableTask(Task):
 
     def calculate_metrics(
         self, instances_by_doc_id, filter_key, samples, rank, limit, world_size
-    ):
+    ) -> list[list[dict]]:
         """Calculate metrics for all datapoints in the task.
 
         Args:
@@ -1797,13 +1797,14 @@ class ConfigurableTask(Task):
             # doc_id_true = indices[doc_id] if indices else doc_id
             requests = instances_by_doc_id[doc_id]
 
-            metrics = [
+            metrics: list[list[dict]] = [
                 self.process_results(doc, response)
                 for req in requests
                 for response in req.filtered_resps[filter_key]
             ]
 
-            all_metrics.extend(metrics)
+            # TODO: This turns metrics into a list of lists of dicts rather than flat list.
+            all_metrics.append(metrics)
 
         return all_metrics
 

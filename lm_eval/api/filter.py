@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
+from lm_eval.api.schemas import GenerateOutput
 
 
 class Filter(ABC):
@@ -45,7 +46,14 @@ class FilterEnsemble:
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
         # TODO: add backward
-        resps, docs = list([r.text] for y in resps for r in y), list(docs)
+        # unwrap responses from GenerateOutput as the filters expect strings
+        resps = tuple(
+            [
+                item.text if isinstance(item, GenerateOutput) else str(item)
+                for item in sublist
+            ]
+            for sublist in resps
+        )
 
         for f in self.filters:
             # apply filters in sequence
