@@ -643,7 +643,7 @@ class VLLM(TemplateLM):
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
                 if (
-                    full_length := len(context_enc + continuation_enc)
+                    full_length := (len(context_enc + continuation_enc))
                     >= self.max_length
                 ):
                     eval_logger.warning(
