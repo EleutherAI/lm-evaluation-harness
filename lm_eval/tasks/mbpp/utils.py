@@ -1,3 +1,5 @@
+import re
+
 import evaluate as hf_evaluate
 
 
@@ -12,12 +14,31 @@ except Exception as e:
     raise e
 
 
-def pass_at_1(references, predictions):
+def pass_at_1(references: list[str], predictions: list[list[str]]) -> float:
     return pass_at_k.compute(
         references=references,
-        predictions=[predictions],
+        predictions=predictions,
         k=[1],
     )[0]["pass@1"]
+
+
+def extract_code_blocks(text: str) -> str:
+    # Pattern to match ```...``` blocks
+    pattern = r"```(?:\w+)?\n?(.*?)\n?```"
+    # (+ ```) as we add the opening "```python" to the gen_prefix
+    matches = re.findall(pattern, r"```" + text, re.DOTALL)
+    # if no matches, try to match ```...``` blocks (after removing the language)
+    if not matches:
+        text_without_lang = re.sub(r"```python", "```", text)
+        matches = re.findall(pattern, text_without_lang, re.DOTALL)
+    if not matches:
+        return ""
+    else:
+        return matches[0]
+
+
+def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+    return [[extract_code_blocks(r) for r in resp] for resp in resps]
 
 
 def list_fewshot_samples():
