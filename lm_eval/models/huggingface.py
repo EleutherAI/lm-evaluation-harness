@@ -1136,7 +1136,7 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     total_length = len(context_enc) + len(continuation_enc)
                     if total_length > self.max_length + 1:
-                        eval_logger.warn(
+                        eval_logger.warning(
                             f"Combined length of context ({len(context_enc)}) and continuation ({len(continuation_enc)}) "
                             f"exceeds model's maximum length ({self.max_length}). "
                             f"Truncating {total_length - self.max_length + 1} tokens from the left."
@@ -1247,7 +1247,12 @@ class HFLM(TemplateLM):
                     cont_toks = torch.tensor(
                         cont_toks, dtype=torch.long, device=self.device
                     ).unsqueeze(0)  # [1, seq]
-                    max_equal = (greedy_tokens == cont_toks).all()
+                    # Use trailing slice [-cont_toks.shape[1]:] to handle variable length cont_len (but same ctx+cont[:-1]).
+                    # i.e. continuations can be sliced at diff points. Collator ensures we have sufficient greedy_tokens
+                    # by choosing key with longest cont if group_by="contexts".
+                    max_equal = (
+                        greedy_tokens[:, -cont_toks.shape[1] :] == cont_toks
+                    ).all()
 
                     # Obtain log-probs at the corresponding continuation token indices
                     # last_token_slice = logits[:, -1, :].squeeze(0).tolist()

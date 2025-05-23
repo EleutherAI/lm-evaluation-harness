@@ -483,7 +483,7 @@ def evaluate(
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        if getattr(lm, "MULTIMODAL", False) != getattr(task, "MULTIMODAL", False):
+        if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
             incompatible_tasks.append(task_output.task_name)
         elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
             raise ValueError(
