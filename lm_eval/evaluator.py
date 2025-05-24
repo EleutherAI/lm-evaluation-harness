@@ -556,7 +556,7 @@ def evaluate(
                 )
             elif distributed_executor_backend == "torchrun":
                 gathered_item = [torch.zeros_like(instances_rnk)] * lm.world_size
-                dist.all_gather(gathered_item, instances_rnk)
+                torch.distributed.all_gather(gathered_item, instances_rnk)
                 gathered_item = [x.item() for x in gathered_item]
             else:
                 raise ValueError(
@@ -598,7 +598,7 @@ def evaluate(
             if distributed_executor_backend == "accelerator":
                 lm.accelerator.wait_for_everyone()
             elif distributed_executor_backend == "torchrun":
-                dist.barrier()
+                torch.distributed.barrier()
             else:
                 raise ValueError(
                     f"distributed_executor_backend must be one of ['accelerator', 'torchrun'], but got {distributed_executor_backend}."
