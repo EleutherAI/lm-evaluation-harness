@@ -111,7 +111,15 @@ class TaskOutput:
                 # TODO: Handle this better and allow other aggregate functions other than mean.
                 agg_fn = mean
             metric_key = f"{metric},{filter_key}"
-            self.agg_metrics[metric_key] = agg_fn(items)
+            # Handle multiple repeats: items is now list[list[float]]
+            if items and isinstance(items[0], list):
+                # Apply aggregation function to each repeat
+                self.agg_metrics[metric_key] = [
+                    agg_fn(repeat) for repeat in zip(*items)
+                ]
+            else:
+                # Backward compatibility: items is list[float]
+                self.agg_metrics[metric_key] = agg_fn(items)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
             if isinstance(bootstrap_iters, int):
                 stderr_fn = stderr_for_metric(
