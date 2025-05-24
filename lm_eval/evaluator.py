@@ -75,7 +75,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
-    distributed_executor_backend: str = "accelerator",
+    distributed_executor_backend: str = "accelerate",
     metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -140,7 +140,7 @@ def simple_evaluate(
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
     :param distributed_executor_backend: str
-        The backend to use for distributed execution, `accelerator` or `torchrun`. Defaults to "accelerator" for the `accelerate` library.
+        The backend to use for distributed execution, `accelerate` or `torchrun`. Defaults to "accelerate" for the `accelerate` library.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
 
@@ -194,9 +194,9 @@ def simple_evaluate(
             "No tasks specified, or no tasks found. Please verify the task names."
         )
 
-    if distributed_executor_backend not in {"accelerator", "torchrun"}:
+    if distributed_executor_backend not in {"accelerate", "torchrun"}:
         raise ValueError(
-            f"distributed_executor_backend must be one of ['accelerator', 'torchrun'], but got {distributed_executor_backend}."
+            f"distributed_executor_backend must be one of ['accelerate', 'torchrun'], but got {distributed_executor_backend}."
         )
 
     if gen_kwargs is not None:
@@ -418,7 +418,7 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
-    distributed_executor_backend: str = "accelerator",
+    distributed_executor_backend: str = "accelerate",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -454,7 +454,7 @@ def evaluate(
     :param confirm_run_unsafe_code: bool
         Whether to confirm running tasks marked as unsafe.
     :param distributed_executor_backend: str
-        The backend to use for distributed execution, `accelerator` or `torchrun`. Defaults to "accelerator" for the `accelerate` library.
+        The backend to use for distributed execution, `accelerate` or `torchrun`. Defaults to "accelerate" for the `accelerate` library.
     :return
         Dictionary of results
     """
@@ -550,7 +550,7 @@ def evaluate(
         if lm.world_size > 1:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
 
-            if distributed_executor_backend == "accelerator":
+            if distributed_executor_backend == "accelerate":
                 gathered_item = (
                     lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
                 )
@@ -560,7 +560,7 @@ def evaluate(
                 gathered_item = [x.item() for x in gathered_item]
             else:
                 raise ValueError(
-                    f"distributed_executor_backend must be one of ['accelerator', 'torchrun'], but got {distributed_executor_backend}."
+                    f"distributed_executor_backend must be one of ['accelerate', 'torchrun'], but got {distributed_executor_backend}."
                 )
 
             # "multiple_choice" task types dispatch (several) "loglikelihood" request types
@@ -595,13 +595,13 @@ def evaluate(
             req.resps.append(x)
 
         if lm.world_size > 1:
-            if distributed_executor_backend == "accelerator":
+            if distributed_executor_backend == "accelerate":
                 lm.accelerator.wait_for_everyone()
             elif distributed_executor_backend == "torchrun":
                 torch.distributed.barrier()
             else:
                 raise ValueError(
-                    f"distributed_executor_backend must be one of ['accelerator', 'torchrun'], but got {distributed_executor_backend}."
+                    f"distributed_executor_backend must be one of ['accelerate', 'torchrun'], but got {distributed_executor_backend}."
                 )
 
     RANK = lm.rank
