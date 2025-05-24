@@ -637,11 +637,13 @@ def evaluate(
                         requests = instances_by_doc_id[doc_id]
                         if requests:  # Make sure there are requests for this doc_id
                             # Get the metrics for this document
-                            doc_metrics = [
-                                task.process_results(doc, response)
-                                for req in requests
-                                for response in req.filtered_resps[filter_key]
-                            ]
+                            # doc_metrics = [
+                            #     task.process_results(doc, response)
+                            #     for req in requests
+                            #     for response in req.filtered_resps[filter_key]
+                            # ]
+                            # TODO: doc_metrics is flat list with floats and not clear if we have multiple emtircs
+                            doc_metrics = [y for y in metrics[filter_key][0]]
 
                             target = task.doc_to_target(doc)
                             example = {
@@ -672,18 +674,16 @@ def evaluate(
 
                 # Process all metrics returned from calculate_metrics
                 for filter_key in metrics:
-                    for sample_metric in metrics[filter_key]:
-                        for metric_key, value in sample_metric:
-                            task_output.sample_metrics[(metric_key, filter_key)].append(
+                    # we get a list of metric results
+                    # [MetricResult(doc_id=0, scores=[{'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}], filter_key='strict-match', metric_name=None, metadata=None),
+                    #  MetricResult(doc_id=1, scores=[{'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}], filter_key='strict-match', metric_name=None, metadata=None)]
+                    for m_samples in metrics[filter_key]:
+                        # m_samples is a MetricResult object
+                        # m_samples.scores is a list of dicts
+                        for metric, value in m_samples:
+                            task_output.sample_metrics[(metric, filter_key)].append(
                                 value
                             )
-                    # metrics is a list of dictionaries, each containing metric names and their values
-                    # e.g., [{"accuracy": 0.9}, {"f1": 0.8}]
-                    # We need to iterate through each dictionary and extract the metric names and values
-
-                # for x in metrics:
-                #     for metric, value in x.items():
-                #         task_output.sample_metrics[(metric, filter_key)].append(value)
             else:
                 # Fall back to the original approach for non-ConfigurableTask instances
                 indices = (

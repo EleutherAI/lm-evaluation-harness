@@ -19,6 +19,9 @@ class GenerateInput:
             else iter((self.prompt, self.gen_kwargs, self.multimodal_arg))
         )
 
+    def __getitem__(self, item: int):
+        return [self.prompt, self.gen_kwargs][item]
+
 
 @dataclass
 class GenerateOutput:
@@ -54,3 +57,40 @@ class LoglikelihoodOutput:
 
     def __iter__(self):
         return iter((self.loglikelihood, self.is_greedy))
+
+
+@dataclass
+class MetricResult:
+    """
+    Outputs for the metric function.
+    """
+
+    doc_id: str | int | None
+    scores: list[dict[str, float]] | None
+    filter_key: str = None
+    metric_name: str = None
+    metadata: Optional[dict] = None
+
+    def __iter__(self):
+        if self.scores is None:
+            return iter([])
+
+        # Group values by metric key
+        grouped = {}
+        for score_dict in self.scores:
+            for key, value in score_dict.items():
+                if key not in grouped:
+                    grouped[key] = []
+                grouped[key].append(value)
+
+        # Return iterator of (key, list[values]) pairs
+        return iter(grouped.items())
+
+    def get_metric_results(self, metric_key) -> list[float]:
+        if self.scores is None:
+            return []
+        return [
+            score_dict[metric_key]
+            for score_dict in self.scores
+            if metric_key in score_dict
+        ]

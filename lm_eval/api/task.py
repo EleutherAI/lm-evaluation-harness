@@ -37,7 +37,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput
+from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput, MetricResult
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -98,6 +98,7 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
     gen_prefix: Optional[str] = None
+    repeat_agg: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -1818,7 +1819,9 @@ class ConfigurableTask(Task):
                     )
                 ]
 
-                all_metrics[filter_key].append(metrics)
+                all_metrics[filter_key].append(
+                    MetricResult(scores=metrics, doc_id=doc_id, filter_key=filter_key)
+                )
 
         return all_metrics
 
