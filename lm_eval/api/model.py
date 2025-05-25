@@ -2,7 +2,7 @@ import abc
 import hashlib
 import json
 import logging
-import os
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 import transformers
@@ -230,7 +230,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm, cache_db) -> None:
+    def __init__(self, lm: "LM", cache_db: str) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM
@@ -239,12 +239,22 @@ class CachingLM:
             Path to cache db
         """
         self.lm = lm
-        self.cache_db = cache_db
-        if os.path.dirname(cache_db):
-            os.makedirs(os.path.dirname(cache_db), exist_ok=True)
-        self.dbdict = SqliteDict(cache_db, autocommit=True)
 
-        # add hook to lm
+        # Setup cache path
+        cache_path = Path(cache_db)
+        if cache_path.is_dir() or (not cache_path.suffix and not cache_path.exists()):
+            cache_path = cache_path / "cache.db"
+
+        self.cache_db = cache_path
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Initialize database with WAL mode for concurrent access
+        self.dbdict = SqliteDict(str(cache_path), autocommit=True, timeout=30.0)
+
+        # Enable WAL mode for better concurrency
+        self.dbdict.conn.execute("PRAGMA journal_mode=WAL")
+        self.dbdict.conn.commit()
+
         lm.set_cache_hook(self.get_cache_hook())
 
     def __getattr__(self, attr: str):

@@ -241,15 +241,7 @@ def simple_evaluate(
 
     if use_cache is not None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
-        lm = lm_eval.api.model.CachingLM(
-            lm,
-            use_cache
-            # each rank receives a different cache db.
-            # necessary to avoid multiple writes to cache at once
-            + "_rank"
-            + str(lm.rank)
-            + ".db",
-        )
+        lm = lm_eval.api.model.CachingLM(lm, use_cache)
 
     if task_manager is None:
         metadata = (

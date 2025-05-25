@@ -36,7 +36,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.caching.cache import load_from_cache, save_to_cache
+from lm_eval.caching.cache import cache_instances
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
@@ -387,6 +387,7 @@ class Task(abc.ABC):
     def doc_to_prefix(self, doc):
         return ""
 
+    @cache_instances
     def build_all_requests(
         self,
         *,
@@ -394,54 +395,19 @@ class Task(abc.ABC):
         samples: Optional[List[int]] = None,
         rank: int = 0,
         world_size: int = 1,
-        cache_requests: bool = False,
-        rewrite_requests_cache: bool = False,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
+        cache_requests: bool = False,
+        rewrite_requests_cache: bool = False,
         tokenizer_name: str = "",
-    ) -> None:
+    ) -> Optional[List[List[Instance]]]:
         """Build a set of Instances for a task, and store them in task.instances"""
-
-        # used with caching
-        og_limit = limit
-
-        cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
-        cache_key += "-chat_template" if apply_chat_template else ""
-        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
-        cache_key += (
-            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
-            if system_instruction is not None
-            else ""
-        )
-        cache_key += f"-tokenizer{tokenizer_name}"
-
-        cached_instances = load_from_cache(file_name=cache_key, cache=cache_requests)
-
-        if cache_requests and cached_instances and not rewrite_requests_cache:
-            cached_instances = cached_instances[:limit]
-
-            flattened_instances = [
-                instance
-                for instance_group in cached_instances
-                for instance in instance_group
-            ]
-
-            self._instances = flattened_instances
-            return
 
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
-
-        # process all documents when caching is specified for simplicity
-        if (
-            cache_requests
-            and (not cached_instances or rewrite_requests_cache)
-            and limit is not None
-        ):
-            limit = None
 
         doc_id_docs = list(
             self.doc_iterator(
@@ -449,13 +415,8 @@ class Task(abc.ABC):
             )
         )
 
-        num_docs = len(doc_id_docs)
-
-        for doc_id, doc in tqdm(
-            doc_id_docs,
-            total=num_docs,
-        ):
-            # sample fewshot context #TODO: need to offset doc_id by rank now!
+        for doc_id, doc in tqdm(doc_id_docs, total=len(doc_id_docs)):
+            # sample fewshot context
             fewshot_ctx = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
@@ -466,7 +427,7 @@ class Task(abc.ABC):
                 gen_prefix=self.doc_to_prefix(doc),
             )
 
-            # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
+            # construct requests
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
@@ -480,23 +441,25 @@ class Task(abc.ABC):
 
             instances.append(inst)
 
-        # now flatten, this is to allow slicing to work with pickles
+        # Handle non-caching case
+        if not cache_requests:
+            # Apply limit at document level, then flatten
+            if limit is not None:
+                instances = instances[:limit]
 
-        sliced_instances = instances[:og_limit]
+            flattened_instances = [
+                instance for instance_group in instances for instance in instance_group
+            ]
 
-        flattened_instances = [
-            instance
-            for instance_group in sliced_instances
-            for instance in instance_group
-        ]
+            self._instances = flattened_instances
 
-        self._instances = flattened_instances
+            if len(self._instances) == 0:
+                raise ValueError("task.build_requests() did not find any docs!")
 
-        if len(self._instances) == 0:
-            raise ValueError("task.build_requests() did not find any docs!")
+            return None
 
-        if cache_requests and (not cached_instances or rewrite_requests_cache):
-            save_to_cache(file_name=cache_key, obj=instances)
+        # Return instances for decorator to handle
+        return instances
 
     @abc.abstractmethod
     def construct_requests(self, doc, ctx, **kwargs):
