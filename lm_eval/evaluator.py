@@ -609,16 +609,6 @@ def evaluate(
             )
         for filter_key in task.instances[0].filtered_resps.keys():
             if hasattr(task, "calculate_metrics"):
-                # Use the new method if it exists (ConfigurableTask)
-                # metrics = task.calculate_metrics(
-                #     instances_by_doc_id=instances_by_doc_id,
-                #     filter_keys=filter_key,
-                #     samples=samples,
-                #     rank=RANK,
-                #     limit=limit,
-                #     world_size=WORLD_SIZE,
-                # )
-
                 # Add sample logging here too - similar to what's done in the else branch
                 if log_samples:
                     indices = (
@@ -636,15 +626,7 @@ def evaluate(
                         doc_id_true = indices[doc_id] if indices else doc_id
                         requests = instances_by_doc_id[doc_id]
                         if requests:  # Make sure there are requests for this doc_id
-                            # Get the metrics for this document
-                            # doc_metrics = [
-                            #     task.process_results(doc, response)
-                            #     for req in requests
-                            #     for response in req.filtered_resps[filter_key]
-                            # ]
-                            # TODO: doc_metrics is flat list with floats and not clear if we have multiple emtircs
-                            doc_metrics = [y for y in metrics[filter_key][0]]
-
+                            doc_metrics = metrics[filter_key][doc_id_true].metric_keys
                             target = task.doc_to_target(doc)
                             example = {
                                 "doc_id": doc_id_true,
@@ -670,16 +652,18 @@ def evaluate(
                                 ),
                                 "target_hash": hash_string(str(target)),
                             }
+                            example.update(
+                                {
+                                    metrics[filter_key][doc_id_true].metric_keys[
+                                        0
+                                    ]: metrics[filter_key][doc_id_true]
+                                }
+                            )
                             task_output.logged_samples.append(example)
 
                 # Process all metrics returned from calculate_metrics
                 for filter_key in metrics:
-                    # we get a list of metric results
-                    # [MetricResult(doc_id=0, scores=[{'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}], filter_key='strict-match', metric_name=None, metadata=None),
-                    #  MetricResult(doc_id=1, scores=[{'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}, {'exact_match': np.float64(0.0)}], filter_key='strict-match', metric_name=None, metadata=None)]
                     for m_samples in metrics[filter_key]:
-                        # m_samples is a MetricResult object
-                        # m_samples.scores is a list of dicts
                         for metric, value in m_samples:
                             task_output.sample_metrics[(metric, filter_key)].append(
                                 value

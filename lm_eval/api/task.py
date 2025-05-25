@@ -887,7 +887,7 @@ class ConfigurableTask(Task):
             eval_logger.debug(
                 "No custom filters defined. Using default 'take_first' filter for handling repeats."
             )
-            # self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
@@ -1771,13 +1771,13 @@ class ConfigurableTask(Task):
 
     def calculate_metrics(
         self,
-        instances_by_doc_id,
+        instances_by_doc_id=None,
         filter_keys=None,
         samples=None,
         rank=1,
         limit=None,
         world_size=1,
-    ) -> dict[str, list[dict]]:
+    ) -> Optional[dict[str, list[dict]]]:
         """Calculate metrics for all datapoints in the task.
 
         Args:
@@ -1791,12 +1791,23 @@ class ConfigurableTask(Task):
         Returns:
             list: A list of metrics calculated for each document.
         """
+        if not self._instances:
+            return
+        from collections import defaultdict
+
         if filter_keys is None:
-            filter_keys = [x.name for x in self._filters]
+            filter_keys = (
+                [x.name for x in self._filters]
+                if hasattr(self, "_filters")
+                else ["none"]
+            )
         if isinstance(filter_keys, str):
             filter_keys = [filter_keys]
+        if not instances_by_doc_id:
+            instances_by_doc_id = defaultdict(list)
+            for instance in self.instances:
+                instances_by_doc_id[instance.doc_id].append(instance)
         all_metrics = collections.defaultdict(list)
-        # indices = samples.get(self.config.task, None) if samples is not None else None
         for filter_key in filter_keys:
             doc_iterator = self.doc_iterator(
                 rank=rank,
@@ -1808,7 +1819,6 @@ class ConfigurableTask(Task):
             for doc_id, doc in doc_iterator:
                 # doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
-
                 metrics = [
                     self.process_results(doc, response)
                     for req in requests
@@ -1818,7 +1828,6 @@ class ConfigurableTask(Task):
                         else [req.filtered_resps[filter_key]]
                     )
                 ]
-
                 all_metrics[filter_key].append(
                     MetricResult(scores=metrics, doc_id=doc_id, filter_key=filter_key)
                 )

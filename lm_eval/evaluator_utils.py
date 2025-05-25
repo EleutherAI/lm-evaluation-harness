@@ -128,9 +128,12 @@ class TaskOutput:
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
                 )
-                self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
-                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-                )
+                # TODO: what's the best way to calculate repeat stderr
+                # maybe mean/sample then bootstrap?
+                self.agg_metrics[f"{metric}_stderr,{filter_key}"] = [
+                    (stderr_fn(item) if (stderr_fn and len(item) > 1) else "N/A")
+                    for item in zip(*items)
+                ][0]
             else:
                 raise ValueError(
                     f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."

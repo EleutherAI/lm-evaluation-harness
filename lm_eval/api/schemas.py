@@ -94,3 +94,9 @@ class MetricResult:
             for score_dict in self.scores
             if metric_key in score_dict
         ]
+
+    @property
+    def metric_keys(self) -> list[str]:
+        if self.scores is None:
+            return []
+        return list(self.scores[0].keys()) if self.scores else []
