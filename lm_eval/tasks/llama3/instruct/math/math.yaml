@@ -1,0 +1,14 @@
+group: llama_math
+task:
+  - llama_math_algebra
+  - llama_math_counting_and_prob
+  - llama_math_geometry
+  - llama_math_intermediate_algebra
+  - llama_math_num_theory
+  - llama_math_prealgebra
+  - llama_math_precalc
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 1
