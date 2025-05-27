@@ -8,8 +8,6 @@ from functools import cached_property
 from typing import (
     TYPE_CHECKING,
     Any,
-    Awaitable,
-    Callable,
     Dict,
     Iterable,
     List,
@@ -22,8 +20,10 @@ from typing import (
 
 
 try:
+    from asyncio import Semaphore
+
     import requests
-    from aiohttp import ClientSession, ClientTimeout, TCPConnector
+    from aiohttp import ClientSession, ClientTimeout
     from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
@@ -183,6 +183,8 @@ class TemplateAPI(TemplateLM):
         self._eos_string = eos_string
         self.timeout = int(timeout)
         self.max_images = int(max_images)
+
+        self.semaphore = Semaphore(self._concurrent)
 
         eval_logger.info(f"Using tokenizer {self.tokenizer_backend}")
         if self.tokenizer_backend is None:
@@ -444,63 +446,6 @@ class TemplateAPI(TemplateLM):
             )
             return None
 
-    async def amodel_call(
-        self,
-        session: ClientSession,
-        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
-        *,
-        generate: bool = True,
-        cache_keys: list = None,
-        ctxlens: Optional[List[int]] = None,
-        gen_kwargs: Optional[Dict] = None,
-        **kwargs,
-    ) -> Union[List[str], List[Tuple[float, bool]], None]:
-        # !!! Copy: shared dict for each request, need new object !!!
-        gen_kwargs = copy.deepcopy(gen_kwargs)
-        payload = self._create_payload(
-            self.create_message(messages),
-            generate=generate,
-            gen_kwargs=gen_kwargs,
-            seed=self._seed,
-            **kwargs,
-        )
-        cache_method = "generate_until" if generate else "loglikelihood"
-        try:
-            async with session.post(
-                self.base_url,
-                json=payload,
-                headers=self.header,
-            ) as response:
-                if not response.ok:
-                    error_text = await response.text()
-                    eval_logger.warning(
-                        f"API request failed with error message: {error_text}. Retrying..."
-                    )
-                # raising exception will retry the request
-                response.raise_for_status()
-                outputs = await response.json()
-            answers = (
-                self.parse_generations(
-                    outputs=outputs,
-                )
-                if generate
-                else self.parse_logprobs(
-                    outputs=outputs,
-                    tokens=messages,
-                    ctxlens=ctxlens,
-                )
-            )
-            if cache_keys:
-                for res, cache in zip(answers, cache_keys):
-                    self.cache_hook.add_partial(cache_method, cache, res)
-            return answers
-        # If the retries also fail
-        except RetryError:
-            eval_logger.error(
-                "API request failed after multiple retries. Please check the API status."
-            )
-            return None
-
     def batch_loglikelihood_requests(
         self, chunks: Iterable[List[LogLikelihoodInputs]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
@@ -524,6 +469,65 @@ class TemplateAPI(TemplateLM):
                 cache_keys.append(cache_key)
         return inputs, ctxlens, cache_keys
 
+    async def amodel_call(
+        self,
+        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
+        *,
+        generate: bool = True,
+        cache_keys: list = None,
+        ctxlens: Optional[List[int]] = None,
+        gen_kwargs: Optional[Dict] = None,
+        **kwargs,
+    ) -> Union[List[str], List[Tuple[float, bool]], None]:
+        # !!! Copy: shared dict for each request, need new object !!!
+        gen_kwargs = copy.deepcopy(gen_kwargs)
+        payload = self._create_payload(
+            self.create_message(messages),
+            generate=generate,
+            gen_kwargs=gen_kwargs,
+            seed=self._seed,
+            **kwargs,
+        )
+        cache_method = "generate_until" if generate else "loglikelihood"
+        try:
+            async with self.semaphore:
+                async with ClientSession(
+                    timeout=ClientTimeout(total=self.timeout),
+                ) as session:
+                    async with session.post(
+                        self.base_url,
+                        json=payload,
+                        headers=self.header,
+                        ssl=self.verify_certificate,
+                    ) as response:
+                        if not response.ok:
+                            error_text = await response.text()
+                            eval_logger.warning(
+                                f"API request failed with error message: {error_text}. Retrying..."
+                            )
+                        response.raise_for_status()
+                        outputs = await response.json()
+                answers = (
+                    self.parse_generations(
+                        outputs=outputs,
+                    )
+                    if generate
+                    else self.parse_logprobs(
+                        outputs=outputs,
+                        tokens=messages,
+                        ctxlens=ctxlens,
+                    )
+                )
+                if cache_keys:
+                    for res, cache in zip(answers, cache_keys):
+                        self.cache_hook.add_partial(cache_method, cache, res)
+                return answers
+        except RetryError:
+            eval_logger.error(
+                "API request failed after multiple retries. Please check the API status."
+            )
+            return None
+
     async def get_batched_requests(
         self,
         requests: list,
@@ -534,35 +538,19 @@ class TemplateAPI(TemplateLM):
         **kwargs,
     ) -> Union[List[List[str]], List[List[Tuple[float, bool]]]]:
         ctxlens = ctxlens if ctxlens else [None] * len(requests)
-        conn = TCPConnector(limit=self._concurrent, ssl=self.verify_certificate)
-        async with ClientSession(
-            connector=conn, timeout=ClientTimeout(total=self.timeout)
-        ) as session:
-            retry_: Callable[..., Awaitable[Any]] = retry(
-                stop=stop_after_attempt(self.max_retries),
-                wait=wait_exponential(multiplier=0.5, min=1, max=10),
-                reraise=True,
-            )(self.amodel_call)
-            # Create tasks for each batch of request
-            tasks = [
-                asyncio.create_task(
-                    retry_(
-                        session=session,
-                        messages=message,
-                        cache_keys=cache_key,
-                        generate=generate,
-                        ctxlens=ctxlen,
-                        **kwargs,
-                    )
+        tasks = []
+        for chunk in chunks(requests, n=self._batch_size):
+            task = asyncio.create_task(
+                self.amodel_call(
+                    messages=chunk,
+                    cache_keys=cache_keys,
+                    generate=generate,
+                    ctxlens=ctxlens,
+                    **kwargs,
                 )
-                for message, cache_key, ctxlen in zip(
-                    chunks(requests, n=self._batch_size),
-                    chunks(cache_keys, n=self._batch_size),
-                    chunks(ctxlens, n=self._batch_size),
-                )
-            ]
-
-            return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
+            )
+            tasks.append(task)
+        return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
     def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         assert self.tokenizer is not None, (
