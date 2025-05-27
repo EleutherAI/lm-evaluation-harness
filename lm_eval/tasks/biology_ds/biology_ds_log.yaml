@@ -1,0 +1,30 @@
+tag:
+  - biology_ds
+task: biology_ds_log
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: /lm-evaluation-harness/lm_eval/tasks/biology_ds/biology_ds.json
+output_type: loglikelihood
+training_split: null
+validation_split: null
+test_split: train
+description: "Answer these questions:\n\n"
+doc_to_text: "Question: {{question}}?\nAnswer:"
+doc_to_target: "{{answer}}"
+should_decontaminate: True
+doc_to_decontamination_query: question
+fewshot_delimiter: "\n"
+target_delimiter: " "
+metric_list:
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: true
+metadata:
+  version: 0.0
