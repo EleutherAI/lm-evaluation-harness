@@ -12,11 +12,11 @@ generation_kwargs:
   - "<|endoftext|>"
   - "<|im_end|>"
   do_sample: false
-  max_gen_toks: 30000
-  temperature: 0.6
-  top_k: 20
-  top_p: 0.95
-  n: 1
+  max_tokens: 30000  # Max number of generated tokens, suggested to set a large value to avoid output truncation
+  temperature: 0.6  # Sampling temperature (recommended value per Qwen report)
+  top_p: 0.95  # top-p sampling (recommended value per Qwen report)
+  top_k: 20  # top-k sampling (recommended value per Qwen report)
+  n: 1  # Number of replies generated per request
 metric_list:
   - metric: acc
   # - metric: exact_match
