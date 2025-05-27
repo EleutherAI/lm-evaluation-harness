@@ -105,7 +105,7 @@ class Unitxt(ConfigurableTask):
         return False
 
     def doc_to_target(self, doc):
-        doc["target"]
+        return doc["target"]
 
     def get_arguments(self, doc, ctx):
         return (ctx, {"until": ["\n"]})
@@ -120,8 +120,7 @@ class Unitxt(ConfigurableTask):
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
     ) -> str:
-        source = self.doc_to_text(doc)
-        if isinstance(source, list):
+        if isinstance(self.doc_to_text(doc), list):
             if apply_chat_template:
                 formated_source = chat_template(self.doc_to_text(doc))
                 return formated_source
@@ -130,7 +129,15 @@ class Unitxt(ConfigurableTask):
                     "Got chat template format from Unitxt, but apply_chat_template is false. Add '--apply_chat_template' to command line."
                 )
         else:
-            return source
+            return super().fewshot_context(
+                doc=doc,
+                num_fewshot=num_fewshot,
+                system_instruction=system_instruction,
+                apply_chat_template=apply_chat_template,
+                fewshot_as_multiturn=fewshot_as_multiturn,
+                chat_template=chat_template,
+                gen_prefix=gen_prefix,
+            )
 
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
