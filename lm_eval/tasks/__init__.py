@@ -106,7 +106,7 @@ class TaskManager:
         return self._task_index
 
     def list_all_tasks(
-        self, list_groups=True, list_tags=True, list_subtasks=True
+        self, list_groups=True, list_tags=True, list_subtasks=True, listall=False
     ) -> str:
         from pytablewriter import MarkdownTableWriter
 
@@ -162,6 +162,13 @@ class TaskManager:
             st_values.append([t, path, output_type])
         subtask_table.value_matrix = st_values
 
+        if listall:
+            return (
+                group_table.value_matrix,
+                tag_table.value_matrix,
+                subtask_table.value_matrix,
+            )
+
         result = "\n"
         if list_groups:
             result += group_table.dumps() + "\n\n"
@@ -170,6 +177,10 @@ class TaskManager:
         if list_subtasks:
             result += subtask_table.dumps() + "\n\n"
         return result
+
+    @property
+    def get_task_lists(self):
+        return self.list_all_tasks(listall=True)
 
     def match_tasks(self, task_list: list[str]) -> list[str]:
         return utils.pattern_match(task_list, self.all_tasks)
