@@ -1,3 +1,4 @@
+import argparse
 import collections
 import fnmatch
 import functools
@@ -11,7 +12,7 @@ import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple
 
 import numpy as np
 import yaml
@@ -145,6 +146,16 @@ def simple_parse_args_string(args_string: Optional[str]) -> dict:
         for kv in [arg.split("=") for arg in arg_list]
     }
     return args_dict
+
+
+def request_caching_arg_to_dict(cache_requests: str) -> dict:
+    request_caching_args = {
+        "cache_requests": cache_requests in {"true", "refresh"},
+        "rewrite_requests_cache": cache_requests == "refresh",
+        "delete_requests_cache": cache_requests == "delete",
+    }
+
+    return request_caching_args
 
 
 def join_iters(iters):
@@ -542,6 +553,7 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     return islice(raw_iterator, rank, limit, world_size)
 
 
+# TODO: why func for metric calc is here in eval utils?
 def weighted_f1_score(items):
     from sklearn.metrics import f1_score
 
