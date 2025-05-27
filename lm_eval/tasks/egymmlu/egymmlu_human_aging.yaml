@@ -1,0 +1,7 @@
+"dataset_name": "human_aging"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_other_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_human_aging"
+"task_alias": "human aging"

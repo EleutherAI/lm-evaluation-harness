@@ -1,0 +1,7 @@
+"dataset_name": "security_studies"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_social_sciences_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_security_studies"
+"task_alias": "security studies"
