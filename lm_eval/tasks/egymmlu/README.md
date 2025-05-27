@@ -4,9 +4,9 @@
 
 Title: NileChat: Towards Linguistically Diverse and Culturally Aware LLMs for Local Communities
 
-Abstract: [TODO](TODO)
+Abstract: [https://arxiv.org/abs/2505.18383](https://arxiv.org/abs/2505.18383)
 
-TODO
+EgyMMLU is a benchmark designed to evaluate the performance of large language models in Egyptian Arabic. It contains 22,027 multiple-choice questions covering 44 subjects, translated from parts of the Massive Multitask Language Understanding (MMLU) and ArabicMMLU benchmarks. The dataset was translated using `google/gemma-3-27b-it`.
 
 Homepage: [https://huggingface.co/datasets/UBC-NLP/EgyMMLU](https://huggingface.co/datasets/UBC-NLP/EgyMMLU)
 
@@ -14,7 +14,14 @@ Homepage: [https://huggingface.co/datasets/UBC-NLP/EgyMMLU](https://huggingface.
 ### Citation
 
 ```
-@article{
+@article{mekki2025nilechatlinguisticallydiverseculturally,
+  title={NileChat: Towards Linguistically Diverse and Culturally Aware LLMs for Local Communities}, 
+  author={Abdellah El Mekki and Houdaifa Atou and Omer Nacar and Shady Shehata and Muhammad Abdul-Mageed},
+  year={2025},
+  eprint={2505.18383},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2505.18383},
 }
 ```
 

@@ -4,9 +4,10 @@
 
 Title: NileChat: Towards Linguistically Diverse and Culturally Aware LLMs for Local Communities
 
-Abstract: [TODO](TODO)
+Abstract: [https://arxiv.org/abs/2505.18383](https://arxiv.org/abs/2505.18383)
 
-TODO
+**EgyHellaSwag** is a benchmark for evaluating commonsense reasoning in Egyptian Arabic. It is a translated version of the HellaSwag benchmark, consisting of multiple-choice sentence completion tasks. The dataset was translated using the `google/gemma-3-27b-it` model.
+
 
 Homepage: [https://huggingface.co/datasets/UBC-NLP/EgyHellaSwag](https://huggingface.co/datasets/UBC-NLP/EgyHellaSwag)
 
@@ -14,7 +15,14 @@ Homepage: [https://huggingface.co/datasets/UBC-NLP/EgyHellaSwag](https://hugging
 ### Citation
 
 ```
-@article{
+@article{mekki2025nilechatlinguisticallydiverseculturally,
+  title={NileChat: Towards Linguistically Diverse and Culturally Aware LLMs for Local Communities}, 
+  author={Abdellah El Mekki and Houdaifa Atou and Omer Nacar and Shady Shehata and Muhammad Abdul-Mageed},
+  year={2025},
+  eprint={2505.18383},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2505.18383},
 }
 ```
 
