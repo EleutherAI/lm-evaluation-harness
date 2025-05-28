@@ -20,6 +20,8 @@ generation_kwargs:
   n: 1  # Number of replies generated per request
 metric_list:
   - metric: acc
+    aggregation: mean
+    higher_is_better: true
   # - metric: exact_match
   #   aggregation: mean
   #   higher_is_better: true
