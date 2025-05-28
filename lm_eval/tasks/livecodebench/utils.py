@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 # Helper function for multiprocessing
 def _temp_run_helper(sample, generation, debug, result, metadata_list, timeout):
-    from .testing_util import run_test
+    try:
+        from lm_eval.tasks.livecodebench.testing_util import run_test
+    except ImportError:
+        from .testing_util import run_test
     res, metadata = run_test(sample, test=generation, debug=debug, timeout=timeout)
     result.append(res)
     metadata_list.append(metadata)
@@ -153,7 +156,11 @@ def codegen_metrics(
     debug=False,
 ):
     """Compute pass@k metrics for code generation evaluation."""
-    from .pass_k_utils import compute_metrics_from_results
+    try:
+        from lm_eval.tasks.livecodebench.pass_k_utils import compute_metrics_from_results
+    except ImportError:
+        # Fallback for relative import
+        from .pass_k_utils import compute_metrics_from_results
 
     samples_linear = []
     generations_linear = []
