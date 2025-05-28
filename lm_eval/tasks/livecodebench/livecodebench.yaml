@@ -2,9 +2,9 @@ task: livecodebench
 dataset_path: livecodebench/code_generation_lite
 output_type: generate_until
 validation_split: test
-doc_to_text: "### Question:\n{{question_content}}\n\n{{format_prompt}} ### Answer: (use the provided format with backticks)\n\n"
+doc_to_text: "### Question:\n{{question_content}}\n\n### Answer: (Please provide your answer in a Python code block)\n\n"
 doc_to_target: !function utils.doc_to_target
-process_results: !function utils.process_results_math
+process_results: !function utils.process_results
 num_fewshot: 0
 generation_kwargs:
   until:
@@ -12,6 +12,7 @@ generation_kwargs:
   - "<|endoftext|>"
   - "<|im_end|>"
   do_sample: false
+  # Used params for Qwen3-32B from Evalscope
   max_tokens: 30000  # Max number of generated tokens, suggested to set a large value to avoid output truncation
   temperature: 0.6  # Sampling temperature (recommended value per Qwen report)
   top_p: 0.95  # top-p sampling (recommended value per Qwen report)
