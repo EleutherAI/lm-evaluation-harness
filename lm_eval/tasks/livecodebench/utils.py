@@ -206,14 +206,14 @@ def postprocess_generation(model_output: str) -> str:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     """
-    Processes the results for a single document and calculates pass@1.
+    Processes the results for a single document and calculates accuracy.
 
     :param doc: The document dictionary.
     :param results: A list of model generations (typically one for pass@1).
-    :return: A dictionary with the pass@1 metric.
+    :return: A dictionary with the accuracy metric.
     """
     if not results:
-        return {"pass@1": 0.0}
+        return {"acc": 0.0}
 
     # We typically evaluate the first generation for pass@1
     generated_code = postprocess_generation(results[0])
@@ -234,10 +234,10 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
             timeout=timeout,
             debug=debug,
         )
-        # Convert from percentage to decimal
-        pass_at_1 = metrics_dict.get("pass@1", 0.0) / 100.0
+        # Convert from percentage to decimal and use 'acc' key to match YAML
+        accuracy = metrics_dict.get("pass@1", 0.0) / 100.0
     except Exception as e:
         logger.error(f"Error during livecodebench metric calculation for doc_id {doc.get('id', 'unknown')}: {e}")
-        pass_at_1 = 0.0
+        accuracy = 0.0
 
-    return {"pass@1": pass_at_1}
+    return {"acc": accuracy}
