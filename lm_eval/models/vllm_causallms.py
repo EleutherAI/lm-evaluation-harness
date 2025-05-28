@@ -216,9 +216,17 @@ class VLLM(TemplateLM):
             }
 
             if parse_version(version("vllm")) >= parse_version("0.9.0"):
-                kwargs_resolve_hf_chat_template["model_config"] = (
-                    self.model.llm_engine.model_config
-                )
+                if self.data_parallel_size <= 1:
+                    kwargs_resolve_hf_chat_template["model_config"] = (
+                        self.model.llm_engine.model_config
+                    )
+                else:
+                    from vllm.engine.arg_utils import EngineArgs
+
+                    engine_args = EngineArgs(**self.model_args)
+                    model_config = engine_args.create_model_config()
+
+                    kwargs_resolve_hf_chat_template["model_config"] = model_config
 
             # https://github.com/vllm-project/vllm/pull/18259
             if (
