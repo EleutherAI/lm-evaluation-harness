@@ -7,4 +7,4 @@ tag:
 - terjamabench
 task: terjamabench-en-ary
 include:
-  - terjama_bench_common_yaml
+  - terjamabench_common_yaml
