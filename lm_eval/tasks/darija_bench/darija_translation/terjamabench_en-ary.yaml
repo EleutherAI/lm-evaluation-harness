@@ -1,0 +1,10 @@
+dataset_name: default
+dataset_path: atlasia/TerjamaBench
+doc_to_target: !function terjma_bench_utils.target_output_en_ary
+doc_to_text: !function terjma_bench_utils.input_prompt_en_ary
+tag:
+- translation
+- terjamabench
+task: terjamabench-en-ary
+include:
+  - terjmabench_common_yaml
