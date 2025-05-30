@@ -1,26 +1,47 @@
+# macOS system files
 .DS_Store
-env
-*.pyc
-output/
-data/
-lm_cache
-.idea
-build
-dist
-*.egg-info
-venv
+
+# Virtual environments
 .venv/
+venv/
+ENV/
+env/
+*.env
+
+# Python bytecode and build artifacts
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+
+# IDE & editor settings
 .vscode/
-temp
-__pycache__
-.ipynb_checkpoints
-temp
-test_logs/
-# IPython
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
 profile_default/
 ipython_config.py
-# don't track (the default location of) the cached requests
+
+# Output and data
+output/
+data/
+temp/
+test_logs/
+
+# Caching
 lm_eval/caching/.cache
-# don't track files created by wandb
-wandb
-examples/wandb
+lm_cache/
+
+# Logging
+*.log
+logs/
+
+# wandb experiment tracking
+wandb/
+examples/wandb/
+
+# PyInstaller
+*.spec
