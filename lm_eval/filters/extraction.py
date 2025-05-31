@@ -200,7 +200,7 @@ class MultiChoiceRegexFilter(RegexFilter):
 
             choices = doc["choices"]
             for c in choices:
-                m = filter_ignores(c.strip())
+                m = filter_ignores(c[0].strip() if isinstance(c, tuple) else c.strip()) # Some entries are tuple-wrapped; unwrap safely 
                 fallback_regexes.append(f"{re.escape(m)}")
                 choice_to_alpha[m] = f"({next_alpha})"
 
