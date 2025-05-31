@@ -618,6 +618,20 @@ def evaluate(
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)
+                    try:
+                        from joblib import load
+                        if not hasattr(evaluate, "_classifier"):
+                            evaluate._classifier = load("classifier_pipeline.joblib")
+                        classifier = evaluate._classifier
+
+                        prompt = task.doc_to_text(doc)
+                        response = requests[0].filtered_resps[filter_key]
+                        full_input = f"Q: {prompt.strip()}\nA: {response.strip()}"
+                        pred = classifier.predict([full_input])[0]
+                        hallucination = "truthful" if pred == 1 else "hallucination"
+                    except Exception as e:
+                        hallucination = f"error: {e}"
+
                     example = {
                         "doc_id": doc_id_true,
                         "doc": doc,
@@ -639,6 +653,7 @@ def evaluate(
                         ),
                         "prompt_hash": hash_string(requests[0].arguments[0]),
                         "target_hash": hash_string(str(target)),
+                        "hallucination": hallucination,
                     }
                     example.update(metrics)
                     task_output.logged_samples.append(example)

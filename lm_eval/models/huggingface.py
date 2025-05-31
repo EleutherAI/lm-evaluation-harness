@@ -4,6 +4,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from wisent_guard.guard import ActivationGuard
 
 import jinja2
 import torch
@@ -219,7 +220,23 @@ class HFLM(TemplateLM):
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
-
+        
+        # initialize wisent-guard
+        try:
+            self.wisent_guard = ActivationGuard(
+                model=self.model,
+                tokenizer=self.tokenizer,
+                layers=[15],  
+                threshold=0.2,
+                save_dir="./hallucination_guard_data",
+                device=self.device,
+                force_llama_format=True
+            )
+            eval_logger.info("Wisent-Guard initialized successfully.")
+        except Exception as e:
+            eval_logger.warning(f"Wisent-Guard initialization failed: {e}")
+            self.wisent_guard = None
+        
         self.add_bos_token = add_bos_token
         if "gemma" in getattr(self.config, "model_type", ""):
             self.add_bos_token = True
@@ -911,6 +928,21 @@ class HFLM(TemplateLM):
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
         )
+
+        if hasattr(self, "wisent_guard") and self.wisent_guard:
+            try:
+                activations = self.wisent_guard.get_activations(context)
+                
+                is_hallucination = self.wisent_guard.detect(
+                    activations, category="hallucination"
+                )
+                
+                if is_hallucination:
+                    eval_logger.warning("⚠️ wisent-guard: potential hallucination detected — generation aborted.")
+                    return torch.full_like(context, self.tokenizer.pad_token_id)  
+            except Exception as e:
+                eval_logger.warning(f"wisent-guard check failed (skipping): {e}")
+
         return self.model.generate(
             input_ids=context,
             max_length=max_length,

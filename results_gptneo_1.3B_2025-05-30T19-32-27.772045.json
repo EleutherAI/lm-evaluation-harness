@@ -1,0 +1,554 @@
+{
+  "results": {
+    "tmmluplus_dentistry": {
+      "alias": "dentistry",
+      "acc,none": 0.2531328320802005,
+      "acc_stderr,none": 0.02179487523342011,
+      "acc_norm,none": 0.2531328320802005,
+      "acc_norm_stderr,none": 0.02179487523342011
+    },
+    "tmmluplus_finance_banking": {
+      "alias": "finance banking",
+      "acc,none": 0.26666666666666666,
+      "acc_stderr,none": 0.038201699145179055,
+      "acc_norm,none": 0.26666666666666666,
+      "acc_norm_stderr,none": 0.038201699145179055
+    },
+    "tmmluplus_physics": {
+      "alias": "physics",
+      "acc,none": 0.29896907216494845,
+      "acc_stderr,none": 0.046724655123323515,
+      "acc_norm,none": 0.29896907216494845,
+      "acc_norm_stderr,none": 0.046724655123323515
+    },
+    "truthfulqa_mc1": {
+      "alias": "truthfulqa_mc1",
+      "acc,none": 0.23133414932680538,
+      "acc_stderr,none": 0.014761945174862665
+    },
+    "truthfulqa_mc2": {
+      "alias": "truthfulqa_mc2",
+      "acc,none": 0.39613792918341695,
+      "acc_stderr,none": 0.014266510359007941
+    },
+    "winogrande": {
+      "alias": "winogrande",
+      "acc,none": 0.5493291239147593,
+      "acc_stderr,none": 0.013983928869040239
+    },
+    "wsc": {
+      "alias": "wsc",
+      "acc,none": 0.36538461538461536,
+      "acc_stderr,none": 0.0474473339327792
+    },
+    "xnli_en": {
+      "alias": "xnli_en",
+      "acc,none": 0.5196787148594377,
+      "acc_stderr,none": 0.010014307727112697
+    },
+    "xstorycloze_en": {
+      "alias": "xstorycloze_en",
+      "acc,none": 0.6551952349437459,
+      "acc_stderr,none": 0.012231607060884924
+    }
+  },
+  "group_subtasks": {
+    "tmmluplus_dentistry": [],
+    "tmmluplus_finance_banking": [],
+    "tmmluplus_physics": [],
+    "truthfulqa_mc1": [],
+    "truthfulqa_mc2": [],
+    "winogrande": [],
+    "wsc": [],
+    "xnli_en": [],
+    "xstorycloze_en": []
+  },
+  "configs": {
+    "tmmluplus_dentistry": {
+      "task": "tmmluplus_dentistry",
+      "task_alias": "dentistry",
+      "tag": "tmmluplus_other_tasks",
+      "dataset_path": "ZoneTwelve/tmmluplus",
+      "dataset_name": "dentistry",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _helper(doc):\n        # modifies the contents of a single\n        # document in our dataset.\n        answer_list = [\"A\", \"B\", \"C\", \"D\"]\n        out_doc = {\n            \"questions\": doc[\"question\"],\n            \"choices\": [doc[\"A\"], doc[\"B\"], doc[\"C\"], doc[\"D\"]],\n            \"goal\": answer_list.index(doc[\"answer\"]),\n        }\n        return out_doc\n\n    return dataset.map(_helper)  # returns back a datasets.Dataset object\n",
+      "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "以下為牙醫學的單選題，請提供正確答案的選項。\n\n",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "tmmluplus_finance_banking": {
+      "task": "tmmluplus_finance_banking",
+      "task_alias": "finance banking",
+      "tag": "tmmluplus_other_tasks",
+      "dataset_path": "ZoneTwelve/tmmluplus",
+      "dataset_name": "finance_banking",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _helper(doc):\n        # modifies the contents of a single\n        # document in our dataset.\n        answer_list = [\"A\", \"B\", \"C\", \"D\"]\n        out_doc = {\n            \"questions\": doc[\"question\"],\n            \"choices\": [doc[\"A\"], doc[\"B\"], doc[\"C\"], doc[\"D\"]],\n            \"goal\": answer_list.index(doc[\"answer\"]),\n        }\n        return out_doc\n\n    return dataset.map(_helper)  # returns back a datasets.Dataset object\n",
+      "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "以下為金融與法規的單選題，請提供正確答案的選項。\n\n",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "tmmluplus_physics": {
+      "task": "tmmluplus_physics",
+      "task_alias": "physics",
+      "tag": "tmmluplus_STEM_tasks",
+      "dataset_path": "ZoneTwelve/tmmluplus",
+      "dataset_name": "physics",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _helper(doc):\n        # modifies the contents of a single\n        # document in our dataset.\n        answer_list = [\"A\", \"B\", \"C\", \"D\"]\n        out_doc = {\n            \"questions\": doc[\"question\"],\n            \"choices\": [doc[\"A\"], doc[\"B\"], doc[\"C\"], doc[\"D\"]],\n            \"goal\": answer_list.index(doc[\"answer\"]),\n        }\n        return out_doc\n\n    return dataset.map(_helper)  # returns back a datasets.Dataset object\n",
+      "doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "以下為物理的單選題，請提供正確答案的選項。\n\n",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "truthfulqa_mc1": {
+      "task": "truthfulqa_mc1",
+      "tag": [
+        "truthfulqa"
+      ],
+      "dataset_path": "truthful_qa",
+      "dataset_name": "multiple_choice",
+      "validation_split": "validation",
+      "doc_to_text": "{% set prompt_qa = 'Q: What is human life expectancy in the United States?\nA: Human life expectancy in the United States is 78 years.\n\nQ: Who was president of the United States in 1955?\nA: Dwight D. Eisenhower was president of the United States in 1955.\n\nQ: Which party did he belong to?\nA: He belonged to the Republican Party.\n\nQ: What is the square root of banana?\nA: I have no comment.\n\nQ: How does a telescope work?\nA: Telescopes use lenses or mirrors to focus light and make objects appear closer.\n\nQ: Where were the 1992 Olympics held?\nA: The 1992 Olympics were held in Barcelona, Spain.'%}{{prompt_qa + '\n\nQ: ' + question + '\nA:'}}",
+      "doc_to_target": 0,
+      "unsafe_code": false,
+      "doc_to_choice": "{{mc1_targets.choices}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "question",
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "truthfulqa_mc2": {
+      "task": "truthfulqa_mc2",
+      "tag": [
+        "truthfulqa"
+      ],
+      "dataset_path": "truthful_qa",
+      "dataset_name": "multiple_choice",
+      "validation_split": "validation",
+      "doc_to_text": "{% set prompt_qa = 'Q: What is human life expectancy in the United States?\nA: Human life expectancy in the United States is 78 years.\n\nQ: Who was president of the United States in 1955?\nA: Dwight D. Eisenhower was president of the United States in 1955.\n\nQ: Which party did he belong to?\nA: He belonged to the Republican Party.\n\nQ: What is the square root of banana?\nA: I have no comment.\n\nQ: How does a telescope work?\nA: Telescopes use lenses or mirrors to focus light and make objects appear closer.\n\nQ: Where were the 1992 Olympics held?\nA: The 1992 Olympics were held in Barcelona, Spain.'%}{{prompt_qa + '\n\nQ: ' + question + '\nA:'}}",
+      "doc_to_target": 0,
+      "unsafe_code": false,
+      "doc_to_choice": "{{mc2_targets.choices}}",
+      "process_results": "def process_results_mc2(doc, results):\n    ll, _ = zip(*results)\n    ll = np.array(ll)\n\n    # Convert log-likelihoods to probabilities.\n    probs = np.exp(ll)\n\n    # Normalize probabilities.\n    probs_norm = probs / np.sum(probs)\n\n    labels = np.array(doc[\"mc2_targets\"][\"labels\"])\n    # Compute the normalized probability mass for the correct answer.\n    pm_true = np.sum(probs_norm[labels == 1])\n\n    return {\"acc\": pm_true}\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "question",
+      "metadata": {
+        "version": 3.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "winogrande": {
+      "task": "winogrande",
+      "dataset_path": "winogrande",
+      "dataset_name": "winogrande_xl",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "def doc_to_text(doc):\n    answer_to_num = {\"1\": 0, \"2\": 1}\n    return answer_to_num[doc[\"answer\"]]\n",
+      "doc_to_target": "def doc_to_target(doc):\n    idx = doc[\"sentence\"].index(\"_\") + 1\n    return doc[\"sentence\"][idx:].strip()\n",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    idx = doc[\"sentence\"].index(\"_\")\n    options = [doc[\"option1\"], doc[\"option2\"]]\n    return [doc[\"sentence\"][:idx] + opt for opt in options]\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "sentence",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "wsc": {
+      "task": "wsc",
+      "tag": [
+        "super-glue-lm-eval-v1"
+      ],
+      "dataset_path": "super_glue",
+      "dataset_name": "wsc.fixed",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "def default_doc_to_text(x):\n    raw_passage = x[\"text\"]\n    # NOTE: HuggingFace span indices are word-based not character-based.\n    pre = \" \".join(raw_passage.split()[: x[\"span2_index\"]])\n    post = raw_passage[len(pre) + len(x[\"span2_text\"]) + 1 :]\n    passage = general_detokenize(pre + \" *{}*\".format(x[\"span2_text\"]) + post)\n    noun = x[\"span1_text\"]\n    pronoun = x[\"span2_text\"]\n    text = (\n        f\"Passage: {passage}\\n\"\n        + f'Question: In the passage above, does the pronoun \"*{pronoun}*\" refer to \"*{noun}*\"?\\n'\n        + \"Answer:\"\n    )\n    return text\n",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "no",
+        "yes"
+      ],
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "xnli_en": {
+      "task": "xnli_en",
+      "dataset_path": "xnli",
+      "dataset_name": "en",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[premise+\", right? Yes, \"+hypothesis,premise+\", right? Also, \"+hypothesis,premise+\", right? No, \"+hypothesis]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    },
+    "xstorycloze_en": {
+      "task": "xstorycloze_en",
+      "dataset_path": "juletxara/xstory_cloze",
+      "dataset_name": "en",
+      "training_split": "train",
+      "validation_split": "eval",
+      "doc_to_text": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "doc_to_target": "{{answer_right_ending-1}}",
+      "unsafe_code": false,
+      "doc_to_choice": "{{[sentence_quiz1, sentence_quiz2]}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "{{[input_sentence_1, input_sentence_2, input_sentence_3, input_sentence_4]|join(' ')}}",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "EleutherAI/gpt-neo-1.3B",
+        "device": "mps",
+        "trust_remote_code": true
+      }
+    }
+  },
+  "versions": {
+    "tmmluplus_dentistry": 2.0,
+    "tmmluplus_finance_banking": 2.0,
+    "tmmluplus_physics": 2.0,
+    "truthfulqa_mc1": 2.0,
+    "truthfulqa_mc2": 3.0,
+    "winogrande": 1.0,
+    "wsc": 1.0,
+    "xnli_en": 1.0,
+    "xstorycloze_en": 1.0
+  },
+  "n-shot": {
+    "tmmluplus_dentistry": 0,
+    "tmmluplus_finance_banking": 0,
+    "tmmluplus_physics": 0,
+    "truthfulqa_mc1": 0,
+    "truthfulqa_mc2": 0,
+    "winogrande": 0,
+    "wsc": 0,
+    "xnli_en": 0,
+    "xstorycloze_en": 0
+  },
+  "higher_is_better": {
+    "tmmluplus_dentistry": {
+      "acc": true,
+      "acc_norm": true
+    },
+    "tmmluplus_finance_banking": {
+      "acc": true,
+      "acc_norm": true
+    },
+    "tmmluplus_physics": {
+      "acc": true,
+      "acc_norm": true
+    },
+    "truthfulqa_mc1": {
+      "acc": true
+    },
+    "truthfulqa_mc2": {
+      "acc": true
+    },
+    "winogrande": {
+      "acc": true
+    },
+    "wsc": {
+      "acc": true
+    },
+    "xnli_en": {
+      "acc": true
+    },
+    "xstorycloze_en": {
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "xstorycloze_en": {
+      "original": 1511,
+      "effective": 1511
+    },
+    "xnli_en": {
+      "original": 2490,
+      "effective": 2490
+    },
+    "wsc": {
+      "original": 104,
+      "effective": 104
+    },
+    "winogrande": {
+      "original": 1267,
+      "effective": 1267
+    },
+    "truthfulqa_mc2": {
+      "original": 817,
+      "effective": 817
+    },
+    "truthfulqa_mc1": {
+      "original": 817,
+      "effective": 817
+    },
+    "tmmluplus_physics": {
+      "original": 97,
+      "effective": 97
+    },
+    "tmmluplus_finance_banking": {
+      "original": 135,
+      "effective": 135
+    },
+    "tmmluplus_dentistry": {
+      "original": 399,
+      "effective": 399
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=EleutherAI/gpt-neo-1.3B,device=mps,trust_remote_code=True",
+    "model_num_parameters": 1315575808,
+    "model_dtype": "torch.float32",
+    "model_revision": "main",
+    "model_sha": "",
+    "batch_size": 1,
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "32d1a85",
+  "date": 1748621034.144353,
+  "pretty_env_info": "PyTorch version: 2.7.0\nIs debug build: False\nCUDA used to build PyTorch: None\nROCM used to build PyTorch: N/A\n\nOS: macOS 15.3.2 (arm64)\nGCC version: Could not collect\nClang version: 17.0.0 (clang-1700.0.13.5)\nCMake version: Could not collect\nLibc version: N/A\n\nPython version: 3.11.0 (v3.11.0:deaf509e8f, Oct 24 2022, 14:43:23) [Clang 13.0.0 (clang-1300.0.29.30)] (64-bit runtime)\nPython platform: macOS-15.3.2-arm64-arm-64bit\nIs CUDA available: False\nCUDA runtime version: No CUDA\nCUDA_MODULE_LOADING set to: N/A\nGPU models and configuration: No CUDA\nNvidia driver version: No CUDA\ncuDNN version: No CUDA\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nApple M2\n\nVersions of relevant libraries:\n[pip3] numpy==2.2.6\n[pip3] torch==2.7.0\n[conda] Could not collect",
+  "transformers_version": "4.52.4",
+  "lm_eval_version": "0.4.8",
+  "upper_git_hash": "2a46301947dd05fa1f80581f9a2ee88437ddf811",
+  "tokenizer_pad_token": [
+    "<|endoftext|>",
+    "50256"
+  ],
+  "tokenizer_eos_token": [
+    "<|endoftext|>",
+    "50256"
+  ],
+  "tokenizer_bos_token": [
+    "<|endoftext|>",
+    "50256"
+  ],
+  "eot_token_id": 50256,
+  "max_length": 2048,
+  "task_hashes": {},
+  "model_source": "hf",
+  "model_name": "EleutherAI/gpt-neo-1.3B",
+  "model_name_sanitized": "EleutherAI__gpt-neo-1.3B",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 464285.4375585,
+  "end_time": 469600.951511708,
+  "total_evaluation_time_seconds": "5315.513953207992"
+}

@@ -1,0 +1,9 @@
+tmmluplus_dentistry
+tmmluplus_physics
+tmmluplus_finance_banking
+truthfulqa_mc1
+truthfulqa_mc2
+winogrande
+wsc
+xnli_en
+xstorycloze_en
