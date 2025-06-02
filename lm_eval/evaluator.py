@@ -153,11 +153,15 @@ def simple_evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
 
-    if isinstance(model_args, str) and (
-        "instruct" in model_args and not apply_chat_template
-    ):
+    if (
+        (isinstance(model_args, str) and "inst" in model_args.lower())
+        or (
+            isinstance(model_args, dict)
+            and any("inst" in str(v).lower() for v in model_args.values())
+        )
+    ) and not apply_chat_template:
         eval_logger.warning(
-            "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+            "Model appears to be an instruct variant but chat template is not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
         )
 
     if delete_requests_cache:
