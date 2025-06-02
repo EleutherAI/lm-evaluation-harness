@@ -1,0 +1,13 @@
+group: masakhapos
+task:
+  - masakhapos_prompt_1
+  - masakhapos_prompt_2
+  - masakhapos_prompt_3
+  - masakhapos_prompt_4
+  - masakhapos_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
