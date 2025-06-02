@@ -1,0 +1,5 @@
+"dataset_name": "Finance (Professional & University in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_social_science"
+"task": "kazmmlu_finance_(professional_&_university_in_rus)"
+"task_alias": "Finance (Professional & University in rus)"

@@ -1,0 +1,7 @@
+group: kazmmlu
+task:
+- kazmmlu_social_science
+- kazmmlu_stem
+- kazmmlu_humanities
+- kazmmlu_other
+- kazmmlu_language
