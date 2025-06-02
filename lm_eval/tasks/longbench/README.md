@@ -32,6 +32,17 @@ Homepage: `https://github.com/THUDM/LongBench`
     pages = "3119--3137",
 }
 ```
+### Notes
+
+#### Tasks without Chat Template (with add_bos_token=True but model dependent)
+
+The original implementation suggest not to use `chat_template` for these tasks (for instruct models):
+- longbench_lcc
+- longbench_repobench-p
+- longbench_samsum
+- longbench_trec
+- longbench_triviaqa
+
 
 ### Groups, Tags, and Tasks
 
@@ -96,4 +107,4 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 v2.: fix doc_to_target; add vcsum
-v3: properly use all answers for metric calculation; trim whitespace from resps.
+v3: properly use all answers for metric calculation; trim whitespace from resps; fix stop sequences not parsing correctly.
