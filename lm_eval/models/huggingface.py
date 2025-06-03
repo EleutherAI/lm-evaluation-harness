@@ -20,6 +20,12 @@ from packaging import version
 from peft import PeftModel
 from peft import __version__ as PEFT_VERSION
 from tqdm import tqdm
+from transformers import (
+    AwqConfig,
+    CompressedTensorsConfig,
+    FbgemmFp8Config,
+    GPTQConfig,
+)
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
@@ -39,8 +45,24 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
-
 eval_logger = logging.getLogger(__name__)
+
+
+class DummyConfig:
+    @classmethod
+    def from_dict(cls, config_dict: dict):
+        return config_dict
+
+
+QUANTIZE_CONFIG_MAPPING = {
+    "gptq": GPTQConfig,
+    "awq": AwqConfig,
+    "fbgemm_fp8": FbgemmFp8Config,
+    "compressed-tensors": CompressedTensorsConfig,
+    "none": DummyConfig,
+}
+
+DEFAULT_QUANTIZE_CONFIG = DummyConfig
 
 
 @register_model("hf-auto", "hf", "huggingface")
@@ -190,6 +212,15 @@ class HFLM(TemplateLM):
 
         # if we passed `pretrained` as a string, initialize our model now
         if isinstance(pretrained, str):
+            quantization_config = getattr(self.config, "quantization_config", None)
+            if quantization_config is not None and isinstance(
+                quantization_config, dict
+            ):
+                quantization_config = QUANTIZE_CONFIG_MAPPING.get(
+                    quantization_config.get("quant_method", "none"),
+                    DEFAULT_QUANTIZE_CONFIG,
+                ).from_dict(quantization_config)
+
             self._create_model(
                 pretrained=pretrained,
                 revision=revision,
@@ -205,7 +236,7 @@ class HFLM(TemplateLM):
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
-                quantization_config=getattr(self.config, "quantization_config", None),
+                quantization_config=quantization_config,
                 **kwargs,
             )
 
