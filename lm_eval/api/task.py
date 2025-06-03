@@ -96,6 +96,7 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
     gen_prefix: Optional[str] = None
+    unconditional_context: str = ""
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -1483,7 +1484,7 @@ class ConfigurableTask(Task):
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
                 # TODO: should these be strided? will have to modify the processing in process_results if so
                 aux_arguments = [
-                    ("", f"{target_delimiter}{choice}") for choice in choices
+                    (self.config.unconditional_context, f"{target_delimiter}{choice}") for choice in choices
                 ]
 
                 arguments.extend(aux_arguments)
