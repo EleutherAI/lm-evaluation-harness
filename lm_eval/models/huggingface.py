@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 import jinja2
 import torch
@@ -17,8 +17,6 @@ from accelerate import (
 from accelerate.utils import get_max_memory
 from huggingface_hub import HfApi
 from packaging import version
-from peft import PeftModel
-from peft import __version__ as PEFT_VERSION
 from tqdm import tqdm
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
@@ -39,6 +37,9 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
+
+if TYPE_CHECKING:
+    from transformers.quantizers import AutoQuantizationConfig
 
 eval_logger = logging.getLogger(__name__)
 
@@ -188,6 +189,11 @@ class HFLM(TemplateLM):
             add_bos_token=add_bos_token,
         )
 
+        if quantization_config := getattr(self.config, "quantization_config", None):
+            from transformers.quantizers import AutoQuantizationConfig
+
+            quantization_config = AutoQuantizationConfig.from_dict(quantization_config)
+
         # if we passed `pretrained` as a string, initialize our model now
         if isinstance(pretrained, str):
             self._create_model(
@@ -205,7 +211,7 @@ class HFLM(TemplateLM):
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
-                quantization_config=getattr(self.config, "quantization_config", None),
+                quantization_config=quantization_config,
                 **kwargs,
             )
 
@@ -551,7 +557,7 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
-        quantization_config: Optional[Dict[str, Any]] = None,
+        quantization_config: Optional["AutoQuantizationConfig"] = None,
         **kwargs,
     ) -> None:
         """
@@ -597,7 +603,7 @@ class HFLM(TemplateLM):
                 torch_dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
-                # quantization_config=quantization_config,
+                quantization_config=quantization_config,
                 **model_kwargs,
             )
         else:
@@ -644,6 +650,9 @@ class HFLM(TemplateLM):
             )
 
         if peft:
+            from peft import PeftModel
+            from peft import __version__ as PEFT_VERSION
+
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
