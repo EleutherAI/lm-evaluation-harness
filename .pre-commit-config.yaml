@@ -29,7 +29,7 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0
+    rev: v0.11.10
     hooks:
       # Run the linter.
       - id: ruff
@@ -50,7 +50,7 @@ repos:
     rev: v0.9.29
     hooks:
       - id: pymarkdown
-        exclude: ^lm_eval/tasks/
+        exclude: ^(lm_eval/tasks/.*|docs/footguns\.md)$
         args: [fix, -r]
 #  - repo: https://github.com/pre-commit/mirrors-mypy
 #    rev: v1.5.1
