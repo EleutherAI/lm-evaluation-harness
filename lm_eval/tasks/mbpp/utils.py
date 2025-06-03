@@ -1,4 +1,5 @@
 import re
+from typing import Union
 
 import evaluate as hf_evaluate
 
@@ -14,7 +15,15 @@ except Exception as e:
     raise e
 
 
-def pass_at_1(references: list[str], predictions: list[list[str]]) -> float:
+def pass_at_1(
+    references: Union[str, list[str]], predictions: Union[str, list[list[str]]]
+) -> float:
+    if isinstance(references, str):
+        references = [references]
+    if isinstance(predictions[0], str):
+        predictions = [[p] for p in predictions]
+    print(f"References: {references}")
+    print(f"Predictions: {predictions}")
     return pass_at_k.compute(
         references=references,
         predictions=predictions,
