@@ -4,6 +4,7 @@ import logging
 import random
 import time
 from collections import defaultdict
+from copy import deepcopy
 from typing import TYPE_CHECKING, List, Optional, Union
 from tqdm import tqdm
 
@@ -620,8 +621,13 @@ def evaluate(
                 for req in tqdm(cloned_reqs, desc=f"Running {reqtype} requests"):
                     # one request per iteration, each time update req.args
                     req = req.update_request(storage, req)
+
+                    # some models change arguments while generating
+                    req_copy = deepcopy(req)
+
                     # only one resp for a single request
-                    resp = getattr(lm, reqtype)([req])
+                    resp = getattr(lm, reqtype)([req_copy])
+
                     # simultaneously add output to the Instance attr
                     req.resps.extend(resp)
                     # push changes into storage

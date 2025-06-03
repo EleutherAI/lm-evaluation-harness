@@ -1156,7 +1156,7 @@ class ConfigurableTask(Task):
         else:
             question_content = question
             gen_prefix_content = gen_prefix
-            
+
         if not fewshot_as_multiturn:
             # if no messages or last message is system, append as new user entry
             if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
