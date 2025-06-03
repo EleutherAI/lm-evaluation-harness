@@ -1,0 +1,7 @@
+"dataset_name": "arabic_language_(general)"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_language_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_arabic_language_(general)"
+"task_alias": "arabic language (general)"

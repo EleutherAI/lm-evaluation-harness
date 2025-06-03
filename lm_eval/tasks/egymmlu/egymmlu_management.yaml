@@ -1,0 +1,7 @@
+"dataset_name": "management"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_other_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_management"
+"task_alias": "management"
