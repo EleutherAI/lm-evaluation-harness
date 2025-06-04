@@ -1,0 +1,76 @@
+site_name: LM Evaluation Harness
+site_description: A framework for evaluating language models
+site_url: https://github.com/EleutherAI/lm-evaluation-harness
+repo_url: https://github.com/EleutherAI/lm-evaluation-harness
+repo_name: EleutherAI/lm-evaluation-harness
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            inherited_members: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Documentation:
+    - API Guide: API_guide.md
+    - Model Guide: model_guide.md
+    - Interface: interface.md
+    - New Task Guide: new_task_guide.md
+    - Task Guide: task_guide.md
+    - Decontamination: decontamination.md
+    - Chat Templates: chat-template-readme.md
+  - Contributing: CONTRIBUTING.md
+  - API Reference:
+    - Models: 
+      - API Models: reference/api_models.md
+      - HF VLMs: reference/hf_vlms.md
