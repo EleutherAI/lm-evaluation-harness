@@ -35,7 +35,11 @@ def filter_dataset_by_page_lengths(*args, **kwargs) -> Dict[str, datasets.Datase
     filter_colname = kwargs.get("filter_colname", "length")
     token = kwargs.get("token", None)
 
-    dataset_columns = list(datasets.load_dataset(dataset_repo_name, dataset_name, token=token)["test"].features.keys())
+    dataset_columns = list(
+        datasets.load_dataset(dataset_repo_name, dataset_name, token=token)[
+            "test"
+        ].features.keys()
+    )
     if filter_colname not in dataset_columns:
         raise ValueError(f"Column {filter_colname} not found in dataset {dataset_name}")
 
