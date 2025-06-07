@@ -17,9 +17,7 @@ filter_list:
       - function: "take_first"
 generation_kwargs:
   until:
-    - "</s>"
-    - "Q:"
-    - "<|im_end|>"
+    - "Question:"
   max_gen_toks: 2048
   do_sample: false
   temperature: 0.0

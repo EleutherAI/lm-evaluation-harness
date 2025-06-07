@@ -14,6 +14,7 @@
 
 import copy
 import json
+import logging
 import re
 import string
 import sys
@@ -24,7 +25,8 @@ from typing import Any, Dict, List
 import numpy as np
 from datasets import Dataset
 
-from lm_eval.utils import eval_logger
+
+eval_logger = logging.getLogger(__name__)
 
 
 NUMERALS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]

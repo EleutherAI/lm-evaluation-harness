@@ -1,0 +1,4 @@
+dataset_name: ig
+include: nollysenti
+doc_to_text: 'Does this Igbo movie description; "{{review}}" have a Positive or Negative sentiment? Labels only\n'
+task: nollysenti_ibo_prompt_2

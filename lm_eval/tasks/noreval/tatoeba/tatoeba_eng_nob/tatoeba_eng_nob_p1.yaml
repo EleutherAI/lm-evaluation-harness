@@ -1,0 +1,6 @@
+tag: tatoeba_eng_nob
+dataset_name: eng-nob
+doc_to_target: targetString
+task: tatoeba_eng_nob_p1
+include: ../_tatoeba_yaml
+doc_to_text: "Oversett følgende setning til norsk bokmål: {{sourceString}}\nBokmål:"
