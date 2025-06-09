@@ -73,7 +73,10 @@ def run_test(sample, test, debug=False, timeout=6):
                 sys.stdin = io.StringIO(input_str)
                 
                 # Execute the code
-                exec_globals = {}
+                exec_globals = {
+                    '__name__': '__main__',
+                    '__builtins__': __builtins__,
+                }
                 exec(test, exec_globals)
                 
                 # Get output

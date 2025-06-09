@@ -47,17 +47,31 @@ def postprocess_generation(model_output: str) -> str:
     return extract_code_generation(model_output) # model_type defaults to 'chat' 
 
 def extract_code_generation(model_output: str, model_type: str = 'chat'):
-    # modified from
-    outputlines = model_output.split('\\n') # This is the version you want to keep
-    # TODO: handle codellama
+    """
+    Extract Python code from model output, handling both markdown format and raw Python code.
+    """
+    # First, try to extract from markdown code blocks
+    outputlines = model_output.split('\n')  # Fixed: use actual newline instead of literal \\n
 
     if model_type == 'base':
         return model_output.strip()
     elif model_type == 'chat':
         indexlines = [i for i, line in enumerate(outputlines) if '```' in line]
-    else:
-        raise ValueError(f'Invalid mode type: {model_type}')
-
-    if len(indexlines) < 2:
+        
+        # If we found markdown code blocks, extract code from them
+        if len(indexlines) >= 2:
+            return '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])  # Fixed: use actual newline instead of literal \\n
+        
+        # If no markdown blocks found, check if this looks like raw Python code
+        # Look for Python keywords to determine if this is likely Python code
+        python_keywords = ['def ', 'import ', 'from ', 'class ', 'if ', 'for ', 'while ', 'try:', 'except:', 'print(']
+        code_lines = [line.strip() for line in outputlines if line.strip()]
+        
+        if code_lines and any(any(keyword in line for keyword in python_keywords) for line in code_lines):
+            # This looks like raw Python code, return it as-is
+            return model_output.strip()
+        
+        # If no code patterns found, return empty string
         return ''
-    return '\\n'.join(outputlines[indexlines[0] + 1:indexlines[1]]) 
+    else:
+        raise ValueError(f'Invalid mode type: {model_type}') 

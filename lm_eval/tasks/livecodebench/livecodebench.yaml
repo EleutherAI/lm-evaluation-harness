@@ -13,7 +13,7 @@ generation_kwargs:
   - "<|im_end|>"
   # Qwen3-32B parameters from Evalscope (corrected for HuggingFace)
   do_sample: false  # Set true for sampling to use temperature/top_p/top_k
-  max_new_tokens: 2048  # Reasonable limit (was max_tokens: 30000)
+  max_gen_toks: 2048  # Changed from max_tokens to max_gen_toks for lm-evaluation-harness compatibility
   # temperature: 0.6  # Sampling temperature (recommended value per Qwen report)
   # top_p: 0.95  # top-p sampling (recommended value per Qwen report)
   # top_k: 20  # top-k sampling (recommended value per Qwen report)

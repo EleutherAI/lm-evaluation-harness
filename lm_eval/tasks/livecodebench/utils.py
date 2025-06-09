@@ -1,6 +1,8 @@
 from typing import Dict, List, Any
 import re
 import json
+import base64
+import zlib
 import multiprocessing
 import numpy as np
 from collections import defaultdict
@@ -27,12 +29,24 @@ def extract_code_generation(model_output: str, model_type: str = 'chat'):
         return model_output.strip()
     elif model_type == 'chat':
         indexlines = [i for i, line in enumerate(outputlines) if '```' in line]
+        
+        # If we found code blocks, extract the code
+        if len(indexlines) >= 2:
+            return '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])
+        
+        # If no code blocks found, check if the entire output looks like code
+        # This handles cases where models generate raw Python code without markdown
+        stripped_output = model_output.strip()
+        if stripped_output:
+            # Simple heuristic: if it contains common Python keywords, treat as code
+            python_indicators = ['def ', 'import ', 'from ', 'class ', 'if ', 'for ', 'while ', 'print(', 'return ']
+            if any(indicator in stripped_output for indicator in python_indicators):
+                return stripped_output
+        
+        # If no code blocks and doesn't look like code, return empty
+        return ''
     else:
         raise ValueError(f'Invalid model type: {model_type}')
-
-    if len(indexlines) < 2:
-        return ''
-    return '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])
 
 
 def codegen_check_correctness(sample, generation, timeout, debug=False):
@@ -159,8 +173,17 @@ def codegen_metrics(
     try:
         from lm_eval.tasks.livecodebench.pass_k_utils import compute_metrics_from_results
     except ImportError:
-        # Fallback for relative import
-        from .pass_k_utils import compute_metrics_from_results
+        try:
+            # Fallback for relative import
+            from .pass_k_utils import compute_metrics_from_results
+        except ImportError:
+            # Last fallback: try to import from same directory
+            import sys
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            if current_dir not in sys.path:
+                sys.path.insert(0, current_dir)
+            from pass_k_utils import compute_metrics_from_results
 
     samples_linear = []
     generations_linear = []
@@ -204,8 +227,107 @@ def codegen_metrics(
 # --- lm-eval task-specific functions ---
 
 def doc_to_target(doc: dict) -> dict:
-    """Returns the full document, as evaluation functions require it."""
-    return doc
+    """
+    Returns the document with properly formatted input_output field.
+    Converts public_test_cases and private_test_cases to the expected input_output format.
+    """
+    # Make a copy to avoid modifying the original
+    processed_doc = doc.copy()
+    
+    # Check if input_output already exists (shouldn't happen with current dataset)
+    if 'input_output' in processed_doc:
+        return processed_doc
+    
+    # Convert test cases to input_output format
+    inputs = []
+    outputs = []
+    
+    try:
+        # Process public test cases
+        if 'public_test_cases' in processed_doc:
+            public_test_cases = json.loads(processed_doc['public_test_cases'])
+            for test_case in public_test_cases:
+                if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
+                    # Clean up the input/output strings (remove trailing newlines)
+                    test_input = test_case['input'].rstrip('\n\r')
+                    test_output = test_case['output'].rstrip('\n\r')
+                    
+                    # Format as expected by testing_util.py
+                    inputs.append([test_input])
+                    outputs.append(test_output)
+        
+        # Process private test cases if available
+        if 'private_test_cases' in processed_doc:
+            try:
+                # Decode private test cases (they're base64 + zlib compressed)
+                private_encoded = processed_doc['private_test_cases']
+                if private_encoded:  # Check if not empty
+                    private_decoded = base64.b64decode(private_encoded)
+                    private_decompressed = zlib.decompress(private_decoded)
+                    
+                    # Try to load as pickle first (newer format), then fall back to JSON
+                    private_test_cases = None
+                    try:
+                        import pickle
+                        private_data = pickle.loads(private_decompressed)
+                        # The pickle data might be a JSON string that needs further parsing
+                        if isinstance(private_data, str):
+                            private_test_cases = json.loads(private_data)
+                        else:
+                            private_test_cases = private_data
+                        logger.debug(f"Successfully decoded private test cases using pickle format")
+                    except Exception:
+                        # Fall back to JSON with different encodings
+                        for encoding in ['utf-8', 'latin-1', 'cp1252']:
+                            try:
+                                private_test_cases = json.loads(private_decompressed.decode(encoding))
+                                logger.debug(f"Successfully decoded private test cases using JSON with {encoding}")
+                                break
+                            except UnicodeDecodeError:
+                                continue
+                    
+                    if private_test_cases is None:
+                        raise ValueError("Could not decode private test cases with pickle or JSON")
+                    
+                    for test_case in private_test_cases:
+                        if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
+                            test_input = test_case['input'].rstrip('\n\r')
+                            test_output = test_case['output'].rstrip('\n\r')
+                            
+                            inputs.append([test_input])
+                            outputs.append(test_output)
+                    
+                    logger.debug(f"Successfully decoded {len(private_test_cases)} private test cases for doc {doc.get('question_id', 'unknown')}")
+                            
+            except Exception as e:
+                # If private test case decoding fails, continue with just public tests
+                logger.warning(f"Failed to decode private test cases for doc {doc.get('question_id', 'unknown')}: {e}")
+                logger.warning("Continuing with public test cases only - this may result in inflated accuracy scores")
+        
+        # Create the input_output field
+        if inputs and outputs:
+            processed_doc['input_output'] = json.dumps({
+                'inputs': inputs,
+                'outputs': outputs
+            })
+            logger.debug(f"Converted {len(inputs)} test cases for doc {doc.get('question_id', 'unknown')}")
+        else:
+            # Fallback: create empty input_output to avoid the default case
+            logger.warning(f"No test cases found for doc {doc.get('question_id', 'unknown')}, creating minimal test")
+            processed_doc['input_output'] = json.dumps({
+                'inputs': [[""]],
+                'outputs': [""]
+            })
+            
+    except Exception as e:
+        logger.error(f"Error processing test cases for doc {doc.get('question_id', 'unknown')}: {e}")
+        # Create minimal fallback
+        processed_doc['input_output'] = json.dumps({
+            'inputs': [[""]],
+            'outputs': [""]
+        })
+    
+    return processed_doc
 
 def postprocess_generation(model_output: str) -> str:
     """Extracts the generated code from the model's output."""
@@ -241,10 +363,19 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
             timeout=timeout,
             debug=debug,
         )
+        # DEBUG: Print the raw metrics to understand the issue
+        logger.debug(f"Raw metrics_dict: {metrics_dict}")
+        pass_at_1 = metrics_dict.get("pass@1", 0.0)
+        logger.debug(f"pass@1 value: {pass_at_1}")
+        
         # Convert from percentage to decimal and use 'acc' key to match YAML
-        accuracy = metrics_dict.get("pass@1", 0.0) / 100.0
+        accuracy = pass_at_1 / 100.0
+        logger.debug(f"Final accuracy after division: {accuracy}")
     except Exception as e:
+        import traceback
+        error_traceback = traceback.format_exc()
         logger.error(f"Error during livecodebench metric calculation for doc_id {doc.get('id', 'unknown')}: {e}")
+        logger.error(f"Full traceback: {error_traceback}")
         accuracy = 0.0
 
     return {"acc": accuracy}

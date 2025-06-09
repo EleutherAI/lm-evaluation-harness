@@ -35,6 +35,8 @@ class LocalCompletionsAPI(TemplateAPI):
                 max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
             stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+            # Filter out max_new_tokens to prevent API compatibility issues
+            gen_kwargs.pop("max_new_tokens", None)
             return {
                 "prompt": messages,
                 "model": self.model,
@@ -135,6 +137,8 @@ class LocalChatCompletion(LocalCompletionsAPI):
         stop = gen_kwargs.pop("until", ["<|endoftext|>"])
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
+        # Filter out max_new_tokens to prevent API compatibility issues
+        gen_kwargs.pop("max_new_tokens", None)
         return {
             "messages": messages,
             "model": self.model,
