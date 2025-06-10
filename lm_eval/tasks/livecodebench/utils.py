@@ -292,18 +292,13 @@ def doc_to_target(doc: dict) -> dict:
     Converts public_test_cases and private_test_cases to the expected input_output format.
     FILTERS FOR EASY DIFFICULTY ONLY.
     """
-    # VERIFY OUR NEW CODE IS RUNNING
-    print(f"\n🎯 EASY FILTER ACTIVE - Processing: {doc.get('question_id', 'unknown')}")
-    
     # FILTER: Only process "easy" difficulty documents
     doc_difficulty = doc.get('difficulty', '').lower().strip()
-    print(f"   Document difficulty: '{doc_difficulty}'")
-    
     if doc_difficulty != 'easy':
-        print(f"❌ FILTERING OUT: {doc.get('question_id', 'unknown')} (difficulty: {doc_difficulty})")
+        logger.debug(f"Filtering out document {doc.get('question_id', 'unknown')} with difficulty '{doc_difficulty}' (not easy)")
         return None  # This will cause the document to be skipped
     
-    print(f"✅ PROCESSING EASY: {doc.get('question_id', 'unknown')}")
+    logger.debug(f"Processing easy document: {doc.get('question_id', 'unknown')}")
     
     # Make a copy to avoid modifying the original
     processed_doc = doc.copy()
@@ -453,3 +448,5 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         accuracy = 0.0
 
     return {"acc": accuracy}
+
+# --- End of utility functions ---

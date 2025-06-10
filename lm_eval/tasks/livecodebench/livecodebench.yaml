@@ -1,7 +1,7 @@
 task: livecodebench
 dataset_path: livecodebench/code_generation_lite
 dataset_kwargs:
-  release_version: "release_v6"
+  version_tag: "release_v6"
 output_type: generate_until
 validation_split: test
 doc_to_text: "### Question:\n{{question_content}}\n\n### Answer: (Please provide your answer in a Python code block)\n\n"
