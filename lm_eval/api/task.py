@@ -405,7 +405,6 @@ class Task(abc.ABC):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
-        question_suffix: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -469,7 +468,6 @@ class Task(abc.ABC):
                 fewshot_as_multiturn,
                 chat_template,
                 gen_prefix=self.doc_to_prefix(doc),
-                question_suffix=question_suffix,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -1076,7 +1074,6 @@ class ConfigurableTask(Task):
         question: str,
         fewshot_as_multiturn: bool = False,
         gen_prefix: Optional[str] = None,
-        question_suffix: Optional[str] = None,
     ) -> None:
         """Adds a target question to the labeled examples list.
         If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
@@ -1085,23 +1082,13 @@ class ConfigurableTask(Task):
         if not fewshot_as_multiturn:
             # if no messages or last message is system, append as new user entry
             if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append(
-                    {"role": "user", "content": question + question_suffix}
-                    if question_suffix
-                    else {"role": "user", "content": question}
-                )
+                labeled_examples.append({"role": "user", "content": question})
             # if last message is user, append to it to avoid two user messages in a row
             else:
-                labeled_examples[-1]["content"] += (
-                    question + question_suffix if question_suffix else question
-                )
+                labeled_examples[-1]["content"] += question
         else:
             # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append(
-                {"role": "user", "content": question + question_suffix}
-                if question_suffix
-                else {"role": "user", "content": question}
-            )
+            labeled_examples.append({"role": "user", "content": question})
         if gen_prefix:
             labeled_examples.append({"role": "assistant", "content": gen_prefix})
 
@@ -1115,7 +1102,6 @@ class ConfigurableTask(Task):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
-        question_suffix: Optional[str] = None,
     ) -> Union[str, List[str]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1193,7 +1179,6 @@ class ConfigurableTask(Task):
                     example,
                     fewshot_as_multiturn,
                     gen_prefix=gen_prefix,
-                    question_suffix=question_suffix,
                 )
             # for loglikelihood create a list of questions with appended choices
             elif isinstance(example, list):
@@ -1206,7 +1191,6 @@ class ConfigurableTask(Task):
                         ex,
                         fewshot_as_multiturn,
                         gen_prefix=gen_prefix,
-                        question_suffix=question_suffix,
                     )
                     # TODO: append prefill?
                     labeled_examples_list.append(
@@ -1225,7 +1209,6 @@ class ConfigurableTask(Task):
                         choices[example],
                         fewshot_as_multiturn,
                         gen_prefix=gen_prefix,
-                        question_suffix=question_suffix,
                     )
                 else:
                     self.append_target_question(
@@ -1233,7 +1216,6 @@ class ConfigurableTask(Task):
                         str(example),
                         fewshot_as_multiturn,
                         gen_prefix=gen_prefix,
-                        question_suffix=question_suffix,
                     )
                 # return lm.apply_chat_template(labeled_examples)
             return chat_template(
@@ -1530,7 +1512,10 @@ class ConfigurableTask(Task):
                 # here mutual info refers to calculating
                 # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
-                aux_arguments = [("", f"{choice}") for choice in choices]
+                # TODO: should these be strided? will have to modify the processing in process_results if so
+                aux_arguments = [
+                    ("", f"{target_delimiter}{choice}") for choice in choices
+                ]
 
                 arguments.extend(aux_arguments)
 
@@ -1637,11 +1622,12 @@ class ConfigurableTask(Task):
             ):
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
-                lls_unconditional = lls[1::2]
+                # as we extend the args list with unconditional ("", continuation) pairs
+                lls_unconditional = lls[len(choices) :]
                 if len(lls_unconditional) != len(choices):
                     raise ValueError
                 # and this stores our "regular" conditional loglikelihoods
-                lls = lls[::2]
+                lls = lls[: len(choices)]
 
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)

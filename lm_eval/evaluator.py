@@ -153,11 +153,15 @@ def simple_evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
 
-    if isinstance(model_args, str) and (
-        "instruct" in model_args and not apply_chat_template
-    ):
+    if (
+        (isinstance(model_args, str) and "inst" in model_args.lower())
+        or (
+            isinstance(model_args, dict)
+            and any("inst" in str(v).lower() for v in model_args.values())
+        )
+    ) and not apply_chat_template:
         eval_logger.warning(
-            "Instruct model detected, but chat template not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+            "Model appears to be an instruct variant but chat template is not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
         )
 
     if delete_requests_cache:
@@ -413,7 +417,6 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
-    question_suffix: Optional[str] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -484,7 +487,7 @@ def evaluate(
     for task_output in eval_tasks:
         task: Task = task_output.task
 
-        if getattr(lm, "MULTIMODAL", False) != getattr(task, "MULTIMODAL", False):
+        if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
             incompatible_tasks.append(task_output.task_name)
         elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
             raise ValueError(
@@ -494,10 +497,6 @@ def evaluate(
         if not getattr(lm, "MULTIMODAL", False):
             raise ValueError(
                 f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
-            )
-        else:
-            raise ValueError(
-                f"Attempted to run tasks: {incompatible_tasks} which are text-only, but used a model type which only currently supports multimodal tasks."
             )
     # end validation check
 
@@ -527,7 +526,6 @@ def evaluate(
             tokenizer_name=getattr(lm, "tokenizer_name", "")
             if apply_chat_template
             else "",
-            question_suffix=question_suffix,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
