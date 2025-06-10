@@ -1,15 +1,15 @@
-task: shell_game
-dataset_path: Gscraid/shell_game
+task: fake_video
+dataset_path: luchaoqi/TalkingHeadBench
 output_type: generate_until
 test_split: test
 doc_to_text: !function utils.doc_to_text
-doc_to_target: "output"
+doc_to_target: "label"
 doc_to_video: !function utils.doc_to_video
-process_results: !function utils.process_results
 metric_list:
-  - metric: shell_game_em
-    aggregation: !function utils.aggregate_results
+  - metric: exact_match
+    aggregation: mean
     higher_is_better: true
+    ignore_punctuation: false
 num_fewshot: null
 metadata:
   version: 1.0

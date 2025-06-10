@@ -5,6 +5,7 @@ from . import (
     gguf,
     hf_audiolm,
     hf_steered,
+    hf_videolm,
     hf_vlms,
     huggingface,
     ibm_watsonx_ai,
@@ -18,7 +19,6 @@ from . import (
     sglang_causallms,
     sglang_generate_API,
     textsynth,
-    video_llava,
     vllm_causallms,
     vllm_vlms,
 )
