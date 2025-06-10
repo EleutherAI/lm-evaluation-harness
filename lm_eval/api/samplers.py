@@ -135,16 +135,16 @@ class ContextSampler:
         def add_image(image):
             user_content.append(
                 {
-                    "type": "image",
-                    "image": pil_image_to_bytes(image) if isinstance(image, Image.Image) else image
+                    "type": "image_url",
+                    "image_url": image
                 }
             )
 
         def add_audio(audio):
             user_content.append(
                 {
-                    "type": "audio",
-                    "audio_url" if isinstance(audio, str) else "audio": audio,
+                    "type": "audio_url",
+                    "audio_url": audio,
                 }
             )
 

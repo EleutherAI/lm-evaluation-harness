@@ -199,10 +199,14 @@ def sort_multimedia_content_in_chat(
     audios = []
     for msg in messages:
         for item in msg["content"]:
-            if item["type"] == 'image':
+            if item["type"] == "text":
+                continue
+            elif item["type"] == "image_url":
                 images.append(item)
-            elif item["type"] == 'audio':
+            elif item["type"] == "audio_url":
                 audios.append(item)
+            else:
+                raise ValueError(f"Currently item type {item['type']} is not supported")
 
     token_pattern = re.compile(
         rf"({re.escape(image_token)}|{re.escape(audio_token)})"

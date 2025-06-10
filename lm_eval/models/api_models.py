@@ -391,6 +391,7 @@ class TemplateAPI(TemplateLM):
                 json=payload,
                 headers=self.header,
                 verify=self.verify_certificate,
+                timeout=60,
             )
             if not response.ok:
                 eval_logger.warning(
