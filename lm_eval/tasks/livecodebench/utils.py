@@ -226,11 +226,85 @@ def codegen_metrics(
 
 # --- lm-eval task-specific functions ---
 
+def filter_by_difficulty(docs, difficulty_filter):
+    """
+    Filter documents by difficulty levels.
+    
+    Args:
+        docs: List of documents/problems
+        difficulty_filter: List of difficulty levels to include (e.g., ["Easy", "Medium", "Hard"])
+                          If None or empty, no filtering is applied
+    
+    Returns:
+        Filtered list of documents
+    """
+    if not difficulty_filter:
+        logger.info("No difficulty filter specified - including all problems")
+        return docs
+    
+    # Normalize difficulty filter values (handle case variations)
+    normalized_filter = [d.lower().strip() for d in difficulty_filter]
+    
+    original_count = len(docs)
+    filtered_docs = []
+    
+    for doc in docs:
+        doc_difficulty = doc.get('difficulty', '').lower().strip()
+        
+        # Handle various difficulty naming conventions
+        if doc_difficulty in normalized_filter:
+            filtered_docs.append(doc)
+        # Handle AtCoder contest type mapping to difficulty
+        elif 'contest_type' in doc:
+            contest_type = doc.get('contest_type', '').lower().strip()
+            mapped_difficulty = None
+            
+            # Map AtCoder contest types to standard difficulties
+            if 'abc' in contest_type:
+                mapped_difficulty = 'easy'
+            elif 'arc' in contest_type:
+                mapped_difficulty = 'medium'  
+            elif 'agc' in contest_type:
+                mapped_difficulty = 'hard'
+                
+            if mapped_difficulty and mapped_difficulty in normalized_filter:
+                filtered_docs.append(doc)
+    
+    filtered_count = len(filtered_docs)
+    logger.info(f"Difficulty filtering: {original_count} problems → {filtered_count} problems")
+    logger.info(f"Included difficulties: {difficulty_filter}")
+    logger.info(f"Problems per difficulty:")
+    
+    # Count problems by difficulty for logging
+    difficulty_counts = {}
+    for doc in filtered_docs:
+        doc_difficulty = doc.get('difficulty', 'Unknown')
+        difficulty_counts[doc_difficulty] = difficulty_counts.get(doc_difficulty, 0) + 1
+    
+    for diff, count in difficulty_counts.items():
+        logger.info(f"  - {diff}: {count} problems")
+    
+    return filtered_docs
+
 def doc_to_target(doc: dict) -> dict:
     """
     Returns the document with properly formatted input_output field.
     Converts public_test_cases and private_test_cases to the expected input_output format.
+    FILTERS FOR EASY DIFFICULTY ONLY.
     """
+    # VERIFY OUR NEW CODE IS RUNNING
+    print(f"\n🎯 EASY FILTER ACTIVE - Processing: {doc.get('question_id', 'unknown')}")
+    
+    # FILTER: Only process "easy" difficulty documents
+    doc_difficulty = doc.get('difficulty', '').lower().strip()
+    print(f"   Document difficulty: '{doc_difficulty}'")
+    
+    if doc_difficulty != 'easy':
+        print(f"❌ FILTERING OUT: {doc.get('question_id', 'unknown')} (difficulty: {doc_difficulty})")
+        return None  # This will cause the document to be skipped
+    
+    print(f"✅ PROCESSING EASY: {doc.get('question_id', 'unknown')}")
+    
     # Make a copy to avoid modifying the original
     processed_doc = doc.copy()
     
