@@ -1,3 +1,0 @@
-include: truthfulqa-multi-MT_gen_common.yaml
-task: truthfulqa-multi-MT_gen_en
-dataset_name: en
