@@ -1,0 +1,31 @@
+task: livecodebench_easy
+class: !function utils.LiveCodeBenchEasyEfficient
+dataset_path: livecodebench/code_generation_lite
+dataset_kwargs:
+  version_tag: "release_v6"
+output_type: generate_until
+validation_split: test
+doc_to_text: "### Question:\n{{question_content}}\n\n### Answer: (Please provide your answer in a Python code block)\n\n"
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
+num_fewshot: 0
+# context_kwargs:
+#   system_message: "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests. You will NOT return anything except for the program."
+generation_kwargs:
+  until:
+  - "<|end_of_text|>"
+  - "<|endoftext|>"
+  - "<|im_end|>"
+  # Qwen3-32B parameters from Evalscope (corrected for HuggingFace)
+  do_sample: false  # Set true for sampling to use temperature/top_p/top_k
+  max_gen_toks: 2048  # Changed from max_tokens to max_gen_toks for lm-evaluation-harness compatibility
+  # temperature: 0.6  # Sampling temperature (recommended value per Qwen report)
+  # top_p: 0.95  # top-p sampling (recommended value per Qwen report)
+  # top_k: 20  # top-k sampling (recommended value per Qwen report)
+  # Note: 'n' parameter not supported in HuggingFace, use multiple runs instead
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0 

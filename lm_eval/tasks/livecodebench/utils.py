@@ -290,113 +290,47 @@ def doc_to_target(doc: dict) -> dict:
     """
     Returns the document with properly formatted input_output field.
     Converts public_test_cases and private_test_cases to the expected input_output format.
-    FILTERS FOR EASY DIFFICULTY ONLY.
     """
-    # FILTER: Only process "easy" difficulty documents
-    doc_difficulty = doc.get('difficulty', '').lower().strip()
-    if doc_difficulty != 'easy':
-        logger.debug(f"Filtering out document {doc.get('question_id', 'unknown')} with difficulty '{doc_difficulty}' (not easy)")
-        return None  # This will cause the document to be skipped
+    logger.debug(f"Processing document: {doc.get('question_id', 'unknown')}")
     
-    logger.debug(f"Processing easy document: {doc.get('question_id', 'unknown')}")
+    # Extract and process public and private test cases
+    public_test_cases = doc.get('public_test_cases', [])
+    private_test_cases = doc.get('private_test_cases', [])
     
-    # Make a copy to avoid modifying the original
-    processed_doc = doc.copy()
+    if not public_test_cases and not private_test_cases:
+        logger.warning(f"No test cases found for document {doc.get('question_id', 'unknown')}")
+        return doc
     
-    # Check if input_output already exists (shouldn't happen with current dataset)
-    if 'input_output' in processed_doc:
-        return processed_doc
+    # Create input_output field by combining public and private test cases
+    input_output = []
     
-    # Convert test cases to input_output format
-    inputs = []
-    outputs = []
-    
-    try:
-        # Process public test cases
-        if 'public_test_cases' in processed_doc:
-            public_test_cases = json.loads(processed_doc['public_test_cases'])
-            for test_case in public_test_cases:
-                if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
-                    # Clean up the input/output strings (remove trailing newlines)
-                    test_input = test_case['input'].rstrip('\n\r')
-                    test_output = test_case['output'].rstrip('\n\r')
-                    
-                    # Format as expected by testing_util.py
-                    inputs.append([test_input])
-                    outputs.append(test_output)
-        
-        # Process private test cases if available
-        if 'private_test_cases' in processed_doc:
-            try:
-                # Decode private test cases (they're base64 + zlib compressed)
-                private_encoded = processed_doc['private_test_cases']
-                if private_encoded:  # Check if not empty
-                    private_decoded = base64.b64decode(private_encoded)
-                    private_decompressed = zlib.decompress(private_decoded)
-                    
-                    # Try to load as pickle first (newer format), then fall back to JSON
-                    private_test_cases = None
-                    try:
-                        import pickle
-                        private_data = pickle.loads(private_decompressed)
-                        # The pickle data might be a JSON string that needs further parsing
-                        if isinstance(private_data, str):
-                            private_test_cases = json.loads(private_data)
-                        else:
-                            private_test_cases = private_data
-                        logger.debug(f"Successfully decoded private test cases using pickle format")
-                    except Exception:
-                        # Fall back to JSON with different encodings
-                        for encoding in ['utf-8', 'latin-1', 'cp1252']:
-                            try:
-                                private_test_cases = json.loads(private_decompressed.decode(encoding))
-                                logger.debug(f"Successfully decoded private test cases using JSON with {encoding}")
-                                break
-                            except UnicodeDecodeError:
-                                continue
-                    
-                    if private_test_cases is None:
-                        raise ValueError("Could not decode private test cases with pickle or JSON")
-                    
-                    for test_case in private_test_cases:
-                        if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
-                            test_input = test_case['input'].rstrip('\n\r')
-                            test_output = test_case['output'].rstrip('\n\r')
-                            
-                            inputs.append([test_input])
-                            outputs.append(test_output)
-                    
-                    logger.debug(f"Successfully decoded {len(private_test_cases)} private test cases for doc {doc.get('question_id', 'unknown')}")
-                            
-            except Exception as e:
-                # If private test case decoding fails, continue with just public tests
-                logger.warning(f"Failed to decode private test cases for doc {doc.get('question_id', 'unknown')}: {e}")
-                logger.warning("Continuing with public test cases only - this may result in inflated accuracy scores")
-        
-        # Create the input_output field
-        if inputs and outputs:
-            processed_doc['input_output'] = json.dumps({
-                'inputs': inputs,
-                'outputs': outputs
+    # Process public test cases
+    for test_case in public_test_cases:
+        if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
+            input_output.append({
+                'input': test_case['input'],
+                'output': test_case['output']
             })
-            logger.debug(f"Converted {len(inputs)} test cases for doc {doc.get('question_id', 'unknown')}")
-        else:
-            # Fallback: create empty input_output to avoid the default case
-            logger.warning(f"No test cases found for doc {doc.get('question_id', 'unknown')}, creating minimal test")
-            processed_doc['input_output'] = json.dumps({
-                'inputs': [[""]],
-                'outputs': [""]
-            })
-            
-    except Exception as e:
-        logger.error(f"Error processing test cases for doc {doc.get('question_id', 'unknown')}: {e}")
-        # Create minimal fallback
-        processed_doc['input_output'] = json.dumps({
-            'inputs': [[""]],
-            'outputs': [""]
-        })
     
-    return processed_doc
+    # Process private test cases
+    for test_case in private_test_cases:
+        if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
+            input_output.append({
+                'input': test_case['input'], 
+                'output': test_case['output']
+            })
+    
+    if not input_output:
+        logger.warning(f"No valid test cases found for document {doc.get('question_id', 'unknown')}")
+        return doc
+    
+    # Create a copy of the document with the processed input_output field
+    doc_copy = doc.copy()
+    doc_copy['input_output'] = input_output
+    
+    logger.debug(f"Processed {len(input_output)} test cases for document {doc.get('question_id', 'unknown')}")
+    
+    return doc_copy
 
 def postprocess_generation(model_output: str) -> str:
     """Extracts the generated code from the model's output."""
@@ -450,3 +384,178 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     return {"acc": accuracy}
 
 # --- End of utility functions ---
+
+class LiveCodeBenchEasyEfficient:
+    """
+    Efficient custom task class that filters LiveCodeBench to only Easy difficulty problems.
+    This class filters at the dataset level before creating documents, making it much more efficient.
+    """
+    
+    def __init__(self, **kwargs):
+        try:
+            from lm_eval.api.task import ConfigurableTask
+        except ImportError:
+            from lm_eval.base import ConfigurableTask
+        
+        self.config = kwargs
+        self._base_task = ConfigurableTask(**kwargs)
+        
+        # Copy all attributes from the base task
+        for attr in dir(self._base_task):
+            if not attr.startswith('_'):
+                setattr(self, attr, getattr(self._base_task, attr))
+    
+    def __getattr__(self, name):
+        """Delegate any missing attributes to the base task."""
+        return getattr(self._base_task, name)
+    
+    def download(self, *args, **kwargs):
+        """Override download to filter dataset at the HuggingFace dataset level."""
+        # Call the base task's download method to get the raw dataset
+        dataset = self._base_task.download(*args, **kwargs)
+        
+        # Filter the dataset efficiently at the HuggingFace dataset level
+        logger.info("Filtering LiveCodeBench dataset for Easy difficulty problems only...")
+        filtered_dataset = filter_dataset_by_difficulty(dataset, ["easy"])
+        
+        return filtered_dataset
+    
+    def eval_docs(self):
+        """Override to use the already-filtered dataset."""
+        # Since we filtered at the dataset level in download(), 
+        # eval_docs() will naturally only return easy problems
+        return self._base_task.eval_docs()
+
+# Keep the old class for backward compatibility
+class LiveCodeBenchEasy:
+    """
+    DEPRECATED: Use LiveCodeBenchEasyEfficient instead.
+    This class filters documents after loading all of them, which is inefficient.
+    """
+    
+    def __init__(self, **kwargs):
+        try:
+            from lm_eval.api.task import ConfigurableTask
+        except ImportError:
+            from lm_eval.base import ConfigurableTask
+        
+        self.config = kwargs
+        self._base_task = ConfigurableTask(**kwargs)
+        
+        # Copy all attributes from the base task
+        for attr in dir(self._base_task):
+            if not attr.startswith('_'):
+                setattr(self, attr, getattr(self._base_task, attr))
+    
+    def __getattr__(self, name):
+        """Delegate any missing attributes to the base task."""
+        return getattr(self._base_task, name)
+    
+    def eval_docs(self):
+        """Override to filter documents by difficulty."""
+        # Get all documents from the base task
+        all_docs = list(self._base_task.eval_docs())
+        
+        logger.info(f"Total documents before filtering: {len(all_docs)}")
+        
+        # Filter to only Easy difficulty
+        easy_docs = []
+        difficulty_counts = {}
+        
+        for doc in all_docs:
+            doc_difficulty = doc.get('difficulty', '').lower().strip()
+            difficulty_counts[doc_difficulty] = difficulty_counts.get(doc_difficulty, 0) + 1
+            
+            if doc_difficulty == 'easy':
+                easy_docs.append(doc)
+        
+        logger.info(f"Documents after filtering to Easy only: {len(easy_docs)}")
+        logger.info("Difficulty distribution in original dataset:")
+        for diff, count in sorted(difficulty_counts.items()):
+            if diff:  # Skip empty difficulties
+                logger.info(f"  - {diff}: {count} problems")
+        
+        return easy_docs
+
+def filter_dataset_by_difficulty(dataset, difficulty_filter):
+    """
+    Filter HuggingFace dataset by difficulty at dataset level (before converting to documents).
+    This is much more efficient than filtering after loading all documents.
+    
+    Args:
+        dataset: HuggingFace dataset
+        difficulty_filter: List of difficulty levels to include (e.g., ["easy"])
+                          If None or empty, no filtering is applied
+    
+    Returns:
+        Filtered HuggingFace dataset
+    """
+    if not difficulty_filter:
+        logger.info("No difficulty filter specified - including all problems")
+        return dataset
+    
+    # Normalize difficulty filter values (handle case variations)
+    normalized_filter = [d.lower().strip() for d in difficulty_filter]
+    
+    def filter_by_difficulty(example):
+        """Filter function for HuggingFace dataset.filter()"""
+        doc_difficulty = example.get('difficulty', '').lower().strip()
+        
+        # Direct difficulty match
+        if doc_difficulty in normalized_filter:
+            return True
+            
+        # Handle AtCoder contest type mapping to difficulty
+        if 'contest_type' in example:
+            contest_type = example.get('contest_type', '').lower().strip()
+            mapped_difficulty = None
+            
+            # Map AtCoder contest types to standard difficulties
+            if 'abc' in contest_type:
+                mapped_difficulty = 'easy'
+            elif 'arc' in contest_type:
+                mapped_difficulty = 'medium'  
+            elif 'agc' in contest_type:
+                mapped_difficulty = 'hard'
+                
+            if mapped_difficulty and mapped_difficulty in normalized_filter:
+                return True
+        
+        return False
+    
+    original_count = len(dataset)
+    
+    # Filter the dataset efficiently at the HuggingFace dataset level
+    filtered_dataset = dataset.filter(filter_by_difficulty)
+    
+    filtered_count = len(filtered_dataset)
+    logger.info(f"Difficulty filtering: {original_count} problems → {filtered_count} problems")
+    logger.info(f"Included difficulties: {difficulty_filter}")
+    
+    # Count problems by difficulty for logging (sample a few to avoid loading all)
+    if filtered_count > 0:
+        sample_size = min(100, filtered_count)  # Sample to avoid loading entire dataset
+        sample_data = filtered_dataset.select(range(sample_size))
+        difficulty_counts = {}
+        for example in sample_data:
+            doc_difficulty = example.get('difficulty', 'Unknown')
+            difficulty_counts[doc_difficulty] = difficulty_counts.get(doc_difficulty, 0) + 1
+        
+        logger.info(f"Sample difficulty distribution (first {sample_size} problems):")
+        for diff, count in difficulty_counts.items():
+            logger.info(f"  - {diff}: {count} problems")
+    
+    return filtered_dataset
+
+def preprocess_easy_only(dataset):
+    """
+    Preprocessing function to filter LiveCodeBench dataset for easy questions only.
+    This is called during dataset loading, making it much more efficient than post-loading filtering.
+    
+    Args:
+        dataset: HuggingFace dataset
+        
+    Returns:
+        Filtered dataset containing only easy questions
+    """
+    return filter_dataset_by_difficulty(dataset, ["easy"])
