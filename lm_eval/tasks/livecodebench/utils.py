@@ -230,9 +230,11 @@ def doc_to_target(doc: dict) -> dict:
     """
     Returns the document with properly formatted input_output field.
     Converts public_test_cases and private_test_cases to the expected input_output format.
+    ENSURES ALL PRIVATE TEST CASES ARE INCLUDED - NO SKIPPING ALLOWED.
     """
     # Make a copy to avoid modifying the original
     processed_doc = doc.copy()
+    question_id = doc.get('question_id', 'unknown')
     
     # Check if input_output already exists (shouldn't happen with current dataset)
     if 'input_output' in processed_doc:
@@ -242,9 +244,10 @@ def doc_to_target(doc: dict) -> dict:
     inputs = []
     outputs = []
     
-    try:
-        # Process public test cases
-        if 'public_test_cases' in processed_doc:
+    # Process public test cases
+    public_count = 0
+    if 'public_test_cases' in processed_doc and processed_doc['public_test_cases']:
+        try:
             public_test_cases = json.loads(processed_doc['public_test_cases'])
             for test_case in public_test_cases:
                 if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
@@ -255,78 +258,119 @@ def doc_to_target(doc: dict) -> dict:
                     # Format as expected by testing_util.py
                     inputs.append([test_input])
                     outputs.append(test_output)
-        
-        # Process private test cases if available
-        if 'private_test_cases' in processed_doc:
-            try:
-                # Decode private test cases (they're base64 + zlib compressed)
-                private_encoded = processed_doc['private_test_cases']
-                if private_encoded:  # Check if not empty
-                    private_decoded = base64.b64decode(private_encoded)
-                    private_decompressed = zlib.decompress(private_decoded)
-                    
-                    # Try to load as pickle first (newer format), then fall back to JSON
-                    private_test_cases = None
-                    try:
-                        import pickle
-                        private_data = pickle.loads(private_decompressed)
-                        # The pickle data might be a JSON string that needs further parsing
-                        if isinstance(private_data, str):
-                            private_test_cases = json.loads(private_data)
-                        else:
-                            private_test_cases = private_data
-                        logger.debug(f"Successfully decoded private test cases using pickle format")
-                    except Exception:
-                        # Fall back to JSON with different encodings
-                        for encoding in ['utf-8', 'latin-1', 'cp1252']:
-                            try:
-                                private_test_cases = json.loads(private_decompressed.decode(encoding))
-                                logger.debug(f"Successfully decoded private test cases using JSON with {encoding}")
-                                break
-                            except UnicodeDecodeError:
-                                continue
-                    
-                    if private_test_cases is None:
-                        raise ValueError("Could not decode private test cases with pickle or JSON")
-                    
-                    for test_case in private_test_cases:
-                        if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
-                            test_input = test_case['input'].rstrip('\n\r')
-                            test_output = test_case['output'].rstrip('\n\r')
-                            
-                            inputs.append([test_input])
-                            outputs.append(test_output)
-                    
-                    logger.debug(f"Successfully decoded {len(private_test_cases)} private test cases for doc {doc.get('question_id', 'unknown')}")
-                            
-            except Exception as e:
-                # If private test case decoding fails, continue with just public tests
-                logger.warning(f"Failed to decode private test cases for doc {doc.get('question_id', 'unknown')}: {e}")
-                logger.warning("Continuing with public test cases only - this may result in inflated accuracy scores")
-        
-        # Create the input_output field
-        if inputs and outputs:
-            processed_doc['input_output'] = json.dumps({
-                'inputs': inputs,
-                'outputs': outputs
-            })
-            logger.debug(f"Converted {len(inputs)} test cases for doc {doc.get('question_id', 'unknown')}")
-        else:
-            # Fallback: create empty input_output to avoid the default case
-            logger.warning(f"No test cases found for doc {doc.get('question_id', 'unknown')}, creating minimal test")
-            processed_doc['input_output'] = json.dumps({
-                'inputs': [[""]],
-                'outputs': [""]
-            })
-            
-    except Exception as e:
-        logger.error(f"Error processing test cases for doc {doc.get('question_id', 'unknown')}: {e}")
-        # Create minimal fallback
-        processed_doc['input_output'] = json.dumps({
-            'inputs': [[""]],
-            'outputs': [""]
-        })
+                    public_count += 1
+            logger.debug(f"Doc {question_id}: Successfully processed {public_count} public test cases")
+        except Exception as e:
+            logger.warning(f"Doc {question_id}: Failed to process public test cases: {e}")
     
+    # Process private test cases - MUST SUCCEED OR FAIL DOCUMENT
+    private_count = 0
+    if 'private_test_cases' in processed_doc and processed_doc['private_test_cases']:
+        private_encoded = processed_doc['private_test_cases'].strip()
+        if private_encoded:
+            private_test_cases = None
+            decoding_error = None
+            
+            try:
+                # Step 1: Base64 decode
+                try:
+                    private_decoded = base64.b64decode(private_encoded)
+                except Exception as e:
+                    raise ValueError(f"Base64 decoding failed: {e}")
+                
+                # Step 2: Decompress
+                try:
+                    private_decompressed = zlib.decompress(private_decoded)
+                except Exception as e:
+                    raise ValueError(f"Zlib decompression failed: {e}")
+                
+                # Step 3: Try multiple deserialization methods
+                # Method 1: Pickle (most common)
+                try:
+                    import pickle
+                    private_data = pickle.loads(private_decompressed)
+                    # Handle nested JSON string in pickle
+                    if isinstance(private_data, str):
+                        private_test_cases = json.loads(private_data)
+                    elif isinstance(private_data, (list, dict)):
+                        private_test_cases = private_data
+                    else:
+                        raise ValueError(f"Unexpected pickle data type: {type(private_data)}")
+                    logger.debug(f"Doc {question_id}: Successfully decoded with pickle")
+                except Exception as pickle_error:
+                    logger.debug(f"Doc {question_id}: Pickle decoding failed: {pickle_error}")
+                    
+                    # Method 2: Raw JSON with multiple encodings
+                    for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                        try:
+                            decoded_text = private_decompressed.decode(encoding)
+                            private_test_cases = json.loads(decoded_text)
+                            logger.debug(f"Doc {question_id}: Successfully decoded with JSON ({encoding})")
+                            break
+                        except Exception as json_error:
+                            logger.debug(f"Doc {question_id}: JSON decoding with {encoding} failed: {json_error}")
+                            continue
+                    
+                    # Method 3: Try interpreting as direct binary data
+                    if private_test_cases is None:
+                        try:
+                            # Sometimes the data might be double-compressed or have extra layers
+                            try:
+                                # Try double decompression
+                                double_decompressed = zlib.decompress(private_decompressed)
+                                private_test_cases = json.loads(double_decompressed.decode('utf-8'))
+                                logger.debug(f"Doc {question_id}: Successfully decoded with double decompression")
+                            except:
+                                # Try as raw bytes
+                                private_test_cases = json.loads(private_decompressed)
+                                logger.debug(f"Doc {question_id}: Successfully decoded as raw bytes")
+                        except Exception as raw_error:
+                            logger.debug(f"Doc {question_id}: Raw decoding failed: {raw_error}")
+                
+                # Validate decoded data
+                if private_test_cases is None:
+                    raise ValueError("All decoding methods failed")
+                
+                if not isinstance(private_test_cases, list):
+                    raise ValueError(f"Private test cases should be a list, got {type(private_test_cases)}")
+                
+                # Process the private test cases
+                for i, test_case in enumerate(private_test_cases):
+                    if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
+                        test_input = test_case['input'].rstrip('\n\r')
+                        test_output = test_case['output'].rstrip('\n\r')
+                        
+                        inputs.append([test_input])
+                        outputs.append(test_output)
+                        private_count += 1
+                    else:
+                        logger.warning(f"Doc {question_id}: Invalid private test case {i}: {test_case}")
+                
+                logger.info(f"Doc {question_id}: Successfully processed {private_count} private test cases")
+                        
+            except Exception as e:
+                decoding_error = str(e)
+                logger.error(f"Doc {question_id}: CRITICAL - Failed to decode private test cases: {e}")
+                logger.error(f"Doc {question_id}: Private test case data length: {len(private_encoded)} chars")
+                logger.error(f"Doc {question_id}: First 100 chars: {private_encoded[:100]}")
+                
+                # STRICT MODE: Do not allow documents with failed private test cases
+                # This prevents inflated accuracy scores
+                raise ValueError(f"Document {question_id} has undecoded private test cases - evaluation would be invalid")
+    
+    # Validate we have test cases
+    total_cases = len(inputs)
+    if total_cases == 0:
+        logger.error(f"Doc {question_id}: CRITICAL - No valid test cases found (public: {public_count}, private: {private_count})")
+        raise ValueError(f"Document {question_id} has no valid test cases - cannot evaluate")
+    
+    # Create the input_output field
+    processed_doc['input_output'] = json.dumps({
+        'inputs': inputs,
+        'outputs': outputs
+    })
+    
+    logger.info(f"Doc {question_id}: Successfully created input_output with {total_cases} test cases (public: {public_count}, private: {private_count})")
     return processed_doc
 
 def postprocess_generation(model_output: str) -> str:
