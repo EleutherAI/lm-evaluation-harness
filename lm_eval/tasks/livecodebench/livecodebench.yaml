@@ -4,7 +4,7 @@ dataset_kwargs:
   version_tag: "release_v6"
 output_type: generate_until
 validation_split: test
-doc_to_text: "### Question:\n{{question_content}}\n\n{{format_prompt}}### Answer: (use the provided format with backticks)\n\n"
+doc_to_text: !function utils.doc_to_text_with_format
 doc_to_target: !function utils.doc_to_target
 process_results: !function utils.process_results
 num_fewshot: 0

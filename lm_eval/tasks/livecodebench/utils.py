@@ -8,9 +8,45 @@ import numpy as np
 from collections import defaultdict
 import logging
 import pickle
+import sys
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+# Global counters for tracking evaluation progress
+_global_problem_counter = 0
+_global_problems_passed = 0
+_global_total_problems = 0
+
+def reset_global_counters():
+    """Reset global counters for a new evaluation run."""
+    global _global_problem_counter, _global_problems_passed, _global_total_problems
+    _global_problem_counter = 0
+    _global_problems_passed = 0
+    _global_total_problems = 0
+
+def update_global_counters(passed: bool, total_problems: int = None):
+    """Update global counters with results from a single problem."""
+    global _global_problem_counter, _global_problems_passed, _global_total_problems
+    _global_problem_counter += 1
+    if passed:
+        _global_problems_passed += 1
+    if total_problems is not None:
+        _global_total_problems = total_problems
+
+def print_final_accuracy():
+    """Print the final accuracy statistics."""
+    global _global_problem_counter, _global_problems_passed, _global_total_problems
+    if _global_problem_counter > 0:
+        accuracy = (_global_problems_passed / _global_problem_counter) * 100
+        print(f"\n" + "="*60)
+        print(f"🎯 FINAL EVALUATION RESULTS")
+        print(f"="*60)
+        print(f"Total Problems Evaluated: {_global_problem_counter}")
+        print(f"Problems Passed: {_global_problems_passed}")
+        print(f"Problems Failed: {_global_problem_counter - _global_problems_passed}")
+        print(f"Final Accuracy: {accuracy:.2f}% ({_global_problems_passed}/{_global_problem_counter})")
+        print(f"="*60)
 
 # Helper function for multiprocessing
 def _temp_run_helper(sample, generation, debug, result, metadata_list, timeout):
@@ -280,6 +316,38 @@ def transform_data_item(item):
 
 # --- lm-eval task-specific functions ---
 
+def doc_to_text_with_format(doc: dict) -> str:
+    """
+    Generate the full prompt text including the format prompt.
+    This function creates the complete prompt that will be sent to the model.
+    Uses the exact format from evalscope implementation.
+    """
+    # System prompt (this would typically be handled by the model's system message)
+    system_prompt = 'You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests. You will NOT return anything except for the program.'
+    
+    # Generate format prompt based on starter_code
+    FORMATTING_MESSAGE_WITH_STARTER_CODE = 'You will use the following starter code to write the solution to the problem and enclose your code within delimiters.'
+    FORMATTING_WITHOUT_STARTER_CODE = 'Read the inputs from stdin solve the problem and write the answer to stdout (do not directly test on the sample inputs). Enclose your code within delimiters as follows.'
+    
+    if doc.get('starter_code'):
+        format_prompt = f'### Format: {FORMATTING_MESSAGE_WITH_STARTER_CODE}\n'
+        format_prompt += f"```python\n{doc['starter_code']}\n```\n\n"
+    else:
+        format_prompt = f'### Format: {FORMATTING_WITHOUT_STARTER_CODE}\n'
+        format_prompt += '```python\n# YOUR CODE HERE\n```\n\n'
+    
+    # Use the exact prompt template format
+    prompt_template = '### Question:\n{question_content}\n\n{format_prompt} ### Answer: (use the provided format with backticks)\n\n'
+    
+    # Format the template with the actual content
+    full_prompt = prompt_template.format(
+        question_content=doc['question_content'],
+        format_prompt=format_prompt
+    )
+    
+    return full_prompt
+
+
 def doc_to_target(doc: dict) -> dict:
     """
     Returns the document with properly formatted input_output field.
@@ -310,20 +378,42 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     :param results: A list of model generations (typically one for pass@1).
     :return: A dictionary with the accuracy metric.
     """
+    global _global_problem_counter, _global_problems_passed, _global_total_problems
+    
+    # Reset counters on first problem
+    if _global_problem_counter == 0:
+        reset_global_counters()
+        message = f"\n🚀 Starting LiveCodeBench Evaluation..."
+        print(message)
+        print(message, file=sys.stderr)  # Also print to stderr
+        sys.stdout.flush()
+        sys.stderr.flush()
+    
     if not results:
+        update_global_counters(passed=False)
         return {"acc": 0.0}
 
     # We typically evaluate the first generation for pass@1
     generated_code = postprocess_generation(results[0])
 
+    # Transform the document to ensure input_output field exists
+    transformed_doc = transform_data_item(doc.copy())
+    transformed_doc['input_output'] = transformed_doc['evaluation_sample']
+
     # The `codegen_metrics` function expects lists of samples and generations
-    samples_list = [doc]
+    samples_list = [transformed_doc]
     generations_list = [[generated_code]]
 
     timeout = 6 
     debug = False
 
     try:
+        eval_message = f"\n🔍 Evaluating Problem {_global_problem_counter + 1} (ID: {doc.get('id', 'unknown')})"
+        print(eval_message)
+        print(eval_message, file=sys.stderr)  # Also print to stderr
+        sys.stdout.flush()
+        sys.stderr.flush()
+        
         metrics, eval_results, final_metadata = codegen_metrics(
             samples_list=samples_list,
             generations_list=generations_list,
@@ -336,6 +426,18 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         pass_at_1 = metrics.get("pass@1", 0.0)
         accuracy = pass_at_1 / 100.0
         
+        # Update global counters
+        problem_passed = accuracy > 0.0
+        update_global_counters(passed=problem_passed)
+        
+        # Print progress update
+        current_accuracy = (_global_problems_passed / _global_problem_counter) * 100
+        progress_message = f"📈 Progress: {_global_problem_counter} problems evaluated, {_global_problems_passed} passed ({current_accuracy:.1f}% overall)"
+        print(progress_message)
+        print(progress_message, file=sys.stderr)  # Also print to stderr
+        sys.stdout.flush()
+        sys.stderr.flush()
+        
         logger.debug(f"Pass@1: {pass_at_1}, Accuracy: {accuracy}")
         
     except Exception as e:
@@ -344,5 +446,8 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         logger.error(f"Error during livecodebench metric calculation for doc_id {doc.get('id', 'unknown')}: {e}")
         logger.error(f"Full traceback: {error_traceback}")
         accuracy = 0.0
+        
+        # Update global counters for failed evaluation
+        update_global_counters(passed=False)
 
     return {"acc": accuracy}
