@@ -29,6 +29,13 @@ logger = logging.getLogger(__name__)
 
 import_string = 'from string import *\nfrom re import *\nfrom datetime import *\nfrom collections import *\nfrom heapq import *\nfrom bisect import *\nfrom copy import *\nfrom math import *\nfrom random import *\nfrom statistics import *\nfrom itertools import *\nfrom functools import *\nfrom operator import *\nfrom io import *\nfrom sys import *\nfrom json import *\nfrom builtins import *\nfrom typing import *\nimport string\nimport re\nimport datetime\nimport collections\nimport heapq\nimport bisect\nimport copy\nimport math\nimport random\nimport statistics\nimport itertools\nimport functools\nimport operator\nimport io\nimport sys\nimport json\nsys.setrecursionlimit(50000)\n'
 
+# Global flag to control output verbosity - set to False for cleaner logs  
+VERBOSE_OUTPUT = False
+
+def set_verbose_output(verbose: bool):
+    """Set the verbosity level for test output logging."""
+    global VERBOSE_OUTPUT
+    VERBOSE_OUTPUT = verbose
 
 def truncatefn(s, length=300):
     if isinstance(s, str):
@@ -247,28 +254,27 @@ def grade_call_based(code: str, all_inputs: list, all_outputs: list, fn_name: st
             else:
                 status = "❌ FAIL"
             
-            test_result = f"  Test {idx + 1}: {status}"
-            input_info = f"    Input: {truncatefn(str(gt_inp))}"
-            output_info = f"    Generated Output: {truncatefn(str(prediction))}"
-            truth_info = f"    Ground Truth: {truncatefn(str(gt_out))}"
+            if VERBOSE_OUTPUT or not tmp_result:
+                # Only show detailed output in verbose mode or on failure
+                test_result = f"Test {idx + 1}: {status}"
+                input_info = f"Input: {truncatefn(str(gt_inp))}"
+                output_info = f"Generated Output: {truncatefn(str(prediction))}"
+                truth_info = f"Ground Truth: {truncatefn(str(gt_out))}"
+                
+                print(test_result)
+                print(input_info)
+                print(output_info)
+                print(truth_info)
+            else:
+                # Summary mode - just show pass/fail without details
+                print(f"Test {idx + 1}: {status}")
             
-            print(test_result)
-            print(input_info)
-            print(output_info)
-            print(truth_info)
-            print(test_result, file=sys.stderr)
-            print(input_info, file=sys.stderr)
-            print(output_info, file=sys.stderr)
-            print(truth_info, file=sys.stderr)
             sys.stdout.flush()
-            sys.stderr.flush()
 
             if not tmp_result:
                 final_result = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - FAILED"
                 print(final_result)
-                print(final_result, file=sys.stderr)
                 sys.stdout.flush()
-                sys.stderr.flush()
                 return all_results, {
                     'output': truncatefn(prediction),
                     'inputs': truncatefn(gt_inp),
@@ -280,21 +286,16 @@ def grade_call_based(code: str, all_inputs: list, all_outputs: list, fn_name: st
             signal.alarm(0)
             if 'timeoutexception' in repr(e).lower():
                 all_results.append(-3)
-                timeout_result = f"  Test {idx + 1}: ⏰ TIMEOUT"
-                timeout_input = f"    Input: {truncatefn(str(gt_inp))}"
-                timeout_error = f"    Error: Time Limit Exceeded"
+                timeout_result = f"Test {idx + 1}: ⏰ TIMEOUT"
+                timeout_input = f"Input: {truncatefn(str(gt_inp))}"
+                timeout_error = f"Error: Time Limit Exceeded"
                 timeout_final = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - FAILED (TIMEOUT)"
                 
                 print(timeout_result)
                 print(timeout_input)
                 print(timeout_error)
                 print(timeout_final)
-                print(timeout_result, file=sys.stderr)
-                print(timeout_input, file=sys.stderr)
-                print(timeout_error, file=sys.stderr)
-                print(timeout_final, file=sys.stderr)
                 sys.stdout.flush()
-                sys.stderr.flush()
                 
                 return all_results, {
                     'error': repr(e),
@@ -305,21 +306,16 @@ def grade_call_based(code: str, all_inputs: list, all_outputs: list, fn_name: st
                 }
             else:
                 all_results.append(-4)
-                runtime_result = f"  Test {idx + 1}: 💥 RUNTIME ERROR"
-                runtime_input = f"    Input: {truncatefn(str(gt_inp))}"
-                runtime_error = f"    Error: {repr(e)}"
+                runtime_result = f"Test {idx + 1}: 💥 RUNTIME ERROR"
+                runtime_input = f"Input: {truncatefn(str(gt_inp))}"
+                runtime_error = f"Error: {repr(e)}"
                 runtime_final = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - FAILED (RUNTIME ERROR)"
                 
                 print(runtime_result)
                 print(runtime_input)
                 print(runtime_error)
                 print(runtime_final)
-                print(runtime_result, file=sys.stderr)
-                print(runtime_input, file=sys.stderr)
-                print(runtime_error, file=sys.stderr)
-                print(runtime_final, file=sys.stderr)
                 sys.stdout.flush()
-                sys.stderr.flush()
                 
                 return all_results, {
                     'error': repr(e),
@@ -335,9 +331,7 @@ def grade_call_based(code: str, all_inputs: list, all_outputs: list, fn_name: st
 
     final_result = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - {'PASSED' if passed_tests == total_tests else 'FAILED'}"
     print(final_result)
-    print(final_result, file=sys.stderr)
     sys.stdout.flush()
-    sys.stderr.flush()
     return all_results, {'execution time': total_execution}
 
 
@@ -371,9 +365,7 @@ def grade_stdio(
     
     test_message = f"\n🧪 Testing stdio-based problem with {total_tests} test cases:"
     print(test_message)
-    print(test_message, file=sys.stderr)
     sys.stdout.flush()
-    sys.stderr.flush()
     
     for idx, (gt_inp, gt_out) in enumerate(zip(all_inputs, all_outputs)):
         signal.alarm(timeout)
@@ -390,21 +382,16 @@ def grade_stdio(
                 signal.alarm(0)
                 if 'timeoutexception' in repr(e).lower():
                     all_results.append(-3)
-                    timeout_result = f"  Test {idx + 1}: ⏰ TIMEOUT"
-                    timeout_input = f"    Input: {truncatefn(str(gt_inp))}"
-                    timeout_error = f"    Error: Time Limit Exceeded"
+                    timeout_result = f"Test {idx + 1}: ⏰ TIMEOUT"
+                    timeout_input = f"Input: {truncatefn(str(gt_inp))}"
+                    timeout_error = f"Error: Time Limit Exceeded"
                     timeout_final = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - FAILED (TIMEOUT)"
                     
                     print(timeout_result)
                     print(timeout_input)
                     print(timeout_error)
                     print(timeout_final)
-                    print(timeout_result, file=sys.stderr)
-                    print(timeout_input, file=sys.stderr)
-                    print(timeout_error, file=sys.stderr)
-                    print(timeout_final, file=sys.stderr)
                     sys.stdout.flush()
-                    sys.stderr.flush()
                     
                     return all_results, {
                         'error': repr(e),
@@ -415,21 +402,16 @@ def grade_stdio(
                     }
                 else:
                     all_results.append(-4)
-                    runtime_result = f"  Test {idx + 1}: 💥 RUNTIME ERROR"
-                    runtime_input = f"    Input: {truncatefn(str(gt_inp))}"
-                    runtime_error = f"    Error: {repr(e)}"
+                    runtime_result = f"Test {idx + 1}: 💥 RUNTIME ERROR"
+                    runtime_input = f"Input: {truncatefn(str(gt_inp))}"
+                    runtime_error = f"Error: {repr(e)}"
                     runtime_final = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - FAILED (RUNTIME ERROR)"
                     
                     print(runtime_result)
                     print(runtime_input)
                     print(runtime_error)
                     print(runtime_final)
-                    print(runtime_result, file=sys.stderr)
-                    print(runtime_input, file=sys.stderr)
-                    print(runtime_error, file=sys.stderr)
-                    print(runtime_final, file=sys.stderr)
                     sys.stdout.flush()
-                    sys.stderr.flush()
                     
                     return all_results, {
                         'error': repr(e),
@@ -512,41 +494,36 @@ def grade_stdio(
         else:
             status = "❌ FAIL"
 
-        test_result = f"  Test {idx + 1}: {status}"
-        input_info = f"    Input: {truncatefn(str(gt_inp))}"
-        output_info = f"    Generated Output: {truncatefn(prediction)}"
-        truth_info = f"    Ground Truth: {truncatefn(gt_out)}"
-        
-        print(test_result)
-        print(input_info)
-        print(output_info)
-        print(truth_info)
-        print(test_result, file=sys.stderr)
-        print(input_info, file=sys.stderr)
-        print(output_info, file=sys.stderr)
-        print(truth_info, file=sys.stderr)
-        
-        if not test_passed:
-            error_info = f"    Error: {error_message}"
-            print(error_info)
-            print(error_info, file=sys.stderr)
+        if VERBOSE_OUTPUT or not test_passed:
+            # Only show detailed output in verbose mode or on failure
+            test_result = f"Test {idx + 1}: {status}"
+            input_info = f"Input: {truncatefn(str(gt_inp))}"
+            output_info = f"Generated Output: {truncatefn(prediction)}"
+            truth_info = f"Ground Truth: {truncatefn(gt_out)}"
+            
+            print(test_result)
+            print(input_info)
+            print(output_info)
+            print(truth_info)
+            
+            if not test_passed:
+                error_info = f"Error: {error_message}"
+                print(error_info)
+        else:
+            # Summary mode - just show pass/fail without details
+            print(f"Test {idx + 1}: {status}")
         
         sys.stdout.flush()
-        sys.stderr.flush()
 
         if not test_passed:
             final_result = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - FAILED"
             print(final_result)
-            print(final_result, file=sys.stderr)
             sys.stdout.flush()
-            sys.stderr.flush()
             return all_results, WA_send_args
 
     final_result = f"\n📊 Problem Result: {passed_tests}/{total_tests} tests passed - {'PASSED' if passed_tests == total_tests else 'FAILED'}"
     print(final_result)
-    print(final_result, file=sys.stderr)
     sys.stdout.flush()
-    sys.stderr.flush()
     return all_results, {'execution time': total_execution_time}
 
 

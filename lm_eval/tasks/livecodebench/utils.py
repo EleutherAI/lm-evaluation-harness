@@ -385,9 +385,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         reset_global_counters()
         message = f"\n🚀 Starting LiveCodeBench Evaluation..."
         print(message)
-        print(message, file=sys.stderr)  # Also print to stderr
         sys.stdout.flush()
-        sys.stderr.flush()
     
     if not results:
         update_global_counters(passed=False)
@@ -408,11 +406,19 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     debug = False
 
     try:
-        eval_message = f"\n🔍 Evaluating Problem {_global_problem_counter + 1} (ID: {doc.get('id', 'unknown')})"
-        print(eval_message)
-        print(eval_message, file=sys.stderr)  # Also print to stderr
+        # Create detailed question header
+        question_id = doc.get('id', 'unknown')
+        question_content = doc.get('question_content', '')
+        question_preview = question_content[:200] + ('...' if len(question_content) > 200 else '')
+        
+        eval_header = f"\n{'='*80}\n🔍 LIVECODEBENCH EVALUATION - Processing Question {_global_problem_counter + 1}\n{'='*80}"
+        question_id_info = f"📝 Question ID: {question_id}"
+        question_content_info = f"📄 Question Content (first 200 chars): {question_preview}"
+        
+        print(eval_header)
+        print(question_id_info)
+        print(question_content_info)
         sys.stdout.flush()
-        sys.stderr.flush()
         
         metrics, eval_results, final_metadata = codegen_metrics(
             samples_list=samples_list,
@@ -430,13 +436,14 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         problem_passed = accuracy > 0.0
         update_global_counters(passed=problem_passed)
         
-        # Print progress update
+        # Print progress update with separator
         current_accuracy = (_global_problems_passed / _global_problem_counter) * 100
         progress_message = f"📈 Progress: {_global_problem_counter} problems evaluated, {_global_problems_passed} passed ({current_accuracy:.1f}% overall)"
+        closing_separator = f"{'='*80}"
+        
         print(progress_message)
-        print(progress_message, file=sys.stderr)  # Also print to stderr
+        print(closing_separator)
         sys.stdout.flush()
-        sys.stderr.flush()
         
         logger.debug(f"Pass@1: {pass_at_1}, Accuracy: {accuracy}")
         
@@ -451,3 +458,24 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         update_global_counters(passed=False)
 
     return {"acc": accuracy}
+
+def configure_livecodebench_logging(verbose=False):
+    """Configure LiveCodeBench logging verbosity.
+    
+    Args:
+        verbose (bool): If True, shows detailed test inputs/outputs for all tests.
+                       If False, only shows summary and details for failed tests.
+    """
+    try:
+        from lm_eval.tasks.livecodebench.testing_util import set_verbose_output
+    except ImportError:
+        try:
+            from .testing_util import set_verbose_output
+        except ImportError:
+            # Testing util may not be available in all contexts
+            pass
+    else:
+        set_verbose_output(verbose)
+
+# Configure default logging to be non-verbose (cleaner output)
+configure_livecodebench_logging(verbose=False)
