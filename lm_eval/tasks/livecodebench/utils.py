@@ -7,6 +7,7 @@ import multiprocessing
 import numpy as np
 from collections import defaultdict
 import logging
+import pickle
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ def _temp_run_helper(sample, generation, debug, result, metadata_list, timeout):
     result.append(res)
     metadata_list.append(metadata)
 
+
 def extract_code_generation(model_output: str, model_type: str = 'chat'):
     """Extract code from model output based on model type."""
     outputlines = model_output.split('\n')
@@ -34,16 +36,7 @@ def extract_code_generation(model_output: str, model_type: str = 'chat'):
         if len(indexlines) >= 2:
             return '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])
         
-        # If no code blocks found, check if the entire output looks like code
-        # This handles cases where models generate raw Python code without markdown
-        stripped_output = model_output.strip()
-        if stripped_output:
-            # Simple heuristic: if it contains common Python keywords, treat as code
-            python_indicators = ['def ', 'import ', 'from ', 'class ', 'if ', 'for ', 'while ', 'print(', 'return ']
-            if any(indicator in stripped_output for indicator in python_indicators):
-                return stripped_output
-        
-        # If no code blocks and doesn't look like code, return empty
+        # If no code blocks found, return empty string
         return ''
     else:
         raise ValueError(f'Invalid model type: {model_type}')
@@ -51,51 +44,52 @@ def extract_code_generation(model_output: str, model_type: str = 'chat'):
 
 def codegen_check_correctness(sample, generation, timeout, debug=False):
     """Check correctness of code generation with a global timeout."""
+    
+    def _temp_run(sample, generation, debug, result, metadata_list, timeout):
+        try:
+            from lm_eval.tasks.livecodebench.testing_util import run_test
+        except ImportError:
+            from .testing_util import run_test
+        res, metadata = run_test(sample, test=generation, debug=debug, timeout=timeout)
+        result.append(res)
+        metadata_list.append(metadata)
+
     manager = multiprocessing.Manager()
     result = manager.list()
     metadata_list = manager.list()
     p = multiprocessing.Process(
-        target=_temp_run_helper,
+        target=_temp_run,
         args=(sample, generation, debug, result, metadata_list, timeout),
     )
     p.start()
-    
-    # Calculate global_timeout based on the number of test cases in the sample
-    try:
-        input_output_data = json.loads(sample['input_output'])
-        num_tests = len(input_output_data.get('inputs', []))
-        if num_tests == 0:
-            num_tests = 1 
-    except (json.JSONDecodeError, TypeError, KeyError):
-        num_tests = 1
-
-    global_timeout = (timeout + 1) * num_tests
-
+    global_timeout = (timeout + 1) * len(json.loads(sample['input_output'])['inputs'])
     if debug:
         logger.info(f'global timeout = {global_timeout}')
     p.join(timeout=global_timeout)
     if p.is_alive():
         p.kill()
     if not result:
-        # Ensure result is populated even on timeout to avoid IndexError
-        result.append([-1] * num_tests)
+        in_outs = json.loads(sample['input_output'])
+        # consider that all tests failed
+        result = [[-1 for i in range(len(in_outs['inputs']))]]
         if debug:
-            logger.info('global timeout occurred: alarm went off')
-    
-    # Ensure metadata_list is populated
-    if not metadata_list:
-        metadata_list.append({})
-
+            logger.info('global timeout occured: alarm went off')
     return result[0], metadata_list[0]
 
 
 def evaluate_generations_by_problem(problem_generations: list, sample: list, debug: bool, timeout: int):
-    """Evaluate multiple generations for a single problem."""
+    """Evaluate each problem.
+
+    Args:
+        problem_generations:
+        sample:
+        debug:
+        timeout
+    """
     res = []
     metadata = []
     for o_idx, o in enumerate(problem_generations):
         curr_res = [-2]
-        curr_metadata = {}
         try:
             curr_res, curr_metadata = codegen_check_correctness(sample, o, timeout=timeout, debug=debug)
             if debug:
@@ -114,17 +108,8 @@ def evaluate_generations_by_problem(problem_generations: list, sample: list, deb
         except Exception as e:
             if debug:
                 logger.info(f'Compilation failed, test framework exception = {repr(e)}{e}\n')
-            # Ensure curr_res has a default error value if an exception occurs early
-            if curr_res == [-2]:
-                 try:
-                    input_output_data = json.loads(sample['input_output'])
-                    num_tests = len(input_output_data.get('inputs', []))
-                    if num_tests == 0: 
-                        num_tests = 1
-                 except:
-                    num_tests = 1
-                 curr_res = [-1] * num_tests
-
+            # break
+            curr_metadata = {}
         finally:
             assert isinstance(curr_res, list)
             assert isinstance(curr_metadata, dict)
@@ -141,10 +126,24 @@ def evaluate_generations(
     samples_list: list,
     generations_list: list[list[str]],
     debug: bool = False,
-    num_process_evaluate: int = 1,
+    num_process_evaluate: int = 16,  # This parameter will be unused
     timeout=6,
 ):
-    """Evaluate generations for multiple problems."""
+    """We take the list of code generations and try to compile them and the run
+    their corresponding unit tests which are retrieved from the APPS dataset.
+
+    Args:
+        generations: list of code generations (same order as samples in APPS
+            dataset)
+        level: difficulty level used in the generation, can be "all",
+            "introductory", "interview" or "competition"
+
+    Returns:
+        results: dictionary of results, key is the problem index, value is
+            a list of results for each generation
+        [-2] = compile error, [-1] = runtime error [False] = failed test
+            case [True] = passed test case
+    """
     results = {}
     metadata = {}
 
@@ -156,7 +155,8 @@ def evaluate_generations(
         results[index] = result
         metadata[index] = meta
 
-    assert len(results) == len(generations_list), f'results = {len(results)} inputs = {len(generations_list)} {results=}'
+    assert len(results) == len(
+        generations_list), f'results = {len(results)} inputs = {len(generations_list)} {results=}'
 
     return results, metadata
 
@@ -164,12 +164,11 @@ def evaluate_generations(
 def codegen_metrics(
     samples_list,
     generations_list,
-    k_list=[1],
-    num_process_evaluate=1,
+    k_list=[1, 5, 10, 20, 40, 50, 75, 100, 125, 150, 200, 500, 1000],
+    num_process_evaluate=16,
     timeout=6,
     debug=False,
 ):
-    """Compute pass@k metrics for code generation evaluation."""
     try:
         from lm_eval.tasks.livecodebench.pass_k_utils import compute_metrics_from_results
     except ImportError:
@@ -191,9 +190,9 @@ def codegen_metrics(
     results = defaultdict(list)
     metadatas = defaultdict(list)
     for idx, (sample, generation_list) in enumerate(zip(samples_list, generations_list)):
-        assert isinstance(generation_list, list), generation_list[0]
+        assert isinstance(generation_list, list), generations_list[0]
         for generation in generation_list:
-            assert isinstance(generation, str), generation_list[0]
+            assert isinstance(generation, str), generations_list[0]
             samples_linear.append(sample)
             generations_linear.append([generation])
             remap_index.append(idx)
@@ -206,22 +205,77 @@ def codegen_metrics(
         timeout=timeout,
     )
 
-    for idx_linear, sub_results in sorted(results_linear.items(), key=lambda x: x[0]):
-        original_idx = remap_index[idx_linear]
-        results[original_idx].append(sub_results[0])
+    for idx, sub_results in sorted(results_linear.items(), key=lambda x: x[0]):
+        results[remap_index[idx]].append(sub_results[0])
 
-    for idx_linear, sub_metadatas in sorted(metadatas_linear.items(), key=lambda x: x[0]):
-        original_idx = remap_index[idx_linear]
-        metadatas[original_idx].append(sub_metadatas[0])
+    for idx, sub_metadatas in sorted(metadatas_linear.items(), key=lambda x: x[0]):
+        metadatas[remap_index[idx]].append(sub_metadatas[0])
 
     metrics = compute_metrics_from_results(results, k_list=k_list)
 
-    final_metadata_payload = []
+    final_metadata = []
     for key in sorted(list(metadatas.keys())):
-        current_metadata_list = metadatas[key]
-        final_metadata_payload.append([json.dumps(x) for x in current_metadata_list])
+        final_metadata.append(metadatas[key])
+    for i in range(len(final_metadata)):
+        if type(final_metadata[i]) is not list:
+            final_metadata[i] = [json.dumps(final_metadata[i])]
+        else:
+            final_metadata[i] = [json.dumps(x) for x in final_metadata[i]]
 
-    return metrics, results, final_metadata_payload
+        assert len(final_metadata[i]) == len(generations_list[0]), f'{len(final_metadata[i])=}'
+
+    return [metrics, results, final_metadata]
+
+
+def transform_data_item(item):
+    """Transform a single data item to match evalscope format."""
+    # Define the format prompt constants
+    FORMATTING_MESSAGE_WITH_STARTER_CODE = 'You will use the following starter code to write the solution to the problem and enclose your code within delimiters.'
+    FORMATTING_WITHOUT_STARTER_CODE = 'Read the inputs from stdin solve the problem and write the answer to stdout (do not directly test on the sample inputs). Enclose your code within delimiters as follows.'
+    
+    # starter_code
+    if item.get('starter_code'):
+        format_prompt = f'### Format: {FORMATTING_MESSAGE_WITH_STARTER_CODE}\n'
+        format_prompt += f"```python\n{item['starter_code']}\n```\n\n"
+    else:
+        format_prompt = f'### Format: {FORMATTING_WITHOUT_STARTER_CODE}\n'
+        format_prompt += '```python\n# YOUR CODE HERE\n```\n\n'
+
+    item['format_prompt'] = format_prompt
+
+    # load test cases
+    public_test_cases = item.get('public_test_cases', '[]')
+    try:
+        public_test_cases = json.loads(public_test_cases)
+    except:
+        public_test_cases = []
+
+    private_test_cases = item.get('private_test_cases', '[]')
+    try:
+        private_test_cases = json.loads(private_test_cases)
+    except Exception:
+        try:
+            # Handle compressed/pickled private test cases
+            private_test_cases = json.loads(
+                pickle.loads(zlib.decompress(base64.b64decode(private_test_cases.encode('utf-8')))))
+        except Exception:
+            private_test_cases = []
+
+    # load metadata
+    metadata = item.get('metadata', '{}')
+    try:
+        metadata = json.loads(metadata)
+    except:
+        metadata = {}
+    
+    evaluation_sample = json.dumps({
+        'inputs': [t['input'] for t in public_test_cases + private_test_cases],
+        'outputs': [t['output'] for t in public_test_cases + private_test_cases],
+        'fn_name': metadata.get('func_name', None),
+    })
+    item['evaluation_sample'] = evaluation_sample
+
+    return item
 
 
 # --- lm-eval task-specific functions ---
@@ -229,153 +283,24 @@ def codegen_metrics(
 def doc_to_target(doc: dict) -> dict:
     """
     Returns the document with properly formatted input_output field.
-    Converts public_test_cases and private_test_cases to the expected input_output format.
-    ENSURES ALL PRIVATE TEST CASES ARE INCLUDED - NO SKIPPING ALLOWED.
+    Uses the same transformation logic as evalscope.
     """
     # Make a copy to avoid modifying the original
     processed_doc = doc.copy()
-    question_id = doc.get('question_id', 'unknown')
     
-    # Check if input_output already exists (shouldn't happen with current dataset)
-    if 'input_output' in processed_doc:
-        return processed_doc
+    # Transform the document using evalscope logic
+    transformed_doc = transform_data_item(processed_doc)
     
-    # Convert test cases to input_output format
-    inputs = []
-    outputs = []
+    # The evaluation_sample field becomes the input_output field
+    transformed_doc['input_output'] = transformed_doc['evaluation_sample']
     
-    # Process public test cases
-    public_count = 0
-    if 'public_test_cases' in processed_doc and processed_doc['public_test_cases']:
-        try:
-            public_test_cases = json.loads(processed_doc['public_test_cases'])
-            for test_case in public_test_cases:
-                if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
-                    # Clean up the input/output strings (remove trailing newlines)
-                    test_input = test_case['input'].rstrip('\n\r')
-                    test_output = test_case['output'].rstrip('\n\r')
-                    
-                    # Format as expected by testing_util.py
-                    inputs.append([test_input])
-                    outputs.append(test_output)
-                    public_count += 1
-            logger.debug(f"Doc {question_id}: Successfully processed {public_count} public test cases")
-        except Exception as e:
-            logger.warning(f"Doc {question_id}: Failed to process public test cases: {e}")
-    
-    # Process private test cases - MUST SUCCEED OR FAIL DOCUMENT
-    private_count = 0
-    if 'private_test_cases' in processed_doc and processed_doc['private_test_cases']:
-        private_encoded = processed_doc['private_test_cases'].strip()
-        if private_encoded:
-            private_test_cases = None
-            decoding_error = None
-            
-            try:
-                # Step 1: Base64 decode
-                try:
-                    private_decoded = base64.b64decode(private_encoded)
-                except Exception as e:
-                    raise ValueError(f"Base64 decoding failed: {e}")
-                
-                # Step 2: Decompress
-                try:
-                    private_decompressed = zlib.decompress(private_decoded)
-                except Exception as e:
-                    raise ValueError(f"Zlib decompression failed: {e}")
-                
-                # Step 3: Try multiple deserialization methods
-                # Method 1: Pickle (most common)
-                try:
-                    import pickle
-                    private_data = pickle.loads(private_decompressed)
-                    # Handle nested JSON string in pickle
-                    if isinstance(private_data, str):
-                        private_test_cases = json.loads(private_data)
-                    elif isinstance(private_data, (list, dict)):
-                        private_test_cases = private_data
-                    else:
-                        raise ValueError(f"Unexpected pickle data type: {type(private_data)}")
-                    logger.debug(f"Doc {question_id}: Successfully decoded with pickle")
-                except Exception as pickle_error:
-                    logger.debug(f"Doc {question_id}: Pickle decoding failed: {pickle_error}")
-                    
-                    # Method 2: Raw JSON with multiple encodings
-                    for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
-                        try:
-                            decoded_text = private_decompressed.decode(encoding)
-                            private_test_cases = json.loads(decoded_text)
-                            logger.debug(f"Doc {question_id}: Successfully decoded with JSON ({encoding})")
-                            break
-                        except Exception as json_error:
-                            logger.debug(f"Doc {question_id}: JSON decoding with {encoding} failed: {json_error}")
-                            continue
-                    
-                    # Method 3: Try interpreting as direct binary data
-                    if private_test_cases is None:
-                        try:
-                            # Sometimes the data might be double-compressed or have extra layers
-                            try:
-                                # Try double decompression
-                                double_decompressed = zlib.decompress(private_decompressed)
-                                private_test_cases = json.loads(double_decompressed.decode('utf-8'))
-                                logger.debug(f"Doc {question_id}: Successfully decoded with double decompression")
-                            except:
-                                # Try as raw bytes
-                                private_test_cases = json.loads(private_decompressed)
-                                logger.debug(f"Doc {question_id}: Successfully decoded as raw bytes")
-                        except Exception as raw_error:
-                            logger.debug(f"Doc {question_id}: Raw decoding failed: {raw_error}")
-                
-                # Validate decoded data
-                if private_test_cases is None:
-                    raise ValueError("All decoding methods failed")
-                
-                if not isinstance(private_test_cases, list):
-                    raise ValueError(f"Private test cases should be a list, got {type(private_test_cases)}")
-                
-                # Process the private test cases
-                for i, test_case in enumerate(private_test_cases):
-                    if isinstance(test_case, dict) and 'input' in test_case and 'output' in test_case:
-                        test_input = test_case['input'].rstrip('\n\r')
-                        test_output = test_case['output'].rstrip('\n\r')
-                        
-                        inputs.append([test_input])
-                        outputs.append(test_output)
-                        private_count += 1
-                    else:
-                        logger.warning(f"Doc {question_id}: Invalid private test case {i}: {test_case}")
-                
-                logger.info(f"Doc {question_id}: Successfully processed {private_count} private test cases")
-                        
-            except Exception as e:
-                decoding_error = str(e)
-                logger.error(f"Doc {question_id}: CRITICAL - Failed to decode private test cases: {e}")
-                logger.error(f"Doc {question_id}: Private test case data length: {len(private_encoded)} chars")
-                logger.error(f"Doc {question_id}: First 100 chars: {private_encoded[:100]}")
-                
-                # STRICT MODE: Do not allow documents with failed private test cases
-                # This prevents inflated accuracy scores
-                raise ValueError(f"Document {question_id} has undecoded private test cases - evaluation would be invalid")
-    
-    # Validate we have test cases
-    total_cases = len(inputs)
-    if total_cases == 0:
-        logger.error(f"Doc {question_id}: CRITICAL - No valid test cases found (public: {public_count}, private: {private_count})")
-        raise ValueError(f"Document {question_id} has no valid test cases - cannot evaluate")
-    
-    # Create the input_output field
-    processed_doc['input_output'] = json.dumps({
-        'inputs': inputs,
-        'outputs': outputs
-    })
-    
-    logger.info(f"Doc {question_id}: Successfully created input_output with {total_cases} test cases (public: {public_count}, private: {private_count})")
-    return processed_doc
+    return transformed_doc
+
 
 def postprocess_generation(model_output: str) -> str:
     """Extracts the generated code from the model's output."""
     return extract_code_generation(model_output)
+
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     """
@@ -399,7 +324,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     debug = False
 
     try:
-        metrics_dict, _, _ = codegen_metrics(
+        metrics, eval_results, final_metadata = codegen_metrics(
             samples_list=samples_list,
             generations_list=generations_list,
             k_list=[1],
@@ -407,14 +332,12 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
             timeout=timeout,
             debug=debug,
         )
-        # DEBUG: Print the raw metrics to understand the issue
-        logger.debug(f"Raw metrics_dict: {metrics_dict}")
-        pass_at_1 = metrics_dict.get("pass@1", 0.0)
-        logger.debug(f"pass@1 value: {pass_at_1}")
-        
-        # Convert from percentage to decimal and use 'acc' key to match YAML
+        # Extract pass@1 and convert from percentage to decimal
+        pass_at_1 = metrics.get("pass@1", 0.0)
         accuracy = pass_at_1 / 100.0
-        logger.debug(f"Final accuracy after division: {accuracy}")
+        
+        logger.debug(f"Pass@1: {pass_at_1}, Accuracy: {accuracy}")
+        
     except Exception as e:
         import traceback
         error_traceback = traceback.format_exc()
