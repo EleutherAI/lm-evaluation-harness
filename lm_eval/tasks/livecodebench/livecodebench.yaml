@@ -8,8 +8,6 @@ doc_to_text: "### Question:\n{{question_content}}\n\n{{format_prompt}}### Answer
 doc_to_target: !function utils.doc_to_target
 process_results: !function utils.process_results
 num_fewshot: 0
-context_kwargs:
-  system_message: "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests. You will NOT return anything except for the program."
 generation_kwargs:
   until:
   - "<|end_of_text|>"
