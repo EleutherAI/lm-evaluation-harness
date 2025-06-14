@@ -1,0 +1,7 @@
+group: egymmlu
+task:
+- egymmlu_other
+- egymmlu_humanities
+- egymmlu_social_sciences
+- egymmlu_stem
+- egymmlu_language
