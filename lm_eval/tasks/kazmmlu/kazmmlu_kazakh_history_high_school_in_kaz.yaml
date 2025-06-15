@@ -1,0 +1,5 @@
+"dataset_name": "Kazakh History (High School in kaz)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_humanities"
+"task": "kazmmlu_kazakh_history_(high_school_in_kaz)"
+"task_alias": "Kazakh History (High School in kaz)"
