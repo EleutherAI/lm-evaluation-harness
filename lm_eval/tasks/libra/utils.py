@@ -26,11 +26,11 @@ class PredictionResult:
 def filter_dataset_by_page_lengths(*args, **kwargs) -> Dict[str, datasets.Dataset]:
     """Filter dataset by page lengths for Libra task.
 
-    in CLI metadata --metadata '{"valid_pages": ["8p", "32p"], "dataset_repo_name": "ai-forever/libra-v2"}'
+    in CLI metadata --metadata '{"valid_pages": ["8p", "32p"], "dataset_repo_name": "ai-forever/LIBRA"}'
     """
     valid_pages = kwargs.get("valid_pages", [])
 
-    dataset_repo_name = kwargs.get("dataset_repo_name", "ai-forever/libra-v2")
+    dataset_repo_name = kwargs.get("dataset_repo_name", "ai-forever/LIBRA")
     dataset_name = kwargs.get("dataset_name", None)
     filter_colname = kwargs.get("filter_colname", "length")
     token = kwargs.get("token", None)
