@@ -1,0 +1,5 @@
+tag: norsumm_nob
+dataset_name: nb
+task: norsumm_nob_p1
+include: ../_norsumm_yaml
+doc_to_text: "Oppsummer følgende artikkel med noen få setninger: {{article}}\nOppsummering:"

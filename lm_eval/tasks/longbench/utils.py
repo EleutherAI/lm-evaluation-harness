@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 from metrics import (
-    classification_score,
+    # classification_score,
     code_sim_score,
     count_score,
     qa_f1_score,
@@ -29,10 +29,10 @@ dataset2metric = {
     "qmsum": rouge_score,
     "multi_news": rouge_score,
     "vcsum": rouge_zh_score,
-    "trec": classification_score,
+    # "trec": classification_score,
     "triviaqa": qa_f1_score,
     "samsum": rouge_score,
-    "lsht": classification_score,
+    # "lsht": classification_score,
     "passage_retrieval_en": retrieval_score,
     "passage_count": count_score,
     "passage_retrieval_zh": retrieval_zh_score,

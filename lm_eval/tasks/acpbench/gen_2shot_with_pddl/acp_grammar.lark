@@ -1,0 +1,23 @@
+NAME: /[a-zA-Z][a-zA-Z0-9-_]*/
+LPAR : "("
+RPAR : ")"
+LSPAR: "["
+RSPAR: "]"
+COMMA: ","
+WS: /[ \n]/
+
+action_none : "None"
+
+action_name : LPAR NAME (WS NAME)* RPAR
+
+action_list : (action_name WS?)*
+
+prog_list :  action_name* (COMMA action_name)*
+
+progression_list : LSPAR prog_list RSPAR LSPAR prog_list RSPAR
+
+act : action_name | action_none
+
+index: /[0-9]+[0-9]*/
+
+start: action_list

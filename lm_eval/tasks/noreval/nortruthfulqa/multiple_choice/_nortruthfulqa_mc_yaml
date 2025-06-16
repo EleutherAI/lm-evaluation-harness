@@ -1,0 +1,14 @@
+dataset_path: ltg/nortruthfulqa_mc
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: null
+num_fewshot: 0
+doc_to_target: 0
+doc_to_choice: "{{mc1_targets.choices}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
