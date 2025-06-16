@@ -15,19 +15,19 @@ def process_results_mc2(doc, results):
     p_true = p_true / (sum(p_true) + sum(p_false))
     accuracy = sum(p_true)
     # TODO. alternatively
-    #new = (sum(p_true)/p_true) / ((sum(p_true)/p_true) + (sum(p_false)/p_false))
+    # new = (sum(p_true)/p_true) / ((sum(p_true)/p_true) + (sum(p_false)/p_false))
 
-    return {"acc": accuracy}#, "mc2_new":new}
+    return {"acc": accuracy}  # , "mc2_new":new}
 
 
 def process_docs_gen(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(preprocess_function)
 
 
-def preprocess_function(examples): 
+def preprocess_function(examples):
     def _format_answers(answers):
         formatted_answers = []
-        for answer in answers: 
+        for answer in answers:
             answer = answer.strip()
             if len(answer):
                 # Add a period after all answers.
@@ -40,21 +40,29 @@ def preprocess_function(examples):
     if "correct_answers" in examples:
         incorrect_answers = _format_answers(examples["incorrect_answers"])
         correct_answers = _format_answers(examples["correct_answers"])
-        if examples["lang"] == 'en' and "I have no comment." not in correct_answers:
-            correct_answers.append("I have no comment.") 
-        elif examples["lang"] == 'ca' and "No tinc cap comentari." not in correct_answers:
-            correct_answers.append("No tinc cap comentari.") 
-        elif examples["lang"] == 'es' and "No tengo ningún comentario." not in correct_answers:
-            correct_answers.append("No tengo ningún comentario.") 
-        elif examples["lang"] == 'eu' and "Iruzkinik ez." not in correct_answers:
-            correct_answers.append("Iruzkinik ez.") 
-        elif examples["lang"] == 'gl' and "Non teño ningún comentario." not in correct_answers:
-            correct_answers.append("Non teño ningún comentario.") 
+        if examples["lang"] == "en" and "I have no comment." not in correct_answers:
+            correct_answers.append("I have no comment.")
+        elif (
+            examples["lang"] == "ca" and "No tinc cap comentari." not in correct_answers
+        ):
+            correct_answers.append("No tinc cap comentari.")
+        elif (
+            examples["lang"] == "es"
+            and "No tengo ningún comentario." not in correct_answers
+        ):
+            correct_answers.append("No tengo ningún comentario.")
+        elif examples["lang"] == "eu" and "Iruzkinik ez." not in correct_answers:
+            correct_answers.append("Iruzkinik ez.")
+        elif (
+            examples["lang"] == "gl"
+            and "Non teño ningún comentario." not in correct_answers
+        ):
+            correct_answers.append("Non teño ningún comentario.")
     return {
         "question": examples["question"].strip(),
         "correct_answers": correct_answers,
         "incorrect_answers": incorrect_answers,
-        "best_answer": examples["best_answer"]
+        "best_answer": examples["best_answer"],
     }
 
 
