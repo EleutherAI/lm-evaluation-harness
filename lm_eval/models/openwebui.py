@@ -19,11 +19,11 @@ except ModuleNotFoundError:
 eval_logger = logging.getLogger(__name__)
 
 @register_model("openwebui")
-class OllamaLM(LocalCompletionsAPI):
+class openwebui(LocalCompletionsAPI):
     def __init__(
         self,
         base_url=None,
-        tokenizer_backend="huggingface",
+        tokenizer_backend=None,
         hf_tokenizer=None,
         **kwargs,
     ):
@@ -51,6 +51,10 @@ class OllamaLM(LocalCompletionsAPI):
         return os.getenv("MULLE_KEY")
     
     @property
+    def url(self):
+        return os.getenv("MULLE_URL")
+    
+    @property
     def header(self) -> dict:
         return {'Authorization': f'Bearer {self.api_key}','Content-Type': 'application/json'}
     
@@ -63,9 +67,7 @@ class OllamaLM(LocalCompletionsAPI):
 
     def loglikelihood_rolling(self, requests: list[Instance]) -> list[tuple[float, bool]]:
         raise NotImplementedError("Not yet implemented")
-
-        
-
+       
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
@@ -76,35 +78,31 @@ class OllamaLM(LocalCompletionsAPI):
     ) -> Optional[dict]:
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
-        try:
-            prompt = [{'role': 'user', 'content': self.create_message(messages)}]
 
-            response = requests.post(
-                self.base_url,
-                json={
-                    'messages': prompt, # self.create_message(messages)
-                    'model': self.model,
-                    "logprobs": 5,  
-                    "top_logprobs": 5,
-                    "stream": False
-                    #generate=generate,
-                    #gen_kwargs=gen_kwargs,
-                    #seed=self._seed,
-                    #eos=self.eos_string,
-                    #**kwargs,
-                },
-                headers=self.header,
-                #verify=self.verify_certificate,
-            )
-            if not response.ok:
-                eval_logger.warning(
-                    f"API request failed with error message: {response.text}. Retrying..."
-                )
-            print("DEBUG: API response:", response.text)
-            response.raise_for_status()
-            return response.json()
-        except RetryError:
-            eval_logger.error(
-                "API request failed after multiple retries. Please check the API status."
-            )
-            return None
+        if not self.api_key:
+            raise ValueError("Not able to retrieve API Key from environment")
+        elif not self.url:
+            raise ValueError("Not able to retrieve URL address from environment")
+        response=None
+        prompt = [{'role': 'user', 'content': self.create_message(messages)}]
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            payload = {
+                "model": self.model,
+                "messages": prompt
+            }
+
+            response = requests.post(url=f'{self.url}/api/chat/completions', headers=headers, json=payload)
+            if not response:
+                print(payload)
+                print('Empty response!')
+        except Exception as e:
+            # Catch any exception that might occur and print an error message
+            print(f"An error occurred: {e}")
+
+        response.raise_for_status()
+        return response.json()

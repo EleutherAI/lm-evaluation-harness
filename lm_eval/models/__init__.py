@@ -12,6 +12,7 @@ from . import (
     neuron_optimum,
     ollama,
     openai_completions,
+    openwebui,
     optimum_ipex,
     optimum_lm,
     textsynth,
