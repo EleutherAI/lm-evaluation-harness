@@ -2,9 +2,9 @@
 
 ### Paper
 
-Title: `LongBench v2: Towards Deeper Understanding and Reasoning on Realistic Long-context Multitasks`
+Title: `LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding`
 
-Abstract: `This paper introduces LongBench v2, a benchmark designed to assess the ability of LLMs to handle long-context problems requiring deep understanding and reasoning across real-world multitasks. LongBench v2 consists of 503 challenging multiple-choice questions, with contexts ranging from 8k to 2M words, across six major task categories: single-document QA, multi-document QA, long in-context learning, long-dialogue history understanding, code repository understanding, and long structured data understanding.`
+Abstract: `In this paper, we introduce LongBench, the first bilingual, multi-task benchmark for long context understanding, enabling a more rigorous evaluation of long context understanding. LongBench comprises 21 datasets across 6 task categories in both English and Chinese, with an average length of 6,711 words (English) and 13,386 characters (Chinese). These tasks cover key long-text application areas including single-doc QA, multi-doc QA, summarization, few-shot learning, synthetic tasks, and code completion. All datasets in LongBench are standardized into a unified format, allowing for effortless automatic evaluation of LLMs`
 
 Homepage: `https://github.com/THUDM/LongBench`
 
@@ -12,12 +12,6 @@ Homepage: `https://github.com/THUDM/LongBench`
 ### Citation
 
 ```
-@article{bai2024longbench2,
-  title={LongBench v2: Towards Deeper Understanding and Reasoning on Realistic Long-context Multitasks},
-  author={Yushi Bai and Shangqing Tu and Jiajie Zhang and Hao Peng and Xiaozhi Wang and Xin Lv and Shulin Cao and Jiazheng Xu and Lei Hou and Yuxiao Dong and Jie Tang and Juanzi Li},
-  journal={arXiv preprint arXiv:2412.15204},
-  year={2024}
-}
 @inproceedings{bai2024longbench,
     title = "{L}ong{B}ench: A Bilingual, Multitask Benchmark for Long Context Understanding",
     author = "Bai, Yushi and Lv, Xin  and Zhang, Jiajie  and Lyu, Hongchang  and
