@@ -65,6 +65,6 @@ REGION=True
 **Please add these flags add environment variables.**
 
 
-* We also allow for prompting in English, which we found to acheive higher results on most of the evaluated models (please refer to our paper).
+* We also allow for prompting in English, which we found to achieve higher results on most of the evaluated models (please refer to our paper).
 
 * To change the language of the prompt, Define the `ARABIC` environment variable.
