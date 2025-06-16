@@ -88,7 +88,7 @@ def doc_to_text(doc):
             first_statement=first_statement, choices=choices_str
         )
 
-    ### apply jais chat tempelate
+    ### apply jais chat template
     if MODEL_NAME and "jais" in MODEL_NAME and "chat" in MODEL_NAME:
         if ARABIC:
             doc_text = JAIS_CHAT_AR.format(question=doc_text)
