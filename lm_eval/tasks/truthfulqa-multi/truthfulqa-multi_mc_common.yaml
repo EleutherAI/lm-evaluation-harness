@@ -1,5 +1,5 @@
 tag:
-  - truthfulqa
+  - truthfulqa-multi
 dataset_path: HiTZ/truthfulqa-multi
 output_type: multiple_choice
 training_split: train
