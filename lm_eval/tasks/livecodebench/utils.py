@@ -418,6 +418,18 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         print(eval_header)
         print(question_id_info)
         print(question_content_info)
+        
+        # LOG THE GENERATED CODE
+        generated_code_header = f"🤖 Generated Code:"
+        generated_code_separator = f"{'-'*60}"
+        print(generated_code_header)
+        print(generated_code_separator)
+        if generated_code.strip():
+            print(generated_code)
+        else:
+            print("(No code generated or code extraction failed)")
+        print(generated_code_separator)
+        
         sys.stdout.flush()
         
         metrics, eval_results, final_metadata = codegen_metrics(
