@@ -16,7 +16,7 @@ class TakeFirstFilter(Filter):
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         """
         Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
         """
@@ -30,7 +30,7 @@ class TakeKFilter(Filter):
 
         super().__init__(**kwargs)
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         # need resp to be subscriptable to check below
         resps = list(resps)
         # check we have at least k responses per doc, else we can't take the first k
@@ -47,7 +47,7 @@ class MajorityVoteFilter(Filter):
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps, docs):
+    def apply(self, resps, docs, **kwargs):
         """
         Each entry of `resps` is a list of model responses.
         We select the response that occurs most frequently in each entry of `resps`.
