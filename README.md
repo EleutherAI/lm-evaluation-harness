@@ -10,7 +10,8 @@ The ability to use OpenWebUI and Ollama has been added. Use the --model flag ope
 
 
 ## Example usage OpenWebUI:
-OpenWebUI can be used if you are running the code on your machine. It requires a key and adress, set with the enviroment variables "MULLE_KEY" and "MULLE_URL".
+OpenWebUI can be used if you are running the code on your machine. It requires a key and adress, set with the enviroment variables `MULLE_KEY` and `MULLE_URL`.
+
 ```bash
 lm_eval --model openwebui \
 --tasks leaderboard_instruction_following \
@@ -21,6 +22,7 @@ lm_eval --model openwebui \
 
 ## Example usage Ollama:
 Ollama requires running Ollama on the same machine as the one you run the code on, ex. SSH in and then run the code on a server with Ollama. 
+
 ```bash
 lm_eval --model ollama \
 --tasks leaderboard_instruction_following \
