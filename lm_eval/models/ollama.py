@@ -50,7 +50,7 @@ class OllamaLM(LocalCompletionsAPI):
 
     @property
     def api_key(self):
-        return os.getenv("MULLE_KEY")
+        return None
     
     @property
     def header(self) -> dict:
