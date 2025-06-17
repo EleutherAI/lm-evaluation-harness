@@ -48,11 +48,11 @@ class openwebui(LocalCompletionsAPI):
 
     @property
     def api_key(self):
-        return os.getenv("MULLE_KEY")
+        return os.getenv("OPENWEBUI_KEY")
     
     @property
     def url(self):
-        return os.getenv("MULLE_URL")
+        return os.getenv("OPENWEBUI_URL")
     
     @property
     def header(self) -> dict:
