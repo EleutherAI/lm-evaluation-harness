@@ -1,0 +1,74 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 2.0/15
+      B: 1.0/7
+      C: 3.0/16
+      D: 1.0/5
+    input_correct_responses:
+    - B
+    input_question: "Un dado a 6 facce viene lanciato 15 volte e i risultati sono:\
+      \ il lato 1 esce 0 volte; lato 2: 1 volta; lato 3: 2 volte; lato 4: 3 volte;\
+      \ lato 5: 4 volte; lato 6: 5 volte. Sulla base di questi risultati, qual \xE8\
+      \ la probabilit\xE0 che venga visualizzato il lato 3 quando si utilizza l&#39;arrotondamento\
+      \ Add-1?"
+  - input_choice_list:
+      A: ritaglio casuale e rotazione orizzontale
+      B: ritaglio casuale e rotazione verticale
+      C: posterizzazione
+      D: dithering
+    input_correct_responses:
+    - A
+    input_question: "Quale aumento dei dati immagine \xE8 pi\xF9 comune per le immagini\
+      \ naturali?"
+  - input_choice_list:
+      A: Il mio metodo raggiunge un errore di addestramento inferiore a tutti i metodi
+        precedenti!
+      B: "Il mio metodo raggiunge un errore di test inferiore a tutti i metodi precedenti!\
+        \ (Nota a pi\xE8 di pagina: quando il parametro di regolarizzazione \u03BB\
+        \ viene scelto in modo da ridurre al minimo l&#39;errore del test.)"
+      C: "Il mio metodo raggiunge un errore di test inferiore a tutti i metodi precedenti!\
+        \ (Nota a pi\xE8 di pagina: quando il parametro di regolarizzazione \u03BB\
+        \ viene scelto in modo da ridurre al minimo l&#39;errore di convalida incrociata.)"
+      D: "Il mio metodo raggiunge un errore di convalida incrociata inferiore a tutti\
+        \ i metodi precedenti! (Nota a pi\xE8 di pagina: quando il parametro di regolarizzazione\
+        \ \u03BB viene scelto in modo da ridurre al minimo l&#39;errore di convalida\
+        \ incrociata.)"
+    input_correct_responses:
+    - C
+    input_question: "Stai esaminando i documenti per la conferenza sull&#39;apprendimento\
+      \ automatico pi\xF9 fantastica del mondo e vedi i contributi con le seguenti\
+      \ affermazioni. Quali considereresti di accettare? "
+  - input_choice_list:
+      A: circa 10 esempi
+      B: circa 100 esempi
+      C: tra 100 e 500 esemplari
+      D: "pi\xF9 di 1000 esempi"
+    input_correct_responses:
+    - D
+    input_question: "Per ottenere una stima della perdita 0/1 che sia inferiore all&#39;1%\
+      \ della vera perdita 0/1 (con probabilit\xE0 del 95%), secondo la disuguaglianza\
+      \ di Hoeffding, quanti esempi deve avere il set di test IID?"
+  - input_choice_list:
+      A: "\xC8 troppo costoso dal punto di vista computazionale."
+      B: Probabilmente il risultato sarebbe un albero decisionale con un punteggio
+        scarso sul set di addestramento e su un set di test.
+      C: Probabilmente il risultato sarebbe un albero decisionale che ottiene un buon
+        punteggio sul set di addestramento ma male su un set di test.
+      D: Probabilmente il risultato sarebbe un albero decisionale che ottiene un buon
+        punteggio su un set di test ma male su un set di addestramento.
+    input_correct_responses:
+    - C
+    input_question: "Tradizionalmente, quando abbiamo un attributo di input con valore\
+      \ reale durante l&#39;apprendimento dell&#39;albero decisionale, consideriamo\
+      \ una suddivisione binaria a seconda che l&#39;attributo sia al di sopra o al\
+      \ di sotto di una certa soglia. Pat suggerisce che invece dovremmo avere semplicemente\
+      \ una suddivisione a pi\xF9 vie con un ramo per ciascuno dei valori distinti\
+      \ dell&#39;attributo. Scegli dall&#39;elenco seguente il problema pi\xF9 grande\
+      \ con il suggerimento di Pat:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_machine_learning
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_machine_learning
+task_alias: machine_learning

@@ -15,6 +15,7 @@ The datasets included in SpanishBench that have been made public in previous pub
 | Task          | Category       | Paper title          | Homepage  |
 |:-------------:|:-----:|:-------------:|:-----:|
 | Belebele_es | Reading Comprehension | [The Belebele Benchmark: a Parallel Reading Comprehension Dataset in 122 Language Variants](https://arxiv.org/abs/2308.16884) | https://huggingface.co/datasets/facebook/belebele |
+| Cocoteros_es | Commonsense Reasoning | [COCOTEROS: A Spanish Corpus with Contextual Knowledge for Natural Language Generation](https://besaya.infor.uva.es/sepln24/paper04.pdf) | https://huggingface.co/datasets/gplsi/cocoteros |
 | EsCoLA | Linguistic Acceptability | [EsCoLA: Spanish Corpus of Linguistic Acceptability](https://aclanthology.org/2024.lrec-main.554/) | https://huggingface.co/datasets/nbel/EsCoLA |
 | FLORES_es | Translation | [The FLORES-101  Evaluation Benchmark for Low-Resource and Multilingual Machine Translation](https://arxiv.org/abs/2106.03193) | https://huggingface.co/datasets/facebook/flores |
 | MGSM_es | Math | [Language Models are Multilingual Chain-of-Thought Reasoners](https://arxiv.org/abs/2210.03057) | https://huggingface.co/datasets/juletxara/mgsm |
@@ -28,7 +29,40 @@ The datasets included in SpanishBench that have been made public in previous pub
 
 
 ### Citation
-Paper for SpanishBench coming soon.
+
+```
+@inproceedings{baucells-etal-2025-iberobench,
+    title = "{I}bero{B}ench: A Benchmark for {LLM} Evaluation in {I}berian Languages",
+    author = "Baucells, Irene  and
+      Aula-Blasco, Javier  and
+      de-Dios-Flores, Iria  and
+      Paniagua Su{\'a}rez, Silvia  and
+      Perez, Naiara  and
+      Salles, Anna  and
+      Sotelo Docio, Susana  and
+      Falc{\~a}o, J{\'u}lia  and
+      Saiz, Jose Javier  and
+      Sepulveda Torres, Robiert  and
+      Barnes, Jeremy  and
+      Gamallo, Pablo  and
+      Gonzalez-Agirre, Aitor  and
+      Rigau, German  and
+      Villegas, Marta",
+    editor = "Rambow, Owen  and
+      Wanner, Leo  and
+      Apidianaki, Marianna  and
+      Al-Khalifa, Hend  and
+      Eugenio, Barbara Di  and
+      Schockaert, Steven",
+    booktitle = "Proceedings of the 31st International Conference on Computational Linguistics",
+    month = jan,
+    year = "2025",
+    address = "Abu Dhabi, UAE",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.coling-main.699/",
+    pages = "10491--10519",
+}
+```
 
 ### Groups and Tasks
 
@@ -44,6 +78,7 @@ Paper for SpanishBench coming soon.
 
 The following tasks evaluate tasks on SpanishBench dataset using various scoring methods.
   - `belebele_spa_Latn`
+  - `cocoteros_es`
   - `copa_es`
   - `escola`
   - `flores_es`

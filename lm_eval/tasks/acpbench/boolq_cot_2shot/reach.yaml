@@ -1,0 +1,13 @@
+task: acp_reach_bool
+dataset_name: acp_reach_bool
+include: _boolq_cot_2shot_yaml
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: 'This is a ferry domain, where the task is to transport cars from their start to their goal locations, using a ferry. Each location is accessible by ferry from each other location. The cars can be debarked or boarded, and the ferry can carry only one car at a time.  There are 2 locations and 2 cars, numbered consecutively.  Currently, the ferry is at l1 location and it is empty. The cars are at locations as follows: c0 is at l1; c1 is at l0.  is at l1 location and it is empty. The cars are at locations as follows: c0 is at l1; c1 is at l0.'
+    question: 'Is it possible to transition to a state where the following holds: The ferry is empty and The ferry is at c1 location.'
+    answer: "Let's think step by step.  Step 1: Verify if the following fact(s) hold in current state or if there is a sequence of actions which transforms the current state into a state where they hold: The ferry is empty and The ferry is at c1 location. Step 2: These facts do not hold in the current state. Step 3: The fact There are no cars on the ferry and The ferry is at c1 location is not reachable even by a simple iterative procedure that accumulates all facts made true by applicable actions. **Final Answer**: No."
+  - context: 'There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations.  There are 5 trucks and 1 airplane, as well as 4 packages. There are 15 locations across 5 cities.  The locations are in cities as follows: l4-2, l4-1, and l4-0 are in c4; l3-2, l3-0, and l3-1 are in c3; l0-2, l0-0, and l0-1 are in c0; l1-0, l1-1, and l1-2 are in c1; l2-1, l2-0, and l2-2 are in c2.  Currently, p3 and t1 are at l1-1, t3 is at l3-0, p0 is at l1-0, t4 is at l4-2, p1 and t2 are at l2-0, a0 is at l4-0, t0 is at l0-2, p2 is in a0.'
+    question: 'Is it possible to transition to a state where the following holds:  l2-2 is in l3-2?'
+    answer: "Let's think step by step.  Step 1: Verify if the following fact(s) hold in current state or if there
+  is a sequence of actions which transforms the current state into a state where they hold: l2-2 is in l3-2. Step 2: These facts do not hold in the current state. Step 3: The fact l2-2 is in l3-2 is not reachable even by a simple iterative procedure that accumulates all facts made true by applicable actions. **Final Answer**: No."

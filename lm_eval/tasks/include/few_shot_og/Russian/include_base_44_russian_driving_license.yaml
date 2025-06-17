@@ -1,0 +1,5 @@
+include: _russian_few_shot_og_template_yaml
+description: Ниже приведены вопросы с несколькими вариантами ответов (с ответами)
+  по теме Driving License.
+process_docs: !function 'utils.process_driving_license'
+task: include_base_44_russian_few_shot_og_driving_license

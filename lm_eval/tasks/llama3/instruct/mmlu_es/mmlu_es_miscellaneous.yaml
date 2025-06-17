@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: uno
+      B: dos
+      C: cuatro
+      D: ocho
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1ntos ejes tiene un autom\xF3vil est\xE1ndar?"
+  - input_choice_list:
+      A: budapest
+      B: Budokan
+      C: "But\xE1n"
+      D: "Breta\xF1a"
+    input_correct_responses:
+    - B
+    input_question: "\xBFQu\xE9 lugar se nombra en el t\xEDtulo del \xE1lbum en vivo\
+      \ de 1979 de las leyendas del rock Cheap Trick?"
+  - input_choice_list:
+      A: Anthony &#39;Spud&#39; Webb
+      B: Michael &#39;Air&#39; Jordan
+      C: Tyrone &#39;Muggsy&#39; Bogues
+      D: Julius &#39;Dr. J&#39; Erving
+    input_correct_responses:
+    - A
+    input_question: "\xBFQui\xE9n es el hombre m\xE1s bajo que jam\xE1s haya ganado\
+      \ una competencia de mates de la NBA?"
+  - input_choice_list:
+      A: "hidr\xF3geno"
+      B: nylon
+      C: "ox\xEDgeno"
+      D: luz
+    input_correct_responses:
+    - C
+    input_question: "\xBFQu\xE9 se produce durante la fotos\xEDntesis?"
+  - input_choice_list:
+      A: '&#39;Radio ga ga&#39;'
+      B: '&#39;Ob-la-di Ob-la-da&#39;'
+      C: '&#39;De Do Do Do De Da Da Da&#39;'
+      D: '&#39;En-a-Gadda-Da-Vida&#39;'
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de estas canciones fue un \xE9xito Top 10 de la banda\
+      \ de rock The Police?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_miscellaneous
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_miscellaneous
+task_alias: miscellaneous

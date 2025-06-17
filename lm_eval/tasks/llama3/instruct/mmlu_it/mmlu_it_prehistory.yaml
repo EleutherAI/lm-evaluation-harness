@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: soddisfare i potenti sacerdoti astronomi Maya.
+      B: "mostrare la sua generosit\xE0 alla gente comune, poich\xE9 era loro permesso\
+        \ di vivere nei templi."
+      C: spaventare i nemici, in particolare gli spagnoli.
+      D: "legittimare la sua regalit\xE0, poich\xE9 suo padre non era reale."
+    input_correct_responses:
+    - D
+    input_question: "Il grande re Maya Pacal costru\xEC templi nella citt\xE0 di Palenque\
+      \ per:"
+  - input_choice_list:
+      A: "un centro della civilt\xE0 del Mississippi con condizioni simili all&#39;ascesa\
+        \ dei primi stati."
+      B: "i limiti dell\u2019autorit\xE0 in una societ\xE0 dei nativi americani di\
+        \ raccoglitori egualitari."
+      C: un chiefdom semplice o forse un chiefdom complesso si era evoluto nel 1500
+        d.C.
+      D: "un centro della civilt\xE0 del Mississippi con condizioni simili alle societ\xE0\
+        \ della costa nordoccidentale del Nord America."
+    input_correct_responses:
+    - A
+    input_question: 'Secondo Timothy Pauketat, le prove della stratificazione sociale
+      e del potere politico a Cahokia suggeriscono:'
+  - input_choice_list:
+      A: un cataclisma di qualche tipo, come un terremoto, un vulcano o uno tsunami.
+      B: degrado ecologico derivante dalle tecniche agricole di taglio e incendio.
+      C: "guerre infinite tra le vicine citt\xE0-stato Maya."
+      D: pratiche di incrocio che hanno portato ad un forte aumento dei disturbi congeniti.
+    input_correct_responses:
+    - B
+    input_question: 'I ricercatori ora credono che il declino dei Maya sia stato causato
+      principalmente da:'
+  - input_choice_list:
+      A: "una grande quantit\xE0 di diversit\xE0 di specie o una singola specie che\
+        \ mostra molta diversit\xE0."
+      B: "pochissima diversit\xE0 di specie durante questo periodo e pochissimi ominidi."
+      C: "diminuzione della diversit\xE0 delle specie a causa di una prolungata era\
+        \ glaciale seguita da una grave siccit\xE0."
+      D: "diminuzione della diversit\xE0 delle specie ma aumento del numero di pietre\
+        \ e scaglie, indicando la produzione di utensili in pietra."
+    input_correct_responses:
+    - A
+    input_question: 'Ricerche recenti su specie di ominidi risalenti al Pliocene medio
+      indicano che esisteva (a partire dal 2020):'
+  - input_choice_list:
+      A: sotto i 650 cc
+      B: circa 800 cc
+      C: poco meno di 1000 cc
+      D: 1200 cc
+    input_correct_responses:
+    - C
+    input_question: "Qual \xE8 la capacit\xE0 cranica media approssimativa dell&#39;Homo\
+      \ erectus?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_prehistory
+tag: mmlu_it_llama_humanities_tasks
+task: mmlu_it_llama_prehistory
+task_alias: prehistory

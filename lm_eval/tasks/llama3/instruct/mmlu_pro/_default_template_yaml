@@ -18,9 +18,10 @@ metric_list:
       - "\\$"
       - "\\.$"
 generation_kwargs:
-  until:
-    - "."
+  do_sample: false
+  temperature: 0
   max_gen_toks: 1024
+  until: []
 filter_list:
   - name: strict_match
     filter:

@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Geodemograf\xEDa"
+      B: "La diferenciaci\xF3n del producto."
+      C: Matriz ANSOFF.
+      D: "Gesti\xF3n de la marca."
+    input_correct_responses:
+    - A
+    input_question: "_____________ es un resultado natural cuando se combinan variables\
+      \ demogr\xE1ficas y geogr\xE1ficas."
+  - input_choice_list:
+      A: "Unidad de subcontrataci\xF3n."
+      B: Centro de adquisiciones.
+      C: Unidad ejecutiva principal.
+      D: Unidad de toma de decisiones.
+    input_correct_responses:
+    - D
+    input_question: "En una organizaci\xF3n, el grupo de personas encargadas de tomar\
+      \ decisiones de compra se denomina _______________."
+  - input_choice_list:
+      A: "Las necesidades dependen de la cultura y tambi\xE9n de la clase social."
+      B: Las necesidades de nivel inferior deben satisfacerse al menos parcialmente
+        antes de que las necesidades superiores puedan afectar el comportamiento.
+      C: "Las necesidades no se priorizan ni se organizan en ning\xFAn orden particular."
+      D: Las necesidades satisfechas son motivadores y surgen nuevas necesidades cuando
+        las necesidades actuales permanecen insatisfechas.
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l de los siguientes es un supuesto en la jerarqu\xED\
+      a de necesidades de Maslow?"
+  - input_choice_list:
+      A: El consumidor mayor que se siente algo excluido.
+      B: Las mujeres casadas, muchas de las cuales sienten la necesidad de estabilidad
+        en sus vidas.
+      C: Nuevos inmigrantes que realmente quieren asimilarse a su nueva cultura.
+      D: "Los ni\xF1os, que basan la mayor\xEDa de sus decisiones de compra en influencias\
+        \ externas."
+    input_correct_responses:
+    - D
+    input_question: "El \xFAnico grupo dentro de la sociedad que es m\xE1s vulnerable\
+      \ a la influencia del grupo de referencia es:"
+  - input_choice_list:
+      A: "L\xEDneas de atenci\xF3n."
+      B: Correo directo.
+      C: Inserciones.
+      D: Puerta a puerta.
+    input_correct_responses:
+    - D
+    input_question: "Aunque el contenido y la calidad pueden controlarse tanto como\
+      \ el correo directo, las tasas de respuesta de este medio son m\xE1s bajas debido\
+      \ a la falta de un mecanismo de direcci\xF3n personal. Este formato de medios\
+      \ se conoce como:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_marketing
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_marketing
+task_alias: marketing

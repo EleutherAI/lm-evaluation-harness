@@ -1,0 +1,5 @@
+include: _russian_few_shot_og_template_yaml
+description: Ниже приведены вопросы с несколькими вариантами ответов (с ответами)
+  по теме Applied Science.
+process_docs: !function 'utils.process_applied_science'
+task: include_base_44_russian_few_shot_og_applied_science

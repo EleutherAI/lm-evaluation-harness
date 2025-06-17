@@ -1,0 +1,12 @@
+group: include_base_44_lithuanian
+task:
+- include_base_44_lithuanian_arts_humanities
+- include_base_44_lithuanian_stem
+- include_base_44_lithuanian_social_science
+- include_base_44_lithuanian_business_commerce
+- include_base_44_lithuanian_professional_certification
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

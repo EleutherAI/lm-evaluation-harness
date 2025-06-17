@@ -291,4 +291,6 @@ class OpenAIChatCompletion(LocalChatCompletion):
         if "o1" in self.model:
             output.pop("stop")
             output["temperature"] = 1
+        elif "o3" in self.model:
+            output.pop("temperature")
         return output

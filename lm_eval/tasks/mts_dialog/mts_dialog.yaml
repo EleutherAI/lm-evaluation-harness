@@ -1,0 +1,36 @@
+task: mts_dialog
+dataset_path: har1/MTS_Dialogue-Clinical_Note
+description: >
+  Instructions: The following text is from a collection of medical dialogs between doctor and patient. Extract all relevant information to compose a note that summarizes the relevant content of the dialog.
+
+output_type: generate_until
+training_split: train
+validation_split: train
+test_split: train
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
+generation_kwargs:
+  until:
+    - "\n\n"
+metric_list:
+  - metric: bleu
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: rouge1
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: rouge2
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: rougeL
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: bert_score
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: bleurt
+    aggregation: nanmean
+    higher_is_better: true
+metadata:
+  version: 1.2

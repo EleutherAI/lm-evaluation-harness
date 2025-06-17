@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: menos
+      B: mais
+      C: o mesmo
+      D: zero
+    input_correct_responses:
+    - A
+    input_question: "Comparadas com a massa de um \xE1tomo de ur\xE2nio em fiss\xE3\
+      o, as massas combinadas dos produtos ap\xF3s a fiss\xE3o s\xE3o"
+  - input_choice_list:
+      A: "espa\xE7o e tempo."
+      B: "um g\xEAmeo viajante e um g\xEAmeo que fica em casa."
+      C: "gravidade e acelera\xE7\xE3o."
+      D: massa e energia.
+    input_correct_responses:
+    - C
+    input_question: "Coisas que s\xE3o equivalentes de acordo com o princ\xEDpio da\
+      \ equival\xEAncia s\xE3o"
+  - input_choice_list:
+      A: "convertido para uma frequ\xEAncia diferente"
+      B: "deflex\xE3o"
+      C: "interfer\xEAncia"
+      D: "polariza\xE7\xE3o"
+    input_correct_responses:
+    - C
+    input_question: "As cores em uma bolha de sab\xE3o resultam da luz"
+  - input_choice_list:
+      A: o mesmo
+      B: maior
+      C: menos
+      D: maior ou menor dependendo da velocidade do vento
+    input_correct_responses:
+    - B
+    input_question: "Um aeromodelo voa mais devagar quando voa contra o vento e mais\
+      \ r\xE1pido com o vento nas costas. Quando lan\xE7ado em \xE2ngulo reto com\
+      \ o vento, em um vento cruzado, sua velocidade no solo, em compara\xE7\xE3o\
+      \ com o v\xF4o no ar parado, \xE9"
+  - input_choice_list:
+      A: "Hidrog\xEAnio"
+      B: Ferro
+      C: "Ur\xE2nio"
+      D: Igual em cada
+    input_correct_responses:
+    - A
+    input_question: "Qual desses tr\xEAs elementos tem mais massa por n\xFAcleon?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_conceptual_physics
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_conceptual_physics
+task_alias: conceptual_physics

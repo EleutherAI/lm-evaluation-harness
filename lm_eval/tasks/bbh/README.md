@@ -51,3 +51,6 @@ None.
 - [ ] Variant with Calculator (see https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py for example implementation)
 - [ ] Using Verifiers
 - [ ] Majority voting "without CoT"
+
+### Changelog
+no version change: changed dataset to `SaylorTwift/bbh`. Do not expect any change in the results.

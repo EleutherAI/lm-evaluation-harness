@@ -1,0 +1,9 @@
+group: include_base_44_korean
+task:
+- include_base_44_korean_few_shot_og_professional_certification
+- include_base_44_korean_few_shot_og_social_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

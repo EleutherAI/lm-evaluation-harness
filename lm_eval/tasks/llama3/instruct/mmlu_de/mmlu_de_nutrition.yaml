@@ -1,0 +1,67 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Die Teetrinker haben ein geringeres Risiko, an Diabetes zu erkranken.
+      B: "Die Teetrinker haben ein h\xF6heres Risiko, an Diabetes zu erkranken."
+      C: "Auf der Grundlage der gegebenen Informationen k\xF6nnen wir nicht sagen,\
+        \ ob der beobachtete Unterschied im Krankheitsrisiko das Ergebnis eines Zufalls\
+        \ ist."
+      D: "Das Risikoverh\xE4ltnis liegt nahe am Wert eins, es gibt also keinen Unterschied\
+        \ im Krankheitsrisiko zwischen den beiden Gruppen."
+    input_correct_responses:
+    - C
+    input_question: "In einer Kohortenstudie betrug das Risikoverh\xE4ltnis, an Diabetes\
+      \ zu erkranken, 0,86, wenn Teekonsumenten (die Exponierten) mit denen verglichen\
+      \ wurden, die keinen Tee tranken (die Nichtexponierten). Welche eine Aussage\
+      \ ist richtig (nach Kenntnisstand 2020)?"
+  - input_choice_list:
+      A: "Verbraucher mit Phenylketonurie m\xFCssen auf den Verzehr des S\xFC\xDF\
+        ungsmittels Aspartam verzichten"
+      B: "Verbraucher mit Phenylketonurie m\xFCssen auf den Verzehr des S\xFC\xDF\
+        ungsmittels Saccharin verzichten"
+      C: "Verbraucher mit Phenylketonurie m\xFCssen auf den Verzehr des S\xFC\xDF\
+        ungsmittels Sucralose verzichten"
+      D: "Verbraucher mit Phenylketonurie m\xFCssen auf den Verzehr des S\xFC\xDF\
+        stoffs Acesulfam K verzichten"
+    input_correct_responses:
+    - A
+    input_question: Welche der folgenden Aussagen ist richtig (nach Kenntnisstand
+      2020)?
+  - input_choice_list:
+      A: "Propions\xE4ure, die w\xE4hrend der Darmfaserfermentation gebildet wird,\
+        \ hemmt die Leberfetts\xE4uresynthese"
+      B: "Butters\xE4ure, die w\xE4hrend der Darmfaserfermentation gebildet wird,\
+        \ stimuliert das \u201EStummschalten\u201C des SLC5A8-Tumorsuppressorgens"
+      C: Keine dieser Optionen ist richtig
+      D: "Butters\xE4ure, die w\xE4hrend der Darmfaserfermentation gebildet wird,\
+        \ stimuliert die antioxidative Abwehr im Dickdarm"
+    input_correct_responses:
+    - D
+    input_question: "Welche der folgenden Erkl\xE4rungen ist die plausibelste Erkl\xE4\
+      rung f\xFCr die sch\xFCtzende Wirkung von Ballaststoffen gegen Dickdarmkrebs,\
+      \ Stand 2020?"
+  - input_choice_list:
+      A: 50 % der Erwachsenen konsumieren Jod in Mengen unterhalb des RNI
+      B: Milchprodukte sind eine schlechte Jodquelle
+      C: Der Jodgehalt von Bio-Milch ist in der Regel geringer als der von konventioneller
+        Milch
+      D: "Britische Ern\xE4hrungsreferenzwerte empfehlen eine Erh\xF6hung der Jodaufnahme\
+        \ in der Schwangerschaft"
+    input_correct_responses:
+    - C
+    input_question: Welche der folgenden Aussagen zu Jod ist im Jahr 2020 richtig?
+  - input_choice_list:
+      A: Acarbose
+      B: Metformin
+      C: Sulfonylharnstoffe
+      D: Insulin
+    input_correct_responses:
+    - B
+    input_question: "Was ist ab 2020 das Medikament der ersten Wahl f\xFCr Patienten\
+      \ mit Typ-2-Diabetes und Adipositas?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_nutrition
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_nutrition
+task_alias: nutrition

@@ -21,5 +21,6 @@ task:
     - cabreu
     - mgsm_direct_ca
     - phrases_va
+    - cocoteros_va
 metadata:
-  version: 1.0
+  version: 2.0
