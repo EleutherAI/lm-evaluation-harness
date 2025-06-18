@@ -30,7 +30,7 @@ class LocalCompletionsAPI(TemplateAPI):
         # Assign custom model name
         if custom_model_name is not None:
             self.model = custom_model_name
-    
+
     @cached_property
     def header(self) -> dict:
         """Override to include custom headers if defined."""
@@ -151,7 +151,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         self.custom_headers = custom_headers
         if custom_model_name is not None:
             self.model = custom_model_name
-    
+
     @cached_property
     def header(self) -> dict:
         """Override to include custom headers if defined."""
@@ -161,7 +161,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         else:
             # Fallback to default
             return super().header
-        
+
     def _create_payload(
         self,
         messages: List[Dict],
