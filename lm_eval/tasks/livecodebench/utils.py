@@ -407,16 +407,19 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
 
     try:
         # Create detailed question header
-        question_id = doc.get('id', 'unknown')
+        question_id = doc.get('question_id', 'unknown')
+        difficulty = doc.get('difficulty', 'unknown')
         question_content = doc.get('question_content', '')
         question_preview = question_content[:200] + ('...' if len(question_content) > 200 else '')
         
         eval_header = f"\n{'='*80}\n🔍 LIVECODEBENCH EVALUATION - Processing Question {_global_problem_counter + 1}\n{'='*80}"
         question_id_info = f"📝 Question ID: {question_id}"
+        difficulty_info = f"⚡ Difficulty: {difficulty}"
         question_content_info = f"📄 Question Content (first 200 chars): {question_preview}"
         
         print(eval_header)
         print(question_id_info)
+        print(difficulty_info)
         print(question_content_info)
         
         # LOG THE GENERATED CODE
