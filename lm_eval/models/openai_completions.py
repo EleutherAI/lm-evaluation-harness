@@ -16,13 +16,30 @@ eval_logger = logging.getLogger(__name__)
 class LocalCompletionsAPI(TemplateAPI):
     def __init__(
         self,
-        base_url=None,
-        tokenizer_backend="huggingface",
+        base_url: str = None,
+        custom_headers: dict[str, str] = None,
+        custom_model_name: str = None,
+        tokenizer_backend: str = "huggingface",
         **kwargs,
     ):
         super().__init__(
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
+        # Assign custom headers
+        self.custom_headers = custom_headers
+        # Assign custom model name
+        if custom_model_name is not None:
+            self.model = custom_model_name
+    
+    @cached_property
+    def header(self) -> dict:
+        """Override to include custom headers if defined."""
+        if self.custom_headers is not None:
+            # Return custom
+            return self.custom_headers
+        else:
+            # Fallback to default
+            return super().header
 
     def _create_payload(
         self,
@@ -108,9 +125,11 @@ class LocalCompletionsAPI(TemplateAPI):
 class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
-        base_url=None,
-        tokenizer_backend=None,
-        tokenized_requests=False,
+        base_url: str = None,
+        custom_headers: dict[str, str] = None,
+        custom_model_name: str = None,
+        tokenizer_backend: str = None,
+        tokenized_requests: bool = False,
         **kwargs,
     ):
         eval_logger.warning(
@@ -128,6 +147,21 @@ class LocalChatCompletion(LocalCompletionsAPI):
             )
             self._batch_size = 1
 
+        # Assign custom headers
+        self.custom_headers = custom_headers
+        if custom_model_name is not None:
+            self.model = custom_model_name
+    
+    @cached_property
+    def header(self) -> dict:
+        """Override to include custom headers if defined."""
+        if self.custom_headers is not None:
+            # Return custom
+            return self.custom_headers
+        else:
+            # Fallback to default
+            return super().header
+        
     def _create_payload(
         self,
         messages: List[Dict],
