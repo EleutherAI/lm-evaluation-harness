@@ -14,10 +14,10 @@ generation_kwargs:
   - "<|endoftext|>"
   - "<|im_end|>"
   # Llama-3.2-3B-Instruct default completion sampling parameters from HuggingFace
-  do_sample: true  # Enable sampling to use temperature/top_p
+  do_sample: false  # Enable sampling to use temperature/top_p
   max_gen_toks: 2048  # Changed from max_tokens to max_gen_toks for lm-evaluation-harness compatibility
-  temperature: 0.6  # Default sampling temperature for Llama-3.2-3B-Instruct
-  top_p: 0.9  # Default top-p sampling for Llama-3.2-3B-Instruct
+  # temperature: 0.6  # Default sampling temperature for Llama-3.2-3B-Instruct
+  # top_p: 0.9  # Default top-p sampling for Llama-3.2-3B-Instruct
   # top_k: 20  # top-k sampling (not used for default Llama-3.2-3B-Instruct settings)
   # Note: 'n' parameter not supported in HuggingFace, use multiple runs instead
 metric_list:
