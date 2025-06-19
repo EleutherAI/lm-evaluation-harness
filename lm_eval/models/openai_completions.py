@@ -17,29 +17,20 @@ class LocalCompletionsAPI(TemplateAPI):
     def __init__(
         self,
         base_url: str = None,
-        custom_headers: dict[str, str] = None,
-        custom_model_name: str = None,
+        headers: dict[str, str] = None,
         tokenizer_backend: str = "huggingface",
         **kwargs,
     ):
         super().__init__(
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
-        # Assign custom headers
-        self.custom_headers = custom_headers
-        # Assign custom model name
-        if custom_model_name is not None:
-            self.model = custom_model_name
+        # Assign headers
+        self.headers = headers
 
     @cached_property
     def header(self) -> dict:
-        """Override to include custom headers if defined."""
-        if self.custom_headers is not None:
-            # Return custom
-            return self.custom_headers
-        else:
-            # Fallback to default
-            return super().header
+        """Set API headers."""
+        return self.headers
 
     def _create_payload(
         self,
@@ -126,8 +117,6 @@ class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
         base_url: str = None,
-        custom_headers: dict[str, str] = None,
-        custom_model_name: str = None,
         tokenizer_backend: str = None,
         tokenized_requests: bool = False,
         **kwargs,
@@ -146,21 +135,6 @@ class LocalChatCompletion(LocalCompletionsAPI):
                 "Chat completions does not support batching. Defaulting to batch size 1."
             )
             self._batch_size = 1
-
-        # Assign custom headers
-        self.custom_headers = custom_headers
-        if custom_model_name is not None:
-            self.model = custom_model_name
-
-    @cached_property
-    def header(self) -> dict:
-        """Override to include custom headers if defined."""
-        if self.custom_headers is not None:
-            # Return custom
-            return self.custom_headers
-        else:
-            # Fallback to default
-            return super().header
 
     def _create_payload(
         self,
@@ -234,6 +208,8 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
 
+        self.headers = {"Authorization": f"Bearer {self.api_key}"}
+
     @cached_property
     def api_key(self):
         """Override this property to return the API key for the API request."""
@@ -270,12 +246,15 @@ class OpenAIChatCompletion(LocalChatCompletion):
             eval_logger.warning(
                 "o1 models do not support `stop` and only support temperature=1"
             )
+
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
             tokenized_requests=tokenized_requests,
             **kwargs,
         )
+
+        self.headers = {"Authorization": f"Bearer {self.api_key}"}
 
     @cached_property
     def api_key(self):

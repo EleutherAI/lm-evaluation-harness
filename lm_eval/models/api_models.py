@@ -296,7 +296,7 @@ class TemplateAPI(TemplateLM):
     @cached_property
     def header(self) -> dict:
         """Override this property to return the headers for the API request."""
-        return {"Authorization": f"Bearer {self.api_key}"}
+        return None
 
     @property
     def tokenizer_name(self) -> str:
