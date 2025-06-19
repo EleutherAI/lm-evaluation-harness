@@ -1,0 +1,46 @@
+tag:
+  - math_word_problems
+task: aime
+dataset_path: gneubig/aime-1983-2024
+# dataset_name: null
+output_type: generate_until
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "Question: {{Question}}\nAnswer:"
+doc_to_target: "{{Answer}}" # "{{Answer.split('### ')[-1].rstrip()}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+      - "(?s).*#### "
+      - "\\.$"
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+num_fewshot: 5
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "(\\-?[0-9\\.\\,]+)"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+      - function: "take_first"
+metadata:
+  version: 0.0
