@@ -861,6 +861,16 @@ class ConfigurableTask(Task):
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
         self.download(self.config.dataset_kwargs)
+        try:
+            self.download(self.config.dataset_kwargs)
+        except ValueError as e:
+            # e.g. “Instruction 'train' corresponds to no data!”
+            eval_logger.warning(
+                f"Task {self.config.task!r} download failed ({e}), marking as empty."
+            )
+            # build an empty default split so eval_docs == []
+            from datasets import Dataset, DatasetDict
+            self.dataset = DatasetDict({"default": Dataset.from_dict({})})
         self._training_docs = None
         self._fewshot_docs = None
 
@@ -923,76 +933,100 @@ class ConfigurableTask(Task):
         self.features = list(self.task_docs.features.keys())
         self.multiple_input = 0
         self.multiple_target = 0
-        test_doc = self.task_docs[0]
-        test_text = self.doc_to_text(test_doc)
-        test_target = self.doc_to_target(test_doc)
+        # assign whatever eval_docs (could now be empty)
+        self.task_docs = self.eval_docs
+        if len(self.task_docs) == 0:
+            # skip the “one‐doc” sanity checks entirely
+            self.features = []
+            self.multiple_input = 0
+            self.multiple_target = 0
+        else:
+            # Test One Doc (only if we have at least one example)
+            self.features = list(self.task_docs.features.keys())
+            self.multiple_input = 0
+            self.multiple_target = 0
+            test_doc = self.task_docs[0]
+            test_text = self.doc_to_text(test_doc)
+            test_target = self.doc_to_target(test_doc)
 
-        if self.config.doc_to_choice is not None:
-            test_choice = self.doc_to_choice(test_doc)
-            if not isinstance(test_choice, list):
-                eval_logger.error("doc_to_choice must return list")
+            if self.config.doc_to_choice is not None:
+                test_choice = self.doc_to_choice(test_doc)
+                if not isinstance(test_choice, list):
+                    eval_logger.error("doc_to_choice must return list")
+                else:
+                    num_choice = len(test_choice)
+
+                if isinstance(test_text, int):
+                    eval_logger.debug(
+                        "doc_to_text returned an int. Assuming multiple inputs."
+                    )
+                    self.multiple_input = num_choice
             else:
-                num_choice = len(test_choice)
+                test_choice = None
 
-            if isinstance(test_text, int):
+            if isinstance(test_target, list):
                 eval_logger.debug(
-                    "doc_to_text returned an int. Assuming multiple inputs."
+                    "doc_to_target returned a list. Assuming multiple targets."
                 )
-                self.multiple_input = num_choice
-        else:
-            test_choice = None
-
-        if isinstance(test_target, list):
-            eval_logger.debug(
-                "doc_to_target returned a list. Assuming multiple targets."
-            )
-            self.multiple_target = len(test_target)
-        else:
-            if (isinstance(test_target, int)) and (test_choice is not None):
-                test_target = test_choice[test_target]
+                self.multiple_target = len(test_target)
             else:
-                test_target = str(test_target)
+                if (isinstance(test_target, int)) and (test_choice is not None):
+                    test_target = test_choice[test_target]
+                else:
+                    test_target = str(test_target)
 
-        if test_choice is not None:
-            check_choices = test_choice
-        else:
-            check_choices = [test_target]
-        if self.config.doc_to_choice is not None:
-            for choice in check_choices:
-                choice_has_whitespace = True if choice[0].isspace() else False
-                delimiter_has_whitespace = (
-                    True
-                    if self.config.target_delimiter.rstrip()
-                    != self.config.target_delimiter
-                    else False
-                )
+            if test_choice is not None:
+                check_choices = test_choice
+            else:
+                check_choices = [test_target]
+            if self.config.doc_to_choice is not None:
+                for choice in check_choices:
+                    choice_has_whitespace = True if choice[0].isspace() else False
+                    delimiter_has_whitespace = (
+                        True
+                        if self.config.target_delimiter.rstrip()
+                        != self.config.target_delimiter
+                        else False
+                    )
 
-                if delimiter_has_whitespace and choice_has_whitespace:
-                    eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
-                    )
-                elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
-                    eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
-                    )
+                    if delimiter_has_whitespace and choice_has_whitespace:
+                        eval_logger.debug(
+                            f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
+                        )
+                    elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
+                        eval_logger.debug(
+                            f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                        )
 
     def download(
         self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
     ) -> None:
-        if isinstance(self.config.custom_dataset, Callable):
+        """Download dataset, but if HF raises ValueError about a missing split, turn it into an empty default split."""
+        try:
+            if isinstance(self.config.custom_dataset, Callable):
+                eval_logger.warning(
+                    f"{self.config.task}: Custom kwargs can be passed to `--metadata`…"
+                )
+                self.dataset = self.config.custom_dataset(
+                    **(self.config.metadata or {}),
+                    **(self.config.dataset_kwargs or {}),
+                )
+            else:
+                # <-- this is where load_dataset often errors
+                self.dataset = datasets.load_dataset(
+                    path=self.DATASET_PATH,
+                    name=self.DATASET_NAME,
+                    **(dataset_kwargs or {}),
+                )
+        except ValueError as e:
+            # e.g. “Instruction 'train' corresponds to no data!”
             eval_logger.warning(
-                f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
-                + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
+                f"Task {self.config.task!r} download error ({e}), using empty default split."
             )
-            self.dataset = self.config.custom_dataset(
-                **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
-            )
-        else:
-            self.dataset = datasets.load_dataset(
-                path=self.DATASET_PATH,
-                name=self.DATASET_NAME,
-                **dataset_kwargs if dataset_kwargs is not None else {},
-            )
+            from datasets import Dataset, DatasetDict
+            # create an empty DatasetDict with a zero‐row "default" split
+            self.dataset = DatasetDict({"default": Dataset.from_dict({})})
+
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:
