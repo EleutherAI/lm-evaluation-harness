@@ -61,18 +61,113 @@ def _temp_run_helper(sample, generation, debug, result, metadata_list, timeout):
 
 def extract_code_generation(model_output: str, model_type: str = 'chat'):
     """Extract code from model output based on model type."""
+    import re
+    
+    # Debug counter for detailed logging
+    if not hasattr(extract_code_generation, 'debug_count'):
+        extract_code_generation.debug_count = 0
+    extract_code_generation.debug_count += 1
+    
+    # Detailed debugging for first 5 extractions
+    debug_mode = extract_code_generation.debug_count <= 5
+    
+    if debug_mode:
+        newline_char = '\n'
+        print(f"\n🔧 CODE EXTRACTION DEBUG #{extract_code_generation.debug_count}")
+        print(f"{'='*60}")
+        print(f"📥 Input to extract_code_generation:")
+        print(f"   Model Type: {model_type}")
+        print(f"   Input Length: {len(model_output)} chars")
+        print(f"   Input Lines: {len(model_output.split(newline_char))} lines")
+    
     outputlines = model_output.split('\n')
 
     if model_type == 'base':
         return model_output.strip()
     elif model_type == 'chat':
+        # Method 1: Try to extract code from markdown blocks first (original method)
         indexlines = [i for i, line in enumerate(outputlines) if '```' in line]
         
-        # If we found code blocks, extract the code
-        if len(indexlines) >= 2:
-            return '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])
+        if debug_mode:
+            print(f"🔍 Method 1 - Markdown Blocks:")
+            print(f"   Found {len(indexlines)} lines with '```' at indices: {indexlines}")
+            if indexlines:
+                for i in indexlines[:4]:
+                    print(f"   Line {i}: '{outputlines[i]}'")
         
-        # If no code blocks found, return empty string
+        # If we found proper markdown code blocks, extract the code
+        if len(indexlines) >= 2:
+            extracted_code = '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])
+            if debug_mode:
+                print(f"✅ SUCCESS - Method 1 extracted {len(extracted_code)} chars:")
+                print(f"   '{extracted_code[:200]}{'...' if len(extracted_code) > 200 else ''}'")
+            return extracted_code
+        
+        # Method 2: Look for Python function definitions if no markdown blocks
+        # This handles cases where the model returns code without markdown delimiters
+        if debug_mode:
+            print(f"🔍 Method 2 - Function Definitions:")
+        
+        def_pattern = r'def\s+\w+\s*\([^)]*\):[^}]*?(?=\n\n|\n[^\s]|\Z)'
+        matches = re.findall(def_pattern, model_output, re.MULTILINE | re.DOTALL)
+        
+        if debug_mode:
+            print(f"   Found {len(matches)} function definitions")
+            for i, match in enumerate(matches[:2]):
+                print(f"   Match {i+1}: '{match[:100]}{'...' if len(match) > 100 else ''}'")
+        
+        if matches:
+            # Take the first complete function definition
+            extracted_code = matches[0].strip()
+            if debug_mode:
+                print(f"✅ SUCCESS - Method 2 extracted {len(extracted_code)} chars:")
+                print(f"   '{extracted_code[:200]}{'...' if len(extracted_code) > 200 else ''}'")
+            return extracted_code
+        
+        # Method 3: Look for any Python-like code patterns
+        # Find lines that look like Python code (indented or starting with def/class/import/etc.)
+        python_lines = []
+        in_code_block = False
+        
+        for line in outputlines:
+            line_stripped = line.strip()
+            # Detect start of Python code
+            if (line_stripped.startswith(('def ', 'class ', 'import ', 'from ', 'if ', 'for ', 'while ', 'try:', 'with ')) or
+                (line.startswith('    ') and line_stripped) or  # Indented code
+                (line_stripped and line_stripped[0] in 'abcdefghijklmnopqrstuvwxyz_' and '=' in line_stripped)):  # Variable assignments
+                in_code_block = True
+                python_lines.append(line)
+            elif in_code_block:
+                if line_stripped == '' or line.startswith('    ') or line.startswith('\t'):
+                    # Continue code block (empty lines or indented)
+                    python_lines.append(line)
+                elif line_stripped and not line_stripped[0].islower():
+                    # Likely end of code block (starts with capital = prose)
+                    break
+                else:
+                    python_lines.append(line)
+        
+        if python_lines:
+            extracted_code = '\n'.join(python_lines).strip()
+            return extracted_code
+        
+        # Method 4: As a last resort, try to extract anything that looks like code
+        # Look for lines with common Python keywords
+        code_keywords = ['def ', 'return ', 'import ', 'from ', 'class ', 'if ', 'else:', 'elif ', 'for ', 'while ', 'try:', 'except:', 'with ']
+        potential_code_lines = []
+        
+        for line in outputlines:
+            if any(keyword in line for keyword in code_keywords):
+                potential_code_lines.append(line)
+        
+        if potential_code_lines:
+            extracted_code = '\n'.join(potential_code_lines).strip()
+            return extracted_code
+        
+        # If all methods fail, return empty string
+        if debug_mode:
+            print(f"❌ ALL METHODS FAILED - No code extracted")
+            print(f"{'='*60}")
         return ''
     else:
         raise ValueError(f'Invalid model type: {model_type}')
@@ -390,6 +485,22 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     if not results:
         update_global_counters(passed=False)
         return {"acc": 0.0}
+
+    # LOG RAW MODEL RESPONSE for first few problems
+    if _global_problem_counter < 5:  # Debug first 5 problems
+        newline_char = '\n'
+        print(f"\n" + "="*80)
+        print(f"🔍 RAW MODEL RESPONSE DEBUG #{_global_problem_counter + 1}")
+        print(f"="*80)
+        print(f"📝 Question ID: {doc.get('question_id', 'unknown')}")
+        print(f"🤖 Raw Model Output:")
+        print(f"{'─'*60}")
+        print(f"'{results[0]}'")
+        print(f"{'─'*60}")
+        print(f"📏 Response Length: {len(results[0])} characters")
+        print(f"📄 Response Lines: {len(results[0].split(newline_char))} lines")
+        print(f"="*80)
+        sys.stdout.flush()
 
     # We typically evaluate the first generation for pass@1
     generated_code = postprocess_generation(results[0])
