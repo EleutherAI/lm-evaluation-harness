@@ -168,7 +168,7 @@ class HFLM(TemplateLM):
                 revision=revision,
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
-                subfolder=subfolder
+                subfolder=subfolder,
             )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
@@ -723,7 +723,7 @@ class HFLM(TemplateLM):
 
         if add_bos_token:
             kwargs["add_bos_token"] = True
-        
+
         if subfolder:
             kwargs["subfolder"] = subfolder
 
