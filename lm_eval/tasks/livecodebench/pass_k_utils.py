@@ -54,36 +54,3 @@ def extract_instance_results(results):
 
     instance_wise_grades = [v for _, v in sorted(instance_wise_grades.items(), key=lambda item: item[0])]
     return instance_wise_grades
-
-
-def extract_code_generation(model_output: str, model_type: str = 'chat'):
-    """Extract code from model output based on model type."""
-    outputlines = model_output.split('\n')
-
-    if model_type == 'base':
-        return model_output.strip()
-    elif model_type == 'chat':
-        indexlines = [i for i, line in enumerate(outputlines) if '```' in line]
-        
-        # If we found code blocks, extract the code
-        if len(indexlines) >= 2:
-            return '\n'.join(outputlines[indexlines[0] + 1:indexlines[1]])
-        
-        # If no code blocks found, check if the entire output looks like code
-        # This handles cases where models generate raw Python code without markdown
-        stripped_output = model_output.strip()
-        if stripped_output:
-            # Simple heuristic: if it contains common Python keywords, treat as code
-            python_indicators = ['def ', 'import ', 'from ', 'class ', 'if ', 'for ', 'while ', 'print(', 'return ']
-            if any(indicator in stripped_output for indicator in python_indicators):
-                return stripped_output
-        
-        # If no code blocks and doesn't look like code, return empty
-        return ''
-    else:
-        raise ValueError(f'Invalid model type: {model_type}')
-
-
-def postprocess_generation(model_output: str) -> str:
-    """Extracts the generated code from the model's output."""
-    return extract_code_generation(model_output) 
