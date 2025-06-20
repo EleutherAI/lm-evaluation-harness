@@ -67,6 +67,65 @@ def test_include_correctness(limit: int, model: str, model_args: str):
     )
 
 
+# test that the include_path works and that it takes precedence over default tasks
+@pytest.mark.parametrize(
+    "limit,model,model_args",
+    [
+        (
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+        ),
+    ],
+)
+def test_include_precedence(limit: int, model: str, model_args: str):
+    task_name = ["arc_challenge_chat"]
+
+    task_manager = tasks.TaskManager()
+    task_dict = tasks.get_task_dict(task_name, task_manager)
+
+    e1 = evaluator.simple_evaluate(
+        model=model,
+        tasks=task_name,
+        limit=limit,
+        model_args=model_args,
+    )
+    assert e1 is not None
+
+    # run with evaluate() and "arc_challenge_chat" test config (included from ./testconfigs path)
+    lm = api.registry.get_model(model).create_from_arg_string(
+        model_args,
+        {
+            "batch_size": None,
+            "max_batch_size": None,
+            "device": None,
+        },
+    )
+
+    task_name = ["arc_challenge_chat"]
+
+    task_manager = tasks.TaskManager(
+        include_path=os.path.dirname(os.path.abspath(__file__)) + "/testconfigs",
+        include_defaults=True,  # this is the default
+    )
+    task_dict = tasks.get_task_dict(task_name, task_manager)
+
+    e2 = evaluator.evaluate(
+        lm=lm,
+        task_dict=task_dict,
+        limit=limit,
+    )
+
+    assert e2 is not None
+    # check that caching is working
+
+    def r(x):
+        return x["results"]["arc_challenge_chat"]
+
+    # should be different, since the task is redefined(add metric) in the testconfigs dir
+    assert len(r(e1)) != len(r(e2))
+
+
 # test that setting include_defaults = False works as expected and that include_path works
 def test_no_include_defaults():
     task_name = ["arc_easy"]
