@@ -1,4 +1,4 @@
-include: truthfulqa-multi_mc1_en.yaml
+include: truthfulqa-multi_mc1_en
 task: truthfulqa-multi_mc2_en
 doc_to_choice: "{{mc2_targets.choices}}"
 process_results: !function utils.process_results_mc2

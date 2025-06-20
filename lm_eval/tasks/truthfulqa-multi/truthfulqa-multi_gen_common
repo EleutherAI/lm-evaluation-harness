@@ -1,5 +1,5 @@
 tag:
-  - truthfulqa-multi
+  - truthfulqa_multi
 dataset_path: HiTZ/truthfulqa-multi
 output_type: generate_until
 generation_kwargs:
