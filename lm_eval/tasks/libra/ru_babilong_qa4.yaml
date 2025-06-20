@@ -1,0 +1,29 @@
+tag:
+- libra
+task: ru_babilong_qa4
+task_alias: ruBABILongQA4
+dataset_name: ru_babilong_qa4
+dataset_kwargs:
+  dataset_name: ru_babilong_qa4
+include: _template_yaml
+doc_to_text: 'Я даю тебе контекст с фактами о местоположении и действиях разных людей.
+  Тебе нужно ответить на вопрос, основываясь только на фактической информации.
+
+  {{context}}
+
+  Ответь на вопрос как можно более кратко.
+
+  Вопрос: {{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 16
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0
