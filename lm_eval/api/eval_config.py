@@ -1,10 +1,10 @@
 import argparse
 import os
 from argparse import Namespace
+from dataclasses import dataclass
 from typing import Any, Dict, Optional, Union
 
 import yaml
-from pydantic import BaseModel
 
 from lm_eval.utils import simple_parse_args_string
 
@@ -18,7 +18,8 @@ DICT_KEYS = [
 ]
 
 
-class EvaluationConfig(BaseModel):
+@dataclass
+class EvaluationConfig:
     """
     Simple config container for language-model evaluation.
     No content validation here—just holds whatever comes from YAML or CLI.
@@ -58,7 +59,9 @@ class EvaluationConfig(BaseModel):
     request_caching_args: Optional[dict] = None
 
     @staticmethod
-    def parse_namespace(namespace: argparse.Namespace) -> Dict[str, Any]:
+    def parse_namespace(
+        namespace: argparse.Namespace,
+    ) -> tuple[Dict[str, Any], list[Dict[str, Any]]]:
         """
         Convert an argparse Namespace object to a dictionary.
 
@@ -159,7 +162,8 @@ class EvaluationConfig(BaseModel):
             args_dict, config_data, explicit_args
         )
 
-        # 4. Instantiate the Pydantic model (no further validation here)
+        # 4. Instantiate the config (no further validation here)
+        dict_config.pop("_explicit_args", None)
         return cls(**dict_config)
 
 

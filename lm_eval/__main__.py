@@ -491,9 +491,40 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     print(f"CONFIG_AFTER: {config}")
 
     results = evaluator.simple_evaluate(
-        config=config,
+        model=config.model,
+        model_args=config.model_args,
+        tasks=config.tasks,
+        num_fewshot=config.num_fewshot,
+        batch_size=config.batch_size,
+        max_batch_size=config.max_batch_size,
+        device=config.device,
+        use_cache=config.use_cache,
+        cache_requests=config.request_caching_args.get("cache_requests", False),
+        rewrite_requests_cache=config.request_caching_args.get(
+            "rewrite_requests_cache", False
+        ),
+        delete_requests_cache=config.request_caching_args.get(
+            "delete_requests_cache", False
+        ),
+        limit=config.limit,
+        samples=config.samples,
+        check_integrity=config.check_integrity,
+        write_out=config.write_out,
+        log_samples=config.log_samples,
         evaluation_tracker=evaluation_tracker,
+        system_instruction=config.system_instruction,
+        apply_chat_template=config.apply_chat_template,
+        fewshot_as_multiturn=config.fewshot_as_multiturn,
+        gen_kwargs=config.gen_kwargs,
         task_manager=task_manager,
+        verbosity=config.verbosity,
+        predict_only=config.predict_only,
+        random_seed=config.seed[0] if config.seed else None,
+        numpy_random_seed=config.seed[1] if config.seed else None,
+        torch_random_seed=config.seed[2] if config.seed else None,
+        fewshot_random_seed=config.seed[3] if config.seed else None,
+        confirm_run_unsafe_code=config.confirm_run_unsafe_code,
+        metadata=config.metadata,
     )
 
     if results is not None:
