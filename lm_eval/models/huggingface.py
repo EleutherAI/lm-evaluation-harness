@@ -192,6 +192,11 @@ class HFLM(TemplateLM):
         if quantization_config := getattr(self.config, "quantization_config", None):
             from transformers.quantizers import AutoQuantizationConfig
 
+            if quantization_config is not None and not isinstance(
+                quantization_config, dict
+            ):
+                quantization_config = quantization_config.to_dict()
+
             quantization_config = AutoQuantizationConfig.from_dict(quantization_config)
 
         # if we passed `pretrained` as a string, initialize our model now
