@@ -35,18 +35,18 @@ def update_global_counters(passed: bool, total_problems: int = None):
         _global_total_problems = total_problems
 
 def print_final_accuracy():
-    """Print the final accuracy statistics."""
-    global _global_problem_counter, _global_problems_passed, _global_total_problems
+    """Print final accuracy summary at the end of evaluation."""
     if _global_problem_counter > 0:
         accuracy = (_global_problems_passed / _global_problem_counter) * 100
-        print(f"\n" + "="*60)
-        print(f"🎯 FINAL EVALUATION RESULTS")
-        print(f"="*60)
-        print(f"Total Problems Evaluated: {_global_problem_counter}")
-        print(f"Problems Passed: {_global_problems_passed}")
-        print(f"Problems Failed: {_global_problem_counter - _global_problems_passed}")
-        print(f"Final Accuracy: {accuracy:.2f}% ({_global_problems_passed}/{_global_problem_counter})")
-        print(f"="*60)
+        # DEBUG: Final evaluation results - commenting out for production
+        # print(f"\n" + "="*60)
+        # print(f"🎯 FINAL EVALUATION RESULTS")
+        # print(f"="*60)
+        # print(f"Total Problems Evaluated: {_global_problem_counter}")
+        # print(f"Problems Passed: {_global_problems_passed}")
+        # print(f"Problems Failed: {_global_problem_counter - _global_problems_passed}")
+        # print(f"Final Accuracy: {accuracy:.2f}% ({_global_problems_passed}/{_global_problem_counter})")
+        # print(f"="*60)
 
 # Helper function for multiprocessing
 def _temp_run_helper(sample, generation, debug, result, metadata_list, timeout):
@@ -381,29 +381,30 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     # Reset counters on first problem
     if _global_problem_counter == 0:
         reset_global_counters()
-        message = f"\n🚀 Starting LiveCodeBench Evaluation..."
-        print(message)
-        sys.stdout.flush()
+        # DEBUG: Starting evaluation message - commenting out for production
+        # message = f"\n🚀 Starting LiveCodeBench Evaluation..."
+        # print(message)
+        # sys.stdout.flush()
     
     if not results:
         update_global_counters(passed=False)
         return {"acc": 0.0}
 
-    # LOG RAW MODEL RESPONSE for first few problems
-    if _global_problem_counter < 5:  # Debug first 5 problems
-        newline_char = '\n'
-        print(f"\n" + "="*80)
-        print(f"🔍 RAW MODEL RESPONSE DEBUG #{_global_problem_counter + 1}")
-        print(f"="*80)
-        print(f"📝 Question ID: {doc.get('question_id', 'unknown')}")
-        print(f"🤖 Raw Model Output:")
-        print(f"{'─'*60}")
-        print(f"'{results[0]}'")
-        print(f"{'─'*60}")
-        print(f"📏 Response Length: {len(results[0])} characters")
-        print(f"📄 Response Lines: {len(results[0].split(newline_char))} lines")
-        print(f"="*80)
-        sys.stdout.flush()
+    # DEBUG: Raw model response logging - commenting out for production
+    # if _global_problem_counter < 5:  # Debug first 5 problems
+    #     newline_char = '\n'
+    #     print(f"\n" + "="*80)
+    #     print(f"🔍 RAW MODEL RESPONSE DEBUG #{_global_problem_counter + 1}")
+    #     print(f"="*80)
+    #     print(f"📝 Question ID: {doc.get('question_id', 'unknown')}")
+    #     print(f"🤖 Raw Model Output:")
+    #     print(f"{'─'*60}")
+    #     print(f"'{results[0]}'")
+    #     print(f"{'─'*60}")
+    #     print(f"📏 Response Length: {len(results[0])} characters")
+    #     print(f"📄 Response Lines: {len(results[0].split(newline_char))} lines")
+    #     print(f"="*80)
+    #     sys.stdout.flush()
 
     # We typically evaluate the first generation for pass@1
     generated_code = postprocess_generation(results[0])
@@ -420,34 +421,34 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
     debug = False
 
     try:
-        # Create detailed question header
-        question_id = doc.get('question_id', 'unknown')
-        difficulty = doc.get('difficulty', 'unknown')
-        question_content = doc.get('question_content', '')
-        question_preview = question_content[:200] + ('...' if len(question_content) > 200 else '')
-        
-        eval_header = f"\n{'='*80}\n🔍 LIVECODEBENCH EVALUATION - Processing Question {_global_problem_counter + 1}\n{'='*80}"
-        question_id_info = f"📝 Question ID: {question_id}"
-        difficulty_info = f"⚡ Difficulty: {difficulty}"
-        question_content_info = f"📄 Question Content (first 200 chars): {question_preview}"
-        
-        print(eval_header)
-        print(question_id_info)
-        print(difficulty_info)
-        print(question_content_info)
-        
-        # LOG THE GENERATED CODE
-        generated_code_header = f"🤖 Generated Code:"
-        generated_code_separator = f"{'-'*60}"
-        print(generated_code_header)
-        print(generated_code_separator)
-        if generated_code.strip():
-            print(generated_code)
-        else:
-            print("(No code generated or code extraction failed)")
-        print(generated_code_separator)
-        
-        sys.stdout.flush()
+        # DEBUG: Detailed evaluation logging - commenting out for production
+        # question_id = doc.get('question_id', 'unknown')
+        # difficulty = doc.get('difficulty', 'unknown')
+        # question_content = doc.get('question_content', '')
+        # question_preview = question_content[:200] + ('...' if len(question_content) > 200 else '')
+        # 
+        # eval_header = f"\n{'='*80}\n🔍 LIVECODEBENCH EVALUATION - Processing Question {_global_problem_counter + 1}\n{'='*80}"
+        # question_id_info = f"📝 Question ID: {question_id}"
+        # difficulty_info = f"⚡ Difficulty: {difficulty}"
+        # question_content_info = f"📄 Question Content (first 200 chars): {question_preview}"
+        # 
+        # print(eval_header)
+        # print(question_id_info)
+        # print(difficulty_info)
+        # print(question_content_info)
+        # 
+        # # LOG THE GENERATED CODE
+        # generated_code_header = f"🤖 Generated Code:"
+        # generated_code_separator = f"{'-'*60}"
+        # print(generated_code_header)
+        # print(generated_code_separator)
+        # if generated_code.strip():
+        #     print(generated_code)
+        # else:
+        #     print("(No code generated or code extraction failed)")
+        # print(generated_code_separator)
+        # 
+        # sys.stdout.flush()
         
         metrics, eval_results, final_metadata = codegen_metrics(
             samples_list=samples_list,
@@ -465,14 +466,14 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
         problem_passed = accuracy > 0.0
         update_global_counters(passed=problem_passed)
         
-        # Print progress update with separator
-        current_accuracy = (_global_problems_passed / _global_problem_counter) * 100
-        progress_message = f"📈 Progress: {_global_problem_counter} problems evaluated, {_global_problems_passed} passed ({current_accuracy:.1f}% overall)"
-        closing_separator = f"{'='*80}"
-        
-        print(progress_message)
-        print(closing_separator)
-        sys.stdout.flush()
+        # DEBUG: Progress update logging - commenting out for production
+        # current_accuracy = (_global_problems_passed / _global_problem_counter) * 100
+        # progress_message = f"📈 Progress: {_global_problem_counter} problems evaluated, {_global_problems_passed} passed ({current_accuracy:.1f}% overall)"
+        # closing_separator = f"{'='*80}"
+        # 
+        # print(progress_message)
+        # print(closing_separator)
+        # sys.stdout.flush()
         
         logger.debug(f"Pass@1: {pass_at_1}, Accuracy: {accuracy}")
         

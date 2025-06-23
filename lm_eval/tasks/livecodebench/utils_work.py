@@ -363,14 +363,14 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, float]:
             timeout=timeout,
             debug=debug,
         )
-        # DEBUG: Print the raw metrics to understand the issue
-        logger.debug(f"Raw metrics_dict: {metrics_dict}")
+        # DEBUG: Raw metrics logging - commenting out for production
+        # logger.debug(f"Raw metrics_dict: {metrics_dict}")
         pass_at_1 = metrics_dict.get("pass@1", 0.0)
-        logger.debug(f"pass@1 value: {pass_at_1}")
+        # logger.debug(f"pass@1 value: {pass_at_1}")
         
         # Convert from percentage to decimal and use 'acc' key to match YAML
         accuracy = pass_at_1 / 100.0
-        logger.debug(f"Final accuracy after division: {accuracy}")
+        # logger.debug(f"Final accuracy after division: {accuracy}")
     except Exception as e:
         import traceback
         error_traceback = traceback.format_exc()
