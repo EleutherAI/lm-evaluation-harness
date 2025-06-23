@@ -328,7 +328,9 @@ class AnthropicChat(LocalCompletionsAPI):
         for msg in messages:
             cleaned_msg = {
                 "role": msg["role"],
-                "content": [{"type": msg["type"], msg["type"]: msg["content"]}],
+                "content": [
+                    {"type": msg["type"], msg["type"]: msg["content"]},
+                ],
             }
             cleaned_messages.append(cleaned_msg)
 
