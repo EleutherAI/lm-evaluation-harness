@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.8"
+version = "0.4.9"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -57,10 +57,11 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
+acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt==1.22.0", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 hf_transfer = ["hf_transfer"]
@@ -85,6 +86,7 @@ vllm = ["vllm>=0.4.2"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 all = [
+    "lm_eval[acpbench]",
     "lm_eval[api]",
     "lm_eval[audiolm_qwen]",
     "lm_eval[deepsparse]",
