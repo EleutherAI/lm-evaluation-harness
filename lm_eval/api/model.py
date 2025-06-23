@@ -11,10 +11,12 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.schemas import (
-    LoglikelihoodInput,
-    LoglikelihoodOutput,
-)
+
+
+# from lm_eval.api.schemas import (
+#     LoglikelihoodInput,
+#     LoglikelihoodOutput,
+# )
 
 
 eval_logger = logging.getLogger(__name__)
@@ -343,7 +345,7 @@ class TemplateLM(LM):
         pass
 
     @abc.abstractmethod
-    def _loglikelihood_tokens(self, requests, **kwargs) -> List[LoglikelihoodOutput]:
+    def _loglikelihood_tokens(self, requests, **kwargs) -> List:
         pass
 
     def _encode_pair(
@@ -369,12 +371,10 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests: list[Instance[LoglikelihoodInput]], disable_tqdm: bool = False
-    ) -> List[LoglikelihoodOutput]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> List:
         new_reqs = []
-        for context, continuation in (
-            (req.args.context, req.args.continuation) for req in requests
-        ):
+        for context, continuation in [req.args for req in requests]:
             if context == "":
                 # BOS or EOS as context
                 context_enc, continuation_enc = (

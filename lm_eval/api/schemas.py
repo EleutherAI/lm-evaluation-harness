@@ -2,61 +2,60 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-@dataclass
-class GenerateInput:
-    """
-    Inputs for the generate function.
-    """
+# @dataclass
+# class GenerateInput:
+#     """
+#     Inputs for the generate function.
+#     """
+#
+#     prompt: str
+#     gen_kwargs: dict
+#     multimodal_arg: Optional[dict] = None
+#
+#     def __iter__(self):
+#         return (
+#             iter((self.prompt, self.gen_kwargs))
+#             if not self.multimodal_arg
+#             else iter((self.prompt, self.gen_kwargs, self.multimodal_arg))
+#         )
+#
+#     def __getitem__(self, item: int):
+#         return [self.prompt, self.gen_kwargs][item]
+#
+#
+# @dataclass
+# class GenerateOutput:
+#     """
+#     Outputs for the generate function.
+#     """
+#
+#     text: str
+#     metadata: dict = None
+#
+#
+# @dataclass
+# class LoglikelihoodInput:
+#     """
+#     Inputs for the loglikelihood function.
+#     """
+#
+#     context: str
+#     continuation: Optional[str] = None
+#
+#
+# class LoglikelihoodOutput(NamedTuple):
+#     """
+#     Outputs for the loglikelihood function.
+#     """
+#
+#     loglikelihood: float
+#     is_greedy: Optional[bool] = None
+#     ctx_tokens: Optional[list[int]] = None
+#     cont_tokens: Optional[list[int]] = None
+#     metadata: Optional[dict] = None
 
-    prompt: str
-    gen_kwargs: dict
-    multimodal_arg: Optional[dict] = None
-
-    def __iter__(self):
-        return (
-            iter((self.prompt, self.gen_kwargs))
-            if not self.multimodal_arg
-            else iter((self.prompt, self.gen_kwargs, self.multimodal_arg))
-        )
-
-    def __getitem__(self, item: int):
-        return [self.prompt, self.gen_kwargs][item]
-
-
-@dataclass
-class GenerateOutput:
-    """
-    Outputs for the generate function.
-    """
-
-    text: str
-    metadata: dict = None
-
-
-@dataclass
-class LoglikelihoodInput:
-    """
-    Inputs for the loglikelihood function.
-    """
-
-    context: str
-    continuation: Optional[str] = None
-
-
-@dataclass
-class LoglikelihoodOutput:
-    """
-    Outputs for the loglikelihood function.
-    """
-
-    loglikelihood: float
-    is_greedy: Optional[bool] = None
-    ctx_tokens: Optional[list[int]] = None
-    cont_tokens: Optional[list[int]] = None
-    metadata: Optional[dict] = None
-
-    def __iter__(self):
-        return iter((self.loglikelihood, self.is_greedy))
+# def __iter__(self):
+#     return iter((self.loglikelihood, self.is_greedy))
 
 
 @dataclass
@@ -66,7 +65,7 @@ class MetricResult:
     """
 
     doc_id: str | int | None
-    scores: list[dict[str, float]] | None
+    scores: list[dict[str, float]] | dict
     filter_key: str = None
     metric_name: str = None
     metadata: Optional[dict] = None
@@ -76,6 +75,8 @@ class MetricResult:
             return iter([])
 
         # Group values by metric key
+        if not isinstance(self.scores, list):
+            self.scores = [self.scores]
         grouped = {}
         for score_dict in self.scores:
             for key, value in score_dict.items():
@@ -99,4 +100,8 @@ class MetricResult:
     def metric_keys(self) -> list[str]:
         if self.scores is None:
             return []
-        return list(self.scores[0].keys()) if self.scores else []
+        return (
+            list(self.scores[0].keys())
+            if isinstance(self.scores, list)
+            else list(self.scores.keys())
+        )

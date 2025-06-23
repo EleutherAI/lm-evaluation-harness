@@ -29,7 +29,6 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.api.schemas import GenerateInput, GenerateOutput, LoglikelihoodOutput
 from lm_eval.models.utils import (
     Collator,
     clear_torch_cache,
@@ -891,7 +890,10 @@ class HFLM(TemplateLM):
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
             else:
-                assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                assert self.AUTO_MODEL_CLASS in (
+                    transformers.AutoModelForCausalLM,
+                    transformers.AutoModelForVision2Seq,
+                )
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
@@ -943,7 +945,7 @@ class HFLM(TemplateLM):
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> list[LoglikelihoodOutput]:
+    ) -> List[float]:
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -1003,7 +1005,7 @@ class HFLM(TemplateLM):
                 override_bs=len(batch_windows),
             )
             # Store results with their request indices
-            all_nlls.extend(zip(batch_indices, (x.loglikelihood for x in batch_nlls)))
+            all_nlls.extend(zip(batch_indices, batch_nlls))
 
         # Remove padding if necessary
         if (self.world_size > 1) and (pad_amnt > 0):
@@ -1016,8 +1018,8 @@ class HFLM(TemplateLM):
             # Get all nlls for this request
             request_nlls = all_nlls[current_idx : current_idx + window_count]
             # Sum up the nlls for this request (discarding is_greedy)
-            request_total = sum(nll for nll in request_nlls)
-            loglikelihoods.append(LoglikelihoodOutput(loglikelihood=request_total))
+            request_total = sum(nll[0] for _, nll in request_nlls)
+            loglikelihoods.append(request_total)
             current_idx += window_count
 
             string = requests[len(loglikelihoods) - 1].args[0]
@@ -1049,7 +1051,7 @@ class HFLM(TemplateLM):
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
         override_bs: int = None,
-    ) -> List[LoglikelihoodOutput]:
+    ) -> List[Tuple[float, bool]]:
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
@@ -1137,7 +1139,7 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     total_length = len(context_enc) + len(continuation_enc)
                     if total_length > self.max_length + 1:
-                        eval_logger.warn(
+                        eval_logger.warning(
                             f"Combined length of context ({len(context_enc)}) and continuation ({len(continuation_enc)}) "
                             f"exceeds model's maximum length ({self.max_length}). "
                             f"Truncating {total_length - self.max_length + 1} tokens from the left."
@@ -1248,7 +1250,12 @@ class HFLM(TemplateLM):
                     cont_toks = torch.tensor(
                         cont_toks, dtype=torch.long, device=self.device
                     ).unsqueeze(0)  # [1, seq]
-                    max_equal = (greedy_tokens == cont_toks).all()
+                    # Use trailing slice [-cont_toks.shape[1]:] to handle variable length cont_len (but same ctx+cont[:-1]).
+                    # i.e. continuations can be sliced at diff points. Collator ensures we have sufficient greedy_tokens
+                    # by choosing key with longest cont if group_by="contexts".
+                    max_equal = (
+                        greedy_tokens[:, -cont_toks.shape[1] :] == cont_toks
+                    ).all()
 
                     # Obtain log-probs at the corresponding continuation token indices
                     # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
@@ -1259,13 +1266,7 @@ class HFLM(TemplateLM):
                     # Answer: (log prob, is-exact-match)
                     answer = (float(logits.sum()), bool(max_equal))
 
-                    res.append(
-                        LoglikelihoodOutput(
-                            *answer,
-                            ctx_tokens=ctx_tokens,
-                            cont_tokens=cont_toks.tolist(),
-                        )
-                    )
+                    res.append(answer)
 
                     if request_str is not None:
                         # special case: loglikelihood_rolling produces a number of loglikelihood requests
@@ -1281,8 +1282,8 @@ class HFLM(TemplateLM):
         return re_ord.get_original(res)
 
     def generate_until(
-        self, requests: List[Instance[GenerateInput]], disable_tqdm: bool = False
-    ) -> List[GenerateOutput]:
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         res = []
 
         def _collate(req: Tuple[str, dict]):
@@ -1293,8 +1294,8 @@ class HFLM(TemplateLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(req.prompt)
-            return -len(toks), req.prompt
+            toks = self.tok_encode(req[0])
+            return -len(toks), req[0]
 
         pbar = tqdm(
             total=len(requests),
@@ -1330,7 +1331,7 @@ class HFLM(TemplateLM):
             [reg.args for reg in requests],
             sort_fn=_collate,
             group_by="gen_kwargs",
-            group_fn=lambda x: x.gen_kwargs,
+            group_fn=lambda x: x[1],
         )
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
@@ -1399,7 +1400,7 @@ class HFLM(TemplateLM):
                         # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
                         s = s.split(term)[0]
 
-                res.append(GenerateOutput(text=s))
+                res.append(s)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
                 pbar.update(1)
