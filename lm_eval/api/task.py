@@ -37,7 +37,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput, MetricResult
+from lm_eval.api.schemas import MetricResult
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -1531,7 +1531,8 @@ class ConfigurableTask(Task):
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
-                    arguments=LoglikelihoodInput(context=arg[0], continuation=arg[1]),
+                    arguments=arg,
+                    # arguments=LoglikelihoodInput(context=arg[0], continuation=arg[1]),
                     idx=i,
                     **kwargs,
                 )
@@ -1543,9 +1544,9 @@ class ConfigurableTask(Task):
         return Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
-            arguments=LoglikelihoodInput(*arguments)
-            if self.OUTPUT_TYPE in ["loglikelihood", "loglikelihood_rolling"]
-            else GenerateInput(*arguments),
+            arguments=arguments,
+            # if self.OUTPUT_TYPE in ["loglikelihood", "loglikelihood_rolling"]
+            # else GenerateInput(*arguments),
             idx=0,
             **kwargs,
         )
@@ -1819,15 +1820,21 @@ class ConfigurableTask(Task):
             for doc_id, doc in doc_iterator:
                 # doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
-                metrics = [
-                    self.process_results(doc, response)
-                    for req in requests
-                    for response in (
-                        req.filtered_resps[filter_key]
-                        if isinstance(req.filtered_resps[filter_key], list)
-                        else [req.filtered_resps[filter_key]]
+                if len(requests) > 1:
+                    # if one doc has multiple instances then calculate metric together
+                    metrics = self.process_results(
+                        doc, [req.filtered_resps[filter_key] for req in requests]
                     )
-                ]
+                else:
+                    metrics = [
+                        self.process_results(doc, response)
+                        for req in requests
+                        for response in (
+                            req.filtered_resps[filter_key]
+                            if isinstance(req.filtered_resps[filter_key], list)
+                            else [req.filtered_resps[filter_key]]
+                        )
+                    ]
                 all_metrics[filter_key].append(
                     MetricResult(scores=metrics, doc_id=doc_id, filter_key=filter_key)
                 )

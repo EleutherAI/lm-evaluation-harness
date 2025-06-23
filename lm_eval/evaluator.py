@@ -647,9 +647,7 @@ def evaluate(
                                         ensure_ascii=False,
                                     )
                                 ),
-                                "prompt_hash": hash_string(
-                                    requests[0].arguments.prompt
-                                ),
+                                "prompt_hash": hash_string(requests[0].arguments[0]),
                                 "target_hash": hash_string(str(target)),
                             }
                             example.update(

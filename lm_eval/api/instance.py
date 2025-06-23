@@ -1,26 +1,27 @@
 from dataclasses import dataclass, field
-from typing import Generic, Literal, Optional, Tuple, TypeVar, Union
+from typing import Literal, Optional, Tuple
 
-from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput
+
+# from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput
 
 
 OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
 
-T = TypeVar("T", LoglikelihoodInput, GenerateInput)
+# T = TypeVar("T", LoglikelihoodInput, GenerateInput)
 
 
 @dataclass
-class Instance(Generic[T]):
+class Instance:
     request_type: OutputType
     doc: dict
-    arguments: T
+    arguments: tuple
     idx: int
     metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
         default_factory=lambda: (None, None, None)
     )
-    resps: list[Union[GenerateInput, LoglikelihoodInput]] = field(default_factory=list)
+    resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
     # initialized after init
@@ -33,7 +34,7 @@ class Instance(Generic[T]):
         self.task_name, self.doc_id, self.repeats = self.metadata
 
     @property
-    def args(self) -> T:
+    def args(self):
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """

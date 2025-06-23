@@ -9,10 +9,12 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.schemas import (
-    LoglikelihoodInput,
-    LoglikelihoodOutput,
-)
+
+
+# from lm_eval.api.schemas import (
+#     LoglikelihoodInput,
+#     LoglikelihoodOutput,
+# )
 
 
 if TYPE_CHECKING:
@@ -381,9 +383,7 @@ class TemplateLM(LM):
         self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[tuple[float, bool]]:
         new_reqs = []
-        for context, continuation in (
-            (req.args.context, req.args.continuation) for req in requests
-        ):
+        for context, continuation in [req.args for req in requests]:
             if context == "":
                 # BOS or EOS as context
                 context_enc, continuation_enc = (
