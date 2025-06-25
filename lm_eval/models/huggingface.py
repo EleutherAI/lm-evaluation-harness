@@ -61,7 +61,7 @@ class HFLM(TemplateLM):
         backend: Literal["default", "causal", "seq2seq"] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
-        subfolder: Optional[str] = "",
+        subfolder: str = "",
         tokenizer: Optional[
             Union[
                 str,
@@ -523,7 +523,7 @@ class HFLM(TemplateLM):
         revision: str = "main",
         trust_remote_code: bool = False,
         gguf_file: Optional[str] = None,
-        subfolder: Optional[str] = "",
+        subfolder: str = "",
     ) -> None:
         """Return the model config for HuggingFace models"""
         self._config = transformers.AutoConfig.from_pretrained(
@@ -555,7 +555,7 @@ class HFLM(TemplateLM):
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
         quantization_config: Optional[Dict[str, Any]] = None,
-        subfolder: Optional[str] = "",
+        subfolder: str = "",
         **kwargs,
     ) -> None:
         """
