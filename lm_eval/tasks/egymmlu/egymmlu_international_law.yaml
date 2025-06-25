@@ -1,0 +1,7 @@
+"dataset_name": "international_law"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_humanities_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_international_law"
+"task_alias": "international law"
