@@ -3,7 +3,9 @@ dataset_path: graphium-company/hu-collocation-lambada
 test_split: test
 dataset_name: default
 output_type: generate_until
-doc_to_text: "Megcélzott szókapcsolat leírása: {{description}}\\nFolytasd a szöveget! Válaszodban csak a helyes szót add vissza!\\n{{text.split(' ')[:-1]|join(' ')}}"
+doc_to_text: "Megcélzott szókapcsolat leírása: {{description}}\
+ \\nFolytasd a szöveget! Válaszodban csak a helyes szót add vissza!\
+ \\n{{text.split(' ')[:-1]|join(' ')}}"
 doc_to_target: "{{text.split(' ')[-1]}}"
 generation_kwargs:
   until:
