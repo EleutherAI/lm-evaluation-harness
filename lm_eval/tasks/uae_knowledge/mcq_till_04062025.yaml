@@ -1,0 +1,25 @@
+task: uae_knowledge_benchmark
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    #! test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/raw/uae_knowledge/mcq_benchmark_till_04062025.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/raw/uae_knowledge/sample.json
+test_split: test
+
+output_type: multiple_choice
+# doc_to_text: "{{question}}\n{{'\n'.join(options)}}\nAnswer: "
+doc_to_text: "{{question}}"
+doc_to_choice: "{{options}}"
+doc_to_target: "{{correct_answer[0]}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  
+metadata:
+  version: 1.0
