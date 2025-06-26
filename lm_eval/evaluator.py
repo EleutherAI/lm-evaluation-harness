@@ -331,9 +331,9 @@ def simple_evaluate(
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
-                if strip_reasoning:
+                if strip_reasoning and task_obj.OUTPUT_TYPE == "generate_until":
                     eval_logger.info(
-                        f"Stripping reasoning from {task_name} task outputs."
+                        f"Stripping reasoning from {task_name} task outputs using {strip_reasoning}."
                     )
                     task_obj.overide_filter(
                         "strip_reasoning",
