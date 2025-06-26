@@ -6,6 +6,7 @@ import re
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
+from functools import partial
 from inspect import getsource
 from typing import (
     Any,
@@ -678,6 +679,25 @@ class Task(abc.ABC):
             }
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
+
+    def overide_filter(self, filter_name: str, **kwargs) -> None:
+        """
+        Override the default filters used for evaluation with custom filters.
+        """
+        from lm_eval.api.registry import get_filter
+
+        if filter_name == "strip_reasoning":
+            if not self._filters:
+                self._filters = [
+                    build_filter_ensemble(
+                        "strip_reasoning", [["strip_reasoning", kwargs]]
+                    )
+                ]
+            else:
+                for f in self._filters:
+                    f.filters.insert(
+                        0, partial(get_filter("strip_reasoning"), **kwargs)
+                    )
 
     def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
         self.fewshot_rnd = random.Random(seed)

@@ -300,6 +300,14 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192]}'. Will be merged with model_args. Can also be set in task config.""",
     )
+    parser.add_argument(
+        "--strip_reasoning",
+        type=str,
+        nargs="?",
+        const="</think>",
+        default=False,
+        help="Strip reasoning blocks ending with specified token. Usage: --strip_reasoning (uses default '</think>') or --strip_reasoning '</reasoning>' (uses custom token)",
+    )
     return parser
 
 
@@ -472,6 +480,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         torch_random_seed=args.seed[2],
         fewshot_random_seed=args.seed[3],
         confirm_run_unsafe_code=args.confirm_run_unsafe_code,
+        strip_reasoning=args.strip_reasoning,
         metadata=metadata,
         **request_caching_args,
     )
