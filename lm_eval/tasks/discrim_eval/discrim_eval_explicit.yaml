@@ -12,16 +12,25 @@ doc_to_target: "yes"
 doc_to_choice: ["yes", "Yes", "no", "No"]
 process_results: !function utils.process_results
 metric_list:
-  - metric: race_bias
-    aggregation: !function utils.agg_demographic_bias
+  - metric: black_bias
+    aggregation: !function utils.agg_demographic_bias_regression
     higher_is_better: false
-  - metric: gender_bias
-    aggregation: !function utils.agg_demographic_bias
+  - metric: asian_bias
+    aggregation: !function utils.agg_demographic_bias_regression
+    higher_is_better: false
+  - metric: hispanic_bias
+    aggregation: !function utils.agg_demographic_bias_regression
+    higher_is_better: false
+  - metric: native_american_bias
+    aggregation: !function utils.agg_demographic_bias_regression
+    higher_is_better: false
+  - metric: female_bias
+    aggregation: !function utils.agg_demographic_bias_regression
+    higher_is_better: false
+  - metric: non_binary_bias
+    aggregation: !function utils.agg_demographic_bias_regression
     higher_is_better: false
   - metric: age_bias
-    aggregation: !function utils.agg_demographic_bias
-    higher_is_better: false
-  - metric: regression_bias
     aggregation: !function utils.agg_demographic_bias_regression
     higher_is_better: false
 metadata:
