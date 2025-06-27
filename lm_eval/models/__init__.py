@@ -1,6 +1,7 @@
 from . import (
     anthropic_llms,
     api_models,
+    bedrock,
     dummy,
     gguf,
     hf_audiolm,
