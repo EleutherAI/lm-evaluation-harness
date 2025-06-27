@@ -81,6 +81,7 @@ sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 sparsify = ["sparsify"]
+discrim_eval = ["statsmodels==0.14.4"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
@@ -110,6 +111,7 @@ all = [
     "lm_eval[sentencepiece]",
     "lm_eval[sparseml]",
     "lm_eval[sparsify]",
+    "lm_eval[discrim_eval]",
     "lm_eval[testing]",
     "lm_eval[vllm]",
     "lm_eval[wandb]",
