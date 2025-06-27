@@ -5,8 +5,6 @@ import logging
 import os
 from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
-import transformers
-from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -238,6 +236,8 @@ class CachingLM:
         :param cache_db: str
             Path to cache db
         """
+        from sqlitedict import SqliteDict
+
         self.lm = lm
         self.cache_db = cache_db
         if os.path.dirname(cache_db):
@@ -344,6 +344,8 @@ class TemplateLM(LM):
     def _encode_pair(
         self, context: str, continuation: str
     ) -> Tuple[List[int], List[int]]:
+        import transformers
+
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
