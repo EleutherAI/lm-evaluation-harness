@@ -686,18 +686,16 @@ class Task(abc.ABC):
         """
         from lm_eval.api.registry import get_filter
 
-        if filter_name == "strip_reasoning":
+        if filter_name == "strip_thinking":
             if not self._filters:
                 self._filters = [
                     build_filter_ensemble(
-                        "strip_reasoning", [["strip_reasoning", kwargs]]
+                        "strip_thinking", [["strip_thinking", kwargs]]
                     )
                 ]
             else:
                 for f in self._filters:
-                    f.filters.insert(
-                        0, partial(get_filter("strip_reasoning"), **kwargs)
-                    )
+                    f.filters.insert(0, partial(get_filter("strip_thinking"), **kwargs))
 
     def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
         self.fewshot_rnd = random.Random(seed)

@@ -233,7 +233,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         return filtered_resps
 
 
-@register_filter("strip_reasoning")
+@register_filter("strip_thinking")
 class StripReasoningFilter(Filter):
     """A filter that strips reasoning block from model responses and returns the last part of the response."""
 

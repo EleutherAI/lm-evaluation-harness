@@ -75,7 +75,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
-    strip_reasoning: Union[bool, str] = False,
+    strip_thinking: Union[bool, str] = False,
     metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -147,9 +147,9 @@ def simple_evaluate(
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
     :param confirm_run_unsafe_code: bool
         Whether to confirm running tasks marked as unsafe (code). If set to False, an error will be raised if an unsafe task is encountered.
-    :param strip_reasoning: bool or str
+    :param strip_thinking: bool or str
         If set, will strip reasoning from task outputs. This is useful for tasks that have reasoning in the output.
-        The value of this argument will be passed to the `suffix` argument of the `strip_reasoning` filter.
+        The value of this argument will be passed to the `suffix` argument of the `strip_thinking` filter which is applied to the generation outputs.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
 
@@ -331,13 +331,13 @@ def simple_evaluate(
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
-                if strip_reasoning and task_obj.OUTPUT_TYPE == "generate_until":
+                if strip_thinking and task_obj.OUTPUT_TYPE == "generate_until":
                     eval_logger.info(
-                        f"Stripping reasoning from {task_name} task outputs using {strip_reasoning}."
+                        f"Stripping thinking blocks from {task_name} task outputs using {strip_thinking}."
                     )
                     task_obj.overide_filter(
-                        "strip_reasoning",
-                        **({"suffix": strip_reasoning} if strip_reasoning else {}),
+                        "strip_thinking",
+                        **({"suffix": strip_thinking} if strip_thinking else {}),
                     )
 
                 adjusted_task_dict[task_name] = task_obj
