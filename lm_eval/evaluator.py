@@ -75,6 +75,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
+    strip_thinking: Union[bool, str] = False,
     metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -114,6 +115,10 @@ def simple_evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param evaluation_tracker: EvaluationTracker
+        An EvaluationTracker instance to track the evaluation process.
+        If None, no tracking will be done.
+        If provided, it will log the experiment arguments and results.
     :param system_instruction: str
         System instruction to be applied to the prompt
     :param apply_chat_template: Union[bool, str]
@@ -126,7 +131,9 @@ def simple_evaluate(
     :param gen_kwargs: dict or comma-separated string
         Arguments for model generation
         Ignored for all tasks with loglikelihood output_type
-    :param verbosity: str
+    :param task_manager: TaskManager
+        TaskManager instance to manage tasks. If None, a new TaskManager will be created.
+    :param verbosity: str (deprecated - use LOGLEVEL environment variable)
         Verbosity level for logging
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
@@ -138,6 +145,11 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param confirm_run_unsafe_code: bool
+        Whether to confirm running tasks marked as unsafe (code). If set to False, an error will be raised if an unsafe task is encountered.
+    :param strip_thinking: bool or str
+        If set, will strip reasoning from task outputs. This is useful for tasks that have reasoning in the output.
+        The value of this argument will be passed to the `suffix` argument of the `strip_thinking` filter which is applied to the generation outputs.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
 
@@ -318,6 +330,15 @@ def simple_evaluate(
                         task_obj.set_config(key="num_fewshot", value=0)
                 # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
                 task_obj.set_fewshot_seed(seed=fewshot_random_seed)
+
+                if strip_thinking and task_obj.OUTPUT_TYPE == "generate_until":
+                    eval_logger.info(
+                        f"Stripping thinking blocks from {task_name} task outputs using {strip_thinking}."
+                    )
+                    task_obj.overide_filter(
+                        "strip_thinking",
+                        **({"suffix": strip_thinking} if strip_thinking else {}),
+                    )
 
                 adjusted_task_dict[task_name] = task_obj
 

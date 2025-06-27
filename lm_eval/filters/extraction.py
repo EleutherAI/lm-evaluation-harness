@@ -231,3 +231,19 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
+
+
+@register_filter("strip_thinking")
+class StripReasoningFilter(Filter):
+    """A filter that strips reasoning block from model responses and returns the last part of the response."""
+
+    def __init__(self, suffix: str = "</think>", **kwargs):
+        super().__init__(**kwargs)
+        assert suffix, "suffix is required but was falsy"
+        self.suffix = suffix
+
+    def apply(self, resps: list[list[str]], docs: list[dict], **kwargs):
+        def filter_set(inst: list[str]) -> list[str]:
+            return [r.split(self.suffix)[-1].strip() for r in inst]
+
+        return map(filter_set, resps)
