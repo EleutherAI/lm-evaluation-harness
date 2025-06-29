@@ -1,0 +1,25 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:24.03-py3
+
+%files
+    ./ /workspace/lm-evaluation-harness
+
+%post
+    mkdir -p /usr/local/cuda/compat/lib/ && \
+        ln -s /.singularity.d/libs/libcuda.so /usr/local/cuda/compat/lib/libcuda.so && \
+        ln -s /.singularity.d/libs/libcuda.so.1 /usr/local/cuda/compat/lib/libcuda.so.1
+
+    cd /workspace/lm-evaluation-harness
+
+    pip install -e .
+
+    CUDA_VERSION=121
+    # This is the latest vllm release that supports cuda 12.1
+    VLLM_VERSION=0.8.5.post1
+    # The container has version 3.10, but should be compatible with 3.8
+    PYTHON_VERSION=38
+
+    pip install https://github.com/vllm-project/vllm/releases/download/v${VLLM_VERSION}/vllm-${VLLM_VERSION}+cu${CUDA_VERSION}-cp${PYTHON_VERSION}-abi3-manylinux1_x86_64.whl \
+        --extra-index-url https://download.pytorch.org/whl/cu${CUDA_VERSION}
+
+    pip install --no-deps --force-reinstall flash_attn==2.4.2
