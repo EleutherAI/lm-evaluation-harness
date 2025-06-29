@@ -32,7 +32,7 @@ def build_predictions_instruct(
 ) -> list[list[str]]:
     return [
         [
-            doc["prompt"] + (r if r.rfind("```") == -1 else r[: r.rfind("```")])
+            doc["prompt"] + (r if r.find("```") == -1 else r[: r.find("```")])
             for r in resp
         ]
         for resp, doc in zip(resps, docs)
