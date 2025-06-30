@@ -63,6 +63,8 @@ class MetricConfig:
     aggregation_fn: Optional[Callable] = None
     higher_is_better: bool = True
     hf_evaluate: bool = False
+    sample_metric: bool = True
+    is_elementwise: bool = True
 
     @cached_property
     def metric_names(self) -> str:
@@ -82,6 +84,15 @@ class MetricConfig:
 
 
 @dataclass
+class RepeatConfig:
+    """Encapsulates information about a single repeat."""
+
+    repeats: int = 1
+    metric_fn: Optional[Callable] = None
+    kwargs: Optional[dict] = None
+
+
+@dataclass
 class FilterConfig:
     """Encapsulates information about a single filter."""
 
@@ -94,6 +105,7 @@ class FilterConfig:
 class FewshotConfig:
     sampler: str
     samples: list[dict]
+    process_docs: Optional[Callable] = None
 
 
 @dataclass
@@ -947,32 +959,6 @@ class ConfigurableTask(Task):
         self._fewshot_docs = None
 
         self._filters = self.config.get_filters()
-
-        # if self.config.filter_list is not None:
-        #     self._filters = []
-        #     if isinstance(self.config.filter_list, dict):
-        #         for filter_config in self.config.filter_list:
-        #             self._filters.append(
-        #                 build_filter_ensemble(
-        #                     filter_config["name"],
-        #                     [
-        #                         [
-        #                             {
-        #                                 key: function[key]
-        #                                 for key in function
-        #                                 if key != "function"
-        #                             }
-        #                         ]
-        #                         for function in filter_config["filter"]
-        #                     ],
-        #                 )
-        #             )
-        # else:
-        #     # TODO: handle repeats in a more general way rather than just discarding
-        #     eval_logger.debug(
-        #         "No custom filters defined. Using default 'take_first' filter for handling repeats."
-        #     )
-        #     self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
