@@ -287,7 +287,7 @@ def simple_evaluate(
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
-    def _adjust_config(task_dict):
+    def _adjust_config(task_dict: dict[str, "Task"]) -> dict[str, "Task"]:
         adjusted_task_dict = {}
         for task_name, task_obj in task_dict.items():
             if isinstance(task_obj, dict):

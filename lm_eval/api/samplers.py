@@ -1,7 +1,7 @@
 import logging
 import warnings
 from functools import partial
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Sequence, Union
 
 import datasets
 
@@ -181,7 +181,7 @@ class ContextSampler:
 
         return chat_history
 
-    def sample(self, n: int):
+    def sample(self, n: int) -> Sequence[dict]:
         """
         Draw `n` samples from our fewshot docs. This method should be overridden by subclasses.
         """
@@ -190,7 +190,7 @@ class ContextSampler:
 
 
 class FirstNSampler(ContextSampler):
-    def sample(self, n: int) -> None:
+    def sample(self, n: int) -> Sequence[dict]:
         """
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.

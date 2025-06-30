@@ -8,7 +8,6 @@ from collections.abc import Iterable
 from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
-import sacrebleu
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -92,6 +91,8 @@ def bleu(items):
 
     Higher is better
     """
+    import sacrebleu
+
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
@@ -107,6 +108,8 @@ def chrf(items):
 
     Higher is better  # TODO I think
     """
+    import sacrebleu
+
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
@@ -123,6 +126,8 @@ def ter(items):
 
     Lower is better
     """
+    import sacrebleu
+
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)

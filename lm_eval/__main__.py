@@ -485,6 +485,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
+        # TODO: fix this!
+        results["higher_is_better"] = {
+            k: True for k, v in results["higher_is_better"].items()
+        }
         dumped = json.dumps(
             results, indent=2, default=handle_non_serializable, ensure_ascii=False
         )

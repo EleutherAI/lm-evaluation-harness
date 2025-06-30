@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List
+from typing import List, Union
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.registry import get_filter
@@ -8,7 +8,7 @@ from . import custom, extraction, selection, transformation
 
 
 def build_filter_ensemble(
-    filter_name: str, components: List[List[str]]
+    filter_name: str, components: list[Union[list[dict], list[str]]]
 ) -> FilterEnsemble:
     """
     Create a filtering pipeline.
