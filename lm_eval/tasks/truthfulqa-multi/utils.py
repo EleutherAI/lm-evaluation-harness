@@ -1,7 +1,18 @@
+import logging
+
 import datasets
 import numpy as np
-import sacrebleu
-from rouge_score import rouge_scorer, scoring
+
+
+logger = logging.getLogger(__name__)
+
+try:
+    import sacrebleu
+    from rouge_score import rouge_scorer, scoring
+except ImportError as e:
+    raise type(e)(
+        "Required packages not installed. Please install the required packages via `pip install rouge_score sacrebleu`"
+    )
 
 
 def process_results_mc2(doc, results):
