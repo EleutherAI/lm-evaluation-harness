@@ -1,4 +1,3 @@
-import abc
 from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import Any, Callable, List, Optional, Union
@@ -84,7 +83,7 @@ class GroupConfig(dict):
                 return str(value)
 
 
-class ConfigurableGroup(abc.ABC):
+class ConfigurableGroup:
     def __init__(
         self,
         config: Optional[dict] = None,
