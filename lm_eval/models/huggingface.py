@@ -62,7 +62,7 @@ class HFLM(TemplateLM):
         backend: Literal["default", "causal", "seq2seq"] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
-        subfolder: Optional[str] = None,
+        subfolder: str = "",
         tokenizer: Optional[
             Union[
                 str,
@@ -163,14 +163,13 @@ class HFLM(TemplateLM):
                 )
 
             revision = str(revision)  # cast to string if not already one
-            # TODO: update this to be less of a hack once subfolder is fixed in HF
-            revision = revision + ("/" + subfolder if subfolder is not None else "")
 
             self._get_config(
                 pretrained,
                 revision=revision,
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
+                subfolder=subfolder,
             )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
@@ -183,6 +182,7 @@ class HFLM(TemplateLM):
             pretrained,
             tokenizer,
             revision=revision,
+            subfolder=subfolder,
             trust_remote_code=trust_remote_code,
             use_fast_tokenizer=use_fast_tokenizer,
             gguf_file=gguf_file,
@@ -214,6 +214,7 @@ class HFLM(TemplateLM):
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
+                subfolder=subfolder,
                 **kwargs,
             )
 
@@ -530,6 +531,7 @@ class HFLM(TemplateLM):
         revision: str = "main",
         trust_remote_code: bool = False,
         gguf_file: Optional[str] = None,
+        subfolder: str = "",
     ) -> None:
         """Return the model config for HuggingFace models"""
         self._config = transformers.AutoConfig.from_pretrained(
@@ -537,6 +539,7 @@ class HFLM(TemplateLM):
             revision=revision,
             trust_remote_code=trust_remote_code,
             gguf_file=gguf_file,
+            subfolder=subfolder,
         )
 
     def _create_model(
@@ -560,6 +563,7 @@ class HFLM(TemplateLM):
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
         quantization_config: Optional["AutoQuantizationConfig"] = None,
+        subfolder: str = "",
         **kwargs,
     ) -> None:
         """
@@ -606,6 +610,7 @@ class HFLM(TemplateLM):
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
+                subfolder=subfolder,
                 **model_kwargs,
             )
         else:
@@ -708,6 +713,7 @@ class HFLM(TemplateLM):
         use_fast_tokenizer: Optional[bool] = True,
         gguf_file: Optional[str] = None,
         add_bos_token: Optional[bool] = False,
+        subfolder: Optional[str] = "",
     ) -> None:
         """
         Helper method during initialization.
@@ -728,6 +734,9 @@ class HFLM(TemplateLM):
 
         if add_bos_token:
             kwargs["add_bos_token"] = True
+
+        if subfolder:
+            kwargs["subfolder"] = subfolder
 
         if tokenizer:
             if isinstance(tokenizer, str):
@@ -901,7 +910,10 @@ class HFLM(TemplateLM):
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
             else:
-                assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                assert self.AUTO_MODEL_CLASS in (
+                    transformers.AutoModelForCausalLM,
+                    transformers.AutoModelForVision2Seq,
+                )
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
