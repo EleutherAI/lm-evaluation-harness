@@ -189,13 +189,10 @@ class HFLM(TemplateLM):
             add_bos_token=add_bos_token,
         )
 
-        if quantization_config := getattr(self.config, "quantization_config", None):
+        if (
+            quantization_config := getattr(self.config, "quantization_config", None)
+        ) is not None and isinstance(quantization_config, dict):
             from transformers.quantizers import AutoQuantizationConfig
-
-            if quantization_config is not None and not isinstance(
-                quantization_config, dict
-            ):
-                quantization_config = quantization_config.to_dict()
 
             quantization_config = AutoQuantizationConfig.from_dict(quantization_config)
 
