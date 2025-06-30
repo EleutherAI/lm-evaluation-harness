@@ -83,7 +83,7 @@ class MetricConfig:
 
 @dataclass
 class FilterConfig:
-    """Encapsulates information about a filter."""
+    """Encapsulates information about a single filter."""
 
     name: str
     fn: Optional[Callable] = None
@@ -138,6 +138,8 @@ class TaskConfig(dict):
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
+    _metric_list = None
+    _filter_list = None
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
@@ -1339,7 +1341,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_text]
             else:
                 text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit() and self._config.doc_to_choice is not None:
+                if text_string.isdigit() and self.config.doc_to_choice is not None:
                     return ast.literal_eval(text_string)
                 else:
                     return text_string
@@ -1375,7 +1377,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit() and self._config.doc_to_choice is not None:
+                if target_string.isdigit() and self.config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
                 elif (
                     len(target_string) >= 2
