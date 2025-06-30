@@ -91,6 +91,12 @@ class FilterConfig:
 
 
 @dataclass
+class FewshotConfig:
+    sampler: str
+    samples: list[dict]
+
+
+@dataclass
 class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
@@ -185,6 +191,9 @@ class TaskConfig(dict):
         metrics = []
         if self.metric_list is None:
             _metric_list = DEFAULT_METRIC_REGISTRY[self.output_type]
+            eval_logger.info(
+                f"No metrics defined in config, using default metrics for {self.output_type}={_metric_list}"
+            )
             metrics.extend(
                 MetricConfig(
                     name=metric_name,
@@ -260,6 +269,35 @@ class TaskConfig(dict):
                     )
                 )
         return metrics
+
+    def get_filters(self):
+        if self.filter_list is not None:
+            _filter_list = []
+            if isinstance(self.filter_list, dict):
+                for filter_config in self.filter_list:
+                    _filter_list.append(
+                        build_filter_ensemble(
+                            filter_name=filter_config["name"],
+                            components=[
+                                [
+                                    {
+                                        key: function[key]
+                                        for key in function
+                                        if key != "function"
+                                    }
+                                ]
+                                for function in filter_config["filter"]
+                            ],
+                        )
+                    )
+        else:
+            # TODO: handle repeats in a more general way rather than just discarding
+            eval_logger.debug(
+                "No custom filters defined. Using default 'take_first' filter for handling repeats."
+            )
+            _filter_list = [build_filter_ensemble("none", [["take_first", None]])]
+
+        return _filter_list
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -908,31 +946,33 @@ class ConfigurableTask(Task):
         self._training_docs = None
         self._fewshot_docs = None
 
-        if self.config.filter_list is not None:
-            self._filters = []
-            if isinstance(self.config.filter_list, dict):
-                for filter_config in self.config.filter_list:
-                    self._filters.append(
-                        build_filter_ensemble(
-                            filter_config["name"],
-                            [
-                                [
-                                    {
-                                        key: function[key]
-                                        for key in function
-                                        if key != "function"
-                                    }
-                                ]
-                                for function in filter_config["filter"]
-                            ],
-                        )
-                    )
-        else:
-            # TODO: handle repeats in a more general way rather than just discarding
-            eval_logger.debug(
-                "No custom filters defined. Using default 'take_first' filter for handling repeats."
-            )
-            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+        self._filters = self.config.get_filters()
+
+        # if self.config.filter_list is not None:
+        #     self._filters = []
+        #     if isinstance(self.config.filter_list, dict):
+        #         for filter_config in self.config.filter_list:
+        #             self._filters.append(
+        #                 build_filter_ensemble(
+        #                     filter_config["name"],
+        #                     [
+        #                         [
+        #                             {
+        #                                 key: function[key]
+        #                                 for key in function
+        #                                 if key != "function"
+        #                             }
+        #                         ]
+        #                         for function in filter_config["filter"]
+        #                     ],
+        #                 )
+        #             )
+        # else:
+        #     # TODO: handle repeats in a more general way rather than just discarding
+        #     eval_logger.debug(
+        #         "No custom filters defined. Using default 'take_first' filter for handling repeats."
+        #     )
+        #     self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
