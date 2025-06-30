@@ -1,3 +1,3 @@
-"dataset_name": "loan_words"
-"include": "_default_haerae_yaml"
-"task": "haerae_loan_word"
+dataset_name: loan_words
+include: _default_haerae_yaml
+task: haerae_loan_word

@@ -1,0 +1,17 @@
+task: copa_ca
+dataset_path: projecte-aina/COPA-ca
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs_copa_ca
+doc_to_text: '{{premise[:-1].strip() + " " + {"cause": "perquè", "effect": "i per tant"}[question]}}'
+doc_to_target: '{{choice1 if label == 0 else choice2}}'
+doc_to_choice: '{{[choice1, choice2]}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,8 +1,6 @@
 dataset_name: navigate
 description: 'Given a series of navigation instructions, determine whether one would
-  end up back at the starting point.
-
-        '
+  end up back at the starting point.'
 doc_to_choice: ["Yes","No"]
 fewshot_config:
   sampler: first_n

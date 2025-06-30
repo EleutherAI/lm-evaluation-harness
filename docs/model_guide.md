@@ -45,6 +45,7 @@ class MyCustomLM(LM):
         #...
     #...
 ```
+
 Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/api/instance.py) with property `args` of request-dependent type signature described below.
 
 We support three types of requests, consisting of different interactions / measurements with an autoregressive LM.
@@ -54,7 +55,7 @@ All three request types take as input `requests` of type `list[Instance]` that h
 - `generate_until`
   - Each request contains `Instance.args : Tuple[str, dict]` containing 1. an input string to the LM and 2. a dictionary of keyword arguments used to control generation parameters.
   - Using this input and these generation parameters, text will be sampled from the language model (typically until a maximum output length or specific stopping string sequences--for example, `{"until": ["\n\n", "."], "max_gen_toks": 128}`).
-  - The generated input+output text from the model will then be returned.
+  - The generated output text from the model will then be returned.
 
 - `loglikelihood`
   - Each request contains `Instance.args : Tuple[str, str]` containing 1. an input string to the LM and 2. a target string on which the loglikelihood of the LM producing this target, conditioned on the input, will be returned.
@@ -65,15 +66,13 @@ All three request types take as input `requests` of type `list[Instance]` that h
   - This is used to evaluate *perplexity* on a data distribution.
   - It should return `(ll,) : Tuple[float]` , a.k.a. solely the *loglikelihood* of producing each piece of text given no starting input.
 
-
 To allow a model to be evaluated on all types of tasks, you will need to implement these three types of measurements (note that `loglikelihood_rolling` is a special case of `loglikelihood`). For a reference implementation, check out `lm_eval/models/huggingface.py` ! Additionally, check out `lm_eval.api.model.TemplateLM` for a class that abstracts away some commonly used functions across LM subclasses, or see if your model would lend itself well to subclassing the `lm_eval.models.huggingface.HFLM` class and overriding just the initialization or a couple methods!
 
 **Tip: be careful of indexing in loglikelihood!**
 
-
 LMs take in tokens in position `[0 1 2 ... N]` and output a probability distribution for token position `N+1`. We provide a simplified graphic here, excerpted from `huggingface.py`:
 
-```
+```text
 # how this all works (illustrated on a causal decoder-only setup):
 #          CTX      CONT
 # inp    0 1 2 3|4 5 6 7 8 9   <- last token is deleted by inp[:, :-1]
@@ -118,23 +117,52 @@ class MyCustomLM(LM):
     #...
     @property
     def tokenizer_name(self) -> str:
-        # should return a string denoting the name of the model's tokenizer and/or the accompanying chat template.
+        """
+        Return the name of the model's tokenizer and/or the accompanying chat template.
+        The returned string is used to cache requests.
 
-    @property
-    def chat_template(self) -> str:
-        # should return a chat template formatting string that is used to build prompt from a user/assistant chat history.
-        # this will be saved in the evaluation results for reproducibility.
+        Returns:
+            str: The name of the model's tokenizer and/or chat template.
+        """
+
+    def chat_template(self, chat_template: Union[bool, str] = False) -> str:
+        """
+        Get the appropriate chat template for the model based on the `chat_template` argument.
+
+        This method returns the chat template string to build the prompt from a chat history.
+        The chat template is saved in the evaluation results for reproducibility.
+        Boolean arguments should be used with models that have only one chat template,
+        while string arguments are used with models that have multiple chat templates.
+        For the reference implementation, see HFLM class in `lm_eval.models.huggingface`.
+
+        Args:
+            chat_template (Union[bool, str]): Specifies whether to apply a chat template:
+                - If False: Do not apply any chat template.
+                - If True: Apply the default chat template.
+                - If str: Apply the specified chat template by name.
+
+        Returns:
+            str: The selected chat template in Jinja format.
+        """
 
     def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
-        # responsible for taking as input a chat history that would be fed into the model, and
-        # rendering it as a string that can be then tokenized and input into the model.
-    #...
+        """
+        Process a chat history to create a string that can be tokenized and input into the model.
+
+        Args:
+            chat_history (List[Dict[str, str]]): A list of dictionaries representing the chat history,
+                where each dictionary has "role" and "content" keys.
+
+        Returns:
+            str: A string representing the chat history that can be tokenized and fed into the model.
+        """
 ```
 
 - `apply_chat_template`
   - This method performs the bulk of the work required for chat-formatting.
   - As input, a `chat_history: List[Dict[str, str]]` is passed in. This is a transcript of a conversation of a form similar to
-      ```
+
+  ```text
       [
         {"system": <user-provided system message such as "You are a helpful math-focused chatbot">},
         {"user": <task example - a few-shot example 'input'>}
@@ -142,8 +170,9 @@ class MyCustomLM(LM):
         # ... more few-shot examples, potentially
         {"user": <test set query--response on which we will evaluate>},
       ]
-      ```
-      which can then be converted into a string input.
+  ```
+
+  which can then be converted into a string input.
   - The output is a string representing this conversation that can be fed into the model.
   - For example, this consists of simply calling `tokenizer.apply_chat_template` for HFLM--see the implementation there for reference.
 - `tokenizer_name`

@@ -85,4 +85,5 @@ fewshot_config:
       (D) 옆놀이의 안정성 향상을 위해서는 트위스트가 중요한 역할을 합니다. 트위스트는 날개 팁 부분의 각도를 조절하여, 항공기가 고속에서도
       안정적으로 비행할 수 있도록 돕습니다. 따라서, 정답은 (D) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_aviation_engineering_and_maintenance
+task: kmmlu_cot_hard_aviation_engineering_and_maintenance
+tag: kmmlu_cot_hard_applied_science_tasks

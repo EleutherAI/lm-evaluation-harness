@@ -1,4 +1,5 @@
-"fewshot_split": "cat_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_cat_Latn"
-"test_split": "cat_Latn"
+dataset_name: cat_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_cat_Latn
+test_split: test

@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import subprocess
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union
 
@@ -100,6 +101,10 @@ def add_env_info(storage: Dict[str, Any]):
         pretty_env_info = get_pretty_env_info()
     except Exception as err:
         pretty_env_info = str(err)
+    try:
+        lm_eval_version = version("lm_eval")
+    except Exception as err:
+        lm_eval_version = str(err)
     transformers_version = trans_version
     upper_dir_commit = get_commit_from_path(
         Path(os.getcwd(), "..")
@@ -107,6 +112,7 @@ def add_env_info(storage: Dict[str, Any]):
     added_info = {
         "pretty_env_info": pretty_env_info,
         "transformers_version": transformers_version,
+        "lm_eval_version": lm_eval_version,
         "upper_git_hash": upper_dir_commit,  # in case this repo is submodule
     }
     storage.update(added_info)
@@ -118,15 +124,15 @@ def add_tokenizer_info(storage: Dict[str, Any], lm):
             tokenizer_info = {
                 "tokenizer_pad_token": [
                     lm.tokenizer.pad_token,
-                    lm.tokenizer.pad_token_id,
+                    str(lm.tokenizer.pad_token_id),
                 ],
                 "tokenizer_eos_token": [
                     lm.tokenizer.eos_token,
-                    lm.tokenizer.eos_token_id,
+                    str(lm.tokenizer.eos_token_id),
                 ],
                 "tokenizer_bos_token": [
                     lm.tokenizer.bos_token,
-                    lm.tokenizer.bos_token_id,
+                    str(lm.tokenizer.bos_token_id),
                 ],
                 "eot_token_id": getattr(lm, "eot_token_id", None),
                 "max_length": getattr(lm, "max_length", None),

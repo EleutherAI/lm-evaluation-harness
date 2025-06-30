@@ -1,4 +1,4 @@
-group:
+tag:
   - lambada_cloze
 task: lambada_standard_cloze_yaml
 dataset_path: lambada

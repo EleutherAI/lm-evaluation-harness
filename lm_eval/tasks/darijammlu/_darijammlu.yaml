@@ -1,0 +1,10 @@
+group: darijammlu
+group_alias: DarijaMMLU
+task:
+- darijammlu_mmlu
+- darijammlu_ar_mmlu
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0

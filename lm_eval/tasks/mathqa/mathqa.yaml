@@ -1,4 +1,4 @@
-group:
+tag:
   - math_word_problems
 task: mathqa
 dataset_path: math_qa

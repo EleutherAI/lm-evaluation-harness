@@ -1,0 +1,45 @@
+group: test-1
+group_alias: test 1
+task:
+  - piqa # string task
+  - ai2_arc # string tag
+  - task: super-glue-lm-eval-v1 # Should this be spread out?
+    num_fewshot: 3
+  - task: swag # dict registered task
+    num_fewshot: 2
+  - task: mmlu
+    num_fewshot: 5
+  - group: nli-tasks # dict group
+    task:
+      - anli
+      - boolq
+      - sglue_rte
+    num_fewshot: 4
+    metric_list:
+      - metric: brier_score
+  - task: sciq # dict registered task duplicate
+    task_alias: sciq 2-shot
+    num_fewshot: 2
+  - task: sciq # dict registered task duplicate
+    task_alias: sciq 4-shot
+    num_fewshot: 4
+  - task: sciq # dict registered task duplicate
+    task_alias: sciq 6-shot
+    num_fewshot: 6
+  - task: siqa_custom # dict task
+    dataset_path: social_i_qa
+    dataset_name: null
+    output_type: multiple_choice
+    training_split: train
+    validation_split: validation
+    doc_to_text: "Question: {{context}} {{question}}\nAnswer:"
+    target_delimiter: " "
+    doc_to_choice:
+      - "{{answerA}}"
+      - "{{answerB}}"
+      - "{{answerC}}"
+    doc_to_target: "{{ (label|int) - 1 }}"
+    metric_list:
+      - metric: acc
+        aggregation: mean
+        higher_is_better: true

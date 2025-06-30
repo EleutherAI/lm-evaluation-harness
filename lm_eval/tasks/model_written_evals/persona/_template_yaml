@@ -1,4 +1,4 @@
-group: persona
+tag: persona
 dataset_path: EleutherAI/persona
 output_type: multiple_choice
 validation_split: validation

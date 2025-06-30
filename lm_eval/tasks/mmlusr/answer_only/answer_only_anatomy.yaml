@@ -1,0 +1,7 @@
+"dataset_name": "answer_only_anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy.\n\
+  \n"
+"tag": "mmlusr_answer_only_stem_tasks"
+"include": "_mmlusr_a_yml"
+"task": "mmlusr_answer_only_anatomy"
+"task_alias": "anatomy"

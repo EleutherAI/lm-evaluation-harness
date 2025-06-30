@@ -54,6 +54,6 @@ fewshot_config:
       not have any roots. For c = 2 the polynomial x^2 + 2 has two roots at x = 1
       and x = 2. Hence Z_3[x]/(x^2 + c) is a field if and only if c = 1. The answer
       is (B).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_abstract_algebra

@@ -1,0 +1,15 @@
+group: include_base_44_chinese
+task:
+- include_base_44_chinese_few_shot_en_applied_science
+- include_base_44_chinese_few_shot_en_health_oriented_education
+- include_base_44_chinese_few_shot_en_arts_humanities
+- include_base_44_chinese_few_shot_en_stem
+- include_base_44_chinese_few_shot_en_business_commerce
+- include_base_44_chinese_few_shot_en_professional_certification
+- include_base_44_chinese_few_shot_en_driving_license
+- include_base_44_chinese_few_shot_en_social_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

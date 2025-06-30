@@ -1,8 +1,6 @@
 dataset_name: tracking_shuffled_objects_seven_objects
 description: 'A task requiring determining the final positions of a set of objects
-  given their initial positions and a description of a sequence of swaps.
-
-        '
+  given their initial positions and a description of a sequence of swaps.'
 doc_to_choice: ["(A)","(B)","(C)","(D)","(E)","(F)","(G)"]
 fewshot_config:
   sampler: first_n

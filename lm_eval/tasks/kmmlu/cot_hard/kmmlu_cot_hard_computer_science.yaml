@@ -96,4 +96,5 @@ fewshot_config:
       주어진 설명에서 언급된 감사 추적(Auditing)이나 Shadow Password와 같은 부가적인 기능보다는 사용자 간 침범 차단과 사용자별
       파일 권한 설정에 초점을 맞춘 것으로 정의됩니다. 따라서, 정답은 (B) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_computer_science
+task: kmmlu_cot_hard_computer_science
+tag: kmmlu_cot_hard_stem_tasks

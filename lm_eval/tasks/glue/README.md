@@ -41,9 +41,13 @@ Homepage: https://gluebenchmark.com/
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
+
+None.
+
+#### Tags
 
 * `glue`: Run all Glue subtasks.
 

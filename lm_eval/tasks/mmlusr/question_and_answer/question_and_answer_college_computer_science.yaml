@@ -1,0 +1,7 @@
+"dataset_name": "question_and_answer_college_computer_science"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ computer science.\n\n"
+"tag": "mmlusr_question_and_answer_stem_tasks"
+"include": "_mmlusr_qna_yml"
+"task": "mmlusr_question_and_answer_college_computer_science"
+"task_alias": "college computer science"

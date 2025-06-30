@@ -1,0 +1,5 @@
+include: _azerbaijani_few_shot_og_template_yaml
+description: Aşağıdakılar Health oriented education haqqında çoxseçimli suallardır
+  (cavabları ilə).
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_azerbaijani_few_shot_og_health_oriented_education

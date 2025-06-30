@@ -82,4 +82,5 @@ fewshot_config:
       절삭저항의 대부분을 차지합니다. 이러한 정보를 바탕으로, 주분력이 절삭저항의 대부분을 차지하므로, 탄소강을 가공할 때 가장 큰 절삭저항을
       주는 것은 주분력일 것이라고 추론할 수 있습니다. 따라서, 정답은 (D) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_industrial_engineer
+task: kmmlu_cot_hard_industrial_engineer
+tag: kmmlu_cot_hard_applied_science_tasks

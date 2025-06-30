@@ -1,4 +1,4 @@
-group: glue
+tag: glue
 task: qnli
 dataset_path: glue
 dataset_name: qnli

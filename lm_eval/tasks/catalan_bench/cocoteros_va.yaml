@@ -1,0 +1,24 @@
+task: cocoteros_va
+dataset_path: gplsi/cocoteros_va
+dataset_name: null
+output_type: generate_until
+doc_to_text: "Genera una frase curta amb estes paraules: {{keywords}}. El context és: {{context}} \n\nResposta:"
+doc_to_target: "{{text}}"
+training_split: null
+validation_split: null
+test_split: test
+fewshot_split: test
+target_delimiter: ' '
+generation_kwargs:
+  max_gen_toks: 40
+  until:
+    - "\n"
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: !function utils.rouge1
+    aggregation: !function utils.rouge1_agg
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,0 +1,14 @@
+group: xwinograd
+task:
+  - xwinograd_en
+  - xwinograd_fr
+  - xwinograd_jp
+  - xwinograd_pt
+  - xwinograd_ru
+  - xwinograd_zh
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

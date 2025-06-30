@@ -1,0 +1,18 @@
+task: paws_gl
+dataset_path: proxectonos/PAWS-gl
+dataset_name: null
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+process_docs: !function utils.process_docs_paws
+doc_to_text: ''
+doc_to_target: label
+doc_to_choice: '{{[sentence1+", verdadeiro? Non, "+sentence2, sentence1+", verdadeiro? Si, "+sentence2]}}'
+target_delimiter: ''
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

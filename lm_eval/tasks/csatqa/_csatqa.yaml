@@ -1,0 +1,17 @@
+group: csatqa
+task:
+  - csatqa_gr
+  - csatqa_li
+  - csatqa_rch
+  - csatqa_rcs
+  - csatqa_rcss
+  - csatqa_wr
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

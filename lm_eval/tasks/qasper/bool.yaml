@@ -1,4 +1,4 @@
-group: qasper
+tag: qasper
 task: qasper_bool
 dataset_path: allenai/qasper
 output_type: multiple_choice

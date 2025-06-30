@@ -1,4 +1,5 @@
-"fewshot_split": "ben_Beng"
-"include": "_default_template_yaml"
-"task": "belebele_ben_Beng"
-"test_split": "ben_Beng"
+dataset_name: ben_Beng
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_ben_Beng
+test_split: test

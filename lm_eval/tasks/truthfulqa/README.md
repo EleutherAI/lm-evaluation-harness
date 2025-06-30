@@ -36,8 +36,8 @@ Homepage: `https://github.com/sylinrl/TruthfulQA`
 #### Tasks
 
 * `truthfulqa_mc1`: `Multiple-choice, single answer`
-* (MISSING)`truthfulqa_mc2`: `Multiple-choice, multiple answers`
-* (MISSING)`truthfulqa_gen`: `Answer generation`
+* `truthfulqa_mc2`: `Multiple-choice, multiple answers`
+* `truthfulqa_gen`: `Answer generation`
 
 ### Checklist
 
@@ -51,3 +51,6 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+mc2 version 3.0 (2024-Mar-11) PR #2768 - original code assumed labels were in sorted order - not always true

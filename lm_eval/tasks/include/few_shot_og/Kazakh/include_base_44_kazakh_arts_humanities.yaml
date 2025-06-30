@@ -1,0 +1,5 @@
+include: _kazakh_few_shot_og_template_yaml
+description: Төменде Arts & Humanities туралы бірнеше таңдаулы сұрақтар (жауаптары
+  бар) берілген.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_kazakh_few_shot_og_arts_humanities

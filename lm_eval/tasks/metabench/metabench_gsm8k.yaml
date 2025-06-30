@@ -1,0 +1,46 @@
+task: metabench_gsm8k
+tag:
+  - metabench_gsm8k_subset
+dataset_path: HCAI/metabench
+dataset_name: GSM8K
+process_docs: !function process_docs.process_gsm8k
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: primary
+doc_to_text: "{{five_shot_preprompt}}Question: {{question}}\nAnswer:"
+doc_to_target: "{{answer}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+      - "(?s).*#### "
+      - "\\.$"
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+repeats: 1
+num_fewshot: 0
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+      - function: "take_first"
+metadata:
+  version: 0.0

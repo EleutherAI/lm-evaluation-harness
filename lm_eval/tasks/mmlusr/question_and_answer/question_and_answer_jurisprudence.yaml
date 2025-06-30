@@ -1,0 +1,7 @@
+"dataset_name": "question_and_answer_jurisprudence"
+"description": "The following are multiple choice questions (with answers) about jurisprudence.\n\
+  \n"
+"tag": "mmlusr_question_and_answer_humanities_tasks"
+"include": "_mmlusr_qna_yml"
+"task": "mmlusr_question_and_answer_jurisprudence"
+"task_alias": "jurisprudence"

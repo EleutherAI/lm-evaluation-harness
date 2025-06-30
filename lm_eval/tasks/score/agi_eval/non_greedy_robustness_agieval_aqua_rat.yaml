@@ -1,0 +1,36 @@
+# Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+task: non_greedy_robustness_agieval_aqua_rat
+dataset_path: hails/agieval-aqua-rat
+dataset_name: default
+output_type: generate_until
+test_split: test
+process_docs: !function utils_agieval.non_greedy_robustness_process_docs
+doc_to_text: !function utils_agieval.agi_eval_robustness_doc_to_text
+doc_to_target: answer
+generation_kwargs:
+  max_gen_toks: 1024
+  do_sample: true
+  temperature: 0.7
+  until: []
+process_results: !function utils_agieval.non_greedy_robustness_process_results
+metric_list:
+  - metric: non_greedy_accuracy
+    aggregation:  !function utils_agieval.non_greedy_accuracy
+    higher_is_better: true
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true

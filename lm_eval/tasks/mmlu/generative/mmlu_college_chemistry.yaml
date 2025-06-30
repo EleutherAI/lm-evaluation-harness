@@ -1,8 +1,7 @@
 "dataset_name": "college_chemistry"
 "description": "The following are multiple choice questions (with answers) about college\
   \ chemistry.\n\n"
-"group": "mmlu_stem_generative"
-"group_alias": "stem"
+"tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
 "task": "mmlu_college_chemistry_generative"
 "task_alias": "college_chemistry"

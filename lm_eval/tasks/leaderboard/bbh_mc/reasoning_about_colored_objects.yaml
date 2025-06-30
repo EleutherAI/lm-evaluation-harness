@@ -1,7 +1,5 @@
 dataset_name: reasoning_about_colored_objects
-description: 'Answer extremely simple questions about the colors of objects on a surface.
-
-        '
+description: 'Answer extremely simple questions about the colors of objects on a surface.'
 doc_to_choice: ["(A)","(B)","(C)","(D)","(E)","(F)","(G)","(H)","(I)","(J)","(K)","(L)","(M)","(N)","(O)","(P)","(Q)","(R)"]
 fewshot_config:
   sampler: first_n

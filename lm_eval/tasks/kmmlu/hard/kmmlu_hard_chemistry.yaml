@@ -1,3 +1,4 @@
 dataset_name: chemistry
 include: _hard_kmmlu_yaml
 task: kmmlu_hard_chemistry
+tag: kmmlu_hard_stem_tasks

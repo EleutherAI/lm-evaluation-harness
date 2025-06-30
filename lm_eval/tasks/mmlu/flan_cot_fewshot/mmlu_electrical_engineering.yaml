@@ -42,6 +42,6 @@ fewshot_config:
     target: 'Let''s think step by step. In lap winding, effectively two resistors
       are connected in parallel, so the actual resistance of each pair is 1 Ohm. Since
       we have 50 pairs, we get a total resistance of 50 Ohms. The answer is (C).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_electrical_engineering

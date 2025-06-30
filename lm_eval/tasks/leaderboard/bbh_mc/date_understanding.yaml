@@ -1,7 +1,5 @@
 dataset_name: date_understanding
-description: 'Infer the date from context.
-
-        '
+description: 'Infer the date from context.'
 doc_to_choice: ["(A)", "(B)", "(C)", "(D)", "(E)", "(F)"]
 fewshot_config:
   sampler: first_n

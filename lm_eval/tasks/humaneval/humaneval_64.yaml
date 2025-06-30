@@ -1,0 +1,19 @@
+include: humaneval.yaml
+task: humaneval_64
+repeats: 64
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [2,8,16,32,64]
+generation_kwargs:
+  until:
+    - "\nclass"
+    - "\ndef"
+    - "\n#"
+    - "\nif"
+    - "\nprint"
+  max_gen_toks: 1024
+  do_sample: true
+  temperature: 0.2
+  top_p: 0.95

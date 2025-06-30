@@ -1,4 +1,4 @@
-group: basque-glue
+tag: basque-glue
 task: vaxx_stance
 dataset_path: orai-nlp/basqueGLUE
 dataset_name: vaxx

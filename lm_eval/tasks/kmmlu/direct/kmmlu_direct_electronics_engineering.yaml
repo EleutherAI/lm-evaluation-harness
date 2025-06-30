@@ -1,3 +1,4 @@
 dataset_name: Electronics-Engineering
 include: _direct_kmmlu_yaml
 task: kmmlu_direct_electronics_engineering
+tag: kmmlu_direct_applied_science_tasks

@@ -1,6 +1,6 @@
 "dataset_name": "virology"
 "description": "The following are questions (with answers) about virology.\n\
   \n"
-"group": "mmlu_continuation_other"
+"tag": "mmlu_continuation_other"
 "include": "_continuation_template_yaml"
 "task": "mmlu_continuation_virology"

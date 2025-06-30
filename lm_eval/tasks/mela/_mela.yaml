@@ -1,0 +1,17 @@
+group: mela
+task:
+  - mela_en
+  - mela_zh
+  - mela_it
+  - mela_ru
+  - mela_de
+  - mela_fr
+  - mela_es
+  - mela_ja
+  - mela_ar
+  - mela_ar
+aggregate_metric_list:
+  - metric: mcc
+    weight_by_size: False
+metadata:
+  version: 1

@@ -1,0 +1,7 @@
+"dataset_name": "question_only_college_medicine"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ medicine.\n\n"
+"tag": "mmlusr_question_only_other_tasks"
+"include": "_mmlusr_q_yml"
+"task": "mmlusr_question_only_college_medicine"
+"task_alias": "college medicine"

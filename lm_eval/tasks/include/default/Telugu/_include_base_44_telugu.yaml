@@ -1,0 +1,11 @@
+group: include_base_44_telugu
+task:
+- include_base_44_telugu_arts_humanities
+- include_base_44_telugu_applied_science
+- include_base_44_telugu_stem
+- include_base_44_telugu_social_science
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

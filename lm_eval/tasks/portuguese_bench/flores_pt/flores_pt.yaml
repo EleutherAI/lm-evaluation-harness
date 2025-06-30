@@ -1,0 +1,24 @@
+group: flores_pt
+task:
+  - flores_es-pt
+  - flores_pt-es
+  - flores_en-pt
+  - flores_pt-en
+  - flores_eu-pt
+  - flores_pt-eu
+  - flores_pt-it
+  - flores_it-pt
+  - flores_pt-fr
+  - flores_fr-pt
+  - flores_pt-ca
+  - flores_ca-pt
+  - flores_pt-gl
+  - flores_gl-pt
+  - flores_pt-de
+  - flores_de-pt
+aggregate_metric_list:
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

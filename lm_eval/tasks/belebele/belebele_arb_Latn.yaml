@@ -1,4 +1,5 @@
-"fewshot_split": "arb_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_arb_Latn"
-"test_split": "arb_Latn"
+dataset_name: arb_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_arb_Latn
+test_split: test

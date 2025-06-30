@@ -64,6 +64,6 @@ fewshot_config:
       core cell cycle regulators inside the cell. The most common regulators are cyclins
       and cyclin-dependent kinases. Fibroblast cells do not play any role in cell
       division. The answer is (D).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_biology

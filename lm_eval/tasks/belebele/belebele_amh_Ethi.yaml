@@ -1,4 +1,5 @@
-"fewshot_split": "amh_Ethi"
-"include": "_default_template_yaml"
-"task": "belebele_amh_Ethi"
-"test_split": "amh_Ethi"
+dataset_name: amh_Ethi
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_amh_Ethi
+test_split: test

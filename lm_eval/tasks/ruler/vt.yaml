@@ -1,0 +1,8 @@
+include: niah_single_1.yaml
+task: ruler_vt
+custom_dataset: !function vt_utils.get_vt_dataset
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 30
+  until: []

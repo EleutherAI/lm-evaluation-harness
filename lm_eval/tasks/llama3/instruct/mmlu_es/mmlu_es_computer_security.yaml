@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 160 bits
+      B: 512 bits
+      C: 628 bits
+      D: 820 bits
+    input_correct_responses:
+    - A
+    input_question: SHA-1 tiene un resumen de mensajes de
+  - input_choice_list:
+      A: "mensajer\xEDa instant\xE1nea: troyanos"
+      B: Troyanos de puerta trasera
+      C: Descargador de troyanos
+      D: Troyano de rescate
+    input_correct_responses:
+    - D
+    input_question: "_____________ puede modificar datos en su sistema, de modo que\
+      \ su sistema no se ejecute correctamente o ya no pueda acceder a datos espec\xED\
+      ficos, o incluso puede solicitar un rescate para otorgarle acceso."
+  - input_choice_list:
+      A: "&quot;Hackear&quot; la \xE9tica para justificar un comportamiento ego\xED\
+        sta involuntario"
+      B: "Hackear sistemas (por ejemplo, durante las pruebas de penetraci\xF3n) para\
+        \ exponer las vulnerabilidades para que puedan repararse, en lugar de explotarse."
+      C: "Hackear sistemas dirigidos por aquellos con cuya \xE9tica no est\xE1 de\
+        \ acuerdo"
+      D: "Un t\xE9rmino de jerga para el desarrollo r\xE1pido de software, por ejemplo,\
+        \ como parte de hackatones."
+    input_correct_responses:
+    - B
+    input_question: "\xBFQu\xE9 es el hacking \xE9tico?"
+  - input_choice_list:
+      A: "sobrescribir claves criptogr\xE1ficas en la memoria"
+      B: "una especie de inyecci\xF3n de c\xF3digo"
+      C: "una lectura fuera de los l\xEDmites de un buffer"
+      D: un ataque de cadena de formato
+    input_correct_responses:
+    - C
+    input_question: "Explotaci\xF3n de los permisos del error Heartbleed"
+  - input_choice_list:
+      A: Web embrujada
+      B: World Wide Web
+      C: Red de superficie
+      D: Red profunda
+    input_correct_responses:
+    - D
+    input_question: "El ____________ es cualquier cosa que su motor de b\xFAsqueda\
+      \ no pueda buscar."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_computer_security
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_computer_security
+task_alias: computer_security

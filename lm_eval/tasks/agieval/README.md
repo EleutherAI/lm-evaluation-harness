@@ -75,7 +75,7 @@ Please make sure to cite all the individual datasets in your paper when you use 
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 
@@ -88,6 +88,10 @@ Please make sure to cite all the individual datasets in your paper when you use 
 `agieval_gaokao_history`, `agieval_gaokao_mathqa`, `agieval_gaokao_mathcloze`, `agieval_gaokao_physics`, `agieval_jec_qa_ca`, `agieval_jec_qa_kd`, `agieval_logiqa_zh`
 
 - `agieval_nous`: Evaluates a specific subset of AGIEval tasks (multiple-choice and english-only), namely those in https://github.com/teknium1/LLM-Benchmark-Logs/blob/main/benchmark-logs/Mistral-7B-Base.md
+
+#### Tags
+
+None.
 
 #### Tasks
 

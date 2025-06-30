@@ -1,0 +1,39 @@
+# |                   Tasks                   |Version|Filter|n-shot| Metric |Value |   |Stderr|
+# |-------------------------------------------|-------|------|-----:|--------|-----:|---|-----:|
+# | - inverse_scaling_hindsight_neglect_10shot|      0|none  |     0|acc     |0.4476|±  |0.0281|
+# |                                           |       |none  |     0|acc_norm|0.4476|±  |0.0281|
+# |inverse_scaling_mc                         |N/A    |none  |     0|acc_norm|0.6273|±  |0.0096|
+# |                                           |       |none  |     0|acc     |0.6210|±  |0.0095|
+# | - inverse_scaling_neqa                    |      0|none  |     0|acc     |0.5300|±  |0.0289|
+# |                                           |       |none  |     0|acc_norm|0.5300|±  |0.0289|
+# | - inverse_scaling_quote_repetition        |      0|none  |     0|acc     |0.9367|±  |0.0141|
+# |                                           |       |none  |     0|acc_norm|0.9367|±  |0.0141|
+# | - inverse_scaling_redefine_math           |      0|none  |     0|acc     |0.7178|±  |0.0150|
+# |                                           |       |none  |     0|acc_norm|0.7178|±  |0.0150|
+# | - inverse_scaling_winobias_antistereotype |      0|none  |     0|acc     |0.3786|±  |0.0239|
+# |                                           |       |none  |     0|acc_norm|0.4126|±  |0.0243|
+
+# |      Groups      |Version|Filter|n-shot| Metric |Value |   |Stderr|
+# |------------------|-------|------|-----:|--------|-----:|---|-----:|
+# |inverse_scaling_mc|N/A    |none  |     0|acc_norm|0.6273|±  |0.0096|
+# |                  |       |none  |     0|acc     |0.6210|±  |0.0095|
+# hf (pretrained=facebook/opt-2.7b,add_bos_token=True,dtype=float32), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: auto (32)
+# |                   Tasks                   |Version|Filter|n-shot| Metric |Value |   |Stderr|
+# |-------------------------------------------|-------|------|-----:|--------|-----:|---|-----:|
+# | - inverse_scaling_hindsight_neglect_10shot|      0|none  |     0|acc     |0.4476|±  |0.0281|
+# |                                           |       |none  |     0|acc_norm|0.4476|±  |0.0281|
+# |inverse_scaling_mc                         |N/A    |none  |     0|acc_norm|0.6291|±  |0.0095|
+# |                                           |       |none  |     0|acc     |0.6219|±  |0.0095|
+# | - inverse_scaling_neqa                    |      0|none  |     0|acc     |0.5267|±  |0.0289|
+# |                                           |       |none  |     0|acc_norm|0.5267|±  |0.0289|
+# | - inverse_scaling_quote_repetition        |      0|none  |     0|acc     |0.9433|±  |0.0134|
+# |                                           |       |none  |     0|acc_norm|0.9433|±  |0.0134|
+# | - inverse_scaling_redefine_math           |      0|none  |     0|acc     |0.7200|±  |0.0150|
+# |                                           |       |none  |     0|acc_norm|0.7200|±  |0.0150|
+# | - inverse_scaling_winobias_antistereotype |      0|none  |     0|acc     |0.3762|±  |0.0239|
+# |                                           |       |none  |     0|acc_norm|0.4150|±  |0.0243|
+
+# |      Groups      |Version|Filter|n-shot| Metric |Value |   |Stderr|
+# |------------------|-------|------|-----:|--------|-----:|---|-----:|
+# |inverse_scaling_mc|N/A    |none  |     0|acc_norm|0.6291|±  |0.0095|
+# |                  |       |none  |     0|acc     |0.6219|±  |0.0095|

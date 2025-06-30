@@ -1,4 +1,4 @@
-group:
+tag:
   - lambada
 task: lambada_openai
 dataset_path: EleutherAI/lambada_openai

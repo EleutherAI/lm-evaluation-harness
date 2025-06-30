@@ -5,8 +5,7 @@ doc_to_target: ' {{translation["ar"]}}'
 doc_to_text: 'English phrase: {{translation["en"]}}
 
   Arabic phrase:'
-group:
-- generate_until
+tag:
 - translation
 - iwslt2017
 include: wmt_common_yaml

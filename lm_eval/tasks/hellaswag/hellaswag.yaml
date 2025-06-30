@@ -1,4 +1,4 @@
-group:
+tag:
   - multiple_choice
 task: hellaswag
 dataset_path: hellaswag

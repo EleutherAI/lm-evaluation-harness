@@ -1,0 +1,11 @@
+group: include_base_44_spanish
+task:
+- include_base_44_spanish_stem
+- include_base_44_spanish_social_science
+- include_base_44_spanish_arts_humanities
+- include_base_44_spanish_health_oriented_education
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

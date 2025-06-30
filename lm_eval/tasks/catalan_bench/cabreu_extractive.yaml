@@ -1,0 +1,8 @@
+include: _cabreu_common_yaml
+task: cabreu_extractive
+description: "Examina el text següent i genera'n un resum extractiu, utilitzant les frases o oracions més rellevants del text original.\n"
+doc_to_text: >-
+  Text: {{content}}
+
+  Resum:
+doc_to_target: '{{summaries["extractive"]["a1"]}}'

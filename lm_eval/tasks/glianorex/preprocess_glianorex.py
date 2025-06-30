@@ -7,7 +7,8 @@ def doc_to_text(doc) -> str:
     return f"Question: {doc['question']}\n{answers}Answer:"
 
 
-def doc_to_target(doc) -> int:
+def doc_to_target(doc) -> str:
+    # answer_idx is `A`, `B`, `C`, `D` etc.
     return doc["answer_idx"]
 
 

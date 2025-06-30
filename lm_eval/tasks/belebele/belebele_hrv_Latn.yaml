@@ -1,4 +1,5 @@
-"fewshot_split": "hrv_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_hrv_Latn"
-"test_split": "hrv_Latn"
+dataset_name: hrv_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_hrv_Latn
+test_split: test

@@ -1,7 +1,3 @@
 include: aqua-rat.yaml
-group:
-  - agieval
-  - agieval_nous
-  - agieval_en
 task: agieval_sat_math
 dataset_path: hails/agieval-sat-math

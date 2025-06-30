@@ -84,4 +84,5 @@ fewshot_config:
       수선 등을 포함한 종합적인 서비스를 제공하는 것으로 보입니다. 이는 일반적인 클리닝 서비스와는 차별화된 서비스라고 볼 수 있습니다. 따라서,
       정답은 (D) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_fashion
+task: kmmlu_cot_hard_fashion
+tag: kmmlu_cot_hard_other_tasks

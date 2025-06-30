@@ -92,4 +92,5 @@ fewshot_config:
       지칭하지 않으며, 실제 설계 및 계획 과정에서는 보통 최소값, 최대값, 또는 목표값과 같이 더 구체적이고 명확한 기준을 바탕으로 최적치수를
       결정합니다. 따라서, 정답은 (C) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_interior_architecture_and_design
+task: kmmlu_cot_hard_interior_architecture_and_design
+tag: kmmlu_cot_hard_other_tasks

@@ -1,0 +1,20 @@
+task: xnli_gl
+dataset_path: proxectonos/xnli_gl
+dataset_name: null
+include: ../xnli/xnli_common_yaml
+output_type: multiple_choice
+doc_to_choice: '{{[sentence1+", verdadeiro? Si, "+sentence2,sentence1+", verdadeiro? Ademais,
+  "+sentence2,sentence1+", verdadeiro? Non, "+sentence2]}}'
+doc_to_text: ''
+target_delimiter: ''
+process_docs: !function utils.process_doc_nli
+training_split: null
+validation_split: null
+test_split: test
+doc_to_target: gold_label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

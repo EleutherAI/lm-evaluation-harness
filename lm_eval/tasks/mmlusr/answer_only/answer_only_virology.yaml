@@ -1,0 +1,7 @@
+"dataset_name": "answer_only_virology"
+"description": "The following are multiple choice questions (with answers) about virology.\n\
+  \n"
+"tag": "mmlusr_answer_only_other_tasks"
+"include": "_mmlusr_a_yml"
+"task": "mmlusr_answer_only_virology"
+"task_alias": "virology"

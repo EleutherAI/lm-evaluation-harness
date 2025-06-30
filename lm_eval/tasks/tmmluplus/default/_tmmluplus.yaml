@@ -1,0 +1,13 @@
+group: tmmluplus
+task:
+- tmmluplus_other
+- tmmluplus_social_sciences
+- tmmluplus_humanities
+- tmmluplus_STEM
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+metadata:
+  version: 2.0

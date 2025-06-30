@@ -1,0 +1,9 @@
+tag: evalita-mp_te_tasks
+include: _te_template_yaml
+task: evalita-mp_te_prompt-1
+task_alias: prompt-1
+#doc_to_text: "Task di Text Entailment. Rispondi Vero o Falso in base alla correttezza dell'ipotesi rispetto al testo.\nTesto:{{text1}}\nIpotesi: {{text2}}\nRisposta:"
+doc_to_text: "La frase: '{{text1}}' implica logicamente che la frase: '{{text2}}' sia vera?"
+#metric_list:
+#  - metric: acc
+#    higher_is_better: true

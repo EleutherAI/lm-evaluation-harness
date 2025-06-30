@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: reazione a catena della polimerasi.
+      B: Analisi del polimorfismo conformazionale a singolo filamento.
+      C: Southernblotting.
+      D: Blotting occidentale.
+    input_correct_responses:
+    - C
+    input_question: 'Grandi espansioni di ripetizioni di triplette possono essere
+      rilevate da:'
+  - input_choice_list:
+      A: un enzima che unisce i frammenti nella normale replicazione del DNA
+      B: un enzima di origine batterica che taglia il DNA in sequenze di basi definite
+      C: un enzima che facilita la trascrizione di geni specifici
+      D: un enzima che limita il livello raggiunto da un particolare nutriente
+    input_correct_responses:
+    - A
+    input_question: "La DNA ligasi lo \xE8"
+  - input_choice_list:
+      A: ha entrambi gli alleli espressi indipendentemente nell&#39;eterozigote
+      B: ha un allele dominante sull&#39;altro
+      C: ha alleli strettamente legati sullo stesso cromosoma
+      D: ha alleli espressi contemporaneamente nello sviluppo
+    input_correct_responses:
+    - A
+    input_question: Un gene che mostra codominanza
+  - input_choice_list:
+      A: Stenosi pilorica
+      B: Schizofrenia
+      C: Spina bifida (difetti del tubo neurale)
+      D: Sindrome di Marfan
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti condizioni non mostra ereditariet\xE0 multifattoriale?"
+  - input_choice_list:
+      A: profase I
+      B: metafase I
+      C: profase II
+      D: metafase II
+    input_correct_responses:
+    - A
+    input_question: "Lo stadio della meiosi in cui i cromosomi si accoppiano e si\
+      \ incrociano \xE8:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_medical_genetics
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_medical_genetics
+task_alias: medical_genetics

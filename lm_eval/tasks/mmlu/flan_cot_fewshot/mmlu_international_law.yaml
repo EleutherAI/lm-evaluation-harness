@@ -65,6 +65,6 @@ fewshot_config:
     target: 'Let''s think step by step. We refer to Wikipedia articles on international
       law for help. Article 2(4) of the UN Charter prohibits states from using armed
       forces in their international relations. The answer is (A).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_international_law

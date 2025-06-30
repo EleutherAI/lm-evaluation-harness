@@ -1,0 +1,44 @@
+group: mmlusr_question_only
+group_alias: MMLU-SR (Question Only)
+task:
+  - group: mmlusr_qo_stem
+    group_alias: STEM (Question Only)
+    task:
+      - mmlusr_question_only_stem_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+  - group: mmlusr_qo_other
+    group_alias: Other (Question Only)
+    task:
+      - mmlusr_question_only_other_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+  - group: mmlusr_qo_social_sciences
+    group_alias: Social Sciences (Question Only)
+    task:
+      - mmlusr_question_only_social_sciences_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+  - group: mmlusr_qo_humanities
+    group_alias: Humanities (Question Only)
+    task:
+      - mmlusr_question_only_humanities_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2

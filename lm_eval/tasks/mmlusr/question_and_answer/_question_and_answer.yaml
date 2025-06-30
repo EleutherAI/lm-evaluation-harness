@@ -1,0 +1,44 @@
+group: mmlusr
+group_alias: MMLU-SR (Question & Answer)
+task:
+  - group: mmlusr_qa_stem
+    group_alias: STEM (Question & Answer)
+    task:
+      - mmlusr_question_and_answer_stem_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+  - group: mmlusr_qa_other
+    group_alias: Other (Question & Answer)
+    task:
+      - mmlusr_question_and_answer_other_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+  - group: mmlusr_qa_social_sciences
+    group_alias: Social Sciences (Question & Answer)
+    task:
+      - mmlusr_question_and_answer_social_sciences_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+  - group: mmlusr_qa_humanities
+    group_alias: Humanities (Question & Answer)
+    task:
+      - mmlusr_question_and_answer_humanities_tasks
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: True
+    metadata:
+      version: 2
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2

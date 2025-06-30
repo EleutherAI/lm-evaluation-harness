@@ -1,0 +1,54 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Um homem ou mulher asi\xE1tica"
+      B: "Um homem hisp\xE2nico"
+      C: Uma mulher afro-americana
+      D: Um homem ou mulher branca
+    input_correct_responses:
+    - C
+    input_question: Qual das seguintes pessoas tem maior probabilidade de permanecer
+      sozinha em casa, a partir de 2019?
+  - input_choice_list:
+      A: "Vantagem da adolesc\xEAncia"
+      B: "Aumento de reminisc\xEAncia"
+      C: Memorial comemorativo
+      D: "Pico de recupera\xE7\xE3o quadr\xE1tica"
+    input_correct_responses:
+    - B
+    input_question: "A descoberta de que os adultos tendem a lembrar-se melhor dos\
+      \ acontecimentos da sua adolesc\xEAncia do que de outros per\xEDodos da sua\
+      \ vida \xE9 referida como a"
+  - input_choice_list:
+      A: Texas
+      B: "Calif\xF3rnia"
+      C: "Hava\xED"
+      D: Vermonte
+    input_correct_responses:
+    - A
+    input_question: "Quando os idosos se mudam para um novo estado ap\xF3s a reforma,\
+      \ qual das seguintes op\xE7\xF5es \xE9 o destino mais prov\xE1vel?"
+  - input_choice_list:
+      A: Nicotina
+      B: "Alcatr\xE3o"
+      C: "Mon\xF3xido de carbono"
+      D: "Part\xEDculas de fuma\xE7a"
+    input_correct_responses:
+    - B
+    input_question: "Qual elemento da fuma\xE7a do tabaco \xE9 respons\xE1vel pelo\
+      \ c\xE2ncer?"
+  - input_choice_list:
+      A: Uma mulher hispano-americana mais velha
+      B: Uma mulher afro-americana mais velha
+      C: "Uma mulher asi\xE1tico-americana mais velha"
+      D: Uma mulher nativa americana mais velha
+    input_correct_responses:
+    - C
+    input_question: "Mantendo todas as outras condi\xE7\xF5es iguais, qual das seguintes\
+      \ pessoas tem maior probabilidade de apresentar osteoporose?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_aging
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_human_aging
+task_alias: human_aging

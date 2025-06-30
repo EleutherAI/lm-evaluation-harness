@@ -77,6 +77,6 @@ fewshot_config:
       for help. The symptoms and the adrenal mass suggested pheochromocytoma, and
       the blood pressure indicates hypertension. Phenoxybenzamine is used to treat
       hypertension caused by pheochromocytoma. The answer is (D).'
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_professional_medicine

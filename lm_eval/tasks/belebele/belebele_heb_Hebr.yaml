@@ -1,4 +1,5 @@
-"fewshot_split": "heb_Hebr"
-"include": "_default_template_yaml"
-"task": "belebele_heb_Hebr"
-"test_split": "heb_Hebr"
+dataset_name: heb_Hebr
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_heb_Hebr
+test_split: test

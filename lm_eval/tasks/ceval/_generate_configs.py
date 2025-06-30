@@ -3,12 +3,14 @@ Take in a YAML, and output all other splits with this YAML
 """
 
 import argparse
+import logging
 import os
 
 import yaml
 from tqdm import tqdm
 
-from lm_eval.logger import eval_logger
+
+eval_logger = logging.getLogger(__name__)
 
 
 SUBJECTS = {
@@ -117,3 +119,26 @@ if __name__ == "__main__":
                 allow_unicode=True,
                 default_style='"',
             )
+
+    # write group config out
+
+    group_yaml_dict = {
+        "group": "ceval-valid",
+        "task": [f"ceval-valid_{task_name}" for task_name in SUBJECTS.keys()],
+        "aggregate_metric_list": [
+            {"metric": "acc", "aggregation": "mean", "weight_by_size": True},
+            {"metric": "acc_norm", "aggregation": "mean", "weight_by_size": True},
+        ],
+        "metadata": {"version": 1.0},
+    }
+
+    file_save_path = "_" + args.save_prefix_path + ".yaml"
+
+    with open(file_save_path, "w", encoding="utf-8") as group_yaml_file:
+        yaml.dump(
+            group_yaml_dict,
+            group_yaml_file,
+            width=float("inf"),
+            allow_unicode=True,
+            default_style='"',
+        )

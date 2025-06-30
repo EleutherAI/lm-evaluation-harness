@@ -1,5 +1,3 @@
-group:
-  - wmt-t5-prompt
 task: wmt-ro-en-t5-prompt
 dataset_path: wmt16
 dataset_name: ro-en

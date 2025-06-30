@@ -30,6 +30,12 @@ Homepage: https://github.com/google/BIG-bench
 
 * `group_name`: `Short description`
 
+#### Tags
+
+* `bigbench_generate_until`
+* `bigbench_multiple_choice_a`
+* `bigbench_multiple_choice_b`
+
 #### Tasks
 
 * `task_name`: `1-sentence description of what this particular task does`

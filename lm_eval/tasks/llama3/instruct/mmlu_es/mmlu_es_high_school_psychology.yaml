@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "un supery\xF3 fuerte."
+      B: baja autoestima.
+      C: baja autoeficacia.
+      D: un locus de control interno.
+    input_correct_responses:
+    - D
+    input_question: "Ani cree que sus actitudes y comportamiento juegan un papel central\
+      \ en lo que le sucede. Es probable que esta creencia est\xE9 asociada con"
+  - input_choice_list:
+      A: Identificar las causas y soluciones de los problemas que presenta el cliente.
+      B: Identificar y eliminar las causas de las dificultades del consultado para
+        manejar un problema.
+      C: "Establecer una jerarqu\xEDa de autoridad para permitir una toma de decisiones\
+        \ eficaz."
+      D: "Presentar un curso de acci\xF3n \xFAnico, bien definido e inequ\xEDvoco\
+        \ para que el consultor supere los d\xE9ficits de habilidades."
+    input_correct_responses:
+    - B
+    input_question: "Seg\xFAn el modelo de consulta de casos centrado en el consultado\
+      \ de Caplan, el consultor est\xE1 interesado principalmente en"
+  - input_choice_list:
+      A: "Los mensajes se env\xEDan desde el t\xE1lamo directamente a la am\xEDgdala."
+      B: "Los mensajes se env\xEDan desde el t\xE1lamo a las v\xEDas del &quot;qu\xE9\
+        &quot; y del &quot;d\xF3nde&quot;."
+      C: "Los mensajes se env\xEDan desde el sistema nervioso parasimp\xE1tico a la\
+        \ corteza cerebral."
+      D: "Los mensajes se env\xEDan desde los l\xF3bulos frontales a la gl\xE1ndula\
+        \ pituitaria."
+    input_correct_responses:
+    - A
+    input_question: "Mientras nada en el oc\xE9ano, Iv\xE1n se asusta al ver una sombra\
+      \ oscura en el agua incluso antes de que tenga la oportunidad de identificar\
+      \ qu\xE9 es la sombra. \xBFCu\xE1l de las siguientes opciones describe mejor\
+      \ las conexiones sin\xE1pticas que tienen lugar durante este incidente de miedo?"
+  - input_choice_list:
+      A: "Dale al ni\xF1o un per\xEDodo de prueba en el nuevo entorno."
+      B: Notificar a los padres por escrito.
+      C: "Obtener la aprobaci\xF3n de la junta escolar"
+      D: Obtener el consentimiento de los padres
+    input_correct_responses:
+    - B
+    input_question: "De acuerdo con la Ley de Mejoramiento de la Educaci\xF3n para\
+      \ Individuos con Discapacidades, \xBFcu\xE1l de las siguientes debe hacer una\
+      \ agencia educativa antes de cambiar la ubicaci\xF3n educativa de un estudiante\
+      \ con una discapacidad?"
+  - input_choice_list:
+      A: sociocultural
+      B: "cl\xEDnico"
+      C: cognitivo
+      D: conductista
+    input_correct_responses:
+    - C
+    input_question: "Pascale est\xE1 interesada en las estrategias de procesamiento\
+      \ que utilizan los ni\xF1os para aprender nueva informaci\xF3n. \xBFEn qu\xE9\
+      \ tipo de psic\xF3loga se clasificar\xEDa mejor a Pascale?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_psychology
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_high_school_psychology
+task_alias: high_school_psychology

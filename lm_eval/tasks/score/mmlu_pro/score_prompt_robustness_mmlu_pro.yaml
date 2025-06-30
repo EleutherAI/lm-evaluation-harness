@@ -1,0 +1,67 @@
+# Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+tag: score_robustness_mmlu_pro
+task: score_prompt_robustness_mmlu_pro
+dataset_path: TIGER-Lab/MMLU-Pro
+dataset_name: default
+output_type: generate_until
+validation_split: validation
+test_split: test
+process_docs: !function utils_mmlu_pro.prompt_robustness_process_docs
+doc_to_text: !function utils_mmlu_pro.mmlu_pro_robustness_doc_to_text
+doc_to_target: answer
+generation_kwargs:
+  until: []
+  max_gen_toks: 1024
+  do_sample: False
+process_results: !function utils_mmlu_pro.prompt_robustness_process_results
+metric_list:
+  - metric: 0_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_0
+    higher_is_better: true
+  - metric: 1_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_1
+    higher_is_better: true
+  - metric: 2_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_2
+    higher_is_better: true
+  - metric: 3_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_3
+    higher_is_better: true
+  - metric: 4_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_4
+    higher_is_better: true
+  - metric: 5_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_5
+    higher_is_better: true
+  - metric: 6_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_6
+    higher_is_better: true
+  - metric: 7_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_7
+    higher_is_better: true
+  - metric: 8_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_8
+    higher_is_better: true
+  - metric: 9_macro_accuracy
+    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_9
+    higher_is_better: true
+  - metric: consistency_rate
+    aggregation:  !function utils_mmlu_pro.mmlu_pro_prompt_consistency_rate
+    higher_is_better: true
+metadata:
+  version: 1.0
+dataset_kwargs:
+  trust_remote_code: true

@@ -12,7 +12,7 @@ class FDA(ConfigurableTask):
     DATASET_PATH = "hazyresearch/based-fda"
     DATASET_NAME = "default"
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(config={"metadata": {"version": self.VERSION}})
 
     def has_training_docs(self):
@@ -33,7 +33,9 @@ class FDA(ConfigurableTask):
     def doc_to_target(self, doc):
         return doc["value"]
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(
+        self, doc, ctx, chat_template=None, apply_chat_template=False, **kwargs
+    ):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 

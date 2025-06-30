@@ -1,4 +1,4 @@
-group: bertaqa
+tag: bertaqa
 dataset_path: HiTZ/BertaQA
 dataset_name: null
 validation_split: null

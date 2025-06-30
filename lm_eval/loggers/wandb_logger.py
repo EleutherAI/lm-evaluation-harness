@@ -15,19 +15,19 @@ logger = logging.getLogger(__name__)
 
 def get_wandb_printer() -> Literal["Printer"]:
     """Returns a wandb printer instance for pretty stdout."""
-    from wandb.sdk.lib.printer import get_printer
-    from wandb.sdk.wandb_settings import Settings
+    from wandb.sdk.lib.printer import new_printer
 
-    printer = get_printer(Settings()._jupyter)
+    printer = new_printer()
     return printer
 
 
 class WandbLogger:
-    def __init__(self, **kwargs) -> None:
-        """Attaches to wandb logger if already initialized. Otherwise, passes kwargs to wandb.init()
+    def __init__(self, init_args=None, config_args=None) -> None:
+        """Attaches to wandb logger if already initialized. Otherwise, passes init_args to wandb.init() and config_args to wandb.config.update()
 
         Args:
-            kwargs Optional[Any]: Arguments for configuration.
+            init_args Optional[Dict]: Arguments for init configuration.
+            config_args Optional[Dict]: Arguments for config
 
         Parse and log the results returned from evaluator.simple_evaluate() with:
             wandb_logger.post_init(results)
@@ -47,11 +47,17 @@ class WandbLogger:
                 f"{e}"
             )
 
-        self.wandb_args: Dict[str, Any] = kwargs
+        self.wandb_args: Dict[str, Any] = init_args or {}
+        self.wandb_config_args: Dict[str, Any] = config_args or {}
+
+        # pop the step key from the args to save for all logging calls
+        self.step = self.wandb_args.pop("step", None)
 
         # initialize a W&B run
         if wandb.run is None:
             self.run = wandb.init(**self.wandb_args)
+            if self.wandb_config_args:
+                self.run.config.update(self.wandb_config_args)
         else:
             self.run = wandb.run
 
@@ -153,11 +159,11 @@ class WandbLogger:
 
         # log the complete eval result to W&B Table
         table = make_table(["Tasks"] + columns, "results")
-        self.run.log({"evaluation/eval_results": table})
+        self.run.log({"evaluation/eval_results": table}, step=self.step)
 
         if "groups" in self.results.keys():
             table = make_table(["Groups"] + columns, "groups")
-            self.run.log({"evaluation/group_eval_results": table})
+            self.run.log({"evaluation/group_eval_results": table}, step=self.step)
 
     def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
@@ -175,13 +181,13 @@ class WandbLogger:
         """Log evaluation results to W&B."""
         # Log configs to wandb
         configs = self._get_config()
-        self.run.config.update(configs)
+        self.run.config.update(configs, allow_val_change=self.step is not None)
 
         wandb_summary, self.wandb_results = self._sanitize_results_dict()
         # update wandb.run.summary with items that were removed
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
-        self.run.log(self.wandb_results)
+        self.run.log(self.wandb_results, step=self.step)
         # Log the evaluation metrics as W&B Table
         self._log_results_as_table()
         # Log the results dict as json to W&B Artifacts
@@ -223,7 +229,7 @@ class WandbLogger:
             instance = [x["arguments"][0][0] for x in data]
             labels = [x["arguments"][0][1] for x in data]
             resps = [
-                f'log probability of continuation is {x["resps"][0][0][0]} '
+                f"log probability of continuation is {x['resps'][0][0][0]} "
                 + "\n\n"
                 + "continuation will {} generated with greedy sampling".format(
                     "not be" if not x["resps"][0][0][1] else "be"
@@ -231,7 +237,7 @@ class WandbLogger:
                 for x in data
             ]
             filtered_resps = [
-                f'log probability of continuation is {x["filtered_resps"][0][0]} '
+                f"log probability of continuation is {x['filtered_resps'][0][0]} "
                 + "\n\n"
                 + "continuation will {} generated with greedy sampling".format(
                     "not be" if not x["filtered_resps"][0][1] else "be"
@@ -330,7 +336,7 @@ class WandbLogger:
 
             # log the samples as a W&B Table
             df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
-            self.run.log({f"{task_name}_eval_results": df})
+            self.run.log({f"{task_name}_eval_results": df}, step=self.step)
 
             # log the samples as a json file as W&B Artifact
             self._log_samples_as_artifact(eval_preds, task_name)
@@ -349,4 +355,4 @@ class WandbLogger:
                 # log the samples as a json file as W&B Artifact
                 self._log_samples_as_artifact(eval_preds, task_name)
 
-            self.run.log({f"{group}_eval_results": grouped_df})
+            self.run.log({f"{group}_eval_results": grouped_df}, step=self.step)

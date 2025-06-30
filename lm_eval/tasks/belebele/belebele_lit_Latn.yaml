@@ -1,4 +1,5 @@
-"fewshot_split": "lit_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_lit_Latn"
-"test_split": "lit_Latn"
+dataset_name: lit_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_lit_Latn
+test_split: test

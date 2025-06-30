@@ -56,6 +56,6 @@ fewshot_config:
       of the gas container is constant, no work will be done (since work is pressure
       times change in volume). So, at constant volume, all of the heat goes into the
       internal energy. The answer is (B).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_college_physics

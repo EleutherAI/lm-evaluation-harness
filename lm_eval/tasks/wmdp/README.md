@@ -24,7 +24,7 @@ Homepage: https://wmdp.ai
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 

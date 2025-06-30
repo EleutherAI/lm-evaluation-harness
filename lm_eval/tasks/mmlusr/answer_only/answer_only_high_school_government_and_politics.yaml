@@ -1,0 +1,7 @@
+"dataset_name": "answer_only_high_school_government_and_politics"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school government and politics.\n\n"
+"tag": "mmlusr_answer_only_social_sciences_tasks"
+"include": "_mmlusr_a_yml"
+"task": "mmlusr_answer_only_high_school_government_and_politics"
+"task_alias": "high school government and politics"

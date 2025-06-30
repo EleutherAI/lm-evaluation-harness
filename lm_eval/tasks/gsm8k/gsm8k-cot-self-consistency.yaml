@@ -1,5 +1,5 @@
 include: gsm8k-cot.yaml
-group:
+tag:
   - chain_of_thought
   - self_consistency
 task: gsm8k_cot_self_consistency

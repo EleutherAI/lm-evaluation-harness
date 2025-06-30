@@ -46,6 +46,6 @@ fewshot_config:
       genetics for help. A Southern blot is a method in molecular biology for detecting
       specific DNA sequences in a sample. Large triplet repeat expansions are usually
       detected with this method. The answer is (C).'
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_medical_genetics

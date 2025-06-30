@@ -81,4 +81,5 @@ fewshot_config:
       중 하나입니다. (D) 네트워크 취약성으로 발생하는 문제는 물리적 통제절차의 개선으로 해결해야 한다는 것은, 네트워크 보안 문제를 해결하기
       위해 물리적인 통제 절차를 개선하는 것입니다. 이는 네트워크 보안을 강화하는 데 매우 중요한 역할을 합니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_law
+task: kmmlu_cot_hard_law
+tag: kmmlu_cot_hard_humss_tasks

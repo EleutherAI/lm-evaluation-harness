@@ -80,4 +80,5 @@ fewshot_config:
       각 선택지를 분석한 결과 (C) 선택지인 '감자의 바이러스 병을 막기 위해 평지에서 채종한다.'가 가장 잘못된 방법으로 보입니다. 이는
       감자의 바이러스 병 예방과 평지에서의 채종 사이에 직접적인 연관성이 없기 때문입니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_agricultural_sciences
+task: kmmlu_cot_hard_agricultural_sciences
+tag: kmmlu_cot_hard_other_tasks

@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: "Un telescopio rifrattore \xE8 formato da due lenti convergenti\
+      \ separate da 100 cm. La lente dell&#39;oculare ha una lunghezza focale di 20\
+      \ cm. L&#39;ingrandimento angolare del telescopio \xE8"
+  - input_choice_list:
+      A: Temperatura costante
+      B: Volume costante
+      C: Pressione costante
+      D: Adiabatico
+    input_correct_responses:
+    - B
+    input_question: "Per quale dei seguenti processi termodinamici l&#39;aumento dell&#39;energia\
+      \ interna di un gas ideale \xE8 uguale al calore ceduto al gas?"
+  - input_choice_list:
+      A: 2,4 V
+      B: 3,3 V
+      C: 4,5 V
+      D: 5,7 V
+    input_correct_responses:
+    - A
+    input_question: "Un&#39;estremit\xE0 di un filo di nichelcromo di lunghezza 2L\
+      \ e area di sezione trasversale A \xE8 collegata a un&#39;estremit\xE0 di un\
+      \ altro filo di nichelcromo di lunghezza L e area di sezione trasversale 2A.\
+      \ Se l&#39;estremit\xE0 libera del filo pi\xF9 lungo ha un potenziale elettrico\
+      \ di 8,0 volt e l&#39;estremit\xE0 libera del filo pi\xF9 corto ha un potenziale\
+      \ elettrico di 1,0 volt, il potenziale alla giunzione dei due fili \xE8 quasi\
+      \ uguale a"
+  - input_choice_list:
+      A: '4'
+      B: '5'
+      C: '6'
+      D: '20'
+    input_correct_responses:
+    - A
+    input_question: "Un telescopio rifrattore \xE8 formato da due lenti convergenti\
+      \ separate da 100 cm. La lente dell&#39;oculare ha una lunghezza focale di 20\
+      \ cm. L&#39;ingrandimento angolare del telescopio \xE8"
+  - input_choice_list:
+      A: carica
+      B: massa
+      C: energia e slancio
+      D: numero leptonico
+    input_correct_responses:
+    - D
+    input_question: "Il muone decade con una vita caratteristica di circa 10^-6 secondi\
+      \ in un elettrone, un neutrino muonico e un antineutrino elettronico. Al muone\
+      \ \xE8 vietato decadere in un elettrone e in un solo neutrino dalla legge di\
+      \ conservazione"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_physics
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_college_physics
+task_alias: college_physics

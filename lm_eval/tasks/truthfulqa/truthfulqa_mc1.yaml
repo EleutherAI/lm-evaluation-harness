@@ -1,4 +1,4 @@
-group:
+tag:
   - truthfulqa
 task: truthfulqa_mc1
 dataset_path: truthful_qa

@@ -1,0 +1,5 @@
+"dataset_name": "college_medicine"
+"include": "_continuation_template_yaml"
+"tag": "mmlu_llama_other_tasks"
+"task": "mmlu_llama_college_medicine"
+"task_alias": "college medicine"

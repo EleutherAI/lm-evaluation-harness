@@ -1,4 +1,5 @@
-"fewshot_split": "sin_Sinh"
-"include": "_default_template_yaml"
-"task": "belebele_sin_Sinh"
-"test_split": "sin_Sinh"
+dataset_name: sin_Sinh
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_sin_Sinh
+test_split: test

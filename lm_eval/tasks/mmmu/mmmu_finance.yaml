@@ -1,0 +1,4 @@
+task: mmmu_val_finance
+include: _template_yaml
+task_alias: Finance
+dataset_name: Finance
