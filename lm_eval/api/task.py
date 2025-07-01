@@ -144,7 +144,15 @@ class TemplateConfig:
 
 @dataclass
 class MCQTemplateConfig:
-    """Encapsulates information about a template."""
+    """Encapsulates information about a template.
+    Would return a sample with the following format:
+    Question: <doc_to_text(doc)>
+    A. <doc_to_choice(doc)[0]>
+    B. <doc_to_choice(doc)[1]>
+    C. <doc_to_choice(doc)[2]>
+    D. <doc_to_choice(doc)[3]>
+    Answer:` doc_to_choice(doc)` for each choice.
+    """
 
     doc_to_text: Union[str, Callable[[dict], str]]
     doc_to_choice: Union[str, list, Callable[[dict], list]]
@@ -163,7 +171,11 @@ class MCQTemplateConfig:
 
 @dataclass
 class ClozeTemplateConfig:
-    """Encapsulates information about a template."""
+    """Encapsulates information about a template.
+    Would return a sample with the following format:
+    Question:  <doc_to_text(doc)>
+    Answer:` <doc_to_target(doc)>`
+    """
 
     doc_to_text: Union[str, Callable[[dict], str]]
     doc_to_choice: Union[str, list, Callable[[dict], list]]
