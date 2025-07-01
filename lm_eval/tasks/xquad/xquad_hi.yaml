@@ -1,4 +1,0 @@
-include: xquad_common_yaml
-task: xquad_hi
-dataset_name: xquad.hi
-doc_to_text: "प्रसंग: {{context}}\n\nसवाल: {{question}}\n\nउत्तर:"

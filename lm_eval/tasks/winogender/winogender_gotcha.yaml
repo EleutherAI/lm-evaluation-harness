@@ -1,3 +1,0 @@
-include: winogender.yaml
-task: winogender_gotcha
-dataset_name: gotcha

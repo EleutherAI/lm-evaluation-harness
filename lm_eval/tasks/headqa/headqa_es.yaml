@@ -1,3 +1,0 @@
-include: headqa_en.yaml
-task: headqa_es
-dataset_name: es

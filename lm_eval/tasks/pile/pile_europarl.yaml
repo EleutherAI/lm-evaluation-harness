@@ -1,3 +1,0 @@
-include: pile_arxiv.yaml
-task: pile_europarl
-dataset_name: pile_europarl

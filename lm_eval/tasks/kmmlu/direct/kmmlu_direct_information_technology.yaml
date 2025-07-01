@@ -1,4 +1,0 @@
-dataset_name: Information-Technology
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_information_technology
-tag: kmmlu_direct_stem_tasks

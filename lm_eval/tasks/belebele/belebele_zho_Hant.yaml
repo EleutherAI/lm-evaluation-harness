@@ -1,5 +1,0 @@
-dataset_name: zho_Hant
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_zho_Hant
-test_split: test

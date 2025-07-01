@@ -1,4 +1,0 @@
-dataset_name: Computer-Science
-include: _default_kmmlu_yaml
-task: kmmlu_computer_science
-tag: kmmlu_stem_tasks

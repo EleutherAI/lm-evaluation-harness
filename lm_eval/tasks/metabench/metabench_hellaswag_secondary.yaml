@@ -1,5 +1,0 @@
-include: metabench_hellaswag.yaml
-task: metabench_hellaswag_secondary
-test_split: secondary
-metadata:
-  version: 0.0

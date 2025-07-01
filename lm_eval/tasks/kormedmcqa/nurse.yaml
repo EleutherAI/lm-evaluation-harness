@@ -1,3 +1,0 @@
-include: _template_yaml
-dataset_name: nurse
-task: kormedmcqa_nurse

@@ -1,4 +1,0 @@
-dataset_name: yo
-include: nollysenti
-doc_to_text: 'Does this Yoruba movie description; "{{review}}" have a Positive or Negative sentiment? Labels only\n'
-task: nollysenti_yor_prompt_2

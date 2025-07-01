@@ -1,3 +1,0 @@
-include: _inverse_scaling_mc_yaml
-task: inverse_scaling_repetitive_algebra
-dataset_path: Albertmade/repetitive-algebra

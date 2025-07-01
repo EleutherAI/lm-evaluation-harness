@@ -1,4 +1,0 @@
-"dataset_name": "advanced_mathematics"
-"description": "以下是中国关于高等数学的单项选择题，请选出其中的正确答案。\n\n"
-"include": "_default_ceval_yaml"
-"task": "ceval-valid_advanced_mathematics"

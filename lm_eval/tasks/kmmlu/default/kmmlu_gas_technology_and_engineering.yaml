@@ -1,4 +1,0 @@
-dataset_name: Gas-Technology-and-Engineering
-include: _default_kmmlu_yaml
-task: kmmlu_gas_technology_and_engineering
-tag: kmmlu_applied_science_tasks

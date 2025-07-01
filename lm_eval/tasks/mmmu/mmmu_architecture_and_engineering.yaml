@@ -1,4 +1,0 @@
-task: mmmu_val_architecture_and_engineering
-include: _template_yaml
-task_alias: Architecture and Engineering
-dataset_name: Architecture_and_Engineering

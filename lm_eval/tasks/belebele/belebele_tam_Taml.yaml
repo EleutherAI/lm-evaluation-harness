@@ -1,5 +1,0 @@
-dataset_name: tam_Taml
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_tam_Taml
-test_split: test

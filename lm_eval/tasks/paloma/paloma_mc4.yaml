@@ -1,4 +1,0 @@
-include: _paloma_template
-task: paloma_mc4
-task_alias: mC4
-dataset_name: mc4

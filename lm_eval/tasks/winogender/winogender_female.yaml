@@ -1,3 +1,0 @@
-include: winogender.yaml
-task: winogender_female
-process_docs: !function utils.filter_female

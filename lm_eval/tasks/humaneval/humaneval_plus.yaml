@@ -1,3 +1,0 @@
-include: humaneval.yaml
-task: humaneval_plus
-dataset_path: evalplus/humanevalplus

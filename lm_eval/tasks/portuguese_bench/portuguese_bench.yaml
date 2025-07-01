@@ -1,8 +1,0 @@
-group: portuguese_bench
-task:
-  - belebele_por_Latn
-  - flores_pt
-  - assin_paraphrase
-  - assin_entailment
-metadata:
-  version: 1.0

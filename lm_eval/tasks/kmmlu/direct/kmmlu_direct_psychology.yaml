@@ -1,4 +1,0 @@
-dataset_name: Psychology
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_psychology
-tag: kmmlu_direct_humss_tasks

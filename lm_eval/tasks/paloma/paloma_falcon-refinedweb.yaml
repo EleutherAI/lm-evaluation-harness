@@ -1,4 +1,0 @@
-include: _paloma_template
-task: paloma_falcon-refinedweb
-task_alias: Falcon
-dataset_name: falcon-refinedweb

@@ -1,6 +1,0 @@
-group: med_concepts_qa_icd9proc
-task:
-  - med_concepts_qa_icd9proc_tasks
-aggregate_metric_list:
-  - metric: acc
-    aggregation: mean

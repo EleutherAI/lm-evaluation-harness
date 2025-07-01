@@ -1,3 +1,0 @@
-include: pile_arxiv.yaml
-task: pile_dm-mathematics
-dataset_name: pile_dm-mathematics

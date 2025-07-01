@@ -1,3 +1,0 @@
-include: bbq_multiple_choice.yaml
-task: bbq_disambig
-process_docs: !function utils.process_docs_disambig

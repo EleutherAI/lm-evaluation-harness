@@ -1,5 +1,0 @@
-dataset_name: kin_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_kin_Latn
-test_split: test

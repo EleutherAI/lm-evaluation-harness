@@ -1,4 +1,0 @@
-dataset_name: Political-Science-and-Sociology
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_political_science_and_sociology
-tag: kmmlu_direct_humss_tasks

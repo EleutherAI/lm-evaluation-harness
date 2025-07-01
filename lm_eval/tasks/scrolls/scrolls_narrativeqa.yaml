@@ -1,3 +1,0 @@
-group: scrolls
-task: scrolls_narrativeqa
-class: !function task.NarrativeQA

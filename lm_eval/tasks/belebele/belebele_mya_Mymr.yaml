@@ -1,5 +1,0 @@
-dataset_name: mya_Mymr
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_mya_Mymr
-test_split: test

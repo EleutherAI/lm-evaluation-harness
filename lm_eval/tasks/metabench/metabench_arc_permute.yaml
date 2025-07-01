@@ -1,5 +1,0 @@
-include: metabench_arc.yaml
-task: metabench_arc_permute
-process_docs: !function process_docs_permute.process_arc
-metadata:
-  version: 0.0

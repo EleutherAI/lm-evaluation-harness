@@ -1,5 +1,0 @@
-include: metabench_truthfulqa.yaml
-task: metabench_truthfulqa_secondary
-test_split: secondary
-metadata:
-  version: 0.0

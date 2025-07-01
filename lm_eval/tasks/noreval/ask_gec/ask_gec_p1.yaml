@@ -1,3 +1,0 @@
-task: ask_gec_p1
-doc_to_text: "Tekst: {{source}}\nRettet versjon:"
-include: _ask_gec_yaml

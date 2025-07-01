@@ -1,3 +1,0 @@
-include: lambada_mt_en.yaml
-task: lambada_openai_mt_fr
-dataset_name: fr

@@ -1,4 +1,0 @@
-include: xquad_common_yaml
-task: xquad_tr
-dataset_name: xquad.tr
-doc_to_text: "Bağlam: {{context}}\n\nSoru: {{question}}\n\nCevap:"

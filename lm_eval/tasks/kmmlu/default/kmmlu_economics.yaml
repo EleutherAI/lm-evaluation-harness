@@ -1,4 +1,0 @@
-dataset_name: Economics
-include: _default_kmmlu_yaml
-task: kmmlu_economics
-tag: kmmlu_humss_tasks

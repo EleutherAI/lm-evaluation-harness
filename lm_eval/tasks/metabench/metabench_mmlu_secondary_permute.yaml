@@ -1,5 +1,0 @@
-include: metabench_mmlu_permute.yaml
-task: metabench_mmlu_secondary_permute
-test_split: secondary
-metadata:
-  version: 0.0

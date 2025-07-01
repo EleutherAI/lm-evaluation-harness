@@ -1,3 +1,0 @@
-dataset_name: standard_nomenclature
-include: _default_haerae_yaml
-task: haerae_standard_nomenclature

@@ -1,4 +1,0 @@
-dataset_name: Railway-and-Automotive-Engineering
-include: _default_kmmlu_yaml
-task: kmmlu_railway_and_automotive_engineering
-tag: kmmlu_applied_science_tasks

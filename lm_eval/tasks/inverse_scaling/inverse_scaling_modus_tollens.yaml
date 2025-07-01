@@ -1,3 +1,0 @@
-include: _inverse_scaling_mc_yaml
-task: inverse_scaling_modus_tollens
-dataset_path: Albertmade/modus-tollens

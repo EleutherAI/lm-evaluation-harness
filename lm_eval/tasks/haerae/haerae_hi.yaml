@@ -1,3 +1,0 @@
-dataset_name: history
-include: _default_haerae_yaml
-task: haerae_history

@@ -1,4 +1,0 @@
-task: mmmu_val_math
-include: _template_yaml
-task_alias: Math
-dataset_name: Math

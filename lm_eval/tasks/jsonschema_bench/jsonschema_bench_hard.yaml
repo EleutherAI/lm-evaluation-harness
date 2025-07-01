@@ -1,3 +1,0 @@
-include: jsonschema_bench_easy.yaml
-task: jsonschema_bench_hard
-dataset_name: Github_hard

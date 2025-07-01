@@ -1,4 +1,0 @@
-"dataset_name": "middle_school_mathematics"
-"description": "以下是中国关于初中数学的单项选择题，请选出其中的正确答案。\n\n"
-"include": "_default_ceval_yaml"
-"task": "ceval-valid_middle_school_mathematics"

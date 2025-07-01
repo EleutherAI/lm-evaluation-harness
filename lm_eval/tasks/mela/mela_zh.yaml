@@ -1,3 +1,0 @@
-include: mela_en.yaml
-task: mela_zh
-dataset_name: zh

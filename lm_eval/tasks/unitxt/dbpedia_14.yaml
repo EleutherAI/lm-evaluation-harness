@@ -1,3 +1,0 @@
-task: dbpedia_14
-include: unitxt
-recipe: card=cards.dbpedia_14,template=templates.classification.multi_class.title

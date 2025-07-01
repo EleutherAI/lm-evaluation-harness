@@ -1,3 +1,0 @@
-dataset_name: general_knowledge
-include: _default_haerae_yaml
-task: haerae_general_knowledge

@@ -1,5 +1,0 @@
-dataset_name: amh_Ethi
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_amh_Ethi
-test_split: test

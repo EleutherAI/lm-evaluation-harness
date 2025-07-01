@@ -1,3 +1,0 @@
-group: scrolls
-task: scrolls_contractnli
-class: !function task.ContractNLI

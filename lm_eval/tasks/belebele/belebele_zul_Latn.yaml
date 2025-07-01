@@ -1,5 +1,0 @@
-dataset_name: zul_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_zul_Latn
-test_split: test

@@ -1,4 +1,0 @@
-dataset_name: Management
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_management
-tag: kmmlu_direct_humss_tasks

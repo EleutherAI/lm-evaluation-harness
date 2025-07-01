@@ -1,5 +1,0 @@
-include: anli_r1.yaml
-task: anli_r3
-training_split: train_r3
-validation_split: dev_r3
-test_split: test_r3

@@ -1,3 +1,0 @@
-include: winogender_gotcha.yaml
-task: winogender_gotcha_male
-process_docs: !function utils.filter_male

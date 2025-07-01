@@ -1,5 +1,0 @@
-dataset_name: urd_Arab
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_urd_Arab
-test_split: test

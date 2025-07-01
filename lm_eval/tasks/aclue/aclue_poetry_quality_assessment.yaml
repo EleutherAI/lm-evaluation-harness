@@ -1,4 +1,0 @@
-"dataset_name": "poetry_quality_assessment"
-"description": "以下是关于古诗词质量评估的单项选择题，请直接给出正确答案的选项。\n\n"
-"include": "_default_template_yaml"
-"task": "aclue_poetry_quality_assessment"

@@ -1,3 +1,0 @@
-include: aqua-rat.yaml
-task: agieval_gaokao_mathqa
-dataset_path: hails/agieval-gaokao-mathqa

@@ -1,4 +1,0 @@
-task: mmmu_val_diagnostics_and_laboratory_medicine
-include: _template_yaml
-task_alias: Diagnostics and Laboratory Medicine
-dataset_name: Diagnostics_and_Laboratory_Medicine

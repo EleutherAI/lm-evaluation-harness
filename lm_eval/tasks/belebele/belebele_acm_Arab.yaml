@@ -1,5 +1,0 @@
-dataset_name: acm_Arab
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_acm_Arab
-test_split: test

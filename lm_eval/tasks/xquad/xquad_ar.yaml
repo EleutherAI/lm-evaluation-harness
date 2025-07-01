@@ -1,4 +1,0 @@
-include: xquad_common_yaml
-task: xquad_ar
-dataset_name: xquad.ar
-doc_to_text: "سيا: {{context}}\n\nسؤال: {{question}}\n\nإجابة:"

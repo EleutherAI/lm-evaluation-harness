@@ -1,3 +1,0 @@
-include: minerva_math_algebra.yaml
-dataset_name: number_theory
-task: minerva_math_num_theory

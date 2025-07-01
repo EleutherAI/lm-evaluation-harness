@@ -1,3 +1,0 @@
-task: ledgar
-include: unitxt
-recipe: card=cards.ledgar,template=templates.classification.multi_class.title

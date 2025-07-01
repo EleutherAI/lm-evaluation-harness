@@ -1,3 +1,0 @@
-include: crows_pairs_french.yaml
-task: crows_pairs_french_sexual_orientation
-process_docs: !function utils.filter_orientation

@@ -1,4 +1,0 @@
-dataset_name: Taxation
-include: _default_kmmlu_yaml
-task: kmmlu_taxation
-tag: kmmlu_humss_tasks

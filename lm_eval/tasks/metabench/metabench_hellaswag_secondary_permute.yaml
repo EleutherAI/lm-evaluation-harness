@@ -1,5 +1,0 @@
-include: metabench_hellaswag_permute.yaml
-task: metabench_hellaswag_secondary_permute
-test_split: secondary
-metadata:
-  version: 0.0

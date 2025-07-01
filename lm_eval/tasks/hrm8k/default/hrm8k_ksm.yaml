@@ -1,3 +1,0 @@
-include: _hrm8k_yaml
-dataset_name: KSM
-task: hrm8k_ksm

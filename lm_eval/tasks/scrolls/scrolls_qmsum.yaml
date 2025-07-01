@@ -1,3 +1,0 @@
-group: scrolls
-task: scrolls_qmsum
-class: !function task.QMSum

@@ -1,3 +1,0 @@
-include: pile_arxiv.yaml
-task: pile_hackernews
-dataset_name: pile_hackernews

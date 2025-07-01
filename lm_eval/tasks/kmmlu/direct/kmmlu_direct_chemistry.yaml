@@ -1,4 +1,0 @@
-dataset_name: Chemistry
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_chemistry
-tag: kmmlu_direct_stem_tasks

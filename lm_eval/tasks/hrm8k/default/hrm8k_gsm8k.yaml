@@ -1,3 +1,0 @@
-include: _hrm8k_yaml
-dataset_name: GSM8K
-task: hrm8k_gsm8k

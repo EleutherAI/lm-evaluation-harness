@@ -1,5 +1,0 @@
-dataset_name: atc_medium
-include: _default_template_yaml
-tag: med_concepts_qa_atc_tasks
-task: med_concepts_qa_atc_medium
-task_alias: atc_medium

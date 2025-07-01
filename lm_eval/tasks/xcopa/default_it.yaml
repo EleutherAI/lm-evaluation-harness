@@ -1,4 +1,0 @@
-include: default_et.yaml
-task: xcopa_it
-dataset_name: it
-doc_to_text: !function utils.doc_to_text_it

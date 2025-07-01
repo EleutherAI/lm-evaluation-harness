@@ -1,3 +1,0 @@
-include: mastermind_24_hard.yaml
-task: mastermind_35_hard
-dataset_path: flair/mastermind_35_mcq_close

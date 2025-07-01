@@ -1,6 +1,0 @@
-include: _hellaswag_yaml
-task: hellaswag_id
-dataset_path: alexandrainst/m_hellaswag
-dataset_name: id
-training_split: null
-validation_split: val

@@ -1,3 +1,0 @@
-include: "_template_yaml"
-task: leaderboard_musr_object_placements
-test_split: object_placements

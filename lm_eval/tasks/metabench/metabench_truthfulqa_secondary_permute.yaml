@@ -1,5 +1,0 @@
-include: metabench_truthfulqa_permute.yaml
-task: metabench_truthfulqa_secondary_permute
-test_split: secondary
-metadata:
-  version: 0.0

@@ -1,5 +1,0 @@
-dataset_name: tha_Thai
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_tha_Thai
-test_split: test

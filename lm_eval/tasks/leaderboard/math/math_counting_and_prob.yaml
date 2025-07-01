@@ -1,3 +1,0 @@
-include: _template_yaml
-dataset_name: counting_and_probability
-task: leaderboard_math_counting_and_prob_hard

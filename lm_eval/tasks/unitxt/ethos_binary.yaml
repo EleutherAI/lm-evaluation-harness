@@ -1,3 +1,0 @@
-task: ethos_binary
-include: unitxt
-recipe: card=cards.ethos_binary,template=templates.classification.multi_class.title

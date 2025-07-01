@@ -1,3 +1,0 @@
-include: _turkishmmlu_default_yaml
-task: turkishmmlu_geography
-dataset_name: Geography

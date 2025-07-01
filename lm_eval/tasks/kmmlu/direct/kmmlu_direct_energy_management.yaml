@@ -1,4 +1,0 @@
-dataset_name: Energy-Management
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_energy_management
-tag: kmmlu_direct_applied_science_tasks

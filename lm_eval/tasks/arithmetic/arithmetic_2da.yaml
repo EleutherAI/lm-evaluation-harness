@@ -1,5 +1,0 @@
-include: arithmetic_1dc.yaml
-task: arithmetic_2da
-dataset_name: arithmetic_2da
-dataset_kwargs:
-  trust_remote_code: true

@@ -1,4 +1,0 @@
-include: _paloma_template
-task: paloma_dolma-v1_5
-task_alias: Dolma V1.5
-dataset_name: dolma-v1_5

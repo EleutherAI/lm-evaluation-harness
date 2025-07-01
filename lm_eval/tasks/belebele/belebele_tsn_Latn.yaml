@@ -1,5 +1,0 @@
-dataset_name: tsn_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_tsn_Latn
-test_split: test

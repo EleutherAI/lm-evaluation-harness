@@ -1,3 +1,0 @@
-include: _turkishmmlu_default_yaml
-task: turkishmmlu_history
-dataset_name: History

@@ -1,2 +1,0 @@
-task: squad_completion
-class: !function task.SQUADCompletion

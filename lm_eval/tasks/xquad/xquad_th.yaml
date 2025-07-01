@@ -1,4 +1,0 @@
-include: xquad_common_yaml
-task: xquad_th
-dataset_name: xquad.th
-doc_to_text: "บริบท: {{context}}\n\nคำถาม: {{question}}\n\nคำตอบ:"

@@ -1,3 +1,0 @@
-task: argument_topic
-include: unitxt
-recipe: card=cards.argument_topic,template=templates.classification.multi_class.title

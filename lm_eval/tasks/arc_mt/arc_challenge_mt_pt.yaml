@@ -1,3 +1,0 @@
-include: arc_challenge_mt_fi.yaml
-task: arc_challenge_mt_pt
-dataset_name: pt

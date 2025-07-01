@@ -1,3 +1,0 @@
-include: _inverse_scaling_mc_yaml
-task: inverse_scaling_redefine_math
-dataset_path: inverse-scaling/redefine-math

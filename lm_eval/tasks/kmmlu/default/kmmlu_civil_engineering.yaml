@@ -1,4 +1,0 @@
-dataset_name: Civil-Engineering
-include: _default_kmmlu_yaml
-task: kmmlu_civil_engineering
-tag: kmmlu_stem_tasks

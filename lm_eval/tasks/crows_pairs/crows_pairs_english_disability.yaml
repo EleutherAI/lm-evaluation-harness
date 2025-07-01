@@ -1,3 +1,0 @@
-include: crows_pairs_english.yaml
-task: crows_pairs_english_disability
-process_docs: !function utils.filter_disability

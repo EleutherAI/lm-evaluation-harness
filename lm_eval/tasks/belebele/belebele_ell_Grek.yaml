@@ -1,5 +1,0 @@
-dataset_name: ell_Grek
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_ell_Grek
-test_split: test

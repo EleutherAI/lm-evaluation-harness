@@ -1,3 +1,0 @@
-include: pile_arxiv.yaml
-task: pile_philpapers
-dataset_name: pile_philpapers

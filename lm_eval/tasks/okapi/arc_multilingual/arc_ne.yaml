@@ -1,7 +1,0 @@
-include: _arc_yaml
-task: arc_ne
-dataset_path: alexandrainst/m_arc
-dataset_name: ne
-training_split: train
-validation_split: validation
-test_split: test

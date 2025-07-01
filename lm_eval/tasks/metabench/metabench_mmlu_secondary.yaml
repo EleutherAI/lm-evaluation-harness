@@ -1,5 +1,0 @@
-include: metabench_mmlu.yaml
-task: metabench_mmlu_secondary
-test_split: secondary
-metadata:
-  version: 0.0

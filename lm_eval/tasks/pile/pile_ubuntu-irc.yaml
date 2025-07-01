@@ -1,3 +1,0 @@
-include: pile_arxiv.yaml
-task: pile_ubuntu-irc
-dataset_name: pile_ubuntu-irc

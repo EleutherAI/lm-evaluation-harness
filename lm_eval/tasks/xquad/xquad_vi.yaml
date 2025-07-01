@@ -1,4 +1,0 @@
-include: xquad_common_yaml
-task: xquad_vi
-dataset_name: xquad.vi
-doc_to_text: "Bối cảnh: {{context}}\n\nCâu hỏi: {{question}}\n\nTrả lời:"

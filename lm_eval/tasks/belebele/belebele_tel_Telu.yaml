@@ -1,5 +1,0 @@
-dataset_name: tel_Telu
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_tel_Telu
-test_split: test

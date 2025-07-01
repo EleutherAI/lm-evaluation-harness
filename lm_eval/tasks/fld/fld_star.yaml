@@ -1,3 +1,0 @@
-include: fld_default.yaml
-task: fld_star
-dataset_name: star

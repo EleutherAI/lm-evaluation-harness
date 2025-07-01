@@ -1,5 +1,0 @@
-dataset_name: gaz_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_gaz_Latn
-test_split: test

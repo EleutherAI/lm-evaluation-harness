@@ -1,3 +1,0 @@
-include: default_ar.yaml
-task: xstorycloze_ru
-dataset_name: ru

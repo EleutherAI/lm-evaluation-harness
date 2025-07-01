@@ -1,4 +1,0 @@
-include: _paloma_template
-task: paloma_ptb
-task_alias: PTB
-dataset_name: ptb

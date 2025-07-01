@@ -1,4 +1,0 @@
-dataset_name: Accounting
-include: _direct_kmmlu_yaml
-task: kmmlu_direct_accounting
-tag: kmmlu_direct_humss_tasks

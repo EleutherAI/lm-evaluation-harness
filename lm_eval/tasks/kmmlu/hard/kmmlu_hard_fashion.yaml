@@ -1,4 +1,0 @@
-dataset_name: fashion
-include: _hard_kmmlu_yaml
-task: kmmlu_hard_fashion
-tag: kmmlu_hard_other_tasks

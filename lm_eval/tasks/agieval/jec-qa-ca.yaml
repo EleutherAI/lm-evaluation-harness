@@ -1,3 +1,0 @@
-include: aqua-rat.yaml
-task: agieval_jec_qa_ca
-dataset_path: hails/agieval-jec-qa-ca

@@ -1,4 +1,0 @@
-dataset_name: chemical_engineering
-include: _hard_kmmlu_yaml
-task: kmmlu_hard_chemical_engineering
-tag: kmmlu_hard_stem_tasks

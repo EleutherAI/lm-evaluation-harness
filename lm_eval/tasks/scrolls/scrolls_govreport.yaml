@@ -1,3 +1,0 @@
-group: scrolls
-task: scrolls_govreport
-class: !function task.GovReport

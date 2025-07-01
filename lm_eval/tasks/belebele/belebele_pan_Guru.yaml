@@ -1,5 +1,0 @@
-dataset_name: pan_Guru
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_pan_Guru
-test_split: test

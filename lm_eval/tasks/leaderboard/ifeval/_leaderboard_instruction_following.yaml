@@ -1,3 +1,0 @@
-group: leaderboard_instruction_following
-task:
-  - leaderboard_ifeval

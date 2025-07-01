@@ -1,5 +1,0 @@
-dataset_name: nob_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_nob_Latn
-test_split: test

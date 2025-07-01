@@ -1,5 +1,0 @@
-dataset_name: plt_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_plt_Latn
-test_split: test

@@ -1,3 +1,0 @@
-include: minerva_math_algebra.yaml
-dataset_name: intermediate_algebra
-task: minerva_math_intermediate_algebra

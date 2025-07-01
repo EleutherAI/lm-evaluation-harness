@@ -1,5 +1,0 @@
-dataset_name: bod_Tibt
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_bod_Tibt
-test_split: test

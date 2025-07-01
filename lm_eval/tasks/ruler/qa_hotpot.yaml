@@ -1,3 +1,0 @@
-include: qa_squad.yaml
-task: ruler_qa_hotpot
-custom_dataset: !function qa_utils.get_hotpotqa

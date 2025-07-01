@@ -1,3 +1,0 @@
-include: pile_arxiv.yaml
-task: pile_books3
-dataset_name: pile_books3

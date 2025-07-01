@@ -1,5 +1,0 @@
-dataset_name: xho_Latn
-fewshot_split: test
-include: _default_template_yaml
-task: belebele_xho_Latn
-test_split: test
