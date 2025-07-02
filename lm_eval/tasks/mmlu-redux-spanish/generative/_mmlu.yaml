@@ -3,25 +3,25 @@ group_alias: mmlu_redux_spanish (generative)
 task:
   - group: stem
     task:
-      - mmlu_stem_generative
+      - mmlu_stem_generative_spanish
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
   - group: other
     task:
-      - mmlu_other_generative
+      - mmlu_other_generative_spanish
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
   - group: social sciences
     task:
-      - mmlu_social_sciences_generative
+      - mmlu_social_sciences_generative_spanish
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
   - group: humanities
     task:
-      - mmlu_humanities_generative
+      - mmlu_humanities_generative_spanish
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
