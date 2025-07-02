@@ -5,17 +5,9 @@ dataset_kwargs:
 
 output_type: generate_until
 
-doc_to_text: |
-  {{question.strip()}}
-
-  A. {{choices[0]}}
-  B. {{choices[1]}}
-  C. {{choices[2]}}
-  D. {{choices[3]}}
-
-  Please respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter.
+doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nPlease respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter:"
 doc_to_target: "{{['A','B','C','D'][answer]}}"
-
+target_delimiter: ":"
 generation_kwargs:
   until:
     - "</s>"
