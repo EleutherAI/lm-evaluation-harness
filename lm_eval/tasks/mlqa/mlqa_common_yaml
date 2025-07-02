@@ -1,4 +1,5 @@
 dataset_path: facebook/mlqa
+tag: mlqa
 dataset_kwargs:
   trust_remote_code: true
 test_split: test
