@@ -12,7 +12,7 @@ from tqdm import tqdm
 from lm_eval import utils
 
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="LM")
 

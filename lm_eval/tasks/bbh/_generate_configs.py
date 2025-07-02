@@ -11,8 +11,6 @@ import requests
 import yaml
 from tqdm import tqdm
 
-from lm_eval import utils
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -51,9 +49,10 @@ if __name__ == "__main__":
                 for shot in few_shot:
                     try:
                         answer = answer_regex.search(shot)[0]
-                    except Exception:
+                    except Exception as e:
                         print("task", task)
                         print(shot)
+                        raise e
                     example = shot.split("Let's think step by step.")[0]
                     prefix_doc_to_text += f"{example}{answer}\n\n"
 
@@ -70,7 +69,7 @@ if __name__ == "__main__":
         }
 
         file_save_path = args.save_prefix_path + f"/{task}.yaml"
-        utils.eval_logger.info(f"Saving yaml for subset {task} to {file_save_path}")
+        print(f"Saving yaml for subset {task} to {file_save_path}")
         with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,

@@ -1,0 +1,8 @@
+description: 'فيما يلي أسئلة اختيار من متعدد (مع إجابات) حول القانون. فكر خطوة بخطوة
+  ثم أنهِ إجابتك بـ ''الإجابة هي (X)'' حيث X هو حرف الخيار الصحيح.
+
+  '
+include: _ar_template_yaml
+task: mmlu_prox_ar_law
+task_alias: law
+process_docs: !function utils.process_law

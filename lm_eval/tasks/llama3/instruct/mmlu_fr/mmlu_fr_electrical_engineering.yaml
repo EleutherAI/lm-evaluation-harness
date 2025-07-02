@@ -1,0 +1,58 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: S=0, R=0
+      B: S=0, R=1
+      C: S=1, R=0
+      D: S=1, R=1
+    input_correct_responses:
+    - D
+    input_question: "Dans un verrou SR construit \xE0 partir de portes NOR, quelle\
+      \ condition n&#39;est pas autoris\xE9e"
+  - input_choice_list:
+      A: "200\u03A9"
+      B: "100\u03A9"
+      C: "50\u03A9"
+      D: "10\u03A9"
+    input_correct_responses:
+    - C
+    input_question: "Dans une machine \xE0 courant continu \xE0 enroulement par recouvrement\
+      \ \xE0 2 p\xF4les, la r\xE9sistance d&#39;un conducteur est de 2 \u03A9 et le\
+      \ nombre total de conducteurs est de 100. Trouvez la r\xE9sistance totale"
+  - input_choice_list:
+      A: 1 mA.
+      B: 2 mA.
+      C: 3 mA.
+      D: 4 mA.
+    input_correct_responses:
+    - B
+    input_question: "La bobine d&#39;un compteur \xE0 bobine mobile a 100 tours, une\
+      \ longueur de 40 mm et une largeur de 30 mm. Le couple de commande est de 240*10-6\
+      \ Nm \xE0 pleine \xE9chelle. Si la densit\xE9 de flux magn\xE9tique est de 1\_\
+      Wb/m2, la plage de mesure est"
+  - input_choice_list:
+      A: 100N
+      B: 0,1N.
+      C: 1N.
+      D: 0,01N.
+    input_correct_responses:
+    - B
+    input_question: "Deux longs conducteurs parall\xE8les supportent 100 A. Si les\
+      \ conducteurs sont s\xE9par\xE9s de 20 mm, la force par m\xE8tre de longueur\
+      \ de chaque conducteur sera"
+  - input_choice_list:
+      A: 15 n.
+      B: 20 n.
+      C: 7,5N.
+      D: 3,75 N.
+    input_correct_responses:
+    - A
+    input_question: "Un p\xF4le ponctuel a une force de 4\u03C0 * 10^-4 weber. La\
+      \ force en newtons sur un p\xF4le ponctuel de 4\u03C0 * 1,5 * 10^-4 weber plac\xE9\
+      \ \xE0 une distance de 10 cm de celui-ci sera"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_electrical_engineering
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_electrical_engineering
+task_alias: electrical_engineering

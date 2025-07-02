@@ -1,0 +1,4 @@
+include: _estonian_template_yaml
+description: The following is multiple-choice question about Arts & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_estonian_arts_humanities

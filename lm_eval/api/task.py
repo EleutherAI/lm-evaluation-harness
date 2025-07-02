@@ -48,7 +48,7 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -60,6 +60,7 @@ class TaskConfig(dict):
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
+    custom_dataset: Optional[Callable] = None
     dataset_path: Optional[str] = None
     dataset_name: Optional[str] = None
     dataset_kwargs: Optional[dict] = None
@@ -75,6 +76,7 @@ class TaskConfig(dict):
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
+    doc_to_audio: Union[Callable, str] = None
     unsafe_code: bool = False
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
@@ -111,6 +113,9 @@ class TaskConfig(dict):
                 )
 
             if "until" not in self.generation_kwargs:
+                eval_logger.warning(
+                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                )
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
             if self.output_type == "generate_until":
@@ -122,7 +127,11 @@ class TaskConfig(dict):
                         else [self.fewshot_delimiter]
                     ),
                     "do_sample": False,
+                    "temperature": 0,
                 }
+                eval_logger.warning(
+                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                )
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -324,10 +333,11 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            eval_logger.warning(
-                f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
-                ", using test_docs as fewshot_docs but this is not recommended."
-            )
+            if self.config.get("num_fewshot", 0) > 0:
+                eval_logger.warning(
+                    f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
+                    ", using test_docs as fewshot_docs but this is not recommended."
+                )
             return self.test_docs()
 
     def _process_doc(self, doc: dict) -> dict:
@@ -371,6 +381,9 @@ class Task(abc.ABC):
     def doc_to_image(self, doc):
         raise NotImplementedError
 
+    def doc_to_audio(self, doc):
+        raise NotImplementedError
+
     def doc_to_prefix(self, doc):
         return ""
 
@@ -378,6 +391,7 @@ class Task(abc.ABC):
         self,
         *,
         limit: Union[int, None] = None,
+        samples: Optional[List[int]] = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
@@ -430,7 +444,9 @@ class Task(abc.ABC):
             limit = None
 
         doc_id_docs = list(
-            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+            self.doc_iterator(
+                rank=rank, limit=limit, samples=samples, world_size=world_size
+            )
         )
 
         num_docs = len(doc_id_docs)
@@ -442,11 +458,13 @@ class Task(abc.ABC):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
                 doc,
-                0 if self.config.num_fewshot is None else self.config.num_fewshot,
-                system_instruction,
-                apply_chat_template,
-                fewshot_as_multiturn,
-                chat_template,
+                num_fewshot=0
+                if self.config.num_fewshot is None
+                else self.config.num_fewshot,
+                system_instruction=system_instruction,
+                apply_chat_template=apply_chat_template,
+                fewshot_as_multiturn=fewshot_as_multiturn,
+                chat_template=chat_template,
                 gen_prefix=self.doc_to_prefix(doc),
             )
 
@@ -678,15 +696,35 @@ class Task(abc.ABC):
             )
 
     def doc_iterator(
-        self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
+        self,
+        *,
+        rank: int = 0,
+        limit: Union[int, None] = None,
+        world_size: int = 1,
+        samples: Optional[List[int]] = None,
     ) -> Iterator[Tuple[int, Any]]:
-        limit = int(limit) if limit else None
-        doc_iterator = utils.create_iterator(
-            enumerate(self.eval_docs),
-            rank=int(rank),
-            limit=limit,
-            world_size=int(world_size),
-        )
+        if samples:
+            n = len(self.eval_docs)
+            assert all([e < n for e in samples]), (
+                f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
+            )
+            eval_logger.info(
+                f"{self.config.task}: Evaluating on {len(samples)} examples"
+            )
+            doc_iterator = utils.create_iterator(
+                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
+                rank=int(rank),
+                limit=None,  # limit does not matter here since we are selecting samples directly
+                world_size=int(world_size),
+            )
+        else:
+            limit = int(limit) if limit else None
+            doc_iterator = utils.create_iterator(
+                enumerate(self.eval_docs),
+                rank=int(rank),
+                limit=limit,
+                world_size=int(world_size),
+            )
         return doc_iterator
 
 
@@ -730,6 +768,10 @@ class ConfigurableTask(Task):
             self.OUTPUT_TYPE = self.config.output_type
 
         if self.config.doc_to_image is not None:
+            # mark the task as requiring multimodality.
+            self.MULTIMODAL = True
+
+        if self.config.doc_to_audio:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
 
@@ -838,6 +880,10 @@ class ConfigurableTask(Task):
                 filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
+            # TODO: handle repeats in a more general way rather than just discarding
+            eval_logger.debug(
+                "No custom filters defined. Using default 'take_first' filter for handling repeats."
+            )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
@@ -891,11 +937,17 @@ class ConfigurableTask(Task):
                 num_choice = len(test_choice)
 
             if isinstance(test_text, int):
+                eval_logger.debug(
+                    "doc_to_text returned an int. Assuming multiple inputs."
+                )
                 self.multiple_input = num_choice
         else:
             test_choice = None
 
         if isinstance(test_target, list):
+            eval_logger.debug(
+                "doc_to_target returned a list. Assuming multiple targets."
+            )
             self.multiple_target = len(test_target)
         else:
             if (isinstance(test_target, int)) and (test_choice is not None):
@@ -926,12 +978,23 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
-    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
-        self.dataset = datasets.load_dataset(
-            path=self.DATASET_PATH,
-            name=self.DATASET_NAME,
-            **dataset_kwargs if dataset_kwargs is not None else {},
-        )
+    def download(
+        self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> None:
+        if isinstance(self.config.custom_dataset, Callable):
+            eval_logger.warning(
+                f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
+                + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
+            )
+            self.dataset = self.config.custom_dataset(
+                **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
+            )
+        else:
+            self.dataset = datasets.load_dataset(
+                path=self.DATASET_PATH,
+                name=self.DATASET_NAME,
+                **dataset_kwargs if dataset_kwargs is not None else {},
+            )
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:
@@ -1343,6 +1406,29 @@ class ConfigurableTask(Task):
         else:
             return None
 
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
+        if doc_to_audio is not None:
+            doc_to_audio = doc_to_audio
+        elif self.config.doc_to_audio is not None:
+            doc_to_audio = self.config.doc_to_audio
+        else:
+            return None
+
+        if isinstance(doc_to_audio, list):
+            audio_feature = [
+                self.doc_to_audio(doc, feature) for feature in doc_to_audio
+            ]
+            return [feature for feature in audio_feature if feature is not None]
+        elif isinstance(doc_to_audio, str):
+            if doc_to_audio in self.features:
+                return doc[doc_to_audio]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_audio, doc))
+        elif callable(doc_to_audio):
+            return doc_to_audio(doc)
+        else:
+            return None
+
     def doc_to_prefix(self, doc):
         if (gen_prefix := self.config.gen_prefix) is not None:
             if gen_prefix in self.features:
@@ -1397,7 +1483,10 @@ class ConfigurableTask(Task):
                 # here mutual info refers to calculating
                 # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
-                aux_arguments = [("", f"{choice}") for choice in choices]
+                # TODO: should these be strided? will have to modify the processing in process_results if so
+                aux_arguments = [
+                    ("", f"{target_delimiter}{choice}") for choice in choices
+                ]
 
                 arguments.extend(aux_arguments)
 
@@ -1411,6 +1500,14 @@ class ConfigurableTask(Task):
             multimodal_arg = {
                 **multimodal_arg,
                 **{"visual": self.doc_to_image(doc)},
+            }
+
+        if (
+            self.config.doc_to_audio
+        ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
+            multimodal_arg = {
+                **multimodal_arg,
+                **{"audio": self.doc_to_audio(doc)},
             }
 
         if bool(multimodal_arg):
@@ -1488,11 +1585,12 @@ class ConfigurableTask(Task):
             ):
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
-                lls_unconditional = lls[1::2]
+                # as we extend the args list with unconditional ("", continuation) pairs
+                lls_unconditional = lls[len(choices) :]
                 if len(lls_unconditional) != len(choices):
                     raise ValueError
                 # and this stores our "regular" conditional loglikelihoods
-                lls = lls[::2]
+                lls = lls[: len(choices)]
 
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)

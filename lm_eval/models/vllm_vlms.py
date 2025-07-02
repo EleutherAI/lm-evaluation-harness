@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Dict, List, Optional
 
 import transformers
@@ -11,10 +12,13 @@ from lm_eval.models.utils import (
     Collator,
     handle_stop_sequences,
     replace_placeholders,
+    resize_image,
     undistribute,
 )
 from lm_eval.models.vllm_causallms import VLLM
-from lm_eval.utils import eval_logger
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 try:
@@ -41,8 +45,20 @@ class VLLM_VLM(VLLM):
         interleave: bool = True,
         # TODO<baber>: handle max_images and limit_mm_per_prompt better
         max_images: int = 999,
+        image_width: Optional[int] = None,
+        image_height: Optional[int] = None,
+        image_max_side: Optional[int] = None,
         **kwargs,
     ):
+        self.image_width = image_width
+        self.image_height = image_height
+        self.image_max_side = image_max_side
+        if self.image_max_side and (self.image_width or self.image_height):
+            raise ValueError(
+                "Ambiguous config for image resize: you can not specify both "
+                "image_max_side and (image_width or image_height)"
+            )
+
         if max_images != 999:
             kwargs["limit_mm_per_prompt"] = {"image": max_images}
             eval_logger.info(f"Setting limit_mm_per_prompt[image] to {max_images}")
@@ -90,7 +106,7 @@ class VLLM_VLM(VLLM):
             outputs.append(inputs)
         return outputs
 
-    def _model_generate(
+    def _multimodal_model_generate(
         self,
         requests: List[List[dict]] = None,
         generate: bool = False,
@@ -106,11 +122,9 @@ class VLLM_VLM(VLLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
         if self.data_parallel_size > 1:
-            # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
+            # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
-            # but then tensor_parallel breaks
             @ray.remote
             def run_inference_one_model(
                 model_args: dict, sampling_params, requests: List[List[dict]]
@@ -204,7 +218,10 @@ class VLLM_VLM(VLLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        # TODO: support text-only reqs
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().generate_until(requests=requests, disable_tqdm=disable_tqdm)
+
         res = []
 
         def _collate(x):
@@ -238,7 +255,15 @@ class VLLM_VLM(VLLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [arg["visual"] for arg in aux_arguments]
+            visuals = [
+                [
+                    resize_image(
+                        img, self.image_width, self.image_height, self.image_max_side
+                    )
+                    for img in arg["visual"]
+                ]
+                for arg in aux_arguments
+            ]
 
             if not isinstance(contexts, list):
                 contexts = list(
@@ -271,7 +296,7 @@ class VLLM_VLM(VLLM):
                 left_truncate_len=max_ctx_len,
             )
 
-            cont = self._model_generate(
+            cont = self._multimodal_model_generate(
                 inputs, stop=until, generate=True, max_tokens=max_gen_toks, **kwargs
             )
 
@@ -287,3 +312,12 @@ class VLLM_VLM(VLLM):
 
         pbar.close()
         return res
+
+    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().loglikelihood_rolling(requests=requests)
+        raise NotImplementedError(
+            "model type `vllm-vlm` does not support loglikelihood_rolling. Use 'vlm' model type for text-only loglikelihood_rolling tasks ",
+            "this is because we do not support measuring the loglikelihood a model assigns to an image.",
+        )

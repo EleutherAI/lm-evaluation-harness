@@ -1,0 +1,4 @@
+include: _croatian_few_shot_og_template_yaml
+description: Slijede pitanja s višestrukim izborom (s odgovorima) o STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_croatian_few_shot_og_stem

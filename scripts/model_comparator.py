@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 from typing import Dict, List, Tuple
 
@@ -8,11 +9,11 @@ import torch
 
 import lm_eval.evaluator
 import lm_eval.models.utils
-from lm_eval import tasks, utils
+from lm_eval import tasks
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 def memory_stats():

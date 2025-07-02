@@ -1,0 +1,13 @@
+group: mmlu_de_llama
+task:
+  - mmlu_de_llama_stem
+  - mmlu_de_llama_other
+  - mmlu_de_llama_social_sciences
+  - mmlu_de_llama_humanities
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: True
+    filter_list: [strict_match]
+metadata:
+  version: 1

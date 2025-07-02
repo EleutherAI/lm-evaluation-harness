@@ -1,0 +1,20 @@
+group: ruler
+task:
+  - niah_single_1
+  - niah_single_2
+  - niah_single_3
+  - niah_multikey_1
+  - niah_multikey_2
+  - niah_multikey_3
+  - niah_multiquery
+  - niah_multivalue
+  - ruler_vt
+  - ruler_cwe
+  - ruler_fwe
+  - ruler_qa_squad
+  - ruler_qa_hotpot
+aggregate_metric_list:
+  - metric: "4096"
+    weight_by_size: False
+metadata:
+  version: 1

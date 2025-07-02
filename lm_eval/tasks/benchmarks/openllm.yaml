@@ -2,7 +2,7 @@ group: openllm
 group_alias: Open LLM Leaderboard
 task:
   - task: arc_challenge
-    fewshot_split: validation
+    fewshot_split: train
     num_fewshot: 25
   - task: hellaswag
     fewshot_split: train
@@ -16,3 +16,5 @@ task:
     num_fewshot: 5
   - task: gsm8k
     num_fewshot: 5
+metadata:
+  version: 2

@@ -7,3 +7,7 @@ task:
   - leaderboard_math_num_theory_hard
   - leaderboard_math_prealgebra_hard
   - leaderboard_math_precalculus_hard
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true

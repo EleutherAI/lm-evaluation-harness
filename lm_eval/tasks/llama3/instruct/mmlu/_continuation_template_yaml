@@ -18,6 +18,7 @@ metric_list:
       - "\\$"
       - "\\.$"
 generation_kwargs:
+  do_sample: false
   until:
     - "."
   max_gen_toks: 10

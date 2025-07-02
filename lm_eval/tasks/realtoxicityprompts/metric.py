@@ -1,10 +1,12 @@
 import json
+import logging
 import os
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
-from lm_eval.utils import eval_logger
+
+eval_logger = logging.getLogger(__name__)
 
 
 def toxicity_perspective_api(

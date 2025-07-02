@@ -1,0 +1,56 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Traduzione
+      B: Coniugazione
+      C: Trasduzione specializzata
+      D: Trasformazione
+    input_correct_responses:
+    - A
+    input_question: "Quale dei seguenti non \xE8 un modo per formare DNA ricombinante?"
+  - input_choice_list:
+      A: Modificando il pH ottimale dell&#39;enzima
+      B: Cambiando la posizione dell&#39;enzima nella cellula
+      C: Cambiando la forma della proteina
+      D: "Un cambiamento di amminoacido lontano dal sito attivo non pu\xF2 alterare\
+        \ la specificit\xE0 del substrato dell&#39;enzima."
+    input_correct_responses:
+    - C
+    input_question: "Una mutazione in un enzima batterico ha trasformato un amminoacido\
+      \ precedentemente polare in un amminoacido non polare. Questo amminoacido si\
+      \ trovava in un sito distante dal sito attivo dell&#39;enzima. In che modo questa\
+      \ mutazione potrebbe alterare la specificit\xE0 del substrato dell&#39;enzima?"
+  - input_choice_list:
+      A: Membrana plasmatica-apparato del Golgi-ribosoma-vescicola secretiva-RE rugoso
+      B: Apparato ribosoma-Golgi-ER ruvido-vescicola secretiva-membrana plasmatica
+      C: Membrana plasmatica-apparato del Golgi-ribosoma-vescicola secretiva-RE rugoso
+      D: Ribosoma-ER rugoso-apparato del Golgi-vescicola secretiva-membrana plasmatica
+    input_correct_responses:
+    - D
+    input_question: "Nelle cellule animali, quale delle seguenti rappresenta la via\
+      \ pi\xF9 probabile che segue una proteina secretoria quando viene sintetizzata\
+      \ in una cellula?"
+  - input_choice_list:
+      A: Cicline
+      B: Proteine chinasi
+      C: Punti di controllo
+      D: Cellule di fibroblasti
+    input_correct_responses:
+    - D
+    input_question: "Quale dei seguenti elementi non \xE8 noto per essere coinvolto\
+      \ nel controllo della divisione cellulare?"
+  - input_choice_list:
+      A: le ali di un uccello e le ali di un pipistrello
+      B: le pinne di una balena e le braccia di un uomo
+      C: le pinne pettorali di una focena e le pinne di una foca
+      D: le zampe anteriori di un insetto e le zampe anteriori di un cane
+    input_correct_responses:
+    - D
+    input_question: Le strutture omologhe sono spesso citate come prova del processo
+      di selezione naturale. Tutti i seguenti sono esempi di strutture omologhe TRANNE
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_biology
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_high_school_biology
+task_alias: high_school_biology

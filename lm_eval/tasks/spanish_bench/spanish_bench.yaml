@@ -13,5 +13,6 @@ task:
   - mgsm_direct_es_spanish_bench
   - flores_es
   - phrases_es
+  - cocoteros_es
 metadata:
   version: 1.0

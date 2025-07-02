@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Solo I e II
+      B: Solo I e III
+      C: Solo II e III
+      D: Solo III
+    input_correct_responses:
+    - D
+    input_question: "Quale delle seguenti condizioni garantisce la conservazione del\
+      \ momento angolare? I. Conservazione della quantit\xE0 di moto lineare II. Forza\
+      \ esterna netta nulla III. Coppia esterna netta nulla"
+  - input_choice_list:
+      A: "La pressione \xE8 in un nodo, ma lo spostamento delle particelle \xE8 in\
+        \ un antinodo."
+      B: "La pressione \xE8 all&#39;antinodo, ma lo spostamento delle particelle \xE8\
+        \ al nodo."
+      C: La pressione e lo spostamento delle particelle sono entrambi ai nodi.
+      D: La pressione e lo spostamento delle particelle sono entrambi agli antinodi.
+    input_correct_responses:
+    - B
+    input_question: "Un tubo pieno d&#39;aria \xE8 chiuso ad un&#39;estremit\xE0.\
+      \ Nel tubo viene prodotta un&#39;onda stazionaria, che fa suonare una nota.\
+      \ Quale delle seguenti \xE8 un&#39;affermazione corretta sulle propriet\xE0\
+      \ dell&#39;onda all&#39;estremit\xE0 chiusa del tubo?"
+  - input_choice_list:
+      A: 02:00
+      B: 6:00 DI MATTINA
+      C: 00:00
+      D: 24A
+    input_correct_responses:
+    - D
+    input_question: "Una fotocellula con funzione di lavoro \u03D5 = 2eV \xE8 collegata\
+      \ ad un resistore in serie. La luce di frequenza f = 1 \xD7 10^15 Hz colpisce\
+      \ una piastra metallica della fotocellula. Se la potenza della luce \xE8 P =\
+      \ 100 W, qual \xE8 la corrente che attraversa il resistore?"
+  - input_choice_list:
+      A: 10 W
+      B: 30 W
+      C: 60 W
+      D: 240 W
+    input_correct_responses:
+    - D
+    input_question: "Un forno a microonde \xE8 collegato a una presa da 120 V e assorbe\
+      \ una corrente di 2 A. A quale velocit\xE0 viene utilizzata l&#39;energia del\
+      \ forno a microonde?"
+  - input_choice_list:
+      A: 3,5 J
+      B: 6,0 J
+      C: 22,5 J
+      D: 40 J
+    input_correct_responses:
+    - B
+    input_question: "Una carica puntiforme, Q = +1 mC, \xE8 fissata all&#39;origine.\
+      \ Quanto lavoro \xE8 necessario per spostare una carica, Q = +8 \xB5C, dal punto\
+      \ (0,4 metri) al punto (3 metri, 0)?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_physics
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_high_school_physics
+task_alias: high_school_physics

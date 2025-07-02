@@ -12,13 +12,20 @@ import sacrebleu
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = logging.getLogger(__name__)
 
 
 # Register Aggregations First
 @register_aggregation("bypass")
 def bypass_agg(arr):
     return 999
+
+
+@register_aggregation("nanmean")
+def nanmean(arr):
+    if len(arr) == 0 or all(np.isnan(arr)):
+        return np.nan
+    return np.nanmean(arr)
 
 
 @register_aggregation("mean")
@@ -498,6 +505,7 @@ def stderr_for_metric(metric, bootstrap_iters: int):
         bleu,
         chrf,
         ter,
+        nanmean,
     ]
 
     if metric in bootstrappable:
