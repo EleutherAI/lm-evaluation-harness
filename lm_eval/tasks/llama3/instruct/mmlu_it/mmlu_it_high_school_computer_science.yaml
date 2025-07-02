@@ -1,0 +1,83 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Un&#39;auto avvisa il conducente che sta per colpire un oggetto.
+      B: Un escursionista utilizza un orologio GPS per tenere traccia della sua posizione.
+      C: "Un frigorifero ordina il latte da un servizio di consegna online quando\
+        \ il latte nel frigorifero \xE8 quasi finito."
+      D: Un corridore utilizza un orologio con sensori ottici per monitorare la sua
+        frequenza cardiaca.
+    input_correct_responses:
+    - C
+    input_question: "Quale dei seguenti \xE8 un esempio di utilizzo di un dispositivo\
+      \ nell&#39;Internet delle cose (IoT)?"
+  - input_choice_list:
+      A: "Le attivit\xE0 di un utente che naviga in una finestra anonima non saranno\
+        \ visibili alle persone che monitorano la rete dell&#39;utente, come l&#39;amministratore\
+        \ di sistema."
+      B: Gli articoli inseriti nel carrello di un negozio Web per futuri acquisti
+        durante la sessione di navigazione anonima non verranno salvati sul computer
+        dell&#39;utente.
+      C: "Un utente non sar\xE0 in grado di accedere agli account di posta elettronica\
+        \ o ai social media durante la sessione di navigazione anonima."
+      D: "Un utente che naviga in una finestra anonima sar\xE0 protetto dai virus\
+        \ lanciati da qualsiasi sito web visitato o file scaricati."
+    input_correct_responses:
+    - B
+    input_question: "Molti browser Web consentono agli utenti di aprire finestre anonime.\
+      \ Durante una sessione di navigazione in una finestra anonima, il browser non\
+      \ registra n\xE9 la cronologia di navigazione n\xE9 l&#39;elenco dei file scaricati.\
+      \ Quando si esce dalla finestra anonima, i cookie creati durante la sessione\
+      \ vengono cancellati. Quale delle seguenti affermazioni relative alle sessioni\
+      \ di navigazione in una finestra anonima \xE8 vera?"
+  - input_choice_list:
+      A: Errore
+      B: abc
+      C: cba
+      D: C
+    input_correct_responses:
+    - C
+    input_question: "Qual \xE8 l&#39;output di &quot;abc&quot;[::-1] in Python 3?"
+  - input_choice_list:
+      A: Foxtrot
+      B: Hotel
+      C: novembre
+      D: yankee
+    input_correct_responses:
+    - C
+    input_question: "Nel programma seguente, il valore iniziale di x \xE8 5 e il valore\
+      \ iniziale di y \xE8 10. IF (X &lt; O) { DISPLAY (&quot;Foxtrot&quot;) } ELSE\
+      \ { IF (X &gt; y) { DISPLAY (&quot;Hotel&quot;) } ELSE { IF (y &gt; O) { DISPLAY\
+      \ (&quot;Novembre&quot;) } ELSE { DISPLAY (&quot;Yankee&quot;) } } } Cosa viene\
+      \ visualizzato come risultato dell&#39;esecuzione del programma?"
+  - input_choice_list:
+      A: "Passaggio 3: aumentare il valore della posizione di 1. Passaggio 4: ripetere\
+        \ i passaggi 2 e 3 finch\xE9 il valore del conteggio non \xE8 maggiore di\
+        \ 100."
+      B: "Passaggio 3: aumentare il valore della posizione di 1. Passaggio 4: ripetere\
+        \ i passaggi 2 e 3 fino a quando il valore della posizione \xE8 maggiore di\
+        \ n."
+      C: "Passaggio 3: ripetere il passaggio 2 finch\xE9 il valore del conteggio non\
+        \ \xE8 maggiore di 100. Passaggio 4: aumentare il valore della posizione di\
+        \ 1."
+      D: "Passaggio 3: ripetere il passaggio 2 finch\xE9 il valore della posizione\
+        \ non \xE8 maggiore di n. Passaggio 4: aumentare il valore del conteggio di\
+        \ 1."
+    input_correct_responses:
+    - D
+    input_question: "Una lista di numeri ha n elementi, indicizzati da 1 a n. Il seguente\
+      \ algoritmo ha lo scopo di visualizzare il numero di elementi nell&#39;elenco\
+      \ che hanno un valore maggiore di 100. L&#39;algoritmo utilizza le variabili\
+      \ count e position. Mancano i passaggi 3 e 4. Passaggio 1: impostare il conteggio\
+      \ su 0 e la posizione su 1. Passaggio 2: se il valore dell&#39;elemento nella\
+      \ posizione dell&#39;indice \xE8 maggiore di 100, aumentare il valore del conteggio\
+      \ di 1. Passaggio 3: (passaggio mancante) Passaggio 4: (passaggio mancante )\
+      \ Passo 5: Visualizzare il valore del conteggio. Quale dei seguenti potrebbe\
+      \ essere utilizzato per sostituire i passaggi 3 e 4 in modo che l&#39;algoritmo\
+      \ funzioni come previsto?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_computer_science
+tag: mmlu_it_llama_stem_tasks
+task: mmlu_it_llama_high_school_computer_science
+task_alias: high_school_computer_science

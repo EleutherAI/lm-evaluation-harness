@@ -1,0 +1,181 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "R\xE9ponse organis\xE9e \xE0 la r\xE9bellion de Bacon"
+      B: "R\xE9ponse f\xE9d\xE9rale \xE0 la r\xE9bellion de Shays"
+      C: "R\xE9ponse f\xE9d\xE9rale \xE0 la r\xE9bellion du whisky"
+      D: "R\xE9ponse f\xE9d\xE9rale \xE0 la r\xE9bellion de Pontiac"
+    input_correct_responses:
+    - C
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ &quot;La soci\xE9t\xE9 dans chaque \xE9tat est une b\xE9n\xE9diction, mais\
+      \ le gouvernement, m\xEAme dans son meilleur \xE9tat, n&#39;est qu&#39;un mal\
+      \ n\xE9cessaire ; dans son pire \xE9tat, un mal intol\xE9rable ; car lorsque\
+      \ nous souffrons ou sommes expos\xE9s aux m\xEAmes mis\xE8res par un gouvernement,\
+      \ ce \xE0 quoi nous pourrions nous attendre dans un pays sans gouvernement,\
+      \ notre calamit\xE9 s&#39;aggrave en songeant que nous fournissons les moyens\
+      \ par lesquels nous souffrons. Le gouvernement, comme l&#39;habillement, est\
+      \ l&#39;insigne de l&#39;innocence perdue ; les palais des rois sont b\xE2tis\
+      \ sur les ruines des berceaux du paradis. si les impulsions de la conscience\
+      \ \xE9taient claires, uniformes et irr\xE9sistiblement ob\xE9ies, l&#39;homme\
+      \ n&#39;aurait besoin d&#39;aucun autre l\xE9gislateur\_; mais cela n&#39;\xE9\
+      tant pas le cas, il trouve n\xE9cessaire de c\xE9der une partie de ses biens\
+      \ pour fournir les moyens de prot\xE9ger le reste\_; et c&#39;est ce qu&#39;il\
+      \ est amen\xE9 \xE0 faire par la m\xEAme prudence qui, dans tous les autres\
+      \ cas, lui conseille, entre deux maux, de choisir le moindre. pour nous, avec\
+      \ le moins de frais et le plus grand b\xE9n\xE9fice, est pr\xE9f\xE9rable \xE0\
+      \ tous les autres.&quot; Thomas Paine, Common Sense, 1776 Laquelle des &quot;mis\xE8\
+      res&quot; suivantes auxquelles il est fait allusion ci-dessus a \xE9t\xE9 la\
+      \ plus condamn\xE9e par les anti-f\xE9d\xE9ralistes de l&#39;\xE8re post-r\xE9\
+      volutionnaire\_?"
+  - input_choice_list:
+      A: "Tensions entre la politique britannique et les aspirations des colons nord-am\xE9\
+        ricains."
+      B: "Tensions entre les Am\xE9rindiens alli\xE9s des Fran\xE7ais et ceux alli\xE9\
+        s des Britanniques."
+      C: "Tensions entre Afro-Am\xE9ricains lib\xE9r\xE9s et planteurs blancs."
+      D: "Tensions entre les colons de l&#39;arri\xE8re-pays et les \xE9lites de l&#39;Am\xE9\
+        rique coloniale."
+    input_correct_responses:
+    - D
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ &quot;Comme notre derni\xE8re conduite au manoir Conestoga et \xE0 Lancaster\
+      \ a occasionn\xE9 beaucoup de sp\xE9culations et une grande diversit\xE9 de\
+      \ sentiments dans ce gouvernement et dans les gouvernements voisins\_; certains\
+      \ le justifiant et d&#39;autres le condamnant\_; certains att\xE9nuant charitablement\
+      \ le crime, et d&#39;autres le peignant malicieusement dans les termes les plus\
+      \ odieux et les plus odieux. Couleurs d\xE9testables, nous pensons qu&#39;il\
+      \ est de notre devoir de mettre devant le Publick, toute la mati\xE8re telle\
+      \ qu&#39;elle nous est apparue et nous appara\xEEt encore... &quot;Si ces choses\
+      \ ne suffisent pas \xE0 prouver un attachement injustifiable des Quakers aux\
+      \ Indiens sauvages , une r\xE9solution fixe de se lier d&#39;amiti\xE9 avec\
+      \ eux et une insensibilit\xE9 totale aux d\xE9tresses humaines, consid\xE9rons\
+      \ quelques faits plus r\xE9cents. Lorsque nous avons d\xE9couvert l&#39;\xE9\
+      t\xE9 dernier que nous ne recevions probablement aucune aide du gouvernement,\
+      \ certains volontaires sont sortis \xE0 nos propres frais, d\xE9termin\xE9s\
+      \ \xE0 chasser nos ennemis de nos fronti\xE8res\_; &amp; quand nous approch\xE2\
+      mes de la grande \xEEle, nous compr\xEEmes qu&#39;un certain nombre de leurs\
+      \ guerriers \xE9taient sortis contre nos fronti\xE8res. Sur cela, nous sommes\
+      \ revenus et sommes venus avec eux et nous nous sommes battus avec eux \xE0\
+      \ Munfey Hill o\xF9 nous avons perdu certains de nos hommes et tu\xE9 certains\
+      \ de leurs guerriers et ainsi sauv\xE9 nos fronti\xE8res de cette histoire dans\
+      \ une autre exp\xE9dition. Mais \xE0 peine avions-nous d\xE9truit leurs provisions\
+      \ sur la grande \xEEle et ruin\xE9 leur commerce avec le bon peuple \xE0 Bethl\xE9\
+      em, mais ces m\xEAmes Indiens, qui \xE9taient \xE0 juste titre soup\xE7onn\xE9\
+      s d&#39;avoir assassin\xE9 nos amis dans le comt\xE9 de Northampton, \xE9taient\
+      \ par l&#39;influence de certains quakers pris sous la protection du gouvernement\
+      \ pour les prot\xE9ger des ressentiments des amis et des parents des assassin\xE9\
+      s, et pour les soutenir tout au long de l&#39;hiver. &quot; - &quot;Apology\
+      \ of the Paxton Boys&quot; (pamphlet), 1764 ce contexte doit \xEAtre lu comme\
+      \ une explication, et non comme un aveu de culpabilit\xE9 ou de regret.) Les\
+      \ sentiments exprim\xE9s dans l&#39;explication ci-dessus refl\xE8tent lesquelles\
+      \ des tensions en cours pendant la p\xE9riode coloniale de l&#39;histoire am\xE9\
+      ricaine\_?"
+  - input_choice_list:
+      A: "l&#39;amendement sur l&#39;\xE9galit\xE9 des droits"
+      B: suffrage universel
+      C: "droits des \xC9tats"
+      D: interdiction
+    input_correct_responses:
+    - B
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ &quot;Dans le nouveau code des lois que je suppose qu&#39;il vous sera n\xE9\
+      cessaire de faire, je d\xE9sire que vous vous souveniez des dames et que vous\
+      \ leur soyez plus g\xE9n\xE9reux et plus favorable que vos anc\xEAtres. Ne mettez\
+      \ pas un tel pouvoir illimit\xE9 entre les mains des maris . Rappelez-vous que\
+      \ tous les hommes seraient des tyrans s&#39;ils le pouvaient. Si un soin et\
+      \ une attention particuliers ne sont pas accord\xE9s aux dames, nous sommes\
+      \ d\xE9termin\xE9s \xE0 fomenter une r\xE9bellion et nous ne nous tiendrons\
+      \ pas li\xE9s par des lois dans lesquelles nous n&#39;avons ni voix ni repr\xE9\
+      sentation. Abigail Adams, dans une lettre \xE0 John Adams, 1776 &quot;La l\xE9\
+      gislation sp\xE9ciale pour la femme nous a plac\xE9s dans une position des plus\
+      \ anormales. Les femmes investies des droits des citoyens dans une section -\
+      \ \xE9lecteurs, jur\xE9s, titulaires de charge - franchissant une ligne imaginaire,\
+      \ sont Dans certains \xC9tats, une femme mari\xE9e peut d\xE9tenir des biens\
+      \ et faire des affaires en son propre nom\_; dans d&#39;autres, ses revenus\
+      \ appartiennent \xE0 son mari. Dans certains \xC9tats, une femme peut t\xE9\
+      moigner contre son mari, poursuivre et \xEAtre poursuivie en justice dans d&#39;autres,\
+      \ elle n&#39;a aucun recours en cas d&#39;atteinte \xE0 la personne, aux biens\
+      \ ou \xE0 la moralit\xE9. En cas de divorce pour cause d&#39;adult\xE8re du\
+      \ mari, l&#39;\xE9pouse innocente est tenue de n&#39;avoir aucun droit sur les\
+      \ enfants ou les biens, \xE0 moins que par d\xE9cret sp\xE9cial du tribunal.\
+      \ Mais dans aucun \xC9tat de l&#39;Union, la femme n&#39;a droit \xE0 sa propre\
+      \ personne, ni \xE0 aucune partie des revenus communs de la co-partenariat pendant\
+      \ la vie de son mari. Dans certains \xC9tats, les femmes peuvent entrer dans\
+      \ la les \xE9coles de droit et la pratique devant les tribunaux ; dans d&#39;autres,\
+      \ elles sont interdites. Dans certaines universit\xE9s, les filles b\xE9n\xE9\
+      ficient d&#39;avantages \xE9ducatifs \xE9gaux \xE0 ceux des gar\xE7ons, tandis\
+      \ que de nombreuses institutions parmi les plus fi\xE8res du pays leur refusent\
+      \ l&#39;admission, bien que les fils de Chine, du Japon et d&#39;Afrique y soient\
+      \ les bienvenus. Mais les privil\xE8ges d\xE9j\xE0 accord\xE9s dans les diff\xE9\
+      rents \xC9tats ne sont en aucun cas s\xFBrs.&quot; Susan B. Anthony, &quot;D\xE9\
+      claration des droits des femmes&quot;, 4 juillet 1876 Les sentiments exprim\xE9\
+      s dans le deuxi\xE8me extrait par Susan B. Anthony sont tr\xE8s probablement\
+      \ \xE0 l&#39;appui de"
+  - input_choice_list:
+      A: "Les Am\xE9ricains doivent maximiser leur avantage technologique au Vietnam."
+      B: "Les bombardements am\xE9ricains au Vietnam conduisent \xE9tape par \xE9\
+        tape \xE0 des progr\xE8s dans la guerre."
+      C: "Les bombardements am\xE9ricains au Vietnam sont un \xE9chec."
+      D: "L&#39;Am\xE9rique ne doit pas c\xE9der au d\xE9faitisme face \xE0 la guerre\
+        \ du Vietnam."
+    input_correct_responses:
+    - C
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ Nos dirigeants parlent d&#39;arr\xEAter l&#39;agression du nord, mais c&#39;\xE9\
+      tait une lutte entre des groupes de Vietnamiens jusqu&#39;\xE0 ce que nous intervenions.\
+      \ Nous semblons d\xE9termin\xE9s \xE0 sauver les Vietnamiens de Ho Chi Minh\
+      \ m\xEAme si nous devons les tuer et d\xE9molir leur pays pour le faire. Alors\
+      \ que les indig\xE8nes arpentent les villages bombard\xE9s, les femmes et les\
+      \ enfants br\xFBl\xE9s par le napalm, les rizi\xE8res d\xE9truites et les villes\
+      \ envahies par nos militaires, ils disent sans doute en secret des gu\xE9rilleros\
+      \ vietcongs et des forces am\xE9ricaines : \xAB Une peste sur vos deux maisons\
+      \ .&quot; \u2026 Arr\xEAtez les bombardements, au nord et au sud, arr\xEAtez\
+      \ les balayages offensifs de recherche et de destruction, et limitez notre action\
+      \ militaire \xE0 la tenue d&#39;op\xE9rations sur le terrain. Le bombardement\
+      \ du nord n&#39;a pas r\xE9ussi \xE0 arr\xEAter ou \xE0 freiner s\xE9rieusement\
+      \ le flux de troupes vers le sud et pourrait, en fait, avoir d\xE9clench\xE9\
+      \ un effort de guerre beaucoup plus important de la part de Hano\xEF. \u2014\
+      S\xE9nateur George McGovern, \xAB\_Les le\xE7ons du Vietnam\_\xBB, 25 avril\
+      \ 1967 Laquelle des opinions suivantes des ann\xE9es 1960 refl\xE8te le plus\
+      \ directement la perspective du discours de George McGovern\_?"
+  - input_choice_list:
+      A: "Abiga\xEFl Adams"
+      B: Clara Barton
+      C: Temple de Shirley
+      D: Hillary Clinton
+    input_correct_responses:
+    - B
+    input_question: "Cette question fait r\xE9f\xE9rence aux informations suivantes.\
+      \ Je ne viens pas pour presser des r\xE9clamations personnelles, ni pour rechercher\
+      \ des avantages individuels ; J&#39;apparais comme l&#39;avocat de ceux qui\
+      \ ne peuvent plaider leur propre cause ; Je viens comme l&#39;ami de ceux qui\
+      \ sont abandonn\xE9s, opprim\xE9s et d\xE9sol\xE9s. Dans la Providence de Dieu,\
+      \ je suis la voix du maniaque dont les cris per\xE7ants des sombres cachots\
+      \ de vos prisons ne p\xE9n\xE8trent pas dans vos salles de l\xE9gislation. Je\
+      \ suis l&#39;Espoir des pauvres fous qui se languissent dans les cellules, et\
+      \ les stalles, et les cages, et les salles \xE0 d\xE9chets de vos hospices.\
+      \ Je suis la R\xE9v\xE9lation de centaines de cr\xE9atures g\xE9missantes et\
+      \ souffrantes, cach\xE9es dans vos habitations priv\xE9es, et dans des enclos\
+      \ et des cabanes - ferm\xE9es, coup\xE9es de toutes les influences curatives,\
+      \ de tous les soins qui restaurent l&#39;esprit.\u2026 Leurs histoires m\xE9\
+      lancoliques pourraient-elles se r\xE9pandre devant vous ? comme cela a \xE9\
+      t\xE9 r\xE9v\xE9l\xE9 \xE0 mon esprit afflig\xE9 au cours des trois derniers\
+      \ mois, avec quelle rapidit\xE9, avec quel s\xE9rieux chercheriez-vous les moyens\
+      \ de soulagement les plus approuv\xE9s\_; combien insignifiants, combien insignifiants,\
+      \ en comparaison, para\xEEtraient les sacrifices qu&#39;on vous demande de faire\
+      \ ; comment quelques centimes et dollars, recueillis aupr\xE8s de chaque citoyen,\
+      \ diminueraient-ils en valeur en tant que possession, par rapport aux certains\
+      \ avantages et au vaste bien \xE0 garantir aux ali\xE9n\xE9s souffrants ...\
+      \ par la cons\xE9cration et l&#39;application d&#39;un fonds suffisant \xE0\
+      \ la construction d&#39;un h\xF4pital convenable.\u2026 \u2014 Dorothea Dix,\
+      \ M\xE9morial sollicitant un h\xF4pital d&#39;\xC9tat pour la protection et\
+      \ la gu\xE9rison des ali\xE9n\xE9s, soumis \xE0 l&#39;Assembl\xE9e g\xE9n\xE9\
+      rale de la Caroline du Nord, novembre 1848 Dorothea Dix peut \xEAtre compar\xE9\
+      e au mieux \xE0 qui ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_us_history
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_high_school_us_history
+task_alias: high_school_us_history

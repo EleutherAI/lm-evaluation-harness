@@ -1,0 +1,14 @@
+group: african_ntrex
+task:
+  - ntrex_eng-afr_prompt_1
+  - ntrex_eng-afr_prompt_2
+  - ntrex_eng-afr_prompt_3
+  - ntrex_afr-eng_prompt_1
+  - ntrex_afr-eng_prompt_2
+  - ntrex_afr-eng_prompt_3
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

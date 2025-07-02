@@ -1,0 +1,196 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Jean-Jacques Rousseau
+      B: "Bar\xE3o Montesquieu"
+      C: Mary Wollstonecraft
+      D: Adam Smith
+    input_correct_responses:
+    - B
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ O trecho a seguir \xE9 de um panfleto. Voc\xEA me far\xE1 a justi\xE7a de\
+      \ lembrar que sempre apoiei vigorosamente o direito de cada homem \xE0 sua pr\xF3\
+      pria opini\xE3o, por mais diferente que essa opini\xE3o possa ser da minha.\
+      \ Aquele que nega a outro este direito torna-se escravo de sua opini\xE3o atual,\
+      \ porque se exclui do direito de mud\xE1-la. A arma mais formid\xE1vel contra\
+      \ erros de todo tipo \xE9 a Raz\xE3o. Nunca usei nenhum outro e confio que nunca\
+      \ usarei. A circunst\xE2ncia que agora ocorreu na Fran\xE7a da aboli\xE7\xE3\
+      o total de toda a ordem nacional do sacerd\xF3cio, e de tudo o que diz respeito\
+      \ aos sistemas religiosos compulsivos e aos artigos de f\xE9 compulsivos, n\xE3\
+      o apenas precipitou a minha inten\xE7\xE3o, mas tornou uma obra desta tipo extremamente\
+      \ necess\xE1rio, para que, na destrui\xE7\xE3o geral da supersti\xE7\xE3o, dos\
+      \ falsos sistemas de governo e da falsa teologia, n\xE3o percamos de vista a\
+      \ moralidade, a humanidade e a teologia que \xE9 verdadeira. Acredito em um\
+      \ Deus e nada mais; e espero felicidade al\xE9m desta vida. Acredito na igualdade\
+      \ do homem; e acredito que os deveres religiosos consistem em fazer justi\xE7\
+      a, amar a miseric\xF3rdia e esfor\xE7ar-se para tornar felizes os nossos semelhantes.\
+      \ N\xE3o acredito no credo professado pela igreja judaica, pela igreja romana,\
+      \ pela igreja grega, pela igreja turca, pela igreja protestante, nem por qualquer\
+      \ igreja que eu conhe\xE7a. Minha pr\xF3pria mente \xE9 minha pr\xF3pria igreja.\
+      \ Todas as institui\xE7\xF5es nacionais de igrejas, sejam elas judaicas, crist\xE3\
+      s ou turcas, parecem-me nada mais do que inven\xE7\xF5es humanas, criadas para\
+      \ aterrorizar e escravizar a humanidade e monopolizar o poder e o lucro. N\xE3\
+      o pretendo com esta declara\xE7\xE3o condenar aqueles que acreditam no contr\xE1\
+      rio; eles t\xEAm o mesmo direito \xE0s suas cren\xE7as que eu tenho \xE0s minhas.\
+      \ \u2014Thomas Paine, The Age of Reason, 1794\u20131795 Qual dos seguintes fil\xF3\
+      sofos do Iluminismo projetou um sistema de freios e contrapesos para o governo,\
+      \ a fim de evitar abusos de poder?"
+  - input_choice_list:
+      A: "As ideias de liberdade pessoal e nacionalismo concebidas durante o Iluminismo\
+        \ resultaram em revolu\xE7\xF5es radicais que poderiam espalhar-se por toda\
+        \ a Europa."
+      B: "A conquista da Europa por Napole\xE3o levou \xE0 cria\xE7\xE3o de novas\
+        \ fac\xE7\xF5es e alterou o equil\xEDbrio de poder europeu."
+      C: "O poder dos monarcas cresceu a tal ponto que precisava ser controlado por\
+        \ outros poderes dentro de cada na\xE7\xE3o ou ocorreria o dom\xEDnio dos\
+        \ civis."
+      D: "O ciclo econ\xF3mico ascendente e descendente da economia capitalista emergente\
+        \ poder\xE1 levar a agita\xE7\xE3o civil que deve ser suprimida."
+    input_correct_responses:
+    - A
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ Leia o trecho a seguir. A semente revolucion\xE1ria penetrou em todos os pa\xED\
+      ses e espalhou-se mais ou menos. Desenvolveu-se grandemente sob o regime do\
+      \ despotismo militar de Bonaparte. Suas conquistas substitu\xEDram uma s\xE9\
+      rie de leis, institui\xE7\xF5es e costumes; rompeu os la\xE7os sagrados entre\
+      \ todas as na\xE7\xF5es, fortes o suficiente para resistir ao pr\xF3prio tempo;\
+      \ o que \xE9 mais do que se pode dizer de certos benef\xEDcios conferidos por\
+      \ estes inovadores. Os monarcas cumprir\xE3o os deveres que lhes s\xE3o impostos\
+      \ por Aquele que, ao confiar-lhes o poder, os encarregou de zelar pela manuten\xE7\
+      \xE3o da justi\xE7a e dos direitos de todos, de evitar os caminhos do erro e\
+      \ de trilhar com firmeza o caminho da verdade. Colocados para al\xE9m das paix\xF5\
+      es que agitam a sociedade, \xE9 principalmente nos dias de prova\xE7\xE3o que\
+      \ eles s\xE3o chamados a despojar-se da realidade das suas falsas apar\xEAncias\
+      \ e a mostrar-se como s\xE3o, pais investidos da autoridade que pertence por\
+      \ direito aos chefes de fam\xEDlia, para provar que, nos dias de luto, sabem\
+      \ ser justos, s\xE1bios e, portanto, fortes, e que n\xE3o abandonar\xE3o o povo\
+      \ que deveriam governar, tornando-o objecto de fac\xE7\xF5es, ao erro e \xE0\
+      s suas consequ\xEAncias, que devem envolver a perda da sociedade. A uni\xE3\
+      o entre os monarcas \xE9 a base da pol\xEDtica que deve agora ser seguida para\
+      \ salvar a sociedade da ru\xEDna total. . . . Que n\xE3o confundam as concess\xF5\
+      es feitas aos partidos com o bem que devem fazer ao seu povo, modificando, de\
+      \ acordo com as suas necessidades reconhecidas, os ramos da administra\xE7\xE3\
+      o que o exigem. Que sejam justos, mas fortes; ben\xE9fico, mas rigoroso. Que\
+      \ mantenham os princ\xEDpios religiosos em toda a sua pureza, e n\xE3o permitam\
+      \ que a f\xE9 seja atacada e a moralidade interpretada de acordo com o contrato\
+      \ social ou com as vis\xF5es de sect\xE1rios tolos. Deixe-os suprimir as Sociedades\
+      \ Secretas; aquela gangrena da sociedade. \u2014Klemens von Metternich, Confiss\xE3\
+      o Pol\xEDtica de F\xE9, 1820 Qual das alternativas a seguir foi a maior causa\
+      \ dos temores expressos por Metternich no documento acima?"
+  - input_choice_list:
+      A: Capitalista
+      B: "Cient\xEDfico"
+      C: Comunista
+      D: Existencialista
+    input_correct_responses:
+    - C
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ Na R\xFAssia n\xE3o havia nada de bom e [Souvarine] estava desesperado com\
+      \ as not\xEDcias que recebera. Seus antigos companheiros estavam todos se voltando\
+      \ para os pol\xEDticos; os famosos niilistas que fizeram a Europa tremer - filhos\
+      \ de padres de aldeia, da classe m\xE9dia baixa, de comerciantes - n\xE3o conseguiam\
+      \ superar a ideia de liberta\xE7\xE3o nacional e pareciam acreditar que o mundo\
+      \ seria libertado - quando matassem o seu d\xE9spota &amp;... &quot;Tolice!\
+      \ Eles nunca sair\xE3o dessa com suas tolices.&quot; Depois, baixando ainda\
+      \ mais a voz, em poucas palavras amargas descreveu o seu antigo sonho de fraternidade.\
+      \ Ele renunciou \xE0 sua posi\xE7\xE3o e \xE0 sua fortuna; ele havia caminhado\
+      \ entre os trabalhadores, apenas na esperan\xE7a de ver finalmente a funda\xE7\
+      \xE3o de uma nova sociedade de trabalho comum. Todos os soldos em seus bolsos\
+      \ haviam ido h\xE1 muito tempo para os moleques do assentamento; ele tinha sido\
+      \ t\xE3o terno quanto um irm\xE3o com os mineiros, sorrindo diante de suas suspeitas,\
+      \ conquistando-os por seu jeito tranquilo e trabalhador e por sua avers\xE3\
+      o a tagarelar. Mas decididamente a fus\xE3o n\xE3o ocorreu. Sua voz mudou, seus\
+      \ olhos brilharam, ele os fixou em \xC9tienne, dirigindo-se a ele diretamente:\
+      \ &quot;Agora, voc\xEA entende isso? Esses chapeleiros de Marselha que ganharam\
+      \ o grande pr\xEAmio de cem mil francos na loteria foram imediatamente e investiram\
+      \ declarando que v\xE3o viver sem fazer nada! Sim, a id\xE9ia \xE9 sua, todos\
+      \ voc\xEAs, trabalhadores franceses; voc\xEAs querem desenterrar um tesouro\
+      \ para depois devor\xE1-lo sozinhos em algum canto pregui\xE7oso e ego\xEDsta.\
+      \ Voc\xEAs podem gritar por mais que voc\xEA queira contra os ricos, voc\xEA\
+      \ n\xE3o tem coragem suficiente para devolver aos pobres o dinheiro que a sorte\
+      \ lhe traz. Voc\xEA nunca ser\xE1 digno de felicidade enquanto possuir alguma\
+      \ coisa, e seu \xF3dio pela burguesia continuar unicamente por um desejo irado\
+      \ de serem burgueses no lugar deles.&quot; \xE9mile Zola, escritor franc\xEA\
+      s, Germinal, 1885 A passagem mostra a preocupa\xE7\xE3o direta com o bem-estar\
+      \ das classes trabalhadoras que normalmente fazia parte de qual movimento?"
+  - input_choice_list:
+      A: "Serviram como catalisadores para o crescimento da navega\xE7\xE3o inglesa\
+        \ e do com\xE9rcio exterior, mas pouco fizeram para limitar as perspectivas\
+        \ dos holandeses no s\xE9culo XVII."
+      B: "Eles trouxeram dificuldades quase imediatas para a economia holandesa, \xE0\
+        \ medida que o seu dom\xEDnio do com\xE9rcio exterior terminou rapidamente."
+      C: "Eles foram rescindidos durante a restaura\xE7\xE3o dos Stuarts, pois buscavam\
+        \ rela\xE7\xF5es diplom\xE1ticas normais com os holandeses, para n\xE3o precisarem\
+        \ do apoio financeiro do Parlamento para a guerra."
+      D: "Eles levaram a quase um s\xE9culo de guerras recorrentes entre a Inglaterra\
+        \ e a Holanda, que s\xF3 terminariam depois da independ\xEAncia americana."
+    input_correct_responses:
+    - A
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ Os trechos abaixo s\xE3o das Leis de Navega\xE7\xE3o de 1651. [A]p\xF3s o\
+      \ primeiro dia de dezembro de mil seiscentos e cinquenta e um, e da\xED em diante,\
+      \ nenhum bem ou mercadoria de qualquer tipo do crescimento, produ\xE7\xE3o ou\
+      \ manufatura da \xC1sia, \xC1frica ou Am\xE9rica, ou de qualquer parte dela;\
+      \ ou de quaisquer ilhas que lhes perten\xE7am, ou que estejam descritas ou estabelecidas\
+      \ nos mapas ou cartas habituais desses lugares, bem como das planta\xE7\xF5\
+      es inglesas como outras, ser\xE3o importadas ou trazidas para esta Comunidade\
+      \ da Inglaterra, ou para a Irlanda, ou quaisquer outras terras, ilhas, planta\xE7\
+      \xF5es ou territ\xF3rios desta Comunidade pertencentes, ou em sua posse, em\
+      \ qualquer outro navio ou navios, embarca\xE7\xE3o ou embarca\xE7\xF5es de qualquer\
+      \ natureza, mas apenas na medida em que verdadeiramente e sem fraude perten\xE7\
+      am apenas ao povo desta Comunidade , ou suas planta\xE7\xF5es, como seus propriet\xE1\
+      rios ou titulares de direitos; e dos quais o capit\xE3o e os marinheiros tamb\xE9\
+      m s\xE3o do povo desta Comunidade, sob pena de confisco e perda de todos os\
+      \ bens que ser\xE3o importados contrariamente a este ato,, [N] nenhum bem ou\
+      \ mercadoria do crescimento, produ\xE7\xE3o ou fabrica\xE7\xE3o da Europa, ou\
+      \ de qualquer parte dela, ser\xE1 importada ou trazida para esta Comunidade\
+      \ da Inglaterra, ou para quaisquer outras terras ou territ\xF3rios pertencentes\
+      \ a esta Comunidade, ap\xF3s o primeiro dia de dezembro de mil seiscentos e\
+      \ cinquenta e um, ou em sua posse, em qualquer navio ou navios, embarca\xE7\xE3\
+      o ou embarca\xE7\xF5es de qualquer natureza, mas em tais que verdadeiramente\
+      \ e sem fraude perten\xE7am apenas ao povo desta Comunidade, e em nenhum outro,\
+      \ exceto apenas os navios e embarca\xE7\xF5es estrangeiros que verdadeiramente\
+      \ e pertencem propriamente ao povo daquele pa\xEDs ou local, do qual os referidos\
+      \ bens s\xE3o o crescimento, a produ\xE7\xE3o ou a manufatura. Qual das alternativas\
+      \ a seguir descreve melhor o resultado das Leis de Navega\xE7\xE3o de 1651?"
+  - input_choice_list:
+      A: "dar ao rei ingl\xEAs uma nova posi\xE7\xE3o de autoridade"
+      B: "dar a posi\xE7\xE3o de chefe da Igreja da Inglaterra apenas a Henrique VIII\
+        \ e excluir seus herdeiros"
+      C: "estabelecer o calvinismo como a \xFAnica teologia verdadeira na Inglaterra"
+      D: "acabar com v\xE1rias formas de corrup\xE7\xE3o que assolam a Igreja na Inglaterra"
+    input_correct_responses:
+    - D
+    input_question: "Esta quest\xE3o refere-se \xE0s seguintes informa\xE7\xF5es.\
+      \ Embora a Majestade do rei seja e deva ser, com justi\xE7a e direito, o chefe\
+      \ supremo da Igreja da Inglaterra, e assim seja reconhecido pelo clero deste\
+      \ reino em suas convoca\xE7\xF5es, ainda assim, para corrobora\xE7\xE3o e confirma\xE7\
+      \xE3o disso, e para aumento da virtude em religi\xE3o de Cristo dentro deste\
+      \ reino da Inglaterra, e para reprimir e extirpar todos os erros, heresias e\
+      \ outras enormidades e abusos at\xE9 ent\xE3o usados no mesmo, seja decretado,\
+      \ pela autoridade deste atual Parlamento, que o rei, nosso senhor soberano,\
+      \ seus herdeiros e os sucessores, reis deste reino, ser\xE3o tomados, aceitos\
+      \ e reputados como o \xFAnico chefe supremo na terra da Igreja da Inglaterra,\
+      \ chamado Anglicanos Ecclesia; e ter\xE1 e desfrutar\xE1, anexado e unido \xE0\
+      \ coroa imperial deste reino, bem como ao t\xEDtulo e estilo do mesmo, como\
+      \ todas as honras, dignidades, preemin\xEAncias, jurisdi\xE7\xF5es, privil\xE9\
+      gios, autoridades, imunidades, lucros e mercadorias \xE0 referida dignidade\
+      \ de o chefe supremo da mesma Igreja pertencente e pertencente; e que nosso\
+      \ dito senhor soberano, seus herdeiros e sucessores, reis deste reino, ter\xE3\
+      o pleno poder e autoridade de tempos em tempos para visitar, reprimir, reparar,\
+      \ registrar, ordenar, corrigir, restringir e emendar todos esses erros, heresias,\
+      \ abusos, ofensas, desprezos e enormidades, quaisquer que sejam, que por qualquer\
+      \ forma de autoridade ou jurisdi\xE7\xE3o espiritual devem ou podem ser legalmente\
+      \ reformados, reprimidos, ordenados, reparados, corrigidos, restringidos ou\
+      \ emendados, da maneira mais agrad\xE1vel ao Deus Todo-Poderoso, o aumento da\
+      \ virtude na religi\xE3o de Cristo e para a conserva\xE7\xE3o da paz, unidade\
+      \ e tranquilidade deste reino; qualquer uso, terra estrangeira, autoridade estrangeira,\
+      \ prescri\xE7\xE3o ou qualquer outra coisa ou coisas em contr\xE1rio deste documento.\
+      \ Parlamento Ingl\xEAs, Ato de Supremacia, 1534 Da passagem, pode-se inferir\
+      \ que o Parlamento Ingl\xEAs desejava argumentar que o Ato de Supremacia"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_european_history
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_high_school_european_history
+task_alias: high_school_european_history

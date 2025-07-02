@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: au cours du premier trimestre
+      B: "au cours du deuxi\xE8me trimestre"
+      C: "au cours du troisi\xE8me trimestre"
+      D: tout au long de la grossesse
+    input_correct_responses:
+    - A
+    input_question: "Les naus\xE9es matinales sont g\xE9n\xE9ralement un probl\xE8\
+      me\_:"
+  - input_choice_list:
+      A: un ego fort
+      B: un surmoi faible
+      C: un identifiant faible
+      D: un surmoi fort
+    input_correct_responses:
+    - B
+    input_question: "Une femme qui sait qu&#39;elle a un herp\xE8s actif et une syphilis\
+      \ non trait\xE9e mais qui continue \xE0 avoir des relations sexuelles sans informer\
+      \ ses partenaires de son \xE9tat a, en termes psychanalytiques :"
+  - input_choice_list:
+      A: "le fait qu&#39;ils n&#39;ont pas de p\xE9riode r\xE9fractaire."
+      B: "la r\xE9ponse des couches internes du vagin."
+      C: "avoir des orgasmes altern\xE9s \xE0 diff\xE9rents endroits."
+      D: le point G.
+    input_correct_responses:
+    - A
+    input_question: "La capacit\xE9 des femmes \xE0 avoir des orgasmes multiples est\
+      \ principalement due \xE0\_:"
+  - input_choice_list:
+      A: rapport sexuel
+      B: secousses de cercle
+      C: exhibitionnisme
+      D: "toucher les parties g\xE9nitales de l&#39;autre"
+    input_correct_responses:
+    - A
+    input_question: "La nature des activit\xE9s homosexuelles qui se produisent pendant\
+      \ la pr\xE9adolescence comprend tout mais lequel des \xE9l\xE9ments suivants\_\
+      ?"
+  - input_choice_list:
+      A: "\xE9jaculation pr\xE9coce"
+      B: "\xE9jaculation inhib\xE9e"
+      C: "trouble \xE9rectile"
+      D: "trouble de l&#39;\xE9jaculation"
+    input_correct_responses:
+    - C
+    input_question: "Le trouble le plus courant chez les hommes qui consultent une\
+      \ th\xE9rapie sexuelle est\_:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_sexuality
+tag: mmlu_fr_llama_social_sciences_tasks
+task: mmlu_fr_llama_human_sexuality
+task_alias: human_sexuality

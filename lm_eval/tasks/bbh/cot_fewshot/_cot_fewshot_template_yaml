@@ -1,4 +1,4 @@
-dataset_path: lukaemon/bbh
+dataset_path: SaylorTwift/bbh
 output_type: generate_until
 test_split: test
 doc_to_target: "{{target}}"
