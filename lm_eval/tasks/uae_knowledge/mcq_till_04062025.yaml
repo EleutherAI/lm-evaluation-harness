@@ -27,12 +27,14 @@
 #   version: 1.0
 
 
-task: uae_knowledge_benchmark
+task: uae_knowledge_till_04062025
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/raw/uae_knowledge/mcq_benchmark_till_04062025.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/uae_knowledge/mcq_benchmark_till_04062025.json
+    # test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/uae_knowledge/sample.json
+
 test_split: test
 
 output_type: generate_until
@@ -59,9 +61,11 @@ generation_kwargs:
   do_sample: false
   temperature: 0.0
 
-# metric_list:
-#   - metric: "f1_macro"
-#     higher_is_better: true
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
 
 metadata:
   version: 1.0

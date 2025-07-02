@@ -1,19 +1,16 @@
-task: dream_interpretation_ar
+task: finance_report_mcq
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/dream_interpretation/ar_mcq.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/finance/report_mcq.json
 test_split: test
 
 output_type: generate_until
 
 doc_to_text: |
   Given the following MCQ question, answer with only the option letter whether A, B, C, D, or E:
-  {{ question }}
-  {% for option in options %}
-  {{ option }}
-  {% endfor %}
+  {{ prompt }}
   Answer:
 doc_to_target: "{{ correct_answer }}"
 

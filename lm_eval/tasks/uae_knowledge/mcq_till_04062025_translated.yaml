@@ -1,9 +1,10 @@
-task: dream_interpretation_ar
+task: uae_knowledge_till_04062025_translated
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/dream_interpretation/ar_mcq.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/uae_knowledge/mcq_benchmark_till_04062025.translated.json
+
 test_split: test
 
 output_type: generate_until
@@ -15,13 +16,12 @@ doc_to_text: |
   {{ option }}
   {% endfor %}
   Answer:
-doc_to_target: "{{ correct_answer }}"
+doc_to_target: "{{ correct_answer[0] }}"
 
 generation_kwargs:
   until:
     - "\n"
     - "."
-    - ")"
     - "<end_of_turn>"
     - "<eos>"
     - "</s>"
