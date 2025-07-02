@@ -1,23 +1,20 @@
-task: dream_interpretation_ar
+task: poetry_poem_genre
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/dream_interpretation/ar_mcq.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/poetry/ar_poem_text__genre.json
+    # test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/poetry/sample.json
 test_split: test
 
 output_type: multiple_choice
 
 doc_to_text: |
-  Given the following MCQ question, answer with only the option letter whether A, B, C, D, or E:
+  Given the following MCQ question, answer with only the option letter whether أ, ب, ج, د, or و:
   {{ question }}
-  {% for option in options %}
-  {{ option }}
-  {% endfor %}
   Answer:
-doc_to_choice: !function utils.doc_to_choice
+doc_to_choice: "{{ options }}"
 doc_to_target: !function utils.doc_to_target
-
 
 metric_list:
   - metric: acc

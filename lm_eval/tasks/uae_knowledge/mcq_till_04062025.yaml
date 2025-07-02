@@ -1,32 +1,3 @@
-# task: uae_knowledge_benchmark
-# dataset_path: json
-# dataset_name: null
-# dataset_kwargs:
-#   data_files:
-#     #! test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/raw/uae_knowledge/mcq_benchmark_till_04062025.json
-#     test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/raw/uae_knowledge/sample.json
-# test_split: test
-
-# output_type: multiple_choice
-# doc_to_text: |
-#   Given the following MCQ question, answer with only the option letter whether A, B, C, D, or E:
-#   {{ question }}
-#   Answer:
-# doc_to_choice: "{{ options }}"
-# doc_to_target: "{{correct_answer[0]}}"
-
-# metric_list:
-#   - metric: acc
-#     aggregation: mean
-#     higher_is_better: true
-#   - metric: acc_norm
-#     aggregation: mean
-#     higher_is_better: true
-
-# metadata:
-#   version: 1.0
-
-
 task: uae_knowledge_till_04062025
 dataset_path: json
 dataset_name: null
@@ -37,7 +8,7 @@ dataset_kwargs:
 
 test_split: test
 
-output_type: generate_until
+output_type: multiple_choice
 
 doc_to_text: |
   Given the following MCQ question, answer with only the option letter whether A, B, C, D, or E:
@@ -46,26 +17,17 @@ doc_to_text: |
   {{ option }}
   {% endfor %}
   Answer:
-doc_to_target: "{{ correct_answer[0] }}"
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
 
-generation_kwargs:
-  until:
-    - "\n"
-    - "."
-    - "<end_of_turn>"
-    - "<eos>"
-    - "</s>"
-    - "<|end_of_text|>"
-    - "<|eot_id|>"
-    - "<|endoftext|>"
-  do_sample: false
-  temperature: 0.0
 
 metric_list:
-  - metric: exact_match
+  - metric: acc
     aggregation: mean
     higher_is_better: true
-    ignore_case: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
 
 metadata:
   version: 1.0
