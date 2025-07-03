@@ -6,9 +6,6 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("lowercase")
 class LowercaseFilter(Filter):
-    def __init__(self) -> None:
-        pass
-
     def apply(self, resps, docs):
         def filter_set(inst):
             return [resp.lower() for resp in inst]
@@ -18,9 +15,6 @@ class LowercaseFilter(Filter):
 
 @register_filter("uppercase")
 class UppercaseFilter(Filter):
-    def __init__(self) -> None:
-        pass
-
     def apply(self, resps, docs):
         def filter_set(inst):
             return [resp.upper() for resp in inst]
@@ -31,6 +25,7 @@ class UppercaseFilter(Filter):
 @register_filter("map")
 class MapFilter(Filter):
     def __init__(self, mapping_dict: dict = None, default_value=None) -> None:
+        super().__init__()
         """
         Initializes the MapFilter with a given mapping dictionary and default value.
 
@@ -60,9 +55,6 @@ class MapFilter(Filter):
 
 @register_filter("format_span")
 class SPANFilter(Filter):
-    def __init__(self) -> None:
-        pass
-
     def apply(self, resps, docs):
         def format_ner_text(text):
             label_dict = {

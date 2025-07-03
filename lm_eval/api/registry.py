@@ -8,6 +8,10 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 MODEL_REGISTRY = {}
+DEFAULTS = {
+    "model": {"max_length": 2048},
+    "tasks": {"generate_until": {"max_length": 2048}},
+}
 
 
 def register_model(*names):
@@ -167,7 +171,7 @@ def get_metric_aggregation(name: str) -> Optional[Callable[[], Dict[str, Callabl
         eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
 
 
-def is_higher_better(metric_name) -> Optional[bool]:
+def is_higher_better(metric_name: str) -> Optional[bool]:
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
@@ -176,7 +180,7 @@ def is_higher_better(metric_name) -> Optional[bool]:
         )
 
 
-def register_filter(name):
+def register_filter(name: str):
     def decorate(cls):
         if name in FILTER_REGISTRY:
             eval_logger.info(

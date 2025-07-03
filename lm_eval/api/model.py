@@ -176,14 +176,14 @@ class LM(abc.ABC):
         return cls(**arg_dict, **additional_config)
 
     @property
-    def rank(self):
+    def rank(self) -> int:
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
         return self._rank
 
     @property
-    def world_size(self):
+    def world_size(self) -> int:
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
@@ -233,7 +233,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm: LM, cache_db: str) -> None:
+    def __init__(self, lm: "LM", cache_db: str) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM
@@ -327,11 +327,11 @@ class TemplateLM(LM):
 
     @property
     @abc.abstractmethod
-    def eot_token_id(self):
+    def eot_token_id(self) -> int:
         pass
 
     @property
-    def prefix_token_id(self):
+    def prefix_token_id(self) -> int:
         # it is used as prefix for loglikelihood
         return self.eot_token_id
 
@@ -351,6 +351,11 @@ class TemplateLM(LM):
     def _encode_pair(
         self, context: str, continuation: str
     ) -> tuple[list[int], list[int]]:
+        """Encodes a pair of context and continuation strings into token IDs.
+
+        Ensures that encode(context + continuation) == encode(context) + encode(continuation)
+
+        """
         import transformers
 
         n_spaces = len(context) - len(context.rstrip())
@@ -402,6 +407,7 @@ class TemplateLM(LM):
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
         """
+        Assumes tokenizer has a chat_template attribute (self.tokenizer.chat_template: dict | str)
         Set and get the appropriate chat template for the model.
         This method sets the tokenizer's chat_template and returns the template string for reproducibility.
 
