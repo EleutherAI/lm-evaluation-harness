@@ -7,6 +7,12 @@ from functools import partial
 from pathlib import Path
 from typing import Union
 
+from lm_eval.api.eval_config import (
+    EvaluationConfig,
+    TrackExplicitAction,
+    TrackExplicitStoreTrue,
+)
+
 
 def try_parse_json(value: str) -> Union[str, dict, None]:
     if value is None:
@@ -349,7 +355,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     from lm_eval.utils import (
         handle_non_serializable,
         make_table,
-        simple_parse_args_string,
     )
 
     if args.wandb_args:
