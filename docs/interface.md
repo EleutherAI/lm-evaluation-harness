@@ -8,17 +8,35 @@ A majority of users run the library by cloning it from Github, installing the pa
 
 Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
 
-This mode supports a number of command-line arguments, the details of which can also be seen via running with `-h` or `--help`:
+### Subcommand Structure
+
+The CLI now uses a subcommand structure for better organization:
+
+- `lm-eval run` - Execute evaluations (default behavior)
+- `lm-eval list` - List available tasks, models, etc.
+- `lm-eval validate` - Validate task configurations
+
+For backward compatibility, if no subcommand is specified, `run` is automatically inserted. So `lm-eval --model hf --tasks hellaswag` is equivalent to `lm-eval run --model hf --tasks hellaswag`.
+
+### Run Command Arguments
+
+The `run` command supports a number of command-line arguments. Details can also be seen via running with `-h` or `--help`:
+
+#### Configuration
+
+- `--config` : Set initial arguments from a YAML configuration file. Takes a path to a YAML file that contains argument values. This allows you to specify complex configurations in a file rather than on the command line.
+
+#### Model and Tasks
 
 - `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#model-apis-and-inference-servers) for a full list of enabled model names and supported libraries or APIs.
 
 - `--model_args` : Controls parameters passed to the model constructor. Accepts a string containing comma-separated keyword arguments to the model class of the format `"arg1=val1,arg2=val2,..."`, such as, for example `--model_args pretrained=EleutherAI/pythia-160m,dtype=float32`. For a full list of what keyword arguments, see the initialization of the `lm_eval.api.model.LM` subclass, e.g. [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/models/huggingface.py#L66)
 
-- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups. A list of supported tasks can be viewed with `--tasks list`.
+- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups. A list of supported tasks can be viewed with `lm-eval list tasks`.
+
+#### Evaluation Settings
 
 - `--num_fewshot` : Sets the number of few-shot examples to place in context. Must be an integer.
-
-- `--gen_kwargs` : takes an arg string in same format as `--model_args` and creates a dictionary of keyword arguments. These will be passed to the models for all called `generate_until` (free-form or greedy generation task) tasks, to set options such as the sampling temperature or `top_p` / `top_k`. For a list of what args are supported for each model type, reference the respective library's documentation (for example, the documentation for `transformers.AutoModelForCausalLM.generate()`.) These kwargs will be applied to all `generate_until` tasks called--we do not currently support unique gen_kwargs or batch_size values per task in a single run of the library. To control these on a per-task level, set them in that task's YAML file.
 
 - `--batch_size` : Sets the batch size used for evaluation. Can be a positive integer or `"auto"` to automatically select the largest batch size that will fit in memory, speeding up evaluation. One can pass `--batch_size auto:N` to re-select the maximum batch size `N` times during evaluation. This can help accelerate evaluation further, since `lm-eval` sorts documents in descending order of context length.
 
@@ -26,11 +44,19 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--device` : Sets which device to place the model onto. Must be a string, for example, `"cuda", "cuda:0", "cpu", "mps"`. Defaults to "cuda", and can be ignored if running multi-GPU or running a non-local model type.
 
+- `--gen_kwargs` : takes an arg string in same format as `--model_args` and creates a dictionary of keyword arguments. These will be passed to the models for all called `generate_until` (free-form or greedy generation task) tasks, to set options such as the sampling temperature or `top_p` / `top_k`. For a list of what args are supported for each model type, reference the respective library's documentation (for example, the documentation for `transformers.AutoModelForCausalLM.generate()`.) These kwargs will be applied to all `generate_until` tasks called--we do not currently support unique gen_kwargs or batch_size values per task in a single run of the library. To control these on a per-task level, set them in that task's YAML file.
+
+#### Data and Output
+
 - `--output_path` : A string of the form `dir/file.jsonl` or `dir/`. Provides a path where high-level results will be saved, either into the file named or into the directory named. If `--log_samples` is passed as well, then per-document outputs and metrics will be saved into the directory as well.
 
 - `--log_samples` : If this flag is passed, then the model's outputs, and the text fed into the model, will be saved at per-document granularity. Must be used with `--output_path`.
 
 - `--limit` : Accepts an integer, or a float between 0.0 and 1.0 . If passed, will limit the number of documents to evaluate to the first X documents (if an integer) per task or first X% of documents per task. Useful for debugging, especially on costly API models.
+
+- `--samples` : JSON file with specific sample indices for inputs in the format `{"task_name":[indices],...}`. This allows you to evaluate only specific samples from each task. Incompatible with `--limit`.
+
+#### Caching and Performance
 
 - `--use_cache` : Should be a path where a sqlite db file can be written to. Takes a string of format `/path/to/sqlite_cache_` in order to create a cache db at `/path/to/sqlite_cache_rank{i}.db` for each process (0-NUM_GPUS). This allows results of prior runs to be cached, so that there is no need to re-run results in order to re-score or re-run a given (model, task) pair again.
 
@@ -38,11 +64,7 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--check_integrity` : If this flag is used, the library tests for each task selected are run to confirm task integrity.
 
-- `--write_out` : Used for diagnostic purposes to observe the format of task documents passed to a model. If this flag is used, then prints the prompt and gold target string for the first document of each task.
-
-- `--show_config` : If used, prints the full `lm_eval.api.task.TaskConfig` contents (non-default settings the task YAML file) for each task which was run, at the completion of an evaluation. Useful for when one is modifying a task's configuration YAML locally to transmit the exact configurations used for debugging or for reproducibility purposes.
-
-- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`.
+#### Instruct Formatting
 
 - `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
 
@@ -54,11 +76,21 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
 
-- `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
+#### Task Management
 
-- `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
+- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`.
+
+#### Logging and Tracking
+
+- `--verbosity` : (Deprecated) Log level. Use LOGLEVEL environment variable instead.
+
+- `--write_out` : Used for diagnostic purposes to observe the format of task documents passed to a model. If this flag is used, then prints the prompt and gold target string for the first document of each task.
+
+- `--show_config` : If used, prints the full `lm_eval.api.task.TaskConfig` contents (non-default settings the task YAML file) for each task which was run, at the completion of an evaluation. Useful for when one is modifying a task's configuration YAML locally to transmit the exact configurations used for debugging or for reproducibility purposes.
 
 - `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```. Also allows for the passing of the step to log things at (passed to `wandb.run.log`), e.g., `--wandb_args step=123`.
+
+- `--wandb_config_args`: Additional Weights & Biases config arguments passed separately from the init arguments. Format is the same as `--wandb_args` with comma-separated key=value pairs.
 
 - `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
   - `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
@@ -71,6 +103,16 @@ This mode supports a number of command-line arguments, the details of which can 
   - `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
   - `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
   - `gated` - whether to gate the details dataset, can be `True` or `False`.
+
+#### Advanced Options
+
+- `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
+
+- `--seed`: Set seed for python's random, numpy, torch, and fewshot.  Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot seeds, respectively, or a single integer to set the same seed for all four.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot seed to 52. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all four seeds to 42.
+
+- `--trust_remote_code`: Allow executing remote code from Hugging Face Hub. This flag enables the execution of custom code from model repositories, which can be necessary for some models but introduces security risks.
+
+- `--confirm_run_unsafe_code`: Confirm understanding of unsafe code execution risks. This flag is used to acknowledge that you understand the risks associated with executing potentially unsafe code.
 
 - `--metadata`: JSON string to pass to TaskConfig. Used for some tasks which require additional metadata to be passed for processing. E.g., `--metadata '{"key": "value"}'`.
 
