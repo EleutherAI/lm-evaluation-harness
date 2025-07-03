@@ -5,7 +5,7 @@ import os
 import textwrap
 from functools import partial
 
-from lm_eval._cli import SubCommand
+from lm_eval._cli.subcommand import SubCommand
 from lm_eval._cli.utils import (
     _int_or_none_list_arg_type,
     request_caching_arg_to_dict,
@@ -42,7 +42,7 @@ class Run(SubCommand):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._add_args()
-        self._parser.set_defaults(func=lambda arg: self._parser.print_help())
+        self._parser.set_defaults(func=self.execute)
 
     def _add_args(self) -> None:
         self._parser = self._parser

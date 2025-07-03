@@ -1,4 +1,4 @@
-from lm_eval._cli import Eval
+from lm_eval._cli.eval import Eval
 
 
 def cli_evaluate() -> None:

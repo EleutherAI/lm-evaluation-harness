@@ -2,7 +2,7 @@ import argparse
 import sys
 import textwrap
 
-from lm_eval._cli.base import SubCommand
+from lm_eval._cli.subcommand import SubCommand
 
 
 class Validate(SubCommand):
@@ -81,7 +81,7 @@ class Validate(SubCommand):
             "-t",
             required=True,
             type=str,
-            metavar="task1,task2",
+            metavar="TASK1,TASK2",
             help="Comma-separated list of task names to validate",
         )
         self._parser.add_argument(

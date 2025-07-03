@@ -1,10 +1,10 @@
 import argparse
 import textwrap
 
-from lm_eval._cli.base import SubCommand
+from lm_eval._cli.subcommand import SubCommand
 
 
-class List(SubCommand):
+class ListAll(SubCommand):
     """Command for listing available tasks."""
 
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
