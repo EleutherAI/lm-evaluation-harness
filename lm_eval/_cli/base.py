@@ -14,7 +14,7 @@ class SubCommand(ABC):
         return cls(subparsers)
 
     @abstractmethod
-    def _add_args(self, parser: argparse.ArgumentParser) -> None:
+    def _add_args(self) -> None:
         """Add arguments specific to this subcommand."""
         pass
 

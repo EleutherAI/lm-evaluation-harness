@@ -1,9 +1,9 @@
 import argparse
 import sys
+import textwrap
 
-from lm_eval._cli.cache import Cache
-from lm_eval._cli.run import Run
 from lm_eval._cli.list import ListCommand
+from lm_eval._cli.run import Run
 from lm_eval._cli.validate import ValidateCommand
 
 
@@ -14,7 +14,31 @@ class CLIParser:
         self._parser = argparse.ArgumentParser(
             prog="lm-eval",
             description="Language Model Evaluation Harness",
-            formatter_class=argparse.RawTextHelpFormatter,
+            epilog=textwrap.dedent("""
+                quick start:
+                  # Basic evaluation
+                  lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
+                  
+                  # List available tasks
+                  lm-eval list tasks
+                  
+                  # Validate task configurations
+                  lm-eval validate --tasks hellaswag,arc_easy
+                
+                available commands:
+                  run       Run the harness on specified tasks
+                  list      List available tasks, groups, subtasks, or tags
+                  validate  Validate task configurations and check for errors
+                
+                legacy compatibility:
+                  The harness maintains backward compatibility with the original interface.
+                  If no command is specified, 'run' is automatically inserted:
+                  
+                  lm-eval --model hf --tasks hellaswag  # Equivalent to 'lm-eval run --model hf --tasks hellaswag'
+                
+                For documentation, visit: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md
+            """),
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._parser.set_defaults(func=lambda args: self._parser.print_help())
         self._subparsers = self._parser.add_subparsers(
@@ -23,7 +47,6 @@ class CLIParser:
         Run.create(self._subparsers)
         ListCommand.create(self._subparsers)
         ValidateCommand.create(self._subparsers)
-        Cache.create(self._subparsers)
 
     def parse_args(self) -> argparse.Namespace:
         """Parse arguments using the main parser."""

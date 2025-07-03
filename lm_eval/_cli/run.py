@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import textwrap
 from functools import partial
 
 from lm_eval._cli import SubCommand
@@ -18,27 +19,34 @@ class Run(SubCommand):
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
         # Create and configure the parser
         super().__init__(*args, **kwargs)
-        parser = subparsers.add_parser(
+        self._parser = subparsers.add_parser(
             "run",
             help="Run language model evaluation",
             description="Evaluate language models on various benchmarks and tasks.",
-            epilog="""
-Examples:
-  lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
-  lm-eval run --config my_config.yaml --tasks arc_easy,arc_challenge
-  lm-eval run --model openai --tasks mmlu --num_fewshot 5
-            """,
+            epilog=textwrap.dedent("""
+                examples:
+                  # Basic evaluation with HuggingFace model
+                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
+                  
+                  # Evaluate on multiple tasks with few-shot examples
+                  $ lm-eval run --model vllm --model_args pretrained=EleutherAI/gpt-j-6B --tasks arc_easy,arc_challenge --num_fewshot 5
+                  
+                  # Evaluation with custom generation parameters
+                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs "temperature=0.8,top_p=0.95"
+                  
+                  # Use configuration file
+                  $ lm-eval run --config my_config.yaml --tasks mmlu
+                
+                For more information, see: https://github.com/EleutherAI/lm-evaluation-harness
+            """),
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
+        self._add_args()
+        self._parser.set_defaults(func=lambda args: self._parser.print_help())
 
-        # Add command-specific arguments
-        self._add_args(parser)
-
-        # Set the function to execute for this subcommand
-        parser.set_defaults(func=self.execute)
-
-    def _add_args(self, parser: argparse.ArgumentParser) -> None:
-        parser.add_argument(
+    def _add_args(self) -> None:
+        self._parser = self._parser
+        self._parser.add_argument(
             "--config",
             "-C",
             default=None,
@@ -46,14 +54,14 @@ Examples:
             metavar="DIR/file.yaml",
             help="Path to config with all arguments for `lm-eval`",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--model",
             "-m",
             type=str,
             default="hf",
             help="Name of model. Default 'hf'",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--tasks",
             "-t",
             default=None,
@@ -61,14 +69,14 @@ Examples:
             metavar="task1,task2",
             help="Comma-separated list of task names or task groupings to evaluate on.\nTo get full list of tasks, use one of the commands `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--model_args",
             "-a",
             default=None,
             type=try_parse_json,
             help="""Comma separated string or JSON formatted arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32` or '{"pretrained":"EleutherAI/pythia-160m","dtype":"float32"}'.""",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--num_fewshot",
             "-f",
             type=int,
@@ -76,7 +84,7 @@ Examples:
             metavar="N",
             help="Number of examples in few-shot context",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--batch_size",
             "-b",
             type=str,
@@ -84,20 +92,20 @@ Examples:
             metavar="auto|auto:N|N",
             help="Acceptable values are 'auto', 'auto:N' (recompute batchsize N times with time) or N, where N is an integer. Default 1.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--max_batch_size",
             type=int,
             default=None,
             metavar="N",
             help="Maximal batch size to try with --batch_size auto.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--device",
             type=str,
             default=None,
             help="Device to use (e.g. cuda, cuda:0, cpu). Model defaults. Default None.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--output_path",
             "-o",
             default=None,
@@ -105,7 +113,7 @@ Examples:
             metavar="DIR|DIR/file.json",
             help="Path where result metrics will be saved. Can be either a directory or a .json file. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--limit",
             "-L",
             type=float,
@@ -114,7 +122,7 @@ Examples:
             help="Limit the number of examples per task. "
             "If <1, limit is a percentage of the total number of examples.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--samples",
             "-E",
             default=None,
@@ -122,7 +130,7 @@ Examples:
             metavar="/path/to/json",
             help='JSON string or path to JSON file containing doc indices of selected examples to test. Format: {"task_name":[indices],...}',
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--use_cache",
             "-c",
             type=str,
@@ -130,40 +138,40 @@ Examples:
             metavar="DIR",
             help="A path to a sqlite db file for caching model responses. `None` if not caching.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--cache_requests",
             type=request_caching_arg_to_dict,
             default=None,
             choices=["true", "refresh", "delete"],
             help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--check_integrity",
             action="store_true",
             default=argparse.SUPPRESS,
             help="Whether to run the relevant part of the test suite for the tasks.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--write_out",
             "-w",
             action="store_true",
             default=argparse.SUPPRESS,
             help="Prints the prompt for the first few documents.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--log_samples",
             "-s",
             action="store_true",
             default=argparse.SUPPRESS,
             help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--system_instruction",
             type=str,
             default=None,
             help="System instruction to be used in the prompt",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--apply_chat_template",
             type=str,
             nargs="?",
@@ -176,26 +184,26 @@ Examples:
                 "E.g. `--apply_chat_template template_name`"
             ),
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--fewshot_as_multiturn",
             action="store_true",
             default=argparse.SUPPRESS,
             help="If True, uses the fewshot as a multi-turn conversation",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--show_config",
             action="store_true",
             default=argparse.SUPPRESS,
             help="If True, shows the the full config of all tasks at the end of the evaluation.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--include_path",
             type=str,
             default=None,
             metavar="DIR",
             help="Additional path to include if there are external tasks to include.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--gen_kwargs",
             type=try_parse_json,
             default=None,
@@ -204,7 +212,7 @@ Examples:
                 """ e.g. '{"do_sample": True, temperature":0.7,"until":["hello"]}' or temperature=0,top_p=0.1."""
             ),
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--verbosity",
             "-v",
             type=str.upper,
@@ -212,25 +220,25 @@ Examples:
             metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
             help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--wandb_args",
             type=str,
             default=argparse.SUPPRESS,
             help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval`",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--wandb_config_args",
             type=str,
             default=argparse.SUPPRESS,
             help="Comma separated string arguments passed to wandb.config.update. Use this to trace parameters that aren't already traced by default. eg. `lr=0.01,repeats=3`",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--hf_hub_log_args",
             type=str,
             default=argparse.SUPPRESS,
             help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--predict_only",
             "-x",
             action="store_true",
@@ -238,7 +246,7 @@ Examples:
             help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
         )
         default_seed_string = "0,1234,1234,1234"
-        parser.add_argument(
+        self._parser.add_argument(
             "--seed",
             type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
             default=default_seed_string,  # for backward compatibility
@@ -253,19 +261,19 @@ Examples:
                 "E.g, `--seed 42` sets all four seeds to 42."
             ),
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--trust_remote_code",
             action="store_true",
             default=argparse.SUPPRESS,
             help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--confirm_run_unsafe_code",
             action="store_true",
             default=argparse.SUPPRESS,
             help="Confirm that you understand the risks of running unsafe code for tasks that require it",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--metadata",
             type=json.loads,
             default=None,

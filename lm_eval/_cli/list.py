@@ -1,4 +1,5 @@
 import argparse
+import textwrap
 
 from lm_eval._cli.base import SubCommand
 
@@ -9,30 +10,51 @@ class ListCommand(SubCommand):
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
         # Create and configure the parser
         super().__init__(*args, **kwargs)
-        parser = subparsers.add_parser(
+        self._parser = subparsers.add_parser(
             "list",
             help="List available tasks, groups, subtasks, or tags",
             description="List available tasks, groups, subtasks, or tags from the evaluation harness.",
-            epilog="""
-Examples:
-  lm-eval list tasks         # List all available tasks
-  lm-eval list groups        # List task groups only
-  lm-eval list subtasks      # List subtasks only
-  lm-eval list tags          # List available tags
-  lm-eval list tasks --include_path /path/to/external/tasks
-            """,
+            epilog=textwrap.dedent("""
+                examples:
+                  # List all available tasks (includes groups, subtasks, and tags)
+                  $ lm-eval list tasks
+                  
+                  # List only task groups (like 'mmlu', 'glue', 'superglue')
+                  $ lm-eval list groups
+                  
+                  # List only individual subtasks (like 'mmlu_abstract_algebra')
+                  $ lm-eval list subtasks
+                  
+                  # Include external task definitions
+                  $ lm-eval list tasks --include_path /path/to/external/tasks
+                  
+                  # List tasks from multiple external paths
+                  $ lm-eval list tasks --include_path "/path/to/tasks1:/path/to/tasks2"
+                
+                organization:
+                  • Groups: Collections of tasks with aggregated metric across subtasks (e.g., 'mmlu')
+                  • Subtasks: Individual evaluation tasks (e.g., 'mmlu_anatomy', 'hellaswag')
+                  • Tags: Similar to groups but no aggregate metric (e.g., 'reasoning', 'knowledge', 'language')
+                  • External Tasks: Custom tasks defined in external directories
+                
+                evaluation usage:
+                  After listing tasks, use them with the run command!
+                  
+                For more information tasks configs are defined in https://github.com/EleutherAI/lm-evaluation-harness/tree/main/lm_eval/tasks
+            """),
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
-        self._add_args(parser)
-        parser.set_defaults(func=self.execute)
+        self._add_args()
+        self._parser.set_defaults(func=lambda arg: self._parser.print_help())
 
-    def _add_args(self, parser: argparse.ArgumentParser) -> None:
-        parser.add_argument(
+    def _add_args(self) -> None:
+        self._parser.add_argument(
             "what",
             choices=["tasks", "groups", "subtasks", "tags"],
+            nargs="?",
             help="What to list: tasks (all), groups, subtasks, or tags",
         )
-        parser.add_argument(
+        self._parser.add_argument(
             "--include_path",
             type=str,
             default=None,
@@ -54,3 +76,5 @@ Examples:
             print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         elif args.what == "tags":
             print(task_manager.list_all_tasks(list_groups=False, list_subtasks=False))
+        elif args.what is None:
+            self._parser.print_help()
