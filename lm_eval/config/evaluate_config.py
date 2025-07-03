@@ -26,11 +26,33 @@ DICT_KEYS = [
 
 @dataclass
 class EvaluatorConfig:
-    """
-    Configuration container for initializing evaluator or simple_evaluate.
+    """Configuration for language model evaluation runs.
 
-    This dataclass holds all the parameters needed for running evaluations,
-    with sensible defaults and documentation for each field.
+    This dataclass contains all parameters for configuring model evaluations via
+    `simple_evaluate()` or the CLI. It supports initialization from:
+    - CLI arguments (via `from_cli()`)
+    - YAML configuration files (via `from_config()`)
+    - Direct instantiation with keyword arguments
+
+    The configuration handles argument parsing, validation, and preprocessing
+    to ensure properly structured and validated.
+
+    Example:
+        # From CLI arguments
+        config = EvaluatorConfig.from_cli(args)
+
+        # From YAML file
+        config = EvaluatorConfig.from_config("eval_config.yaml")
+
+        # Direct instantiation
+        config = EvaluatorConfig(
+            model="hf",
+            model_args={"pretrained": "gpt2"},
+            tasks=["hellaswag", "arc_easy"],
+            num_fewshot=5
+        )
+
+      See individual field documentation for detailed parameter descriptions.
     """
 
     # Core evaluation parameters
@@ -246,8 +268,7 @@ class EvaluatorConfig:
     def validate_and_preprocess(self) -> None:
         """Validate configuration and preprocess fields after creation."""
         self._validate_arguments()
-        self._process_samples()
-        self._setup_metadata()
+        self._process_arguments()
         self._apply_trust_remote_code()
 
     def _validate_arguments(self) -> None:
@@ -282,7 +303,7 @@ class EvaluatorConfig:
         if self.tasks is None:
             raise ValueError("Need to specify task to evaluate.")
 
-    def _process_samples(self) -> None:
+    def _process_arguments(self) -> None:
         """Process samples argument - load from file if needed."""
         if self.samples:
             if isinstance(self.samples, dict):
@@ -293,6 +314,14 @@ class EvaluatorConfig:
                 except json.JSONDecodeError:
                     if (samples_path := Path(self.samples)).is_file():
                         self.samples = json.loads(samples_path.read_text())
+
+        # Set up metadata by merging model_args and metadata.
+        if self.model_args is None:
+            self.model_args = {}
+        if self.metadata is None:
+            self.metadata = {}
+
+        self.metadata = self.model_args | self.metadata
 
     def process_tasks(self, metadata: Optional[dict] = None) -> "TaskManager":
         """Process and validate tasks, return resolved task names."""
@@ -313,7 +342,7 @@ class EvaluatorConfig:
             task_list = self.tasks.split(",")
         else:
             assert isinstance(self.tasks, list), (
-                "Tasks must be a comma delimited string of task names or list[str]."
+                "`tasks` must be a comma delimited string of task names or list[str]."
             )
         task_names = task_manager.match_tasks(task_list)
 
@@ -336,15 +365,6 @@ class EvaluatorConfig:
         # Update tasks with resolved names
         self.tasks = task_names
         return task_manager
-
-    def _setup_metadata(self) -> None:
-        """Set up metadata by merging model_args and metadata."""
-        if self.model_args is None:
-            self.model_args = {}
-        if self.metadata is None:
-            self.metadata = {}
-
-        self.metadata = self.model_args | self.metadata
 
     def _apply_trust_remote_code(self) -> None:
         """Apply trust_remote_code setting if enabled."""
