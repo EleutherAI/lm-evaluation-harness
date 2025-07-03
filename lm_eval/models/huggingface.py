@@ -727,7 +727,7 @@ class HFLM(TemplateLM):
         }
 
         # gguf format embeds tokenizer and is not compatible with hf tokenizer `use_fast` param
-        if gguf_file is not None:
+        if not tokenizer and gguf_file is not None:
             kwargs["gguf_file"] = gguf_file
         else:
             kwargs["use_fast"] = use_fast_tokenizer
