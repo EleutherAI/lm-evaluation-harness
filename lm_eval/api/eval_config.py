@@ -156,8 +156,8 @@ class EvaluationConfig:
         #         continue
         #     if key in explicit_args:
         #         config_data[key] = val
-        print(f"YAML: {config_data}")
-        print(f"CLI: {args_dict}")
+        # print(f"YAML: {config_data}")
+        # print(f"CLI: {args_dict}")
         dict_config = EvaluationConfig.non_default_update(
             args_dict, config_data, explicit_args
         )
