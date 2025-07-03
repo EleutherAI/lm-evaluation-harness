@@ -7,24 +7,6 @@ from functools import partial
 from pathlib import Path
 from typing import Union
 
-from lm_eval import evaluator, utils
-from lm_eval.api.eval_config import (
-    EvaluationConfig,
-    TrackExplicitAction,
-    TrackExplicitStoreTrue,
-)
-
-# from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.loggers import EvaluationTracker, WandbLogger
-from lm_eval.tasks import TaskManager
-from lm_eval.utils import (
-    handle_non_serializable,
-    make_table,
-    request_caching_arg_to_dict,
-    # non_default_update,
-    # parse_namespace,
-)
-
 
 def try_parse_json(value: str) -> Union[str, dict, None]:
     if value is None:
@@ -358,6 +340,17 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         args = parse_eval_args(parser)
 
     cfg = EvaluationConfig.from_cli(args)
+
+    # defer loading `lm_eval` submodules for faster CLI load
+    from lm_eval import evaluator, utils
+    from lm_eval.evaluator import request_caching_arg_to_dict
+    from lm_eval.loggers import EvaluationTracker, WandbLogger
+    from lm_eval.tasks import TaskManager
+    from lm_eval.utils import (
+        handle_non_serializable,
+        make_table,
+        simple_parse_args_string,
+    )
 
     if args.wandb_args:
         wandb_logger = WandbLogger(cfg.wandb_args, cfg.wandb_config_args)
