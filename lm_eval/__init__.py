@@ -9,9 +9,11 @@ __version__ = "0.4.9"
 def __getattr__(name):
     if name == "evaluate":
         from .evaluator import evaluate
+
         return evaluate
     elif name == "simple_evaluate":
         from .evaluator import simple_evaluate
+
         return simple_evaluate
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
