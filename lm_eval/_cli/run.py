@@ -2,28 +2,31 @@ import argparse
 import json
 import logging
 import os
-import sys
 from functools import partial
-from pathlib import Path
 
-from lm_eval._cli.base import SubCommand, _int_or_none_list_arg_type, try_parse_json
+from lm_eval._cli import SubCommand
+from lm_eval._cli.utils import (
+    _int_or_none_list_arg_type,
+    request_caching_arg_to_dict,
+    try_parse_json,
+)
 
 
-class EvaluateCommand(SubCommand):
+class Run(SubCommand):
     """Command for running language model evaluation."""
 
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
         # Create and configure the parser
         super().__init__(*args, **kwargs)
         parser = subparsers.add_parser(
-            "evaluate",
+            "run",
             help="Run language model evaluation",
             description="Evaluate language models on various benchmarks and tasks.",
             epilog="""
 Examples:
-  lm-eval evaluate --model hf --model_args pretrained=gpt2 --tasks hellaswag
-  lm-eval evaluate --config my_config.yaml --tasks arc_easy,arc_challenge
-  lm-eval evaluate --model openai --tasks mmlu --num_fewshot 5
+  lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
+  lm-eval run --config my_config.yaml --tasks arc_easy,arc_challenge
+  lm-eval run --model openai --tasks mmlu --num_fewshot 5
             """,
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
@@ -48,7 +51,7 @@ Examples:
             "-m",
             type=str,
             default="hf",
-            help="Name of model e.g. `hf`",
+            help="Name of model. Default 'hf'",
         )
         parser.add_argument(
             "--tasks",
@@ -61,7 +64,7 @@ Examples:
         parser.add_argument(
             "--model_args",
             "-a",
-            default="",
+            default=None,
             type=try_parse_json,
             help="""Comma separated string or JSON formatted arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32` or '{"pretrained":"EleutherAI/pythia-160m","dtype":"float32"}'.""",
         )
@@ -77,9 +80,9 @@ Examples:
             "--batch_size",
             "-b",
             type=str,
-            default=1,
+            default=argparse.SUPPRESS,
             metavar="auto|auto:N|N",
-            help="Acceptable values are 'auto', 'auto:N' or N, where N is an integer. Default 1.",
+            help="Acceptable values are 'auto', 'auto:N' (recompute batchsize N times with time) or N, where N is an integer. Default 1.",
         )
         parser.add_argument(
             "--max_batch_size",
@@ -92,7 +95,7 @@ Examples:
             "--device",
             type=str,
             default=None,
-            help="Device to use (e.g. cuda, cuda:0, cpu).",
+            help="Device to use (e.g. cuda, cuda:0, cpu). Model defaults. Default None.",
         )
         parser.add_argument(
             "--output_path",
@@ -115,7 +118,7 @@ Examples:
             "--samples",
             "-E",
             default=None,
-            type=str,
+            type=try_parse_json,
             metavar="/path/to/json",
             help='JSON string or path to JSON file containing doc indices of selected examples to test. Format: {"task_name":[indices],...}',
         )
@@ -129,7 +132,7 @@ Examples:
         )
         parser.add_argument(
             "--cache_requests",
-            type=str,
+            type=request_caching_arg_to_dict,
             default=None,
             choices=["true", "refresh", "delete"],
             help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
@@ -137,20 +140,21 @@ Examples:
         parser.add_argument(
             "--check_integrity",
             action="store_true",
+            default=argparse.SUPPRESS,
             help="Whether to run the relevant part of the test suite for the tasks.",
         )
         parser.add_argument(
             "--write_out",
             "-w",
             action="store_true",
-            default=False,
+            default=argparse.SUPPRESS,
             help="Prints the prompt for the first few documents.",
         )
         parser.add_argument(
             "--log_samples",
             "-s",
             action="store_true",
-            default=False,
+            default=argparse.SUPPRESS,
             help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
         )
         parser.add_argument(
@@ -164,7 +168,7 @@ Examples:
             type=str,
             nargs="?",
             const=True,
-            default=False,
+            default=argparse.SUPPRESS,
             help=(
                 "If True, apply chat template to the prompt. "
                 "Providing `--apply_chat_template` without an argument will apply the default chat template to the prompt. "
@@ -175,13 +179,13 @@ Examples:
         parser.add_argument(
             "--fewshot_as_multiturn",
             action="store_true",
-            default=False,
+            default=argparse.SUPPRESS,
             help="If True, uses the fewshot as a multi-turn conversation",
         )
         parser.add_argument(
             "--show_config",
             action="store_true",
-            default=False,
+            default=argparse.SUPPRESS,
             help="If True, shows the the full config of all tasks at the end of the evaluation.",
         )
         parser.add_argument(
@@ -197,7 +201,7 @@ Examples:
             default=None,
             help=(
                 "Either comma delimited string or JSON formatted arguments for model generation on greedy_until tasks,"
-                """ e.g. '{"temperature":0.7,"until":["hello"]}' or temperature=0,top_p=0.1."""
+                """ e.g. '{"do_sample": True, temperature":0.7,"until":["hello"]}' or temperature=0,top_p=0.1."""
             ),
         )
         parser.add_argument(
@@ -211,26 +215,26 @@ Examples:
         parser.add_argument(
             "--wandb_args",
             type=str,
-            default="",
+            default=argparse.SUPPRESS,
             help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval`",
         )
         parser.add_argument(
             "--wandb_config_args",
             type=str,
-            default="",
+            default=argparse.SUPPRESS,
             help="Comma separated string arguments passed to wandb.config.update. Use this to trace parameters that aren't already traced by default. eg. `lr=0.01,repeats=3`",
         )
         parser.add_argument(
             "--hf_hub_log_args",
             type=str,
-            default="",
+            default=argparse.SUPPRESS,
             help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
         )
         parser.add_argument(
             "--predict_only",
             "-x",
             action="store_true",
-            default=False,
+            default=argparse.SUPPRESS,
             help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
         )
         default_seed_string = "0,1234,1234,1234"
@@ -252,11 +256,13 @@ Examples:
         parser.add_argument(
             "--trust_remote_code",
             action="store_true",
+            default=argparse.SUPPRESS,
             help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
         )
         parser.add_argument(
             "--confirm_run_unsafe_code",
             action="store_true",
+            default=argparse.SUPPRESS,
             help="Confirm that you understand the risks of running unsafe code for tasks that require it",
         )
         parser.add_argument(
@@ -268,16 +274,13 @@ Examples:
 
     def execute(self, args: argparse.Namespace) -> None:
         """Execute the evaluation command."""
-        # Import here to avoid circular imports and for faster CLI loading
-        from lm_eval.api.eval_config import EvaluationConfig
-        
-        # Create and validate config (validation now happens in EvaluationConfig)
-        cfg = EvaluationConfig.from_cli(args)
+        from lm_eval.config.evaluate_config import EvaluatorConfig
 
-        from lm_eval import evaluator, utils
-        from lm_eval.evaluator import request_caching_arg_to_dict
+        # Create and validate config (most validation now happens in EvaluationConfig)
+        cfg = EvaluatorConfig.from_cli(args)
+
+        from lm_eval import simple_evaluate, utils
         from lm_eval.loggers import EvaluationTracker, WandbLogger
-        from lm_eval.tasks import TaskManager
         from lm_eval.utils import handle_non_serializable, make_table
 
         # Set up logging
@@ -298,7 +301,7 @@ Examples:
         evaluation_tracker = EvaluationTracker(**cfg.hf_hub_log_args)
 
         # Create task manager (metadata already set up in config validation)
-        task_manager = TaskManager(include_path=cfg.include_path, metadata=cfg.metadata)
+        task_manager = cfg.process_tasks()
 
         # Validation warnings (keep these in CLI as they're logging-specific)
         if "push_samples_to_hub" in cfg.hf_hub_log_args and not cfg.log_samples:
@@ -306,25 +309,13 @@ Examples:
                 "Pushing samples to the Hub requires --log_samples to be set."
             )
 
-        if cfg.limit:
-            eval_logger.warning(
-                "--limit SHOULD ONLY BE USED FOR TESTING. "
-                "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
-            )
-
         # Log task selection (tasks already processed in config)
         if cfg.include_path is not None:
             eval_logger.info(f"Including path: {cfg.include_path}")
         eval_logger.info(f"Selected Tasks: {cfg.tasks}")
 
-        # Set up caching
-        request_caching_args = request_caching_arg_to_dict(
-            cache_requests=cfg.cache_requests
-        )
-        cfg.request_caching_args = request_caching_args
-
         # Run evaluation
-        results = evaluator.simple_evaluate(
+        results = simple_evaluate(
             model=cfg.model,
             model_args=cfg.model_args,
             tasks=cfg.tasks,
@@ -333,11 +324,11 @@ Examples:
             max_batch_size=cfg.max_batch_size,
             device=cfg.device,
             use_cache=cfg.use_cache,
-            cache_requests=cfg.request_caching_args.get("cache_requests", False),
-            rewrite_requests_cache=cfg.request_caching_args.get(
+            cache_requests=cfg.cache_requests.get("cache_requests", False),
+            rewrite_requests_cache=cfg.cache_requests.get(
                 "rewrite_requests_cache", False
             ),
-            delete_requests_cache=cfg.request_caching_args.get(
+            delete_requests_cache=cfg.cache_requests.get(
                 "delete_requests_cache", False
             ),
             limit=cfg.limit,

@@ -19,14 +19,11 @@ Examples:
   lm-eval list groups        # List task groups only
   lm-eval list subtasks      # List subtasks only
   lm-eval list tags          # List available tags
+  lm-eval list tasks --include_path /path/to/external/tasks
             """,
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
-
-        # Add command-specific arguments
         self._add_args(parser)
-
-        # Set the function to execute for this subcommand
         parser.set_defaults(func=self.execute)
 
     def _add_args(self, parser: argparse.ArgumentParser) -> None:
