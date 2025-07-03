@@ -1,8 +1,9 @@
-import argparse
-import os
+import json
+import logging
 from argparse import Namespace
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Union
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 
@@ -21,176 +22,225 @@ DICT_KEYS = [
 @dataclass
 class EvaluationConfig:
     """
-    Simple config container for language-model evaluation.
-    No content validation here—just holds whatever comes from YAML or CLI.
+    Simple config container for holding params.
     """
 
-    config: Optional[str]
-    model: Optional[str]
-    model_args: Optional[dict]
-    tasks: Optional[str]
-    num_fewshot: Optional[int]
-    batch_size: Optional[int]
-    max_batch_size: Optional[int]
-    device: Optional[str]
-    output_path: Optional[str]
-    limit: Optional[float]
-    samples: Optional[str]
-    use_cache: Optional[str]
-    cache_requests: Optional[str]
-    check_integrity: Optional[bool]
-    write_out: Optional[bool]
-    log_samples: Optional[bool]
-    predict_only: Optional[bool]
-    system_instruction: Optional[str]
-    apply_chat_template: Optional[Union[bool, str]]
-    fewshot_as_multiturn: Optional[bool]
-    show_config: Optional[bool]
-    include_path: Optional[str]
-    gen_kwargs: Optional[dict]
-    verbosity: Optional[str]
-    wandb_args: Optional[dict]
-    wandb_config_args: Optional[dict]
-    hf_hub_log_args: Optional[dict]
-    seed: Optional[list]
-    trust_remote_code: Optional[bool]
-    confirm_run_unsafe_code: Optional[bool]
-    metadata: Optional[dict]
+    config: Optional[str] = None
+    model: Optional[str] = None
+    model_args: Optional[dict] = None
+    tasks: Optional[str] = None
+    num_fewshot: Optional[int] = None
+    batch_size: Optional[int] = None
+    max_batch_size: Optional[int] = None
+    device: Optional[str] = None
+    output_path: Optional[str] = None
+    limit: Optional[float] = None
+    samples: Optional[str] = None
+    use_cache: Optional[str] = None
+    cache_requests: Optional[str] = None
+    check_integrity: Optional[bool] = None
+    write_out: Optional[bool] = None
+    log_samples: Optional[bool] = None
+    predict_only: Optional[bool] = None
+    system_instruction: Optional[str] = None
+    apply_chat_template: Optional[Union[bool, str]] = None
+    fewshot_as_multiturn: Optional[bool] = None
+    show_config: Optional[bool] = None
+    include_path: Optional[str] = None
+    gen_kwargs: Optional[dict] = None
+    verbosity: Optional[str] = None
+    wandb_args: Optional[dict] = None
+    wandb_config_args: Optional[dict] = None
+    hf_hub_log_args: Optional[dict] = None
+    seed: Optional[list] = None
+    trust_remote_code: Optional[bool] = None
+    confirm_run_unsafe_code: Optional[bool] = None
+    metadata: Optional[dict] = None
     request_caching_args: Optional[dict] = None
 
     @staticmethod
-    def parse_namespace(
-        namespace: argparse.Namespace,
-    ) -> tuple[Dict[str, Any], list[Dict[str, Any]]]:
-        """
-        Convert an argparse Namespace object to a dictionary.
-
-        Handles all argument types including boolean flags, lists, and None values.
-        Only includes arguments that were explicitly set (ignores defaults unless used).
-
-        Args:
-            namespace: The argparse.Namespace object to convert
-
-        Returns:
-            Dictionary containing all the namespace arguments and their values
-        """
-
-        config = {key: value for key, value in vars(namespace).items()}
-        for key in config:
-            if key == "_explicit_args":
-                continue
-            if key in DICT_KEYS:
-                if not isinstance(config[key], dict):
-                    config[key] = simple_parse_args_string(config[key])
-            # if key == "cache_requests":
-            #     config[key] = request_caching_arg_to_dict(config[key])
-        if "model_args" not in config:
-            config["model_args"] = {}
-        if "metadata" not in config:
-            config["metadata"] = {}
-
-        non_default_args = []
-        if hasattr(namespace, "_explicit_args"):
-            non_default_args = namespace._explicit_args
-
-        return config, non_default_args
+    def _get_defaults() -> Dict[str, Any]:
+        """Get default values for all configuration options."""
+        return {
+            "model": "hf",
+            "model_args": {},
+            "batch_size": 1,
+            "check_integrity": False,
+            "write_out": False,
+            "log_samples": False,
+            "predict_only": False,
+            "fewshot_as_multiturn": False,
+            "show_config": False,
+            "trust_remote_code": False,
+            "confirm_run_unsafe_code": False,
+            "metadata": {},
+            "wandb_args": {},
+            "wandb_config_args": {},
+            "hf_hub_log_args": {},
+            "seed": [0, 1234, 1234, 1234],
+        }
 
     @staticmethod
-    def non_default_update(console_dict, local_dict, non_default_args):
-        """
-        Update local_dict by taking non-default values from console_dict.
-
-        Args:
-            console_dict (dict): The dictionary that potentially provides updates.
-            local_dict (dict): The dictionary to be updated.
-            non_default_args (list): The list of args passed by user in console.
-
-        Returns:
-            dict: The updated local_dict.
-        """
-        result_config = {}
-
-        for key in set(console_dict.keys()).union(local_dict.keys()):
-            if key in non_default_args:
-                result_config[key] = console_dict[key]
-            else:
-                if key in local_dict:
-                    result_config[key] = local_dict[key]
-                else:
-                    result_config[key] = console_dict[key]
-
-        return result_config
+    def _parse_dict_args(config: Dict[str, Any]) -> Dict[str, Any]:
+        """Parse string arguments that should be dictionaries."""
+        for key in config:
+            if key in DICT_KEYS and isinstance(config[key], str):
+                config[key] = simple_parse_args_string(config[key])
+        return config
 
     @classmethod
     def from_cli(cls, namespace: Namespace) -> "EvaluationConfig":
         """
-        Build an EvaluationConfig by merging:
-          1) YAML config (if --config was passed), then
-          2) CLI args (only those the user actually provided)
-        CLI defaults that weren’t overridden explicitly will be
-        overwritten by YAML values if present.
+        Build an EvaluationConfig by merging with simple precedence:
+        CLI args > YAML config > built-in defaults
         """
-        # 1. Turn Namespace into a dict + know which were explicitly passed
-        args_dict, explicit_args = EvaluationConfig.parse_namespace(namespace)
+        # Start with built-in defaults
+        config = cls._get_defaults()
 
-        # 2. Start from YAML if requested
-        config_data: Dict[str, Any] = {}
-        if "config" in explicit_args and args_dict.get("config"):
-            cfg_path = args_dict["config"]
-            if not os.path.isfile(cfg_path):
-                raise FileNotFoundError(f"Config file not found: {cfg_path}")
-            try:
-                with open(cfg_path, "r") as f:
-                    yaml_data = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                raise ValueError(f"Invalid YAML in {cfg_path}: {e}")
-            if not isinstance(yaml_data, dict):
-                raise ValueError(
-                    f"YAML root must be a mapping, got {type(yaml_data).__name__}"
-                )
-            config_data.update(yaml_data)
+        # Load and merge YAML config if provided
+        if hasattr(namespace, "config") and namespace.config:
+            config.update(cls._load_yaml_config(namespace.config))
 
-        # 3. Override with any CLI args the user explicitly passed
-        # for key, val in args_dict.items():
-        #     if key == "config":
-        #         continue
-        #     if key in explicit_args:
-        #         config_data[key] = val
-        # print(f"YAML: {config_data}")
-        # print(f"CLI: {args_dict}")
-        dict_config = EvaluationConfig.non_default_update(
-            args_dict, config_data, explicit_args
+        # Override with CLI args (only non-None values, exclude non-config args)
+        excluded_args = {"config", "command", "func"}  # argparse internal args
+        cli_args = {
+            k: v
+            for k, v in vars(namespace).items()
+            if v is not None and k not in excluded_args
+        }
+        config.update(cli_args)
+
+        # Parse string arguments that should be dictionaries
+        config = cls._parse_dict_args(config)
+
+        # Create instance and validate
+        instance = cls(**config)
+        instance.validate_and_preprocess()
+
+        return instance
+
+    @staticmethod
+    def _load_yaml_config(config_path: str) -> Dict[str, Any]:
+        """Load and validate YAML config file."""
+        config_file = Path(config_path)
+        if not config_file.is_file():
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+
+        try:
+            yaml_data = yaml.safe_load(config_file.read_text())
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in {config_path}: {e}")
+        except (OSError, UnicodeDecodeError) as e:
+            raise ValueError(f"Could not read config file {config_path}: {e}")
+
+        if not isinstance(yaml_data, dict):
+            raise ValueError(
+                f"YAML root must be a mapping, got {type(yaml_data).__name__}"
+            )
+
+        return yaml_data
+
+    def validate_and_preprocess(self) -> None:
+        """Validate configuration and preprocess fields after creation."""
+        self._validate_arguments()
+        self._process_samples()
+        self._setup_metadata()
+        self._apply_trust_remote_code()
+        self._process_tasks()
+
+    def _validate_arguments(self) -> None:
+        """Validate configuration arguments and cross-field constraints."""
+        # predict_only implies log_samples
+        if self.predict_only:
+            self.log_samples = True
+
+        # log_samples or predict_only requires output_path
+        if (self.log_samples or self.predict_only) and not self.output_path:
+            raise ValueError(
+                "Specify --output_path if providing --log_samples or --predict_only"
+            )
+
+        # fewshot_as_multiturn requires apply_chat_template
+        if self.fewshot_as_multiturn and self.apply_chat_template is False:
+            raise ValueError(
+                "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set."
+            )
+
+        # samples and limit are mutually exclusive
+        if self.samples and self.limit is not None:
+            raise ValueError("If --samples is not None, then --limit must be None.")
+
+        # tasks is required
+        if self.tasks is None:
+            raise ValueError("Need to specify task to evaluate.")
+
+    def _process_samples(self) -> None:
+        """Process samples argument - load from file if needed."""
+        if self.samples:
+            if (samples_path := Path(self.samples)).is_file():
+                self.samples = json.loads(samples_path.read_text())
+            else:
+                self.samples = json.loads(self.samples)
+
+    def _process_tasks(self, metadata: Union[dict, str]) -> List[str]:
+        """Process and validate tasks, return resolved task names."""
+        from lm_eval import utils
+        from lm_eval.tasks import TaskManager
+
+        # Create task manager with metadata
+        task_manager = TaskManager(
+            include_path=self.include_path, metadata=self.metadata
         )
 
-        # 4. Instantiate the config (no further validation here)
-        dict_config.pop("_explicit_args", None)
-        return cls(**dict_config)
+        # self.tasks is a comma-separated string of task names
+        task_list = self.tasks.split(",")
+        task_names = task_manager.match_tasks(task_list)
 
+        # Check for any individual task files in the list
+        for task in [task for task in task_list if task not in task_names]:
+            task_path = Path(task)
+            if task_path.is_file():
+                config = utils.load_yaml_config(str(task_path))
+                task_names.append(config)
 
-class TrackExplicitAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Create a set on the namespace to track explicitly set arguments if it doesn't exist
-        if not hasattr(namespace, "_explicit_args"):
-            setattr(namespace, "_explicit_args", set())
-        # Record that this argument was explicitly provided
-        namespace._explicit_args.add(self.dest)
-        setattr(namespace, self.dest, values)
+        # Check for missing tasks
+        task_missing = [
+            task for task in task_list if task not in task_names and "*" not in task
+        ]
 
+        if task_missing:
+            missing = ", ".join(task_missing)
+            raise ValueError(f"Tasks not found: {missing}")
 
-class TrackExplicitStoreTrue(argparse.Action):
-    def __init__(
-        self, option_strings, dest, nargs=0, const=True, default=False, **kwargs
-    ):
-        # Ensure that nargs is 0, as required by store_true actions.
-        if nargs != 0:
-            raise ValueError("nargs for store_true actions must be 0")
-        super().__init__(
-            option_strings, dest, nargs=0, const=const, default=default, **kwargs
-        )
+        # Update tasks with resolved names
+        self.tasks = task_names
+        return task_names
 
-    def __call__(self, parser, namespace, values, option_string=None):
-        # Initialize or update the set of explicitly provided arguments.
-        if not hasattr(namespace, "_explicit_args"):
-            setattr(namespace, "_explicit_args", set())
-        namespace._explicit_args.add(self.dest)
-        setattr(namespace, self.dest, self.const)
+    def _setup_metadata(self) -> None:
+        """Set up metadata by merging model_args and metadata."""
+        if self.model_args is None:
+            self.model_args = {}
+        if self.metadata is None:
+            self.metadata = {}
+
+        # Merge model_args and metadata
+        merged_metadata = self.model_args | self.metadata
+        self.metadata = merged_metadata
+
+    def _apply_trust_remote_code(self) -> None:
+        """Apply trust_remote_code setting if enabled."""
+        if self.trust_remote_code:
+            eval_logger = logging.getLogger(__name__)
+            eval_logger.info("Setting HF_DATASETS_TRUST_REMOTE_CODE=true")
+
+            # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
+            # because it's already been determined based on the prior env var before launching our
+            # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
+            import datasets
+
+            datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+
+            # Add to model_args for the actual model initialization
+            if self.model_args is None:
+                self.model_args = {}
+            self.model_args["trust_remote_code"] = True
