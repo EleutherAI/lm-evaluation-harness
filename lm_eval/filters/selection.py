@@ -1,4 +1,5 @@
 from collections import Counter
+from typing import Sequence
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
@@ -16,7 +17,7 @@ class TakeFirstFilter(Filter):
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps, docs):
+    def apply(self, resps: Sequence, docs):
         """
         Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
         """
@@ -30,7 +31,7 @@ class TakeKFilter(Filter):
 
         super().__init__(**kwargs)
 
-    def apply(self, resps, docs):
+    def apply(self, resps: Sequence, docs):
         # need resp to be subscriptable to check below
         resps = list(resps)
         # check we have at least k responses per doc, else we can't take the first k
