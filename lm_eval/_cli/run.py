@@ -46,37 +46,51 @@ class Run(SubCommand):
 
     def _add_args(self) -> None:
         self._parser = self._parser
-        self._parser.add_argument(
+
+        # Configuration
+        config_group = self._parser.add_argument_group("configuration")
+        config_group.add_argument(
             "--config",
             "-C",
             default=None,
             type=str,
-            metavar="DIR/file.yaml",
-            help="Path to config with all arguments for `lm-eval`",
+            metavar="YAML_PATH",
+            help="Set initial arguments from YAML config",
         )
-        self._parser.add_argument(
+
+        # Model and Tasks
+        model_group = self._parser.add_argument_group("model and tasks")
+        model_group.add_argument(
             "--model",
             "-m",
             type=str,
             default="hf",
-            help="Name of model. Default 'hf'",
+            metavar="MODEL_NAME",
+            help="Model name (default: hf)",
         )
-        self._parser.add_argument(
+        model_group.add_argument(
             "--tasks",
             "-t",
             default=None,
             type=str,
-            metavar="task1,task2",
-            help="Comma-separated list of task names or task groupings to evaluate on.\nTo get full list of tasks, use one of the commands `lm-eval --tasks {{list_groups,list_subtasks,list_tags,list}}` to list out all available names for task groupings; only (sub)tasks; tags; or all of the above",
+            metavar="TASK1,TASK2",
+            help=textwrap.dedent("""
+                Comma-separated list of task names or groupings.
+                Use 'lm-eval list tasks' to see all available tasks.
+            """).strip(),
         )
-        self._parser.add_argument(
+        model_group.add_argument(
             "--model_args",
             "-a",
             default=None,
             type=try_parse_json,
-            help="""Comma separated string or JSON formatted arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32` or '{"pretrained":"EleutherAI/pythia-160m","dtype":"float32"}'.""",
+            metavar="ARGS",
+            help="Model arguments as 'key=val,key2=val2' or JSON string",
         )
-        self._parser.add_argument(
+
+        # Evaluation Settings
+        eval_group = self._parser.add_argument_group("evaluation settings")
+        eval_group.add_argument(
             "--num_fewshot",
             "-f",
             type=int,
@@ -84,200 +98,219 @@ class Run(SubCommand):
             metavar="N",
             help="Number of examples in few-shot context",
         )
-        self._parser.add_argument(
+        eval_group.add_argument(
             "--batch_size",
             "-b",
             type=str,
             default=argparse.SUPPRESS,
             metavar="auto|auto:N|N",
-            help="Acceptable values are 'auto', 'auto:N' (recompute batchsize N times with time) or N, where N is an integer. Default 1.",
+            help=textwrap.dedent(
+                "Batch size: 'auto', 'auto:N' (auto-tune N times), or integer (default: 1)"
+            ),
         )
-        self._parser.add_argument(
+        eval_group.add_argument(
             "--max_batch_size",
             type=int,
             default=None,
             metavar="N",
-            help="Maximal batch size to try with --batch_size auto.",
+            help="Maximum batch size when using --batch_size auto",
         )
-        self._parser.add_argument(
+        eval_group.add_argument(
             "--device",
             type=str,
             default=None,
-            help="Device to use (e.g. cuda, cuda:0, cpu). Model defaults. Default None.",
+            metavar="DEVICE",
+            help="Device to use (e.g. cuda, cuda:0, cpu, mps)",
         )
-        self._parser.add_argument(
+        eval_group.add_argument(
+            "--gen_kwargs",
+            type=try_parse_json,
+            default=None,
+            metavar="KWARGS",
+            help="Generation arguments as 'key=val,key2=val2' or JSON string",
+        )
+
+        # Data and Output
+        data_group = self._parser.add_argument_group("data and output")
+        data_group.add_argument(
             "--output_path",
             "-o",
             default=None,
             type=str,
-            metavar="DIR|DIR/file.json",
-            help="Path where result metrics will be saved. Can be either a directory or a .json file. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
+            metavar="OUTPUT_PATH",
+            help="Output dir or json file for results (and samples)",
         )
-        self._parser.add_argument(
-            "--limit",
-            "-L",
-            type=float,
-            default=None,
-            metavar="N|0<N<1",
-            help="Limit the number of examples per task. "
-            "If <1, limit is a percentage of the total number of examples.",
-        )
-        self._parser.add_argument(
-            "--samples",
-            "-E",
-            default=None,
-            type=try_parse_json,
-            metavar="/path/to/json",
-            help='JSON string or path to JSON file containing doc indices of selected examples to test. Format: {"task_name":[indices],...}',
-        )
-        self._parser.add_argument(
-            "--use_cache",
-            "-c",
-            type=str,
-            default=None,
-            metavar="DIR",
-            help="A path to a sqlite db file for caching model responses. `None` if not caching.",
-        )
-        self._parser.add_argument(
-            "--cache_requests",
-            type=request_caching_arg_to_dict,
-            default=None,
-            choices=["true", "refresh", "delete"],
-            help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
-        )
-        self._parser.add_argument(
-            "--check_integrity",
-            action="store_true",
-            default=argparse.SUPPRESS,
-            help="Whether to run the relevant part of the test suite for the tasks.",
-        )
-        self._parser.add_argument(
-            "--write_out",
-            "-w",
-            action="store_true",
-            default=argparse.SUPPRESS,
-            help="Prints the prompt for the first few documents.",
-        )
-        self._parser.add_argument(
+        data_group.add_argument(
             "--log_samples",
             "-s",
             action="store_true",
             default=argparse.SUPPRESS,
-            help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
+            help="Save all model outputs and documents for post-hoc analysis",
         )
-        self._parser.add_argument(
+        data_group.add_argument(
+            "--limit",
+            "-L",
+            type=float,
+            default=None,
+            metavar="N|0.0-1.0",
+            help="Limit examples per task (integer count or fraction)",
+        )
+        data_group.add_argument(
+            "--samples",
+            "-E",
+            default=None,
+            type=try_parse_json,
+            metavar="JSON_FILE",
+            help=textwrap.dedent(
+                'JSON file with specific sample indices for inputs: {"task_name":[indices],...}. Incompatible with --limit.'
+            ),
+        )
+
+        # Caching and Performance
+        cache_group = self._parser.add_argument_group("caching and performance")
+        cache_group.add_argument(
+            "--use_cache",
+            "-c",
+            type=str,
+            default=None,
+            metavar="CACHE_DIR",
+            help="SQLite database path for caching model outputs.",
+        )
+        cache_group.add_argument(
+            "--cache_requests",
+            type=request_caching_arg_to_dict,
+            default=None,
+            choices=["true", "refresh", "delete"],
+            help="Cache dataset request building (true|refresh|delete)",
+        )
+        cache_group.add_argument(
+            "--check_integrity",
+            action="store_true",
+            default=argparse.SUPPRESS,
+            help="Run task test suite validation",
+        )
+
+        # Prompt Formatting
+        template_group = self._parser.add_argument_group("instruct formatting")
+        template_group.add_argument(
             "--system_instruction",
             type=str,
             default=None,
-            help="System instruction to be used in the prompt",
+            metavar="INSTRUCTION",
+            help="Add custom system instruction.",
         )
-        self._parser.add_argument(
+        template_group.add_argument(
             "--apply_chat_template",
             type=str,
             nargs="?",
             const=True,
             default=argparse.SUPPRESS,
-            help=(
-                "If True, apply chat template to the prompt. "
-                "Providing `--apply_chat_template` without an argument will apply the default chat template to the prompt. "
-                "To apply a specific template from the available list of templates, provide the template name as an argument. "
-                "E.g. `--apply_chat_template template_name`"
-            ),
+            metavar="TEMPLATE",
+            help="Apply chat template to prompts (optional template name)",
         )
-        self._parser.add_argument(
+        template_group.add_argument(
             "--fewshot_as_multiturn",
             action="store_true",
             default=argparse.SUPPRESS,
-            help="If True, uses the fewshot as a multi-turn conversation",
+            help="Use fewshot examples as multi-turn conversation",
         )
-        self._parser.add_argument(
-            "--show_config",
-            action="store_true",
-            default=argparse.SUPPRESS,
-            help="If True, shows the the full config of all tasks at the end of the evaluation.",
-        )
-        self._parser.add_argument(
+
+        # Task Management
+        task_group = self._parser.add_argument_group("task management")
+        task_group.add_argument(
             "--include_path",
             type=str,
             default=None,
-            metavar="DIR",
-            help="Additional path to include if there are external tasks to include.",
+            metavar="TASK_DIR",
+            help="Additional directory for external tasks",
         )
-        self._parser.add_argument(
-            "--gen_kwargs",
-            type=try_parse_json,
-            default=None,
-            help=(
-                "Either comma delimited string or JSON formatted arguments for model generation on greedy_until tasks,"
-                """ e.g. '{"do_sample": True, temperature":0.7,"until":["hello"]}' or temperature=0,top_p=0.1."""
-            ),
-        )
-        self._parser.add_argument(
+
+        # Logging and Tracking
+        logging_group = self._parser.add_argument_group("logging and tracking")
+        logging_group.add_argument(
             "--verbosity",
             "-v",
             type=str.upper,
             default=None,
-            metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-            help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
+            metavar="LEVEL",
+            help="(Deprecated) Log level. Use LOGLEVEL env var instead",
         )
-        self._parser.add_argument(
+        logging_group.add_argument(
+            "--write_out",
+            "-w",
+            action="store_true",
+            default=argparse.SUPPRESS,
+            help="Print prompts for first few documents",
+        )
+        logging_group.add_argument(
+            "--show_config",
+            action="store_true",
+            default=argparse.SUPPRESS,
+            help="Display full task configuration after evaluation",
+        )
+        logging_group.add_argument(
             "--wandb_args",
             type=str,
             default=argparse.SUPPRESS,
-            help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval`",
+            metavar="ARGS",
+            help="Weights & Biases init arguments (key=val,key2=val2)",
         )
-        self._parser.add_argument(
+        logging_group.add_argument(
             "--wandb_config_args",
             type=str,
             default=argparse.SUPPRESS,
-            help="Comma separated string arguments passed to wandb.config.update. Use this to trace parameters that aren't already traced by default. eg. `lr=0.01,repeats=3`",
+            metavar="ARGS",
+            help="Weights & Biases config arguments (key=val,key2=val2)",
         )
-        self._parser.add_argument(
+        logging_group.add_argument(
             "--hf_hub_log_args",
             type=str,
             default=argparse.SUPPRESS,
-            help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
+            metavar="ARGS",
+            help="Hugging Face Hub logging arguments (key=val,key2=val2)",
         )
-        self._parser.add_argument(
+
+        # Advanced Options
+        advanced_group = self._parser.add_argument_group("advanced options")
+        advanced_group.add_argument(
             "--predict_only",
             "-x",
             action="store_true",
             default=argparse.SUPPRESS,
-            help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
+            help="Save predictions only, skip metric computation",
         )
         default_seed_string = "0,1234,1234,1234"
-        self._parser.add_argument(
+        advanced_group.add_argument(
             "--seed",
             type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
-            default=default_seed_string,  # for backward compatibility
-            help=(
-                "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
-                "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
-                "respectively, or a single integer to set the same seed for all four.\n"
-                f"The values are either an integer or 'None' to not set the seed. Default is `{default_seed_string}` "
-                "(for backward compatibility).\n"
-                "E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot sampling seed to 52. "
-                "Here numpy's seed is not set since the second value is `None`.\n"
-                "E.g, `--seed 42` sets all four seeds to 42."
-            ),
+            default=default_seed_string,
+            metavar="SEED|S1,S2,S3,S4",
+            help=textwrap.dedent(f"""
+                Random seeds for python,numpy,torch,fewshot (default: {default_seed_string}).
+                Use single integer for all, or comma-separated list of 4 values.
+                Use 'None' to skip setting a seed. Example: --seed 42 or --seed 0,None,8,52
+            """).strip(),
         )
-        self._parser.add_argument(
+        advanced_group.add_argument(
             "--trust_remote_code",
             action="store_true",
             default=argparse.SUPPRESS,
-            help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
+            help="Allow executing remote code from Hugging Face Hub",
         )
-        self._parser.add_argument(
+        advanced_group.add_argument(
             "--confirm_run_unsafe_code",
             action="store_true",
             default=argparse.SUPPRESS,
-            help="Confirm that you understand the risks of running unsafe code for tasks that require it",
+            help="Confirm understanding of unsafe code execution risks",
         )
-        self._parser.add_argument(
+        advanced_group.add_argument(
             "--metadata",
             type=json.loads,
             default=None,
-            help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192]}'. Will be merged with model_args. Can also be set in task config.""",
+            metavar="JSON",
+            help=textwrap.dedent(
+                "JSON metadata for task configs (merged with model_args), required for some tasks such as RULER"
+            ),
         )
 
     def execute(self, args: argparse.Namespace) -> None:
