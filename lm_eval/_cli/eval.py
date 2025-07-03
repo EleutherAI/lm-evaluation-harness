@@ -2,13 +2,13 @@ import argparse
 import sys
 import textwrap
 
-from lm_eval._cli.list import ListCommand
+from lm_eval._cli.list import List
 from lm_eval._cli.run import Run
-from lm_eval._cli.validate import ValidateCommand
+from lm_eval._cli.validate import Validate
 
 
-class CLIParser:
-    """Main CLI parser class that manages all subcommands."""
+class Eval:
+    """Main CLI parser that manages all subcommands."""
 
     def __init__(self):
         self._parser = argparse.ArgumentParser(
@@ -45,8 +45,8 @@ class CLIParser:
             dest="command", help="Available commands", metavar="COMMAND"
         )
         Run.create(self._subparsers)
-        ListCommand.create(self._subparsers)
-        ValidateCommand.create(self._subparsers)
+        List.create(self._subparsers)
+        Validate.create(self._subparsers)
 
     def parse_args(self) -> argparse.Namespace:
         """Parse arguments using the main parser."""

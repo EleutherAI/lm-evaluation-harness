@@ -1,9 +1,9 @@
-from lm_eval._cli import CLIParser
+from lm_eval._cli import Eval
 
 
 def cli_evaluate() -> None:
     """Main CLI entry point with subcommand and legacy support."""
-    parser = CLIParser()
+    parser = Eval()
     args = parser.parse_args()
     parser.execute(args)
 

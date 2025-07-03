@@ -4,7 +4,7 @@ import textwrap
 from lm_eval._cli.base import SubCommand
 
 
-class ListCommand(SubCommand):
+class List(SubCommand):
     """Command for listing available tasks."""
 
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
@@ -14,6 +14,7 @@ class ListCommand(SubCommand):
             "list",
             help="List available tasks, groups, subtasks, or tags",
             description="List available tasks, groups, subtasks, or tags from the evaluation harness.",
+            usage="lm-eval list [tasks|groups|subtasks|tags] [--include_path DIR]",
             epilog=textwrap.dedent("""
                 examples:
                   # List all available tasks (includes groups, subtasks, and tags)

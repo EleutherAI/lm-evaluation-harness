@@ -5,7 +5,7 @@ import textwrap
 from lm_eval._cli.base import SubCommand
 
 
-class ValidateCommand(SubCommand):
+class Validate(SubCommand):
     """Command for validating tasks."""
 
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
@@ -15,6 +15,7 @@ class ValidateCommand(SubCommand):
             "validate",
             help="Validate task configurations",
             description="Validate task configurations and check for errors.",
+            usage="lm-eval validate --tasks <task1,task2> [--include_path DIR]",
             epilog=textwrap.dedent("""
                 examples:
                   # Validate a single task
@@ -72,7 +73,7 @@ class ValidateCommand(SubCommand):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._add_args()
-        self._parser.set_defaults(func=lambda args: self._parser.print_help())
+        self._parser.set_defaults(func=lambda arg: self._parser.print_help())
 
     def _add_args(self) -> None:
         self._parser.add_argument(

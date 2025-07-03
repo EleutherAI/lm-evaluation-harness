@@ -17,12 +17,12 @@ class Run(SubCommand):
     """Command for running language model evaluation."""
 
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
-        # Create and configure the parser
         super().__init__(*args, **kwargs)
         self._parser = subparsers.add_parser(
             "run",
-            help="Run language model evaluation",
+            help="Run the evaluation harness on specified tasks",
             description="Evaluate language models on various benchmarks and tasks.",
+            usage="lm-eval run --model <model> --tasks <task1,task2,...> [options]",
             epilog=textwrap.dedent("""
                 examples:
                   # Basic evaluation with HuggingFace model
@@ -42,7 +42,7 @@ class Run(SubCommand):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._add_args()
-        self._parser.set_defaults(func=lambda args: self._parser.print_help())
+        self._parser.set_defaults(func=lambda arg: self._parser.print_help())
 
     def _add_args(self) -> None:
         self._parser = self._parser
@@ -281,7 +281,7 @@ class Run(SubCommand):
         )
 
     def execute(self, args: argparse.Namespace) -> None:
-        """Execute the evaluation command."""
+        """Runs the evaluation harness with the provided arguments."""
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
         # Create and validate config (most validation now happens in EvaluationConfig)
