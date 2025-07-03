@@ -18,24 +18,24 @@ class Eval:
                 quick start:
                   # Basic evaluation
                   lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
-                  
+
                   # List available tasks
                   lm-eval list tasks
-                  
+
                   # Validate task configurations
                   lm-eval validate --tasks hellaswag,arc_easy
-                
+
                 available commands:
                   run       Run the harness on specified tasks
                   list      List available tasks, groups, subtasks, or tags
                   validate  Validate task configurations and check for errors
-                
+
                 legacy compatibility:
                   The harness maintains backward compatibility with the original interface.
                   If no command is specified, 'run' is automatically inserted:
-                  
+
                   lm-eval --model hf --tasks hellaswag  # Equivalent to 'lm-eval run --model hf --tasks hellaswag'
-                
+
                 For documentation, visit: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md
             """),
             formatter_class=argparse.RawDescriptionHelpFormatter,

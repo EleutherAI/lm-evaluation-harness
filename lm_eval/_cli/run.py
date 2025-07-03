@@ -27,16 +27,16 @@ class Run(SubCommand):
                 examples:
                   # Basic evaluation with HuggingFace model
                   $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
-                  
+
                   # Evaluate on multiple tasks with few-shot examples
                   $ lm-eval run --model vllm --model_args pretrained=EleutherAI/gpt-j-6B --tasks arc_easy,arc_challenge --num_fewshot 5
-                  
+
                   # Evaluation with custom generation parameters
                   $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs "temperature=0.8,top_p=0.95"
-                  
+
                   # Use configuration file
                   $ lm-eval run --config my_config.yaml --tasks mmlu
-                
+
                 For more information, see: https://github.com/EleutherAI/lm-evaluation-harness
             """),
             formatter_class=argparse.RawDescriptionHelpFormatter,

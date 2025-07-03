@@ -19,28 +19,28 @@ class List(SubCommand):
                 examples:
                   # List all available tasks (includes groups, subtasks, and tags)
                   $ lm-eval list tasks
-                  
+
                   # List only task groups (like 'mmlu', 'glue', 'superglue')
                   $ lm-eval list groups
-                  
+
                   # List only individual subtasks (like 'mmlu_abstract_algebra')
                   $ lm-eval list subtasks
-                  
+
                   # Include external task definitions
                   $ lm-eval list tasks --include_path /path/to/external/tasks
-                  
+
                   # List tasks from multiple external paths
                   $ lm-eval list tasks --include_path "/path/to/tasks1:/path/to/tasks2"
-                
+
                 organization:
                   • Groups: Collections of tasks with aggregated metric across subtasks (e.g., 'mmlu')
                   • Subtasks: Individual evaluation tasks (e.g., 'mmlu_anatomy', 'hellaswag')
                   • Tags: Similar to groups but no aggregate metric (e.g., 'reasoning', 'knowledge', 'language')
                   • External Tasks: Custom tasks defined in external directories
-                
+
                 evaluation usage:
                   After listing tasks, use them with the run command!
-                  
+
                 For more information tasks configs are defined in https://github.com/EleutherAI/lm-evaluation-harness/tree/main/lm_eval/tasks
             """),
             formatter_class=argparse.RawDescriptionHelpFormatter,

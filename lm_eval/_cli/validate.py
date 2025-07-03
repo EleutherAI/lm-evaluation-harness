@@ -20,19 +20,19 @@ class Validate(SubCommand):
                 examples:
                   # Validate a single task
                   lm-eval validate --tasks hellaswag
-                  
+
                   # Validate multiple tasks
                   lm-eval validate --tasks arc_easy,arc_challenge,hellaswag
-                  
+
                   # Validate a task group
                   lm-eval validate --tasks mmlu
-                  
+
                   # Validate tasks with external definitions
                   lm-eval validate --tasks my_custom_task --include_path ./custom_tasks
-                  
+
                   # Validate tasks from multiple external paths
                   lm-eval validate --tasks custom_task1,custom_task2 --include_path "/path/to/tasks1:/path/to/tasks2"
-                
+
                 validation check:
                   The validate command performs several checks:
                   • Task existence: Verifies all specified tasks are available
@@ -42,7 +42,7 @@ class Validate(SubCommand):
                   • Metric definitions: Verifies metric functions and aggregation methods
                   • Filter pipelines: Validates filter chains and their parameters
                   • Template rendering: Tests prompt templates with sample data
-                
+
                 task config files:
                   Tasks are defined using YAML configuration files with these key sections:
                   • task: Task name and metadata
@@ -52,7 +52,7 @@ class Validate(SubCommand):
                   • metric_list: List of evaluation metrics to compute
                   • output_type: Type of model output (loglikelihood, generate_until, etc.)
                   • filter_list: Post-processing filters for model outputs
-                
+
                 common errors:
                   • Missing required fields in YAML configuration
                   • Invalid dataset paths or missing dataset splits
@@ -61,13 +61,13 @@ class Validate(SubCommand):
                   • Invalid filter names or parameters
                   • Circular dependencies in task inheritance
                   • Missing external task files when using --include_path
-                
+
                 debugging tips:
                   • Use --include_path to test external task definitions
                   • Check task configuration files for syntax errors
                   • Verify dataset access and authentication if needed
                   • Use 'lm-eval list tasks' to see available tasks
-                
+
                 For task configuration guide, see: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md
             """),
             formatter_class=argparse.RawDescriptionHelpFormatter,
