@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, Callable, List, Optional
 
-from lm_eval.api.registry import get_aggregation, is_higher_better
-
 
 @dataclass
 class MetricConfig:
@@ -23,12 +21,16 @@ class MetricConfig:
 
     @cached_property
     def aggregation(self) -> Callable:
+        from lm_eval.api.registry import get_aggregation
+
         if self.aggregation_fn is None:
             return get_aggregation(self.name)
         return self.aggregation_fn
 
     @cached_property
     def _higher_is_better(self) -> bool:
+        from lm_eval.api.registry import is_higher_better
+
         if self.higher_is_better is None:
             return is_higher_better(self.name)
         return self.higher_is_better

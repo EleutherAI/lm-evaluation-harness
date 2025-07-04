@@ -4,17 +4,8 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
-from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
-    DEFAULT_METRIC_REGISTRY,
-    get_aggregation,
-    get_metric,
-    get_metric_aggregation,
-    is_higher_better,
-)
 from lm_eval.config.metric import MetricConfig
 from lm_eval.config.utils import maybe_serialize
-from lm_eval.filters import build_filter_ensemble
 
 
 if TYPE_CHECKING:
@@ -241,6 +232,15 @@ class TaskConfig(dict):
 
     @property
     def get_metrics(self) -> list["MetricConfig"]:
+        from lm_eval.api.registry import (
+            AGGREGATION_REGISTRY,
+            DEFAULT_METRIC_REGISTRY,
+            get_aggregation,
+            get_metric,
+            get_metric_aggregation,
+            is_higher_better,
+        )
+
         metrics = []
         if self.metric_list is None:
             # ---------- 1. If no metrics defined, use defaults for output type ----------
@@ -258,7 +258,7 @@ class TaskConfig(dict):
                 for metric_name in _metric_list
             )
         else:
-            # ---------- 2. How will the samples be evaluated ----------
+            # ---------- 2. How will the outputs be evaluated ----------
             for metric_config in self.metric_list:
                 metric_name = metric_config["metric"]
                 _metric_fn_kwargs = {
@@ -323,6 +323,8 @@ class TaskConfig(dict):
 
     @property
     def get_filters(self) -> list["FilterEnsemble"]:
+        from lm_eval.filters import build_filter_ensemble
+
         if not self.filter_list:
             eval_logger.debug(
                 "No custom filters defined; falling back to 'take_first' for handling repeats."
