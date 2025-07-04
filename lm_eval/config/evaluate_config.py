@@ -1,6 +1,5 @@
 import json
 import logging
-import warnings
 from argparse import Namespace
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -274,7 +273,7 @@ class EvaluatorConfig:
     def _validate_arguments(self) -> None:
         """Validate configuration arguments and cross-field constraints."""
         if self.limit:
-            warnings.warn(
+            logging.warning(
                 "--limit SHOULD ONLY BE USED FOR TESTING. "
                 "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
             )

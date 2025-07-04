@@ -434,6 +434,7 @@ class Run(SubCommand):
                 evaluation_tracker.recreate_metadata_card()
 
             # Print results
+            cfg.model_args.pop("trust_remote_code", None)
             print(
                 f"{cfg.model} ({cfg.model_args}), gen_kwargs: ({cfg.gen_kwargs}), "
                 f"limit: {cfg.limit}, num_fewshot: {cfg.num_fewshot}, "
