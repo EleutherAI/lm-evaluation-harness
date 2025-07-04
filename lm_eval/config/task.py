@@ -281,7 +281,8 @@ class TaskConfig(dict):
                     _metric_fn = metric_name.__call__
                 else:
                     # Normal: look up by name
-                    _metric_name = get_metric(metric_name, _hf_evaluate_metric)
+                    _metric_name = metric_name
+                    _metric_fn = get_metric(metric_name, _hf_evaluate_metric)
 
                 # ---------- 3. Decide how to aggregate examples ----------
                 if "aggregation" in metric_config:
