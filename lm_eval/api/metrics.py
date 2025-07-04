@@ -5,13 +5,15 @@ import random
 import re
 import string
 from collections.abc import Iterable
-from typing import List
+from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
 import sacrebleu
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
+
+T = TypeVar("T")
 
 eval_logger = logging.getLogger(__name__)
 
@@ -288,7 +290,7 @@ def pop_stddev(arr):
     return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
 
 
-def sample_stddev(arr):
+def sample_stddev(arr: Sequence[T]) -> float:
     mu = mean(arr)
     return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
 
@@ -450,11 +452,16 @@ def _sacreformat(refs, preds):
 
 
 class _bootstrap_internal:
-    def __init__(self, f, n) -> None:
+    """
+    Pool worker: `(i, xs)` → `n` bootstrap replicates
+    of `f(xs)`using a RNG seeded with `i`.
+    """
+
+    def __init__(self, f: Callable[[Sequence[T]], float], n: int) -> None:
         self.f = f
         self.n = n
 
-    def __call__(self, v):
+    def __call__(self, v: tuple[int, Sequence[T]]) -> list[float]:
         i, xs = v
         rnd = random.Random()
         rnd.seed(i)
@@ -464,24 +471,37 @@ class _bootstrap_internal:
         return res
 
 
-def _bootstrap_stderr_no_mp(f, xs, iters):
-    # Non Multi-Processing version of same function
+def _bootstrap_internal_no_mp(
+    f: Callable[[Sequence[T]], float], xs: Sequence[T], iters: int
+) -> list[float]:
+    """
+    Single-process fallback: compute `iters` bootstrap replicates
+    of statistic`f(xs)`, chunked (≤ 1000 draws).
+    """
+    res = []
+    chunk_size = min(1000, iters)
     from tqdm import tqdm
 
     print(f"bootstrapping for stddev: {f.__name__}")
 
-    res = []
     # A single loop replaces the multiprocessing pool.
-    for _ in tqdm(range(iters)):
-        # Create a bootstrap sample by drawing with replacement.
-        resample = random.choices(xs, k=len(xs))
-        # Apply the statistic function to the resample.
-        res.append(f(resample))
+    for i in tqdm(range(iters // chunk_size)):
+        rnd = random.Random(i)
+        for _ in range(chunk_size):
+            res.append(f(rnd.choices(xs, k=len(xs))))
 
-    return sample_stddev(res)
+    return res
 
 
-def bootstrap_stderr(f, xs, iters):
+def bootstrap_stderr(
+    f: Callable[[Sequence[T]], float], xs: Sequence[T], iters: int
+) -> float:
+    """
+    Bootstrap estimate of the standard error of statistic `f(xs)`
+    using up to `iters` resamples, chunked (≤ 1000 draws)
+
+    Executes in parallel unless the env-var `DISABLE_MULTIPROC` is set;
+    """
     if not os.getenv("DISABLE_MULTIPROC"):
         import multiprocessing as mp
 
@@ -508,12 +528,24 @@ def bootstrap_stderr(f, xs, iters):
             res.extend(bootstrap)
 
         pool.close()
-        return sample_stddev(res)
     else:
-        return _bootstrap_stderr_no_mp(f, xs, iters)
+        res = _bootstrap_internal_no_mp(f, xs, iters)
+
+    return sample_stddev(res)
 
 
-def stderr_for_metric(metric, bootstrap_iters: int):
+def stderr_for_metric(
+    metric: Callable[[Sequence[T]], float], bootstrap_iters: int
+) -> Optional[Callable[[Sequence[T]], float]]:
+    """
+    Return a function that estimates the standard error of `metric(xs)`.
+
+    * If `bootstrap_iters > 0` and the metric is in the pre-approved
+      bootstrappable list, use `bootstrap_stderr` with that many draws.
+    * If the metric has a closed-form SE (e.g. `mean`, `acc_all`), use it.
+    * Otherwise, return `None`.
+    """
+
     if bootstrap_iters <= 0:
         # return no function (don't compute stderr) if bootstrap iters = 0
         return None
