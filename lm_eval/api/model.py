@@ -3,13 +3,17 @@ import hashlib
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
 
 import transformers
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.instance import Instance
 
 
 eval_logger = logging.getLogger(__name__)
@@ -30,7 +34,7 @@ class LM(abc.ABC):
         self.cache_hook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests) -> list[tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -55,7 +59,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> List[float]:
+    def loglikelihood_rolling(self, requests) -> list[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -97,7 +101,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> list[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -114,7 +118,7 @@ class LM(abc.ABC):
         pass
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]], add_generation_prompt=True
+        self, chat_history: list[dict[str, str]], add_generation_prompt=True
     ) -> str:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
@@ -173,14 +177,14 @@ class LM(abc.ABC):
         return cls(**arg_dict, **additional_config)
 
     @property
-    def rank(self):
+    def rank(self) -> int:
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
         return self._rank
 
     @property
-    def world_size(self):
+    def world_size(self) -> int:
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
@@ -230,7 +234,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm, cache_db) -> None:
+    def __init__(self, lm: "LM", cache_db: str) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM
@@ -253,7 +257,7 @@ class CachingLM:
             eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
-        def fn(requests):
+        def fn(requests: list[Instance]) -> list[Instance]:
             res = []
             remaining_reqs = []
             warned = False
@@ -322,28 +326,35 @@ class TemplateLM(LM):
 
     @property
     @abc.abstractmethod
-    def eot_token_id(self):
+    def eot_token_id(self) -> int:
         pass
 
     @property
-    def prefix_token_id(self):
+    def prefix_token_id(self) -> int:
         # it is used as prefix for loglikelihood
         return self.eot_token_id
 
     @abc.abstractmethod
-    def tok_encode(self, string: str, **kwargs) -> List[int]:
+    def tok_encode(self, string: str, **kwargs) -> list[int]:
         """
         Tokenize a string using the model's tokenizer and return a list of token IDs.
         """
         pass
 
     @abc.abstractmethod
-    def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
+    def _loglikelihood_tokens(
+        self, requests: list[Instance], **kwargs
+    ) -> list[tuple[float, bool]]:
         pass
 
     def _encode_pair(
         self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
+    ) -> tuple[list[int], list[int]]:
+        """Encodes a pair of context and continuation strings into token IDs.
+
+        Ensures that encode(context + continuation) == encode(context) + encode(continuation)
+
+        """
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -364,8 +375,8 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -384,15 +395,16 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
-    ) -> List[float]:
+    ) -> list[float]:
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
         pass
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
         """
+        Assumes tokenizer has a chat_template attribute (self.tokenizer.chat_template: dict | str)
         Set and get the appropriate chat template for the model.
         This method sets the tokenizer's chat_template and returns the template string for reproducibility.
 

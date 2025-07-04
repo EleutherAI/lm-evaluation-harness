@@ -20,11 +20,13 @@ class RegexFilter(Filter):
         regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
         group_select: int = 0,
         fallback: str = "[invalid]",
+        **kwargs,
     ) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
+        super().__init__(**kwargs)
         self.regex_pattern = regex_pattern
         self.regex = re.compile(regex_pattern)
         self.group_select = group_select
@@ -66,11 +68,13 @@ class POSFilter(Filter):
         regex_pattern: str = r"\['(.*?)'\]",
         group_select=0,
         fallback=None,
+        **kwargs,
     ) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
         """
+        super().__init__(**kwargs)
         if fallback is None:
             fallback = ["invalid"]
         self.regex_pattern = regex_pattern
