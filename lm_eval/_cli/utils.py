@@ -4,7 +4,7 @@ import logging
 from typing import Optional, Union
 
 
-def try_parse_json(value: Union[dict, str]) -> Union[str, dict, None]:
+def try_parse_json(value: Union[str, dict, None]) -> Union[str, dict, None]:
     """Try to parse a string as JSON. If it fails, return the original string."""
     if value is None:
         return None
@@ -69,7 +69,7 @@ def request_caching_arg_to_dict(cache_requests: Optional[str]) -> dict[str, bool
     return request_caching_args
 
 
-def check_argument_types(parser: argparse.ArgumentParser):
+def check_argument_types(parser: argparse.ArgumentParser) -> None:
     """
     Check to make sure all CLI args are typed, raises error if not
     """
