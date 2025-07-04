@@ -10,7 +10,7 @@ eval_logger = logging.getLogger(__name__)
 MODEL_REGISTRY = {}
 DEFAULTS = {
     "model": {"max_length": 2048},
-    "tasks": {"generate_until": {"max_length": 2048}},
+    "tasks": {"generate_until": {"max_gen_toks": 256}},
 }
 
 
