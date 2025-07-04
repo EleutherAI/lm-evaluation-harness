@@ -13,7 +13,7 @@ from lm_eval.utils import simple_parse_args_string
 if TYPE_CHECKING:
     from lm_eval.tasks import TaskManager
 
-
+eval_logger = logging.getLogger(__name__)
 DICT_KEYS = [
     "wandb_args",
     "wandb_config_args",
@@ -273,7 +273,7 @@ class EvaluatorConfig:
     def _validate_arguments(self) -> None:
         """Validate configuration arguments and cross-field constraints."""
         if self.limit:
-            logging.warning(
+            eval_logger.warning(
                 "--limit SHOULD ONLY BE USED FOR TESTING. "
                 "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
             )
@@ -368,9 +368,6 @@ class EvaluatorConfig:
     def _apply_trust_remote_code(self) -> None:
         """Apply trust_remote_code setting if enabled."""
         if self.trust_remote_code:
-            eval_logger = logging.getLogger(__name__)
-            eval_logger.info("Setting HF_DATASETS_TRUST_REMOTE_CODE=true")
-
             # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
             # because it's already been determined based on the prior env var before launching our
             # script--`datasets` gets imported by lm_eval internally before these lines can update the env.

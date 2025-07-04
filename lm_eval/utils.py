@@ -26,8 +26,75 @@ HIGHER_IS_BETTER_SYMBOLS = {
 }
 
 
-def setup_logging(verbosity=logging.INFO):
-    # Configure the root logger
+def get_logger(level: Optional[str] = None) -> logging.Logger:
+    """
+    Get a logger with a stream handler that captures all lm_eval logs.
+
+    Args:
+        level (Optional[str]): The logging level.
+    Example:
+        >>> logger = get_logger("INFO")
+        >>> logger.info("Log this")
+        INFO:lm_eval:Log this!
+
+    Returns:
+        logging.Logger: The logger.
+    """
+    logger = logging.getLogger("lm_eval")
+    if not logger.hasHandlers():
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    if level is not None:
+        level = getattr(logging, level.upper())
+        logger.setLevel(level)
+    return logger
+
+
+def setup_logging(verbosity=logging.INFO, suppress_third_party=True):
+    """
+    Configure logging for the lm_eval CLI application.
+
+    WARNING: This function is intended for CLI use only. Library users should
+    use get_logger() instead to avoid interfering with their application's
+    logging configuration.
+
+    Args:
+        verbosity: Log level (int) or string name. Can be overridden by LOGLEVEL env var.
+        suppress_third_party: Whether to suppress verbose third-party library logs.
+
+    Returns:
+        logging.Logger: The configured lm_eval logger instance.
+    """
+    # Validate verbosity parameter
+    if isinstance(verbosity, str):
+        level_map = {
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL,
+        }
+        verbosity = level_map.get(verbosity.upper(), logging.INFO)
+    elif not isinstance(verbosity, int):
+        verbosity = logging.INFO
+
+    # Get log level from environment or use default
+    if log_level_env := os.environ.get("LOGLEVEL", None):
+        level_map = {
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL,
+        }
+        log_level = level_map.get(log_level_env.upper(), verbosity)
+    else:
+        log_level = verbosity
+
+    # Get the lm_eval logger directly
+    logger = logging.getLogger("lm_eval")
+
+    # Configure custom formatter
     class CustomFormatter(logging.Formatter):
         def format(self, record):
             if record.name.startswith("lm_eval."):
@@ -39,32 +106,27 @@ def setup_logging(verbosity=logging.INFO):
         datefmt="%Y-%m-%d:%H:%M:%S",
     )
 
-    log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
-
-    level_map = {
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
-
-    log_level = level_map.get(str(log_level).upper(), logging.INFO)
-
-    if not logging.root.handlers:
+    # Check if handler already exists to prevent duplicates
+    has_stream_handler = any(
+        isinstance(h, logging.StreamHandler) for h in logger.handlers
+    )
+    if not has_stream_handler:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        # For CLI use, we disable propagation to avoid duplicate messages
+        logger.propagate = False
 
-        root_logger = logging.getLogger()
-        root_logger.addHandler(handler)
-        root_logger.setLevel(log_level)
+    # Set the logger level
+    logger.setLevel(log_level)
 
-        if log_level == logging.DEBUG:
-            third_party_loggers = ["urllib3", "filelock", "fsspec"]
-            for logger_name in third_party_loggers:
-                logging.getLogger(logger_name).setLevel(logging.INFO)
-    else:
-        logging.getLogger().setLevel(log_level)
+    # Optionally suppress verbose third-party library logs
+    if suppress_third_party and log_level == logging.DEBUG:
+        third_party_loggers = ["urllib3", "filelock", "fsspec"]
+        for logger_name in third_party_loggers:
+            logging.getLogger(logger_name).setLevel(logging.INFO)
+
+    return logger
 
 
 def hash_string(string: str) -> str:
