@@ -87,12 +87,23 @@ def main():
             latest_sample_results = get_latest_filename(
                 [Path(f).name for f in model_sample_filenames if task in f]
             )
+            # Load the model_args, which can be either a string or a dictionary
+            model_args_raw = json.load(
+                open(Path(args.data_path, model, latest_results), encoding="utf-8")
+            )["config"]["model_args"]
+
+            # Convert to string if it's a dictionary
+            model_args_str = (
+                json.dumps(model_args_raw)
+                if isinstance(model_args_raw, dict)
+                else model_args_raw
+            )
+
+            # Apply the sanitization
             model_args = re.sub(
                 r"[\"<>:/\|\\?\*\[\]]+",
                 "__",
-                json.load(
-                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
-                )["config"]["model_args"],
+                model_args_str,
             )
             print(model_args)
             data = []
