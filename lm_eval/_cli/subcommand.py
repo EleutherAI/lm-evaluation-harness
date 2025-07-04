@@ -17,8 +17,3 @@ class SubCommand(ABC):
     def _add_args(self) -> None:
         """Add arguments specific to this subcommand."""
         pass
-
-    @abstractmethod
-    def execute(self, args: argparse.Namespace) -> None:
-        """Execute the subcommand with the given arguments."""
-        pass

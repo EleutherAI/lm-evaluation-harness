@@ -42,7 +42,7 @@ class Run(SubCommand):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._add_args()
-        self._parser.set_defaults(func=self.execute)
+        self._parser.set_defaults(func=self._execute)
 
     def _add_args(self) -> None:
         self._parser = self._parser
@@ -313,24 +313,23 @@ class Run(SubCommand):
             ),
         )
 
-    def execute(self, args: argparse.Namespace) -> None:
+    def _execute(self, args: argparse.Namespace) -> None:
         """Runs the evaluation harness with the provided arguments."""
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
-        # Create and validate config (most validation now happens in EvaluationConfig)
+        eval_logger = logging.getLogger(__name__)
+
+        # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
 
-        from lm_eval import simple_evaluate, utils
+        from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, WandbLogger
         from lm_eval.utils import handle_non_serializable, make_table
 
         # Set up logging
         if cfg.wandb_args:
             wandb_logger = WandbLogger(cfg.wandb_args, cfg.wandb_config_args)
-
-        utils.setup_logging(cfg.verbosity)
-        eval_logger = logging.getLogger(__name__)
-        os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
         # Set up evaluation tracker
         if cfg.output_path:
@@ -342,7 +341,7 @@ class Run(SubCommand):
         evaluation_tracker = EvaluationTracker(**cfg.hf_hub_log_args)
 
         # Create task manager (metadata already set up in config validation)
-        task_manager = cfg.process_tasks()
+        task_manager = cfg.process_tasks(cfg.metadata)
 
         # Validation warnings (keep these in CLI as they're logging-specific)
         if "push_samples_to_hub" in cfg.hf_hub_log_args and not cfg.log_samples:

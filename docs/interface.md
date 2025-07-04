@@ -13,7 +13,7 @@ Equivalently, running the library can be done via the `lm-eval` entrypoint at th
 The CLI now uses a subcommand structure for better organization:
 
 - `lm-eval run` - Execute evaluations (default behavior)
-- `lm-eval list` - List available tasks, models, etc.
+- `lm-eval ls` - List available tasks, models, etc.
 - `lm-eval validate` - Validate task configurations
 
 For backward compatibility, if no subcommand is specified, `run` is automatically inserted. So `lm-eval --model hf --tasks hellaswag` is equivalent to `lm-eval run --model hf --tasks hellaswag`.

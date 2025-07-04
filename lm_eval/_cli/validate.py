@@ -73,7 +73,7 @@ class Validate(SubCommand):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._add_args()
-        self._parser.set_defaults(func=lambda arg: self._parser.print_help())
+        self._parser.set_defaults(func=self._execute)
 
     def _add_args(self) -> None:
         self._parser.add_argument(
@@ -92,7 +92,7 @@ class Validate(SubCommand):
             help="Additional path to include if there are external tasks.",
         )
 
-    def execute(self, args: argparse.Namespace) -> None:
+    def _execute(self, args: argparse.Namespace) -> None:
         """Execute the validate command."""
         from lm_eval.tasks import TaskManager
 

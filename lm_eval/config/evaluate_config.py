@@ -187,14 +187,6 @@ class EvaluatorConfig:
         metadata={"help": "Additional metadata for tasks that require it"},
     )
 
-    @staticmethod
-    def _parse_dict_args(config: Dict[str, Any]) -> Dict[str, Any]:
-        """Parse string arguments that should be dictionaries."""
-        for key in config:
-            if key in DICT_KEYS and isinstance(config[key], str):
-                config[key] = simple_parse_args_string(config[key])
-        return config
-
     @classmethod
     def from_cli(cls, namespace: Namespace) -> "EvaluatorConfig":
         """
@@ -206,7 +198,7 @@ class EvaluatorConfig:
 
         # Load and merge YAML config if provided
         if used_config := hasattr(namespace, "config") and namespace.config:
-            config.update(cls._load_yaml_config(namespace.config))
+            config.update(cls.load_yaml_config(namespace.config))
 
         # Override with CLI args (only truthy values, exclude non-config args)
         excluded_args = {"config", "command", "func"}  # argparse internal args
@@ -222,7 +214,7 @@ class EvaluatorConfig:
         instance = cls(**config)
         if used_config:
             print(textwrap.dedent(f"""{instance}"""))
-        instance.validate_and_preprocess()
+        instance.configure()
 
         return instance
 
@@ -233,19 +225,24 @@ class EvaluatorConfig:
         Merges with built-in defaults and validates.
         """
         # Load YAML config
-        yaml_config = cls._load_yaml_config(config_path)
-
+        yaml_config = cls.load_yaml_config(config_path)
         # Parse string arguments that should be dictionaries
         yaml_config = cls._parse_dict_args(yaml_config)
-
-        # Create instance and validate
         instance = cls(**yaml_config)
-        instance.validate_and_preprocess()
+        instance.configure()
 
         return instance
 
     @staticmethod
-    def _load_yaml_config(config_path: Union[str, Path]) -> Dict[str, Any]:
+    def _parse_dict_args(config: Dict[str, Any]) -> Dict[str, Any]:
+        """Parse string arguments that should be dictionaries."""
+        for key in config:
+            if key in DICT_KEYS and isinstance(config[key], str):
+                config[key] = simple_parse_args_string(config[key])
+        return config
+
+    @staticmethod
+    def load_yaml_config(config_path: Union[str, Path]) -> Dict[str, Any]:
         """Load and validate YAML config file."""
         config_file = (
             Path(config_path) if not isinstance(config_path, Path) else config_path
@@ -268,11 +265,11 @@ class EvaluatorConfig:
 
         return yaml_data
 
-    def validate_and_preprocess(self) -> None:
+    def configure(self) -> None:
         """Validate configuration and preprocess fields after creation."""
         self._validate_arguments()
         self._process_arguments()
-        self._apply_trust_remote_code()
+        self._set_trust_remote_code()
 
     def _validate_arguments(self) -> None:
         """Validate configuration arguments and cross-field constraints."""
@@ -369,7 +366,7 @@ class EvaluatorConfig:
         self.tasks = task_names
         return task_manager
 
-    def _apply_trust_remote_code(self) -> None:
+    def _set_trust_remote_code(self) -> None:
         """Apply trust_remote_code setting if enabled."""
         if self.trust_remote_code:
             # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
