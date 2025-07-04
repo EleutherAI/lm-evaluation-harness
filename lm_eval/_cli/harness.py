@@ -2,12 +2,12 @@ import argparse
 import sys
 import textwrap
 
-from lm_eval._cli.listall import ListAll
+from lm_eval._cli.ls import List
 from lm_eval._cli.run import Run
 from lm_eval._cli.validate import Validate
 
 
-class Eval:
+class HarnessCLI:
     """Main CLI parser that manages all subcommands."""
 
     def __init__(self):
@@ -20,7 +20,7 @@ class Eval:
                   lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
 
                   # List available tasks
-                  lm-eval list tasks
+                  lm-eval ls tasks
 
                   # Validate task configurations
                   lm-eval validate --tasks hellaswag,arc_easy
@@ -40,7 +40,7 @@ class Eval:
             dest="command", help="Available commands", metavar="COMMAND"
         )
         Run.create(self._subparsers)
-        ListAll.create(self._subparsers)
+        List.create(self._subparsers)
         Validate.create(self._subparsers)
 
     def parse_args(self) -> argparse.Namespace:

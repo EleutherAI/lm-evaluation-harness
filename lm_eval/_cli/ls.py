@@ -4,33 +4,33 @@ import textwrap
 from lm_eval._cli.subcommand import SubCommand
 
 
-class ListAll(SubCommand):
+class List(SubCommand):
     """Command for listing available tasks."""
 
     def __init__(self, subparsers: argparse._SubParsersAction, *args, **kwargs):
         # Create and configure the parser
         super().__init__(*args, **kwargs)
         self._parser = subparsers.add_parser(
-            "list",
+            "ls",
             help="List available tasks, groups, subtasks, or tags",
             description="List available tasks, groups, subtasks, or tags from the evaluation harness.",
             usage="lm-eval list [tasks|groups|subtasks|tags] [--include_path DIR]",
             epilog=textwrap.dedent("""
                 examples:
                   # List all available tasks (includes groups, subtasks, and tags)
-                  $ lm-eval list tasks
+                  $ lm-eval ls tasks
 
                   # List only task groups (like 'mmlu', 'glue', 'superglue')
-                  $ lm-eval list groups
+                  $ lm-eval ls groups
 
                   # List only individual subtasks (like 'mmlu_abstract_algebra')
-                  $ lm-eval list subtasks
+                  $ lm-eval ls subtasks
 
                   # Include external task definitions
-                  $ lm-eval list tasks --include_path /path/to/external/tasks
+                  $ lm-eval ls tasks --include_path /path/to/external/tasks
 
                   # List tasks from multiple external paths
-                  $ lm-eval list tasks --include_path "/path/to/tasks1:/path/to/tasks2"
+                  $ lm-eval ls tasks --include_path "/path/to/tasks1:/path/to/tasks2"
 
                 organization:
                   • Groups: Collections of tasks with aggregated metric across subtasks (e.g., 'mmlu')
@@ -46,7 +46,7 @@ class ListAll(SubCommand):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         self._add_args()
-        self._parser.set_defaults(func=lambda arg: self._parser.print_help())
+        self._parser.set_defaults(func=self._execute)
 
     def _add_args(self) -> None:
         self._parser.add_argument(
@@ -63,7 +63,7 @@ class ListAll(SubCommand):
             help="Additional path to include if there are external tasks.",
         )
 
-    def execute(self, args: argparse.Namespace) -> None:
+    def _execute(self, args: argparse.Namespace) -> None:
         """Execute the list command."""
         from lm_eval.tasks import TaskManager
 
