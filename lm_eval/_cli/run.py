@@ -47,7 +47,7 @@ class Run(SubCommand):
     def _add_args(self) -> None:
         self._parser = self._parser
 
-        # Configuration
+        # Defaults are set in config/evaluate_config.py
         config_group = self._parser.add_argument_group("configuration")
         config_group.add_argument(
             "--config",
@@ -64,7 +64,7 @@ class Run(SubCommand):
             "--model",
             "-m",
             type=str,
-            default="hf",
+            default=None,
             metavar="MODEL_NAME",
             help="Model name (default: hf)",
         )
@@ -283,7 +283,7 @@ class Run(SubCommand):
         advanced_group.add_argument(
             "--seed",
             type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
-            default=default_seed_string,
+            default=None,
             metavar="SEED|S1,S2,S3,S4",
             help=textwrap.dedent(f"""
                 Random seeds for python,numpy,torch,fewshot (default: {default_seed_string}).
@@ -309,7 +309,7 @@ class Run(SubCommand):
             default=None,
             metavar="JSON",
             help=textwrap.dedent(
-                "JSON metadata for task configs (merged with model_args), required for some tasks such as RULER"
+                """JSON metadata for task configs (merged with model_args), required for some tasks such as RULER"""
             ),
         )
 

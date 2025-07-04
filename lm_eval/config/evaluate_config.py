@@ -1,5 +1,6 @@
 import json
 import logging
+import textwrap
 from argparse import Namespace
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -204,7 +205,7 @@ class EvaluatorConfig:
         config = asdict(cls())
 
         # Load and merge YAML config if provided
-        if hasattr(namespace, "config") and namespace.config:
+        if used_config := hasattr(namespace, "config") and namespace.config:
             config.update(cls._load_yaml_config(namespace.config))
 
         # Override with CLI args (only truthy values, exclude non-config args)
@@ -219,6 +220,8 @@ class EvaluatorConfig:
 
         # Create instance and validate
         instance = cls(**config)
+        if used_config:
+            print(textwrap.dedent(f"""{instance}"""))
         instance.validate_and_preprocess()
 
         return instance
@@ -252,6 +255,7 @@ class EvaluatorConfig:
 
         try:
             yaml_data = yaml.safe_load(config_file.read_text())
+            print(textwrap.dedent(f"""yaml: {yaml_data}"""))
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in {config_path}: {e}")
         except (OSError, UnicodeDecodeError) as e:
