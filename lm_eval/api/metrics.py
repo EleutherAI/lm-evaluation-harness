@@ -1,5 +1,6 @@
 import logging
 import math
+import os
 import random
 import re
 import string
@@ -463,33 +464,53 @@ class _bootstrap_internal:
         return res
 
 
-def bootstrap_stderr(f, xs, iters):
-    import multiprocessing as mp
-
-    pool = mp.Pool(mp.cpu_count())
-    # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
-    # equivalent to stderr calculated without Bessel's correction in the stddev.
-    # Unfortunately, I haven't been able to figure out what the right correction is
-    # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
-    # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
-    # Thankfully, shouldn't matter because our samples are pretty big usually anyways
-    res = []
-    chunk_size = min(1000, iters)
+def _bootstrap_stderr_no_mp(f, xs, iters):
+    # Non Multi-Processing version of same function
     from tqdm import tqdm
 
-    print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(
-        pool.imap(
-            _bootstrap_internal(f, chunk_size),
-            [(i, xs) for i in range(iters // chunk_size)],
-        ),
-        total=iters // chunk_size,
-    ):
-        # sample w replacement
-        res.extend(bootstrap)
+    print(f"bootstrapping for stddev: {f.__name__}")
 
-    pool.close()
+    res = []
+    # A single loop replaces the multiprocessing pool.
+    for _ in tqdm(range(iters)):
+        # Create a bootstrap sample by drawing with replacement.
+        resample = random.choices(xs, k=len(xs))
+        # Apply the statistic function to the resample.
+        res.append(f(resample))
+
     return sample_stddev(res)
+
+
+def bootstrap_stderr(f, xs, iters):
+    if not os.getenv("DISABLE_MULTIPROC"):
+        import multiprocessing as mp
+
+        pool = mp.Pool(mp.cpu_count())
+        # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
+        # equivalent to stderr calculated without Bessel's correction in the stddev.
+        # Unfortunately, I haven't been able to figure out what the right correction is
+        # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
+        # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
+        # Thankfully, shouldn't matter because our samples are pretty big usually anyways
+        res = []
+        chunk_size = min(1000, iters)
+        from tqdm import tqdm
+
+        print("bootstrapping for stddev:", f.__name__)
+        for bootstrap in tqdm(
+            pool.imap(
+                _bootstrap_internal(f, chunk_size),
+                [(i, xs) for i in range(iters // chunk_size)],
+            ),
+            total=iters // chunk_size,
+        ):
+            # sample w replacement
+            res.extend(bootstrap)
+
+        pool.close()
+        return sample_stddev(res)
+    else:
+        return _bootstrap_stderr_no_mp(f, xs, iters)
 
 
 def stderr_for_metric(metric, bootstrap_iters: int):
