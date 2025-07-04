@@ -104,7 +104,7 @@ class RepeatConfig:
     """Encapsulates information about a single repeat."""
 
     repeats: int = 1
-    metric_fn: Optional[Callable] = "pass@N"
+    metric_fn: Optional[str, Callable] = "pass@N"
     kwargs: Optional[dict] = None
 
 
