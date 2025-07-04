@@ -1,4 +1,5 @@
-from lm_eval.api.task import ConfigurableTask, TaskConfig
+from lm_eval.api.task import ConfigurableTask
+from lm_eval.config.task import TaskConfig
 
 
 class MockConfigurableTask(ConfigurableTask):

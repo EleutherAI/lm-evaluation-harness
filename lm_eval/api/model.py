@@ -257,7 +257,7 @@ class CachingLM:
             eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
-        def fn(requests: list[Instance]) -> list[Instance]:
+        def fn(requests: list["Instance"]) -> list["Instance"]:
             res = []
             remaining_reqs = []
             warned = False
@@ -343,7 +343,7 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def _loglikelihood_tokens(
-        self, requests: list[Instance], **kwargs
+        self, requests: list["Instance"], **kwargs
     ) -> list[tuple[float, bool]]:
         pass
 
@@ -375,7 +375,7 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests: list[Instance], disable_tqdm: bool = False
+        self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
