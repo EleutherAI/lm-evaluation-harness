@@ -258,7 +258,7 @@ class TaskConfig(dict):
                 for metric_name in _metric_list
             )
         else:
-            # ---------- 2. How will the outputs be evaluated ----------
+            # ---------- 2. Process user-defined metrics from config ----------
             for metric_config in self.metric_list:
                 metric_name = metric_config["metric"]
                 _metric_fn_kwargs = {
