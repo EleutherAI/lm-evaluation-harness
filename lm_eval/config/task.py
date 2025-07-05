@@ -357,20 +357,11 @@ class TaskConfig(dict):
         return setattr(self, item, value)
 
     def to_dict(self, keep_callable: bool = False) -> dict:
-        """Return a printable dict with Nones stripped and callables serialised.
+        def _ser(x):
+            if isinstance(x, dict):
+                return {k: _ser(v) for k, v in x.items()}
+            if isinstance(x, (list, tuple, set)):
+                return type(x)(_ser(i) for i in x)
+            return maybe_serialize(x, keep_callable)
 
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-        """
-
-        cfg = asdict(self)
-        return {
-            k: [
-                {mk: maybe_serialize(mv, keep_callable) for mk, mv in md.items()}
-                for md in v
-            ]
-            if k == "metric_list"
-            else maybe_serialize(v)
-            for k, v in cfg.items()
-            if v is not None
-        }
+        return {k: _ser(v) for k, v in asdict(self).items() if v is not None}
