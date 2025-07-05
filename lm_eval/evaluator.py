@@ -733,9 +733,9 @@ def evaluate(
             "group_subtasks": dict(reversed(subtask_list.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
-            "n-shot": dict(sorted(num_fewshot.items())),
+            "n_shot": dict(sorted(num_fewshot.items())),
             "higher_is_better": dict(sorted(higher_is_better.items())),
-            "n-samples": {
+            "n_samples": {
                 task_output.task_name: {
                     "original": len(task_output.task.eval_docs),
                     "effective": min(

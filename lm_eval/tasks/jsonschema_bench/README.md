@@ -45,7 +45,7 @@ lm_eval \
 
 The expected results is
 ```
-|         Tasks         |Version|Filter|n-shot|     Metric      |   |Value|   |Stderr|
+|         Tasks         |Version|Filter|n_shot|     Metric      |   |Value|   |Stderr|
 |-----------------------|------:|------|-----:|-----------------|---|----:|---|-----:|
 |jsonschema_bench_medium|    0.1|none  |     2|json_validity    |↑  |  1.0|±  |0.0000|
 |                       |       |none  |     2|schema_compliance|↑  |  0.2|±  |0.1333|
