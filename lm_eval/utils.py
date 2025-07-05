@@ -9,7 +9,6 @@ import logging
 import os
 import re
 from dataclasses import asdict, is_dataclass
-from io import BytesIO
 from itertools import islice
 from pathlib import Path
 from typing import Any, Callable, Generator, List, Optional, Tuple
@@ -554,6 +553,8 @@ def weighted_f1_score(items):
 
 
 def convert_pil_to_hash(value):
+    from io import BytesIO
+
     img_bytes = BytesIO()
     value.save(img_bytes, format="PNG")
     return hashlib.sha256(str(img_bytes).encode()).hexdigest()

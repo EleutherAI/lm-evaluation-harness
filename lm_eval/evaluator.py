@@ -78,7 +78,6 @@ def simple_evaluate(
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
     metadata: Optional[dict] = None,
-    hash_images: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
