@@ -599,37 +599,24 @@ The best way to get support is to open an issue on this repo or join the [Eleuth
 
 Extras dependencies can be installed via `pip install -e ".[NAME]"`
 
-| Name                 | Use                                                   |
-| -------------------- | ----------------------------------------------------- |
-| api                  | For using api models (Anthropic, OpenAI API)          |
-| audiolm_qwen         | For running Qwen2 audio models                        |
-| deepsparse           | For running NM's DeepSparse models                    |
-| dev                  | For linting PRs and contributions                     |
-| gptq                 | For loading models with AutoGPTQ                      |
-| gptqmodel            | For loading models with GPTQModel                     |
-| hf_transfer          | For speeding up HF Hub file downloads                 |
-| ibm_watsonx_ai       | For using IBM watsonx.ai model apis                   |
-| ifeval               | For running the IFEval task                           |
-| ipex                 | For running on optimum-intel ipex backend             |
-| japanese_leaderboard | For running Japanese LLM Leaderboard tasks            |
-| longbench            | For running LongBench tasks                           |
-| mamba                | For loading Mamba SSM models                          |
-| math                 | For running math task answer checking                 |
-| multilingual         | For multilingual tokenizers                           |
-| neuronx              | For running on AWS inf2 instances                     |
-| optimum              | For running Intel OpenVINO models                     |
-| promptsource         | For using PromptSource prompts                        |
-| ruler                | For running RULER tasks                               |
-| sae_lens             | For using SAELens to steer models                     |
-| sentencepiece        | For using the sentencepiece tokenizer                 |
-| sparseml             | For using NM's SparseML models                        |
-| sparsify             | For using Sparsify to steer models                    |
-| testing              | For running library test suite                        |
-| vllm                 | For loading models with vLLM                          |
-| wandb                | For integration with `Weights and Biases` platform    |
-| zeno                 | For visualizing results with Zeno                     |
-| -------------------- | ----------------------------------------------------- |
-| all                  | Loads all extras (not recommended)                    |
+| NAME                 | Description                    | NAME           | Description                           |
+|----------------------|--------------------------------|----------------|---------------------------------------|
+| tasks                | All task-specific dependencies | api            | API models (Anthropic, OpenAI, local) |
+| acpbench             | ACP Bench tasks                | audiolm_qwen   | Qwen2 audio models                    |
+| ifeval               | IFEval task                    | deepsparse     | DeepSparse models (CPU)               |
+| japanese_leaderboard | Japanese LLM tasks             | gptq           | AutoGPTQ models                       |
+| longbench            | LongBench tasks                | gptqmodel      | GPTQModel models                      |
+| math                 | Math answer checking           | hf_transfer    | Speed up HF downloads                 |
+| multilingual         | Multilingual tokenizers        | ibm_watsonx_ai | IBM watsonx.ai models                 |
+| ruler                | RULER tasks                    | ipex           | Intel IPEX backend                    |
+|                      |                                |                |                                       |
+| dev                  | Linting & contributions        | mamba          | Mamba SSM models                      |
+| promptsource         | PromptSource prompts           | neuronx        | AWS inf2 instances                    |
+| sentencepiece        | Sentencepiece tokenizer        | optimum        | Intel OpenVINO models                 |
+| testing              | Run test suite                 | sae_lens       | SAELens model steering                |
+| unitxt               | Run unitxt tasks               | sparseml       | SparseML models (CPU)                 |
+| wandb                | Weights & Biases               | sparsify       | Sparsify model steering               |
+| zeno                 | Result visualization           | vllm           | vLLM models                           |
 
 ## Cite as
 
