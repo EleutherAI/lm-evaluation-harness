@@ -37,7 +37,7 @@ def parse_args():
 
 
 def sanitize_string(model_args_raw: Union[str, dict]) -> str:
-    """Pure function that handles the sanitization logic"""
+    """Sanitize the model_args string or dict"""
     # Convert to string if it's a dictionary
     model_args_str = (
         json.dumps(model_args_raw)
@@ -106,15 +106,14 @@ def main():
             )
             # Load the model_args, which can be either a string or a dictionary
             model_args = sanitize_string(
-                sanitize_string(
-                    json.load(
-                        open(
-                            Path(args.data_path, model, latest_results),
-                            encoding="utf-8",
-                        )
-                    )["config"]["model_args"]
-                )
+                json.load(
+                    open(
+                        Path(args.data_path, model, latest_results),
+                        encoding="utf-8",
+                    )
+                )["config"]["model_args"]
             )
+
             print(model_args)
             data = []
             with open(
