@@ -1,0 +1,25 @@
+# Language Model Evaluation Harness Configuration File
+#
+# This YAML configuration file allows you to specify evaluation parameters
+# instead of passing them as command-line arguments.
+#
+# Usage:
+#   $ lm_eval --config configs/default_config.yaml
+#
+# You can override any values in this config with command-line arguments:
+#   $ lm_eval --config configs/default_config.yaml --model_args pretrained=gpt2 --tasks mmlu
+#
+# All parameters are optional and have the same meaning as their CLI counterparts.
+
+model: hf
+model_args:
+  pretrained: EleutherAI/pythia-14m
+  dtype: float16
+tasks:
+  - hellaswag
+  - gsm8k
+batch_size: 1
+trust_remote_code: true
+log_samples: true
+output_path: ./test
+limit: 10
