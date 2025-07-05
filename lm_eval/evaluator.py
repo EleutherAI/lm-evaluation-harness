@@ -1,6 +1,7 @@
 import itertools
 import json
 import logging
+import os
 import random
 import time
 from collections import defaultdict
@@ -142,8 +143,6 @@ def simple_evaluate(
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
-    :param hash_images: bool
-        Whether to convert images to hashes to memory json takes to be stored.
     return
         Dictionary of results
     """
@@ -353,7 +352,6 @@ def simple_evaluate(
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
-        hash_images=hash_images,
     )
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
@@ -417,7 +415,6 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
-    hash_images: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -452,8 +449,6 @@ def evaluate(
         Verbosity level for logging
     :param confirm_run_unsafe_code: bool
         Whether to confirm running tasks marked as unsafe.
-    :param hash_images: bool
-        Whether to convert images to hashes to memory json takes to be stored.
     :return
         Dictionary of results
     """
@@ -754,8 +749,12 @@ def evaluate(
             },
         }
         if log_samples:
-            if hash_images:
-                samples = hash_dict_images(samples)
+            # default: hash images
+            samples = (
+                hash_dict_images(samples)
+                if os.environ.get("LMEVAL_HASHMM", "1") != "0"
+                else samples
+            )
             results_dict["samples"] = dict(samples)
 
         return results_dict

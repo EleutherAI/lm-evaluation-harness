@@ -17,7 +17,6 @@ from typing import Any, Callable, Generator, List, Optional, Tuple
 import numpy as np
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
-from PIL import Image
 
 
 SPACING = " " * 47
@@ -576,6 +575,7 @@ def hash_dict_images(data_dict):
         dict: A new dictionary with the same structure as `data_dict`, but with all
               bytes and PIL.Image.Image objects replaced by their hashes.
     """
+    from PIL import Image
 
     def _process_value(value):
         # Bytes -> hash
