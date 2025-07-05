@@ -2,9 +2,14 @@ from dataclasses import dataclass, field
 from typing import Literal, Optional, Tuple
 
 
+# from lm_eval.api.schemas import GenerateInput, LoglikelihoodInput
+
+
 OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
+
+# T = TypeVar("T", LoglikelihoodInput, GenerateInput)
 
 
 @dataclass
@@ -33,6 +38,4 @@ class Instance:
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
-        return (
-            self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
-        )
+        return self.arguments

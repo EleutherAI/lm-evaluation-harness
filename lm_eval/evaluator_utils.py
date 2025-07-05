@@ -111,7 +111,15 @@ class TaskOutput:
                 # TODO: Handle this better and allow other aggregate functions other than mean.
                 agg_fn = mean
             metric_key = f"{metric},{filter_key}"
-            self.agg_metrics[metric_key] = agg_fn(items)
+            # Handle multiple repeats: items is now list[list[float]]
+            if items and isinstance(items[0], list):
+                # Apply aggregation function to each repeat
+                self.agg_metrics[metric_key] = [
+                    agg_fn(repeat) for repeat in zip(*items)
+                ]
+            else:
+                # Backward compatibility: items is list[float]
+                self.agg_metrics[metric_key] = agg_fn(items)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
             if isinstance(bootstrap_iters, int):
                 stderr_fn = stderr_for_metric(
@@ -120,9 +128,12 @@ class TaskOutput:
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
                 )
-                self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
-                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-                )
+                # TODO: what's the best way to calculate repeat stderr
+                # maybe mean/sample then bootstrap?
+                self.agg_metrics[f"{metric}_stderr,{filter_key}"] = [
+                    (stderr_fn(item) if (stderr_fn and len(item) > 1) else "N/A")
+                    for item in zip(*items)
+                ][0]
             else:
                 raise ValueError(
                     f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."
