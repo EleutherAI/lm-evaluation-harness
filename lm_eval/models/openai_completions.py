@@ -16,13 +16,21 @@ eval_logger = logging.getLogger(__name__)
 class LocalCompletionsAPI(TemplateAPI):
     def __init__(
         self,
-        base_url=None,
-        tokenizer_backend="huggingface",
+        base_url: str = None,
+        headers: dict[str, str] = None,
+        tokenizer_backend: str = "huggingface",
         **kwargs,
     ):
         super().__init__(
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
+        # Assign headers
+        self.headers = headers
+
+    @cached_property
+    def header(self) -> dict:
+        """Set API headers."""
+        return self.headers
 
     def _create_payload(
         self,
@@ -108,9 +116,9 @@ class LocalCompletionsAPI(TemplateAPI):
 class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
-        base_url=None,
-        tokenizer_backend=None,
-        tokenized_requests=False,
+        base_url: str = None,
+        tokenizer_backend: str = None,
+        tokenized_requests: bool = False,
         **kwargs,
     ):
         eval_logger.warning(
@@ -200,6 +208,8 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
 
+        self.headers = {"Authorization": f"Bearer {self.api_key}"}
+
     @cached_property
     def api_key(self):
         """Override this property to return the API key for the API request."""
@@ -236,12 +246,15 @@ class OpenAIChatCompletion(LocalChatCompletion):
             eval_logger.warning(
                 "o1 models do not support `stop` and only support temperature=1"
             )
+
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
             tokenized_requests=tokenized_requests,
             **kwargs,
         )
+
+        self.headers = {"Authorization": f"Bearer {self.api_key}"}
 
     @cached_property
     def api_key(self):
