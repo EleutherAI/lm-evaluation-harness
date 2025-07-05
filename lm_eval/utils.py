@@ -550,3 +550,87 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def get_iob_labels(text):
+    """
+    Extract the IOB labeling from generated text with <>-wrapped chunks.
+    """
+    # Get response block
+    pattern = r"<response>([\s\S]*?)(?:<\/response>|$)"
+    matches = re.findall(pattern, text)
+
+    # Return empty list to make an error, since the LLM
+    # didn't generate a proper <response> block
+    if not matches:
+        return []
+
+    text = matches[0].strip()
+
+    def is_open_tag(word):
+        return (word.startswith("<") and word.endswith(">")) and not word.startswith(
+            "</"
+        )
+
+    def is_close_tag(word):
+        return word.startswith("</") and word.endswith(">")
+
+    def untag(tag):
+        return tag[1:-1]
+
+    labels = []
+    current_tag = "O"
+    for word in text.split():
+        if is_open_tag(word):
+            current_tag = word
+        elif is_close_tag(word):
+            current_tag = "O"
+        else:
+            if current_tag == "O":
+                labels.append(current_tag)
+            else:
+                if labels and labels[-1] != "O":
+                    labels.append(f"I-{untag(current_tag)}")
+                else:
+                    labels.append(f"B-{untag(current_tag)}")
+    return labels
+
+
+def get_tagging_labels(text):
+    """
+    Extract labels from generated text with <>-wrapped words.
+    """
+    # Get response block
+    pattern = r"<response>([\s\S]*?)(?:<\/response>|$)"
+    matches = re.findall(pattern, text)
+
+    # Return empty list to make an error, since the LLM
+    # didn't generate a proper <response> block
+    if not matches:
+        return []
+
+    text = matches[0].strip()
+
+    def is_open_tag(word):
+        return (word.startswith("<") and word.endswith(">")) and not word.startswith(
+            "</"
+        )
+
+    def is_close_tag(word):
+        return word.startswith("</") and word.endswith(">")
+
+    def untag(tag):
+        return tag[1:-1]
+
+    labels = []
+    current_tag = None
+    for word in text.split():
+        if is_open_tag(word):
+            current_tag = untag(word)
+        elif is_close_tag(word):
+            current_tag = None
+        else:
+            # Add a prefix resembling NER since seqeval
+            # needs IOB-like labels.
+            labels.append(f"I-{current_tag}")
+    return labels

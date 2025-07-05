@@ -402,6 +402,38 @@ def acc_all_stderr(items):
     return acc
 
 
+@register_metric(
+    metric="seqeval",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="mean",
+)
+def seqeval_fn(**kwargs):  # This is a passthrough function
+    return run_seqeval(**kwargs)
+
+
+def run_seqeval(references, predictions, is_iob):
+    # Reconstruct the labeling from the annotated texts/generations
+    import evaluate
+
+    from lm_eval.utils import get_iob_labels, get_tagging_labels
+
+    get_labels_fn = get_iob_labels if is_iob else get_tagging_labels
+    references = [get_labels_fn(text) for text in references]
+    predictions = [get_labels_fn(text) for text in predictions]
+    seqeval = evaluate.load("seqeval")
+    try:
+        return seqeval.compute(predictions=predictions, references=references)[
+            "overall_f1"
+        ]
+    except ValueError:
+        # If seqeval raises an error, it's because the length of the prediction
+        # doesn't match the length of the gold standard. This is the minimum
+        # requirement for an LLM to function well as a sequence labeling
+        # model. If the LLM can't meet this standard, we assign a score of 0.
+        return 0.0
+
+
 def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     """Compute max metric between prediction and each ground truth."""
     scores_for_ground_truths = []
