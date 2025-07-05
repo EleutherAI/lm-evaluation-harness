@@ -727,6 +727,63 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
+def _normalize_gold(gold, choices):
+    """
+    Converts a gold label (int, str, or list of either) into index form and checks validity.
+
+    Ensures gold indices are within the bounds of `choices`. Invalid indices are replaced
+    with -100, and a warning flag is returned if any such replacement occurs.
+
+    Args:
+        gold (Union[int, str, List[Union[int, str]]]): The target answer(s).
+        choices (Sequence[str]): List of valid answer choices.
+
+    Returns:
+        Tuple[Union[int, List[int]], bool]: 
+            - Normalized gold label(s), with -100 for invalid entries.
+            - True if any invalid labels were found, else False.
+    """
+    gold_index_error = False
+    if isinstance(gold, list):
+        gold = [i if isinstance(i, int) and i < len(choices) else -100 for i in gold]
+        gold_index_error = any(i == -100 for i in gold)
+    elif isinstance(gold, int):
+        gold = gold if gold < len(choices) else -100
+        gold_index_error = gold == -100
+    elif isinstance(gold, str):
+        gold = choices.index(gold) if gold in choices else -100
+        gold_index_error = gold == -100
+    return gold, gold_index_error
+
+
+def _split_mutual_info_lls(lls, choices, use_metric):
+    """
+    Splits conditional and unconditional log-likelihoods for mutual information computation.
+
+    This function assumes that if the length of `lls` is twice the number of choices and
+    'acc_mutual_info' is among the metrics, then the first half corresponds to conditional
+    log-likelihoods and the second half to unconditional ones.
+
+    Args:
+        lls (Sequence[float]): Combined list of log-likelihoods.
+        choices (Sequence[str]): List of answer choices.
+        use_metric (List[str]): Active metrics for this evaluation.
+
+    Returns:
+        Tuple[List[float], Optional[List[float]]]: 
+            - The conditional log-likelihoods.
+            - The unconditional log-likelihoods (or None if not applicable).
+    """
+    if (
+        2 * len(choices) == len(lls)
+        and "acc_mutual_info" in use_metric
+    ):
+        lls_uncond = lls[len(choices):]
+        lls = lls[:len(choices)]
+        if len(lls_uncond) != len(choices):
+            raise ValueError("Unconditional LLS length mismatch.")
+        return lls, lls_uncond
+    return lls, None
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -1275,6 +1332,174 @@ class ConfigurableTask(Task):
         """
         return doc
 
+    # ---
+    # Internal helper methods for `process_results` dispatch.
+    #
+    # Each method follows this signature:
+    #   - doc (dict): A single example from the dataset.
+    #   - results (Any): Model output. Structure depends on OUTPUT_TYPE.
+    #   - use_metric (List[str]): The metrics selected for this task.
+    #
+    # Returns:
+    #   - result_dict (dict): Maps metric names to values (e.g. {"acc": 1.0}).
+    # ---
+
+    def _process_results_loglikelihood(self, doc, results, use_metric): 
+        """Process results from loglikelihood tasks (e.g., perplexity, greedy accuracy)."""
+        results = results[0]
+        ll, is_greedy = results
+        return {
+            **({"perplexity": ll} if "perplexity" in use_metric else {}),
+            **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
+        } 
+
+    def _process_results_loglikelihood_rolling(self, doc, results, use_metric): 
+        """Process results from rolling loglikelihood tasks (e.g., word/byte perplexity)."""
+        (loglikelihood,) = results
+        _words = self.count_words(self.doc_to_target(doc))
+        _bytes = self.count_bytes(self.doc_to_target(doc))
+        return {
+            **(
+                {"word_perplexity": (loglikelihood, _words)}
+                if "word_perplexity" in use_metric
+                else {}
+            ),
+            **(
+                {"byte_perplexity": (loglikelihood, _bytes)}
+                if "byte_perplexity" in use_metric
+                else {}
+            ),
+            **(
+                {"bits_per_byte": (loglikelihood, _bytes)}
+                if "bits_per_byte" in use_metric
+                else {}
+            ),
+        }
+
+    def _process_results_multiple_choice(self, doc, results, use_metric):
+        """Process results from multiple-choice tasks (e.g., HellaSwag, ARC)."""
+        lls, is_greedy = zip(*results)
+        choices = self.doc_to_choice(doc)
+        lls, lls_uncond = _split_mutual_info_lls(lls, choices, use_metric)
+    
+        completion_len = np.array([float(len(c)) for c in choices])
+        pred = np.argmax(lls)
+        pred_norm = np.argmax(lls / completion_len)
+        prob_norm = utils.softmax(lls)
+    
+        gold = self.doc_to_text(doc) if self.multiple_input else self.doc_to_target(doc)
+        gold, gold_index_error = _normalize_gold(gold, choices)
+
+        if gold_index_error:
+            eval_logger.warning(f"Invalid gold index for doc:\n\n{doc}\n\n")
+    
+        if self.multiple_target:
+            acc = float(pred in gold)
+            acc_norm = float(pred_norm in gold)
+            exact_match = int(any(is_greedy[i] if i != -100 else 0 for i in gold))
+        else:
+            acc = float(pred == gold)
+            acc_norm = float(pred_norm == gold)
+            exact_match = int(is_greedy[gold]) if gold != -100 else 0
+    
+        result_dict = {}
+
+        def add_metric(name, value):
+            if name in use_metric:
+                result_dict[name] = value
+    
+        add_metric("acc", acc)
+        add_metric("acc_norm", acc_norm)
+        add_metric("exact_match", exact_match)
+        add_metric("f1", (gold, pred))
+        add_metric("mcc", (gold, pred))
+        add_metric("brier_score", (gold, prob_norm))
+    
+        if lls_uncond and "acc_mutual_info" in use_metric:
+            lls_mi = [ll_c - ll_u for ll_c, ll_u in zip(lls, lls_uncond)]
+            add_metric("acc_mutual_info", float(np.argmax(lls_mi) == gold))
+    
+        return result_dict
+ 
+    def _process_results_generate_until(self, doc, results, use_metric): 
+        """Process results from text generation tasks (e.g., QA, summarization)."""
+        gold = self.doc_to_target(doc)
+        result = results[0]
+        if self.config.doc_to_choice is not None:
+            # If you set doc_to_choice,
+            # it assumes that doc_to_target returns a number.
+            choices = self.doc_to_choice(doc)
+            gold = choices[gold]
+        # we expect multiple_targets to be a list.
+        elif self.multiple_target:
+            gold = list(gold)
+        # TODO: handle this better
+        elif type(gold) is not type(result) and not (
+            "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
+        ):
+            # cast gold to the same type as result
+            gold = type(result)(gold)
+
+        for metric in self._metric_fn_list.keys():
+            if self.multiple_target:
+                # in the case where we have multiple targets,
+                # return true if any are true
+                # TODO: this may break for multipLe_target, non zero-or-1 metrics
+                scores = []
+                if not isinstance(gold, list):
+                    # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
+                    # print(gold)
+                    gold = [gold]
+                if metric == "exact_match":
+                    result = [result for _ in range(len(gold))]
+                    scores = self._metric_fn_list[metric](
+                        references=gold,
+                        predictions=result,
+                        **self._metric_fn_kwargs[metric],
+                    )[metric]
+                    result_score = 1.0 if scores > 0.0 else 0.0
+                else:
+                    for gold_option in gold:
+                        try:
+                            result_score = self._metric_fn_list[metric](
+                                references=[gold_option],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                        except (
+                            TypeError
+                        ):  # TODO: this is hacky and I don't want to do it
+                            result_score = self._metric_fn_list[metric](
+                                [gold_option, result]
+                            )
+                        if isinstance(result_score, dict):
+                            # TODO: this handles the case where HF evaluate returns a dict.
+                            result_score = result_score[metric]
+                        scores.append(result_score)
+                    if any(scores):
+                        result_score = 1.0
+                    else:
+                        result_score = 0.0
+            else:
+                try:
+                    result_score = self._metric_fn_list[metric](
+                        references=[gold],
+                        predictions=[result],
+                        **self._metric_fn_kwargs[metric],
+                    )
+                except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    result_score = self._metric_fn_list[metric]([gold, result])
+            if isinstance(result_score, dict):
+                # TODO: this handles the case where HF evaluate returns a dict.
+                # This allows for multiple metrics to be returned from the same function
+                for k, v in result_score.items():
+                    result_dict[k] = v
+            else:
+                result_dict[metric] = result_score
+
+        return result_dict 
+
+
     def doc_to_text(self, doc, doc_to_text=None):
         if self.prompt is not None:
             doc_to_text = self.prompt
@@ -1541,200 +1766,21 @@ class ConfigurableTask(Task):
     def process_results(self, doc, results):
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
-
-        result_dict = {}
+    
         use_metric = list(self._metric_fn_list.keys())
+    
         if self.OUTPUT_TYPE == "loglikelihood":
-            results = results[0]
-            ll, is_greedy = results
-            return {
-                **({"perplexity": ll} if "perplexity" in use_metric else {}),
-                **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
-            }
+                return self._process_results_loglikelihood(doc, results, use_metric)
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            (loglikelihood,) = results
-            _words = self.count_words(self.doc_to_target(doc))
-            _bytes = self.count_bytes(self.doc_to_target(doc))
-            return {
-                **(
-                    {"word_perplexity": (loglikelihood, _words)}
-                    if "word_perplexity" in use_metric
-                    else {}
-                ),
-                **(
-                    {"byte_perplexity": (loglikelihood, _bytes)}
-                    if "byte_perplexity" in use_metric
-                    else {}
-                ),
-                **(
-                    {"bits_per_byte": (loglikelihood, _bytes)}
-                    if "bits_per_byte" in use_metric
-                    else {}
-                ),
-            }
+                return self._process_results_loglikelihood_rolling(doc, results, use_metric)
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls, is_greedy = zip(*results)
-
-            # retrieve choices in List[str] form, to compute choice lengths, etc.
-            choices = self.doc_to_choice(doc)
-            completion_len = np.array([float(len(i)) for i in choices])
-
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
-                # then we are doing mutual info.
-                # this stores the "dryrun" / unconditional answer loglikelihoods
-                # as we extend the args list with unconditional ("", continuation) pairs
-                lls_unconditional = lls[len(choices) :]
-                if len(lls_unconditional) != len(choices):
-                    raise ValueError
-                # and this stores our "regular" conditional loglikelihoods
-                lls = lls[: len(choices)]
-
-            pred = np.argmax(lls)
-            pred_norm = np.argmax(lls / completion_len)
-
-            if self.multiple_input:
-                gold = self.doc_to_text(doc)
-            else:
-                gold = self.doc_to_target(doc)
-
-            gold_index_error = False
-            if isinstance(gold, list):
-                gold = [i if i < len(choices) else -100 for i in gold]
-                if -100 in gold:
-                    gold_index_error = True
-            else:
-                if isinstance(gold, int):
-                    gold = gold if gold < len(choices) else -100
-                elif isinstance(gold, str):
-                    gold = choices.index(gold) if gold in choices else -100
-
-                if gold == -100:
-                    gold_index_error = True
-
-            if gold_index_error:
-                eval_logger.warning(
-                    f"Label index was not in within range of available choices,"
-                    f"Sample:\n\n{doc}\n\n"
-                )
-
-            if self.multiple_target:
-                acc = 1.0 if pred in gold else 0.0
-                acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
-            else:
-                acc = 1.0 if pred == gold else 0.0
-                acc_norm = 1.0 if pred_norm == gold else 0.0
-                # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold]) if gold != -100 else 0
-
-            prob_norm = utils.softmax(lls)
-
-            # TODO use keyword arguments to the metric?
-            # gold, pred, norm stuff, the original lls,
-            result_dict = {
-                **({"acc": acc} if "acc" in use_metric else {}),
-                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
-                **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-                **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-                **(
-                    {"brier_score": (gold, prob_norm)}
-                    if "brier_score" in use_metric
-                    else {}
-                ),
-            }
-
-            if "acc_mutual_info" in use_metric:
-                lls_mutual_info = [
-                    ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
-                ]
-                acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
-                result_dict["acc_mutual_info"] = acc_mutual_info
-
+                return self._process_results_multiple_choice(doc, results, use_metric)
         elif self.OUTPUT_TYPE == "generate_until":
-            gold = self.doc_to_target(doc)
-            result = results[0]
-            if self.config.doc_to_choice is not None:
-                # If you set doc_to_choice,
-                # it assumes that doc_to_target returns a number.
-                choices = self.doc_to_choice(doc)
-                gold = choices[gold]
-            # we expect multiple_targets to be a list.
-            elif self.multiple_target:
-                gold = list(gold)
-            # TODO: handle this better
-            elif type(gold) is not type(result) and not (
-                "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
-            ):
-                # cast gold to the same type as result
-                gold = type(result)(gold)
-
-            for metric in self._metric_fn_list.keys():
-                if self.multiple_target:
-                    # in the case where we have multiple targets,
-                    # return true if any are true
-                    # TODO: this may break for multipLe_target, non zero-or-1 metrics
-                    scores = []
-                    if not isinstance(gold, list):
-                        # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        # print(gold)
-                        gold = [gold]
-                    if metric == "exact_match":
-                        result = [result for _ in range(len(gold))]
-                        scores = self._metric_fn_list[metric](
-                            references=gold,
-                            predictions=result,
-                            **self._metric_fn_kwargs[metric],
-                        )[metric]
-                        result_score = 1.0 if scores > 0.0 else 0.0
-                    else:
-                        for gold_option in gold:
-                            try:
-                                result_score = self._metric_fn_list[metric](
-                                    references=[gold_option],
-                                    predictions=[result],
-                                    **self._metric_fn_kwargs[metric],
-                                )
-                            except (
-                                TypeError
-                            ):  # TODO: this is hacky and I don't want to do it
-                                result_score = self._metric_fn_list[metric](
-                                    [gold_option, result]
-                                )
-                            if isinstance(result_score, dict):
-                                # TODO: this handles the case where HF evaluate returns a dict.
-                                result_score = result_score[metric]
-                            scores.append(result_score)
-                        if any(scores):
-                            result_score = 1.0
-                        else:
-                            result_score = 0.0
-                else:
-                    try:
-                        result_score = self._metric_fn_list[metric](
-                            references=[gold],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[metric],
-                        )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = self._metric_fn_list[metric]([gold, result])
-                if isinstance(result_score, dict):
-                    # TODO: this handles the case where HF evaluate returns a dict.
-                    # This allows for multiple metrics to be returned from the same function
-                    for k, v in result_score.items():
-                        result_dict[k] = v
-                else:
-                    result_dict[metric] = result_score
+                return self._process_results_generate_until(doc, results, use_metric)
         else:
-            raise ValueError(
-                f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'generate_until' or 'multiple_choice'",
-            )
-
-        return result_dict
+               raise ValueError(
+                f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of the following: {', '.join(ALL_OUTPUT_TYPES)}",
+            ) 
 
     def aggregation(self) -> dict:
         return self._aggregation_list
