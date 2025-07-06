@@ -752,6 +752,7 @@ def evaluate(
             samples = (
                 hash_dict_images(samples)
                 if os.environ.get("LMEVAL_HASHMM", "1") != "0"
+                and (hasattr(lm, "MULTIMODAL"))
                 else samples
             )
             results_dict["samples"] = dict(samples)
