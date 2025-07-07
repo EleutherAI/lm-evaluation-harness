@@ -734,7 +734,7 @@ class ConfigurableTask(Task):
             self.dataset = datasets.load_dataset(
                 path=self.config.ds_cfg.path,
                 name=self.config.ds_cfg.name,
-                **self.config.ds_cfg.kwargs,
+                **self.config.ds_cfg.kwargs if self.config.ds_cfg.kwargs else {},
             )
 
     def has_training_docs(self) -> bool:
