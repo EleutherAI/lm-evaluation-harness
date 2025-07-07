@@ -8,8 +8,6 @@ from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from itertools import groupby
-from operator import attrgetter
 from typing import (
     Any,
     Dict,
@@ -30,7 +28,12 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
-from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
+from lm_eval.api.metrics import (
+    bits_per_byte,
+    mean,
+    stderr_for_metric,
+    weighted_perplexity,
+)
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
@@ -39,10 +42,10 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.api.schemas import MetricResult
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.utils import create_sample_log, pass_at_k
 
 
 ALL_OUTPUT_TYPES = [
@@ -1774,19 +1777,22 @@ class ConfigurableTask(Task):
 
     def calculate_metrics(
         self,
-        instances_by_doc_id=None,
-        filter_keys=None,
-        samples=None,
-        rank=1,
-        limit=None,
-        world_size=1,
-    ) -> list[MetricResult]:
+        requests: list[Instance] = None,
+        filter_keys: list[str] = None,
+        indices: list[int] = None,
+        rank: int = 1,
+        limit: int = None,
+        world_size: int = 1,
+        log_samples: bool = False,
+    ) -> tuple[
+        Optional[dict[tuple[str, str], list[list[float]]]], Optional[list[dict]]
+    ]:
         """Calculate metrics for all datapoints in the task.
 
         Args:
             instances_by_doc_id (dict): Dictionary mapping doc_ids to lists of instances.
             filter_key (str): The filter key to use for filtered responses.
-            samples (dict, optional): Dictionary of sample indices to evaluate.
+            indices (dict, optional): Dictionary of sample indices to evaluate.
             rank (int): The process rank.
             limit (int, optional): Limit on number of examples to evaluate.
             world_size (int): Total number of processes.
@@ -1794,8 +1800,20 @@ class ConfigurableTask(Task):
         Returns:
             list: A list of metrics calculated for each document.
         """
-        if not self._instances:
-            return
+        if not requests and not self.instances:
+            print("sent results")
+            return None, None
+
+        ### Collect values of metrics on all datapoints ###
+        # Pre-process task.instances to group by doc_id
+        instances_by_doc_id = defaultdict(list)
+        for instance in self.instances:
+            instances_by_doc_id[instance.doc_id].append(instance)
+        # Sort instances within each group
+        for instances in instances_by_doc_id.values():
+            instances.sort(key=lambda x: x.idx)
+        _all_metrics = defaultdict(list)
+        _samples = [] if log_samples else None
 
         if filter_keys is None:
             filter_keys = (
@@ -1805,23 +1823,18 @@ class ConfigurableTask(Task):
             )
         if isinstance(filter_keys, str):
             filter_keys = [filter_keys]
-        if not instances_by_doc_id:
-            instances_by_doc_id = defaultdict(list)
-            for instance in self.instances:
-                instances_by_doc_id[instance.doc_id].append(instance)
-        # all_metrics = collections.defaultdict(list)
-        all_metrics = []
         for filter_key in filter_keys:
             doc_iterator = self.doc_iterator(
                 rank=rank,
                 limit=limit,
                 world_size=world_size,
-                # samples=indices,
+                samples=indices,
             )
 
             for doc_id, doc in doc_iterator:
-                # doc_id_true = indices[doc_id] if indices else doc_id
-                requests = instances_by_doc_id[doc_id]
+                _doc_id_true = indices[doc_id] if indices else doc_id
+                _sample_metric = defaultdict(list)
+                requests = instances_by_doc_id[_doc_id_true]
                 if len(requests) > 1:
                     # if one doc has multiple instances then calculate metric together
                     metrics = self.process_results(
@@ -1837,24 +1850,54 @@ class ConfigurableTask(Task):
                             else [req.filtered_resps[filter_key]]
                         )
                     ]
-                all_metrics.append(
-                    MetricResult(scores=metrics, doc_id=doc_id, filter_key=filter_key)
+                for metric in metrics:
+                    for k, v in metric.items():
+                        _sample_metric[k].append(v)
+                if log_samples:
+                    _samples.append(
+                        create_sample_log(
+                            doc=doc,
+                            doc_id=_doc_id_true,
+                            target=self.doc_to_target(doc),
+                            requests=requests,
+                            metric_names=metrics,
+                            filter_key=filter_key,
+                        )
+                    )
+                for metric_name, _score in _sample_metric.items():
+                    _all_metrics[(metric_name, filter_key)].append(_score)
+
+        return _all_metrics, _samples
+
+    def compute_agg_metrics(
+        self,
+        metric_results: dict[tuple[str, str], list[list[float]]],
+        bootstrap_iters: int = 1000,
+    ):
+        agg_metrics = defaultdict(list)
+        for (metric_name, filter_key), scores in metric_results.items():
+            agg_fn = self.aggregation()[metric_name]
+            metric_key = f"{metric_name},{filter_key}"
+            self.repeat_metric = pass_at_k
+            repeats = [
+                self.repeat_metric(len(x), x.count(1), k=x.count(1) - 1) for x in scores
+            ]
+            repeat_agg = np.mean(repeats)
+            agg_metrics[metric_key] = [agg_fn(items) for items in zip(*scores)]
+            if isinstance(bootstrap_iters, int):
+                stderr_fn = stderr_for_metric(
+                    metric=agg_fn,
+                    bootstrap_iters=min(bootstrap_iters, 100)
+                    if metric_name in ["bleu", "chrf", "ter"]
+                    else bootstrap_iters,
                 )
+                agg_metrics[f"{metric_name}_stderr,{filter_key}"] = [
+                    (stderr_fn(item) if (stderr_fn and len(item) > 1) else "N/A")
+                    for item in zip(*scores)
+                ][0]
+            agg_metrics[f"{metric_key}_repeat"] = [repeat_agg]
 
-        return all_metrics
-
-    @staticmethod
-    def compute_agg_metrics(self, metric_results: list[MetricResult]):
-        y_sorted = sorted(metric_results, key=attrgetter("filter_key", "metric_name"))
-
-        groups = {
-            key: list(
-                map(list, zip(*((d[it.metric_name] for d in it.scores) for it in g)))
-            )
-            for key, g in groupby(y_sorted, key=attrgetter("filter_key", "metric_name"))
-        }
-
-        return groups
+        return agg_metrics
 
 
 class MultipleChoiceTask(Task):

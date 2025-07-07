@@ -17,6 +17,8 @@ import numpy as np
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
+from lm_eval.api.instance import Instance
+
 
 SPACING = " " * 47
 
@@ -406,9 +408,13 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             v = "%.4f" % v if isinstance(v, float) else v
 
             if m + "_stderr" + "," + f in dic:
-                se = dic[m + "_stderr" + "," + f]
-                se = "   N/A" if se == "N/A" else "%.4f" % se
-                values.append([k, version, f, n, m, hib, v, "±", se])
+                try:
+                    se = dic[m + "_stderr" + "," + f]
+                    se = "   N/A" if se == "N/A" else "%.4f" % se
+                    values.append([k, version, f, n, m, hib, v, "±", se])
+                except:  # noqa: E722
+                    values.append([k, version, f, n, m, hib, v, "", ""])
+
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
             k = ""
@@ -550,3 +556,44 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def create_sample_log(
+    doc: dict,
+    doc_id: int,
+    target: Any,
+    requests: list[Instance],
+    metric_names: [dict],
+    filter_key: str,
+) -> dict:
+    return {
+        "doc_id": doc_id,
+        "doc": doc,
+        "target": target,
+        "arguments": [req.args for req in requests],
+        "resps": [req.resps for req in requests],
+        "filtered_resps": [req.filtered_resps[filter_key] for req in requests],
+        "filter": filter_key,
+        "metrics": metric_names,
+        "doc_hash": hash_string(
+            json.dumps(
+                requests[0].doc,
+                indent=2,
+                default=handle_non_serializable,
+                ensure_ascii=False,
+            )
+        ),
+        "prompt_hash": hash_string(requests[0].arguments[0]),
+        "target_hash": hash_string(str(target)),
+    }
+
+
+def pass_at_k(n: int, c: int, k: int) -> float:
+    """
+    :param n: total number of samples
+    :param c: number of correct samples
+    :param k: k in pass@$k$
+    """
+    if n - c < k:
+        return 1.0
+    return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))

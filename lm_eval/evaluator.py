@@ -1,5 +1,4 @@
 import itertools
-import json
 import logging
 import random
 import time
@@ -28,8 +27,6 @@ from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
-    handle_non_serializable,
-    hash_string,
     positional_deprecated,
     setup_logging,
     simple_parse_args_string,
@@ -592,135 +589,23 @@ def evaluate(
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
         # Pre-process task.instances to group by doc_id
-        instances_by_doc_id = defaultdict(list)
-        for instance in task.instances:
-            instances_by_doc_id[instance.doc_id].append(instance)
-        # Sort instances within each group
-        for instances in instances_by_doc_id.values():
-            instances.sort(key=lambda x: x.idx)
+        # instances_by_doc_id = defaultdict(list)
+        # for instance in task.instances:
+        #     instances_by_doc_id[instance.doc_id].append(instance)
+        # # Sort instances within each group
+        # for instances in instances_by_doc_id.values():
+        #     instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
-        if hasattr(task, "calculate_metrics"):
-            metrics = task.calculate_metrics(
-                instances_by_doc_id=instances_by_doc_id,
-                samples=samples,
-                rank=RANK,
-                limit=limit,
-                world_size=WORLD_SIZE,
-            )
-        for filter_key in task.instances[0].filtered_resps.keys():
-            if hasattr(task, "calculate_metrics"):
-                # Add sample logging here too - similar to what's done in the else branch
-                if log_samples:
-                    indices = (
-                        samples.get(task_output.task_name, None)
-                        if samples is not None
-                        else None
-                    )
-                    doc_iterator = task.doc_iterator(
-                        rank=RANK,
-                        limit=limit,
-                        world_size=WORLD_SIZE,
-                        samples=indices,
-                    )
-                    for doc_id, doc in doc_iterator:
-                        doc_id_true = indices[doc_id] if indices else doc_id
-                        requests = instances_by_doc_id[doc_id]
-                        if requests:  # Make sure there are requests for this doc_id
-                            doc_metrics = metrics[filter_key][doc_id_true].metric_keys
-                            target = task.doc_to_target(doc)
-                            example = {
-                                "doc_id": doc_id_true,
-                                "doc": doc,
-                                "target": target,
-                                "arguments": [req.args for req in requests],
-                                "resps": [req.resps for req in requests],
-                                "filtered_resps": [
-                                    req.filtered_resps[filter_key] for req in requests
-                                ],
-                                "filter": filter_key,
-                                "metrics": doc_metrics,
-                                "doc_hash": hash_string(
-                                    json.dumps(
-                                        requests[0].doc,
-                                        indent=2,
-                                        default=handle_non_serializable,
-                                        ensure_ascii=False,
-                                    )
-                                ),
-                                "prompt_hash": hash_string(requests[0].arguments[0]),
-                                "target_hash": hash_string(str(target)),
-                            }
-                            example.update(
-                                {
-                                    metrics[filter_key][doc_id_true].metric_keys[
-                                        0
-                                    ]: metrics[filter_key][doc_id_true]
-                                }
-                            )
-                            task_output.logged_samples.append(example)
-
-                # Process all metrics returned from calculate_metrics
-                for filter_key in metrics:
-                    for m_samples in metrics[filter_key]:
-                        for metric, value in m_samples:
-                            task_output.sample_metrics[(metric, filter_key)].append(
-                                value
-                            )
-            else:
-                # Fall back to the original approach for non-ConfigurableTask instances
-                indices = (
-                    samples.get(task_output.task_name, None)
-                    if samples is not None
-                    else None
-                )
-                doc_iterator = task.doc_iterator(
-                    rank=RANK,
-                    limit=limit,
-                    world_size=WORLD_SIZE,
-                    samples=indices,
-                )
-                for doc_id, doc in doc_iterator:
-                    if indices:
-                        doc_id_true = indices[doc_id]
-                    else:
-                        doc_id_true = doc_id
-                    requests = instances_by_doc_id[doc_id]
-                    metrics: list[dict] = [
-                        task.process_results(doc, response)
-                        for req in requests
-                        for response in req.filtered_resps[filter_key]
-                    ]
-                    if log_samples:
-                        target = task.doc_to_target(doc)
-                        example = {
-                            "doc_id": doc_id_true,
-                            "doc": doc,
-                            "target": target,
-                            "arguments": [req.args for req in requests],
-                            "resps": [req.resps for req in requests],
-                            "filtered_resps": [
-                                req.filtered_resps[filter_key] for req in requests
-                            ],
-                            "filter": filter_key,
-                            "metrics": metrics,
-                            "doc_hash": hash_string(
-                                json.dumps(
-                                    requests[0].doc,
-                                    indent=2,
-                                    default=handle_non_serializable,
-                                    ensure_ascii=False,
-                                )
-                            ),
-                            "prompt_hash": hash_string(requests[0].arguments[0]),
-                            "target_hash": hash_string(str(target)),
-                        }
-                        example.update({"metrics": metrics})
-                        task_output.logged_samples.append(example)
-                    for x in metrics:
-                        for metric, value in x.items():
-                            task_output.sample_metrics[(metric, filter_key)].append(
-                                value
-                            )
+        _metrics, samples = task.calculate_metrics(
+            indices=samples,
+            rank=RANK,
+            limit=limit,
+            world_size=WORLD_SIZE,
+        )
+        task_output.agg_metrics = task.compute_agg_metrics(_metrics)
+        task_output.sample_metrics = _metrics
+        if log_samples:
+            task_output.logged_samples = samples
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
@@ -756,8 +641,8 @@ def evaluate(
     if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        for task_output in eval_tasks:
-            task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
+        # for task_output in eval_tasks:
+        # task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
         (
             results,
             samples,

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 
 # @dataclass
@@ -64,11 +64,11 @@ class MetricResult:
     Outputs for the metric function.
     """
 
-    doc_id: str | int | None
-    scores: list[dict[str, float]] | dict
+    doc_id: Union[str, int]
     filter_key: str = None
     metric_name: str = None
     metadata: Optional[dict] = None
+    scores: Union[list[dict[str, float]], dict] = None
 
     def __iter__(self):
         if self.scores is None:
