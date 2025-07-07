@@ -313,9 +313,71 @@ class EvaluationTracker:
                     sample["arguments"] = arguments
                     sample["target"] = str(sample["target"])
 
+                    # Special handling for LiveCodeBench to reduce file size
+                    if task_name == "livecodebench":
+                        # Helper function to truncate long strings
+                        def truncate_string(text, max_length=1000):
+                            if text is None:
+                                return None
+                            text_str = str(text)
+                            if len(text_str) > max_length:
+                                return text_str[:max_length] + "...[TRUNCATED]"
+                            return text_str
+                        
+                        # Helper function to truncate list contents
+                        def truncate_list(lst, max_items=3, max_item_length=500):
+                            if not isinstance(lst, list):
+                                return lst
+                            truncated = []
+                            for i, item in enumerate(lst[:max_items]):
+                                if isinstance(item, (str, dict, list)):
+                                    item_str = str(item)
+                                    if len(item_str) > max_item_length:
+                                        truncated.append(item_str[:max_item_length] + "...[TRUNCATED]")
+                                    else:
+                                        truncated.append(item)
+                                else:
+                                    truncated.append(item)
+                            if len(lst) > max_items:
+                                truncated.append(f"...[{len(lst) - max_items} more items truncated]")
+                            return truncated
+
+                        # Filter out private test cases and unnecessary data for LiveCodeBench
+                        filtered_sample = {
+                            "doc_id": sample.get("doc_id"),
+                            "question_details": {
+                                "question_title": sample.get("doc", {}).get("question_title"),
+                                "question_id": sample.get("doc", {}).get("question_id"),
+                                "question_content": truncate_string(sample.get("doc", {}).get("question_content"), 2000),
+                                "difficulty": sample.get("doc", {}).get("difficulty"),
+                                "platform": sample.get("doc", {}).get("platform"),
+                                "contest_date": sample.get("doc", {}).get("contest_date"),
+                                "starter_code": truncate_string(sample.get("doc", {}).get("starter_code"), 1000),
+                                # Remove both public and private test cases to reduce file size
+                                # "public_test_cases": sample.get("doc", {}).get("public_test_cases", [])
+                                # "private_test_cases": sample.get("doc", {}).get("private_test_cases", [])
+                            },
+                            # Remove resps, only keep filtered_resps with truncation
+                            "filtered_resps": truncate_list(sample.get("filtered_resps"), max_items=3, max_item_length=1000),
+                            # Truncate arguments to prevent huge argument dumps
+                            "arguments": truncate_string(str(sample.get("arguments", {})), 500),
+                            # Truncate target if it's very long
+                            "target": truncate_string(sample.get("target"), 500),
+                            "acc": sample.get("acc"),
+                            "exact_match": sample.get("exact_match"),
+                            "alias": truncate_string(sample.get("alias"), 100),
+                            "doc_hash": sample.get("doc_hash"),
+                            "prompt_hash": sample.get("prompt_hash"),
+                            "target_hash": sample.get("target_hash")
+                        }
+                        sample_to_write = filtered_sample
+                    else:
+                        # For all other tasks, use the original sample
+                        sample_to_write = sample
+
                     sample_dump = (
                         json.dumps(
-                            sample,
+                            sample_to_write,
                             default=handle_non_serializable,
                             ensure_ascii=False,
                         )
