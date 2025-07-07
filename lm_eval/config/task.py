@@ -171,13 +171,14 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
     gen_prefix: Optional[str] = None
-    metadata: Optional[dict] = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
+    metadata: Optional[dict] = field(
+        default_factory=dict
+    )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+
     _metric_list: list[MetricConfig] = None
     _filter_list: list[FilterConfig] = None
-    ds_cfg: DatasetConfig = None
-    fewshot_cfg: FewshotConfig = None
+    ds_cfg: DatasetConfig = field(init=False)
+    fewshot_cfg: FewshotConfig = field(init=False)
 
     def __post_init__(self) -> None:
         ### ---setup generation kwargs--- ###
