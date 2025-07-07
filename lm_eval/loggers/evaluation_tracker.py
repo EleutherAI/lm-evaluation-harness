@@ -289,6 +289,7 @@ class EvaluationTracker:
                 "prompt_hash": sample.get("prompt_hash"),
                 "target_hash": sample.get("target_hash")
             }
+            # Completely remove: arguments (redundant), target (redundant), alias (usually null)
         }
 
     def save_results_aggregated(
