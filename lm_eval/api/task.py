@@ -1801,7 +1801,6 @@ class ConfigurableTask(Task):
             list: A list of metrics calculated for each document.
         """
         if not requests and not self.instances:
-            print("sent results")
             return None, None
 
         ### Collect values of metrics on all datapoints ###
@@ -1832,10 +1831,10 @@ class ConfigurableTask(Task):
             )
 
             for doc_id, doc in doc_iterator:
-                _doc_id_true = indices[doc_id] if indices else doc_id
                 _sample_metric = defaultdict(list)
+                _doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[_doc_id_true]
-                if len(requests) > 1:
+                if self.OUTPUT_TYPE != "generate_until":
                     # if one doc has multiple instances then calculate metric together
                     metrics = self.process_results(
                         doc, [req.filtered_resps[filter_key] for req in requests]
