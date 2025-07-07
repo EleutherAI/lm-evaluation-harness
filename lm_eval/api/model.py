@@ -4,12 +4,17 @@ import json
 import logging
 import os
 from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Type, TypeVar, Union
 
-import transformers
-from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
+
+
+if TYPE_CHECKING:
+    from sqlitedict import SqliteDict
+
+    from lm_eval.api.instance import Instance
 
 
 if TYPE_CHECKING:
@@ -31,10 +36,10 @@ class LM(abc.ABC):
         # set rank and world size to a single process, by default.
         self._rank = 0
         self._world_size = 1
-        self.cache_hook = CacheHook(None)
+        self.cache_hook: "CacheHook" = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests: list[Instance]) -> list[tuple[float, bool]]:
+    def loglikelihood(self, requests) -> list[tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -59,7 +64,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests: list[Instance]) -> list[float]:
+    def loglikelihood_rolling(self, requests) -> list[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -169,8 +174,7 @@ class LM(abc.ABC):
         - Instance of the LM class.
         """
 
-        additional_config = {} if additional_config is None else additional_config
-        additional_config = {
+        additional_config = additional_config or {} | {
             k: v for k, v in additional_config.items() if v is not None
         }
 
@@ -216,21 +220,21 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
-def hash_args(attr, args):
+def hash_args(attr: str, args: Iterable[Any]) -> str:
     dat = json.dumps([attr] + list(args))
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
 class CacheHook:
-    def __init__(self, cachinglm) -> None:
+    def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         """CacheHook is used to cache responses from the LM."""
         if cachinglm is None:
-            self.dbdict = None
+            self.dbdict: Optional["SqliteDict"] = None
             return
 
         self.dbdict = cachinglm.dbdict
 
-    def add_partial(self, attr, req, res) -> None:
+    def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
         """Adds a partial result to the cache."""
         if self.dbdict is None:
             return
@@ -247,8 +251,10 @@ class CachingLM:
         :param cache_db: str
             Path to cache db
         """
-        self.lm = lm
-        self.cache_db = cache_db
+        from sqlitedict import SqliteDict
+
+        self.lm: LM = lm
+        self.cache_db: str = cache_db
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
@@ -256,13 +262,13 @@ class CachingLM:
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
 
-    def __getattr__(self, attr: str):
+    def __getattr__(self, attr: str) -> Any:
         lm_attr = getattr(self.lm, attr)
         if attr not in ["loglikelihood", "loglikelihood_rolling", "generate_until"]:
             eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
-        def fn(requests: list["Instance"]) -> list["Instance"]:
+        def _fn(requests: list["Instance"]) -> list["Instance"]:
             res = []
             remaining_reqs = []
             warned = False
@@ -315,9 +321,9 @@ class CachingLM:
 
             return res
 
-        return fn
+        return _fn
 
-    def get_cache_hook(self):
+    def get_cache_hook(self) -> "CacheHook":
         return CacheHook(self)
 
 
@@ -372,10 +378,8 @@ class TemplateLM(LM):
     def _encode_pair(
         self, context: str, continuation: str
     ) -> tuple[list[int], list[int]]:
-        """Encodes a pair of context and continuation strings into token IDs.
+        import transformers
 
-        We encode using encode(context+continuation) and then split into context and continuation.
-        """
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -428,7 +432,7 @@ class TemplateLM(LM):
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
+    def generate_until(self, requests: list[Instance], disable_tqdm: bool = False) -> list[str]:
         """Generate until a stopping sequence.
 
         Args:
