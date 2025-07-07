@@ -352,8 +352,6 @@ def simple_evaluate(
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
-    if verbosity is not None:
-        setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -588,14 +586,13 @@ def evaluate(
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
-        _metrics, samples = task.compute_sample_metrics(
+        task_output.sample_metrics, samples = task.compute_sample_metrics(
             indices=samples,
             rank=RANK,
             limit=limit,
             world_size=WORLD_SIZE,
             log_samples=log_samples,
         )
-        task_output.sample_metrics = _metrics
         if log_samples:
             task_output.logged_samples = samples
 
@@ -606,6 +603,7 @@ def evaluate(
             if log_samples:
                 # for task_name, task_samples in list(samples.items()):
                 full_samples = [None] * WORLD_SIZE if RANK == 0 else None
+                eval_logger.info(task_output.logged_samples)
                 torch.distributed.gather_object(
                     obj=task_output.logged_samples,
                     object_gather_list=full_samples,
@@ -620,6 +618,7 @@ def evaluate(
             # then collect metrics across all ranks
             for metrics in task_output.sample_metrics:
                 metric_list = [None] * WORLD_SIZE if RANK == 0 else None
+                eval_logger.info(task_output.sample_metrics[metrics])
                 torch.distributed.gather_object(
                     obj=task_output.sample_metrics[metrics],
                     object_gather_list=metric_list,

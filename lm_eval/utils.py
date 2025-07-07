@@ -562,9 +562,10 @@ def create_sample_log(
     doc: dict,
     doc_id: int,
     target: Any,
-    requests: list[Instance],
-    metric_names: [dict],
+    requests: tuple[Instance],
+    metric_names: tuple[str, ...],
     filter_key: str,
+    metrics: tuple[dict, ...],
 ) -> dict:
     return {
         "doc_id": doc_id,
@@ -574,7 +575,8 @@ def create_sample_log(
         "resps": [req.resps for req in requests],
         "filtered_resps": [req.filtered_resps[filter_key] for req in requests],
         "filter": filter_key,
-        "metrics": metric_names,
+        "metric_names": metric_names,
+        "metrics": metrics,
         "doc_hash": hash_string(
             json.dumps(
                 requests[0].doc,

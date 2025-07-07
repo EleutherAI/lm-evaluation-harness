@@ -1,9 +1,11 @@
 from collections import Counter
+from typing import Iterable, TypeVar
 
 from lm_eval.api.filter import Filter
 from lm_eval.api.registry import register_filter
 
 
+T = TypeVar("T")
 # TODO: implement "arg_max" filter. either it should take in an arbitrary "scoring"/reward function
 # that takes an input and returns a scalar and then should select the max reward,
 # or should implement different filters for different ways of handling a reward model's inference.
@@ -11,26 +13,20 @@ from lm_eval.api.registry import register_filter
 
 @register_filter("take_first")
 class TakeFirstFilter(Filter):
-    def __init__(self) -> None:
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[list[T]], docs: list[dict]) -> Iterable[list[T]]:
         """
         Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
         """
-        return map(lambda r: r, resps)
+        return map(lambda r: [r[0]], resps)
 
 
 @register_filter("take_first_k")
 class TakeKFilter(Filter):
     def __init__(self, **kwargs) -> None:
         self.k = kwargs.pop("k")
-
         super().__init__(**kwargs)
 
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[list[T]], docs: list[dict]) -> Iterable[list[T]]:
         # need resp to be subscriptable to check below
         resps = list(resps)
         # check we have at least k responses per doc, else we can't take the first k
@@ -42,12 +38,7 @@ class TakeKFilter(Filter):
 
 @register_filter("majority_vote")
 class MajorityVoteFilter(Filter):
-    def __init__(self) -> None:
-        """
-        Can define custom behavior here, if an individual instantiation of a Filter class should have state.
-        """
-
-    def apply(self, resps, docs):
+    def apply(self, resps: Iterable[list[T]], docs: list[dict]) -> Iterable[list[T]]:
         """
         Each entry of `resps` is a list of model responses.
         We select the response that occurs most frequently in each entry of `resps`.

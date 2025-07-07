@@ -1,5 +1,6 @@
 import abc
 import ast
+import itertools
 import logging
 import random
 import re
@@ -109,24 +110,19 @@ class TaskConfig(dict):
     )
 
     def __post_init__(self) -> None:
-        if self.generation_kwargs is not None:
-            if self.output_type != "generate_until":
-                eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
-                )
+        if self.output_type == "generate_until":
+            if self.generation_kwargs is not None:
+                if "temperature" in self.generation_kwargs:
+                    self.generation_kwargs["temperature"] = float(
+                        self.generation_kwargs["temperature"]
+                    )
 
-            if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
-
-            if "until" not in self.generation_kwargs:
-                eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
-                )
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
-        else:
-            if self.output_type == "generate_until":
+                if "until" not in self.generation_kwargs:
+                    eval_logger.warning(
+                        f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                    )
+                    self.generation_kwargs["until"] = [self.fewshot_delimiter]
+            else:
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
                     "until": (
@@ -139,6 +135,11 @@ class TaskConfig(dict):
                 }
                 eval_logger.warning(
                     f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                )
+        else:
+            if self.generation_kwargs is not None:
+                eval_logger.warning(
+                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
                 )
 
     def __getitem__(self, item):
@@ -1558,7 +1559,7 @@ class ConfigurableTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc, results):
+    def process_results(self, doc, results) -> dict:
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
 
@@ -1779,11 +1780,11 @@ class ConfigurableTask(Task):
 
     def compute_sample_metrics(
         self,
-        requests: list[Instance] = None,
-        filter_keys: list[str] = None,
-        indices: list[int] = None,
+        requests: Optional[list[Instance]] = None,
+        filter_keys: Optional[list[str]] = None,
+        indices: Optional[list[int]] = None,
         rank: int = 1,
-        limit: int = None,
+        limit: Optional[int] = None,
         world_size: int = 1,
         log_samples: bool = False,
     ) -> tuple[
@@ -1807,6 +1808,9 @@ class ConfigurableTask(Task):
         else:
             requests = requests if requests else self.instances
 
+        all_metrics = defaultdict(list)
+        samples = [] if log_samples else None
+
         ### Collect values of metrics on all datapoints ###
         # Pre-process task.instances to group by doc_id
         instances_by_doc_id = defaultdict(list)
@@ -1815,8 +1819,6 @@ class ConfigurableTask(Task):
         # Sort instances within each group
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
-        _all_metrics = defaultdict(list)
-        _samples = [] if log_samples else None
 
         if filter_keys is None:
             filter_keys = (
@@ -1840,9 +1842,16 @@ class ConfigurableTask(Task):
                 requests = instances_by_doc_id[_doc_id_true]
                 if self.OUTPUT_TYPE != "generate_until":
                     # if one doc has multiple instances then calculate metric together
-                    metrics = self.process_results(
-                        doc, [req.filtered_resps[filter_key] for req in requests]
-                    )
+                    metrics = [
+                        self.process_results(
+                            doc,
+                            list(
+                                itertools.chain.from_iterable(
+                                    [req.filtered_resps[filter_key] for req in requests]
+                                )
+                            ),
+                        )
+                    ]
                 else:
                     metrics = [
                         self.process_results(doc, response)
@@ -1857,20 +1866,21 @@ class ConfigurableTask(Task):
                     for k, v in metric.items():
                         _sample_metric[k].append(v)
                 if log_samples:
-                    _samples.append(
+                    samples.append(
                         create_sample_log(
                             doc=doc,
                             doc_id=_doc_id_true,
                             target=self.doc_to_target(doc),
-                            requests=requests,
-                            metric_names=metrics,
+                            requests=tuple(requests),
+                            metric_names=tuple(str(x) for x in metrics[0]),
                             filter_key=filter_key,
+                            metrics=tuple(metrics),
                         )
                     )
                 for metric_name, _score in _sample_metric.items():
-                    _all_metrics[(metric_name, filter_key)].append(_score)
-        self.metric_results = _all_metrics
-        return _all_metrics, _samples
+                    all_metrics[(metric_name, filter_key)].append(_score)
+        self.metric_results = all_metrics
+        return all_metrics, samples
 
     def compute_agg_metrics(
         self,

@@ -10,7 +10,6 @@ class CustomFilter(Filter):
 
     def __init__(self, **kwargs) -> None:
         self.filter_fn = kwargs.pop("filter_fn")
-
         super().__init__(**kwargs)
 
     def apply(self, resps, docs):

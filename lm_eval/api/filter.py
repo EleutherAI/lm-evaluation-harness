@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Iterable, List, Union
+from typing import Callable, Iterable, TypeVar
 
 from lm_eval.api.instance import Instance
+
+
+T = TypeVar("T")
 
 
 class Filter(ABC):
@@ -20,7 +23,7 @@ class Filter(ABC):
         """
 
     @abstractmethod
-    def apply(self, resps: Union[List, Iterable], docs: List[dict]) -> Iterable:
+    def apply(self, resps: Iterable[list[T]], docs: list[dict]) -> Iterable[list[T]]:
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
         Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
@@ -40,9 +43,9 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: List[Callable[[], Filter]]
+    filters: list[Callable[[], Filter]]
 
-    def apply(self, instances: List[Instance]) -> None:
+    def apply(self, instances: list[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
         # TODO: add backward
         # unwrap responses from GenerateOutput as the filters expect strings
