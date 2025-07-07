@@ -187,6 +187,110 @@ class EvaluationTracker:
         self.results_repo = f"{hub_results_org}/{results_repo_name}"
         self.results_repo_private = f"{hub_results_org}/{results_repo_name}-private"
 
+    def _truncate_string(self, text, max_length=1000):
+        """Truncate text to specified length with clear marker."""
+        if text is None:
+            return None
+        text_str = str(text)
+        if len(text_str) <= max_length:
+            return text_str
+        return text_str[:max_length] + "...[TRUNCATED]"
+    
+    def _extract_core_problem(self, question_content, max_length=800):
+        """Extract the core problem statement, removing verbose examples."""
+        if not question_content:
+            return None
+        
+        # Get the main problem description (first paragraph)
+        parts = question_content.split('\n\n')
+        core_problem = parts[0] if parts else question_content
+        
+        # Smart truncation preserving sentence boundaries
+        if len(core_problem) > max_length:
+            sentences = core_problem.split('. ')
+            truncated = ""
+            for sentence in sentences:
+                if len(truncated + sentence + ". ") <= max_length:
+                    truncated += sentence + ". "
+                else:
+                    break
+            return truncated.strip() if truncated else core_problem[:max_length] + "...[TRUNCATED]"
+        
+        return core_problem
+    
+    def _truncate_list(self, lst, max_items=3, max_length=300):
+        """Truncate list to specified number of items with length limits."""
+        if not isinstance(lst, list) or not lst:
+            return lst
+        
+        result = []
+        for i, item in enumerate(lst[:max_items]):
+            item_str = str(item)
+            if len(item_str) > max_length:
+                result.append(item_str[:max_length] + "...[TRUNCATED]")
+            else:
+                result.append(item)
+        
+        if len(lst) > max_items:
+            result.append(f"...[{len(lst) - max_items} more items]")
+        return result
+
+    def _truncate_code_response(self, responses, max_length=1500):
+        """Intelligently truncate code responses while preserving structure."""
+        if not responses or not isinstance(responses, list):
+            return responses
+        
+        # Only keep the first response
+        if not responses:
+            return []
+        
+        first_response = responses[0]
+        if not isinstance(first_response, str) or len(first_response) <= max_length:
+            return [first_response]
+        
+        # Preserve code structure when truncating
+        lines = first_response.split('\n')
+        kept_lines = []
+        char_count = 0
+        
+        for line in lines:
+            if char_count + len(line) <= max_length:
+                kept_lines.append(line)
+                char_count += len(line) + 1
+            else:
+                kept_lines.append("    # ... [CODE TRUNCATED] ...")
+                break
+        
+        return ['\n'.join(kept_lines)]
+
+    def _filter_livecodebench_sample(self, sample):
+        """Filter LiveCodeBench samples to reduce file size while preserving essential data."""
+        doc = sample.get("doc", {})
+        
+        return {
+            "doc_id": sample.get("doc_id"),
+            "question_details": {
+                "question_title": doc.get("question_title"),
+                "question_id": doc.get("question_id"),
+                "core_problem": self._extract_core_problem(doc.get("question_content")),
+                "difficulty": doc.get("difficulty"),
+                "platform": doc.get("platform"),
+                "contest_date": doc.get("contest_date"),
+                "starter_code": self._truncate_string(doc.get("starter_code"), 1000),
+                "public_test_cases": self._truncate_list(doc.get("public_test_cases", []), max_items=3, max_length=300),
+            },
+            "model_response": self._truncate_code_response(sample.get("filtered_resps", [])),
+            "performance": {
+                "accuracy": sample.get("acc"),
+                "exact_match": sample.get("exact_match"),
+            },
+            "data_hashes": {
+                "doc_hash": sample.get("doc_hash"),
+                "prompt_hash": sample.get("prompt_hash"),
+                "target_hash": sample.get("target_hash")
+            }
+        }
+
     def save_results_aggregated(
         self,
         results: dict,
@@ -313,66 +417,10 @@ class EvaluationTracker:
                     sample["arguments"] = arguments
                     sample["target"] = str(sample["target"])
 
-                    # Special handling for LiveCodeBench to reduce file size
+                    # Apply task-specific filtering to reduce file size
                     if task_name == "livecodebench":
-                        # Helper function to truncate long strings
-                        def truncate_string(text, max_length=1000):
-                            if text is None:
-                                return None
-                            text_str = str(text)
-                            if len(text_str) > max_length:
-                                return text_str[:max_length] + "...[TRUNCATED]"
-                            return text_str
-                        
-                        # Helper function to truncate list contents
-                        def truncate_list(lst, max_items=3, max_item_length=500):
-                            if not isinstance(lst, list):
-                                return lst
-                            truncated = []
-                            for i, item in enumerate(lst[:max_items]):
-                                if isinstance(item, (str, dict, list)):
-                                    item_str = str(item)
-                                    if len(item_str) > max_item_length:
-                                        truncated.append(item_str[:max_item_length] + "...[TRUNCATED]")
-                                    else:
-                                        truncated.append(item)
-                                else:
-                                    truncated.append(item)
-                            if len(lst) > max_items:
-                                truncated.append(f"...[{len(lst) - max_items} more items truncated]")
-                            return truncated
-
-                        # Filter out private test cases and unnecessary data for LiveCodeBench
-                        filtered_sample = {
-                            "doc_id": sample.get("doc_id"),
-                            "question_details": {
-                                "question_title": sample.get("doc", {}).get("question_title"),
-                                "question_id": sample.get("doc", {}).get("question_id"),
-                                "question_content": truncate_string(sample.get("doc", {}).get("question_content"), 2000),
-                                "difficulty": sample.get("doc", {}).get("difficulty"),
-                                "platform": sample.get("doc", {}).get("platform"),
-                                "contest_date": sample.get("doc", {}).get("contest_date"),
-                                "starter_code": truncate_string(sample.get("doc", {}).get("starter_code"), 1000),
-                                # Remove both public and private test cases to reduce file size
-                                # "public_test_cases": sample.get("doc", {}).get("public_test_cases", [])
-                                # "private_test_cases": sample.get("doc", {}).get("private_test_cases", [])
-                            },
-                            # Remove resps, only keep filtered_resps with truncation
-                            "filtered_resps": truncate_list(sample.get("filtered_resps"), max_items=3, max_item_length=1000),
-                            # Truncate arguments to prevent huge argument dumps
-                            "arguments": truncate_string(str(sample.get("arguments", {})), 500),
-                            # Truncate target if it's very long
-                            "target": truncate_string(sample.get("target"), 500),
-                            "acc": sample.get("acc"),
-                            "exact_match": sample.get("exact_match"),
-                            "alias": truncate_string(sample.get("alias"), 100),
-                            "doc_hash": sample.get("doc_hash"),
-                            "prompt_hash": sample.get("prompt_hash"),
-                            "target_hash": sample.get("target_hash")
-                        }
-                        sample_to_write = filtered_sample
+                        sample_to_write = self._filter_livecodebench_sample(sample)
                     else:
-                        # For all other tasks, use the original sample
                         sample_to_write = sample
 
                     sample_dump = (
