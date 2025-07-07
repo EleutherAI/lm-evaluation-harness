@@ -21,7 +21,7 @@ class RepeatConfig:
 
     repeats: int = 1
     metric_fn: Union[str, Callable] = "pass@N"
-    kwargs: Optional[dict] = None
+    kwargs: Optional[dict] = field(default_factory=dict)
 
 
 @dataclass
@@ -30,7 +30,7 @@ class FilterConfig:
 
     name: str
     fn: Optional[Callable] = None
-    kwargs: Optional[dict] = None
+    kwargs: Optional[dict] = field(default_factory=dict)
 
 
 @dataclass
@@ -123,7 +123,7 @@ class DatasetConfig:
     name: Optional[str] = None
     kwargs: Optional[dict] = field(default_factory=dict)
     custom: Optional[Callable] = None
-    metadata: Optional[dict] = None
+    metadata: Optional[dict] = field(default_factory=dict)
 
 
 @dataclass
@@ -219,7 +219,7 @@ class TaskConfig(dict):
             name=self.dataset_name,
             kwargs=self.dataset_kwargs,
             custom=self.custom_dataset,
-            metadata=self.metadata,
+            metadata=self.metadata or {},
         )
         # ---setup fewshot config--- #
         _fewshot_cfg = self.fewshot_config if self.fewshot_config is not None else {}
