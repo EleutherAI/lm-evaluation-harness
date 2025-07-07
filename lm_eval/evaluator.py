@@ -588,21 +588,12 @@ def evaluate(
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
-        # Pre-process task.instances to group by doc_id
-        # instances_by_doc_id = defaultdict(list)
-        # for instance in task.instances:
-        #     instances_by_doc_id[instance.doc_id].append(instance)
-        # # Sort instances within each group
-        # for instances in instances_by_doc_id.values():
-        #     instances.sort(key=lambda x: x.idx)
-        # iterate over different filters used
         _metrics, samples = task.calculate_metrics(
             indices=samples,
             rank=RANK,
             limit=limit,
             world_size=WORLD_SIZE,
         )
-        task_output.agg_metrics = task.compute_agg_metrics(_metrics)
         task_output.sample_metrics = _metrics
         if log_samples:
             task_output.logged_samples = samples
@@ -641,8 +632,10 @@ def evaluate(
     if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        # for task_output in eval_tasks:
-        # task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
+        for task_output in eval_tasks:
+            task_output.agg_metrics = task_output.task.compute_agg_metrics(
+                bootstrap_iters=bootstrap_iters
+            )
         (
             results,
             samples,

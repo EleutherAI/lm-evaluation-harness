@@ -792,6 +792,8 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
+        self.metric_results = []
+
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
         self._aggregation_list = {}
@@ -1865,14 +1867,15 @@ class ConfigurableTask(Task):
                     )
                 for metric_name, _score in _sample_metric.items():
                     _all_metrics[(metric_name, filter_key)].append(_score)
-
+        self.metric_results = _all_metrics
         return _all_metrics, _samples
 
     def compute_agg_metrics(
         self,
-        metric_results: dict[tuple[str, str], list[list[float]]],
+        metric_results: dict[tuple[str, str], list[list[float]]] = None,
         bootstrap_iters: int = 1000,
     ):
+        metric_results = metric_results if metric_results else self.metric_results
         agg_metrics = defaultdict(list)
         for (metric_name, filter_key), scores in metric_results.items():
             agg_fn = self.aggregation()[metric_name]
