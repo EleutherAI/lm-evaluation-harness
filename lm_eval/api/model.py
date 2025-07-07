@@ -8,6 +8,13 @@ from typing import TYPE_CHECKING, Any, Iterable, Optional, Type, TypeVar, Union
 from tqdm import tqdm
 
 from lm_eval import utils
+from lm_eval.api.instance import Instance
+
+
+# from lm_eval.api.schemas import (
+#     LoglikelihoodInput,
+#     LoglikelihoodOutput,
+# )
 
 
 if TYPE_CHECKING:
@@ -34,7 +41,7 @@ class LM(abc.ABC):
         self.cache_hook: "CacheHook" = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests) -> list[tuple[float, bool]]:
+    def loglikelihood(self, requests: list[Instance]) -> list[tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -59,7 +66,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> list[float]:
+    def loglikelihood_rolling(self, requests: list[Instance]) -> list[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -101,7 +108,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests) -> list[str]:
+    def generate_until(self, requests: list[Instance]) -> list[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -392,12 +399,14 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def loglikelihood_rolling(
-        self, requests, disable_tqdm: bool = False
+        self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[float]:
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
+    def generate_until(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[str]:
         pass
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:

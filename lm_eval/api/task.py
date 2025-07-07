@@ -1,5 +1,6 @@
 import abc
 import ast
+import collections
 import logging
 import random
 import re
@@ -36,6 +37,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.api.schemas import MetricResult
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -96,6 +98,7 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
     gen_prefix: Optional[str] = None
+    repeat_agg: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -1493,6 +1496,13 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
+        else:
+            raise ValueError(
+                f"Unsupported OUTPUT_TYPE: '{self.OUTPUT_TYPE}'. "
+                f"Expected one of: 'loglikelihood', 'loglikelihood_rolling', "
+                f"'multiple_choice', 'generate_until'"
+            )
+
         multimodal_arg = {}
         if (
             self.config.doc_to_image
@@ -1522,6 +1532,7 @@ class ConfigurableTask(Task):
                     request_type="loglikelihood",
                     doc=doc,
                     arguments=arg,
+                    # arguments=LoglikelihoodInput(context=arg[0], continuation=arg[1]),
                     idx=i,
                     **kwargs,
                 )
@@ -1534,6 +1545,8 @@ class ConfigurableTask(Task):
             request_type=self.OUTPUT_TYPE,
             doc=doc,
             arguments=arguments,
+            # if self.OUTPUT_TYPE in ["loglikelihood", "loglikelihood_rolling"]
+            # else GenerateInput(*arguments),
             idx=0,
             **kwargs,
         )
@@ -1757,6 +1770,77 @@ class ConfigurableTask(Task):
             f"num_samples={len(self.eval_docs)})"
         )
 
+    def calculate_metrics(
+        self,
+        instances_by_doc_id=None,
+        filter_keys=None,
+        samples=None,
+        rank=1,
+        limit=None,
+        world_size=1,
+    ) -> Optional[dict[str, list[dict]]]:
+        """Calculate metrics for all datapoints in the task.
+
+        Args:
+            instances_by_doc_id (dict): Dictionary mapping doc_ids to lists of instances.
+            filter_key (str): The filter key to use for filtered responses.
+            samples (dict, optional): Dictionary of sample indices to evaluate.
+            rank (int): The process rank.
+            limit (int, optional): Limit on number of examples to evaluate.
+            world_size (int): Total number of processes.
+
+        Returns:
+            list: A list of metrics calculated for each document.
+        """
+        if not self._instances:
+            return
+        from collections import defaultdict
+
+        if filter_keys is None:
+            filter_keys = (
+                [x.name for x in self._filters]
+                if hasattr(self, "_filters")
+                else ["none"]
+            )
+        if isinstance(filter_keys, str):
+            filter_keys = [filter_keys]
+        if not instances_by_doc_id:
+            instances_by_doc_id = defaultdict(list)
+            for instance in self.instances:
+                instances_by_doc_id[instance.doc_id].append(instance)
+        all_metrics = collections.defaultdict(list)
+        for filter_key in filter_keys:
+            doc_iterator = self.doc_iterator(
+                rank=rank,
+                limit=limit,
+                world_size=world_size,
+                # samples=indices,
+            )
+
+            for doc_id, doc in doc_iterator:
+                # doc_id_true = indices[doc_id] if indices else doc_id
+                requests = instances_by_doc_id[doc_id]
+                if len(requests) > 1:
+                    # if one doc has multiple instances then calculate metric together
+                    metrics = self.process_results(
+                        doc, [req.filtered_resps[filter_key] for req in requests]
+                    )
+                else:
+                    metrics = [
+                        self.process_results(doc, response)
+                        for req in requests
+                        for response in (
+                            req.filtered_resps[filter_key]
+                            if isinstance(req.filtered_resps[filter_key], list)
+                            else [req.filtered_resps[filter_key]]
+                        )
+                    ]
+                all_metrics[filter_key].append(
+                    MetricResult(scores=metrics, doc_id=doc_id, filter_key=filter_key)
+                )
+
+        return all_metrics
+
 
 class MultipleChoiceTask(Task):
     OUTPUT_TYPE = "loglikelihood"
@@ -1806,7 +1890,7 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task):
-    OUTPUT_TYPE = "loglikelihood_rolling"
+    OUTPUT_TYPE: OutputType = "loglikelihood_rolling"
 
     def has_training_docs(self) -> bool:
         return False

@@ -44,7 +44,15 @@ class FilterEnsemble:
 
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
-        resps, docs = list(resps), list(docs)
+        # TODO: add backward
+        # unwrap responses from GenerateOutput as the filters expect strings
+        # resps = tuple(
+        #     [
+        #         item.text if isinstance(item, GenerateOutput) else item
+        #         for item in sublist
+        #     ]
+        #     for sublist in resps
+        # )
 
         for f in self.filters:
             # apply filters in sequence
