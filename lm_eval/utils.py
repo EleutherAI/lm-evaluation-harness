@@ -118,14 +118,14 @@ def handle_non_serializable(o):
         return str(o)
 
 
-def sanitize_list(sub):
+def serialize_list(sub):
     """
     Takes possible nested list and recursively converts all inner component to strings
     """
     if isinstance(sub, list):
-        return [sanitize_list(item) for item in sub]
+        return [serialize_list(item) for item in sub]
     if isinstance(sub, tuple):
-        return tuple(sanitize_list(item) for item in sub)
+        return tuple(serialize_list(item) for item in sub)
     else:
         return str(sub)
 

@@ -1777,7 +1777,7 @@ class ConfigurableTask(Task):
             f"num_samples={len(self.eval_docs)})"
         )
 
-    def calculate_metrics(
+    def compute_sample_metrics(
         self,
         requests: list[Instance] = None,
         filter_keys: list[str] = None,
@@ -1804,11 +1804,13 @@ class ConfigurableTask(Task):
         """
         if not requests and not self.instances:
             return None, None
+        else:
+            requests = requests if requests else self.instances
 
         ### Collect values of metrics on all datapoints ###
         # Pre-process task.instances to group by doc_id
         instances_by_doc_id = defaultdict(list)
-        for instance in self.instances:
+        for instance in requests:
             instances_by_doc_id[instance.doc_id].append(instance)
         # Sort instances within each group
         for instances in instances_by_doc_id.values():

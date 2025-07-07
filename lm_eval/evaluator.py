@@ -588,11 +588,12 @@ def evaluate(
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
-        _metrics, samples = task.calculate_metrics(
+        _metrics, samples = task.compute_sample_metrics(
             indices=samples,
             rank=RANK,
             limit=limit,
             world_size=WORLD_SIZE,
+            log_samples=log_samples,
         )
         task_output.sample_metrics = _metrics
         if log_samples:
