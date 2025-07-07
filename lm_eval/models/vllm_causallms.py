@@ -10,6 +10,7 @@ from queue import Empty
 from time import sleep
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
+import jinja2
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -300,14 +301,27 @@ class VLLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        chat_templated = self.tokenizer.apply_chat_template(
-            chat_history,
-            tokenize=False,
-            add_generation_prompt=add_generation_prompt,
-            continue_final_message=not add_generation_prompt,
-            chat_template=self.hf_chat_template,
-            enable_thinking=self.enable_thinking,
-        )
+        try:
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history,
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
+                chat_template=self.hf_chat_template,
+                enable_thinking=self.enable_thinking,
+            )
+        except jinja2.exceptions.TemplateError:
+            eval_logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_templated = self.tokenizer.apply_chat_template(
+                [msg for msg in chat_history if msg["role"] != "system"],
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
+                chat_template=self.hf_chat_template,
+                enable_thinking=self.enable_thinking,
+            )
 
         return chat_templated
 
