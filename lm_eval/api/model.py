@@ -3,7 +3,6 @@ import hashlib
 import json
 import logging
 import os
-from typing import TYPE_CHECKING, Optional, Type, TypeVar, Union
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Type, TypeVar, Union
 
 from tqdm import tqdm
@@ -14,10 +13,6 @@ from lm_eval import utils
 if TYPE_CHECKING:
     from sqlitedict import SqliteDict
 
-    from lm_eval.api.instance import Instance
-
-
-if TYPE_CHECKING:
     from lm_eval.api.instance import Instance
 
 
@@ -432,7 +427,9 @@ class TemplateLM(LM):
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests: list[Instance], disable_tqdm: bool = False) -> list[str]:
+    def generate_until(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[str]:
         """Generate until a stopping sequence.
 
         Args:
