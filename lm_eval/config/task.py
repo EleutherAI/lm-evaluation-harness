@@ -129,7 +129,7 @@ class DatasetConfig:
 @dataclass
 class TaskConfig(dict):
     # task naming/registry
-    task: Optional[str] = None
+    task: str
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
     # HF dataset options.
