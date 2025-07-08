@@ -40,7 +40,6 @@ from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
-
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
     "multiple_choice",
@@ -739,7 +738,7 @@ def _normalize_gold(gold, choices):
         choices (Sequence[str]): List of valid answer choices.
 
     Returns:
-        Tuple[Union[int, List[int]], bool]: 
+        Tuple[Union[int, List[int]], bool]:
             - Normalized gold label(s), with -100 for invalid entries.
             - True if any invalid labels were found, else False.
     """
@@ -770,7 +769,7 @@ def _split_mutual_info_lls(lls, choices, use_metric):
         use_metric (List[str]): Active metrics for this evaluation.
 
     Returns:
-        Tuple[List[float], Optional[List[float]]]: 
+        Tuple[List[float], Optional[List[float]]]:
             - The conditional log-likelihoods.
             - The unconditional log-likelihoods (or None if not applicable).
     """
@@ -1344,16 +1343,16 @@ class ConfigurableTask(Task):
     #   - result_dict (dict): Maps metric names to values (e.g. {"acc": 1.0}).
     # ---
 
-    def _process_results_loglikelihood(self, doc, results, use_metric): 
+    def _process_results_loglikelihood(self, doc, results, use_metric):
         """Process results from loglikelihood tasks (e.g., perplexity, greedy accuracy)."""
         results = results[0]
         ll, is_greedy = results
         return {
             **({"perplexity": ll} if "perplexity" in use_metric else {}),
             **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
-        } 
+        }
 
-    def _process_results_loglikelihood_rolling(self, doc, results, use_metric): 
+    def _process_results_loglikelihood_rolling(self, doc, results, use_metric):
         """Process results from rolling loglikelihood tasks (e.g., word/byte perplexity)."""
         (loglikelihood,) = results
         _words = self.count_words(self.doc_to_target(doc))
@@ -1381,18 +1380,18 @@ class ConfigurableTask(Task):
         lls, is_greedy = zip(*results)
         choices = self.doc_to_choice(doc)
         lls, lls_uncond = _split_mutual_info_lls(lls, choices, use_metric)
-    
+
         completion_len = np.array([float(len(c)) for c in choices])
         pred = np.argmax(lls)
         pred_norm = np.argmax(lls / completion_len)
         prob_norm = utils.softmax(lls)
-    
+
         gold = self.doc_to_text(doc) if self.multiple_input else self.doc_to_target(doc)
         gold, gold_index_error = _normalize_gold(gold, choices)
 
         if gold_index_error:
             eval_logger.warning(f"Invalid gold index for doc:\n\n{doc}\n\n")
-    
+
         if self.multiple_target:
             acc = float(pred in gold)
             acc_norm = float(pred_norm in gold)
@@ -1401,28 +1400,29 @@ class ConfigurableTask(Task):
             acc = float(pred == gold)
             acc_norm = float(pred_norm == gold)
             exact_match = int(is_greedy[gold]) if gold != -100 else 0
-    
+
         result_dict = {}
 
         def add_metric(name, value):
             if name in use_metric:
                 result_dict[name] = value
-    
+
         add_metric("acc", acc)
         add_metric("acc_norm", acc_norm)
         add_metric("exact_match", exact_match)
         add_metric("f1", (gold, pred))
         add_metric("mcc", (gold, pred))
         add_metric("brier_score", (gold, prob_norm))
-    
+
         if lls_uncond and "acc_mutual_info" in use_metric:
             lls_mi = [ll_c - ll_u for ll_c, ll_u in zip(lls, lls_uncond)]
             add_metric("acc_mutual_info", float(np.argmax(lls_mi) == gold))
-    
+
         return result_dict
- 
-    def _process_results_generate_until(self, doc, results, use_metric): 
+
+    def _process_results_generate_until(self, doc, results, use_metric):
         """Process results from text generation tasks (e.g., QA, summarization)."""
+        result_dict = {}
         gold = self.doc_to_target(doc)
         result = results[0]
         if self.config.doc_to_choice is not None:
@@ -1497,7 +1497,7 @@ class ConfigurableTask(Task):
             else:
                 result_dict[metric] = result_score
 
-        return result_dict 
+        return result_dict
 
 
     def doc_to_text(self, doc, doc_to_text=None):
@@ -1766,9 +1766,9 @@ class ConfigurableTask(Task):
     def process_results(self, doc, results):
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
-    
+
         use_metric = list(self._metric_fn_list.keys())
-    
+
         if self.OUTPUT_TYPE == "loglikelihood":
                 return self._process_results_loglikelihood(doc, results, use_metric)
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
@@ -1780,7 +1780,7 @@ class ConfigurableTask(Task):
         else:
                raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of the following: {', '.join(ALL_OUTPUT_TYPES)}",
-            ) 
+            )
 
     def aggregation(self) -> dict:
         return self._aggregation_list
