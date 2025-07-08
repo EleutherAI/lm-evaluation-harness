@@ -639,7 +639,7 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
-        self.metric_list: list[MetricConfig] = self.config.get_metrics
+        # self.metric_list: list[MetricConfig] = self.config.get_metrics
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
@@ -655,7 +655,10 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.config.fewshot_cfg.num() > 0 and self.fewshot_docs() is not None:
+        if (
+            self.config.fewshot_cfg.num_fewshot() > 0
+            and self.fewshot_docs() is not None
+        ):
             self.fewshot_rnd = random.Random()
             self.sampler = self.config.fewshot_cfg.init_sampler(
                 list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
@@ -722,19 +725,21 @@ class ConfigurableTask(Task):
     def download(
         self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
     ) -> None:
-        if isinstance(df := self.config.ds_cfg.custom, Callable):
+        self.config.dataset_kwargs, self.config.metadata = (
+            self.config.dataset_kwargs or {},
+            self.config.metadata or {},
+        )
+        if isinstance(df := self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
                 + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
             )
-            self.dataset = df(
-                **(self.config.ds_cfg.kwargs | self.config.ds_cfg.metadata)
-            )
+            self.dataset = df(**(self.config.dataset_kwargs | self.config.metadata))
         else:
             self.dataset = datasets.load_dataset(
-                path=self.config.ds_cfg.path,
-                name=self.config.ds_cfg.name,
-                **self.config.ds_cfg.kwargs if self.config.ds_cfg.kwargs else {},
+                path=self.config.dataset_path,
+                name=self.config.dataset_name,
+                **self.config.dataset_kwargs,
             )
 
     def has_training_docs(self) -> bool:
@@ -971,7 +976,7 @@ class ConfigurableTask(Task):
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances)
+                f.ensemble.apply(self._instances)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
