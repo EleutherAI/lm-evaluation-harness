@@ -499,9 +499,7 @@ class TemplateAPI(TemplateLM):
             return answers
         # If the retries also fail
         except BaseException as e:
-            eval_logger.error(
-                f"Exception:{repr(e)}, {outputs}, retrying."
-            )
+            eval_logger.error(f"Exception:{repr(e)}, {outputs}, retrying.")
             raise e
         finally:
             if acquired:
@@ -549,7 +547,9 @@ class TemplateAPI(TemplateLM):
                 stop=stop_after_attempt(self.max_retries),
                 wait=wait_exponential(multiplier=0.5, min=1, max=10),
                 reraise=True,
-                before_sleep=lambda retry_state: eval_logger.info(f"Retry attempt {retry_state.attempt_number}")
+                before_sleep=lambda retry_state: eval_logger.info(
+                    f"Retry attempt {retry_state.attempt_number}"
+                ),
             )(self.amodel_call)
             # Create tasks for each batch of request
             tasks = [
