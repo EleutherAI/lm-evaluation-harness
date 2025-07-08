@@ -272,7 +272,7 @@ class EvaluationTracker:
             "question_details": {
                 "question_title": doc.get("question_title"),
                 "question_id": doc.get("question_id"),
-                "core_problem": self._extract_core_problem(doc.get("question_content")),
+                "question_content": self._extract_core_problem(doc.get("question_content")),
                 "difficulty": doc.get("difficulty"),
                 "platform": doc.get("platform"),
                 "contest_date": doc.get("contest_date"),
