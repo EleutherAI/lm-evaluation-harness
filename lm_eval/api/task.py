@@ -102,9 +102,9 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
-        self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
+        self._config: TaskConfig = TaskConfig.from_yaml({**config})
 
-        self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+        self._filters = [build_filter_ensemble("none", [("take_first", None)])]
         self.fewshot_rnd: Optional[random.Random] = (
             None  # purposely induce errors in case of improper usage
         )
@@ -655,7 +655,7 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.config.fewshot_cfg.num > 0 and self.fewshot_docs() is not None:
+        if self.config.fewshot_cfg.num() > 0 and self.fewshot_docs() is not None:
             self.fewshot_rnd = random.Random()
             self.sampler = self.config.fewshot_cfg.init_sampler(
                 list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
