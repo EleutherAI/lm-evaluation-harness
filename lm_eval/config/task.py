@@ -2,6 +2,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
 
+from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
 from lm_eval.config.metric import MetricConfig
 from lm_eval.config.utils import maybe_serialize
@@ -10,7 +11,6 @@ from lm_eval.config.utils import maybe_serialize
 if TYPE_CHECKING:
     from lm_eval.api.samplers import ContextSampler
     from lm_eval.api.task import Task
-    from lm_eval.filters import FilterEnsemble
 
 eval_logger = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ class FilterConfig:
     """Encapsulates information about a single filter."""
 
     name: str
-    fn: Optional[Callable] = None
-    kwargs: Optional[dict] = field(default_factory=dict)
+    ensemble: FilterEnsemble
+    metric_list: list[MetricConfig]
 
 
 @dataclass
@@ -118,20 +118,9 @@ class FewshotConfig:
 
 
 @dataclass
-class DatasetConfig:
-    """Encapsulates information about a dataset."""
-
-    path: Optional[str] = None
-    name: Optional[str] = None
-    kwargs: Optional[dict] = field(default_factory=dict)
-    custom: Optional[Callable] = None
-    metadata: Optional[dict] = field(default_factory=dict)
-
-
-@dataclass
 class TaskConfig(dict):
     # task naming/registry
-    task: str
+    task: Optional[str] = None
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
     # HF dataset options.
@@ -140,7 +129,7 @@ class TaskConfig(dict):
     custom_dataset: Optional[Callable] = None
     dataset_path: Optional[str] = None
     dataset_name: Optional[str] = None
-    dataset_kwargs: Optional[dict] = None
+    dataset_kwargs: Optional[dict] = field(default_factory=dict)
     training_split: Optional[str] = None
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
@@ -177,9 +166,9 @@ class TaskConfig(dict):
         default_factory=dict
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
-    _metric_list: list[MetricConfig] = None
+    _metric_list: list[MetricConfig] = field(default_factory=list)
     _filter_list: list[FilterConfig] = None
-    ds_cfg: DatasetConfig = field(init=False)
+    # ds_cfg: DatasetConfig = field(init=False)
     fewshot_cfg: FewshotConfig = field(init=False)
 
     def __post_init__(self) -> None:
@@ -215,18 +204,10 @@ class TaskConfig(dict):
                 eval_logger.warning(
                     f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
                 )
-        # ---setup dataset config--- #
-        self.ds_cfg = DatasetConfig(
-            path=self.dataset_path,
-            name=self.dataset_name,
-            kwargs=self.dataset_kwargs,
-            custom=self.custom_dataset,
-            metadata=self.metadata or {},
-        )
         # ---setup fewshot config--- #
         _fewshot_cfg = self.fewshot_config if self.fewshot_config is not None else {}
         self.fewshot_cfg = FewshotConfig(
-            num_fewshot=lambda: self.num_fewshot or _fewshot_cfg["num_fewshot"],
+            num_fewshot=lambda: self.num_fewshot or _fewshot_cfg.get("num_fewshot", 0),
             split=self.fewshot_split,
             sampler=_fewshot_cfg.get("sampler", "default"),
             samples=_fewshot_cfg.get("samples", None),
@@ -234,8 +215,9 @@ class TaskConfig(dict):
             fewshot_indices=_fewshot_cfg.get("fewshot_indices", None),
         )
 
-    @property
-    def get_metrics(self) -> list["MetricConfig"]:
+    def _get_metric(
+        self, metric_list: Optional[list[dict]] = None
+    ) -> list["MetricConfig"]:
         from lm_eval.api.registry import (
             AGGREGATION_REGISTRY,
             DEFAULT_METRIC_REGISTRY,
@@ -245,8 +227,10 @@ class TaskConfig(dict):
             is_higher_better,
         )
 
+        # if metric_list defined inside a filter, use that; otherwise use the task's metric_list
+        metric_list = metric_list or self.metric_list
         metrics = []
-        if self.metric_list is None:
+        if not metric_list:
             # ---------- 1. If no metrics defined, use defaults for output type ----------
             _metric_list = DEFAULT_METRIC_REGISTRY[self.output_type]
             eval_logger.info(
@@ -263,7 +247,7 @@ class TaskConfig(dict):
             )
         else:
             # ---------- 2. Process user-defined metrics from config ----------
-            for metric_config in self.metric_list:
+            for metric_config in metric_list:
                 metric_name = metric_config["metric"]
                 _metric_fn_kwargs = {
                     key: metric_config[key]
@@ -324,34 +308,50 @@ class TaskConfig(dict):
                         hf_evaluate=_hf_evaluate_metric,
                     )
                 )
+        for m in metrics:
+            if m not in self._metric_list:
+                self._metric_list.append(m)
         return metrics
 
     @property
-    def get_filters(self) -> list["FilterEnsemble"]:
+    def get_filters(self) -> list["FilterConfig"]:
         from lm_eval.filters import build_filter_ensemble
 
         if not self.filter_list:
             eval_logger.debug(
                 "No custom filters defined; falling back to 'take_first' for handling repeats."
             )
-            return [build_filter_ensemble("none", [("take_first", None)])]
+            return [
+                FilterConfig(
+                    name="none",
+                    ensemble=build_filter_ensemble("none", [("take_first", None)]),
+                    metric_list=self._get_metric(metric_list=None),
+                )
+            ]
         else:
 
             def _strip_fn(d: dict) -> tuple[str, dict]:
-                return d["function"], {k: v for k, v in d.items() if k != "function"}
+                return d["function"], {
+                    k: v for k, v in d.items() if k not in ["function", "metric_list"]
+                }
 
             configs = (
                 self.filter_list.values()
                 if isinstance(self.filter_list, dict)
                 else self.filter_list
             )
-            return [
-                build_filter_ensemble(
-                    filter_name=cfg["name"],
-                    components=[_strip_fn(f) for f in cfg["filter"]],
+            x = [
+                FilterConfig(
+                    name=cfg["name"],
+                    ensemble=build_filter_ensemble(
+                        filter_name=cfg["name"],
+                        components=[_strip_fn(f) for f in cfg["filter"]],
+                    ),
+                    metric_list=self._get_metric(metric_list=cfg.get("metric_list")),
                 )
                 for cfg in configs
             ]
+            return x
 
     @classmethod
     def from_yaml(cls, data: dict) -> "TaskConfig":

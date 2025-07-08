@@ -29,6 +29,7 @@ class GroupConfig(dict):
     aggregate_metric_list: Optional[
         Union[List[AggMetricConfig], AggMetricConfig, dict]
     ] = None
+    version: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -48,6 +49,11 @@ class GroupConfig(dict):
                 AggMetricConfig(**item) if isinstance(item, dict) else item
                 for item in self.aggregate_metric_list
             ]
+        self.version = (
+            self.version or self.metadata.get("version", "1.0")
+            if self.metadata
+            else "1.0"
+        )
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         """dumps the current config as a dictionary object, as a printable format.

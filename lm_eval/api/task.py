@@ -639,7 +639,7 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
-        self.metric_list: list[MetricConfig] = self.config.get_metrics
+        # self.metric_list: list[MetricConfig] = self.config.get_metrics
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
@@ -655,7 +655,10 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.config.fewshot_cfg.num() > 0 and self.fewshot_docs() is not None:
+        if (
+            self.config.fewshot_cfg.num_fewshot() > 0
+            and self.fewshot_docs() is not None
+        ):
             self.fewshot_rnd = random.Random()
             self.sampler = self.config.fewshot_cfg.init_sampler(
                 list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
@@ -724,21 +727,23 @@ class ConfigurableTask(Task):
     ) -> None:
         from packaging.version import parse as vparse
 
+        self.config.dataset_kwargs, self.config.metadata = (
+            self.config.dataset_kwargs or {},
+            self.config.metadata or {},
+        )
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
             dataset_kwargs.pop("trust_remote_code", None)
-        if isinstance(self.config.custom_dataset, Callable):
+        if isinstance(df := self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
                 + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
             )
-            self.dataset = self.config.custom_dataset(
-                **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
-            )
+            self.dataset = df(**(self.config.dataset_kwargs | self.config.metadata))
         else:
             self.dataset = datasets.load_dataset(
-                path=self.DATASET_PATH,
-                name=self.DATASET_NAME,
-                **dataset_kwargs if dataset_kwargs is not None else {},
+                path=self.config.dataset_path,
+                name=self.config.dataset_name,
+                **self.config.dataset_kwargs,
             )
 
     def has_training_docs(self) -> bool:
@@ -975,7 +980,7 @@ class ConfigurableTask(Task):
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances)
+                f.ensemble.apply(self._instances)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
@@ -1214,7 +1219,7 @@ class ConfigurableTask(Task):
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in [m.metric_name for m in self.metric_list]:
+            if "acc_mutual_info" in [m.metric_name for m in self.config._metric_list]:
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
@@ -1281,7 +1286,7 @@ class ConfigurableTask(Task):
             return self.config.process_results(doc, results)
 
         result_dict = {}
-        use_metric = list(m.metric_name for m in self.metric_list)
+        use_metric = list(m.metric_name for m in self.config._metric_list)
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
@@ -1407,7 +1412,7 @@ class ConfigurableTask(Task):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
-            for metric in self.metric_list:
+            for metric in self.config._metric_list:
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1470,10 +1475,10 @@ class ConfigurableTask(Task):
         return result_dict
 
     def aggregation(self) -> dict:
-        return {k.name: k.aggregation_fn for k in self.metric_list}
+        return {k.name: k.aggregation_fn for k in self.config._metric_list}
 
     def higher_is_better(self) -> dict:
-        return {k.name: k.higher_is_better for k in self.metric_list}
+        return {k.name: k.higher_is_better for k in self.config._metric_list}
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
