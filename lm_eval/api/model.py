@@ -101,7 +101,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests: list[Instance]) -> list[str]:
+    def generate_until(self, requests: list["Instance"]) -> list[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -428,7 +428,7 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def generate_until(
-        self, requests: list[Instance], disable_tqdm: bool = False
+        self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[str]:
         """Generate until a stopping sequence.
 
