@@ -17,6 +17,7 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
     pad_and_concat,
     replace_placeholders,
+    resize_image,
     stop_sequences_criteria,
 )
 
@@ -45,10 +46,23 @@ class HFMultimodalLM(HFLM):
         # TODO: handle whitespace in image placeholder (replacement)
         max_images: Optional[int] = 999,
         convert_img_format=False,
+        # For image resizing
         min_pixels: Optional[int] = None,
         max_pixels: Optional[int] = None,
+        image_width: Optional[int] = None,
+        image_height: Optional[int] = None,
+        image_max_side: Optional[int] = None,
         **kwargs,
     ):
+        self.image_width = image_width
+        self.image_height = image_height
+        self.image_max_side = image_max_side
+        if self.image_max_side and (self.image_width or self.image_height):
+            raise ValueError(
+                "Ambiguous config for image resize: you can not specify both "
+                "image_max_side and (image_width or image_height)"
+            )
+
         # init pixels before calling tokenizer creation to avoid errors
         self.pixels = ({"min_pixels": min_pixels} if min_pixels else {}) | (
             {"max_pixels": max_pixels} if max_pixels else {}
@@ -385,6 +399,9 @@ class HFMultimodalLM(HFLM):
         return batched_imgs
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().loglikelihood_rolling(requests=requests)
         raise NotImplementedError(
             "model type `hf-multimodal` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
             "this is because we do not support measuring the loglikelihood a model assigns to an image.",
@@ -393,6 +410,9 @@ class HFMultimodalLM(HFLM):
     def loglikelihood(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().loglikelihood(requests=requests, disable_tqdm=disable_tqdm)
         raise NotImplementedError(
             "'loglikelihood' requests for model type `hf-multimodal` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
         )
@@ -419,9 +439,11 @@ class HFMultimodalLM(HFLM):
                 )
             )
 
-        return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)
+        return self._multimodal_loglikelihood_tokens(
+            new_reqs, disable_tqdm=disable_tqdm
+        )
 
-    def _loglikelihood_tokens(
+    def _multimodal_loglikelihood_tokens(
         self,
         requests: List[
             Tuple[Tuple[None, str, str], List[int], List[int], List[int]]
@@ -610,7 +632,10 @@ class HFMultimodalLM(HFLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments (text-only reqs)
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().generate_until(requests=requests, disable_tqdm=disable_tqdm)
+
         res = []
 
         def _collate(x):
@@ -646,7 +671,15 @@ class HFMultimodalLM(HFLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
-            visuals = [arg["visual"] for arg in aux_arguments]
+            visuals = [
+                [
+                    resize_image(
+                        img, self.image_width, self.image_height, self.image_max_side
+                    )
+                    for img in arg["visual"]
+                ]
+                for arg in aux_arguments
+            ]
 
             if not isinstance(contexts, list):
                 contexts = list(

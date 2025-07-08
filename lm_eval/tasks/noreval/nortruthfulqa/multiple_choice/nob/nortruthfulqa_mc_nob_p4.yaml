@@ -1,0 +1,5 @@
+tag: nortruthfulqa_mc_nob
+task: nortruthfulqa_mc_nob_p4
+dataset_name: nb
+include: ../_nortruthfulqa_mc_yaml
+doc_to_text: !function utils.p4_nb

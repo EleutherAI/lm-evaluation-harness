@@ -7,16 +7,6 @@ from functools import partial
 from pathlib import Path
 from typing import Union
 
-from lm_eval import evaluator, utils
-from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.loggers import EvaluationTracker, WandbLogger
-from lm_eval.tasks import TaskManager
-from lm_eval.utils import (
-    handle_non_serializable,
-    make_table,
-    simple_parse_args_string,
-)
-
 
 def try_parse_json(value: str) -> Union[str, dict, None]:
     if value is None:
@@ -135,7 +125,7 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         type=str,
         metavar="DIR|DIR/file.json",
-        help="The path to the output file where the result metrics will be saved. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
+        help="Path where result metrics will be saved. Can be either a directory or a .json file. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
     )
     parser.add_argument(
         "--limit",
@@ -313,6 +303,17 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         parser = setup_parser()
         args = parse_eval_args(parser)
+
+    # defer loading `lm_eval` submodules for faster CLI load
+    from lm_eval import evaluator, utils
+    from lm_eval.evaluator import request_caching_arg_to_dict
+    from lm_eval.loggers import EvaluationTracker, WandbLogger
+    from lm_eval.tasks import TaskManager
+    from lm_eval.utils import (
+        handle_non_serializable,
+        make_table,
+        simple_parse_args_string,
+    )
 
     if args.wandb_args:
         wandb_args_dict = simple_parse_args_string(args.wandb_args)

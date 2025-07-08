@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 import jinja2
 import torch
@@ -17,8 +17,6 @@ from accelerate import (
 from accelerate.utils import get_max_memory
 from huggingface_hub import HfApi
 from packaging import version
-from peft import PeftModel
-from peft import __version__ as PEFT_VERSION
 from tqdm import tqdm
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
@@ -39,6 +37,9 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
+
+if TYPE_CHECKING:
+    from transformers.quantizers import AutoQuantizationConfig
 
 eval_logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ class HFLM(TemplateLM):
         backend: Literal["default", "causal", "seq2seq"] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
-        subfolder: Optional[str] = None,
+        subfolder: str = "",
         tokenizer: Optional[
             Union[
                 str,
@@ -162,14 +163,13 @@ class HFLM(TemplateLM):
                 )
 
             revision = str(revision)  # cast to string if not already one
-            # TODO: update this to be less of a hack once subfolder is fixed in HF
-            revision = revision + ("/" + subfolder if subfolder is not None else "")
 
             self._get_config(
                 pretrained,
                 revision=revision,
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
+                subfolder=subfolder,
             )
 
             # determine which of 'causal' and 'seq2seq' backends to use for HF models
@@ -182,11 +182,19 @@ class HFLM(TemplateLM):
             pretrained,
             tokenizer,
             revision=revision,
+            subfolder=subfolder,
             trust_remote_code=trust_remote_code,
             use_fast_tokenizer=use_fast_tokenizer,
             gguf_file=gguf_file,
             add_bos_token=add_bos_token,
         )
+
+        if (
+            quantization_config := getattr(self.config, "quantization_config", None)
+        ) is not None and isinstance(quantization_config, dict):
+            from transformers.quantizers import AutoQuantizationConfig
+
+            quantization_config = AutoQuantizationConfig.from_dict(quantization_config)
 
         # if we passed `pretrained` as a string, initialize our model now
         if isinstance(pretrained, str):
@@ -205,7 +213,8 @@ class HFLM(TemplateLM):
                 autogptq=autogptq,
                 gptqmodel=gptqmodel,
                 gguf_file=gguf_file,
-                quantization_config=getattr(self.config, "quantization_config", None),
+                quantization_config=quantization_config,
+                subfolder=subfolder,
                 **kwargs,
             )
 
@@ -522,6 +531,7 @@ class HFLM(TemplateLM):
         revision: str = "main",
         trust_remote_code: bool = False,
         gguf_file: Optional[str] = None,
+        subfolder: str = "",
     ) -> None:
         """Return the model config for HuggingFace models"""
         self._config = transformers.AutoConfig.from_pretrained(
@@ -529,6 +539,7 @@ class HFLM(TemplateLM):
             revision=revision,
             trust_remote_code=trust_remote_code,
             gguf_file=gguf_file,
+            subfolder=subfolder,
         )
 
     def _create_model(
@@ -551,7 +562,8 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
-        quantization_config: Optional[Dict[str, Any]] = None,
+        quantization_config: Optional["AutoQuantizationConfig"] = None,
+        subfolder: str = "",
         **kwargs,
     ) -> None:
         """
@@ -598,6 +610,7 @@ class HFLM(TemplateLM):
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
+                subfolder=subfolder,
                 **model_kwargs,
             )
         else:
@@ -644,6 +657,9 @@ class HFLM(TemplateLM):
             )
 
         if peft:
+            from peft import PeftModel
+            from peft import __version__ as PEFT_VERSION
+
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
@@ -697,6 +713,7 @@ class HFLM(TemplateLM):
         use_fast_tokenizer: Optional[bool] = True,
         gguf_file: Optional[str] = None,
         add_bos_token: Optional[bool] = False,
+        subfolder: Optional[str] = "",
     ) -> None:
         """
         Helper method during initialization.
@@ -710,13 +727,16 @@ class HFLM(TemplateLM):
         }
 
         # gguf format embeds tokenizer and is not compatible with hf tokenizer `use_fast` param
-        if gguf_file is not None:
+        if not tokenizer and gguf_file is not None:
             kwargs["gguf_file"] = gguf_file
         else:
             kwargs["use_fast"] = use_fast_tokenizer
 
         if add_bos_token:
             kwargs["add_bos_token"] = True
+
+        if subfolder:
+            kwargs["subfolder"] = subfolder
 
         if tokenizer:
             if isinstance(tokenizer, str):
@@ -890,7 +910,10 @@ class HFLM(TemplateLM):
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
             else:
-                assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                assert self.AUTO_MODEL_CLASS in (
+                    transformers.AutoModelForCausalLM,
+                    transformers.AutoModelForVision2Seq,
+                )
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
@@ -1136,7 +1159,7 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     total_length = len(context_enc) + len(continuation_enc)
                     if total_length > self.max_length + 1:
-                        eval_logger.warn(
+                        eval_logger.warning(
                             f"Combined length of context ({len(context_enc)}) and continuation ({len(continuation_enc)}) "
                             f"exceeds model's maximum length ({self.max_length}). "
                             f"Truncating {total_length - self.max_length + 1} tokens from the left."
@@ -1247,7 +1270,12 @@ class HFLM(TemplateLM):
                     cont_toks = torch.tensor(
                         cont_toks, dtype=torch.long, device=self.device
                     ).unsqueeze(0)  # [1, seq]
-                    max_equal = (greedy_tokens == cont_toks).all()
+                    # Use trailing slice [-cont_toks.shape[1]:] to handle variable length cont_len (but same ctx+cont[:-1]).
+                    # i.e. continuations can be sliced at diff points. Collator ensures we have sufficient greedy_tokens
+                    # by choosing key with longest cont if group_by="contexts".
+                    max_equal = (
+                        greedy_tokens[:, -cont_toks.shape[1] :] == cont_toks
+                    ).all()
 
                     # Obtain log-probs at the corresponding continuation token indices
                     # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
