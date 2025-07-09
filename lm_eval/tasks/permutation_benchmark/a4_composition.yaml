@@ -1,0 +1,15 @@
+task: a4_composition
+dataset_path: BeeGass/permutation-groups
+dataset_name: a4_data
+dataset_kwargs:
+  trust_remote_code: true
+output_type: loglikelihood
+test_split: test
+doc_to_text: "Compose the following sequence of A4 permutations: {{input_sequence}}. The resulting permutation is:"
+doc_to_target: "{{target}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

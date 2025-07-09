@@ -1,0 +1,16 @@
+group: permutation_benchmark
+task:
+  # --- Solvable Groups (TC^0) ---
+  - a3_composition
+  - s3_composition
+  - a4_composition
+  - s4_composition
+  # --- Non-Solvable Groups (NC^1) ---
+  - a5_composition
+  - s5_composition
+  - a6_composition
+  - s6_composition
+  - a7_composition
+  - s7_composition
+metadata:
+  version: 0
