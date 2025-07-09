@@ -75,7 +75,7 @@ testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm>=0.4.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
-r1_evals = ["latex2sympy2"]
+r1_evals = ["latex2sympy2_extended[antlr4_11_0]"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
