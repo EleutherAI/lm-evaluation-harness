@@ -29,11 +29,11 @@ from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
+    get_logger,
     handle_non_serializable,
     hash_dict_images,
     hash_string,
     positional_deprecated,
-    setup_logging,
     simple_parse_args_string,
 )
 
@@ -146,7 +146,7 @@ def simple_evaluate(
         Dictionary of results
     """
     if verbosity is not None:
-        setup_logging(verbosity=verbosity)
+        get_logger(verbosity)
     start_date = time.time()
 
     if limit is not None and samples is not None:
@@ -364,8 +364,6 @@ def simple_evaluate(
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
-    if verbosity is not None:
-        setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -769,13 +767,3 @@ def evaluate(
 
     else:
         return None
-
-
-def request_caching_arg_to_dict(cache_requests: str) -> dict:
-    request_caching_args = {
-        "cache_requests": cache_requests in {"true", "refresh"},
-        "rewrite_requests_cache": cache_requests == "refresh",
-        "delete_requests_cache": cache_requests == "delete",
-    }
-
-    return request_caching_args
