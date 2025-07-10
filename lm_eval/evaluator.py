@@ -475,7 +475,9 @@ def evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
     if samples is not None:
-        eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
+        eval_logger.info(
+            f"Evaluating examples for tasks {[x for x in list(samples.keys()) if x in task_dict.keys()]}"
+        )
     if apply_chat_template:
         eval_logger.warning(
             "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."

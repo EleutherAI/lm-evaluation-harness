@@ -38,7 +38,7 @@ class MetricConfig:
             return is_higher_better(self.name)
         return self.higher_is_better
 
-    def compute_metric(self, *args, **kwargs) -> Any:
+    def compute(self, *args, **kwargs) -> Any:
         """Calculates the metric using the provided function and arguments."""
         if self.fn is None:
             raise ValueError(f"Metric function for {self.name} is not defined.")

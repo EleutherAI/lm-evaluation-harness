@@ -8,6 +8,8 @@ from functools import partial
 from lm_eval._cli.subcommand import SubCommand
 from lm_eval._cli.utils import (
     _int_or_none_list_arg_type,
+    key_val_to_dict,
+    merge_dicts,
     request_caching_arg_to_dict,
     try_parse_json,
 )
@@ -22,17 +24,17 @@ class Run(SubCommand):
             "run",
             help="Run the evaluation harness on specified tasks",
             description="Evaluate language models on various benchmarks and tasks.",
-            usage="lm-eval run --model <model> --tasks <task1,task2,...> [options]",
+            usage="lm-eval run --model <model> --tasks <task> <task> --model_args <arg=value> <arg=value> [options]",
             epilog=textwrap.dedent("""
                 examples:
                   # Basic evaluation with HuggingFace model
-                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
+                  $ lm-eval run --model hf --model_args pretrained=gpt2 dtype=float32 --tasks hellaswag
 
                   # Evaluate on multiple tasks with few-shot examples
-                  $ lm-eval run --model vllm --model_args pretrained=EleutherAI/gpt-j-6B --tasks arc_easy,arc_challenge --num_fewshot 5
+                  $ lm-eval run --model vllm --model_args pretrained=EleutherAI/gpt-j-6B --tasks arc_easy arc_challenge --num_fewshot 5
 
                   # Evaluation with custom generation parameters
-                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs "temperature=0.8,top_p=0.95"
+                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs temperature=0.8 top_p=0.95 'stop=["\\n\\n"]'
 
                   # Use configuration file
                   $ lm-eval run --config my_config.yaml --tasks mmlu
@@ -73,9 +75,10 @@ class Run(SubCommand):
             "-t",
             default=None,
             type=str,
-            metavar="TASK1,TASK2",
+            nargs="*",
+            metavar="TASK1 TASK2",
             help=textwrap.dedent("""
-                Comma-separated list of task names or groupings.
+                Space or Comma-separated list of task names or groupings.
                 Use 'lm-eval list tasks' to see all available tasks.
             """).strip(),
         )
@@ -83,9 +86,10 @@ class Run(SubCommand):
             "--model_args",
             "-a",
             default=None,
-            type=try_parse_json,
+            nargs="*",
+            type=key_val_to_dict,
             metavar="ARGS",
-            help="Model arguments as 'key=val,key2=val2' or JSON string",
+            help="Model arguments as 'key=val,key2=val2' or `key=val` `key2=val2`",
         )
 
         # Evaluation Settings
@@ -124,10 +128,14 @@ class Run(SubCommand):
         )
         eval_group.add_argument(
             "--gen_kwargs",
-            type=try_parse_json,
+            type=key_val_to_dict,
             default=None,
+            nargs="*",
             metavar="KWARGS",
-            help="Generation arguments as 'key=val,key2=val2' or JSON string",
+            help=textwrap.dedent(
+                'Generation arguments as `temperature=0,stop=["stop"]` or `key=val` `key2=val2`.'
+                "Values should be parsable with ast.literal_eval."
+            ),
         )
 
         # Data and Output
@@ -160,9 +168,10 @@ class Run(SubCommand):
             "-E",
             default=None,
             type=try_parse_json,
-            metavar="JSON_FILE",
+            metavar='"task1": [1,2,3,4,...]"',
             help=textwrap.dedent(
-                'JSON file with specific sample indices for inputs: {"task_name":[indices],...}. Incompatible with --limit.'
+                "`...` `...` Sample indices for inputs. Incompatible with --limit."
+                " Values be parsable with ast.literal_eval."
             ),
         )
 
@@ -250,24 +259,24 @@ class Run(SubCommand):
         )
         logging_group.add_argument(
             "--wandb_args",
-            type=str,
+            type=key_val_to_dict,
             default=argparse.SUPPRESS,
             metavar="ARGS",
-            help="Weights & Biases init arguments (key=val,key2=val2)",
+            help="Weights & Biases init arguments key=val key2=val2",
         )
         logging_group.add_argument(
             "--wandb_config_args",
-            type=str,
+            type=key_val_to_dict,
             default=argparse.SUPPRESS,
             metavar="ARGS",
-            help="Weights & Biases config arguments (key=val,key2=val2)",
+            help="Weights & Biases config arguments key=val key2=val2",
         )
         logging_group.add_argument(
             "--hf_hub_log_args",
-            type=str,
+            type=key_val_to_dict,
             default=argparse.SUPPRESS,
             metavar="ARGS",
-            help="Hugging Face Hub logging arguments (key=val,key2=val2)",
+            help="Hugging Face Hub logging arguments key=val key2=val2",
         )
 
         # Advanced Options
@@ -307,15 +316,28 @@ class Run(SubCommand):
             "--metadata",
             type=json.loads,
             default=None,
-            metavar="JSON",
+            metavar="`key=val` `key2=val2`",
             help=textwrap.dedent(
-                """JSON metadata for task configs (merged with model_args), required for some tasks such as RULER"""
+                """`key=val` `key2=val` args parsable by ast.literal_eval (merged with model_args),
+                required for some tasks such as RULER"""
             ),
         )
 
-    def _execute(self, args: argparse.Namespace) -> None:
+    @staticmethod
+    def _execute(args: argparse.Namespace) -> None:
         """Runs the evaluation harness with the provided arguments."""
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        MERGE_ARGS_DICTS = [
+            "model_args",
+            "gen_kwargs",
+            "wandb_args",
+            "wandb_config_args",
+            "hf_hub_log_args",
+        ]
+        for arg_name in MERGE_ARGS_DICTS:
+            if current_value := getattr(args, arg_name, None):
+                setattr(args, arg_name, merge_dicts(*current_value))
+
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
         eval_logger = logging.getLogger(__name__)
