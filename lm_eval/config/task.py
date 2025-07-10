@@ -215,7 +215,7 @@ class TaskConfig(dict):
             fewshot_indices=_fewshot_cfg.get("fewshot_indices", None),
         )
 
-    def get_metric(
+    def _get_metric(
         self, metric_list: Optional[list[dict]] = None
     ) -> list["MetricConfig"]:
         from lm_eval.api.registry import (
@@ -325,7 +325,7 @@ class TaskConfig(dict):
                 FilterConfig(
                     name="none",
                     ensemble=build_filter_ensemble("none", [("take_first", None)]),
-                    metric_list=self.get_metric(metric_list=None),
+                    metric_list=self._get_metric(metric_list=None),
                 )
             ]
         else:
@@ -347,7 +347,7 @@ class TaskConfig(dict):
                         filter_name=cfg["name"],
                         components=[_strip_fn(f) for f in cfg["filter"]],
                     ),
-                    metric_list=self.get_metric(metric_list=cfg.get("metric_list")),
+                    metric_list=self._get_metric(metric_list=cfg.get("metric_list")),
                 )
                 for cfg in configs
             ]
