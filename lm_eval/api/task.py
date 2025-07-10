@@ -5,9 +5,8 @@ import random
 import re
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import asdict, dataclass
-from inspect import getsource
 from typing import (
+    TYPE_CHECKING,
     Any,
     Dict,
     Iterable,
@@ -23,20 +22,14 @@ from typing import (
 import datasets
 import numpy as np
 from tqdm import tqdm
+from typing_extensions import deprecated
 
 from lm_eval import utils
-from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
-from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
-    DEFAULT_METRIC_REGISTRY,
-    get_aggregation,
-    get_metric,
-    get_metric_aggregation,
-    is_higher_better,
-)
 from lm_eval.caching.cache import load_from_cache, save_to_cache
+from lm_eval.config.metric import MetricConfig
+from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
@@ -48,139 +41,11 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
+if TYPE_CHECKING:
+    pass
+
+
 eval_logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TaskConfig(dict):
-    # task naming/registry
-    task: Optional[str] = None
-    task_alias: Optional[str] = None
-    tag: Optional[Union[str, list]] = None
-    # HF dataset options.
-    # which dataset to use,
-    # and what splits for what purpose
-    custom_dataset: Optional[Callable] = None
-    dataset_path: Optional[str] = None
-    dataset_name: Optional[str] = None
-    dataset_kwargs: Optional[dict] = None
-    training_split: Optional[str] = None
-    validation_split: Optional[str] = None
-    test_split: Optional[str] = None
-    fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
-    )
-    # formatting / prompting options.
-    # see docs/advanced_task_guide.md for more info
-    process_docs: Optional[Callable] = None
-    doc_to_text: Optional[Union[Callable, str]] = None
-    doc_to_target: Optional[Union[Callable, str]] = None
-    doc_to_image: Union[Callable, str] = None
-    doc_to_audio: Union[Callable, str] = None
-    unsafe_code: bool = False
-    doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
-    process_results: Optional[Union[Callable, str]] = None
-    use_prompt: Optional[str] = None
-    description: str = ""
-    target_delimiter: str = " "
-    fewshot_delimiter: str = "\n\n"
-    fewshot_config: Optional[dict] = None
-    # runtime configuration options
-    num_fewshot: Optional[int] = None
-    # scoring options
-    metric_list: Optional[list] = None
-    output_type: OutputType = "generate_until"
-    generation_kwargs: Optional[dict] = None
-    repeats: int = 1
-    filter_list: Optional[Union[str, list]] = None
-    should_decontaminate: bool = False
-    doc_to_decontamination_query: Optional[str] = None
-    gen_prefix: Optional[str] = None
-    metadata: Optional[dict] = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
-
-    def __post_init__(self) -> None:
-        if self.generation_kwargs is not None:
-            if self.output_type != "generate_until":
-                eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
-                )
-
-            if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
-
-            if "until" not in self.generation_kwargs:
-                eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
-                )
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
-        else:
-            if self.output_type == "generate_until":
-                # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = {
-                    "until": (
-                        None
-                        if self.fewshot_delimiter is None
-                        else [self.fewshot_delimiter]
-                    ),
-                    "do_sample": False,
-                    "temperature": 0,
-                }
-                eval_logger.warning(
-                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
-                )
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def to_dict(self, keep_callable: bool = False) -> dict:
-        """dumps the current config as a dictionary object, as a printable format.
-        null fields will not be printed.
-        Used for dumping results alongside full task configuration
-
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-
-        # TODO: should any default value in the TaskConfig not be printed?
-        """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if v is None:
-                cfg_dict.pop(k)
-            elif k == "metric_list":
-                for metric_dict in v:
-                    for metric_key, metric_value in metric_dict.items():
-                        if callable(metric_value):
-                            metric_dict[metric_key] = self.serialize_function(
-                                metric_value, keep_callable=keep_callable
-                            )
-                cfg_dict[k] = v
-            elif callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
-        """Serializes a given function or string.
-
-        If 'keep_callable' is True, the original callable is returned.
-        Otherwise, attempts to return the source code of the callable using 'getsource'.
-        """
-        if keep_callable:
-            return value
-        else:
-            try:
-                return getsource(value)
-            except (TypeError, OSError):
-                return str(value)
 
 
 class Task(abc.ABC):
@@ -237,9 +102,9 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
-        self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
+        self._config: TaskConfig = TaskConfig.from_yaml({**config})
 
-        self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+        self._filters = [build_filter_ensemble("none", [("take_first", None)])]
         self.fewshot_rnd: Optional[random.Random] = (
             None  # purposely induce errors in case of improper usage
         )
@@ -288,17 +153,17 @@ class Task(abc.ABC):
         return self._config
 
     @abc.abstractmethod
-    def has_training_docs(self):
+    def has_training_docs(self) -> bool:
         """Whether the task has a training set"""
         pass
 
     @abc.abstractmethod
-    def has_validation_docs(self):
+    def has_validation_docs(self) -> bool:
         """Whether the task has a validation set"""
         pass
 
     @abc.abstractmethod
-    def has_test_docs(self):
+    def has_test_docs(self) -> bool:
         """Whether the task has a test set"""
         pass
 
@@ -352,39 +217,39 @@ class Task(abc.ABC):
         return doc
 
     @property
-    def instances(self) -> List[Instance]:
+    def instances(self) -> list[Instance]:
         """After calling `task.build_all_requests()`, tasks
         maintain a list of the dataset instances which will be evaluated.
         """
         return self._instances
 
-    def fewshot_examples(self, k, rnd):
+    def fewshot_examples(self, k, rnd) -> Iterable[dict]:
         if self._training_docs is None:
             self._training_docs = list(self.training_docs())
 
         return rnd.sample(self._training_docs, k)
 
-    def doc_to_decontamination_query(self, doc):
+    def doc_to_decontamination_query(self, doc: dict):
         raise NotImplementedError(
             "Override doc_to_decontamination_query with document specific decontamination query."
         )
 
     @abc.abstractmethod
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc: dict) -> str:
         pass
 
     @abc.abstractmethod
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc: dict) -> Union[str, int]:
         pass
 
     # not an abstractmethod because not every language-only task has to implement this
-    def doc_to_image(self, doc):
+    def doc_to_image(self, doc: dict):
         raise NotImplementedError
 
-    def doc_to_audio(self, doc):
+    def doc_to_audio(self, doc: dict):
         raise NotImplementedError
 
-    def doc_to_prefix(self, doc):
+    def doc_to_prefix(self, doc: dict) -> str:
         return ""
 
     def build_all_requests(
@@ -501,7 +366,7 @@ class Task(abc.ABC):
             save_to_cache(file_name=cache_key, obj=instances)
 
     @abc.abstractmethod
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(self, doc: dict, ctx: Union[list[dict], str], **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
@@ -522,7 +387,7 @@ class Task(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def process_results(self, doc, results):
+    def process_results(self, doc: dict, results: list):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
@@ -534,7 +399,7 @@ class Task(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
+    @deprecated("not used anymore")
     def aggregation(self):
         """
         :returns: {str: [metric_score] -> float}
@@ -543,7 +408,7 @@ class Task(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
+    @deprecated("not used anymore")
     def higher_is_better(self):
         """
         :returns: {str: bool}
@@ -556,12 +421,12 @@ class Task(abc.ABC):
         return getattr(self._config, key, None)
 
     @classmethod
-    def count_bytes(cls, doc):
+    def count_bytes(cls, doc) -> int:
         """Used for byte-level perplexity metrics in rolling loglikelihood"""
         return len(doc.encode("utf-8"))
 
     @classmethod
-    def count_words(cls, doc):
+    def count_words(cls, doc) -> int:
         """Downstream loglikelihood_rolling perplexity tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
 
@@ -661,23 +526,13 @@ class Task(abc.ABC):
         Parameters:
         - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
         """
-        (
-            self._metric_fn_list,
-            self._aggregation_list,
-            self._metric_fn_kwargs,
-            self._higher_is_better,
-        ) = ({}, {}, {}, {})
-        self._metric_fn_list[metric_name] = get_metric(metric_name)
-        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
-        self._higher_is_better[metric_name] = is_higher_better(metric_name)
-        self._metric_fn_kwargs[metric_name] = {}
-        if not isinstance(self, ConfigurableTask):
-            self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
-            self.aggregation = lambda: {
-                metric_name: get_metric_aggregation(metric_name)
-            }
-        setattr(self._config, "metric_list", [{"metric": metric_name}])
-        setattr(self._config, "process_results", None)
+        # if not isinstance(self, ConfigurableTask):
+        #     self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
+        #     self.aggregation = lambda: {
+        #         metric_name: get_metric_aggregation(metric_name)
+        #     }
+        setattr(self._config, "metric_list", [MetricConfig(name=metric_name)])
+        setattr(self._config, "process_results", lambda *args: {"bypass": 0})
 
     def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
         self.fewshot_rnd = random.Random(seed)
@@ -685,7 +540,7 @@ class Task(abc.ABC):
             self.sampler.rnd = self.fewshot_rnd
 
     @property
-    def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
+    def eval_docs(self) -> Union[datasets.Dataset, Iterable[dict]]:
         if self.has_test_docs():
             return self.test_docs()
         elif self.has_validation_docs():
@@ -739,7 +594,7 @@ class ConfigurableTask(Task):
         cache_dir=None,
         download_mode=None,
         config: Optional[dict] = None,
-    ) -> None:  # TODO no super() call here
+    ) -> None:
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -784,107 +639,13 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
-        self._metric_fn_list = {}
-        self._metric_fn_kwargs = {}
-        self._aggregation_list = {}
-        self._higher_is_better = {}
-
-        if self.config.metric_list is None:
-            # TODO: handle this in TaskConfig.__post_init__ ?
-            _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
-
-            for metric_name in _metric_list:
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._metric_fn_kwargs[metric_name] = {}
-                self._aggregation_list[metric_name] = get_metric_aggregation(
-                    metric_name
-                )
-                self._higher_is_better[metric_name] = is_higher_better(metric_name)
-        else:
-            for metric_config in self.config.metric_list:
-                if "metric" not in metric_config:
-                    raise ValueError(
-                        "'metric' key not provided for an entry in 'metric_list', must be specified!"
-                    )
-                metric_name = metric_config["metric"]
-                kwargs = {
-                    key: metric_config[key]
-                    for key in metric_config
-                    if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
-                }
-                hf_evaluate_metric = (
-                    "hf_evaluate" in metric_config
-                    and metric_config["hf_evaluate"] is True
-                )
-
-                if self.config.process_results is not None:
-                    self._metric_fn_list[metric_name] = None
-                    self._metric_fn_kwargs[metric_name] = {}
-                elif callable(metric_name):
-                    metric_fn = metric_name.__call__
-                    metric_name = metric_name.__name__
-                    self._metric_fn_list[metric_name] = metric_fn
-                    self._metric_fn_kwargs[metric_name] = kwargs
-                else:
-                    self._metric_fn_list[metric_name] = get_metric(
-                        metric_name, hf_evaluate_metric
-                    )
-                    self._metric_fn_kwargs[metric_name] = kwargs
-
-                if "aggregation" in metric_config:
-                    agg_name = metric_config["aggregation"]
-                    if isinstance(agg_name, str):
-                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = metric_config[
-                            "aggregation"
-                        ]
-                else:
-                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    metric_agg = get_metric_aggregation(metric_name)
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
-                        f"using default "
-                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
-                    )
-                    self._aggregation_list[metric_name] = metric_agg
-
-                if "higher_is_better" in metric_config:
-                    self._higher_is_better[metric_name] = metric_config[
-                        "higher_is_better"
-                    ]
-                else:
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
-                        f"using default "
-                        f"higher_is_better={is_higher_better(metric_name)}"
-                    )
-                    self._higher_is_better[metric_name] = is_higher_better(metric_name)
+        # self.metric_list: list[MetricConfig] = self.config.get_metrics
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
 
-        if self.config.filter_list is not None:
-            self._filters = []
-            for filter_config in self.config.filter_list:
-                filter_name = filter_config["name"]
-                filter_functions = filter_config["filter"]
-                components = []
-                for function in filter_functions:
-                    kwargs = {
-                        key: function[key] for key in function if key != "function"
-                    }
-                    components.append([function["function"], kwargs])
-                filter_pipeline = build_filter_ensemble(filter_name, components)
-                self._filters.append(filter_pipeline)
-        else:
-            # TODO: handle repeats in a more general way rather than just discarding
-            eval_logger.debug(
-                "No custom filters defined. Using default 'take_first' filter for handling repeats."
-            )
-            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+        self._filters = self.config.get_filters
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
@@ -894,31 +655,14 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.fewshot_docs() is not None:
-            self.fewshot_rnd = (
-                random.Random()
-            )  # setting with no seed, to be overridden at a later time
-            config_sampler: Union[str, Callable] = (
-                self.config.fewshot_config.get("sampler", "default")
-                if self.config.fewshot_config
-                else "default"
+        if (
+            self.config.fewshot_cfg.num_fewshot() > 0
+            and self.fewshot_docs() is not None
+        ):
+            self.fewshot_rnd = random.Random()
+            self.sampler = self.config.fewshot_cfg.init_sampler(
+                list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
             )
-            if isinstance(config_sampler, str):
-                self.sampler = samplers.get_sampler(config_sampler)(
-                    list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
-                )
-            elif callable(config_sampler) and issubclass(
-                config_sampler, samplers.ContextSampler
-            ):
-                self.sampler = config_sampler(
-                    docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
-                )
-            else:
-                raise TypeError(
-                    f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
-                    f"not {type(config_sampler)}"
-                )
-
         self.task_docs = self.eval_docs
 
         # Test One Doc
@@ -981,19 +725,21 @@ class ConfigurableTask(Task):
     def download(
         self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
     ) -> None:
-        if isinstance(self.config.custom_dataset, Callable):
+        self.config.dataset_kwargs, self.config.metadata = (
+            self.config.dataset_kwargs or {},
+            self.config.metadata or {},
+        )
+        if isinstance(df := self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
                 + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
             )
-            self.dataset = self.config.custom_dataset(
-                **(self.config.metadata or {}), **(self.config.dataset_kwargs or {})
-            )
+            self.dataset = df(**(self.config.dataset_kwargs | self.config.metadata))
         else:
             self.dataset = datasets.load_dataset(
-                path=self.DATASET_PATH,
-                name=self.DATASET_NAME,
-                **dataset_kwargs if dataset_kwargs is not None else {},
+                path=self.config.dataset_path,
+                name=self.config.dataset_name,
+                **self.config.dataset_kwargs,
             )
 
     def has_training_docs(self) -> bool:
@@ -1014,7 +760,7 @@ class ConfigurableTask(Task):
         else:
             return False
 
-    def training_docs(self) -> datasets.Dataset:
+    def training_docs(self) -> Optional[datasets.Dataset]:
         if self.has_training_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
@@ -1022,7 +768,7 @@ class ConfigurableTask(Task):
                 )
             return self.dataset[self.config.training_split]
 
-    def validation_docs(self) -> datasets.Dataset:
+    def validation_docs(self) -> Optional[datasets.Dataset]:
         if self.has_validation_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
@@ -1030,37 +776,28 @@ class ConfigurableTask(Task):
                 )
             return self.dataset[self.config.validation_split]
 
-    def test_docs(self) -> datasets.Dataset:
+    def test_docs(self) -> Optional[datasets.Dataset]:
         if self.has_test_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
-        if self.config.fewshot_split is not None:
-            if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.fewshot_split])
-            return self.dataset[self.config.fewshot_split]
-        elif (
-            self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("samples", None) is not None
-        ):
-            if isinstance(self.config.fewshot_config["samples"], list):
-                return self.config.fewshot_config["samples"]
-            elif callable(self.config.fewshot_config["samples"]):
-                return self.config.fewshot_config["samples"]()
-            else:
-                raise Exception(
-                    "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list of samples as a dict, or function returning this list."
-                )
-        else:
-            if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
+        docs = self.config.fewshot_cfg.get_docs(self.dataset)
+
+        if docs is not None:
+            return docs
+
+        # Fallback to parent implementation
+        if _num_fewshot := getattr(self.config, "num_fewshot"):
+            if isinstance(_num_fewshot, int) and _num_fewshot > 0:
                 eval_logger.warning(
                     f"[Task: {self.config.task}] "
-                    "num_fewshot > 0 but fewshot_split is None. "
-                    "using preconfigured rule."
+                    "num_fewshot > 0 but no fewshot source configured. "
+                    "Using preconfigured rule."
                 )
-            return super().fewshot_docs()
+
+        return super().fewshot_docs()
 
     @staticmethod
     def append_target_question(
@@ -1096,7 +833,7 @@ class ConfigurableTask(Task):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
-    ) -> Union[str, List[str]]:
+    ) -> Union[str, List[str], None]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -1239,7 +976,7 @@ class ConfigurableTask(Task):
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances)
+                f.ensemble.apply(self._instances)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
@@ -1275,7 +1012,7 @@ class ConfigurableTask(Task):
         """
         return doc
 
-    def doc_to_text(self, doc, doc_to_text=None):
+    def doc_to_text(self, doc: dict, doc_to_text: Union[int, str, Callable] = None):
         if self.prompt is not None:
             doc_to_text = self.prompt
         elif doc_to_text is not None:
@@ -1293,7 +1030,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_text]
             else:
                 text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit() and self._config.doc_to_choice is not None:
+                if text_string.isdigit() and self.config.doc_to_choice is not None:
                     return ast.literal_eval(text_string)
                 else:
                     return text_string
@@ -1311,7 +1048,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
+    def doc_to_target(self, doc: dict, doc_to_target=None) -> Union[int, str, list]:
         if self.prompt is not None:
             doc_to_target = self.prompt
         elif doc_to_target is not None:
@@ -1329,7 +1066,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit() and self._config.doc_to_choice is not None:
+                if target_string.isdigit() and self.config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
                 elif (
                     len(target_string) >= 2
@@ -1357,7 +1094,9 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> List[str]:
+    def doc_to_choice(
+        self, doc: dict, doc_to_choice: Union[str, list, dict] = None
+    ) -> List[str]:
         if self.prompt is not None:
             doc_to_choice = self.prompt
         elif doc_to_choice is not None:
@@ -1383,7 +1122,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_image(self, doc: Any, doc_to_image=None) -> Union[int, str, list]:
+    def doc_to_image(self, doc: dict, doc_to_image=None) -> Union[int, str, list, None]:
         if doc_to_image is not None:
             doc_to_image = doc_to_image
         elif self.config.doc_to_image is not None:
@@ -1406,7 +1145,7 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list, None]:
         if doc_to_audio is not None:
             doc_to_audio = doc_to_audio
         elif self.config.doc_to_audio is not None:
@@ -1429,7 +1168,7 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def doc_to_prefix(self, doc):
+    def doc_to_prefix(self, doc: dict) -> Optional[str]:
         if (gen_prefix := self.config.gen_prefix) is not None:
             if gen_prefix in self.features:
                 return doc[gen_prefix]
@@ -1476,7 +1215,7 @@ class ConfigurableTask(Task):
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in self._metric_fn_list.keys():
+            if "acc_mutual_info" in [m.metric_name for m in self.config._metric_list]:
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
@@ -1538,12 +1277,12 @@ class ConfigurableTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc, results):
+    def process_results(self, doc: dict, results: list) -> dict:
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
 
         result_dict = {}
-        use_metric = list(self._metric_fn_list.keys())
+        use_metric = list(m.metric_name for m in self.config._metric_list)
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
@@ -1579,10 +1318,7 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             completion_len = np.array([float(len(i)) for i in choices])
 
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 # as we extend the args list with unconditional ("", continuation) pairs
@@ -1667,12 +1403,12 @@ class ConfigurableTask(Task):
                 gold = list(gold)
             # TODO: handle this better
             elif type(gold) is not type(result) and not (
-                "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
+                "bypass" in use_metric or isinstance(result, list)
             ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
-            for metric in self._metric_fn_list.keys():
+            for metric in self.config._metric_list:
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1682,28 +1418,26 @@ class ConfigurableTask(Task):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
                         # print(gold)
                         gold = [gold]
-                    if metric == "exact_match":
+                    if metric.name == "exact_match":
                         result = [result for _ in range(len(gold))]
-                        scores = self._metric_fn_list[metric](
+                        scores = metric.fn(
                             references=gold,
                             predictions=result,
-                            **self._metric_fn_kwargs[metric],
+                            **metric.kwargs,
                         )[metric]
                         result_score = 1.0 if scores > 0.0 else 0.0
                     else:
                         for gold_option in gold:
                             try:
-                                result_score = self._metric_fn_list[metric](
+                                result_score = metric.fn(
                                     references=[gold_option],
                                     predictions=[result],
-                                    **self._metric_fn_kwargs[metric],
+                                    **metric.kwargs,
                                 )
                             except (
                                 TypeError
                             ):  # TODO: this is hacky and I don't want to do it
-                                result_score = self._metric_fn_list[metric](
-                                    [gold_option, result]
-                                )
+                                result_score = metric.fn([gold_option, result])
                             if isinstance(result_score, dict):
                                 # TODO: this handles the case where HF evaluate returns a dict.
                                 result_score = result_score[metric]
@@ -1714,13 +1448,13 @@ class ConfigurableTask(Task):
                             result_score = 0.0
                 else:
                     try:
-                        result_score = self._metric_fn_list[metric](
+                        result_score = metric.fn(
                             references=[gold],
                             predictions=[result],
-                            **self._metric_fn_kwargs[metric],
+                            **metric.kwargs,
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = self._metric_fn_list[metric]([gold, result])
+                        result_score = metric.fn([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
                     # This allows for multiple metrics to be returned from the same function
@@ -1737,16 +1471,16 @@ class ConfigurableTask(Task):
         return result_dict
 
     def aggregation(self) -> dict:
-        return self._aggregation_list
+        return {k.name: k.aggregation_fn for k in self.config._metric_list}
 
     def higher_is_better(self) -> dict:
-        return self._higher_is_better
+        return {k.name: k.higher_is_better for k in self.config._metric_list}
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
     @property
-    def task_name(self) -> Any:
+    def task_name(self) -> Optional[str]:
         return getattr(self.config, "task", None)
 
     def __repr__(self):

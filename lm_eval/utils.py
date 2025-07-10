@@ -388,7 +388,8 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         dic = result_dict[column][k]
         version = result_dict["versions"].get(k, "    N/A")
         n = str(result_dict.get("n-shot", " ").get(k, " "))
-        higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
+        # TODO: fix this
+        # higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         if "alias" in dic:
             k = dic.pop("alias")
@@ -401,7 +402,9 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             if m.endswith("_stderr"):
                 continue
 
-            hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
+            # hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
+            # TODO: fix
+            hib = "↑"
 
             v = "%.4f" % v if isinstance(v, float) else v
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Iterable, List, Union
+from typing import Iterable, List, Union
 
 from lm_eval.api.instance import Instance
 
@@ -40,7 +40,7 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: List[Callable[[], Filter]]
+    filters: List[type[Filter]]
 
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))

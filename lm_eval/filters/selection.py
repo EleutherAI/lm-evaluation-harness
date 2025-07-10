@@ -27,7 +27,6 @@ class TakeFirstFilter(Filter):
 class TakeKFilter(Filter):
     def __init__(self, **kwargs) -> None:
         self.k = kwargs.pop("k")
-
         super().__init__(**kwargs)
 
     def apply(self, resps, docs):

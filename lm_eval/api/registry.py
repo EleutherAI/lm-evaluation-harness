@@ -1,17 +1,22 @@
 import logging
-from typing import Callable, Dict, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Union
 
-import evaluate as hf_evaluate
 
-from lm_eval.api.model import LM
-
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
 
 eval_logger = logging.getLogger(__name__)
 
 MODEL_REGISTRY = {}
+DEFAULTS = {
+    "model": {"max_length": 2048},
+    "tasks": {"generate_until": {"max_gen_toks": 256}},
+}
 
 
 def register_model(*names):
+    from lm_eval.api.model import LM
+
     # either pass a list or a single alias.
     # function receives them as a tuple of strings
 
@@ -31,7 +36,7 @@ def register_model(*names):
     return decorate
 
 
-def get_model(model_name):
+def get_model(model_name: str) -> type["LM"]:
     try:
         return MODEL_REGISTRY[model_name]
     except KeyError:
@@ -46,7 +51,7 @@ ALL_TASKS = set()
 func2task_index = {}
 
 
-def register_task(name):
+def register_task(name: str):
     def decorate(fn):
         assert name not in TASK_REGISTRY, (
             f"task named '{name}' conflicts with existing registered task!"
@@ -120,7 +125,7 @@ def register_metric(**args):
     return decorate
 
 
-def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
+def get_metric(name: str, hf_evaluate_metric=False) -> Optional[Callable]:
     if not hf_evaluate_metric:
         if name in METRIC_REGISTRY:
             return METRIC_REGISTRY[name]
@@ -130,6 +135,8 @@ def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
             )
 
     try:
+        import evaluate as hf_evaluate
+
         metric_object = hf_evaluate.load(name)
         return metric_object.compute
     except Exception:
@@ -150,21 +157,21 @@ def register_aggregation(name: str):
     return decorate
 
 
-def get_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
+def get_aggregation(name: str) -> Optional[Callable[[], Dict[str, Callable]]]:
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
+def get_metric_aggregation(name: str) -> Optional[Callable[[], Dict[str, Callable]]]:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
 
 
-def is_higher_better(metric_name) -> bool:
+def is_higher_better(metric_name: str) -> Optional[bool]:
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
@@ -173,7 +180,7 @@ def is_higher_better(metric_name) -> bool:
         )
 
 
-def register_filter(name):
+def register_filter(name: str):
     def decorate(cls):
         if name in FILTER_REGISTRY:
             eval_logger.info(

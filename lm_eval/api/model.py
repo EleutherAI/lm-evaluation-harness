@@ -24,7 +24,7 @@ T = TypeVar("T", bound="LM")
 class LM(abc.ABC):
     def __init__(self) -> None:
         """Defines the interface that should be implemented by all LM subclasses.
-        LMs are assumed to take text (strings) as input and yield strings as output
+        LMs are assumed to take text (strings) as input and yield strings or logprobabilities as output
         (inputs/outputs should be tokenization-agnostic.)
 
         """
@@ -67,7 +67,7 @@ class LM(abc.ABC):
         - IMPORTANT: Each document's loglikelihood/perplexity is computed *separately*, unlike other implementations
           which may simply concatenate multiple documents together.
         - IMPORTANT: We maximize the amount of context for each prediction. Specifically, for inputs that we break into
-          multiple chunks, the last input will still a full-sized context.
+          multiple chunks, the last input will still have full-sized context.
           Example:
             Input tokens: [ 0 1 2 3 4 5 6 7 8 9 ]
             Prefix: BOS/EOS
@@ -101,7 +101,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests) -> list[str]:
+    def generate_until(self, requests: list["Instance"]) -> list[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -118,7 +118,7 @@ class LM(abc.ABC):
         pass
 
     def apply_chat_template(
-        self, chat_history: list[dict[str, str]], add_generation_prompt=True
+        self, chat_history: list[dict], add_generation_prompt=True
     ) -> str:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
@@ -176,14 +176,16 @@ class LM(abc.ABC):
         return cls(**arg_dict, **additional_config)
 
     @property
-    def rank(self):
+    def rank(self) -> int:
+        """Returns the rank of the current process in a distributed setting."""
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
         return self._rank
 
     @property
-    def world_size(self):
+    def world_size(self) -> int:
+        """Returns the total number of processes in a distributed setting."""
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
@@ -208,6 +210,7 @@ class LM(abc.ABC):
         return ""
 
     def set_cache_hook(self, cache_hook: "CacheHook") -> None:
+        """Sets the cache hook for the LM, which is used to cache responses from the LM."""
         self.cache_hook = cache_hook
 
 
@@ -219,6 +222,7 @@ def hash_args(attr: str, args: Iterable[Any]) -> str:
 
 class CacheHook:
     def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
+        """CacheHook is used to cache responses from the LM."""
         if cachinglm is None:
             self.dbdict: Optional["SqliteDict"] = None
             return
@@ -226,6 +230,7 @@ class CacheHook:
         self.dbdict = cachinglm.dbdict
 
     def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
+        """Adds a partial result to the cache."""
         if self.dbdict is None:
             return
         hsh = hash_args(attr, req)
@@ -233,7 +238,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm: LM, cache_db: str) -> None:
+    def __init__(self, lm: "LM", cache_db: str) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM
@@ -327,12 +332,13 @@ class TemplateLM(LM):
 
     @property
     @abc.abstractmethod
-    def eot_token_id(self):
+    def eot_token_id(self) -> int:
+        """Returns the token ID for the end-of-text token (e.g., EOS)."""
         pass
 
     @property
-    def prefix_token_id(self):
-        # it is used as prefix for loglikelihood
+    def prefix_token_id(self) -> int:
+        """Returns the token ID for the prefix token (e.g., BOS or EOS)."""
         return self.eot_token_id
 
     @abc.abstractmethod
@@ -344,8 +350,24 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def _loglikelihood_tokens(
-        self, requests: list["Instance"], **kwargs
+        self, requests: list[tuple[tuple[str, str], list[int], list[int]]], **kwargs
     ) -> list[tuple[float, bool]]:
+        """Called by loglikelihood to compute log likelihoods for a list of requests.
+
+        Args:
+            requests: list[tuple[tuple[str, str], list[int], list[int]]]
+                A list of tuples where each tuple contains:
+                - (context, continuation) as a tuple of strings
+                - context_enc: list of token IDs for the context
+                - continuation_enc: list of token IDs for the continuation
+        Returns:
+            list[tuple[float, bool]]
+                A list of tuples where each tuple contains:
+                - logprob: float, the (summed) log probability of the continuation given the context
+                - isgreedy: bool, whether the continuation would be generated by greedy sampling from the context
+
+        See LM.loglikelihood for more details.
+        """
         pass
 
     def _encode_pair(
@@ -375,6 +397,10 @@ class TemplateLM(LM):
     def loglikelihood(
         self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[tuple[float, bool]]:
+        """Compute log-likelihood of generating a continuation from a context.
+
+        This calls `_loglikelihood_tokens` to compute the log likelihoods for a list of requests, after encoding.
+        """
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -394,14 +420,38 @@ class TemplateLM(LM):
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
     ) -> list[float]:
+        """Compute rolling log-likelihood of a sequence using non-overlapping windows.
+
+        See LM.loglikelihood_rolling for more details.
+        """
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
+    def generate_until(
+        self, requests: list["Instance"], disable_tqdm: bool = False
+    ) -> list[str]:
+        """Generate until a stopping sequence.
+
+        Args:
+            requests: list[Instance]
+                A list of Instance objects with property `args` which returns a tuple (context, gen_kwargs).
+                context: str
+                    Context string
+                gen_kwargs: dict
+                    A dictionary of keyword arguments to pass to the generation function e.g. top_k, until, etc.
+        Returns:
+            list[continuation, ...]
+                A list of model generated continuations.
+                continuation: str
+                    The generated continuation.
+
+        See LM.generate_until for more details.
+        """
         pass
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
         """
+        Assumes tokenizer has a chat_template attribute (self.tokenizer.chat_template: dict | str)
         Set and get the appropriate chat template for the model.
         This method sets the tokenizer's chat_template and returns the template string for reproducibility.
 
