@@ -42,7 +42,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def doc_to_text(doc: Dict[str, Any]) -> List[Dict[str, str]]:
+def doc_to_text(doc: Dict[str, Any]) -> str:
     """Convert a document to chat messages for the model."""
     
     grid_size = doc.get("grid_size", {"width": 0, "height": 0})
@@ -77,11 +77,7 @@ def doc_to_text(doc: Dict[str, Any]) -> List[Dict[str, str]]:
                 polyshapes_str += str(shape_def)
             polyshapes_str += "\n\n"
     
-    # System message with rules and instructions
-    system_message = "You are an expert at solving puzzles games"
-
-    # User message with the specific puzzle
-    user_message = f"""
+    return f"""
 ## Objective
 You are a specialized AI proficient in spatial reasoning and solving puzzles from the game 'The Witness'. Your goal is to find a valid path (a continuous line) from the specified Start Node to the End Node on the provided grid, adhering to all puzzle rules.
 
@@ -195,11 +191,6 @@ Now we can draw a line to (5,0) to reach the end node.
 ####
 [(0, 0), (1, 0), (2, 0), (2, 1), ...]
 """
-
-    return [
-        {"role": "system", "content": system_message},
-        {"role": "user", "content": user_message}
-    ]
 
 
 def doc_to_target(doc: Dict[str, Any]) -> str:
