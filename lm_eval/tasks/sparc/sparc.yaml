@@ -1,0 +1,37 @@
+tag:
+  - spatial_reasoning
+  - pathfinding
+task: sparc
+dataset_path: lkaesberg/SPaRC
+dataset_name: all
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: train
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: !function utils.contains_coordinates
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.path_validity_score
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.spatial_reasoning_analysis
+    aggregation: !function utils.aggregate_spatial_analysis
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 4000
+repeats: 1
+num_fewshot: 0
+
+metadata:
+  version: 1.0 
