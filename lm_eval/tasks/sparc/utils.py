@@ -446,6 +446,7 @@ def path_validity_score(predictions, references=None, **kwargs):
             pred = str(pred)
         
         # Extract path from prediction
+        print(f"DEBUG path_validity_score: Prediction text: {pred}...")
         path = extract_solution_path(pred)
         
         # Parse puzzle data from reference
