@@ -1,6 +1,7 @@
 import itertools
 import json
 import logging
+import os
 import random
 import time
 from collections import defaultdict
@@ -29,6 +30,7 @@ from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_comm
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     handle_non_serializable,
+    hash_dict_images,
     hash_string,
     positional_deprecated,
     setup_logging,
@@ -140,7 +142,6 @@ def simple_evaluate(
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
-
     return
         Dictionary of results
     """
@@ -747,6 +748,13 @@ def evaluate(
             },
         }
         if log_samples:
+            # default: hash images
+            samples = (
+                hash_dict_images(samples)
+                if os.environ.get("LMEVAL_HASHMM", "1") != "0"
+                and (hasattr(lm, "MULTIMODAL"))
+                else samples
+            )
             results_dict["samples"] = dict(samples)
 
         return results_dict
