@@ -63,9 +63,9 @@ class EvaluatorConfig:
     model_args: dict = field(
         default_factory=dict, metadata={"help": "Arguments for model initialization"}
     )
-    tasks: Union[str, list[str]] = field(
+    tasks: list[str] = field(
         default_factory=list,
-        metadata={"help": "Comma-separated list of task names to evaluate"},
+        metadata={"help": "List of task names to evaluate"},
     )
 
     # Few-shot and batching
@@ -212,9 +212,9 @@ class EvaluatorConfig:
 
         # Create instance and validate
         instance = cls(**config)
+        instance.configure()
         if used_config:
             print(textwrap.dedent(f"""{instance}"""))
-        instance.configure()
 
         return instance
 

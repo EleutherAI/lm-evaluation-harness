@@ -1,7 +1,8 @@
 import argparse
+import ast
 import json
 import logging
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 
 def try_parse_json(value: Union[str, dict, None]) -> Union[str, dict, None]:
@@ -81,3 +82,35 @@ def check_argument_types(parser: argparse.ArgumentParser) -> None:
             raise ValueError(f"Argument '{action.dest}' doesn't have a type specified.")
         else:
             continue
+
+
+def handle_cli_value_string(arg: str) -> Any:
+    if arg.lower() == "true":
+        return True
+    elif arg.lower() == "false":
+        return False
+    elif arg.isnumeric():
+        return int(arg)
+    try:
+        return float(arg)
+    except ValueError:
+        try:
+            return ast.literal_eval(arg)
+        except (ValueError, SyntaxError):
+            return arg
+
+
+def key_val_to_dict(args: str) -> dict:
+    """Parse model arguments from a string into a dictionary."""
+    return (
+        {
+            k: handle_cli_value_string(v)
+            for k, v in (item.split("=") for item in args.split(","))
+        }
+        if args
+        else {}
+    )
+
+
+def merge_dicts(*dicts):
+    return {k: v for d in dicts for k, v in d.items()}
