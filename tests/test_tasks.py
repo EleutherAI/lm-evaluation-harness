@@ -46,13 +46,6 @@ def limit() -> int:
     return 10
 
 
-@pytest.mark.parametrize(
-    "task_class",
-    task_class(
-        ["arc_easy_unitxt"], tasks.TaskManager(include_path="./tests/testconfigs")
-    ),
-    ids=lambda x: f"{x.config.task}",
-)
 class BaseTasks:
     """
     Base class for testing tasks
