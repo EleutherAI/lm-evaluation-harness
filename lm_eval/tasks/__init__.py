@@ -243,7 +243,7 @@ class TaskManager:
         }
         # Only populate tags for configs that support it (not groups)
         if config and task_type != "group" and populate_tags_fn:
-            populate_tags_fn(config, task_name, tasks_and_groups, True)
+            populate_tags_fn(config, task_name, tasks_and_groups)
 
     def _merge_task_configs(
         self, base_config: dict, task_specific_config: dict, task_name: str
@@ -289,6 +289,9 @@ class TaskManager:
     ) -> Mapping:
         def _load_task(config, task):
             if "include" in config:
+                # Store the task name to preserve it after include processing
+                original_task_name = config.get("task", task)
+
                 config = {
                     **utils.load_yaml_config(
                         yaml_path=None,
@@ -296,7 +299,12 @@ class TaskManager:
                         mode="full",
                     ),
                     **config,
+                    "task": original_task_name,
                 }
+
+                # Ensure the task name from the group config is preserved
+                # This prevents tasks with the same include from being treated as duplicates
+
             if self._config_is_python_task(config):
                 if self._class_has_config_in_constructor(config["class"]):
                     task_object = config["class"](config=config)
