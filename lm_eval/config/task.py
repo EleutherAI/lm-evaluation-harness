@@ -310,7 +310,7 @@ class TaskConfig(dict):
                 )
         for m in metrics:
             if m not in self._metric_list:
-                self._metric_list.extend(m)
+                self._metric_list.append(m)
         return metrics
 
     @property

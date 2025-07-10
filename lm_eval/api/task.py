@@ -1282,7 +1282,7 @@ class ConfigurableTask(Task):
             return self.config.process_results(doc, results)
 
         result_dict = {}
-        use_metric = list(m.metric_name for m in self.metric_list)
+        use_metric = list(m.metric_name for m in self.config._metric_list)
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
@@ -1408,7 +1408,7 @@ class ConfigurableTask(Task):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
-            for metric in self.metric_list:
+            for metric in self.config._metric_list:
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1471,10 +1471,10 @@ class ConfigurableTask(Task):
         return result_dict
 
     def aggregation(self) -> dict:
-        return {k.name: k.aggregation_fn for k in self.metric_list}
+        return {k.name: k.aggregation_fn for k in self.config._metric_list}
 
     def higher_is_better(self) -> dict:
-        return {k.name: k.higher_is_better for k in self.metric_list}
+        return {k.name: k.higher_is_better for k in self.config._metric_list}
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
