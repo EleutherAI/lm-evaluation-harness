@@ -227,6 +227,7 @@ class TaskConfig(dict):
             is_higher_better,
         )
 
+        # if metric_list defined inside a filter, use that; otherwise use the task's metric_list
         metric_list = metric_list or self.metric_list
         metrics = []
         if not metric_list:
