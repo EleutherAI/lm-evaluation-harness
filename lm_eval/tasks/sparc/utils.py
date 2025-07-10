@@ -419,65 +419,124 @@ def analyze_path(solution_path: Optional[List[Dict[str, int]]], puzzle: Dict) ->
 
 def contains_coordinates(predictions, references=None, **kwargs):
     """Metric that checks if model output contains coordinate patterns."""
+    print(f"DEBUG contains_coordinates: Starting evaluation")
+    print(f"DEBUG contains_coordinates: Predictions type: {type(predictions)}, length: {len(predictions) if predictions else 0}")
+    
     if not predictions:
+        print(f"DEBUG contains_coordinates: No predictions, returning 0.0")
         return 0.0
     
     coord_count = 0
     total_count = len(predictions)
+    print(f"DEBUG contains_coordinates: Processing {total_count} predictions")
     
-    for pred in predictions:
+    for i, pred in enumerate(predictions):
+        print(f"\nDEBUG contains_coordinates: === Processing item {i} ===")
+        
         # Handle list responses
         if isinstance(pred, list):
+            print(f"DEBUG contains_coordinates: Prediction is list with {len(pred)} items")
             pred = pred[0] if pred else ""
         elif not isinstance(pred, str):
+            print(f"DEBUG contains_coordinates: Converting prediction from {type(pred)} to string")
             pred = str(pred)
+        
+        print(f"DEBUG contains_coordinates: Prediction text (first 200 chars): {pred[:200]}...")
         
         # Check if prediction contains coordinate patterns
         coord_pattern = r"\((\d+),\s*(\d+)\)"
-        if re.search(coord_pattern, pred):
+        match = re.search(coord_pattern, pred)
+        print(f"DEBUG contains_coordinates: Regex match result: {match is not None}")
+        
+        if match:
             coord_count += 1
+            print(f"DEBUG contains_coordinates: Found coordinates! Count now: {coord_count}")
+            print(f"DEBUG contains_coordinates: First match found: {match.group()}")
+        else:
+            print(f"DEBUG contains_coordinates: No coordinate pattern found")
     
-    return coord_count / total_count if total_count > 0 else 0.0
+    final_score = coord_count / total_count if total_count > 0 else 0.0
+    print(f"\nDEBUG contains_coordinates: Final results:")
+    print(f"DEBUG contains_coordinates: Coord count: {coord_count}")
+    print(f"DEBUG contains_coordinates: Total count: {total_count}")
+    print(f"DEBUG contains_coordinates: Final score: {final_score}")
+    return final_score
 
 
 def path_validity_score(predictions, references=None, **kwargs):
     """Metric that validates extracted paths against known solutions."""
+    print(f"DEBUG path_validity_score: Starting evaluation")
+    print(f"DEBUG path_validity_score: Predictions type: {type(predictions)}, length: {len(predictions) if predictions else 0}")
+    print(f"DEBUG path_validity_score: References type: {type(references)}, length: {len(references) if references else 0}")
+    
     if not predictions or not references:
+        print(f"DEBUG path_validity_score: Missing predictions or references, returning 0.0")
         return 0.0
     
     valid_count = 0
     total_count = len(predictions)
+    print(f"DEBUG path_validity_score: Processing {total_count} predictions")
     
     for i, (pred, ref) in enumerate(zip(predictions, references)):
+        print(f"\nDEBUG path_validity_score: === Processing item {i} ===")
+        
         # Handle list responses
         if isinstance(pred, list):
+            print(f"DEBUG path_validity_score: Prediction is list with {len(pred)} items")
             pred = pred[0] if pred else ""
         elif not isinstance(pred, str):
+            print(f"DEBUG path_validity_score: Converting prediction from {type(pred)} to string")
             pred = str(pred)
+        
+        print(f"DEBUG path_validity_score: Prediction text (first 200 chars): {pred[:200]}...")
+        print(f"DEBUG path_validity_score: Reference type: {type(ref)}")
         
         # Extract path from prediction
         path = extract_solution_path(pred)
+        print(f"DEBUG path_validity_score: Extracted path: {path}")
+        print(f"DEBUG path_validity_score: Path length: {len(path) if path else 0}")
         
         # Parse puzzle data from reference
         try:
             puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
+            print(f"DEBUG path_validity_score: Successfully parsed puzzle data")
+            print(f"DEBUG path_validity_score: Puzzle data keys: {list(puzzle_data.keys()) if isinstance(puzzle_data, dict) else 'Not a dict'}")
             
             if path:
+                print(f"DEBUG path_validity_score: Validating path against puzzle data...")
                 is_valid = validate_solution(path, puzzle_data)
+                print(f"DEBUG path_validity_score: Validation result: {is_valid}")
                 if is_valid:
                     valid_count += 1
+                    print(f"DEBUG path_validity_score: Path {i} is VALID! Valid count now: {valid_count}")
+                else:
+                    print(f"DEBUG path_validity_score: Path {i} is INVALID")
+            else:
+                print(f"DEBUG path_validity_score: No path extracted for item {i}")
             
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"DEBUG path_validity_score: Error parsing reference {i}: {e}")
             # Give partial credit for extracting a path with multiple coordinates
             if path and len(path) > 1:
+                print(f"DEBUG path_validity_score: Giving partial credit (0.5) for path extraction")
                 valid_count += 0.5
     
-    return valid_count / total_count if total_count > 0 else 0.0
+    final_score = valid_count / total_count if total_count > 0 else 0.0
+    print(f"\nDEBUG path_validity_score: Final results:")
+    print(f"DEBUG path_validity_score: Valid count: {valid_count}")
+    print(f"DEBUG path_validity_score: Total count: {total_count}")
+    print(f"DEBUG path_validity_score: Final score: {final_score}")
+    return final_score
 
 
 def spatial_reasoning_analysis(predictions, references=None, **kwargs):
     """Detailed spatial reasoning analysis metric."""
+    print(f"DEBUG spatial_analysis: Starting evaluation")
+    print(f"DEBUG spatial_analysis: Predictions type: {type(predictions)}, length: {len(predictions) if predictions else 0}")
+    print(f"DEBUG spatial_analysis: References type: {type(references)}, length: {len(references) if references else 0}")
+    
     if not predictions or not references:
+        print(f"DEBUG spatial_analysis: Missing predictions or references, returning default metrics")
         return {
             "starts_at_start_ends_at_exit": 0.0,
             "connected_line": 0.0,
@@ -489,6 +548,7 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
         }
     
     total_count = len(predictions)
+    print(f"DEBUG spatial_analysis: Processing {total_count} predictions")
     
     # Initialize metric counters
     metrics = {
@@ -502,22 +562,37 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
     }
     
     for i, (pred, ref) in enumerate(zip(predictions, references)):
+        print(f"\nDEBUG spatial_analysis: === Processing item {i} ===")
+        
         # Handle list responses
         if isinstance(pred, list):
+            print(f"DEBUG spatial_analysis: Prediction is list with {len(pred)} items")
             pred = pred[0] if pred else ""
         elif not isinstance(pred, str):
+            print(f"DEBUG spatial_analysis: Converting prediction from {type(pred)} to string")
             pred = str(pred)
+        
+        print(f"DEBUG spatial_analysis: Prediction text (first 200 chars): {pred[:200]}...")
+        print(f"DEBUG spatial_analysis: Reference type: {type(ref)}")
         
         # Extract path from prediction
         path = extract_solution_path(pred)
+        print(f"DEBUG spatial_analysis: Extracted path: {path}")
+        print(f"DEBUG spatial_analysis: Path length: {len(path) if path else 0}")
         
         if path:
             metrics["path_extraction_rate"] += 1
+            print(f"DEBUG spatial_analysis: Path extracted successfully, path_extraction_rate now: {metrics['path_extraction_rate']}")
             
             # Parse puzzle data from reference for detailed analysis
             try:
                 puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
+                print(f"DEBUG spatial_analysis: Successfully parsed puzzle data")
+                print(f"DEBUG spatial_analysis: Puzzle data keys: {list(puzzle_data.keys()) if isinstance(puzzle_data, dict) else 'Not a dict'}")
+                
+                print(f"DEBUG spatial_analysis: Running detailed path analysis...")
                 analysis = analyze_path(path, puzzle_data)
+                print(f"DEBUG spatial_analysis: Analysis results: {analysis}")
                 
                 # Update counters based on analysis
                 for key in ["starts_at_start_ends_at_exit", "connected_line", 
@@ -525,12 +600,19 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
                            "no_rule_crossing", "fully_valid_path"]:
                     if analysis.get(key, False):
                         metrics[key] += 1
+                        print(f"DEBUG spatial_analysis: {key} passed, count now: {metrics[key]}")
                         
-            except (json.JSONDecodeError, TypeError):
-                pass  # Skip if reference data can't be parsed
+            except (json.JSONDecodeError, TypeError) as e:
+                print(f"DEBUG spatial_analysis: Error parsing reference {i}: {e}")
+        else:
+            print(f"DEBUG spatial_analysis: No path extracted for item {i}")
     
     # Convert counts to ratios
-    return {key: count / total_count for key, count in metrics.items()}
+    final_metrics = {key: count / total_count for key, count in metrics.items()}
+    print(f"\nDEBUG spatial_analysis: Final results:")
+    print(f"DEBUG spatial_analysis: Raw counts: {metrics}")
+    print(f"DEBUG spatial_analysis: Final ratios: {final_metrics}")
+    return final_metrics
 
 
 def aggregate_spatial_analysis(items, **kwargs):

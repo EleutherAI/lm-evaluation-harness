@@ -64,7 +64,6 @@ The SPaRC dataset contains 1,000 2D grid pathfinding puzzles with varying diffic
 The task uses comprehensive evaluation metrics for detailed spatial reasoning assessment:
 
 ### Primary Metrics
-1. **Exact Match**: Direct comparison between predicted and ground truth paths
 2. **Path Validity**: Overall validation against known solutions in the dataset
 
 ### Detailed Path Analysis Metrics
@@ -75,17 +74,6 @@ The task uses comprehensive evaluation metrics for detailed spatial reasoning as
 7. **No Rule Crossing**: Whether the path avoids rule cells (cells where both x,y coordinates are odd)
 8. **Fully Valid Path**: Comprehensive validation combining all spatial reasoning requirements
 
-## Enhanced Processing
-
-The implementation includes several advanced components:
-
-- **Smart Path Extraction**: Robust parsing with support for "####" solution markers
-- **Multi-level Validation**: From basic format checking to complete spatial reasoning validation
-- **Rule Constraint Checking**: Validates adherence to spatial rule constraints
-- **Detailed Analysis Pipeline**: Provides granular metrics for different aspects of spatial reasoning
-- **Format Handling**: Support for multiple coordinate formats (e.g., (x,y), [x,y])
-- **Error Recovery**: Graceful handling of malformed outputs
-
 ## Usage
 
 ```bash
@@ -93,7 +81,7 @@ The implementation includes several advanced components:
 python -m lm_eval --model hf \
     --model_args pretrained=<model_name> \
     --tasks sparc \
-    --batch_size 1
+    --batch_size 10
 ```
 
 ## Performance Expectations
@@ -117,11 +105,7 @@ The detailed metrics help identify specific spatial reasoning failure modes:
 - Implements generative evaluation with enhanced path extraction supporting "####" solution markers
 - Implements multi-stage filter pipeline: extraction → validation → detailed analysis
 - Provides granular spatial reasoning metrics beyond simple accuracy
-- Validates rule constraints specific to SPaRC puzzles (odd-coordinate rule cells)
 - Includes detailed symbol legend and rule explanations in prompts
-- Supports various coordinate formats and representations
-- Includes comprehensive error handling for malformed outputs
-- Designed to work with both instruction-tuned and base language models
 - Reports 8 different metrics for comprehensive spatial reasoning assessment
 
 ### Groups and Tasks
