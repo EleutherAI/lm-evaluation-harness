@@ -8,7 +8,7 @@ from sympy import N, simplify
 from sympy.parsing.latex import parse_latex
 from sympy.parsing.sympy_parser import parse_expr
 from word2number import w2n
-from latex2sympy2 import latex2sympy
+from latex2sympy2_extended import latex2sympy
 
 import re
 import regex
