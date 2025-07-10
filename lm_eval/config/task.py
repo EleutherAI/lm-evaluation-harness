@@ -207,7 +207,7 @@ class TaskConfig(dict):
         # ---setup fewshot config--- #
         _fewshot_cfg = self.fewshot_config if self.fewshot_config is not None else {}
         self.fewshot_cfg = FewshotConfig(
-            num_fewshot=lambda: self.num_fewshot or _fewshot_cfg["num_fewshot"],
+            num_fewshot=lambda: self.num_fewshot or _fewshot_cfg.get("num_fewshot", 0),
             split=self.fewshot_split,
             sampler=_fewshot_cfg.get("sampler", "default"),
             samples=_fewshot_cfg.get("samples", None),
