@@ -42,24 +42,12 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def doc_to_text(doc: Dict[str, Any]) -> str:
-    """Convert a document to input text for the model using comprehensive prompt format."""
+def doc_to_text(doc: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Convert a document to chat messages for the model."""
     
-    # Extract grid information
     grid_size = doc.get("grid_size", {"width": 0, "height": 0})
-    if isinstance(grid_size, dict):
-        grid_width = grid_size.get("width", 10)
-        grid_height = grid_size.get("height", 10)
-    else:
-        grid_width = doc.get('grid_width', 10)
-        grid_height = doc.get('grid_height', 10)
-        grid_size = {"width": grid_width, "height": grid_height}
-    
-    # Extract puzzle array and create grid string
     puzzle_array = doc.get("puzzle_array", [])
-    grid_str = "\n".join(str(row) for row in puzzle_array)
-    
-    # Find start and end positions
+    grid_str = "\n".join(map(str, puzzle_array))
     start_pos = None
     end_pos = None
     for y, row in enumerate(puzzle_array):
@@ -68,29 +56,19 @@ def doc_to_text(doc: Dict[str, Any]) -> str:
                 start_pos = f"({x}, {y})"
             elif cell == "E":
                 end_pos = f"({x}, {y})"
-    
-    # Handle polyshapes
+
     polyshapes_str = ""
     if "polyshapes" in doc and doc["polyshapes"]:
         polyshapes_str = "POLYSHAPES DEFINITIONS:\n"
-        polyshapes_data = doc["polyshapes"]
-        if isinstance(polyshapes_data, str):
-            try:
-                polyshapes_json = json.loads(polyshapes_data)
-            except json.JSONDecodeError:
-                polyshapes_json = {}
-        else:
-            polyshapes_json = polyshapes_data
-            
+        polyshapes_json = json.loads(doc["polyshapes"])
         for shape_id, shape_def in polyshapes_json.items():
-            polyshapes_str += f"Shape {shape_id}:\n"
-            if isinstance(shape_def, list):
-                polyshapes_str += '\n'.join(str(row) for row in shape_def)
-            else:
-                polyshapes_str += str(shape_def)
-            polyshapes_str += "\n\n"
+            polyshapes_str += f"Shape {shape_id}:\n{'\n'.join(map(str, shape_def))}\n\n"
     
-    return f"""
+    # System message with rules and instructions
+    system_message = "You are an expert at solving puzzles games"
+
+    # User message with the specific puzzle
+    user_message = f"""
 ## Objective
 You are a specialized AI proficient in spatial reasoning and solving puzzles from the game 'The Witness'. Your goal is to find a valid path (a continuous line) from the specified Start Node to the End Node on the provided grid, adhering to all puzzle rules.
 
@@ -204,6 +182,11 @@ Now we can draw a line to (5,0) to reach the end node.
 ####
 [(0, 0), (1, 0), (2, 0), (2, 1), ...]
 """
+
+    return [
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": user_message}
+    ]
 
 
 def doc_to_target(doc: Dict[str, Any]) -> str:
