@@ -60,9 +60,22 @@ def doc_to_text(doc: Dict[str, Any]) -> List[Dict[str, str]]:
     polyshapes_str = ""
     if "polyshapes" in doc and doc["polyshapes"]:
         polyshapes_str = "POLYSHAPES DEFINITIONS:\n"
-        polyshapes_json = json.loads(doc["polyshapes"])
+        polyshapes_data = doc["polyshapes"]
+        if isinstance(polyshapes_data, str):
+            try:
+                polyshapes_json = json.loads(polyshapes_data)
+            except json.JSONDecodeError:
+                polyshapes_json = {}
+        else:
+            polyshapes_json = polyshapes_data
+            
         for shape_id, shape_def in polyshapes_json.items():
-            polyshapes_str += f"Shape {shape_id}:\n{'\n'.join(map(str, shape_def))}\n\n"
+            polyshapes_str += f"Shape {shape_id}:\n"
+            if isinstance(shape_def, list):
+                polyshapes_str += '\n'.join(str(row) for row in shape_def)
+            else:
+                polyshapes_str += str(shape_def)
+            polyshapes_str += "\n\n"
     
     # System message with rules and instructions
     system_message = "You are an expert at solving puzzles games"
