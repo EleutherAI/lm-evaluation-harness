@@ -21,6 +21,7 @@ DICT_KEYS = [
     "hf_hub_log_args",
     "metadata",
     "model_args",
+    "gen_kwargs",
 ]
 
 
@@ -79,7 +80,7 @@ class EvaluatorConfig:
 
     # Device
     device: Optional[str] = field(
-        default=None, metadata={"help": "Device to use (e.g. cuda, cuda:0, cpu)"}
+        default="cuda:0", metadata={"help": "Device to use (e.g. cuda, cuda:0, cpu)"}
     )
 
     # Data sampling and limiting
@@ -126,7 +127,10 @@ class EvaluatorConfig:
         default=None, metadata={"help": "Custom System instruction to add"}
     )
     apply_chat_template: Union[bool, str] = field(
-        default=False, metadata={"help": "Apply chat template to prompt"}
+        default=False,
+        metadata={
+            "help": "Apply chat template to prompt. Either True, or a string identifying the tokenizer template."
+        },
     )
     fewshot_as_multiturn: bool = field(
         default=False,
@@ -170,7 +174,7 @@ class EvaluatorConfig:
         metadata={"help": "Seeds for random, numpy, torch, fewshot (random)"},
     )
 
-    # Security and safety
+    # Security
     trust_remote_code: bool = field(
         default=False, metadata={"help": "Trust remote code for HF datasets"}
     )
@@ -201,7 +205,7 @@ class EvaluatorConfig:
             config.update(cls.load_yaml_config(namespace.config))
 
         # Override with CLI args (only truthy values, exclude non-config args)
-        excluded_args = {"config", "command", "func"}  # argparse internal args
+        excluded_args = {"command", "func"}  # argparse internal args
         cli_args = {
             k: v for k, v in vars(namespace).items() if v and k not in excluded_args
         }
@@ -252,7 +256,6 @@ class EvaluatorConfig:
 
         try:
             yaml_data = yaml.safe_load(config_file.read_text())
-            print(textwrap.dedent(f"""yaml: {yaml_data}"""))
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in {config_path}: {e}")
         except (OSError, UnicodeDecodeError) as e:
@@ -337,17 +340,10 @@ class EvaluatorConfig:
             metadata=self.metadata if self.metadata else {},
         )
 
-        # self.tasks is a comma-separated string of task names
-        if isinstance((task_list := self.tasks), str):
-            task_list = self.tasks.split(",")
-        else:
-            assert isinstance(self.tasks, list), (
-                "`tasks` must be a comma delimited string of task names or list[str]."
-            )
-        task_names = task_manager.match_tasks(task_list)
+        task_names = task_manager.match_tasks(self.tasks)
 
         # Check for any individual task files in the list
-        for task in [task for task in task_list if task not in task_names]:
+        for task in [task for task in self.tasks if task not in task_names]:
             task_path = Path(task)
             if task_path.is_file():
                 config = utils.load_yaml_config(str(task_path))
@@ -355,7 +351,7 @@ class EvaluatorConfig:
 
         # Check for missing tasks
         task_missing = [
-            task for task in task_list if task not in task_names and "*" not in task
+            task for task in self.tasks if task not in task_names and "*" not in task
         ]
 
         if task_missing:

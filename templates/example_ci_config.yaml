@@ -6,9 +6,10 @@
 # Usage:
 #   $ lm_eval --config templates/example_ci_config.yaml
 #
-# You can override any values in this config with command-line arguments:
+# You can override any values in this config with further command-line arguments:
 #   $ lm_eval --config templates/example_ci_config.yaml --model_args pretrained=gpt2 --tasks mmlu
 #
+# For expected types and values, refer to EvaluatorConfig in lm_eval/config/evaluate_config.py
 # All parameters are optional and have the same meaning as their CLI counterparts.
 
 model: hf
@@ -19,13 +20,13 @@ tasks:
   - hellaswag
   - arc_easy
 batch_size: 1
-device: mps
 trust_remote_code: true
 log_samples: true
 output_path: ./test
 gen_kwargs:
   do_sample: true
   temperature: 0.7
+  stop: ["\n", "<|endoftext|>"]
 samples:
   hellaswag: [1,2,3,4,5,6,7,8,9,10]
   arc_easy: [10,20,30,40,50,60,70,80,90,100]

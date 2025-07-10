@@ -24,7 +24,7 @@ class Run(SubCommand):
             "run",
             help="Run the evaluation harness on specified tasks",
             description="Evaluate language models on various benchmarks and tasks.",
-            usage="lm-eval run --model <model> --tasks <task1,task2,...> [options]",
+            usage="lm-eval run --model <model> --tasks <task> <task> --model_args <arg=value> <arg=value> [options]",
             epilog=textwrap.dedent("""
                 examples:
                   # Basic evaluation with HuggingFace model
@@ -34,7 +34,7 @@ class Run(SubCommand):
                   $ lm-eval run --model vllm --model_args pretrained=EleutherAI/gpt-j-6B --tasks arc_easy arc_challenge --num_fewshot 5
 
                   # Evaluation with custom generation parameters
-                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs temperature=0.8 top_p=0.95
+                  $ lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs temperature=0.8 top_p=0.95 'stop=["\\n\\n"]'
 
                   # Use configuration file
                   $ lm-eval run --config my_config.yaml --tasks mmlu
@@ -133,7 +133,8 @@ class Run(SubCommand):
             nargs="*",
             metavar="KWARGS",
             help=textwrap.dedent(
-                'Generation arguments as `temperature=0,stop=["stop"]` or `key=val` `key2=val2`. Values should be parsable with ast.literal_eval.'
+                'Generation arguments as `temperature=0,stop=["stop"]` or `key=val` `key2=val2`.'
+                "Values should be parsable with ast.literal_eval."
             ),
         )
 
@@ -167,9 +168,10 @@ class Run(SubCommand):
             "-E",
             default=None,
             type=try_parse_json,
-            metavar="JSON_FILE",
+            metavar='"task1": [1,2,3,4,...]"',
             help=textwrap.dedent(
-                'JSON file with specific sample indices for inputs: {"task_name":[indices],...}. Incompatible with --limit.'
+                "`...` `...` Sample indices for inputs. Incompatible with --limit."
+                " Values be parsable with ast.literal_eval."
             ),
         )
 
@@ -314,9 +316,10 @@ class Run(SubCommand):
             "--metadata",
             type=json.loads,
             default=None,
-            metavar="JSON",
+            metavar="`key=val` `key2=val2`",
             help=textwrap.dedent(
-                """JSON metadata for task configs (merged with model_args), required for some tasks such as RULER"""
+                """`key=val` `key2=val` args parsable by ast.literal_eval (merged with model_args),
+                required for some tasks such as RULER"""
             ),
         )
 
