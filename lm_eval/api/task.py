@@ -624,11 +624,11 @@ class Task(abc.ABC):
         example = self.doc_to_text(doc)
         return description + labeled_examples + example
 
-    def apply_filters(self) -> Optional[List[Instance]]:
+    def apply_filters(self, predict_only) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances)
+                f.apply(self._instances, predict_only=predict_only)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
@@ -1235,11 +1235,11 @@ class ConfigurableTask(Task):
                 else:
                     return labeled_examples + str(example) + prefix
 
-    def apply_filters(self) -> Optional[List[Instance]]:
+    def apply_filters(self, predict_only) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances)
+                f.apply(self._instances, predict_only=predict_only)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
