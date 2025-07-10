@@ -1215,7 +1215,7 @@ class ConfigurableTask(Task):
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in [m.metric_name for m in self.metric_list]:
+            if "acc_mutual_info" in [m.metric_name for m in self.config._metric_list]:
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 

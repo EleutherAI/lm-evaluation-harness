@@ -120,7 +120,7 @@ class FewshotConfig:
 @dataclass
 class TaskConfig(dict):
     # task naming/registry
-    task: str
+    task: Optional[str] = None
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
     # HF dataset options.

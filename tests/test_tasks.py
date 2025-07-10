@@ -46,8 +46,12 @@ def limit() -> int:
     return 10
 
 
-# Tests
-class BaseTasks:
+@pytest.mark.parametrize(
+    "task_class",
+    task_class(get_new_tasks_else_default()),
+    ids=lambda x: f"{x.config.task}",
+)
+class TestBaseTasks:
     """
     Base class for testing tasks
     """
@@ -161,7 +165,7 @@ class BaseTasks:
     task_class(get_new_tasks_else_default()),
     ids=lambda x: f"{x.config.task}",
 )
-class TestNewTasksElseDefault(BaseTasks):
+class TestNewTasksElseDefault(TestBaseTasks):
     """
     Test class parameterized with a list of new/modified tasks
     (or a set of default tasks if none have been modified)
@@ -175,7 +179,7 @@ class TestNewTasksElseDefault(BaseTasks):
     ),
     ids=lambda x: f"{x.config.task}",
 )
-class TestUnitxtTasks(BaseTasks):
+class TestUnitxtTasks(TestBaseTasks):
     """
     Test class for Unitxt tasks parameterized with a small custom
     task as described here:
