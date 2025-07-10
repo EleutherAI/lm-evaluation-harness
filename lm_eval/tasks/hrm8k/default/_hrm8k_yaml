@@ -11,7 +11,7 @@ generation_kwargs:
     - "<|end_of_text|>"
     - "<|endoftext|>"
     - "<|im_end|>"
-  max_gen_toks: 512
+  max_gen_toks: 8192
   do_sample: false
   temperature: 0
 metric_list:
