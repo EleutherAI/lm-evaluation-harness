@@ -441,7 +441,7 @@ def contains_coordinates(predictions, references=None, **kwargs):
             print(f"DEBUG contains_coordinates: Converting prediction from {type(pred)} to string")
             pred = str(pred)
         
-        print(f"DEBUG contains_coordinates: Prediction text (first 200 chars): {pred[:200]}...")
+        print(f"DEBUG contains_coordinates: Prediction text: {pred}...")
         
         # Check if prediction contains coordinate patterns
         coord_pattern = r"\((\d+),\s*(\d+)\)"
@@ -488,7 +488,7 @@ def path_validity_score(predictions, references=None, **kwargs):
             print(f"DEBUG path_validity_score: Converting prediction from {type(pred)} to string")
             pred = str(pred)
         
-        print(f"DEBUG path_validity_score: Prediction text (first 200 chars): {pred[:200]}...")
+        print(f"DEBUG path_validity_score: Prediction text: {pred}...")
         print(f"DEBUG path_validity_score: Reference type: {type(ref)}")
         
         # Extract path from prediction
@@ -572,7 +572,7 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
             print(f"DEBUG spatial_analysis: Converting prediction from {type(pred)} to string")
             pred = str(pred)
         
-        print(f"DEBUG spatial_analysis: Prediction text (first 200 chars): {pred[:200]}...")
+        print(f"DEBUG spatial_analysis: Prediction text: {pred}...")
         print(f"DEBUG spatial_analysis: Reference type: {type(ref)}")
         
         # Extract path from prediction
