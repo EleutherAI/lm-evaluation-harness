@@ -12,6 +12,7 @@ from lm_eval.api.metrics import (
 )
 from lm_eval.models.utils import Collator
 from lm_eval.utils import (
+    apply_template,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -396,3 +397,95 @@ def test_aggregate_stderrs(samples):
         mean_stderr(list(itertools.chain.from_iterable(samples))),
         atol=1.0e-3,
     )
+
+
+def test_apply_template():
+    """Test the apply_template function with various scenarios."""
+
+    # Test basic variable substitution
+    result = apply_template("Hello {{name}}!", {"name": "World"})
+    assert result == "Hello World!"
+
+    # Test multiple variables
+    result = apply_template(
+        "{{greeting}} {{name}}!", {"greeting": "Hi", "name": "Alice"}
+    )
+    assert result == "Hi Alice!"
+
+    # Test missing variable (should raise error due to StrictUndefined)
+    with pytest.raises(Exception):  # Jinja2 will raise UndefinedError
+        apply_template("Hello {{missing}}!", {})
+
+    # Test empty template
+    result = apply_template("", {})
+    assert result == ""
+
+    # Test template with no variables
+    result = apply_template("Static text", {"unused": "variable"})
+    assert result == "Static text"
+
+    # Test numeric variables
+    result = apply_template("Count: {{count}}", {"count": 42})
+    assert result == "Count: 42"
+
+    # Test boolean variables
+    result = apply_template("Flag: {{flag}}", {"flag": True})
+    assert result == "Flag: True"
+
+    # Test list variables
+    result = apply_template("Items: {{items}}", {"items": [1, 2, 3]})
+    assert result == "Items: [1, 2, 3]"
+
+    # Test regex_replace filter
+    result = apply_template(
+        "{{text | regex_replace('[0-9]+', 'X')}}", {"text": "abc123def456"}
+    )
+    assert result == "abcXdefX"
+
+    # Test regex_replace with count parameter
+    result = apply_template(
+        "{{text | regex_replace('[0-9]+', 'X', 1)}}", {"text": "abc123def456"}
+    )
+    assert result == "abcXdef456"
+
+    # Test complex template with loops
+    result = apply_template(
+        "{% for item in items %}{{item}} {% endfor %}", {"items": ["a", "b", "c"]}
+    )
+    assert result == "a b c "
+
+    # Test conditional template
+    result = apply_template("{% if flag %}Yes{% else %}No{% endif %}", {"flag": True})
+    assert result == "Yes"
+
+    result = apply_template("{% if flag %}Yes{% else %}No{% endif %}", {"flag": False})
+    assert result == "No"
+
+    # Test whitespace handling (keep_trailing_newline=True)
+    result = apply_template("Line 1\nLine 2\n", {})
+    assert result == "Line 1\nLine 2\n"
+
+
+def test_apply_template_lazy_initialization():
+    """Test that the Jinja2 Environment is lazily initialized."""
+
+    # Clear any existing environment to test fresh initialization
+    if hasattr(apply_template, "_env"):
+        delattr(apply_template, "_env")
+
+    # Environment should not exist before first call
+    assert not hasattr(apply_template, "_env")
+
+    # First call should create the environment
+    apply_template("{{test}}", {"test": "value"})
+    assert hasattr(apply_template, "_env")
+
+    # Store reference to the environment
+    env = apply_template._env
+
+    # Second call should reuse the same environment
+    apply_template("{{test}}", {"test": "value"})
+    assert apply_template._env is env  # Same object reference
+
+    # Environment should have the custom regex_replace filter
+    assert "regex_replace" in apply_template._env.filters

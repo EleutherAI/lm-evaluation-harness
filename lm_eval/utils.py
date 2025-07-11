@@ -537,14 +537,15 @@ def regex_replace(string, pattern, repl, count: int = 0):
     return re.sub(pattern, repl, string, count=count)
 
 
-env = Environment(
-    loader=BaseLoader, undefined=StrictUndefined, keep_trailing_newline=True
-)
-env.filters["regex_replace"] = regex_replace
-
-
 def apply_template(template: str, doc: dict) -> str:
-    rtemplate = env.from_string(template)
+    # Lazy initialization - only create Environment when actually needed
+    if not hasattr(apply_template, "_env"):
+        apply_template._env = Environment(
+            loader=BaseLoader(), undefined=StrictUndefined, keep_trailing_newline=True
+        )
+        apply_template._env.filters["regex_replace"] = regex_replace
+
+    rtemplate = apply_template._env.from_string(template)
     return rtemplate.render(**doc)
 
 
