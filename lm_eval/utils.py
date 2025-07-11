@@ -10,12 +10,9 @@ import os
 import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from pathlib import Path
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Generator, List, Optional, Tuple
 
 import numpy as np
-import yaml
-from jinja2 import BaseLoader, Environment, StrictUndefined
 
 
 SPACING = " " * 47
@@ -439,114 +436,6 @@ def positional_deprecated(fn):
         return fn(*args, **kwargs)
 
     return _wrapper
-
-
-def ignore_constructor(loader: yaml.Loader, node: yaml.Node) -> yaml.Node:
-    return node
-
-
-def import_function(loader: yaml.Loader, node: yaml.Node, yaml_path: Path) -> Callable:
-    function_name = loader.construct_scalar(node)
-
-    *module_name, function_name = function_name.split(".")
-    if isinstance(module_name, list):
-        module_name = ".".join(module_name)
-    module_path = yaml_path.parent / f"{module_name}.py"
-
-    spec = importlib.util.spec_from_file_location(module_name, module_path.as_posix())
-
-    if spec is None:
-        raise ImportError(f"Could not import module {module_name} from {module_path}.")
-    module = importlib.util.module_from_spec(spec)
-
-    if spec.loader is None:
-        raise ImportError(f"Module loader is None, {module_name} from {module_path}.")
-    spec.loader.exec_module(module)
-
-    function = getattr(module, function_name)
-    return function
-
-
-def load_yaml_config(
-    yaml_path: Optional[Union[str, Path]] = None,
-    yaml_config: Optional[Dict] = None,
-    yaml_dir: Optional[Union[str, Path]] = None,
-    mode: str = "full",
-) -> Dict:
-    # Convert yaml_path to Path object if it's a string
-    if yaml_path is not None:
-        yaml_path = Path(yaml_path)
-
-    # Convert yaml_dir to Path object if it's a string
-    if yaml_dir is not None:
-        yaml_dir = Path(yaml_dir)
-
-    if mode == "simple":
-        constructor_fn = ignore_constructor
-    elif mode == "full":
-        if yaml_path is None:
-            raise ValueError("yaml_path must be provided if mode is 'full'.")
-        # Attach yaml_path to the import function so that it can be used later
-        constructor_fn = functools.partial(import_function, yaml_path=yaml_path)
-
-    loader = yaml.CLoader if yaml.__with_libyaml__ else yaml.FullLoader
-    # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", constructor_fn, Loader=loader)
-    if yaml_config is None:
-        with open(yaml_path, "rb") as file:
-            yaml_config = yaml.load(file, Loader=loader)
-
-    if yaml_dir is None and yaml_path is not None:
-        yaml_dir = yaml_path.parent
-
-    assert yaml_dir is not None
-
-    if "include" in yaml_config:
-        include_path = yaml_config["include"]
-        del yaml_config["include"]
-
-        if isinstance(include_path, str):
-            include_path = [include_path]
-
-        # Load from the last one first
-        include_path.reverse()
-        final_yaml_config = {}
-        for path in include_path:
-            # Convert to Path object
-            path = Path(path)
-            # Assumes that path is a full path.
-            # If not found, assume the included yaml
-            # is in the same dir as the original yaml
-            if not path.is_file():
-                path = yaml_dir / path
-
-            try:
-                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
-                final_yaml_config.update(included_yaml_config)
-            except Exception as ex:
-                # If failed to load, ignore
-                raise ex
-
-        final_yaml_config.update(yaml_config)
-        return final_yaml_config
-    return yaml_config
-
-
-def regex_replace(string, pattern, repl, count: int = 0):
-    """Implements the `re.sub` function as a custom Jinja filter."""
-    return re.sub(pattern, repl, string, count=count)
-
-
-def apply_template(template: str, doc: dict) -> str:
-    # Lazy initialization - only create Environment when actually needed
-    if not hasattr(apply_template, "_env"):
-        apply_template._env = Environment(
-            loader=BaseLoader(), undefined=StrictUndefined, keep_trailing_newline=True
-        )
-        apply_template._env.filters["regex_replace"] = regex_replace
-
-    rtemplate = apply_template._env.from_string(template)
-    return rtemplate.render(**doc)
 
 
 def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):

@@ -11,8 +11,8 @@ from lm_eval.api.metrics import (
     stderr_for_metric,
 )
 from lm_eval.models.utils import Collator
+from lm_eval.tasks import apply_template
 from lm_eval.utils import (
-    apply_template,
     get_rolling_token_windows,
     make_disjoint_window,
 )
