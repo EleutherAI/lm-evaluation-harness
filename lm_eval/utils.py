@@ -467,14 +467,24 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
     return function
 
 
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
+def load_yaml_config(
+    yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"
+) -> dict:
+    # Convert yaml_path to Path object if it's a string
+    if yaml_path is not None:
+        yaml_path = Path(yaml_path)
+
+    # Convert yaml_dir to Path object if it's a string
+    if yaml_dir is not None:
+        yaml_dir = Path(yaml_dir)
+
     if mode == "simple":
         constructor_fn = ignore_constructor
     elif mode == "full":
         if yaml_path is None:
             raise ValueError("yaml_path must be provided if mode is 'full'.")
         # Attach yaml_path to the import function so that it can be used later
-        constructor_fn = functools.partial(import_function, yaml_path=Path(yaml_path))
+        constructor_fn = functools.partial(import_function, yaml_path=yaml_path)
 
     loader = yaml.CLoader if yaml.__with_libyaml__ else yaml.FullLoader
     # Add the import_function constructor to the YAML loader
@@ -483,8 +493,8 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.load(file, Loader=loader)
 
-    if yaml_dir is None:
-        yaml_dir = os.path.dirname(yaml_path)
+    if yaml_dir is None and yaml_path is not None:
+        yaml_dir = yaml_path.parent
 
     assert yaml_dir is not None
 
@@ -499,11 +509,13 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full
         include_path.reverse()
         final_yaml_config = {}
         for path in include_path:
+            # Convert to Path object
+            path = Path(path)
             # Assumes that path is a full path.
             # If not found, assume the included yaml
             # is in the same dir as the original yaml
-            if not os.path.isfile(path):
-                path = os.path.join(yaml_dir, path)
+            if not path.is_file():
+                path = yaml_dir / path
 
             try:
                 included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)

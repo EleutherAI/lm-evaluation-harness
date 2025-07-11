@@ -3,6 +3,7 @@ import inspect
 import logging
 import os
 from functools import partial
+from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
@@ -25,7 +26,7 @@ class TaskManager:
     def __init__(
         self,
         verbosity: Optional[str] = None,
-        include_path: Optional[Union[str, List]] = None,
+        include_path: Optional[Union[str, Path, List[Union[str, Path]]]] = None,
         include_defaults: bool = True,
         metadata: Optional[dict] = None,
     ) -> None:
@@ -56,7 +57,7 @@ class TaskManager:
 
     def initialize_tasks(
         self,
-        include_path: Optional[Union[str, List]] = None,
+        include_path: Optional[Union[str, Path, List[Union[str, Path]]]] = None,
         include_defaults: bool = True,
     ) -> dict[str, dict]:
         """Creates a dictionary of tasks indexes.
@@ -70,13 +71,14 @@ class TaskManager:
             Dictionary of task names as key and task metadata
         """
         if include_defaults:
-            all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+            all_paths = [Path(__file__).parent]
         else:
             all_paths = []
         if include_path is not None:
-            if isinstance(include_path, str):
+            if isinstance(include_path, (str, Path)):
                 include_path = [include_path]
-            all_paths.extend(include_path)
+            # Convert all paths to Path objects
+            all_paths.extend(Path(p) for p in include_path)
 
         task_index = {}
         for task_dir in all_paths:
@@ -495,7 +497,7 @@ class TaskManager:
     def load_config(self, config: Dict):
         return self._load_individual_task_or_group(config)
 
-    def _get_task_and_group(self, task_dir: str):
+    def _get_task_and_group(self, task_dir: Union[str, Path]):
         """Creates a dictionary of tasks index with the following metadata,
         - `type`, that can be either `task`, `python_task`, `group` or `tags`.
             `task` refer to regular task configs, `python_task` are special
@@ -547,19 +549,22 @@ class TaskManager:
             ".ipynb_checkpoints",
         ]
         tasks_and_groups = collections.defaultdict()
-        for root, dirs, file_list in os.walk(task_dir):
+        task_dir_path = Path(task_dir)
+
+        for root, dirs, file_list in os.walk(task_dir_path):
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
+            root_path = Path(root)
             for f in file_list:
                 if f.endswith(".yaml"):
-                    yaml_path = os.path.join(root, f)
-                    config = utils.load_yaml_config(yaml_path, mode="simple")
+                    yaml_path = root_path / f
+                    config = utils.load_yaml_config(str(yaml_path), mode="simple")
                     if self._config_is_python_task(config):
                         # This is a python class config
                         task = config["task"]
                         self._register_task(
                             task,
                             "python_task",
-                            yaml_path,
+                            str(yaml_path),
                             tasks_and_groups,
                             config,
                             _populate_tags_and_groups,
@@ -573,7 +578,7 @@ class TaskManager:
                             # the task list for indexing
                             # as it can be loaded
                             # when called.
-                            "yaml_path": yaml_path,
+                            "yaml_path": str(yaml_path),
                         }
 
                         # # Registered the level 1 tasks from a group config
@@ -591,7 +596,7 @@ class TaskManager:
                         self._register_task(
                             task,
                             "task",
-                            yaml_path,
+                            str(yaml_path),
                             tasks_and_groups,
                             config,
                             _populate_tags_and_groups,
@@ -604,7 +609,7 @@ class TaskManager:
                                 self._register_task(
                                     task_name,
                                     "task",
-                                    yaml_path,
+                                    str(yaml_path),
                                     tasks_and_groups,
                                     config,
                                     _populate_tags_and_groups,
