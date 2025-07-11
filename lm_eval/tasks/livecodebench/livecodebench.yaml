@@ -1,7 +1,14 @@
 task: livecodebench
-dataset_path: livecodebench/code_generation_lite
+dataset_path: json
 dataset_kwargs:
-  version_tag: "release_v6"
+  data_files:
+    test:
+      - "hf://datasets/livecodebench/code_generation_lite/test.jsonl"
+      - "hf://datasets/livecodebench/code_generation_lite/test2.jsonl"
+      - "hf://datasets/livecodebench/code_generation_lite/test3.jsonl"
+      - "hf://datasets/livecodebench/code_generation_lite/test4.jsonl"
+      - "hf://datasets/livecodebench/code_generation_lite/test5.jsonl"
+      - "hf://datasets/livecodebench/code_generation_lite/test6.jsonl"
 output_type: generate_until
 validation_split: test
 doc_to_text: !function utils.doc_to_text_with_format
