@@ -20,25 +20,27 @@ class MistralCompletionsAPI(LocalChatCompletion):
         tokenized_requests=False,
         **kwargs,
     ):
+        self.kwargs = kwargs
+        num_concurrent = self.kwargs.pop("num_concurrent", 1)
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
             tokenized_requests=tokenized_requests,
+            num_concurrent=num_concurrent,
             **kwargs,
         )
-        if "batch_size" in kwargs and int(kwargs["batch_size"]) > 1:
+        if "batch_size" in self.kwargs and int(self.kwargs["batch_size"]) > 1:
             eval_logger.warning(
                 "Mistral API does not support batching, setting --batch_size=1"+
                 ". If you want to use batching, please check: " + 
                 "https://docs.mistral.ai/api/#tag/batch/operation/jobs_api_routes_batch_create_batch_job"
             )
             self._batch_size = 1
-        if "model_name" not in kwargs:
+        if "model_name" not in self.kwargs:
             raise ValueError(
                 "MistralCompletionsAPI requires a 'model_name' argument to be set."
             )
-        self.model_name = kwargs["model_name"]
-        self.kwargs = kwargs
+        self.model_name = self.kwargs["model_name"]
 
     @cached_property
     def eos_string(self) -> Optional[str]:
