@@ -13,6 +13,7 @@ from itertools import islice
 from typing import Any, Callable, Generator, List, Optional, Tuple
 
 import numpy as np
+from jinja2 import BaseLoader, Environment, StrictUndefined
 
 
 SPACING = " " * 47
@@ -511,3 +512,25 @@ def hash_dict_images(data_dict):
         if importlib.util.find_spec("PIL")
         else data_dict
     )
+
+
+def regex_replace(string, pattern, repl, count: int = 0):
+    """Implements the `re.sub` function as a custom Jinja filter."""
+    return re.sub(pattern, repl, string, count=count)
+
+
+@functools.lru_cache(maxsize=256)
+def _compile_tpl(src: str):
+    return apply_template._env.from_string(src)
+
+
+def apply_template(template: str, doc: dict) -> str:
+    if not hasattr(apply_template, "_env"):
+        apply_template._env = Environment(
+            loader=BaseLoader(),
+            undefined=StrictUndefined,
+            keep_trailing_newline=True,
+        )
+        apply_template._env.filters["regex_replace"] = regex_replace
+
+    return _compile_tpl(template).render(**doc)

@@ -3,7 +3,6 @@ import functools
 import importlib.util
 import inspect
 import logging
-import re
 import sys
 from functools import partial
 from glob import iglob
@@ -11,7 +10,6 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Mapping, Optional, Union
 
 import yaml
-from jinja2 import BaseLoader, Environment, StrictUndefined
 from yaml import YAMLError
 
 from lm_eval import utils
@@ -175,28 +173,6 @@ def load_yaml_config(
         _CONFIG_CACHE[cache_key] = final_cfg
 
     return final_cfg
-
-
-def regex_replace(string, pattern, repl, count: int = 0):
-    """Implements the `re.sub` function as a custom Jinja filter."""
-    return re.sub(pattern, repl, string, count=count)
-
-
-@functools.lru_cache(maxsize=256)
-def _compile_tpl(src: str):
-    return apply_template._env.from_string(src)
-
-
-def apply_template(template: str, doc: dict) -> str:
-    if not hasattr(apply_template, "_env"):
-        apply_template._env = Environment(
-            loader=BaseLoader(),
-            undefined=StrictUndefined,
-            keep_trailing_newline=True,
-        )
-        apply_template._env.filters["regex_replace"] = regex_replace
-
-    return _compile_tpl(template).render(**doc)
 
 
 def iter_yaml_files(root: Path) -> Generator[Path, Any, None]:
