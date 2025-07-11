@@ -5,14 +5,12 @@ import pathlib
 import sys
 from typing import List, Optional, Tuple, Union
 
-from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     mean,
     pooled_sample_stderr,
     stderr_for_metric,
 )
-from lm_eval.api.task import Task
 from lm_eval.utils import positional_deprecated
 
 
@@ -153,6 +151,9 @@ def get_task_list(task_dict: dict) -> List[TaskOutput]:
 
 
 def get_subtask_list(task_dict, task_root=None, depth=0):
+    from lm_eval.api.group import ConfigurableGroup
+    from lm_eval.api.task import Task
+
     subtask_list = {}
     for group_obj, task_obj in task_dict.items():
         if isinstance(group_obj, ConfigurableGroup):
@@ -224,6 +225,8 @@ def prepare_print_tasks(
     task_depth=0,
     group_depth=0,
 ) -> Tuple[dict, dict]:
+    from lm_eval.api.task import Task
+
     """
     @param task_dict: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
     value is a list of task names.
@@ -238,6 +241,7 @@ def prepare_print_tasks(
 
     Prepares the task hierarchy and aggregates the results for each task and group recursively for printing.
     """
+    from lm_eval.api.group import ConfigurableGroup
 
     def _sort_task_dict(task_dict):
         """
@@ -395,6 +399,9 @@ def consolidate_group_results(
     The method then returns the updated results, versions, show_group_table, and task_aggregation_list as a tuple.
     In the top-level invocation of this function, task_aggregation_list is ignored.
     """
+    from lm_eval.api.group import ConfigurableGroup
+    from lm_eval.api.task import Task
+
     if task_root is None:
         task_root = {}
 
