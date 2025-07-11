@@ -11,7 +11,7 @@ import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
@@ -441,11 +441,11 @@ def positional_deprecated(fn):
     return _wrapper
 
 
-def ignore_constructor(loader, node):
+def ignore_constructor(loader: yaml.Loader, node: yaml.Node) -> yaml.Node:
     return node
 
 
-def import_function(loader: yaml.Loader, node, yaml_path: Path):
+def import_function(loader: yaml.Loader, node: yaml.Node, yaml_path: Path) -> Callable:
     function_name = loader.construct_scalar(node)
 
     *module_name, function_name = function_name.split(".")
@@ -468,8 +468,11 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
 
 
 def load_yaml_config(
-    yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"
-) -> dict:
+    yaml_path: Optional[Union[str, Path]] = None,
+    yaml_config: Optional[Dict] = None,
+    yaml_dir: Optional[Union[str, Path]] = None,
+    mode: str = "full",
+) -> Dict:
     # Convert yaml_path to Path object if it's a string
     if yaml_path is not None:
         yaml_path = Path(yaml_path)
