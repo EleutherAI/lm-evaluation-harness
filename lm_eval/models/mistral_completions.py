@@ -28,7 +28,9 @@ class MistralCompletionsAPI(LocalChatCompletion):
         )
         if "batch_size" in kwargs and int(kwargs["batch_size"]) > 1:
             eval_logger.warning(
-                "Mistral API does not support batching, setting --batch_size=1"
+                "Mistral API does not support batching, setting --batch_size=1"+
+                ". If you want to use batching, please check: " + 
+                "https://docs.mistral.ai/api/#tag/batch/operation/jobs_api_routes_batch_create_batch_job"
             )
             self._batch_size = 1
         if "model_name" not in kwargs:
@@ -36,6 +38,7 @@ class MistralCompletionsAPI(LocalChatCompletion):
                 "MistralCompletionsAPI requires a 'model_name' argument to be set."
             )
         self.model_name = kwargs["model_name"]
+        self.kwargs = kwargs
 
     @cached_property
     def eos_string(self) -> Optional[str]:
@@ -66,7 +69,7 @@ class MistralCompletionsAPI(LocalChatCompletion):
     ) -> Union[List[List[int]], List[dict], List[str], str]:
         return [{
             "role": "user",
-            "content": msg
+            "content": self.kwargs.get("prompt", '') + msg
         } for msg in messages]
 
     def _create_payload(
@@ -78,6 +81,8 @@ class MistralCompletionsAPI(LocalChatCompletion):
         eos="<|endoftext|>",
         **kwargs,
     ) -> dict:
+        self.kwargs.update(gen_kwargs)
+        gen_kwargs = self.kwargs.copy()
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
         else:
@@ -110,8 +115,6 @@ class MistralCompletionsAPI(LocalChatCompletion):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                tmp[choices["index"]] = choices["message"]
+                tmp[choices["index"]] = choices["message"]["content"]
             res = res + tmp
         return res
-
-
