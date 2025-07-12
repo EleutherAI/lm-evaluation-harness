@@ -1,4 +1,3 @@
-import abc
 from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import Any, Callable, List, Optional, Union
@@ -83,8 +82,14 @@ class GroupConfig(dict):
             except (TypeError, OSError):
                 return str(value)
 
+    @property
+    def version(self) -> str:
+        """Returns the version of the group configuration."""
+        return self.metadata.get("version", "1.0")
 
-class ConfigurableGroup(abc.ABC):
+
+@dataclass
+class ConfigurableGroup:
     def __init__(
         self,
         config: Optional[dict] = None,
