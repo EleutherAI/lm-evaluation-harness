@@ -14,15 +14,15 @@ fewshot_config:
   samples:
   - input: Is the following sentence plausible? "Bam Adebayo scored a reverse layup
       in the Western Conference Finals."
-    target: Let's think step by step. Bam Adebayo is an American basketball player.
+    target: Bam Adebayo is an American basketball player.
       Scoring a reverse layup in the Western Conference Finals is part of the NBA
       Finals. So the answer is yes.
   - input: Is the following sentence plausible? "Santi Cazorla scored a touchdown."
-    target: Let's think step by step. Santi Cazorla is a soccer player. Touchdown
+    target: Santi Cazorla is a soccer player. Touchdown
       is part of American football and rugby. So the answer is no.
   - input: Is the following sentence plausible? "DeMar DeRozan was called for the
       goal tend."
-    target: Let's think step by step. DeMar DeRozan is an American basketball player.
+    target: DeMar DeRozan is an American basketball player.
       Goal tending is part of basketball. So the answer is yes.
 include: _cot_fewshot_template_yaml
 task: bbh_cot_fewshot_sports_understanding

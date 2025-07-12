@@ -36,9 +36,7 @@ fewshot_config:
       (I) sector
 
       (J) triangle'
-    target: 'Let''s think step by step.
-
-      This SVG path element contains "M" and "L" commands. M takes two parameters
+    target: 'This SVG path element contains "M" and "L" commands. M takes two parameters
       (x,y) and moves the current point to the coordinates (x,y). L takes two parameters
       (x,y) and draws a line from the previous coordinate to the new coordinate (x,y).
 
@@ -90,9 +88,7 @@ fewshot_config:
       (I) sector
 
       (J) triangle'
-    target: 'Let''s think step by step.
-
-      This SVG path element contains "M" and "L" commands. M takes two parameters
+    target: 'This SVG path element contains "M" and "L" commands. M takes two parameters
       (x,y) and moves the current point to the coordinates (x,y). L takes two parameters
       (x,y) and draws a line from the previous coordinate to the new coordinate (x,y).
 
@@ -138,9 +134,7 @@ fewshot_config:
       (I) sector
 
       (J) triangle'
-    target: 'Let''s think step by step.
-
-      This SVG path element contains "M" and "L" commands. M takes two parameters
+    target: 'This SVG path element contains "M" and "L" commands. M takes two parameters
       (x,y) and moves the current point to the coordinates (x,y). L takes two parameters
       (x,y) and draws a line from the previous coordinate to the new coordinate (x,y).
 
