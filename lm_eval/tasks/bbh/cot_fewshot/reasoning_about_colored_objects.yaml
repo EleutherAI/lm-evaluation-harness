@@ -52,9 +52,7 @@ fewshot_config:
       (Q) purple
 
       (R) pink'
-    target: 'Let''s think step by step.
-
-      According to this question, the color of the stress ball is blue. So the answer
+    target: 'According to this question, the color of the stress ball is blue. So the answer
       is (E).'
   - input: 'On the table, you see a bunch of objects arranged in a row: a purple paperclip,
       a pink stress ball, a brown keychain, a green scrunchiephone charger, a mauve
@@ -98,9 +96,7 @@ fewshot_config:
       (Q) purple
 
       (R) pink'
-    target: 'Let''s think step by step.
-
-      According to this question, the objects are arranged in a row, from left to
+    target: 'According to this question, the objects are arranged in a row, from left to
       right, as follows: (1) a purple paperclip, (2) a pink stress ball, (3) a brown
       keychain, (4) a green scrunchiephone charger, (5) a mauve fidget spinner, (6)
       a burgundy pen.
@@ -129,9 +125,7 @@ fewshot_config:
       (F) five
 
       (G) six'
-    target: 'Let''s think step by step.
-
-      According to this question, the objects are arranged in a row, from left to
+    target: 'According to this question, the objects are arranged in a row, from left to
       right, as follows: (1) a teal plate, (2) a burgundy keychain, (3) a yellow scrunchiephone
       charger, (4) an orange mug, (5) a pink notebook, (6) a grey cup.
 

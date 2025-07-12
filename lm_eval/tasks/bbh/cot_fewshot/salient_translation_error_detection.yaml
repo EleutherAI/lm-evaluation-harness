@@ -42,9 +42,7 @@ fewshot_config:
       (E) Dropped Content
 
       (F) Facts'
-    target: 'Let''s think step by step.
-
-      We solve this question by first translating the source sentence to English and
+    target: 'We solve this question by first translating the source sentence to English and
       then by comparing our translation with the provided translation. According to
       Google Translate, the correct translation of the source sentence from German
       to English is "The list of monuments in Lenzen (Elbe) includes all the monuments
@@ -70,9 +68,7 @@ fewshot_config:
       \ am Lech.\nThe translation contains an error pertaining to\nOptions:\n(A) Modifiers\
       \ or Adjectives\n(B) Numerical Values\n(C) Negation or Antonyms\n(D) Named Entities\n\
       (E) Dropped Content\n(F) Facts"
-    target: 'Let''s think step by step.
-
-      We solve this question by first translating the source sentence to English and
+    target: 'We solve this question by first translating the source sentence to English and
       then by comparing our translation with the provided translation. According to
       Google Translate, the correct translation of the source sentence from German
       to English is "The monuments of the Upper Bavarian district town of Landsberg
@@ -98,7 +94,7 @@ fewshot_config:
       \ Voivodeship of Poland.\nThe translation contains an error pertaining to\n\
       Options:\n(A) Modifiers or Adjectives\n(B) Numerical Values\n(C) Negation or\
       \ Antonyms\n(D) Named Entities\n(E) Dropped Content\n(F) Facts"
-    target: "Let's think step by step.\nWe solve this question by first translating\
+    target: "We solve this question by first translating\
       \ the source sentence to English and then by comparing our translation with\
       \ the provided translation. According to Google Translate, the correct translation\
       \ of the source sentence from German to English is \"\u0141eba is a small town\
