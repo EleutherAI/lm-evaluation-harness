@@ -1,6 +1,6 @@
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Any, Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 
 @dataclass
@@ -22,7 +22,7 @@ class AggMetricConfig(dict):
 
 
 @dataclass
-class GroupConfig(dict):
+class GroupConfig:
     group: Optional[str] = None
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
@@ -38,6 +38,24 @@ class GroupConfig(dict):
 
     def __setitem__(self, item, value):
         return setattr(self, item, value)
+
+    def __contains__(self, item):
+        """Support 'in' operator for dict-like behavior."""
+        return hasattr(self, item)
+
+    def get(self, key, default=None):
+        """Dict-like get method."""
+        return getattr(self, key, default)
+
+    def __hash__(self):
+        """Make GroupConfig hashable based on group name."""
+        return hash(self.group)
+
+    def __eq__(self, other):
+        """Equality comparison based on group name."""
+        if not isinstance(other, GroupConfig):
+            return False
+        return self.group == other.group
 
     def __post_init__(self):
         if self.aggregate_metric_list is not None:
@@ -87,34 +105,5 @@ class GroupConfig(dict):
         """Returns the version of the group configuration."""
         return self.metadata.get("version", "1.0")
 
-
-@dataclass
-class ConfigurableGroup:
-    def __init__(
-        self,
-        config: Optional[dict] = None,
-    ) -> None:
-        self._config = GroupConfig(**config)
-
-    @property
-    def group(self):
-        return self._config.group
-
-    @property
-    def group_alias(self):
-        return self._config.group_alias
-
-    @property
-    def version(self):
-        return self._config.version
-
-    @property
-    def config(self):
-        return self._config.to_dict()
-
-    @property
-    def group_name(self) -> Any:
-        return self._config.group
-
     def __repr__(self):
-        return f"ConfigurableGroup(group={self.group},group_alias={self.group_alias})"
+        return f"GroupConfig(group={self.group},group_alias={self.group_alias})"

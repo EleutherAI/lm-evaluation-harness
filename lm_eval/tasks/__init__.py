@@ -49,7 +49,7 @@ from typing import (
 import yaml
 from yaml import YAMLError
 
-from lm_eval.api.group import ConfigurableGroup, GroupConfig
+from lm_eval.api.group import GroupConfig
 from lm_eval.evaluator_utils import get_subtask_list
 from lm_eval.utils import pattern_match, setup_logging
 
@@ -767,17 +767,17 @@ class TaskManager:
         self,
         cfg: dict,
         parent_name: str | None = None,
-    ) -> tuple[ConfigurableGroup, list[Union[str, dict]]]:
+    ) -> tuple[GroupConfig, list[Union[str, dict]]]:
         """
-        Build ConfigurableGroup and return (group_obj, subtask_names).
+        Build GroupConfig and return (group_obj, subtask_names).
         Resolves tag expansion.
         """
         if self.metadata is not None:
             cfg["metadata"] = cfg.get("metadata", {}) | self.metadata
 
-        grp = ConfigurableGroup(config=cfg)
+        grp = GroupConfig(**cfg)
         subtasks: list[Union[str, dict]] = []
-        for t in grp.config["task"]:
+        for t in grp.task:
             if isinstance(t, str) and self._name_is_tag(t):
                 subtasks.extend(self._get_tasklist(t))
             else:
@@ -787,7 +787,7 @@ class TaskManager:
     def _load_subtasks(
         self,
         subtasks: list[Union[str, dict]],
-        parent_name: Union[str, ConfigurableGroup, None],
+        parent_name: Union[str, GroupConfig, None],
         update_config: dict | None,
     ) -> Mapping:
         """Return merged mapping of all subtasks, handling duplicates."""
