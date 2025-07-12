@@ -1,0 +1,11 @@
+dataset_kwargs:
+  data_files:
+    test:
+    - /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/poetry/ar_poem_text__poet_name.json
+dataset_name: null
+dataset_path: json
+include: _default_poetry_analysis_template_yaml
+tag: poem_text__poet_name_task
+task: poem_text__poet_name
+# task_alias: ar_poem_text__poet_name
+test_split: test

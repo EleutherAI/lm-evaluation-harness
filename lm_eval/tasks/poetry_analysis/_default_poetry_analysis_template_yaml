@@ -1,0 +1,22 @@
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+metric_list:
+  - metric: acc
+    aggregation: mean 
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+doc_to_text: |
+  Given the following MCQ question, answer with only the option letter whether أ, ب, ج, د, or و:
+  {{ question }}
+  Answer:
+doc_to_choice: "{{ options }}"
+doc_to_target: correct_answer
+
+metadata:
+  version: 0.0
+
+

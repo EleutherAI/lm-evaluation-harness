@@ -1,0 +1,14 @@
+aggregate_metric_list:
+  metric: acc
+  weight_by_size: true
+group: poetry_analysis
+metadata:
+  description: Poetry analysis tasks
+  version: 0
+task:
+- poem_text__genre
+- poem_text__meter
+- poem_text__poem_title
+- poem_text__poet_era
+- poem_text__poet_name
+- poet_name__poet_era
