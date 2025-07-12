@@ -14,9 +14,7 @@ fewshot_config:
   samples:
   - input: I have a blackberry, a clarinet, a nectarine, a plum, a strawberry, a banana,
       a flute, an orange, and a violin. How many fruits do I have?
-    target: 'Let''s think step by step.
-
-      We first identify the fruits on the list and include their quantity in parentheses:
+    target: 'We first identify the fruits on the list and include their quantity in parentheses:
 
       - blackberry (1)
 
@@ -34,9 +32,7 @@ fewshot_config:
       answer is 6.'
   - input: I have an orange, a raspberry, two peaches, a blackberry, an apple, a grape,
       a nectarine, and three plums. How many fruits do I have?
-    target: 'Let''s think step by step.
-
-      We first identify the fruits on the list and include their quantity in parentheses:
+    target: 'We first identify the fruits on the list and include their quantity in parentheses:
 
       - orange (1)
 
@@ -58,9 +54,7 @@ fewshot_config:
       11. So the answer is 11.'
   - input: I have a lettuce head, a head of broccoli, an onion, a stalk of celery,
       two carrots, a garlic, and a yam. How many vegetables do I have?
-    target: 'Let''s think step by step.
-
-      We first identify the vegetables on the list and include their quantity in parentheses:
+    target: 'We first identify the vegetables on the list and include their quantity in parentheses:
 
       - lettuce (1)
 

@@ -39,9 +39,7 @@ fewshot_config:
       (C) 5pm to 6pm
 
       (D) 2pm to 4pm'
-    target: 'Let''s think step by step.
-
-      Wake-up time: 1pm.
+    target: 'Wake-up time: 1pm.
 
       1pm-2pm: free.
 
@@ -88,9 +86,7 @@ fewshot_config:
       (C) 1pm to 2pm
 
       (D) 3pm to 6pm'
-    target: 'Let''s think step by step.
-
-      Wake-up time: 7am.
+    target: 'Wake-up time: 7am.
 
       7am-1pm: free.
 
@@ -137,9 +133,7 @@ fewshot_config:
       (C) 5am to 6am
 
       (D) 3pm to 4pm'
-    target: 'Let''s think step by step.
-
-      Wake-up time: 5am.
+    target: 'Wake-up time: 5am.
 
       5am-6am: getting a coffee at the cafe.
 
