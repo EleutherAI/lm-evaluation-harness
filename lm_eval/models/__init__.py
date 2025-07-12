@@ -14,6 +14,7 @@ from . import (
     openai_completions,
     optimum_ipex,
     optimum_lm,
+    sambanova,
     sglang_causallms,
     sglang_generate_API,
     textsynth,
