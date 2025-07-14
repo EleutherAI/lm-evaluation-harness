@@ -1427,6 +1427,7 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
+                cont_toks = cont_toks[:cont_toks.index(self.eot_token_id)] if self.eot_token_id in cont_toks else cont_toks
                 s = self.tok_decode(cont_toks)
 
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
