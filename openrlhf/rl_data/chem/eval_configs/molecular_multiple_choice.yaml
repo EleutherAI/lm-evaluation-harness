@@ -1,0 +1,38 @@
+dataset_path: openrlhf/rl_data/chenru/multiple-choice.csv
+dataset_name: null
+validation_split: null
+test_split: train
+fewshot_split: train
+process_docs: null
+doc_to_text: |
+  {{question}}
+  A. {{A}}
+  B. {{B}}
+  C. {{C}}
+  D. {{D}}
+  Answer:
+doc_to_target: "{{answer}}"
+task: molecular_multiple_choice
+filter_list:
+  - name: "take-first-letter"
+    filter:
+      - function: "regex"
+        regex_pattern: "^([A-D])"
+        group_select: 1
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 10
+  until:
+    - "\n"
+    - "."
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true 
