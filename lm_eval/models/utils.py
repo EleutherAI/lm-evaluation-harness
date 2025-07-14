@@ -876,6 +876,6 @@ def postprocess_generated_text(
                 # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
                 generation = generation.split(term)[0]
     if strip_thinking:
-        generation = generation.split(strip_thinking)[-1]
+        generation = generation.split(strip_thinking)[-1].lstrip()
 
     return generation
