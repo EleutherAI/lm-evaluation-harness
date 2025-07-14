@@ -30,7 +30,7 @@ class TaskManager:
         metadata: Optional[dict] = None,
     ) -> None:
         if verbosity is not None:
-            utils.setup_logging(verbosity)
+            utils.get_logger(verbosity)
         self.include_path = include_path
         self.metadata = metadata
         self._task_index = self.initialize_tasks(
