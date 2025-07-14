@@ -7,7 +7,7 @@ process_docs: !function utils.process_docs
 # https://github.com/EleutherAI/lm-evaluation-harness/blob/fcddf195ec6bb69c63e36d54d75354f6ecaabab7/lm_eval/api/samplers.py#L82 .
 test_split: train
 description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
-doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step: "
+doc_to_text: "Question: {{Question|trim}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step:"
 doc_to_target: answer
 filter_list:
   - name: "strict-match"
