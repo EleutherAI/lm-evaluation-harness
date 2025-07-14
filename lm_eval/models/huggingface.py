@@ -227,10 +227,11 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
-        try:
-            self.think_end_token = int(think_end_token)
-        except ValueError:
-            self.think_end_token = think_end_token
+        self.think_end_token = (
+            int(think_end_token)
+            if (isinstance(think_end_token, str) and think_end_token.isdigit())
+            else think_end_token
+        )
         self.truncation = truncation
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
