@@ -34,6 +34,7 @@ from lm_eval.models.utils import (
     get_dtype,
     handle_stop_sequences,
     pad_and_concat,
+    postprocess_generated_text,
     stop_sequences_criteria,
 )
 
@@ -94,10 +95,12 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
+        strip_thinking_token: Optional[str, int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
         # optionally: take in an already-initialized transformers.PreTrainedModel
+        self.strip_thinking_token = strip_thinking_token
         if not isinstance(pretrained, str):
             eval_logger.warning(
                 "`pretrained` model kwarg is not of type `str`. Many other model arguments may be ignored. Please do not launch via accelerate or use `parallelize=True` if passing an existing model this way."
@@ -1414,12 +1417,8 @@ class HFLM(TemplateLM):
                 s = self.tok_decode(cont_toks)
 
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                for term in until:
-                    if len(term) > 0:
-                        # ignore '' separator,
-                        # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                        s = s.split(term)[0]
-
+                # strip the thinking token if it exists
+                s = postprocess_generated_text(s, until, self.strip_thinking_token)
                 res.append(s)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
