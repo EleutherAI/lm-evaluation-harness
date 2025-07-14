@@ -19,6 +19,7 @@ The benchmark ensures that:
 
 ### References
 The benchmark is inspired and offers a dynamic version of
+```bibtex
 @misc{zhou2023instructionfollowingevaluationlargelanguage,
       title={Instruction-Following Evaluation for Large Language Models}, 
       author={Jeffrey Zhou and Tianjian Lu and Swaroop Mishra and Siddhartha Brahma and Sujoy Basu and Yi Luan and Denny Zhou and Le Hou},
@@ -28,6 +29,7 @@ The benchmark is inspired and offers a dynamic version of
       primaryClass={cs.CL},
       url={https://arxiv.org/abs/2311.07911}, 
 }
+```
 
 
 ### Task Validity Checklist
