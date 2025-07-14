@@ -34,6 +34,10 @@ Homepage: `https://github.com/facebookresearch/MLQA`
 
 * Not part of a group yet
 
+#### Tags
+
+* `mlqa`: runs all MLQA variants.
+
 #### Tasks
 
 Tasks of the form `mlqa_context-lang_question-lang.yaml`
