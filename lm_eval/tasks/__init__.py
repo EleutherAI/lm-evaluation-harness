@@ -196,11 +196,11 @@ def _get_cached_config(yaml_path: Path, mode: str) -> dict:
 
 def load_yaml_config(
     yaml_path: Union[Path, str, None] = None,
-    yaml_config: dict | None = None,
-    yaml_dir: Path | None = None,
+    yaml_config: Optional[dict] = None,
+    yaml_dir: Optional[Path] = None,
     mode: str = "full",
     *,
-    _seen: set[tuple[Path, str]] | None = None,
+    _seen: Optional[set[tuple[Path, str]]] = None,
     resolve_includes: bool = True,
 ) -> dict:
     """
@@ -719,7 +719,7 @@ class TaskManager:
         self,
         cfg: dict,
         task_name: str,
-        yaml_path: str | None,
+        yaml_path: Union[str, None],
     ) -> dict:
         """
         Instantiate a single task (ConfigurableTask **or** python-task) from *cfg*.
@@ -766,7 +766,7 @@ class TaskManager:
     def _create_group_object(
         self,
         cfg: dict,
-        parent_name: str | None = None,
+        parent_name: Union[str, None] = None,
     ) -> tuple[GroupConfig, list[Union[str, dict]]]:
         """
         Build GroupConfig and return (group_obj, subtask_names).
@@ -788,7 +788,7 @@ class TaskManager:
         self,
         subtasks: list[Union[str, dict]],
         parent_name: Union[str, GroupConfig, None],
-        update_config: dict | None,
+        update_config: Union[dict, None],
     ) -> Mapping:
         """Return merged mapping of all subtasks, handling duplicates."""
         fn = functools.partial(
@@ -800,10 +800,10 @@ class TaskManager:
 
     def _load_individual_task_or_group(
         self,
-        payload: str | dict,
+        payload: Union[str, dict],
         *,
-        parent_name: str | None = None,
-        update_config: dict | None = None,
+        parent_name: Union[str, None] = None,
+        update_config: Union[dict, None] = None,
     ) -> Mapping:
         """
         Public helper that turns *payload* (str task/group/tag **or** dict config)
