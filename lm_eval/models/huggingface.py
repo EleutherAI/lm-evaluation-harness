@@ -95,7 +95,7 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
-        strip_thinking_token: Optional[str, int] = None,
+        strip_thinking_token: Union[str, int, None] = None,
         **kwargs,
     ) -> None:
         super().__init__()
