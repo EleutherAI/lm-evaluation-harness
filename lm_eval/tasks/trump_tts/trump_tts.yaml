@@ -1,14 +1,10 @@
-task: common_voice_en
-task_alias: common_voice_en
+task: trump_tts
+task_alias: trump_tts
 
-# subset only. The real dataset (mozilla-foundation/common_voice_17_0) is to huge
-# dataset_path: fixie-ai/endpointing-audio
-# dataset_name: common_voice_17_0-en
-dataset_path: mozilla-foundation/common_voice_17_0
-dataset_name: ro
+dataset_path: surya5289/trump-tts-6h
 
 training_split: train
-test_split: test
+test_split: train
 
 output_type: generate_until
 
