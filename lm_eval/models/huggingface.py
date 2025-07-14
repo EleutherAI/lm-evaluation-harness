@@ -1418,23 +1418,29 @@ class HFLM(TemplateLM):
                 # discard context + left-padding toks if using causal decoder-only LM
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
-                    if isinstance(self.think_end_token, int):
-                        indices = [
-                            i
-                            for i, x in enumerate(cont_toks_list)
-                            if x == self.think_end_token
-                        ]
-                        if indices:
-                            cont_toks = cont_toks[indices[-1] + 1 :]
+
+                # Handle integer think_end_token: find last occurrence and strip tokens after it
+                if isinstance(self.think_end_token, int):
+                    think_token_indices = [
+                        i
+                        for i, token in enumerate(cont_toks)
+                        if token == self.think_end_token
+                    ]
+                    if think_token_indices:
+                        cont_toks = cont_toks[think_token_indices[-1] + 1 :]
+
                 s = self.tok_decode(cont_toks)
 
-                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                # strip the thinking token if it exists
+                # Strip leading whitespace if we removed thinking tokens
+                if isinstance(self.think_end_token, int):
+                    s = s.lstrip()
+
+                # Apply post-processing: remove stop sequences and string-based thinking tokens
                 s = postprocess_generated_text(
                     generation=s,
                     stop=until,
                     think_end_token=self.think_end_token
-                    if not isinstance(self.think_end_token, int)
+                    if isinstance(self.think_end_token, str)
                     else None,
                 )
                 res.append(s)
