@@ -95,12 +95,17 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
-        strip_thinking_token: Union[str, int, None] = None,
+        # end token for thinking, either the string or int token id.
+        # splits to get response after this token (if provided).
+        think_end_token: Union[str, int, None] = None,
         **kwargs,
     ) -> None:
         super().__init__()
         # optionally: take in an already-initialized transformers.PreTrainedModel
-        self.strip_thinking_token = strip_thinking_token
+        try:
+            self.think_end_token = int(think_end_token)
+        except ValueError:
+            self.think_end_token = think_end_token
         if not isinstance(pretrained, str):
             eval_logger.warning(
                 "`pretrained` model kwarg is not of type `str`. Many other model arguments may be ignored. Please do not launch via accelerate or use `parallelize=True` if passing an existing model this way."
@@ -1413,12 +1418,25 @@ class HFLM(TemplateLM):
                 # discard context + left-padding toks if using causal decoder-only LM
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
-
+                    if isinstance(self.think_end_token, int):
+                        indices = [
+                            i
+                            for i, x in enumerate(cont_toks_list)
+                            if x == self.think_end_token
+                        ]
+                        if indices:
+                            cont_toks = cont_toks[indices[-1] + 1 :]
                 s = self.tok_decode(cont_toks)
 
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 # strip the thinking token if it exists
-                s = postprocess_generated_text(s, until, self.strip_thinking_token)
+                s = postprocess_generated_text(
+                    generation=s,
+                    stop=until,
+                    think_end_token=self.think_end_token
+                    if not isinstance(self.think_end_token, int)
+                    else None,
+                )
                 res.append(s)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)

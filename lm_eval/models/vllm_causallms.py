@@ -134,8 +134,10 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
-        enable_thinking: bool = False,
-        strip_thinking_token: Optional[str] = None,
+        # VLLM: enable thinking tags in the prompt.
+        enable_thinking: bool = True,
+        # End marker for thinking tags - splits to get response after this token (if provided).
+        think_end_token: Optional[str] = None,
         **kwargs,
     ):
         super().__init__()
@@ -149,7 +151,7 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
-        self.strip_thinking_token = strip_thinking_token
+        self.think_end_token = think_end_token
         self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -633,7 +635,7 @@ class VLLM(TemplateLM):
                 generated_text: str = output.outputs[0].text
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
-                    generated_text, until, self.strip_thinking_token
+                    generated_text, until, self.think_end_token
                 )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
