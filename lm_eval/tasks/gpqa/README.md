@@ -57,3 +57,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+- `*_cot_zeroshot` v.4.0 14-07-2025:
+  - PR #3131: added (5) fewshot examples and used proper cot format.
