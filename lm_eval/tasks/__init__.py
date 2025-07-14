@@ -291,11 +291,13 @@ def iter_yaml_files(root: Path, ignore=_IGNORE_DIRS) -> Generator[Path, Any, Non
         >>> for yaml_file in iter_yaml_files(Path("tasks")):
         ...     print(f"Found task config: {yaml_file}")
     """
-    for p in iglob("**/*.yaml", root_dir=root, recursive=True):
+    for p in iglob(str(root / "**/*.yaml"), recursive=True):
         # ignore check
-        if Path(p).parts[0] in ignore:
+        path = Path(p)
+        # Check if any parent directory is in the ignore list
+        if any(part in ignore for part in path.parts):
             continue
-        yield root / p
+        yield path
 
 
 class TaskManager:
