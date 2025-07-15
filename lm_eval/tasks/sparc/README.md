@@ -76,10 +76,12 @@ The task uses comprehensive evaluation metrics for detailed spatial reasoning as
 
 ## Usage
 
+To prevent truncation of longer sequences, we recommend setting the max_length parameter in model_args:
+
 ```bash
 # Run SPaRC evaluation
 python -m lm_eval --model hf \
-    --model_args pretrained=<model_name> \
+    --model_args "pretrained=<model_name>,max_length=32768" \
     --tasks sparc \
     --batch_size 10 \
     --apply_chat_template \

@@ -263,7 +263,7 @@ def solve_rate_by_difficulty(predictions, references=None, **kwargs):
                 difficulty_stats["unknown"] = {"total": 0, "solved": 0}
             difficulty_stats["unknown"]["total"] += 1
     
-    # Calculate solve rates for each difficulty
+    # Calculate solve rates for each difficulty (only percentages)
     result = {
         "overall_solve_rate": total_solved / total_count if total_count > 0 else 0.0
     }
@@ -271,8 +271,6 @@ def solve_rate_by_difficulty(predictions, references=None, **kwargs):
     for difficulty, stats in difficulty_stats.items():
         solve_rate = stats["solved"] / stats["total"] if stats["total"] > 0 else 0.0
         result[f"solve_rate_difficulty_{difficulty}"] = solve_rate
-        result[f"count_difficulty_{difficulty}"] = stats["total"]
-        result[f"solved_difficulty_{difficulty}"] = stats["solved"]
     
     return result
 
