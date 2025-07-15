@@ -134,6 +134,7 @@ class VLLM(TemplateLM):
         data_parallel_size: int = 1,
         lora_local_path: str = None,
         enable_thinking: bool = False,
+        max_lora_rank: int = 16,
         **kwargs,
     ):
         super().__init__()
@@ -167,6 +168,8 @@ class VLLM(TemplateLM):
             "quantization": quantization,
             "seed": int(seed),
             "device": str(device),
+            "enable_lora": True if lora_local_path else False,
+            "max_lora_rank": int(max_lora_rank),
         }
         self.model_args.update(kwargs)
         self.batch_size = (
