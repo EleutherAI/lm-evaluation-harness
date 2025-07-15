@@ -9,7 +9,6 @@ def sample_rules(rules, randomize_rules):
         if size_rules_to_sample > len(rules):
             raise ValueError("size_rules_to_sample must be less than or equal to the number of letter_must_be_in rules.")
         rules_sampled = random.sample(list(rules.keys()), size_rules_to_sample)
-        print("Sampled rules:", rules_sampled)
         for key in rules:
             if key in rules_sampled:
                 if key == "count_number_of":
@@ -105,7 +104,6 @@ def make_serializable(obj):
     if isinstance(obj, frozenset):
         return [make_serializable(x) for x in obj]
     elif isinstance(obj, tuple):
-        print("Tuple detected:", obj)
         return [make_serializable(x) for x in obj]
     elif isinstance(obj, dict):
         return {k: make_serializable(v) for k, v in obj.items()}
@@ -124,13 +122,6 @@ def generate_tests(dataset, texts, rules, number_tests_per_setup, update_rules=N
         prompt, rules_letter_must_be_in, count_number, sum_characters_value = generate_prompt(text, rules)
         hashable_tuple = (prompt, rules, rules_letter_must_be_in, count_number, sum_characters_value)  # make_hashable((prompt, rules, rules_letter_must_be_in, count_number, sum_characters_value)) if dataset is a set
         if hashable_tuple not in dataset:
-            '''
-            print(len(dataset))
-            print("prompt:", prompt)
-            print("rules:", rules)
-            print("rules_letter_must_be_in:", rules_letter_must_be_in)
-            print("count_number:", count_number)'''
-            
             dataset.append(hashable_tuple)
             i += 1
         elif j >= max_attempts:
@@ -142,8 +133,6 @@ def generate_tests(dataset, texts, rules, number_tests_per_setup, update_rules=N
 
 def create_dataset(texts):
     number_tests_per_setup = 20
-    
-    print(len(texts))
     
     dataset = []
     

@@ -33,17 +33,6 @@ def convert_yaml_to_hfdataset(yaml_file = "data/dataset.yaml", output_dir = "dat
         
     # Convert the data to a pandas DataFrame
     df = pd.DataFrame(data)
-    print(df.head())
-    '''
-    # Define the features explicitly
-    features = Features({
-        'count_number': Value('string'), # Assuming it can be represented as string
-        'prompt': Value('string'),
-        'rules': Value('string'), # Assuming it can be represented as string
-        'rules_letter_must_be_in': Value('string'),
-        'sum_characters_value': Value('int64')
-    })
-    '''
 
     # Convert the data to a Hugging Face Dataset
     df['rules_letter_must_be_in'] = df['rules_letter_must_be_in'].astype(str)
