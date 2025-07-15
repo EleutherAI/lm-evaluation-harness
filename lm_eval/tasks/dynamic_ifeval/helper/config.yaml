@@ -1,0 +1,37 @@
+texts_types_to_use: ["x_abc_samples"]
+texts_types_to_exclude: null
+rules:
+    letter_must_be_in:
+        enabled: true
+        randomize_size_set_accepted_letters: false
+        size_set_accepted_letters: 1
+        randomize_number_letters: false
+        number_letters: 1   
+    count_number_of:
+        commas:
+            enabled: false
+        periods:
+            enabled: false
+        exclamation_marks:
+            enabled: false
+        question_marks:
+            enabled: false
+        colons:
+            enabled: false
+        semicolons:
+            enabled: false
+        words:
+            enabled: false
+        characters:
+            enabled: false
+        numbers:
+            enabled: false
+    sum_characters_must_be:
+        enabled: false
+randomize_rules:
+    sample_rules: true
+    size_rules_to_sample: 2
+    sample_count_rules: false
+    size_count_rules_to_sample: 2
+number_of_tests_per_setup: 10
+replacement_text_selection: false
