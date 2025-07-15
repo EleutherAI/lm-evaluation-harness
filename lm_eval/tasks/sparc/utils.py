@@ -301,6 +301,7 @@ def extract_solution_path(
         List of coordinate dicts or None if no path found
     """
     # First, check if "Solution" appears in the text
+    print(f"DEBUG extract_solution_path: Solution text: {solution_text}...")
     solution_marker = "####"
     if solution_marker in solution_text:
         # Only process text after "####"
