@@ -81,7 +81,8 @@ To prevent truncation of longer sequences, we recommend setting the max_length p
 ```bash
 # Run SPaRC evaluation
 python -m lm_eval --model hf \
-    --model_args "pretrained=<model_name>,max_length=32768" \
+    --model_args "pretrained=<model_name>,max_length=132768" \
+    --gen_kwargs "max_gen_toks=100000" \
     --tasks sparc \
     --batch_size 10 \
     --apply_chat_template \
