@@ -21,6 +21,9 @@ metric_list:
   - metric: !function utils.spatial_reasoning_analysis
     aggregation: !function utils.aggregate_spatial_analysis
     higher_is_better: true
+  - metric: !function utils.solve_rate_by_difficulty
+    aggregation: !function utils.aggregate_difficulty_analysis
+    higher_is_better: true
 generation_kwargs:
   until:
     - "Question:"

@@ -81,7 +81,9 @@ The task uses comprehensive evaluation metrics for detailed spatial reasoning as
 python -m lm_eval --model hf \
     --model_args pretrained=<model_name> \
     --tasks sparc \
-    --batch_size 10
+    --batch_size 10 \
+    --apply_chat_template \
+    --system_instruction "You are an expert at solving puzzle games."
 ```
 
 ## Performance Expectations

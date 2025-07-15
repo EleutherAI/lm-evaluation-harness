@@ -200,11 +200,94 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
         "solutions": doc.get('solutions', []),
         "puzzle_array": doc.get('puzzle_array', []),
         "grid_size": doc.get('grid_size', {}),
-        "polyshapes": doc.get('polyshapes', {})
+        "polyshapes": doc.get('polyshapes', {}),
+        # Include difficulty information - try multiple possible field names
+        "difficulty": doc.get('difficulty_level', "unknown")
     }
     
     # Return as JSON string so metrics can parse it
     return json.dumps(target_data)
+
+
+def solve_rate_by_difficulty(predictions, references=None, **kwargs):
+    """Metric that tracks solve rates broken down by difficulty level."""
+    if not predictions or not references:
+        return {"overall_solve_rate": 0.0}
+    
+    # Initialize tracking dictionaries
+    difficulty_stats = {}
+    total_count = len(predictions)
+    total_solved = 0
+    
+    for pred, ref in zip(predictions, references):
+        # Handle list responses
+        if isinstance(pred, list):
+            pred = pred[0] if pred else ""
+        elif not isinstance(pred, str):
+            pred = str(pred)
+        
+        # Extract path from prediction
+        path = extract_solution_path(pred)
+        
+        # Parse puzzle data from reference
+        try:
+            puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
+            
+            # Get difficulty information
+            difficulty = puzzle_data.get('difficulty')
+            if difficulty is None:
+                difficulty = "unknown"
+            else:
+                difficulty = str(difficulty)
+            
+            # Initialize difficulty tracking if not seen before
+            if difficulty not in difficulty_stats:
+                difficulty_stats[difficulty] = {
+                    "total": 0,
+                    "solved": 0
+                }
+            
+            difficulty_stats[difficulty]["total"] += 1
+            
+            # Check if this puzzle was solved correctly
+            is_solved = False
+            if path:
+                is_solved = validate_solution(path, puzzle_data)
+                if is_solved:
+                    difficulty_stats[difficulty]["solved"] += 1
+                    total_solved += 1
+            
+        except (json.JSONDecodeError, TypeError):
+            # Handle parsing errors by tracking as unknown difficulty
+            if "unknown" not in difficulty_stats:
+                difficulty_stats["unknown"] = {"total": 0, "solved": 0}
+            difficulty_stats["unknown"]["total"] += 1
+    
+    # Calculate solve rates for each difficulty
+    result = {
+        "overall_solve_rate": total_solved / total_count if total_count > 0 else 0.0
+    }
+    
+    for difficulty, stats in difficulty_stats.items():
+        solve_rate = stats["solved"] / stats["total"] if stats["total"] > 0 else 0.0
+        result[f"solve_rate_difficulty_{difficulty}"] = solve_rate
+        result[f"count_difficulty_{difficulty}"] = stats["total"]
+        result[f"solved_difficulty_{difficulty}"] = stats["solved"]
+    
+    return result
+
+
+def aggregate_difficulty_analysis(items, **kwargs):
+    """Aggregate solve rate by difficulty analysis across multiple items."""
+    if not items:
+        return {"overall_solve_rate": 0.0}
+    
+    # The items should be the results from solve_rate_by_difficulty
+    # Just take the first item since it already contains aggregated results
+    if isinstance(items, list) and len(items) > 0:
+        return items[0]
+    else:
+        return items
 
 
 def extract_solution_path(
