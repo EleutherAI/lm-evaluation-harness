@@ -1,9 +1,9 @@
-task: finance_mmlu
+task: ar_finance_mmlu
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /home/daniil.orel/arabic_fin/lm-evaluation-harness/lm_eval/tasks/finance/mmlu_arabic_benchmark.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/finance/mmlu_arabic_benchmark.json
 test_split: test
 
 output_type: multiple_choice
