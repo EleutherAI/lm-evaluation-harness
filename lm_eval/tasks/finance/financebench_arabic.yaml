@@ -9,7 +9,7 @@ test_split: test
 output_type: multiple_choice
 
 doc_to_text: |
-  Given the following MCQ question, answer with only the option letter whether A, B, C, D, or E:
+  Given the following MCQ question, answer with only the option letter whether A or B:
   {{ question }}
   Options:
   {{ options }}
