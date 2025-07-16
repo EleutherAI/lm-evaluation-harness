@@ -1,7 +1,7 @@
 import os
 from typing import List, Union
 
-from lm_eval.utils import load_yaml_config
+from lm_eval.tasks import load_yaml_config
 
 
 # {{{CI}}}
