@@ -138,6 +138,7 @@ class VLLM(TemplateLM):
         enable_thinking: bool = True,
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: Optional[str] = None,
+        max_lora_rank: int = 16,
         **kwargs,
     ):
         super().__init__()
@@ -172,6 +173,8 @@ class VLLM(TemplateLM):
             "quantization": quantization,
             "seed": int(seed),
             "device": str(device),
+            "enable_lora": True if lora_local_path else False,
+            "max_lora_rank": int(max_lora_rank),
         }
         self.model_args.update(kwargs)
         self.batch_size = (
