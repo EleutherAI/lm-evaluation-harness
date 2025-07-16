@@ -144,6 +144,7 @@ class VLLM(TemplateLM):
                 chat_template=None,
                 tools=None,
                 trust_remote_code=trust_remote_code,
+                model_config=self.model.llm_engine.model_config,
             )
         else:
             self.hf_chat_template = None
