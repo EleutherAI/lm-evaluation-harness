@@ -34,6 +34,7 @@ from lm_eval.models.utils import (
     get_dtype,
     handle_stop_sequences,
     pad_and_concat,
+    postprocess_generated_text,
     stop_sequences_criteria,
 )
 
@@ -95,6 +96,9 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
+        # end token for thinking, either the string or int token id.
+        # splits to get response after this token (if provided).
+        think_end_token: Union[str, int, None] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -224,6 +228,11 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
+        self.think_end_token = (
+            int(think_end_token)
+            if (isinstance(think_end_token, str) and think_end_token.isdigit())
+            else think_end_token
+        )
         self.truncation = truncation
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
@@ -1427,15 +1436,30 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
+                # Handle integer think_end_token: find last occurrence and strip tokens after it
+                if isinstance(self.think_end_token, int):
+                    think_token_indices = [
+                        i
+                        for i, token in enumerate(cont_toks)
+                        if token == self.think_end_token
+                    ]
+                    if think_token_indices:
+                        cont_toks = cont_toks[think_token_indices[-1] + 1 :]
+
                 s = self.tok_decode(cont_toks)
 
-                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                for term in until:
-                    if len(term) > 0:
-                        # ignore '' separator,
-                        # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                        s = s.split(term)[0]
+                # Strip leading whitespace if we removed thinking tokens
+                if isinstance(self.think_end_token, int):
+                    s = s.lstrip()
 
+                # Apply post-processing: remove stop sequences and string-based thinking tokens
+                s = postprocess_generated_text(
+                    generation=s,
+                    stop=until,
+                    think_end_token=self.think_end_token
+                    if isinstance(self.think_end_token, str)
+                    else None,
+                )
                 res.append(s)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
