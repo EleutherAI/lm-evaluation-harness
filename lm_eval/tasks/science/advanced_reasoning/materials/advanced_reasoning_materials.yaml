@@ -1,0 +1,7 @@
+group: ar_materials
+task:
+  - corrosion_prediction
+  - materials_safety_classification
+  - mof_water_stability
+  - pxrd_crystal_system
+  - pxrd_lattice_prediction

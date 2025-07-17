@@ -1,4 +1,6 @@
-from lm_eval.utils import eval_logger
+import logging
+
+eval_logger = logging.getLogger(__name__)
 
 def process_smiles(doc, results):
     reference = doc["SMILES"]

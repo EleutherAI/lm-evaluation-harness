@@ -1,0 +1,14 @@
+group: bk_materials
+task:
+  - battery_electrolyte_qa
+  - biomaterials_qa
+  - composite_materials_qa
+  - general_materials_science_qa
+  - lammps_vasp
+  - mof_synthesis_qa
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

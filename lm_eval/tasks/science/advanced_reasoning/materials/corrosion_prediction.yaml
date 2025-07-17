@@ -17,7 +17,6 @@ generation_kwargs:
   temperature: 0.0
   do_sample: false
   until:
-    - "\n"
     - "</s>"
     - "<|im_end|>"
 
