@@ -1,0 +1,5 @@
+tag: noridiom_nob
+task: noridiom_nob_p1
+include: ../_noridiom_yaml
+process_docs: !function ../utils.filter_dataset_nb
+doc_to_text: "Skriv fortsettelsen av idiomet {{idiom_start}}"

@@ -1,0 +1,16 @@
+dataset_path: ltg/noropenbookqa
+output_type: multiple_choice
+training_split: train
+validation_split: null
+test_split: test
+process_docs: !function utils.filter_dataset
+doc_to_target: "{{choices.label.index(answer)}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

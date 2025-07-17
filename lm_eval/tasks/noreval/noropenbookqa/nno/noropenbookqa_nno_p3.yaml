@@ -1,0 +1,6 @@
+tag: noropenbookqa_nno
+task: noropenbookqa_nno_p3
+dataset_name: nn
+include: ../_noropenbookqa_yaml
+doc_to_text: "Bakgrunn: {{fact}}\n\nSpørsmål: {{question_stem}}\nA: {{choices.text[0]}}\nB: {{choices.text[1]}}\nC: {{choices.text[2]}}\nD: {{choices.text[3]}}\n\nSvar:"
+doc_to_choice: "{{choices.label}}"
