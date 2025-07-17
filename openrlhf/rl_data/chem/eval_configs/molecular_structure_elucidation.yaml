@@ -1,0 +1,32 @@
+dataset_path: openrlhf/rl_data/chenru/structure_elucidation.jsonl
+dataset_name: null
+validation_split: null
+test_split: train
+fewshot_split: train
+process_docs: null
+doc_to_text: "{{input}}"
+doc_to_target: "{{output}}"
+task: molecular_structure_elucidation
+filter_list:
+  - name: "remove-whitespace"
+    filter:
+      - function: "remove_whitespace"
+  - name: "take-first"
+    filter:
+      - function: "take_first"
+generation_kwargs:
+  max_tokens: 1024
+  until:
+    - "\n\n"
+    - "Task:"
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false 

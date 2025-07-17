@@ -1,0 +1,32 @@
+dataset_path: openrlhf/rl_data/chenru/name_conversion_qa_pairs.jsonl
+dataset_name: null
+validation_split: null
+test_split: train
+fewshot_split: train
+process_docs: null
+doc_to_text: "{{question}}"
+doc_to_target: "answer"
+task: molecular_name_conversion
+filter_list:
+  - name: "xml-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is: (.*?)(?:\.|$)"
+        group_select: 1
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 256
+  until:
+    - "\n"
+    - "."
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: false
+    ignore_punctuation: true 

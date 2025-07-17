@@ -1,0 +1,45 @@
+dataset_path: experiment_techniques.jsonl
+dataset_name: experiment_techniques
+validation_split: null
+test_split: train
+fewshot_split: train
+process_docs: null
+doc_to_text: |
+  System: Identify the lattice system of the provided X-ray diffraction pattern. Choose from: triclinic, monoclinic, orthorhombic, tetragonal, rhombohedral, hexagonal, and cubic. In the provided diffraction patterns, Column A denotes the 2-theta from diffraction and Column B denotes the normalized diffraction intensity. A high intensity suggests a peak.
+  
+  {{question}}
+doc_to_target: "answer"
+task: materials_science_experimental_techniques
+filter_list:
+  - name: "extract-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is: (.*?)(?:\\.|$)"
+        group_select: 1
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 128
+  until:
+    - "\n"
+    - "."
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0
+  description: "Materials science tasks related to experimental techniques, including lattice system identification and synthesis reaction vessel selection."
+  domain: "Chemistry"
+  keywords:
+    - "materials science"
+    - "crystallography"
+    - "lattice systems"
+    - "synthesis"
+    - "experimental techniques" 
