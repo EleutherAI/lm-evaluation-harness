@@ -22,6 +22,7 @@ from lm_eval.models.utils import (
     Collator,
     configure_pad_token,
     handle_stop_sequences,
+    postprocess_generated_text,
     undistribute,
 )
 from lm_eval.utils import (
@@ -133,7 +134,11 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
-        enable_thinking: bool = False,
+        # VLLM: enable thinking tags in the prompt.
+        enable_thinking: bool = True,
+        # End marker for thinking tags - splits to get response after this token (if provided).
+        think_end_token: Optional[str] = None,
+        max_lora_rank: int = 16,
         **kwargs,
     ):
         super().__init__()
@@ -147,6 +152,7 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
+        self.think_end_token = think_end_token
         self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -167,6 +173,8 @@ class VLLM(TemplateLM):
             "quantization": quantization,
             "seed": int(seed),
             "device": str(device),
+            "enable_lora": True if lora_local_path else False,
+            "max_lora_rank": int(max_lora_rank),
         }
         self.model_args.update(kwargs)
         self.batch_size = (
@@ -627,11 +635,11 @@ class VLLM(TemplateLM):
 
             # cache generations
             for output, context in zip(cont, context):
-                generated_text = output.outputs[0].text
+                generated_text: str = output.outputs[0].text
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                for term in until:
-                    if len(term) > 0:
-                        generated_text = generated_text.split(term)[0]
+                generated_text = postprocess_generated_text(
+                    generated_text, until, self.think_end_token
+                )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text

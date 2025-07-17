@@ -1,0 +1,7 @@
+"dataset_name": "natural_science"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_stem_tasks"
+- "egymmlu_ar_mmlu_tasks"
+"task": "egymmlu_natural_science"
+"task_alias": "natural science"
