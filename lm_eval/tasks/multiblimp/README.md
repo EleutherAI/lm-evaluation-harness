@@ -1,7 +1,7 @@
 # MultiBLiMP: A Massively Multilingual Benchmark of Linguistic Minimal Pairs
 
 ## Task Description
-MultiBLiMP is a massively multilingual benchmark of linguistic minimal pairs, covering 101 languages, 6 linguistic phenomena and containing more than 125,000 minimal pairs. 
+MultiBLiMP is a massively multilingual benchmark of linguistic minimal pairs, covering 101 languages, 6 linguistic phenomena and containing more than 125,000 minimal pairs.
 
 * Paper: https://arxiv.org/abs/2504.02768
 * GitHub Repo: https://github.com/jumelet/multiblimp/
@@ -16,7 +16,7 @@ Note: The original implementation is provided [here](https://github.com/jumelet/
 
 ## Dataset Details
 
-This table (from the [Hugging Face Dataset Repo](https://huggingface.co/datasets/jumelet/multiblimp)) lists the languages covered in MultiBLiMP and the number of items for each language. 
+This table (from the [Hugging Face Dataset Repo](https://huggingface.co/datasets/jumelet/multiblimp)) lists the languages covered in MultiBLiMP and the number of items for each language.
 
 | ISO Code |      Language      |   n  |
 |:--------:|:------------------:|:----:|
@@ -126,13 +126,13 @@ This table (from the [Hugging Face Dataset Repo](https://huggingface.co/datasets
 ## Citation
 ```
 @misc{jumelet2025multiblimp10massivelymultilingual,
-      title={MultiBLiMP 1.0: A Massively Multilingual Benchmark of Linguistic Minimal Pairs}, 
+      title={MultiBLiMP 1.0: A Massively Multilingual Benchmark of Linguistic Minimal Pairs},
       author={Jaap Jumelet and Leonie Weissweiler and Arianna Bisazza},
       year={2025},
       eprint={2504.02768},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2504.02768}, 
+      url={https://arxiv.org/abs/2504.02768},
 }
 ```
 
