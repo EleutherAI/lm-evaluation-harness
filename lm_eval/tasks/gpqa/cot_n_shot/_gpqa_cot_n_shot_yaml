@@ -6,8 +6,7 @@ process_docs: !function utils.process_docs
 # If set test_split to null, at least 6 few-shot examples will be needed to run a 5-shot evaluation, according to
 # https://github.com/EleutherAI/lm-evaluation-harness/blob/fcddf195ec6bb69c63e36d54d75354f6ecaabab7/lm_eval/api/samplers.py#L82 .
 test_split: train
-description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
-doc_to_text: "Question: {{Question|trim}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step:"
+doc_to_text: "Given the following problem, reason and give a final answer to the problem.\nProblem: {{Question|trim}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nYour response should end with \"The final answer is [answer]\" where [answer] is the response to the problem.\n"
 doc_to_target: answer
 filter_list:
   - name: "strict-match"
@@ -26,6 +25,7 @@ filter_list:
 generation_kwargs:
   until:
     - "</s>"
+    - "Given the following problem"
   do_sample: false
   temperature: 0.0
   max_gen_toks: 1024
