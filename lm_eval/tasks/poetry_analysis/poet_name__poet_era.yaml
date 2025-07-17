@@ -1,7 +1,7 @@
 dataset_kwargs:
   data_files:
     test:
-    - /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/poetry_60verses/ar_poet_name_poet_era.json
+    - /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/poetry_60verses/ar_poet_name__poet_era.json
 dataset_name: null
 dataset_path: json
 include: _default_poetry_analysis_template_yaml
