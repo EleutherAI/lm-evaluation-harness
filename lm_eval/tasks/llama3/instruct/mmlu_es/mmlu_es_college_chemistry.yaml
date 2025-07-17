@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "El estado de oxidaci\xF3n m\xE1s com\xFAn de los elementos lant\xE1nidos\
+        \ es +3."
+      B: "Los complejos de lant\xE1nidos suelen tener n\xFAmeros de coordinaci\xF3\
+        n elevados (&gt;6)."
+      C: "Todos los elementos lant\xE1nidos reaccionan con un \xE1cido acuoso para\
+        \ liberar hidr\xF3geno."
+      D: "Los radios at\xF3micos de los elementos lant\xE1nidos aumentan a lo largo\
+        \ del per\xEDodo de La a Lu."
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones sobre los elementos\
+      \ lant\xE1nidos NO es cierta?"
+  - input_choice_list:
+      A: 1,0 ml
+      B: 10ml
+      C: 20ml
+      D: 50 mililitros
+    input_correct_responses:
+    - C
+    input_question: "Una muestra de 0,217 g de HgO (masa molar = 217 g) reacciona\
+      \ con un exceso de iones yoduro de acuerdo con la reacci\xF3n que se muestra\
+      \ arriba. \xBFCu\xE1ntos ml de HCl 0,10 M se necesitan para valorar la soluci\xF3\
+      n resultante para alcanzar el punto de equivalencia?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '6'
+      D: '24'
+    input_correct_responses:
+    - A
+    input_question: "Prediga el n\xFAmero de l\xEDneas en el espectro EPR de una soluci\xF3\
+      n de radical metilo marcado con 13C (13CH3\u2022), suponiendo que las l\xED\
+      neas no se superpongan."
+  - input_choice_list:
+      A: "un \xE1cido"
+      B: una base
+      C: un catalizador
+      D: un agente reductor
+    input_correct_responses:
+    - D
+    input_question: "3 Cl\u2212(ac) + 4 CrO_4^2\u2212(ac) + 23 H+(ac) \u2192 3 HClO2(ac)\
+      \ + 4 Cr3+(ac) + 10 H2O(l). En la reacci\xF3n que se muestra arriba, Cl\u2212\
+      (aq) se comporta como"
+  - input_choice_list:
+      A: PbH4 &lt; SnH4 &lt; GeH4 &lt; SiH4 &lt; CH4
+      B: PbH4 &lt; SnH4 &lt; CH4 &lt; GeH4 &lt; SiH4
+      C: CH4 &lt; SiH4 &lt; GeH4 &lt; SnH4 &lt; PbH4
+      D: CH4 &lt; PbH4 &lt; GeH4 &lt; SnH4 &lt; SiH4
+    input_correct_responses:
+    - A
+    input_question: "\xBFCu\xE1l de las siguientes enumera los hidruros de elementos\
+      \ del grupo 14 en orden de estabilidad t\xE9rmica, de menor a mayor?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_chemistry
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_college_chemistry
+task_alias: college_chemistry

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import logging
 import os
 from functools import partial
 from itertools import combinations
@@ -28,8 +29,9 @@ from lm_eval.tasks.score.math.math_grader import (
     normalize_answer_string,
 )
 from lm_eval.tasks.score.utils import robustness_doc_to_text
-from lm_eval.utils import eval_logger
 
+
+eval_logger = logging.getLogger(__name__)
 
 TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "prompt_templates.json")
 

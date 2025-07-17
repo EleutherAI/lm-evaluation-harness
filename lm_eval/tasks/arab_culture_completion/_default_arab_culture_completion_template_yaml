@@ -1,0 +1,19 @@
+dataset_path: boda/arabic_cluture
+test_split: test
+fewshot_split: test
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: !function utils_completion.doc_to_text
+doc_to_choice: !function utils_completion.doc_to_choice
+doc_to_target: !function utils_completion.doc_to_target
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

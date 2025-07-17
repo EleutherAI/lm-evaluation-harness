@@ -47,8 +47,8 @@ This mode supports a number of command-line arguments, the details of which can 
 - `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
 
 - `--apply_chat_template` : This flag specifies whether to apply a chat template to the prompt. It can be used in the following ways:
-	- `--apply_chat_template` : When used without an argument, applies the only available chat template to the prompt. For Hugging Face models, if no dedicated chat template exists, the default chat template will be applied.
-	- `--apply_chat_template template_name` : If the model has multiple chat templates, apply the specified template to the prompt.
+  - `--apply_chat_template` : When used without an argument, applies the only available chat template to the prompt. For Hugging Face models, if no dedicated chat template exists, the default chat template will be applied.
+  - `--apply_chat_template template_name` : If the model has multiple chat templates, apply the specified template to the prompt.
 
     For Hugging Face models, the default chat template can be found in the [`default_chat_template`](https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1912) property of the Transformers Tokenizer.
 
@@ -56,21 +56,23 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
 
-* `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
+- `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
 
-* `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```. Also allows for the passing of the step to log things at (passed to `wandb.run.log`), e.g., `--wandb_args step=123`.
+- `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```. Also allows for the passing of the step to log things at (passed to `wandb.run.log`), e.g., `--wandb_args step=123`.
 
-* `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
-    * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
-    * `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
-    * `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
-    * `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
-    * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
-    * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
-    * `public_repo` - whether the repository is public, can be `True` or `False`,
-    * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
-    * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
-    * `gated` - whether to gate the details dataset, can be `True` or `False`.
+- `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
+  - `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
+  - `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
+  - `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
+  - `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
+  - `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
+  - `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
+  - `public_repo` - whether the repository is public, can be `True` or `False`,
+  - `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
+  - `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
+  - `gated` - whether to gate the details dataset, can be `True` or `False`.
+
+- `--metadata`: JSON string to pass to TaskConfig. Used for some tasks which require additional metadata to be passed for processing. E.g., `--metadata '{"key": "value"}'`.
 
 ## External Library Usage
 

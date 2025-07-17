@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: tu quoque
+      B: risa de caballo
+      C: argumento contra la persona
+      D: ignorancia elenchi
+    input_correct_responses:
+    - C
+    input_question: "Si alguien ataca el car\xE1cter de un argumentador contrario,\
+      \ en lugar de responder a los argumentos de ese oponente, \xBFcu\xE1l de las\
+      \ siguientes falacias probablemente ha cometido la primera persona?"
+  - input_choice_list:
+      A: "argumentar que algo es inferior simplemente porque no hace algo que nunca\
+        \ tuvo la intenci\xF3n de hacer."
+      B: "incluir m\xE1s de un reclamo en la proposici\xF3n y tratar la prueba de\
+        \ un reclamo como prueba de todos los reclamos."
+      C: "sacar una conclusi\xF3n antes de examinar la evidencia y considerar solo\
+        \ la evidencia que respalda esa conclusi\xF3n."
+      D: "hacer una pregunta que incluya una suposici\xF3n no comprobada o m\xE1s\
+        \ de una pregunta, haciendo que una respuesta directa de s\xED o no carezca\
+        \ de sentido."
+    input_correct_responses:
+    - D
+    input_question: La falacia de la pregunta compleja consiste en
+  - input_choice_list:
+      A: La premisa menor debe negar el antecedente.
+      B: La premisa mayor debe afirmar la consecuente
+      C: "El t\xE9rmino medio debe usarse en al menos una premisa en un sentido universal\
+        \ o incondicional."
+      D: Todo lo anterior
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones es verdadera para\
+      \ un silogismo categ\xF3rico v\xE1lido?"
+  - input_choice_list:
+      A: "Divisi\xF3n"
+      B: "Composici\xF3n"
+      C: Apelar a la persona
+      D: Apelar a la ignorancia
+    input_correct_responses:
+    - B
+    input_question: Argumentar que lo que es cierto para las partes debe serlo para
+      el todo es la falacia de...
+  - input_choice_list:
+      A: "pobre esp\xEDritu deportivo"
+      B: "apelar a la compasi\xF3n"
+      C: argumento contra la persona
+      D: "ignorancia de la refutaci\xF3n"
+    input_correct_responses:
+    - D
+    input_question: "Cuando un argumentador causa confusi\xF3n durante la refutaci\xF3\
+      n debido a una falta real o fingida de capacidad para participar en la refutaci\xF3\
+      n, ese argumentador puede haber cometido la falacia de"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_logical_fallacies
+tag: mmlu_es_llama_humanities_tasks
+task: mmlu_es_llama_logical_fallacies
+task_alias: logical_fallacies

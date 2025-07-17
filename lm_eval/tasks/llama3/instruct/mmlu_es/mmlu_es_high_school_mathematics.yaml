@@ -1,0 +1,61 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: '3'
+      B: '15'
+      C: '6'
+      D: '5'
+    input_correct_responses:
+    - B
+    input_question: "Joe estaba a cargo de las luces de un baile. La luz roja parpadea\
+      \ cada dos segundos, la luz amarilla cada tres segundos y la luz azul cada cinco\
+      \ segundos. Si incluimos el principio y el final del baile, \xBFcu\xE1ntas veces\
+      \ durante un baile de siete minutos se encender\xE1n todas las luces al mismo\
+      \ tiempo? (Supongamos que las tres luces parpadean simult\xE1neamente al comienzo\
+      \ del baile)."
+  - input_choice_list:
+      A: '12'
+      B: '1'
+      C: '30'
+      D: '5'
+    input_correct_responses:
+    - C
+    input_question: "Cinco mil d\xF3lares compuestos anualmente a una tasa de inter\xE9\
+      s de $x\\%$ tardan seis a\xF1os en duplicarse. Con la misma tasa de inter\xE9\
+      s, \xBFcu\xE1ntos a\xF1os tardar\xE1n $\\$300$ en crecer hasta $\\$9600$?"
+  - input_choice_list:
+      A: '-1'
+      B: "diecis\xE9is"
+      C: -\frac{1}{256}
+      D: \frac{1}{16}
+    input_correct_responses:
+    - C
+    input_question: "La variable $x$ var\xEDa directamente con el cuadrado de $y$,\
+      \ y $y$ var\xEDa directamente con el cubo de $z$. Si $x$ es igual a $-16$ cuando\
+      \ $z$ es igual a 2, \xBFcu\xE1l es el valor de $x$ cuando $z$ es igual a $\\\
+      frac{1}{2}$?"
+  - input_choice_list:
+      A: \frac{3\sqrt{3}}{3}
+      B: \frac{1}{3}
+      C: \sqrt{3}
+      D: \frac{\sqrt{3}}{3}
+    input_correct_responses:
+    - D
+    input_question: 'Simplifica y escribe el resultado con un denominador racional:
+      $$\sqrt{\sqrt[3]{\sqrt{\frac{1}{729}}}}$$'
+  - input_choice_list:
+      A: '55'
+      B: '60'
+      C: '62'
+      D: sesenta y cinco
+    input_correct_responses:
+    - D
+    input_question: "Diez estudiantes toman un examen de biolog\xEDa y reciben los\
+      \ siguientes puntajes: 45, 55, 50, 70, 65, 80, 40, 90, 70, 85. \xBFCu\xE1l es\
+      \ la media de los puntajes de los ex\xE1menes de los estudiantes?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_mathematics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_high_school_mathematics
+task_alias: high_school_mathematics

@@ -11,7 +11,7 @@ INCLUDE is a comprehensive knowledge- and reasoning-centric benchmark across 44 
 > 🤗 [CohereForAI/include-base-44](https://huggingface.co/datasets/CohereForAI/include-base-44): Benchmark which supports 44 languages, each with 500 regional samples and 50 region-agnostic ones.
 
 
-### Tasks: 
+### Tasks:
 We add the following evaluations:
 - prompting with instructions in english for the 0-shot setting (`default`)
 - prompting with instructions in english for the 5-shot setting (`few_shot_en`)

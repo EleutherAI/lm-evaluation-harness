@@ -1,0 +1,60 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "la definizione costituzionale di tali poteri \xE8 ampia e non specifica"
+      B: la maggior parte delle persone concorda sul fatto che la Costituzione pone
+        troppi limiti al potere presidenziale
+      C: la Corte Suprema rifiuta costantemente di pronunciarsi su casi riguardanti
+        i poteri presidenziali
+      D: gli emendamenti costituzionali hanno notevolmente aumentato i poteri presidenziali
+    input_correct_responses:
+    - A
+    input_question: "L\u2019incertezza sui limiti del potere presidenziale \xE8 causata\
+      \ principalmente da questo"
+  - input_choice_list:
+      A: aumento annuale della spesa federale per le forze armate
+      B: ammontare degli interessi sul debito pubblico
+      C: differenza tra le proposte di bilancio iniziali fatte dal presidente e dal
+        Congresso
+      D: importo che il governo spende in eccesso rispetto alle sue entrate
+    input_correct_responses:
+    - D
+    input_question: Il termine &quot;deficit di bilancio&quot; si riferisce al
+  - input_choice_list:
+      A: Weeks contro Stati Uniti
+      B: Betts contro Brady
+      C: Mapp contro Ohio
+      D: Miranda contro Arizona
+    input_correct_responses:
+    - D
+    input_question: Quale dei seguenti casi ha stabilito il precedente secondo cui
+      un imputato deve essere informato del diritto al silenzio, del diritto a un
+      avvocato e della protezione dall&#39;autoincriminazione?
+  - input_choice_list:
+      A: Sono stabiliti dal potere legislativo.
+      B: I loro membri spesso non hanno molta influenza sulle decisioni presidenziali.
+      C: Non possono essere tutti gestiti da leader che appartengono allo stesso partito
+        politico del presidente.
+      D: Non tutte le agenzie federali sono un dipartimento di gabinetto.
+    input_correct_responses:
+    - C
+    input_question: "Quale delle seguenti affermazioni sui dipartimenti di gabinetto\
+      \ \xE8 FALSA?"
+  - input_choice_list:
+      A: I politici onesti possono impedire lo sviluppo di fazioni.
+      B: "\xC8 pi\xF9 probabile che le fazioni si formino nelle grandi repubbliche\
+        \ che in quelle piccole."
+      C: "Gli effetti negativi della faziosit\xE0 possono essere ridotti da un governo\
+        \ repubblicano."
+      D: "Le libere elezioni sono la migliore difesa del popolo contro le faziosit\xE0\
+        ."
+    input_correct_responses:
+    - C
+    input_question: Quale delle seguenti affermazioni meglio afferma un&#39;argomentazione
+      avanzata da James Madison in The Federalist numero 10?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_government_and_politics
+tag: mmlu_it_llama_social_sciences_tasks
+task: mmlu_it_llama_high_school_government_and_politics
+task_alias: high_school_government_and_politics

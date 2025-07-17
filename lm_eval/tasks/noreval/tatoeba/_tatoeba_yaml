@@ -1,0 +1,19 @@
+dataset_path: Helsinki-NLP/tatoeba_mt
+training_split: validation
+test_split: test
+output_type: generate_until
+dataset_kwargs:
+  trust_remote_code: true
+metric_list:
+  - metric: bleu
+    higher_is_better: true
+  - metric: chrf
+    higher_is_better: true
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  num_beams: 1
+  max_new_tokens: 256
+metadata:
+  version: 1.0

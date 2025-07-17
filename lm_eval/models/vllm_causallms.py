@@ -1,9 +1,16 @@
 import copy
+import gc
+import inspect
 import logging
+import os
 from importlib.metadata import version
 from importlib.util import find_spec
+from multiprocessing import Process, Queue
+from queue import Empty
+from time import sleep
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
+import jinja2
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -15,6 +22,7 @@ from lm_eval.models.utils import (
     Collator,
     configure_pad_token,
     handle_stop_sequences,
+    postprocess_generated_text,
     undistribute,
 )
 from lm_eval.utils import (
@@ -28,6 +36,10 @@ try:
     from vllm import LLM, SamplingParams
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
+    from vllm.utils import get_open_port
+
+    if parse_version(version("vllm")) >= parse_version("0.8.3"):
+        from vllm.entrypoints.chat_utils import resolve_hf_chat_template
 except ModuleNotFoundError:
     pass
 
@@ -35,6 +47,63 @@ if TYPE_CHECKING:
     pass
 
 eval_logger = logging.getLogger(__name__)
+
+
+def _vllm_mp_worker(
+    model_args: dict,
+    sampling_params: "SamplingParams",
+    requests: list[list[int]],
+    lora_request: "LoRARequest",
+    result_queue: "Queue",
+    dp_size: int,
+    local_dp_rank: int,
+    dp_master_port: int,
+    dp_master_ip: str = "127.0.0.1",
+) -> None:
+    """
+    Worker process for vLLM multiprocessing.
+    Initializes a vLLM engine, processes requests, and puts results or errors
+    onto the result_queue.
+    """
+
+    if not requests:
+        result_queue.put((local_dp_rank, []))
+        return None
+
+    os.environ["VLLM_DP_RANK"] = os.environ["VLLM_DP_RANK_LOCAL"] = str(local_dp_rank)
+    os.environ["VLLM_DP_SIZE"] = str(dp_size)
+    os.environ["VLLM_DP_MASTER_IP"] = str(dp_master_ip)
+    os.environ["VLLM_DP_MASTER_PORT"] = str(dp_master_port)
+
+    llm = None
+    try:
+        llm = LLM(**model_args)
+        res = llm.generate(
+            prompt_token_ids=requests,
+            sampling_params=sampling_params,
+            lora_request=lora_request,
+        )
+        # Give engines time to pause their processing loops before exiting."
+        sleep(1)
+        result_queue.put((local_dp_rank, res))
+
+    except Exception as e:
+        error_message = f"Worker {local_dp_rank} failed during generation: {type(e).__name__}: {str(e)}"
+        eval_logger.error(error_message, exc_info=True)
+        result_queue.put((local_dp_rank, {"error": error_message}))
+
+    finally:
+        if llm is not None:
+            try:
+                del llm
+                gc.collect()
+            except Exception as e_cleanup:
+                eval_logger.warning(
+                    f"Worker {local_dp_rank} encountered an error during LLM cleanup: {type(e_cleanup).__name__}: {str(e_cleanup)}",
+                    exc_info=True,
+                )
+
+    return None
 
 
 @register_model("vllm")
@@ -65,6 +134,11 @@ class VLLM(TemplateLM):
         device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
+        # VLLM: enable thinking tags in the prompt.
+        enable_thinking: bool = True,
+        # End marker for thinking tags - splits to get response after this token (if provided).
+        think_end_token: Optional[str] = None,
+        max_lora_rank: int = 16,
         **kwargs,
     ):
         super().__init__()
@@ -78,7 +152,8 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
-
+        self.think_end_token = think_end_token
+        self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
         self.data_parallel_size = int(data_parallel_size)
@@ -93,9 +168,13 @@ class VLLM(TemplateLM):
             "trust_remote_code": trust_remote_code,
             "tensor_parallel_size": int(tensor_parallel_size),
             "max_model_len": int(self._max_length) if self._max_length else None,
+            "max_num_seqs": kwargs.get("max_num_seqs", max_batch_size),
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
+            "device": str(device),
+            "enable_lora": True if lora_local_path else False,
+            "max_lora_rank": int(max_lora_rank),
         }
         self.model_args.update(kwargs)
         self.batch_size = (
@@ -109,28 +188,69 @@ class VLLM(TemplateLM):
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )
-            self.model_args["distributed_executor_backend"] = "ray"
+            self.model_args["distributed_executor_backend"] = (
+                "ray"
+                if not self.V1
+                else self.model_args.get("distributed_executor_backend", None)
+            )
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
-            from transformers import AutoConfig
+        from transformers import AutoConfig
 
-            self._config = AutoConfig.from_pretrained(
-                pretrained, trust_remote_code=trust_remote_code, revision=revision
-            )
+        self._config = AutoConfig.from_pretrained(
+            pretrained, trust_remote_code=trust_remote_code, revision=revision
+        )
         self.tokenizer = get_tokenizer(
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
             revision=tokenizer_revision,
+            add_bos_token=add_bos_token,
         )
-        self.tokenizer = configure_pad_token(self.tokenizer)
+        self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
+        self.enable_thinking = enable_thinking
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
             eval_logger.info(
                 "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
             )
+
+        if parse_version(version("vllm")) >= parse_version("0.8.3"):
+            kwargs_resolve_hf_chat_template = {
+                "tokenizer": self.tokenizer,
+                "chat_template": None,
+                "tools": None,
+            }
+
+            if parse_version(version("vllm")) >= parse_version("0.9.0"):
+                if self.data_parallel_size <= 1:
+                    kwargs_resolve_hf_chat_template["model_config"] = (
+                        self.model.llm_engine.model_config
+                    )
+                else:
+                    from vllm.engine.arg_utils import EngineArgs
+
+                    engine_args = EngineArgs(**self.model_args)
+                    model_config = engine_args.create_model_config()
+
+                    kwargs_resolve_hf_chat_template["model_config"] = model_config
+
+            # https://github.com/vllm-project/vllm/pull/18259
+            if (
+                "trsut_remote_code"
+                in inspect.signature(resolve_hf_chat_template).parameters
+            ):
+                kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
+            else:
+                kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
+
+            self.hf_chat_template = resolve_hf_chat_template(
+                **kwargs_resolve_hf_chat_template
+            )
+        else:
+            self.hf_chat_template = None
 
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
@@ -189,12 +309,27 @@ class VLLM(TemplateLM):
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
-        chat_templated = self.tokenizer.apply_chat_template(
-            chat_history,
-            tokenize=False,
-            add_generation_prompt=add_generation_prompt,
-            continue_final_message=not add_generation_prompt,
-        )
+        try:
+            chat_templated = self.tokenizer.apply_chat_template(
+                chat_history,
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
+                chat_template=self.hf_chat_template,
+                enable_thinking=self.enable_thinking,
+            )
+        except jinja2.exceptions.TemplateError:
+            eval_logger.warning(
+                "Failed to apply chat template. removing the system role in chat history."
+            )
+            chat_templated = self.tokenizer.apply_chat_template(
+                [msg for msg in chat_history if msg["role"] != "system"],
+                tokenize=False,
+                add_generation_prompt=add_generation_prompt,
+                continue_final_message=not add_generation_prompt,
+                chat_template=self.hf_chat_template,
+                enable_thinking=self.enable_thinking,
+            )
 
         return chat_templated
 
@@ -242,7 +377,7 @@ class VLLM(TemplateLM):
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
-        if self.data_parallel_size > 1:
+        if self.data_parallel_size > 1 and not self.V1:
             # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
@@ -273,14 +408,83 @@ class VLLM(TemplateLM):
             ray.shutdown()
             # flatten results
             return undistribute(results)
+        elif self.data_parallel_size > 1:
+            # based on https://github.com/vllm-project/vllm/blob/a04720bc36401d831cb048c3917b9e58173d9c1d/examples/offline_inference/data_parallel.py
+            dp_size = self.data_parallel_size
+            dp_master_ip = os.environ.get("VLLM_DP_MASTER_IP", "127.0.0.1")
+            dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT") or get_open_port()
 
-        outputs = self.model.generate(
-            prompt_token_ids=requests,
-            sampling_params=sampling_params,
-            use_tqdm=True if self.batch_size == "auto" else False,
-            lora_request=self.lora_request,
-        )
-        return outputs
+            requests = (list(x) for x in distribute(self.data_parallel_size, requests))
+
+            procs, resq = [], Queue()
+            # We use Process as it is non-daemonic
+            try:
+                for rank, req in enumerate(requests):
+                    proc = Process(
+                        target=_vllm_mp_worker,
+                        args=(
+                            self.model_args.copy(),
+                            sampling_params,
+                            req,
+                            self.lora_request,
+                            resq,
+                            dp_size,
+                            rank,
+                            dp_master_port,
+                            dp_master_ip,
+                        ),
+                    )
+                    proc.start()
+                    procs.append(proc)
+
+                # Collect results
+                rank_res = {}
+                while len(rank_res) < len(procs):
+                    try:
+                        rank, result = resq.get(timeout=30)
+                        if isinstance(result, dict) and "error" in result:
+                            raise RuntimeError(result["error"])
+                        rank_res[rank] = result
+                    except Empty:
+                        dead_procs = [
+                            idx
+                            for idx, p in enumerate(procs)
+                            if not p.is_alive() and idx not in rank_res
+                        ]
+                        if dead_procs:
+                            raise RuntimeError(
+                                f"Worker processes {dead_procs} died unexpectedly"
+                            )
+                        continue
+
+                results = [rank_res[i] for i in range(len(procs))]
+                return undistribute(results)
+
+            # cleanup
+            finally:
+                try:
+                    resq.close()
+                    resq.join_thread()
+                except Exception:
+                    eval_logger.debug(
+                        "Failed to close vllm DP results queue", exc_info=True
+                    )
+                for proc in procs:
+                    proc.join(timeout=10)
+                    if proc.is_alive():
+                        proc.terminate()
+                        proc.join(timeout=5)
+                        if proc.is_alive():
+                            proc.kill()
+
+        else:
+            outputs = self.model.generate(
+                prompt_token_ids=requests,
+                sampling_params=sampling_params,
+                use_tqdm=True if self.batch_size == "auto" else False,
+                lora_request=self.lora_request,
+            )
+            return outputs
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
@@ -412,6 +616,12 @@ class VLLM(TemplateLM):
             # set the max length in tokens of inputs ("context_enc")
             # max len for inputs = max length, minus room to generate the max new tokens
             max_ctx_len = self.max_length - max_gen_toks
+            all_lengths = [len(x) for x in context_encoding]
+            for length in all_lengths:
+                if length > max_ctx_len:
+                    eval_logger.warning(
+                        f"Context length {length} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
+                    )
             context_encoding = [x[-max_ctx_len:] for x in context_encoding]
 
             # perform batched generation
@@ -425,7 +635,11 @@ class VLLM(TemplateLM):
 
             # cache generations
             for output, context in zip(cont, context):
-                generated_text = output.outputs[0].text
+                generated_text: str = output.outputs[0].text
+                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
+                generated_text = postprocess_generated_text(
+                    generated_text, until, self.think_end_token
+                )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text
@@ -462,6 +676,12 @@ class VLLM(TemplateLM):
             inputs = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
+                if (
+                    full_length := len(context_enc + continuation_enc)
+                ) > self.max_length:
+                    eval_logger.warning(
+                        f"Context length {full_length} exceeds max length ({self.max_length}). Truncating context."
+                    )
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)
@@ -558,6 +778,7 @@ class VLLM(TemplateLM):
     @staticmethod
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
+        kwargs["temperature"] = kwargs.get("temperature", 0.0)
         do_sample = kwargs.pop("do_sample", None)
         if do_sample is False and "temperature" not in kwargs:
             eval_logger.debug(
