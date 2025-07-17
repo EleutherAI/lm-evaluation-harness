@@ -1,0 +1,45 @@
+dataset_path: iamthomaspruyn/battery-electrolyte-qa
+dataset_name: null
+validation_split: null
+test_split: train
+fewshot_split: train
+process_docs: !function utils.process_battery_electrolyte_qa
+doc_to_text: >
+  You are an expert in battery electrolyte chemistry. Use your expert knowledge to answer the multiple choice question below.
+  
+  Wrap your final answer(s) in <answer>X</answer> tags, where X can be a single letter or comma-separated list of letters.
+  For example, if A, B, and C are correct, write: <answer>A,B,C</answer> and if just B is correct, write: <answer>B</answer>.
+
+  Your output should not contain any additional text or explanations! Only the answer as shown above
+
+
+  {{Question}}
+  A: {{Option_A}}
+  B: {{Option_B}}
+  C: {{Option_C}}
+  D: {{Option_D}}
+  Answer:
+doc_to_target: Answer
+task: battery_electrolyte_qa
+filter_list:
+  - name: xml-extract
+    filter:
+      - function: regex
+        regex_pattern: "<answer>(.*?)</answer>"
+        group_select: 0
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 50
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "Answer:"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

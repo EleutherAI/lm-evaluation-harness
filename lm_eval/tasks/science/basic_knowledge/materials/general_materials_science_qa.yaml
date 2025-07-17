@@ -1,0 +1,47 @@
+dataset_path: iamthomaspruyn/general-materials-science
+dataset_name: null
+test_split: train
+fewshot_split: train
+
+process_docs: !function utils.process_materials_science_qa
+
+doc_to_text: >
+  You are an expert in materials science. Select the correct answer from the choices below.
+
+  Wrap your final answer in <answer> tags, do not include any additional text or explanations in your response.
+  Only answer with the letter corresponding to the correct option, for example: <answer>A</answer>
+
+  {{Question.strip()}}
+  A: {{Option_A}}
+  B: {{Option_B}}
+  C: {{Option_C}}
+  D: {{Option_D}}
+  Answer:
+
+doc_to_target: Answer
+task: general_materials_science_qa
+filter_list:
+  - name: xml-extract
+    filter:
+      - function: regex
+        regex_pattern: "<answer>(.*?)</answer>"
+        group_select: 0
+        fallback: "[invalid]"
+
+generation_kwargs:
+  max_tokens: 10
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "Answer:"
+  do_sample: false
+  temperature: 0.0
+
+num_fewshot: 0
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

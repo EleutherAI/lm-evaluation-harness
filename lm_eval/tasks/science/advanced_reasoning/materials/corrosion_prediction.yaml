@@ -1,0 +1,29 @@
+dataset_path: iamthomaspruyn/corrosion-prediction
+test_split: train
+
+process_docs: !function utils.process_corrosion_prediction
+
+doc_to_text:
+  You are a chemist assistant with expertise in material compatibility and chemical properties. Your task is to determine if a given chemical is corrosive to metals based on its SMILES representation.
+  
+  Given the SMILES representation '{{smiles}}', determine if this compound is corrosive to metals. Respond strictly with '0' for non-corrosive and '1' for corrosive, without any additional text.
+
+doc_to_target: label
+output_type: generate_until
+num_fewshot: 0
+
+generation_kwargs:
+  max_tokens: 5
+  temperature: 0.0
+  do_sample: false
+  until:
+    - "\n"
+    - "</s>"
+    - "<|im_end|>"
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+
+task: corrosion_prediction

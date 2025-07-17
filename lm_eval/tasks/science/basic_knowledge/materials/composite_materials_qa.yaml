@@ -1,0 +1,46 @@
+dataset_path: iamthomaspruyn/composite-materials-qa
+dataset_name: null
+test_split: train
+fewshot_split: train
+
+process_docs: !function utils.process_composites_qa
+
+doc_to_text: >
+  You are an expert in composite materials. Select the best answer for the following multiple choice question.
+
+  Wrap your final answer in <answer> tags and return only that, e.g. <answer>A</answer>. Do not include any other text.
+
+  {{Question.strip()}}
+  A: {{Option_A}}
+  B: {{Option_B}}
+  C: {{Option_C}}
+  D: {{Option_D}}
+  Answer:
+
+doc_to_target: Answer
+task: composite_materials_qa
+filter_list:
+  - name: xml-extract
+    filter:
+      - function: regex
+        regex_pattern: "<answer>(.*?)</answer>"
+        group_select: 0
+        fallback: "[invalid]"
+
+generation_kwargs:
+  max_tokens: 15
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "Answer:"
+  do_sample: false
+  temperature: 0.0
+
+num_fewshot: 0
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

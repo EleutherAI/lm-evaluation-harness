@@ -1,0 +1,41 @@
+dataset_path: iamthomaspruyn/mof_water_stability
+dataset_name: null
+validation_split: null
+test_split: train
+fewshot_split: train
+process_docs: !function utils.process_mof_water_stability
+doc_to_text: >
+  You are an expert in metal-organic frameworks. You will be given a passage of text from a paper, and must use it to decide the MOF's water stability.
+  Note, the passage may not contain enough information, or contain relevant information, needed to answer the question.
+
+  Wrap the final answer in <answer>X</answer> tags (X = A, B, or C).
+
+  {{question.strip()}}
+  A: {{option_a}}
+  B: {{option_b}}
+  C: {{option_c}}
+  Answer:
+doc_to_target: answer
+task: mof_water_stability
+filter_list:
+  - name: "xml-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "<answer>(.*?)</answer>"
+        group_select: 0
+        fallback: "[invalid]"
+generation_kwargs:
+  max_tokens: 512
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "Question:"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
