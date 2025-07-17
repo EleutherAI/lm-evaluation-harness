@@ -34,6 +34,7 @@ from lm_eval.models.utils import (
     get_dtype,
     handle_stop_sequences,
     pad_and_concat,
+    postprocess_generated_text,
     stop_sequences_criteria,
 )
 
@@ -76,6 +77,7 @@ class HFLM(TemplateLM):
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
         softmax_dtype: Optional[Union[str, torch.dtype]] = None,
+        mixed_precision_dtype: Optional[Union[str, torch.dtype]] = None,
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 64,
         trust_remote_code: Optional[bool] = False,
@@ -94,6 +96,9 @@ class HFLM(TemplateLM):
         autogptq: Optional[Union[bool, str]] = False,
         gptqmodel: Optional[bool] = False,
         gguf_file: Optional[str] = None,
+        # end token for thinking, either the string or int token id.
+        # splits to get response after this token (if provided).
+        think_end_token: Union[str, int, None] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -223,6 +228,11 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
+        self.think_end_token = (
+            int(think_end_token)
+            if (isinstance(think_end_token, str) and think_end_token.isdigit())
+            else think_end_token
+        )
         self.truncation = truncation
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
@@ -246,6 +256,11 @@ class HFLM(TemplateLM):
         self.max_batch_size = max_batch_size
         self.softmax_dtype = (
             get_dtype(softmax_dtype) if softmax_dtype is not None else None
+        )
+        self.mixed_precision_dtype = (
+            get_dtype(mixed_precision_dtype)
+            if mixed_precision_dtype is not None
+            else None
         )
 
         if str(batch_size).startswith("auto"):
@@ -903,18 +918,23 @@ class HFLM(TemplateLM):
         logits returned from the model's decoder
         """
         with torch.no_grad():
-            if attn_mask is not None or labels is not None:
-                assert attn_mask is not None and labels is not None
-                assert self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM
-                return self.model(
-                    input_ids=inps, attention_mask=attn_mask, labels=labels
-                ).logits
-            else:
-                assert self.AUTO_MODEL_CLASS in (
-                    transformers.AutoModelForCausalLM,
-                    transformers.AutoModelForVision2Seq,
-                )
-                return self.model(inps).logits
+            with torch.autocast(
+                device_type=self.device.type,
+                dtype=self.mixed_precision_dtype,
+                enabled=self.mixed_precision_dtype is not None,
+            ):
+                if attn_mask is not None or labels is not None:
+                    assert attn_mask is not None and labels is not None
+                    assert self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM
+                    return self.model(
+                        input_ids=inps, attention_mask=attn_mask, labels=labels
+                    ).logits
+                else:
+                    assert self.AUTO_MODEL_CLASS in (
+                        transformers.AutoModelForCausalLM,
+                        transformers.AutoModelForVision2Seq,
+                    )
+                    return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # temperature = 0.0 if not set
@@ -934,14 +954,19 @@ class HFLM(TemplateLM):
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
         )
-        return self.model.generate(
-            input_ids=context,
-            max_length=max_length,
-            stopping_criteria=stopping_criteria,
-            pad_token_id=self.tokenizer.pad_token_id,
-            use_cache=True,
-            **generation_kwargs,
-        )
+        with torch.autocast(
+            device_type=self.device.type,
+            dtype=self.mixed_precision_dtype,
+            enabled=self.mixed_precision_dtype is not None,
+        ):
+            return self.model.generate(
+                input_ids=context,
+                max_length=max_length,
+                stopping_criteria=stopping_criteria,
+                pad_token_id=self.tokenizer.pad_token_id,
+                use_cache=True,
+                **generation_kwargs,
+            )
 
     def _select_cont_toks(
         self, logits: torch.Tensor, contlen: int = None, inplen: int = None
@@ -1411,15 +1436,30 @@ class HFLM(TemplateLM):
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
+                # Handle integer think_end_token: find last occurrence and strip tokens after it
+                if isinstance(self.think_end_token, int):
+                    think_token_indices = [
+                        i
+                        for i, token in enumerate(cont_toks)
+                        if token == self.think_end_token
+                    ]
+                    if think_token_indices:
+                        cont_toks = cont_toks[think_token_indices[-1] + 1 :]
+
                 s = self.tok_decode(cont_toks)
 
-                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                for term in until:
-                    if len(term) > 0:
-                        # ignore '' separator,
-                        # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                        s = s.split(term)[0]
+                # Strip leading whitespace if we removed thinking tokens
+                if isinstance(self.think_end_token, int):
+                    s = s.lstrip()
 
+                # Apply post-processing: remove stop sequences and string-based thinking tokens
+                s = postprocess_generated_text(
+                    generation=s,
+                    stop=until,
+                    think_end_token=self.think_end_token
+                    if isinstance(self.think_end_token, str)
+                    else None,
+                )
                 res.append(s)
 
                 self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
