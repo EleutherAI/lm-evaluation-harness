@@ -3,7 +3,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /l/users/george.ibrahim/IFM/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/XLSum/ar/test.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/XLSum.json
 test_split: test
 
 output_type: generate_until
