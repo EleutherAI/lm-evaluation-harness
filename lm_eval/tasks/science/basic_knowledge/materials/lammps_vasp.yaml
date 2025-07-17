@@ -1,0 +1,51 @@
+dataset_path: iamthomaspruyn/lammps-vasp-QA
+dataset_name: null
+test_split: train
+fewshot_split: train
+process_docs: !function utils.process_lammps_vasp
+doc_to_text: >
+  You are an expert in computational materials science. Based on the question below, choose the correct answer(s).
+  Wrap your final answer(s) in <answer>X</answer> tags, where X can be a single letter or comma-separated list of letters.
+  For example, if A, B, and C are correct, write: <answer>A,B,C</answer> and if just B is correct, write: <answer>B</answer>.
+
+  Your output should not contain any additional text or explanations! Only the answer as shown above
+
+  Tool: {{Comment}}
+  {{Question}}
+
+  A: {{Option_A}}
+  B: {{Option_B}}
+  C: {{Option_C}}
+  D: {{Option_D}}
+  E: {{Option_E}}
+  F: {{Option_F}}
+  Answer:
+
+doc_to_target: Answer
+task: lammps_vasp
+
+filter_list:
+  - name: "xml-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: "<answer>(.*?)</answer>"
+        group_select: 0
+        fallback: "[invalid]"
+
+generation_kwargs:
+  max_tokens: 100
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "Question:"
+  do_sample: false
+  temperature: 0.0
+
+num_fewshot: 0
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

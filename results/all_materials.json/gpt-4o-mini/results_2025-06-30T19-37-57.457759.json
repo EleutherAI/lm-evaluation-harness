@@ -1,0 +1,779 @@
+{
+  "results": {
+    "battery_electrolyte_qa": {
+      "alias": "battery_electrolyte_qa",
+      "exact_match,xml-extract": 0.35,
+      "exact_match_stderr,xml-extract": 0.10942433098048308
+    },
+    "biomaterials_qa": {
+      "alias": "biomaterials_qa",
+      "exact_match,xml-extract": 0.55,
+      "exact_match_stderr,xml-extract": 0.11413288653790232
+    },
+    "composite_materials_qa": {
+      "alias": "composite_materials_qa",
+      "exact_match,xml-extract": 0.8181818181818182,
+      "exact_match_stderr,xml-extract": 0.08416546361568647
+    },
+    "corrosion_prediction": {
+      "alias": "corrosion_prediction",
+      "exact_match,none": 0.65,
+      "exact_match_stderr,none": 0.062096152887194486
+    },
+    "general_materials_science_qa": {
+      "alias": "general_materials_science_qa",
+      "exact_match,xml-extract": 0.3103448275862069,
+      "exact_match_stderr,xml-extract": 0.08742975048915694
+    },
+    "lammps_vasp": {
+      "alias": "lammps_vasp",
+      "exact_match,xml-extract": 0.30303030303030304,
+      "exact_match_stderr,xml-extract": 0.08124094920275463
+    },
+    "materials_safety_classification": {
+      "alias": "materials_safety_classification",
+      "exact_match,none": 0.5428571428571428,
+      "exact_match_stderr,none": 0.0422533694800562
+    },
+    "mof_synthesis_qa": {
+      "alias": "mof_synthesis_qa",
+      "exact_match,xml-extract": 0.6363636363636364,
+      "exact_match_stderr,xml-extract": 0.10497277621629558
+    },
+    "mof_water_stability": {
+      "alias": "mof_water_stability",
+      "exact_match,xml-extract": 0.8,
+      "exact_match_stderr,xml-extract": 0.09176629354822471
+    },
+    "polymer_tg_prediction": {
+      "alias": "polymer_tg_prediction",
+      "mae,none": Infinity,
+      "mae_stderr,none": NaN
+    },
+    "pxrd_crystal_system": {
+      "alias": "pxrd_crystal_system",
+      "exact_match,none": 0.25,
+      "exact_match_stderr,none": 0.05637345210021216
+    },
+    "pxrd_lattice_prediction": {
+      "alias": "pxrd_lattice_prediction",
+      "mae,none": 3.9685864222222222,
+      "mae_stderr,none": 0.4908856367299423
+    }
+  },
+  "group_subtasks": {
+    "battery_electrolyte_qa": [],
+    "biomaterials_qa": [],
+    "composite_materials_qa": [],
+    "corrosion_prediction": [],
+    "general_materials_science_qa": [],
+    "lammps_vasp": [],
+    "materials_safety_classification": [],
+    "mof_synthesis_qa": [],
+    "mof_water_stability": [],
+    "polymer_tg_prediction": [],
+    "pxrd_crystal_system": [],
+    "pxrd_lattice_prediction": []
+  },
+  "configs": {
+    "battery_electrolyte_qa": {
+      "task": "battery_electrolyte_qa",
+      "dataset_path": "iamthomaspruyn/battery-electrolyte-qa",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_battery_electrolyte_qa(dataset):\n    def format_row(row):\n        return {\n            \"Question\": row[\"Question\"].strip(),\n            \"Option_A\": row[\"Option_A\"].strip(),\n            \"Option_B\": row[\"Option_B\"].strip(),\n            \"Option_C\": row[\"Option_C\"].strip(),\n            \"Option_D\": row.get(\"Option_D\", \"\").strip(),\n            \"Answer\": row[\"Answer\"].strip()  # ← no <answer> wrapper here!\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in battery electrolyte chemistry. Use your expert knowledge to answer the multiple choice question below.\nWrap your final answer(s) in <answer>X</answer> tags, where X can be a single letter or comma-separated list of letters. For example, if A, B, and C are correct, write: <answer>A,B,C</answer> and if just B is correct, write: <answer>B</answer>.\nYour output should not contain any additional text or explanations! Only the answer as shown above\n\n{{Question}} A: {{Option_A}} B: {{Option_B}} C: {{Option_C}} D: {{Option_D}} Answer:\n",
+      "doc_to_target": "Answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 50,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Answer:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "biomaterials_qa": {
+      "task": "biomaterials_qa",
+      "dataset_path": "iamthomaspruyn/biomaterials_qa",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_biomaterials_qa(dataset):\n    def format_row(row):\n        # helper to safely pull and strip any field\n        def s(key):\n            return (row.get(key) or \"\").strip()\n\n        return {\n            \"Question\": s(\"Question\"),\n            \"Option_A\": s(\"Option_A\"),\n            \"Option_B\": s(\"Option_B\"),\n            \"Option_C\": s(\"Option_C\"),\n            \"Option_D\": s(\"Option_D\"),  # now None → \"\" → strip() → \"\"\n            \"Answer\"  : s(\"Answer\"),\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in biomaterials engineering. Select the correct answer from the choices below.\nWrap your final answer in <answer> tags, do not include any additional text or explanations in your response. Only answer with the letter corresponding to the correct option, for example: <answer>A</answer>\n{{Question.strip()}} A: {{Option_A}} B: {{Option_B}} C: {{Option_C}} D: {{Option_D}} Answer:\n",
+      "doc_to_target": "Answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 10,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Answer:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "composite_materials_qa": {
+      "task": "composite_materials_qa",
+      "dataset_path": "iamthomaspruyn/composite-materials-qa",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_composites_qa(dataset):\n    def format_row(row):\n        # helper to safely pull and strip any field\n        def s(key):\n            return (row.get(key) or \"\").strip()\n\n        return {\n            \"Question\": s(\"Question\"),\n            \"Option_A\": s(\"Option_A\"),\n            \"Option_B\": s(\"Option_B\"),\n            \"Option_C\": s(\"Option_C\"),\n            \"Option_D\": s(\"Option_D\"),  # now None → \"\" → strip() → \"\"\n            \"Answer\"  : s(\"Answer\"),\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in composite materials. Select the best answer for the following multiple choice question.\nWrap your final answer in <answer> tags and return only that, e.g. <answer>A</answer>. Do not include any other text.\n{{Question.strip()}} A: {{Option_A}} B: {{Option_B}} C: {{Option_C}} D: {{Option_D}} Answer:\n",
+      "doc_to_target": "Answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 15,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Answer:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "corrosion_prediction": {
+      "task": "corrosion_prediction",
+      "dataset_path": "iamthomaspruyn/corrosion-prediction",
+      "test_split": "train",
+      "process_docs": "def process_corrosion_prediction(dataset):\n    def format_row(row):\n        return {\n            \"smiles\": row[\"smiles\"].strip(),\n            \"label\": str(row[\"corrosion_status\"]).strip()\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are a chemist assistant with expertise in material compatibility and chemical properties. Your task is to determine if a given chemical is corrosive to metals based on its SMILES representation.\nGiven the SMILES representation '{{smiles}}', determine if this compound is corrosive to metals. Respond strictly with '0' for non-corrosive and '1' for corrosive, without any additional text.",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 5,
+        "temperature": 0.0,
+        "do_sample": false,
+        "until": [
+          "\n",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "general_materials_science_qa": {
+      "task": "general_materials_science_qa",
+      "dataset_path": "iamthomaspruyn/general-materials-science",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_materials_science_qa(dataset):\n    def format_row(row):\n        # helper to safely pull and strip any field\n        def s(key):\n            return (row.get(key) or \"\").strip()\n\n        return {\n            \"Question\": s(\"Question\"),\n            \"Option_A\": s(\"Option_A\"),\n            \"Option_B\": s(\"Option_B\"),\n            \"Option_C\": s(\"Option_C\"),\n            \"Option_D\": s(\"Option_D\"),  # now None → \"\" → strip() → \"\"\n            \"Answer\"  : s(\"Answer\"),\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in materials science. Select the correct answer from the choices below.\nWrap your final answer in <answer> tags, do not include any additional text or explanations in your response. Only answer with the letter corresponding to the correct option, for example: <answer>A</answer>\n{{Question.strip()}} A: {{Option_A}} B: {{Option_B}} C: {{Option_C}} D: {{Option_D}} Answer:\n",
+      "doc_to_target": "Answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 10,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Answer:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "lammps_vasp": {
+      "task": "lammps_vasp",
+      "dataset_path": "iamthomaspruyn/lammps-vasp-QA",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_lammps_vasp(dataset):\n    def format_row(row):\n        return {\n            \"Question\": (row.get(\"Question\") or \"\").strip(),\n            \"Option_A\": (row.get(\"Option_A\") or \"\").strip(),\n            \"Option_B\": (row.get(\"Option_B\") or \"\").strip(),\n            \"Option_C\": (row.get(\"Option_C\") or \"\").strip(),\n            \"Option_D\": (row.get(\"Option_D\") or \"\").strip(),\n            \"Option_E\": (row.get(\"Option_E\") or \"\").strip(),\n            \"Option_F\": (row.get(\"Option_F\") or \"\").strip(),\n            \"Answer\": (row.get(\"Answer\") or \"\").strip(),\n            \"Comment\": (row.get(\"Comment\") or \"\").strip(),  # VASP / LAMMPS\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in computational materials science. Based on the question below, choose the correct answer(s). Wrap your final answer(s) in <answer>X</answer> tags, where X can be a single letter or comma-separated list of letters. For example, if A, B, and C are correct, write: <answer>A,B,C</answer> and if just B is correct, write: <answer>B</answer>.\nYour output should not contain any additional text or explanations! Only the answer as shown above\nTool: {{Comment}} {{Question}}\nA: {{Option_A}} B: {{Option_B}} C: {{Option_C}} D: {{Option_D}} E: {{Option_E}} F: {{Option_F}} Answer:\n",
+      "doc_to_target": "Answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 100,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Question:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "materials_safety_classification": {
+      "task": "materials_safety_classification",
+      "dataset_path": "iamthomaspruyn/materials-safety-classification",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_safety_prediction(dataset):\n    def format_row(row):\n        return {\n            \"smiles\": row[\"smiles\"].strip(),\n            \"unsafe\": row[\"Unsafe\"],   # \"TRUE\" or \"FALSE\"\n            \"comment\": row[\"Comment\"].strip(),         # e.g. \"Flammable Liquid\"\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert chemist with a strong knowledge in materials safety data. Your task is to determine if a given compound is a {{comment}}, and therefore hazardous, based on its SMILES representation.\nSMILES: {{smiles}}\nRespond strictly with either TRUE or FALSE (uppercase), and do not include any additional text or explanations.\n",
+      "doc_to_target": "unsafe",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 3,
+        "do_sample": false,
+        "temperature": 0.0,
+        "until": [
+          "\n",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "mof_synthesis_qa": {
+      "task": "mof_synthesis_qa",
+      "dataset_path": "iamthomaspruyn/mof-synthesis-qa",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_mof_synthesis_qa(dataset):\n    def format_row(row):\n        return {\n            \"Question\": row[\"Question\"].strip(),\n            \"Option_A\": row[\"Option_A\"].strip(),\n            \"Option_B\": row[\"Option_B\"].strip(),\n            \"Option_C\": row[\"Option_C\"].strip(),\n            \"Option_D\": row[\"Option_D\"].strip(),\n            \"Option_E\": row.get(\"Option_E\", \"\").strip(),\n            \"Answer\": row[\"Answer\"].strip()  # no XML tags!\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in MOF synthesis. Select the correct answer from the choices below.\nWrap your final answer in <answer> tags, do not include any additional text or explanations in your response. Only answer with the letter corresponding to the correct option, for example: <answer>A</answer>\n{{Question.strip()}} A: {{Option_A}} B: {{Option_B}} C: {{Option_C}} D: {{Option_D}} E: {{Option_E}} Answer:\n",
+      "doc_to_target": "Answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 10,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Question:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "mof_water_stability": {
+      "task": "mof_water_stability",
+      "dataset_path": "iamthomaspruyn/mof_water_stability",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_mof_water_stability(dataset):\n    # Rename columns to match doc_to_text variables\n    processed = []\n    for ex in dataset:\n        processed.append({\n            \"question\": ex[\"Question:\"],\n            \"option_a\": ex[\"Option_A\"],\n            \"option_b\": ex[\"Option_B\"],\n            \"option_c\": ex[\"Option_C\"],\n            \"answer\": ex[\"Answer\"]\n        })\n    return Dataset.from_list(processed)\n",
+      "doc_to_text": "You are an expert in metal-organic frameworks. You will be given a passage of text from a paper, and must use it to decide the MOF's water stability. Note, the passage may not contain enough information, or contain relevant information, needed to answer the question.\nWrap the final answer in <answer>X</answer> tags (X = A, B, or C).\n{{question.strip()}} A: {{option_a}} B: {{option_b}} C: {{option_c}} Answer:\n",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 512,
+        "until": [
+          "</s>",
+          "<|im_end|>",
+          "Question:"
+        ],
+        "do_sample": false,
+        "temperature": 0.0
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "xml-extract",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "<answer>(.*?)</answer>",
+              "group_select": 0,
+              "fallback": "[invalid]"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "polymer_tg_prediction": {
+      "task": "polymer_tg_prediction",
+      "dataset_path": "iamthomaspruyn/polymer-tg-prediction",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_polymer_tg(dataset):\n    return dataset.map(lambda x: {\n        \"SMILES\": x[\"Question\"].split(\",\")[0].strip().strip('\"').strip(\"*\"),\n        \"Density\": float(x[\"Question\"].split(\",\")[1].strip()),\n        \"Tg\": float(x[\"Answer\"]),\n        \"question\": f\"SMILES: {x['Question'].split(',')[0].strip()} \\n Density: {x['Question'].split(',')[1].strip()} \\n\",\n        \"answer\": str(x[\"Answer\"])\n    })\n",
+      "doc_to_text": "You are an expert polymer chemist. Given the SMILES string and density of a polymer, estimate its glass transition temperature (Tg) in Kelvin.\nPlease respond with only the predicted Tg value. Do not include any text in your output, only numbers!\n{{question}}\n",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "mae",
+          "aggregation": "mean",
+          "higher_is_better": false
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 10,
+        "do_sample": false,
+        "temperature": 0.0,
+        "until": [
+          "\n",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "pxrd_crystal_system": {
+      "task": "pxrd_crystal_system",
+      "dataset_path": "iamthomaspruyn/pxrd-crystal-system",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_pxrd_crystal_system(dataset):\n    def format_row(row):\n        return {\n            \"peaks\": row[\"Peak positions\"].strip(),\n            \"intensities\": row[\"Peak intensities\"].strip(),\n            \"material_type\": row[\"Comment\"].strip(),\n            \"label\": row[\"Ground truth - Crystal system\"].strip().lower()\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert crystallographer. Your task is to classify the crystal system of the following material based on its PXRD data.\nMaterial type: {{material_type}} Peak positions: {{peaks}} Peak intensities: {{intensities}}\nOnly respond with one of the following crystal systems, do not include any additional text or comments: triclinic, monoclinic, orthorhombic, tetragonal, trigonal, hexagonal, cubic.\nCrystal system:\n",
+      "doc_to_target": "label",
+      "unsafe_code": false,
+      "process_results": "def normalize_prediction(doc, pred):\n    \"\"\"Normalize prediction and target for exact match\"\"\"\n    if isinstance(pred, list):\n        pred = pred[0]\n    \n    # Strip and lowercase both prediction and target\n    pred = pred.strip().lower()\n    target = doc[\"label\"].strip().lower()\n    \n    return {\"exact_match\": pred == target}\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 10,
+        "do_sample": false,
+        "temperature": 0.0,
+        "until": [
+          "\n",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    },
+    "pxrd_lattice_prediction": {
+      "task": "pxrd_lattice_prediction",
+      "dataset_path": "iamthomaspruyn/pxrd-lattice-prediction",
+      "test_split": "train",
+      "fewshot_split": "train",
+      "process_docs": "def process_pxrd_lattice(dataset):\n    def format_row(row):\n        return {\n            \"pxrd\": row[\"Peak positions\"].strip(),\n            \"miller_indices\": row[\"Miller indices\"].strip(),\n            \"crystal_system\": row[\"Crystal system\"].strip(),\n            \"comment\": row[\"Comment\"].strip(),  # e.g., \"MOF\" or \"ionic compound\"\n            \"target\": f\"{row['Ground truth-a']}, {row['Ground truth-b']}, {row['Ground truth-c']}\"\n        }\n    return dataset.map(format_row)\n",
+      "doc_to_text": "You are an expert in crystallography and materials informatics.\nGiven the PXRD peak positions of a {{comment}}, the crystal system, and associated Miller indices, predict the lattice parameters of the material (a, b, c) in angstroms.\nPlease return your answer as a comma-separated list of numbers, with no units or extra text! For example, this \"a = 13, b = 13, c = 14\" is an invalid answer, while \"13, 13, 14\" is valid.\nOnly provide the lattice parameters in your answer, do not include any additional text or comments!\nPXRD peak positions: {{pxrd}}\nCrystal system: {{crystal_system}}\nMiller indices: {{miller_indices}}\nLattice parameters:\n",
+      "doc_to_target": "target",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "mae",
+          "aggregation": "mean",
+          "higher_is_better": false
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "max_tokens": 20,
+        "do_sample": false,
+        "temperature": 0.0,
+        "until": [
+          "\n",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "model": "gpt-4o-mini"
+      }
+    }
+  },
+  "versions": {
+    "battery_electrolyte_qa": "Yaml",
+    "biomaterials_qa": "Yaml",
+    "composite_materials_qa": "Yaml",
+    "corrosion_prediction": "Yaml",
+    "general_materials_science_qa": "Yaml",
+    "lammps_vasp": "Yaml",
+    "materials_safety_classification": "Yaml",
+    "mof_synthesis_qa": "Yaml",
+    "mof_water_stability": "Yaml",
+    "polymer_tg_prediction": "Yaml",
+    "pxrd_crystal_system": "Yaml",
+    "pxrd_lattice_prediction": "Yaml"
+  },
+  "n-shot": {
+    "battery_electrolyte_qa": 0,
+    "biomaterials_qa": 0,
+    "composite_materials_qa": 0,
+    "corrosion_prediction": 0,
+    "general_materials_science_qa": 0,
+    "lammps_vasp": 0,
+    "materials_safety_classification": 0,
+    "mof_synthesis_qa": 0,
+    "mof_water_stability": 0,
+    "polymer_tg_prediction": 0,
+    "pxrd_crystal_system": 0,
+    "pxrd_lattice_prediction": 0
+  },
+  "higher_is_better": {
+    "battery_electrolyte_qa": {
+      "exact_match": true
+    },
+    "biomaterials_qa": {
+      "exact_match": true
+    },
+    "composite_materials_qa": {
+      "exact_match": true
+    },
+    "corrosion_prediction": {
+      "exact_match": true
+    },
+    "general_materials_science_qa": {
+      "exact_match": true
+    },
+    "lammps_vasp": {
+      "exact_match": true
+    },
+    "materials_safety_classification": {
+      "exact_match": true
+    },
+    "mof_synthesis_qa": {
+      "exact_match": true
+    },
+    "mof_water_stability": {
+      "exact_match": true
+    },
+    "polymer_tg_prediction": {
+      "mae": false
+    },
+    "pxrd_crystal_system": {
+      "exact_match": true
+    },
+    "pxrd_lattice_prediction": {
+      "mae": false
+    }
+  },
+  "n-samples": {
+    "pxrd_lattice_prediction": {
+      "original": 60,
+      "effective": 60
+    },
+    "pxrd_crystal_system": {
+      "original": 60,
+      "effective": 60
+    },
+    "polymer_tg_prediction": {
+      "original": 24,
+      "effective": 24
+    },
+    "mof_water_stability": {
+      "original": 20,
+      "effective": 20
+    },
+    "mof_synthesis_qa": {
+      "original": 22,
+      "effective": 22
+    },
+    "materials_safety_classification": {
+      "original": 140,
+      "effective": 140
+    },
+    "lammps_vasp": {
+      "original": 33,
+      "effective": 33
+    },
+    "general_materials_science_qa": {
+      "original": 29,
+      "effective": 29
+    },
+    "corrosion_prediction": {
+      "original": 60,
+      "effective": 60
+    },
+    "composite_materials_qa": {
+      "original": 22,
+      "effective": 22
+    },
+    "biomaterials_qa": {
+      "original": 20,
+      "effective": 20
+    },
+    "battery_electrolyte_qa": {
+      "original": 20,
+      "effective": 20
+    }
+  },
+  "config": {
+    "model": "openai-chat-completions",
+    "model_args": "model=gpt-4o-mini",
+    "batch_size": 1,
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": 1000.0,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "cffb9ad0",
+  "date": 1751326371.5497751,
+  "pretty_env_info": "PyTorch version: 2.7.1+cu126\nIs debug build: False\nCUDA used to build PyTorch: 12.6\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.5 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\nClang version: Could not collect\nCMake version: version 3.22.1\nLibc version: glibc-2.35\n\nPython version: 3.10.18 (main, Jun  5 2025, 13:14:17) [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-6.8.0-40-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: 12.4.131\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: GPU 0: NVIDIA GeForce RTX 4090\nNvidia driver version: 550.107.02\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        46 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               28\nOn-line CPU(s) list:                  0-27\nVendor ID:                            GenuineIntel\nModel name:                           Intel(R) Core(TM) i7-14700K\nCPU family:                           6\nModel:                                183\nThread(s) per core:                   2\nCore(s) per socket:                   20\nSocket(s):                            1\nStepping:                             1\nCPU max MHz:                          5600.0000\nCPU min MHz:                          800.0000\nBogoMIPS:                             6835.20\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke waitpkg gfni vaes vpclmulqdq tme rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities\nVirtualization:                       VT-x\nL1d cache:                            768 KiB (20 instances)\nL1i cache:                            1 MiB (20 instances)\nL2 cache:                             28 MiB (11 instances)\nL3 cache:                             33 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-27\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\nVulnerability Reg file data sampling: Mitigation; Clear Register File\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Not affected\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==2.2.6\n[pip3] nvidia-cublas-cu12==12.6.4.1\n[pip3] nvidia-cuda-cupti-cu12==12.6.80\n[pip3] nvidia-cuda-nvrtc-cu12==12.6.77\n[pip3] nvidia-cuda-runtime-cu12==12.6.77\n[pip3] nvidia-cudnn-cu12==9.5.1.17\n[pip3] nvidia-cufft-cu12==11.3.0.4\n[pip3] nvidia-curand-cu12==10.3.7.77\n[pip3] nvidia-cusolver-cu12==11.7.1.2\n[pip3] nvidia-cusparse-cu12==12.5.4.2\n[pip3] nvidia-cusparselt-cu12==0.6.3\n[pip3] nvidia-nccl-cu12==2.26.2\n[pip3] nvidia-nvjitlink-cu12==12.6.85\n[pip3] nvidia-nvtx-cu12==12.6.77\n[pip3] torch==2.7.1\n[pip3] triton==3.3.1\n[conda] numpy                     2.2.6                    pypi_0    pypi\n[conda] nvidia-cublas-cu12        12.6.4.1                 pypi_0    pypi\n[conda] nvidia-cuda-cupti-cu12    12.6.80                  pypi_0    pypi\n[conda] nvidia-cuda-nvrtc-cu12    12.6.77                  pypi_0    pypi\n[conda] nvidia-cuda-runtime-cu12  12.6.77                  pypi_0    pypi\n[conda] nvidia-cudnn-cu12         9.5.1.17                 pypi_0    pypi\n[conda] nvidia-cufft-cu12         11.3.0.4                 pypi_0    pypi\n[conda] nvidia-curand-cu12        10.3.7.77                pypi_0    pypi\n[conda] nvidia-cusolver-cu12      11.7.1.2                 pypi_0    pypi\n[conda] nvidia-cusparse-cu12      12.5.4.2                 pypi_0    pypi\n[conda] nvidia-cusparselt-cu12    0.6.3                    pypi_0    pypi\n[conda] nvidia-nccl-cu12          2.26.2                   pypi_0    pypi\n[conda] nvidia-nvjitlink-cu12     12.6.85                  pypi_0    pypi\n[conda] nvidia-nvtx-cu12          12.6.77                  pypi_0    pypi\n[conda] torch                     2.7.1                    pypi_0    pypi\n[conda] triton                    3.3.1                    pypi_0    pypi",
+  "transformers_version": "4.52.4",
+  "lm_eval_version": "0.4.8",
+  "upper_git_hash": null,
+  "task_hashes": {},
+  "model_source": "openai-chat-completions",
+  "model_name": "gpt-4o-mini",
+  "model_name_sanitized": "gpt-4o-mini",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": "",
+  "chat_template_sha": null,
+  "start_time": 2950203.043496655,
+  "end_time": 2950510.825328711,
+  "total_evaluation_time_seconds": "307.78183205612004"
+}

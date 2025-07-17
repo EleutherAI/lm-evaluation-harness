@@ -1,0 +1,35 @@
+# tasks/science/advanced_reasoning/materials/safety_prediction.yaml
+dataset_path: iamthomaspruyn/materials-safety-classification
+dataset_name: null
+test_split: train
+fewshot_split: train
+
+process_docs: !function utils.process_safety_prediction
+
+doc_to_text: >
+  You are an expert chemist with a strong knowledge in materials safety data.
+  Your task is to determine if a given compound is a {{comment}}, and therefore hazardous, based on its SMILES representation.
+
+  SMILES: {{smiles}}
+
+  Respond strictly with either TRUE or FALSE (uppercase), and do not include any additional text or explanations.
+
+doc_to_target: unsafe
+task: materials_safety_classification
+output_type: generate_until
+
+generation_kwargs:
+  max_tokens: 3
+  do_sample: false
+  temperature: 0.0
+  until:
+    - "</s>"
+    - "<|im_end|>"
+
+num_fewshot: 0
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true

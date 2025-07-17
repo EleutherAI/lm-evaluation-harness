@@ -1,0 +1,38 @@
+dataset_path: iamthomaspruyn/pxrd-crystal-system
+dataset_name: null
+test_split: train
+fewshot_split: train
+
+process_docs: !function utils.process_pxrd_crystal_system
+process_results: !function utils.normalize_prediction
+
+doc_to_text: >
+  You are an expert crystallographer. Your task is to classify the crystal system of the following material based on its PXRD data.
+
+  Material type: {{material_type}}
+  Peak positions: {{peaks}}
+  Peak intensities: {{intensities}}
+
+  Only respond with one of the following crystal systems, do not include any additional text or comments:
+  triclinic, monoclinic, orthorhombic, tetragonal, trigonal, hexagonal, cubic.
+
+  Crystal system:
+
+doc_to_target: label
+task: pxrd_crystal_system
+output_type: generate_until
+
+generation_kwargs:
+  max_tokens: 10
+  do_sample: false
+  temperature: 0.0
+  until:
+    - "</s>"
+    - "<|im_end|>"
+
+num_fewshot: 0
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
