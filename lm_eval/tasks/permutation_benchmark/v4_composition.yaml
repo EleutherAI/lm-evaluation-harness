@@ -10,13 +10,13 @@ test_split: test
 custom_dataset: !function group_composition_utils.v4_dataset
 doc_to_text: |
   You are given a sequence of permutations from the group V4 (Klein four-group), identified by their integer IDs. Your task is to compute their composed product.
-  
+
   The composition must be performed sequentially from right to left, following the standard mathematical convention (p_n ∘ ... ∘ p_2 ∘ p_1).
-  
+
   Sequence: {{input_sequence}}
-  
+
   Question: What is the integer ID of the final composed permutation?
-  
+
   Answer:
 doc_to_target: "{{target}}"
 process_results: !function group_composition_utils.process_results

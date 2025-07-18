@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate all task YAML files for the permutation benchmark."""
 
-import os
-from typing import Dict, List, Tuple
+from typing import List
+
 
 # Group information with descriptions
 GROUP_INFO = {
@@ -79,7 +79,6 @@ GROUP_INFO = {
     "z5_4": ("Z5⁴", "elementary abelian group Z5⁴", "tc0"),
     "psl2_2": ("PSL(2,2)", "projective special linear group PSL(2,2)", "tc0"),
     "psl2_3": ("PSL(2,3)", "projective special linear group PSL(2,3)", "tc0"),
-    
     # NC1 Groups (Non-Solvable)
     "s5": ("S5", "symmetric group on 5 elements", "nc1"),
     "s6": ("S6", "symmetric group on 6 elements", "nc1"),
@@ -117,7 +116,9 @@ def generate_metric_list() -> str:
     return "\n".join(metrics)
 
 
-def generate_task_yaml(group_id: str, group_name: str, group_desc: str, complexity: str) -> str:
+def generate_task_yaml(
+    group_id: str, group_name: str, group_desc: str, complexity: str
+) -> str:
     """Generate YAML content for a single task."""
     return f"""tag:
   - group_theory
@@ -131,13 +132,13 @@ test_split: test
 custom_dataset: !function group_composition_utils.{group_id}_dataset
 doc_to_text: |
   You are given a sequence of permutations from the group {group_name} ({group_desc}), identified by their integer IDs. Your task is to compute their composed product.
-  
+
   The composition must be performed sequentially from right to left, following the standard mathematical convention (p_n ∘ ... ∘ p_2 ∘ p_1).
-  
+
   Sequence: {{{{input_sequence}}}}
-  
+
   Question: What is the integer ID of the final composed permutation?
-  
+
   Answer:
 doc_to_target: "{{{{target}}}}"
 process_results: !function group_composition_utils.process_results
@@ -150,13 +151,13 @@ metadata:
 def generate_group_yaml(name: str, groups: List[str]) -> str:
     """Generate YAML content for a group file (TC0 or NC1)."""
     tasks = [f"  - {group}_composition" for group in groups]
-    
+
     # Generate all 100 aggregate metrics
     aggregate_metrics = []
     for length in range(5, 505, 5):
         aggregate_metrics.append(f"""  - metric: "{length}"
     weight_by_size: false""")
-    
+
     return f"""group: {name}_groups
 task:
 {chr(10).join(tasks)}
@@ -172,37 +173,37 @@ def main():
     # Create lists for TC0 and NC1 groups
     tc0_groups = []
     nc1_groups = []
-    
+
     # Generate individual task files
     for group_id, (group_name, group_desc, complexity) in GROUP_INFO.items():
         filename = f"{group_id}_composition.yaml"
         content = generate_task_yaml(group_id, group_name, group_desc, complexity)
-        
+
         print(f"Generated {filename}")
-        
+
         # Write the file
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(content)
-        
+
         # Add to appropriate list
         if complexity == "tc0":
             tc0_groups.append(group_id)
         else:
             nc1_groups.append(group_id)
-    
+
     # Generate group files
     tc0_content = generate_group_yaml("tc0", sorted(tc0_groups))
     nc1_content = generate_group_yaml("nc1", sorted(nc1_groups))
-    
+
     print("\nGenerated tc0_groups.yaml")
     print("Generated nc1_groups.yaml")
-    
+
     # Generate main group file with all 100 aggregate metrics
     aggregate_metrics = []
     for length in range(5, 505, 5):
         aggregate_metrics.append(f"""  - metric: "{length}"
     weight_by_size: false""")
-    
+
     main_content = f"""group: permutation_groups
 task:
   - tc0_groups
@@ -212,17 +213,17 @@ aggregate_metric_list:
 metadata:
   version: 1.0
   description: Permutation composition benchmark for evaluating state-tracking capabilities"""
-    
+
     print("Generated permutation_groups.yaml")
-    
+
     # Write files
-    with open("tc0_groups.yaml", 'w') as f:
+    with open("tc0_groups.yaml", "w") as f:
         f.write(tc0_content)
-    with open("nc1_groups.yaml", 'w') as f:
+    with open("nc1_groups.yaml", "w") as f:
         f.write(nc1_content)
-    with open("permutation_groups.yaml", 'w') as f:
+    with open("permutation_groups.yaml", "w") as f:
         f.write(main_content)
-    
+
     print(f"\nTotal tasks generated: {len(GROUP_INFO)}")
     print(f"TC0 tasks: {len(tc0_groups)}")
     print(f"NC1 tasks: {len(nc1_groups)}")

@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+
 from datasets import load_dataset
 
 
@@ -11,40 +11,115 @@ DEFAULT_SEQ_LENGTHS = list(range(5, 505, 5))
 # Group complexity classifications
 TC0_GROUPS = {
     # Symmetric (solvable for n ≤ 4)
-    "s3", "s4",
+    "s3",
+    "s4",
     # Alternating (solvable for n ≤ 4)
-    "a3", "a4",
+    "a3",
+    "a4",
     # Cyclic (all are abelian, hence solvable)
-    "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10",
-    "c11", "c12", "c13", "c14", "c15", "c16", "c17", "c18", "c19", "c20",
-    "c21", "c22", "c23", "c24", "c25", "c26", "c27", "c28", "c29", "c30",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6",
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12",
+    "c13",
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18",
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24",
+    "c25",
+    "c26",
+    "c27",
+    "c28",
+    "c29",
+    "c30",
     # Dihedral (all are solvable)
-    "d3", "d4", "d5", "d6", "d7", "d8", "d9", "d10",
-    "d11", "d12", "d13", "d14", "d15", "d16", "d17", "d18", "d19", "d20",
+    "d3",
+    "d4",
+    "d5",
+    "d6",
+    "d7",
+    "d8",
+    "d9",
+    "d10",
+    "d11",
+    "d12",
+    "d13",
+    "d14",
+    "d15",
+    "d16",
+    "d17",
+    "d18",
+    "d19",
+    "d20",
     # Quaternion (non-abelian 2-groups, solvable)
-    "q8", "q16", "q32",
+    "q8",
+    "q16",
+    "q32",
     # Frobenius (solvable)
-    "f20", "f21",
+    "f20",
+    "f21",
     # Klein four-group (abelian)
     "v4",
     # Elementary abelian (direct products of cyclic groups)
-    "z2_1", "z2_2", "z2_3", "z2_4", "z2_5",
-    "z3_1", "z3_2", "z3_3", "z3_4",
-    "z5_1", "z5_2", "z5_3", "z5_4",
+    "z2_1",
+    "z2_2",
+    "z2_3",
+    "z2_4",
+    "z2_5",
+    "z3_1",
+    "z3_2",
+    "z3_3",
+    "z3_4",
+    "z5_1",
+    "z5_2",
+    "z5_3",
+    "z5_4",
     # Projective Special Linear (solvable cases)
-    "psl2_2", "psl2_3"
+    "psl2_2",
+    "psl2_3",
 }
 
 NC1_GROUPS = {
     # Symmetric (non-solvable for n ≥ 5)
-    "s5", "s6", "s7", "s8", "s9",
+    "s5",
+    "s6",
+    "s7",
+    "s8",
+    "s9",
     # Alternating (simple groups for n ≥ 5)
-    "a5", "a6", "a7", "a8", "a9",
+    "a5",
+    "a6",
+    "a7",
+    "a8",
+    "a9",
     # Projective Special Linear (simple groups)
-    "psl2_4", "psl2_5", "psl2_7", "psl2_8", "psl2_9", "psl2_11",
-    "psl3_2", "psl3_3", "psl3_4", "psl3_5",
+    "psl2_4",
+    "psl2_5",
+    "psl2_7",
+    "psl2_8",
+    "psl2_9",
+    "psl2_11",
+    "psl3_2",
+    "psl3_3",
+    "psl3_4",
+    "psl3_5",
     # Mathieu (sporadic simple groups)
-    "m11", "m12"
+    "m11",
+    "m12",
 }
 
 
@@ -60,31 +135,24 @@ def get_complexity_class(group_name: str) -> str:
 
 def filter_by_sequence_length(dataset, min_length: int, max_length: int):
     """Filter dataset examples by sequence length."""
-    return dataset.filter(
-        lambda x: min_length <= x['sequence_length'] <= max_length
-    )
+    return dataset.filter(lambda x: min_length <= x["sequence_length"] <= max_length)
 
 
-def create_length_specific_dataset(group_name: str, target_length: int, split: str = "test"):
+def create_length_specific_dataset(
+    group_name: str, target_length: int, split: str = "test"
+):
     """Create a dataset filtered to a specific sequence length range."""
-    # Determine complexity class
-    complexity_class = get_complexity_class(group_name)
-    
     # Load the dataset using name
     dataset = load_dataset(
-        "BeeGass/Group-Theory-Collection",
-        name=group_name,
-        split=split
+        "BeeGass/Group-Theory-Collection", name=group_name, split=split
     )
-    
+
     # Filter to target length with some tolerance
     # We use a window of ±2 to ensure we have enough samples
     filtered = filter_by_sequence_length(
-        dataset,
-        min_length=target_length - 2,
-        max_length=target_length + 2
+        dataset, min_length=target_length - 2, max_length=target_length + 2
     )
-    
+
     return filtered
 
 
@@ -92,13 +160,13 @@ def process_results(doc: dict, results) -> dict[str, float]:
     """Process model outputs and compute metrics for each sequence length."""
     # Initialize all metrics to -1 (indicating no data for that length)
     metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
-    
+
     # Get the actual sequence length from the document
-    seq_len = doc['sequence_length']
-    
+    seq_len = doc["sequence_length"]
+
     # Find the closest evaluation length to bucket this result
     closest_length = min(DEFAULT_SEQ_LENGTHS, key=lambda x: abs(x - seq_len))
-    
+
     # For loglikelihood tasks, results is a tuple (log_likelihood, is_greedy)
     # where is_greedy indicates if the target was the greedy choice
     if results and len(results) == 2:
@@ -112,7 +180,7 @@ def process_results(doc: dict, results) -> dict[str, float]:
             log_likelihood, is_greedy = results[0]
             score = float(is_greedy)
             metrics[str(closest_length)] = score
-    
+
     return metrics
 
 
@@ -120,11 +188,11 @@ def aggregate_metrics(metrics: list[float]) -> float:
     """Aggregate metrics for a specific sequence length."""
     # Filter out -1 values (no data)
     valid_metrics = [x for x in metrics if x != -1]
-    
+
     if not valid_metrics:
         # No samples for this length
         return -1
-    
+
     # Return average accuracy
     return sum(valid_metrics) / len(valid_metrics)
 
@@ -132,15 +200,13 @@ def aggregate_metrics(metrics: list[float]) -> float:
 # Generic dataset loader function
 def load_group_dataset(group_name: str, **kwargs):
     """Load dataset for a specific group."""
-    return load_dataset(
-        "BeeGass/Group-Theory-Collection",
-        name=group_name
-    )
+    return load_dataset("BeeGass/Group-Theory-Collection", name=group_name)
 
 
 # Custom dataset loader functions for each group
 # We still need these as wrappers because the YAML files reference specific functions
 # TC0 Groups (Solvable)
+
 
 # Symmetric groups (TC0)
 def s3_dataset(**kwargs):
@@ -512,6 +578,7 @@ def psl2_3_dataset(**kwargs):
 
 
 # NC1 Groups (Non-Solvable)
+
 
 # Symmetric groups (NC1)
 def s5_dataset(**kwargs):
