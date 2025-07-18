@@ -31,7 +31,6 @@ from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.metric import MetricConfig
 from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
-from lm_eval.prompts import get_prompt
 
 
 ALL_OUTPUT_TYPES = [
@@ -421,12 +420,12 @@ class Task(abc.ABC):
         return getattr(self._config, key, None)
 
     @classmethod
-    def count_bytes(cls, doc) -> int:
+    def count_bytes(cls, doc: str) -> int:
         """Used for byte-level perplexity metrics in rolling loglikelihood"""
         return len(doc.encode("utf-8"))
 
     @classmethod
-    def count_words(cls, doc) -> int:
+    def count_words(cls, doc: str) -> int:
         """Downstream loglikelihood_rolling perplexity tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
 
@@ -647,13 +646,13 @@ class ConfigurableTask(Task):
 
         self._filters = self.config.get_filters
 
-        if self.config.use_prompt is not None:
-            eval_logger.info(f"loading prompt {self.config.use_prompt}")
-            self.prompt = get_prompt(
-                self.config.use_prompt, self.DATASET_PATH, self.DATASET_NAME
-            )
-        else:
-            self.prompt = None
+        # if self.config.use_prompt is not None:
+        #     eval_logger.info(f"loading prompt {self.config.use_prompt}")
+        #     self.prompt = get_prompt(
+        #         self.config.use_prompt, self.DATASET_PATH, self.DATASET_NAME
+        #     )
+        # else:
+        #     self.prompt = None
 
         if (
             self.config.fewshot_cfg.num_fewshot() > 0
@@ -666,7 +665,7 @@ class ConfigurableTask(Task):
         self.task_docs = self.eval_docs
 
         # Test One Doc
-        self.features = list(self.task_docs.features.keys())
+        self.features: list[str] = list(self.task_docs.features.keys())
         self.multiple_input = 0
         self.multiple_target = 0
         test_doc = self.task_docs[0]
@@ -1012,10 +1011,12 @@ class ConfigurableTask(Task):
         """
         return doc
 
-    def doc_to_text(self, doc: dict, doc_to_text: Union[int, str, Callable] = None):
-        if self.prompt is not None:
-            doc_to_text = self.prompt
-        elif doc_to_text is not None:
+    def doc_to_text(
+        self, doc: dict, doc_to_text: Union[int, str, Callable, None] = None
+    ):
+        # if self.prompt is not None:
+        #     doc_to_text = self.prompt
+        if doc_to_text is not None:
             doc_to_text = doc_to_text
         else:
             doc_to_text = self.config.doc_to_text
@@ -1037,21 +1038,21 @@ class ConfigurableTask(Task):
         elif callable(doc_to_text):
             return doc_to_text(doc)
         # Used when applying a Promptsource template
-        elif hasattr(doc_to_text, "apply"):
-            applied_prompt = doc_to_text.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[0]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
+        # elif hasattr(doc_to_text, "apply"):
+        #     applied_prompt = doc_to_text.apply(doc)
+        #     if len(applied_prompt) == 2:
+        #         return applied_prompt[0]
+        #     else:
+        #         eval_logger.warning("Applied prompt returns empty string")
+        #         return self.config.fewshot_delimiter
         else:
             print(type(doc_to_text))
             raise TypeError
 
     def doc_to_target(self, doc: dict, doc_to_target=None) -> Union[int, str, list]:
-        if self.prompt is not None:
-            doc_to_target = self.prompt
-        elif doc_to_target is not None:
+        # if self.prompt is not None:
+        #     doc_to_target = self.prompt
+        if doc_to_target is not None:
             doc_to_target = doc_to_target
         else:
             doc_to_target = self.config.doc_to_target
@@ -1083,26 +1084,27 @@ class ConfigurableTask(Task):
             return doc_to_target
         elif callable(doc_to_target):
             return doc_to_target(doc)
-        # Used when applying a Promptsource template
-        elif hasattr(doc_to_target, "apply"):
-            applied_prompt = doc_to_target.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[1]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
+        # # Used when applying a Promptsource template
+        # elif hasattr(doc_to_target, "apply"):
+        #     applied_prompt = doc_to_target.apply(doc)
+        #     if len(applied_prompt) == 2:
+        #         return applied_prompt[1]
+        #     else:
+        #         eval_logger.warning("Applied prompt returns empty string")
+        #         return self.config.fewshot_delimiter
         else:
             raise TypeError
 
     def doc_to_choice(
-        self, doc: dict, doc_to_choice: Union[str, list, dict] = None
+        self, doc: dict, doc_to_choice: Union[str, list, dict, None] = None
     ) -> List[str]:
-        if self.prompt is not None:
-            doc_to_choice = self.prompt
-        elif doc_to_choice is not None:
+        # if self.prompt is not None:
+        #     doc_to_choice = self.prompt
+        if doc_to_choice is not None:
             doc_to_choice = doc_to_choice
         elif self.config.doc_to_choice is None:
             eval_logger.error("doc_to_choice was called but not set in config")
+            doc_to_choice = None
         else:
             doc_to_choice = self.config.doc_to_choice
 
