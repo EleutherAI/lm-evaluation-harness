@@ -375,7 +375,7 @@ class VLLM(TemplateLM):
             sampling_params = self.model.get_default_sampling_params().clone()
             sampling_params.max_tokens = max_tokens
             sampling_params.stop = stop
-            unused_kwargs = {}
+            unused_kwargs = {} # to collect unused kwargs
             for key, value in kwargs.items():
                 if hasattr(sampling_params, key):
                     setattr(sampling_params, key, value)
