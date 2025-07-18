@@ -10,12 +10,13 @@ test_split: test
 output_type: multiple_choice
 
 doc_to_text: |
-  Given the following MCQ question, answer with only the option letter whether A, B, C, D, or E:
+  أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D دون أي شرح أو معلومات إضافية.
   {{ question }}
+  الاختيارات:
   {% for option in options %}
   {{ option }}
   {% endfor %}
-  Answer:
+  الإجابة:
 doc_to_choice: !function utils.doc_to_choice
 doc_to_target: !function utils.doc_to_target
 
