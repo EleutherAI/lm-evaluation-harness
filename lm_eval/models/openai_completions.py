@@ -5,7 +5,7 @@ from operator import itemgetter
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.api_models import JsonChatStr, TemplateAPI
 from lm_eval.models.utils import handle_stop_sequences
 
 
@@ -16,12 +16,46 @@ eval_logger = logging.getLogger(__name__)
 class LocalCompletionsAPI(TemplateAPI):
     def __init__(
         self,
-        base_url: str = None,
-        tokenizer_backend: str = "huggingface",
+        base_url=None,
+        tokenizer_backend="auto",
+        verify_certificate=True,
+        ca_cert_path=None,
+        auth_token=None,
         **kwargs,
     ):
+        # Auto-detect tokenizer backend
+        if tokenizer_backend == "auto":
+            if base_url:
+                from lm_eval.utils import check_remote_tokenizer_support
+
+                if check_remote_tokenizer_support(
+                    base_url,
+                    verify_certificate=verify_certificate,
+                    ca_cert_path=ca_cert_path,
+                    auth_token=auth_token,
+                ):
+                    eval_logger.info(
+                        "Auto-detected remote tokenizer support. Using remote tokenizer backend."
+                    )
+                    tokenizer_backend = "remote"
+                else:
+                    eval_logger.info(
+                        "Remote tokenizer not supported. Using huggingface tokenizer backend."
+                    )
+                    tokenizer_backend = "huggingface"
+            else:
+                eval_logger.warning(
+                    "No base_url provided. Using huggingface tokenizer backend."
+                )
+                tokenizer_backend = "huggingface"
+
         super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            verify_certificate=verify_certificate,
+            ca_cert_path=ca_cert_path,
+            auth_token=auth_token,
+            **kwargs,
         )
 
     def _create_payload(
@@ -108,18 +142,59 @@ class LocalCompletionsAPI(TemplateAPI):
 class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
-        base_url: str = None,
-        tokenizer_backend: str = None,
-        tokenized_requests: bool = False,
+        base_url=None,
+        tokenizer_backend="auto",
+        tokenized_requests=None,
+        verify_certificate=True,
+        ca_cert_path=None,
+        auth_token=None,
         **kwargs,
     ):
-        eval_logger.warning(
-            "chat-completions endpoint requires the `--apply_chat_template` flag."
-        )
+        if tokenizer_backend == "auto":
+            if base_url:
+                from lm_eval.utils import check_remote_tokenizer_support
+
+                if check_remote_tokenizer_support(
+                    base_url,
+                    verify_certificate=verify_certificate,
+                    ca_cert_path=ca_cert_path,
+                    auth_token=auth_token,
+                ):
+                    eval_logger.info(
+                        "Auto-detected remote tokenizer support. Chat template will be applied automatically."
+                    )
+                    tokenizer_backend = "remote"
+                    if tokenized_requests is None:
+                        tokenized_requests = True
+                else:
+                    eval_logger.warning(
+                        "Remote tokenizer not supported. Chat template must be applied manually with --apply_chat_template."
+                    )
+                    tokenizer_backend = None
+                    if tokenized_requests is None:
+                        tokenized_requests = False
+            else:
+                eval_logger.warning(
+                    "No base_url provided. Chat template must be applied manually with --apply_chat_template."
+                )
+                tokenizer_backend = None
+                if tokenized_requests is None:
+                    tokenized_requests = False
+        else:
+            if tokenized_requests is None:
+                tokenized_requests = tokenizer_backend is not None
+        if tokenizer_backend is None:
+            eval_logger.warning(
+                "chat-completions endpoint requires the `--apply_chat_template` flag."
+            )
+
         super().__init__(
             base_url=base_url,
             tokenizer_backend=tokenizer_backend,
             tokenized_requests=tokenized_requests,
+            verify_certificate=verify_certificate,
+            ca_cert_path=ca_cert_path,
+            auth_token=auth_token,
             **kwargs,
         )
         if self._batch_size > 1:
@@ -127,6 +202,26 @@ class LocalChatCompletion(LocalCompletionsAPI):
                 "Chat completions does not support batching. Defaulting to batch size 1."
             )
             self._batch_size = 1
+
+    def create_message(
+        self,
+        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
+        generate=False,
+    ) -> Union[List[dict], str]:
+        """Override to handle chat template application for remote tokenizer"""
+        if self.tokenized_requests and self.tokenizer_backend == "remote":
+            # For remote tokenizer, apply chat template
+            if isinstance(messages[0], str):
+                chat_history = [{"role": "user", "content": messages[0]}]
+            else:
+                # Handle other message types by calling parent first
+                processed = super().create_message(messages, generate)
+                if isinstance(processed, str):
+                    chat_history = [{"role": "user", "content": processed}]
+                else:
+                    return processed
+            return self.apply_chat_template(chat_history, add_generation_prompt=True)
+        return super().create_message(messages, generate)
 
     def _create_payload(
         self,
