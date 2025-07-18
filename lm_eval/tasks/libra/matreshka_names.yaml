@@ -1,0 +1,29 @@
+tag:
+- libra
+task: matreshka_names
+task_alias: MatreshkaNames
+dataset_name: matreshka_names
+dataset_kwargs:
+  dataset_name: matreshka_names
+include: _template_yaml
+doc_to_text: 'Тебе предоставляются несколько диалогов. Запомни имена людей и темы,
+  на которые они говорили.
+
+  {{context}}
+
+  В ответе укажи только имя собеседника, который говорил на тему из следующего вопроса.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 16
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0
