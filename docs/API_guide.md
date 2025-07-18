@@ -97,6 +97,10 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Whether to validate the certificate of the API endpoint (if HTTPS).
   - Default is True.
 
+- `header` (dict, optional):
+  - Custom headers for API requests.
+  - If not provided, uses `{"Authorization": f"Bearer {self.api_key}"}` by default.
+
 Example usage:
 
 ```python
