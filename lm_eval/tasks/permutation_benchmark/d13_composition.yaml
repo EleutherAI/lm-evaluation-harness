@@ -1,15 +1,15 @@
 tag:
   - group_theory
   - permutation_composition
-  - nc1
-task: s7_composition
+  - tc0
+task: d13_composition
 dataset_path: ""
 dataset_name: ""
 output_type: loglikelihood
 test_split: test
-custom_dataset: !function group_composition_utils.s7_dataset
+custom_dataset: !function group_composition_utils.d13_dataset
 doc_to_text: |
-  You are given a sequence of permutations from the group S7 (symmetric group on 7 elements), identified by their integer IDs. Your task is to compute their composed product.
+  You are given a sequence of permutations from the group D13 (dihedral group of order 26), identified by their integer IDs. Your task is to compute their composed product.
   
   The composition must be performed sequentially from right to left, following the standard mathematical convention (p_n ∘ ... ∘ p_2 ∘ p_1).
   
