@@ -1,4 +1,4 @@
-task: ar_financebench
+task: ar_financebench|DEPRECATED
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
