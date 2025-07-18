@@ -167,7 +167,7 @@ class TaskConfig(dict):
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     _metric_list: list[MetricConfig] = field(default_factory=list)
-    _filter_list: list[FilterConfig] = None
+    _filter_list: list[FilterConfig] = field(default_factory=list)
     # ds_cfg: DatasetConfig = field(init=False)
     fewshot_cfg: FewshotConfig = field(init=False)
 
