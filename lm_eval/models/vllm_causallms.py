@@ -372,7 +372,20 @@ class VLLM(TemplateLM):
     ):
         if generate:
             kwargs = self.modify_gen_kwargs(kwargs)
-            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
+            sampling_params = self.model.get_default_sampling_params().clone()
+            sampling_params.max_tokens = max_tokens
+            sampling_params.stop = stop
+            unused_kwargs = {}
+            for key, value in kwargs.items():
+                if hasattr(sampling_params, key):
+                    setattr(sampling_params, key, value)
+                else:
+                    unused_kwargs[key] = value
+            if unused_kwargs:
+                eval_logger.warning(
+                    f"Unused kwargs in vLLM.generate: {unused_kwargs}. "
+                    "These will be ignored, please check your generation parameters."
+                )
         else:
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
