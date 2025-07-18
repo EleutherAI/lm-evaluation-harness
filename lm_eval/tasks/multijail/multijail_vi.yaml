@@ -1,0 +1,3 @@
+task: multijail_vi
+include: _multijail_yaml
+doc_to_text: "{{vi}}"
