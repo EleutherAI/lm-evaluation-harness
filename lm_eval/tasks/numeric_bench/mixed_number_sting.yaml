@@ -1,0 +1,15 @@
+tag:
+  - NumericBench
+task: mixed_number_string
+dataset_path: TreeAILab/NumericBench
+dataset_name: mixed_number_string
+test_split: test
+process_docs: !function utils.process_docs_without_cot
+doc_to_text: "{{prompt}}"
+doc_to_target: "{{answer}}"
+metric_list:
+  - metric: !function utils.number_accuracy
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

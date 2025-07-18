@@ -1,0 +1,15 @@
+tag:
+  - NumericBench-cot
+task: sequence-cot
+dataset_path: TreeAILab/NumericBench
+dataset_name: sequence
+test_split: test
+process_docs: !function utils.process_docs_with_cot
+doc_to_text: "{{prompt}}"
+doc_to_target: "{{answer}}"
+metric_list:
+  - metric: !function utils.choice_accuracy
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
