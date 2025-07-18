@@ -135,6 +135,7 @@ class TemplateAPI(TemplateLM):
         eos_string: str = None,
         # timeout in seconds
         timeout: int = 300,
+        header: Optional[Dict[str, str]] = None,
         max_images: int = 1,
         **kwargs,
     ) -> None:
@@ -152,6 +153,7 @@ class TemplateAPI(TemplateLM):
         self.model = model or pretrained
         self.base_url = base_url
         self.tokenizer = tokenizer
+        self._header = header
         if not isinstance(batch_size, int) and "auto" in batch_size:
             eval_logger.warning(
                 "Automatic batch size is not supported for API models. Defaulting to batch size 1."
@@ -296,7 +298,7 @@ class TemplateAPI(TemplateLM):
     @cached_property
     def header(self) -> dict:
         """Override this property to return the headers for the API request."""
-        return {"Authorization": f"Bearer {self.api_key}"}
+        return self._header or {"Authorization": f"Bearer {self.api_key}"}
 
     @property
     def tokenizer_name(self) -> str:
