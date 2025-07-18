@@ -1,4 +1,3 @@
-task: aya_redteaming
 dataset_path: CohereLabs/aya_redteaming
 dataset_name: default
 output_type: generate_until

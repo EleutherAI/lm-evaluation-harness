@@ -17,3 +17,12 @@ task:
   - polyglotoxicityprompts_small_russian
   - polyglotoxicityprompts_small_swedish
   - polyglotoxicityprompts_small_chinese
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+  - metric: perspective_api_toxicity_score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

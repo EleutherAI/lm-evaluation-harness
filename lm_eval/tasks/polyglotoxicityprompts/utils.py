@@ -77,6 +77,15 @@ def create_group_yaml_content(group_name: str, task_list: List[str]) -> str:
     return f"""group: {group_name}
 task:
 {tasks_yaml}
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+  - metric: perspective_api_toxicity_score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
 """
 
 
