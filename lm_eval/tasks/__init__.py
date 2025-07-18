@@ -81,7 +81,7 @@ class TaskManager:
         task_index = {}
         for task_dir in all_paths:
             tasks = self._get_task_and_group(task_dir)
-            task_index = {**tasks, **task_index}
+            task_index = {**task_index, **tasks}
 
         return task_index
 
