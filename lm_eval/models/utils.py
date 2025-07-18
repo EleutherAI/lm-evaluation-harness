@@ -852,3 +852,32 @@ def truncate_tokens(
         right_length = max_length - left_length
         return tokens[:left_length] + tokens[-right_length:]
     return None
+
+
+def postprocess_generated_text(
+    generation: str, stop: Union[list[str], str, None], think_end_token: Optional[str]
+) -> str:
+    """
+    Post-processes the generated text by stripping stop sequences and optional thinking markers.
+
+    Args:
+        generation (str): The generated text to be processed.
+        stop (Optional[list[str]]): Stop sequence(s) to remove. Text is truncated
+            at the first occurrence of any stop sequence.
+        think_end_token (Optional[str]): Token marking end of thinking section. If provided,
+            returns only the text after this token (discarding thinking content).
+
+    Returns:
+        str: The processed generation - text before stop sequences and after thinking sections.
+    """
+    if stop:
+        stop = [stop] if isinstance(stop, str) else stop
+        for term in stop:
+            if len(term) > 0:
+                # ignore '' separator,
+                # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
+                generation = generation.split(term)[0]
+    if think_end_token:
+        generation = generation.split(think_end_token)[-1].lstrip()
+
+    return generation
