@@ -1,0 +1,19 @@
+group: aya_redteaming
+task:
+  - aya_redteaming_arabic
+  - aya_redteaming_english
+  - aya_redteaming_filipino
+  - aya_redteaming_french
+  - aya_redteaming_hindi
+  - aya_redteaming_russian
+  - aya_redteaming_serbian
+  - aya_redteaming_spanish
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
