@@ -12,7 +12,9 @@ doc_to_text: |
   أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D دون أي شرح أو معلومات إضافية.
   السؤال: {{ question }}
   الخيارات:
-  {{ options }}
+  {% for option in options %}
+  {{ option }}
+  {% endfor %}
   الإجابة:
 doc_to_choice: ['A', 'B', 'C', 'D']
 doc_to_target: !function utils.doc_to_target
