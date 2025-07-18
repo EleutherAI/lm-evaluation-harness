@@ -186,8 +186,11 @@ def process_results(doc: dict, results) -> dict[str, float]:
 
 def aggregate_metrics(metrics: list[float]) -> float:
     """Aggregate metrics for a specific sequence length."""
-    # Filter out -1 values (no data)
-    valid_metrics = [x for x in metrics if x != -1]
+    # Filter out -1 values (no data) and ensure numeric types
+    valid_metrics = []
+    for x in metrics:
+        if isinstance(x, (int, float)) and x != -1:
+            valid_metrics.append(x)
 
     if not valid_metrics:
         # No samples for this length

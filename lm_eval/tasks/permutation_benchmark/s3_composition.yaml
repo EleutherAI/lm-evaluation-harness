@@ -15,7 +15,7 @@ doc_to_text: |
 
   Sequence: {{input_sequence}}
 
-  Question: What is the integer ID of the final composed permutation?
+  Question: What is the single integer ID of the final composed permutation? Your response must be only the integer.
 
   Answer:
 doc_to_target: " {{target}}"
