@@ -60,7 +60,7 @@ Scoring details:
 
 Other:
 
-- **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n-shot` table column for a task. Will also be passed to the `custom_dataset` function if defined.
+- **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n_shot` table column for a task. Will also be passed to the `custom_dataset` function if defined.
 
 ## Filters
 

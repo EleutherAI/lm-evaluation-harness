@@ -1,4 +1,4 @@
-|    Tasks    |Version|Filter|n-shot| Metric |   |Value|   |Stderr|
+|    Tasks    |Version|Filter|n_shot| Metric |   |Value|   |Stderr|
 |-------------|------:|------|-----:|--------|---|----:|---|------|
 |arc_challenge|      1|none  |     0|acc     |↑  |  0.0|±  |   N/A|
 |             |       |none  |     0|acc_norm|↑  |  0.0|±  |   N/A|
