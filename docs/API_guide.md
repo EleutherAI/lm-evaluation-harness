@@ -21,7 +21,11 @@ When subclassing `TemplateAPI`, you need to implement the following methods:
 1. `_create_payload`: Creates the JSON payload for API requests.
 2. `parse_logprobs`: Parses log probabilities from API responses.
 3. `parse_generations`: Parses generated text from API responses.
+
+Optional Properties:
+
 4. `header`: Returns the headers for the API request.
+5. `api_key`: Returns the API key for authentication (if required).
 
 You may also need to override other methods or properties depending on your API's specific requirements.
 
