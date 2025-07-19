@@ -1,0 +1,5 @@
+dataset_kwargs:
+  data_files:
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/translation/per_dataset/wmt24pp__en-ars.json
+
+doc_to_text: "Translate the following from English to Najdi Arabic:\n{{ input }}"

@@ -1,0 +1,5 @@
+dataset_kwargs:
+  data_files:
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/translation/per_dataset/ArzEn-ST_Translations_1.0__en-arz.json
+
+doc_to_text: "Translate the following from English to Egyptian Arabic:\n{{ input }}"

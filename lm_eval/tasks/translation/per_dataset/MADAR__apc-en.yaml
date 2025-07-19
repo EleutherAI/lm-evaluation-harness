@@ -1,0 +1,5 @@
+dataset_kwargs:
+  data_files:
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/translation/per_dataset/MADAR__apc-en.json
+
+doc_to_text: "ترجم ما يلي من اللهجة الشامية إلى اللغة الإنجليزية:\n{{ input }}"
