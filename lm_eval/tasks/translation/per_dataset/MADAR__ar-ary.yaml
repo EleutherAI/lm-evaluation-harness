@@ -1,3 +1,6 @@
+include: _default_translation_template_yaml
+
+task: translation_MADAR__ar-ary
 dataset_kwargs:
   data_files:
     test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/translation/per_dataset/MADAR__ar-ary.json
