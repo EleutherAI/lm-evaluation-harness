@@ -13,9 +13,8 @@ This benchmark evaluates an LLM's ability to follow verifiable instructions that
 ### Purpose
 The benchmark ensures that:
 
-- All instruction sets are satisfiable: they are derived from a real text that serves as a witness solution.
-- Evaluation is grounded: each response can be automatically or semi-automatically verified for correctness.
-- Generalization is tested: models must parse, interpret, and apply multiple constraints simultaneously.
+- All instruction sets are satisfiable: they are derived from a real text that serves as a "witness solution".
+- Evaluation is grounded: each response can be automatically verified for correctness exactly, without the need for a neural reward model.
 
 ### References
 The benchmark is inspired and offers a dynamic version of
