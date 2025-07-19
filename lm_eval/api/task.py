@@ -1049,7 +1049,9 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: dict, doc_to_target=None) -> Union[int, str, list]:
+    def doc_to_target(
+        self, doc: dict, doc_to_target=None
+    ) -> Union[int, str, list[int]]:
         # if self.prompt is not None:
         #     doc_to_target = self.prompt
         if doc_to_target is not None:
@@ -1096,7 +1098,9 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def doc_to_choice(
-        self, doc: dict, doc_to_choice: Union[str, list, dict, None] = None
+        self,
+        doc: dict,
+        doc_to_choice: Union[str, list, dict, Callable[..., list[str]], None] = None,
     ) -> List[str]:
         # if self.prompt is not None:
         #     doc_to_choice = self.prompt
@@ -1119,8 +1123,8 @@ class ConfigurableTask(Task):
             return list(doc_to_choice.values())
         elif callable(doc_to_choice):
             return doc_to_choice(doc)
-        elif hasattr(doc_to_choice, "get_answer_choices_list"):
-            return doc_to_choice.get_answer_choices_list(doc)
+        # elif hasattr(doc_to_choice, "get_answer_choices_list"):
+        #     return doc_to_choice.get_answer_choices_list(doc)
         else:
             raise TypeError
 
@@ -1329,6 +1333,8 @@ class ConfigurableTask(Task):
                     raise ValueError
                 # and this stores our "regular" conditional loglikelihoods
                 lls = lls[: len(choices)]
+            else:
+                lls_unconditional = None
 
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)
@@ -1386,6 +1392,9 @@ class ConfigurableTask(Task):
             }
 
             if "acc_mutual_info" in use_metric:
+                assert lls_unconditional is not None, (
+                    "lls_unconditional should not be None if acc_mutual_info is in use_metric"
+                )
                 lls_mutual_info = [
                     ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
                 ]

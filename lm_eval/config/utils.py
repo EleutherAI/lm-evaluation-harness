@@ -3,8 +3,8 @@ from typing import Any, Callable, Union
 
 
 def serialize_callable(
-    value: Union[Callable, str], keep_callable=False
-) -> Union[Callable, str]:
+    value: Union[Callable[..., Any], str], keep_callable=False
+) -> Union[Callable[..., Any], str]:
     """Serializes a given function or string.
 
     If 'keep_callable' is True, the original callable is returned.

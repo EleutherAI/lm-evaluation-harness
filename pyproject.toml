@@ -105,7 +105,13 @@ plugins.md034.enabled = false # no-bare-urls
 [tool.ruff.lint]
 extend-select = ["I"]
 
+[tool.ruff]
+target-version = "py39"
+extend-select = ["I", "UP", "E", "C419"]
+ignore = ["E402", "E731"]
+
 [tool.ruff.lint.isort]
+combine-as-imports = true
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
