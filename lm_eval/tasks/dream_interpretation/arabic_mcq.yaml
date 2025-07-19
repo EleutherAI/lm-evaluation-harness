@@ -1,4 +1,4 @@
-task: multiple_choice.dream_interpretation_ar
+task: dream_interpretation_ar
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
