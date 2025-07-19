@@ -1,0 +1,3 @@
+task: aya_redteaming_hindi
+include: _aya_redteaming_yaml
+test_split: hindi

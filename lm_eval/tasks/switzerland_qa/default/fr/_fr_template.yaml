@@ -1,0 +1,14 @@
+dataset_path: swiss-ai/switzerland_qa
+dataset_name: French
+test_split: test
+output_type: multiple_choice
+doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+metric_list:
+- metric: acc
+  aggregation: mean
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 1.0

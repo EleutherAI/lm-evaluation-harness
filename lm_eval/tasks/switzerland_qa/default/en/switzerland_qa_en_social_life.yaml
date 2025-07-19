@@ -1,0 +1,3 @@
+include: _en_template.yaml
+process_docs: !function utils.process_social_life
+task: switzerland_qa_en_social_life

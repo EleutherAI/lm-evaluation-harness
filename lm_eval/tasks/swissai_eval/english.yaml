@@ -1,0 +1,37 @@
+group: english
+task:
+  - lambada_openai
+  - winogrande
+  - piqa
+  - openbookqa
+  - ai2_arc
+  - commonsense_qa
+  - mmlu
+  - mmlu_continuation
+  - gsm8k
+  - wikitext
+  - lambada
+  - hellaswag
+  - squadv2
+  # heldout:
+  # - social_iqa
+  # - triviaqa
+  # - mmlu_pro
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false
+  - metric: perplexity
+    aggregation: mean
+    weight_by_size: false
+  - metric: f1
+    aggregation: mean
+    weight_by_size: false
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

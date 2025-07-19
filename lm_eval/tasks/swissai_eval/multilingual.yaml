@@ -1,0 +1,40 @@
+group: multilingual
+task:
+  - global_mmlu
+  - xcopa
+  - xnli
+  - xwinograd
+  - pawsx
+  - m_arc # renamed to actually get grouped metrics (original only logs individual languages)
+  - m_hellaswag # renamed to actually get grouped metrics (original only logs individual languages)
+  # heldout, undecided yet or take very long:
+  # - arabic_leaderboard_alghafa
+  # - ceval-valid
+  # - cmmlu
+  # - agieval # perf close to random for 1B
+  # - belebele # perf close to random for 1B
+  # - mgsm # translation of gsm8k
+  # - french_bench # contains duplicates of xnli etc
+  # - xquad # takes ~20min for 1.5B
+  # - xstorycloze
+  # - lingoly # warning: needs HF token and access via https://huggingface.co/datasets/ambean/lingOly
+  # - mlqa # takes very long, seemed like 2h or so
+  # - m_mmlu # multilingual mmlu
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false  # Set to false if you want unweighted average
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: false
+  - metric: perplexity
+    aggregation: mean
+    weight_by_size: false
+  - metric: f1
+    aggregation: mean
+    weight_by_size: false
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0

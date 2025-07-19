@@ -1,0 +1,3 @@
+task: multijail_bn
+include: _multijail_yaml
+doc_to_text: "{{bn}}"

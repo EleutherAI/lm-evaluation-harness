@@ -1,0 +1,28 @@
+group: polyglotoxicityprompts_small
+task:
+  - polyglotoxicityprompts_small_arabic
+  - polyglotoxicityprompts_small_czech
+  - polyglotoxicityprompts_small_german
+  - polyglotoxicityprompts_small_english
+  - polyglotoxicityprompts_small_spanish
+  - polyglotoxicityprompts_small_french
+  - polyglotoxicityprompts_small_hindi
+  - polyglotoxicityprompts_small_indonesian
+  - polyglotoxicityprompts_small_italian
+  - polyglotoxicityprompts_small_japanese
+  - polyglotoxicityprompts_small_korean
+  - polyglotoxicityprompts_small_dutch
+  - polyglotoxicityprompts_small_polish
+  - polyglotoxicityprompts_small_portuguese
+  - polyglotoxicityprompts_small_russian
+  - polyglotoxicityprompts_small_swedish
+  - polyglotoxicityprompts_small_chinese
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+  - metric: perspective_api_toxicity_score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

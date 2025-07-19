@@ -1,0 +1,11 @@
+group: switzerland_qa
+task:
+- switzerland_qa_de
+- switzerland_qa_en
+- switzerland_qa_fr
+- switzerland_qa_it
+- switzerland_qa_rm
+aggregate_metric_list:
+  - metric: acc
+metadata:
+  version: '1.0'

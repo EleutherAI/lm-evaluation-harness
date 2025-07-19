@@ -1,0 +1,18 @@
+group: multijail
+task:
+  - multijail_zh
+  - multijail_it
+  - multijail_vi
+  - multijail_ar
+  - multijail_ko
+  - multijail_th
+  - multijail_bn
+  - multijail_sw
+  - multijail_jv
+  - multijail_en
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

@@ -52,6 +52,7 @@ class WandbLogger:
 
         # pop the step key from the args to save for all logging calls
         self.step = self.wandb_args.pop("step", None)
+        self.consumed_tokens = self.wandb_args.pop("consumed_tokens", None)
 
         # initialize a W&B run
         if wandb.run is None:
@@ -60,6 +61,15 @@ class WandbLogger:
                 self.run.config.update(self.wandb_config_args)
         else:
             self.run = wandb.run
+
+        self.step_metrics = {"OptimizerStep": self.step}
+        if self.consumed_tokens is None:
+            step_metric_name = "OptimizerStep"
+        else:
+            step_metric_name = "ConsumedTokens"
+            self.step_metrics["ConsumedTokens"] = self.consumed_tokens
+        self.run.define_metric(step_metric_name)
+        self.run.define_metric("*", step_metric=step_metric_name)
 
         self.printer = get_wandb_printer()
 
@@ -159,11 +169,11 @@ class WandbLogger:
 
         # log the complete eval result to W&B Table
         table = make_table(["Tasks"] + columns, "results")
-        self.run.log({"evaluation/eval_results": table}, step=self.step)
+        self.run.log({"evaluation/eval_results": table, **self.step_metrics}, commit=True)
 
         if "groups" in self.results.keys():
             table = make_table(["Groups"] + columns, "groups")
-            self.run.log({"evaluation/group_eval_results": table}, step=self.step)
+            self.run.log({"evaluation/group_eval_results": table, **self.step_metrics}, commit=True)
 
     def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
@@ -187,7 +197,7 @@ class WandbLogger:
         # update wandb.run.summary with items that were removed
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
-        self.run.log(self.wandb_results, step=self.step)
+        self.run.log({**self.wandb_results, **self.step_metrics}, commit=True)
         # Log the evaluation metrics as W&B Table
         self._log_results_as_table()
         # Log the results dict as json to W&B Artifacts
@@ -336,7 +346,7 @@ class WandbLogger:
 
             # log the samples as a W&B Table
             df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
-            self.run.log({f"{task_name}_eval_results": df}, step=self.step)
+            self.run.log({f"{task_name}_eval_results": df, **self.step_metrics}, commit=True)
 
             # log the samples as a json file as W&B Artifact
             self._log_samples_as_artifact(eval_preds, task_name)
@@ -355,4 +365,4 @@ class WandbLogger:
                 # log the samples as a json file as W&B Artifact
                 self._log_samples_as_artifact(eval_preds, task_name)
 
-            self.run.log({f"{group}_eval_results": grouped_df}, step=self.step)
+            self.run.log({f"{group}_eval_results": grouped_df, **self.step_metrics}, commit=True)

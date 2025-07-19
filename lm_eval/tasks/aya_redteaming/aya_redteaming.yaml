@@ -1,0 +1,16 @@
+group: aya_redteaming
+task:
+  - aya_redteaming_arabic
+  - aya_redteaming_english
+  - aya_redteaming_filipino
+  - aya_redteaming_french
+  - aya_redteaming_hindi
+  - aya_redteaming_russian
+  - aya_redteaming_serbian
+  - aya_redteaming_spanish
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

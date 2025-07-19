@@ -1,0 +1,4 @@
+task: polyglotoxicityprompts_full_swedish
+include: ../_polyglotoxicityprompts_yaml
+dataset_name: ptp-sv
+test_split: full

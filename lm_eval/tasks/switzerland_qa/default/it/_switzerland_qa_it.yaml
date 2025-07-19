@@ -1,0 +1,12 @@
+group: switzerland_qa_it
+task:
+- switzerland_qa_it_geography
+- switzerland_qa_it_history
+- switzerland_qa_it_insurance
+- switzerland_qa_it_political_life
+- switzerland_qa_it_social_life
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: '1.0'
