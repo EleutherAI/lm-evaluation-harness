@@ -1,4 +1,4 @@
-dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
+dataset_path: cais/mmlu
 validation_split: validation
 fewshot_split: dev
 output_type: generate_until

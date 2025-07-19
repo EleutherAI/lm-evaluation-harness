@@ -71,3 +71,6 @@ switch to original implementation
 
 ver 2: PR #2116
 add missing newline in description.
+
+PR #3137
+Fix `mmlu_continuation` subgroup names to fit other variants, and switch dataset from `hails/mmlu_no_train` to `cais/mmlu` in all subtasks.
