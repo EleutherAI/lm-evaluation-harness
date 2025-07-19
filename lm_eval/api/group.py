@@ -1,13 +1,13 @@
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 
 @dataclass
 class AggMetricConfig(dict):
     metric: Optional[str] = None
     aggregation: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
+    weight_by_size: bool = False
     # list of filter names which should be incorporated into the aggregated metric.
     filter_list: Optional[Union[str, list]] = "none"
 
@@ -27,7 +27,7 @@ class GroupConfig(dict):
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
     aggregate_metric_list: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
+        Union[list[AggMetricConfig], AggMetricConfig, dict]
     ] = None
     version: Optional[str] = None
     metadata: Optional[dict] = (

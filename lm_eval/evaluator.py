@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import json
 import logging
@@ -5,7 +7,7 @@ import os
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import numpy as np
 import torch
@@ -49,7 +51,7 @@ eval_logger = logging.getLogger(__name__)
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: Optional[Union[str, dict]] = None,
+    model_args: Optional[Union[str, dict[str, Any]]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[Union[int, str]] = None,
@@ -420,7 +422,7 @@ def simple_evaluate(
 def evaluate(
     lm: "LM",
     task_dict,
-    limit: Optional[int] = None,
+    limit: int | float | None = None,
     samples: Optional[dict] = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
