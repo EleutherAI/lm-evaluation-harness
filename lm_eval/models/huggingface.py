@@ -99,6 +99,7 @@ class HFLM(TemplateLM):
         # end token for thinking, either the string or int token id.
         # splits to get response after this token (if provided).
         think_end_token: Union[str, int, None] = None,
+        chat_template_args: Optional[dict] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -238,6 +239,7 @@ class HFLM(TemplateLM):
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
+        self.chat_template_args = chat_template_args or {}
 
         self.add_bos_token = add_bos_token
         if "gemma" in getattr(self.config, "model_type", ""):
@@ -1483,6 +1485,7 @@ class HFLM(TemplateLM):
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
                 continue_final_message=not add_generation_prompt,
+                **self.chat_template_args,
             )
         except jinja2.exceptions.TemplateError:
             eval_logger.warning(
@@ -1494,6 +1497,7 @@ class HFLM(TemplateLM):
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
                 continue_final_message=not add_generation_prompt,
+                **self.chat_template_args,
             )
 
         return chat_templated

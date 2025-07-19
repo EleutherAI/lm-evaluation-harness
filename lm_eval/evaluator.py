@@ -69,6 +69,7 @@ def simple_evaluate(
     apply_chat_template: Union[bool, str] = False,
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Union[str, dict, None] = None,
+    chat_template_args: Union[str, dict, None] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity=None,
     predict_only: bool = False,
@@ -214,6 +215,12 @@ def simple_evaluate(
         if not gen_kwargs:
             gen_kwargs = None
 
+    if chat_template_args is not None:
+        if isinstance(chat_template_args, str):
+            chat_template_args = simple_parse_args_string(chat_template_args)
+        if not chat_template_args:
+            chat_template_args = None
+
     if isinstance(model, str):
         if model_args is None:
             eval_logger.warning("model_args not specified. Using defaults.")
@@ -229,6 +236,7 @@ def simple_evaluate(
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
                     "device": device,
+                    "chat_template_args": chat_template_args,
                 },
             )
 
@@ -242,6 +250,7 @@ def simple_evaluate(
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
                     "device": device,
+                    "chat_template_args": chat_template_args,
                 },
             )
     else:

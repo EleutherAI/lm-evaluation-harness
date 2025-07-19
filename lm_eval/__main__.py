@@ -226,6 +226,12 @@ def setup_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--chat_template_args",
+        default=None,
+        type=try_parse_json,
+        help="""Comma separated string or JSON formatted arguments for tokenizer.apply_chat_template(), e.g. `enable_thinking=False` or '{"enable_thinking":false}'""",
+    )
+    parser.add_argument(
         "--verbosity",
         "-v",
         type=str.upper,
@@ -342,6 +348,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.fewshot_as_multiturn and args.apply_chat_template is False:
         raise ValueError(
             "When `fewshot_as_multiturn` is selected, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
+        )
+
+    if args.chat_template_args and args.apply_chat_template is False:
+        raise ValueError(
+            "When `chat_template_args` are specified, `apply_chat_template` must be set (either to `True` or to the chosen template name)."
         )
 
     if args.include_path is not None:
@@ -469,6 +480,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         apply_chat_template=args.apply_chat_template,
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
+        chat_template_args=args.chat_template_args,
         task_manager=task_manager,
         predict_only=args.predict_only,
         random_seed=args.seed[0],

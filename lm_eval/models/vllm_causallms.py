@@ -136,6 +136,7 @@ class VLLM(TemplateLM):
         lora_local_path: str = None,
         # VLLM: enable thinking tags in the prompt.
         enable_thinking: bool = True,
+        chat_template_args: Optional[dict] = None,
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: Optional[str] = None,
         max_lora_rank: int = 16,
@@ -209,7 +210,10 @@ class VLLM(TemplateLM):
             add_bos_token=add_bos_token,
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
-        self.enable_thinking = enable_thinking
+        self.chat_template_args = chat_template_args or {}
+        self.enable_thinking = chat_template_args.pop(
+            "enable_thinking", enable_thinking
+        )
         self.add_bos_token = add_bos_token
         if "gemma" in pretrained.lower():
             self.add_bos_token = True
@@ -317,6 +321,7 @@ class VLLM(TemplateLM):
                 continue_final_message=not add_generation_prompt,
                 chat_template=self.hf_chat_template,
                 enable_thinking=self.enable_thinking,
+                **self.chat_template_args,
             )
         except jinja2.exceptions.TemplateError:
             eval_logger.warning(
@@ -329,6 +334,7 @@ class VLLM(TemplateLM):
                 continue_final_message=not add_generation_prompt,
                 chat_template=self.hf_chat_template,
                 enable_thinking=self.enable_thinking,
+                **self.chat_template_args,
             )
 
         return chat_templated
