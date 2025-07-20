@@ -9,6 +9,10 @@ Homepage: https://artofproblemsolving.com/wiki/index.php/AIME_Problems_and_Solut
 
 HF Dataset: https://artofproblemsolving.com/wiki/index.php/AIME_Problems_and_Solutions
 
+### Implementation
+
+The metric and regexes used are taken from the implementation of GSM8K, given the similarity of the tasks and the lack of paper corresponding to the AIME benchmark. An extra filter `no-filter` is added to provide a baseline evaluating the raw output of the model.
+
 ### Groups, Tags, and Tasks
 
 #### Groups
