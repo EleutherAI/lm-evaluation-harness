@@ -37,6 +37,28 @@ LANGUAGES = {
     "zh": "Chinese",
 }
 
+# Language-specific instructions for putting answers in boxed format, taken from the original paper (https://arxiv.org/pdf/2504.18428, Figure 8)
+LANGUAGE_INSTRUCTIONS = {
+    "en": "Note: Please put the final answer in the $\boxed{}$.",
+    "zh": "注意：请将最终答案放在 $\boxed{}$ 中。",
+    "ar": "ملاحظة: يُرجى وضع الإجابة النهائية في $\\boxed{}$.",
+    "bn": "ব িঃদ্রিঃ: অনুগ্রহ করে চূ ড়ান্ত উত্তেটি $\boxed{}$ এে মরযে ে়াখুন।",
+    "de": "Hinweis: Bitte setzen Sie die endgültige Antwort in $\boxed{}$.",
+    "es": "Nota: Por favor, coloque la respuesta final en el $\boxed{}$.",
+    "fr": "Remarque : Veuillez mettre la réponse finale dans le $\boxed{}$.",
+    "id": "Catatan: Silakan letakkan jawaban akhir di dalam $\boxed{}$.",
+    "it": "Nota: Per favore, metti la risposta finale nel $\boxed{}$.",
+    "ja": "注意：最終的な答えを $\boxed{}$ に入れてください。",
+    "ko": "참고: 최종 답안을 $\boxed{}$ 안에 넣어 주세요.",
+    "ms": "Nota: Sila letakkan jawapan akhir dalam $\boxed{}$.",
+    "pt": "Nota: Por favor, coloque a resposta final no $\boxed{}$.",
+    "ru": "Примечание: Пожалуйста, поместите окончательный ответ в $\boxed{}$.",
+    "sw": "Kumbuka: Tafadhali weka jibu la mwisho katika $\boxed{}$.",
+    "te": "గమనిక: దయచేసి తుది జవాబును $\boxed{}$ లో ఉంచండి.",
+    "th": "หมายเหตุ: กรุณาใส่ค าตอบสุดท้ายใน $\boxed{}$.",
+    "vi": "Lưu ý: Vui lòng đặt câu trả lời cuối cùng trong $\boxed{}$",
+}
+
 
 def create_individual_yaml(language: str, difficulty: str) -> dict:
     """Create YAML configuration for a specific language-difficulty pair."""
@@ -45,6 +67,8 @@ def create_individual_yaml(language: str, difficulty: str) -> dict:
         "include": "_polymath_yaml",
         "dataset_name": language,
         "test_split": difficulty,
+        "doc_to_text": "## Problem: {{question}}\n## Answer:\n"
+        + LANGUAGE_INSTRUCTIONS[language],
     }
 
 
@@ -65,7 +89,11 @@ def create_language_group(language: str) -> dict:
                 "metric": "exact_match",
                 "aggregation": "mean",
                 "weight_by_size": True,
-                "filter_list": ["no-filter", "flexible-extract", "strict-match"],
+                "filter_list": [
+                    "no-filter",
+                    "flexible-extract",
+                    "boxed-extract",
+                ],
             }
         ],
         "metadata": {"version": "1.0"},
@@ -84,7 +112,11 @@ def create_difficulty_group(difficulty: str) -> dict:
                 "metric": "exact_match",
                 "aggregation": "mean",
                 "weight_by_size": True,
-                "filter_list": ["no-filter", "flexible-extract", "strict-match"],
+                "filter_list": [
+                    "no-filter",
+                    "flexible-extract",
+                    "boxed-extract",
+                ],
             }
         ],
         "metadata": {"version": "1.0"},
@@ -102,7 +134,11 @@ def create_main_group() -> dict:
                 "metric": "exact_match",
                 "aggregation": "mean",
                 "weight_by_size": True,
-                "filter_list": ["no-filter", "flexible-extract", "strict-match"],
+                "filter_list": [
+                    "no-filter",
+                    "flexible-extract",
+                    "boxed-extract",
+                ],
             }
         ],
         "metadata": {

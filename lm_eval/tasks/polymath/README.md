@@ -25,7 +25,11 @@ PolyMath is a multilingual mathematical reasoning benchmark covering 18 language
 
 ### Implementation
 
+With respect to the evaluation prompt, the authors state:
 
+> Prompts. In addition to the original input problem Q, we append the instruction “Note: Please put the final answer in $\boxed{}$.” after it to help extract the final answer. Each language uses its own version of this instruction, as detailed in Appendix C.2.
+
+In this implementation, the evaluation prompt follows the format shown in the original paper (## Problem: {{question}}\n## Answer:\n) and the instruction for the answer format in each language is taken from Figure 8 of the original paper.
 
 ### Groups, Tags, and Tasks
 

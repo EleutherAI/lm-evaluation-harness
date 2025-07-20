@@ -12,6 +12,6 @@ aggregate_metric_list:
   filter_list:
   - no-filter
   - flexible-extract
-  - strict-match
+  - boxed-extract
 metadata:
   version: '1.0'
