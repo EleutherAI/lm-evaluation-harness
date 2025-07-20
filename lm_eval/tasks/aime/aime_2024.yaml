@@ -1,0 +1,3 @@
+task: aime_2024
+include: _aime_yaml
+process_docs: !function utils.process_2024
