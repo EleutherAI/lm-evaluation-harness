@@ -1,6 +1,7 @@
 import itertools
 import json
 import logging
+import os
 import random
 import time
 from collections import defaultdict
@@ -29,6 +30,7 @@ from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_comm
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     handle_non_serializable,
+    hash_dict_images,
     hash_string,
     positional_deprecated,
     setup_logging,
@@ -140,7 +142,6 @@ def simple_evaluate(
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
-
     return
         Dictionary of results
     """
@@ -153,15 +154,23 @@ def simple_evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
 
+    _NEEDS_CHAT_TEMPLATE = ("inst", "chat")
     if (
-        (isinstance(model_args, str) and "inst" in model_args.lower())
+        (
+            isinstance(model_args, str)
+            and any(kw in model_args.lower() for kw in _NEEDS_CHAT_TEMPLATE)
+        )
         or (
             isinstance(model_args, dict)
-            and any("inst" in str(v).lower() for v in model_args.values())
+            and any(
+                any(kw in str(v).lower() for kw in _NEEDS_CHAT_TEMPLATE)
+                for v in model_args.values()
+            )
         )
     ) and not apply_chat_template:
         eval_logger.warning(
-            "Model appears to be an instruct variant but chat template is not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+            "Model appears to be an instruct or chat variant but chat template is not applied. "
+            "Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
         )
 
     if delete_requests_cache:
@@ -747,6 +756,13 @@ def evaluate(
             },
         }
         if log_samples:
+            # default: hash images
+            samples = (
+                hash_dict_images(samples)
+                if os.environ.get("LMEVAL_HASHMM", "1") != "0"
+                and (hasattr(lm, "MULTIMODAL"))
+                else samples
+            )
             results_dict["samples"] = dict(samples)
 
         return results_dict

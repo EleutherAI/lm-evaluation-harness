@@ -7,16 +7,6 @@ from functools import partial
 from pathlib import Path
 from typing import Union
 
-from lm_eval import evaluator, utils
-from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.loggers import EvaluationTracker, WandbLogger
-from lm_eval.tasks import TaskManager
-from lm_eval.utils import (
-    handle_non_serializable,
-    make_table,
-    simple_parse_args_string,
-)
-
 
 def try_parse_json(value: str) -> Union[str, dict, None]:
     if value is None:
@@ -314,6 +304,17 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         parser = setup_parser()
         args = parse_eval_args(parser)
 
+    # defer loading `lm_eval` submodules for faster CLI load
+    from lm_eval import evaluator, utils
+    from lm_eval.evaluator import request_caching_arg_to_dict
+    from lm_eval.loggers import EvaluationTracker, WandbLogger
+    from lm_eval.tasks import TaskManager
+    from lm_eval.utils import (
+        handle_non_serializable,
+        make_table,
+        simple_parse_args_string,
+    )
+
     if args.wandb_args:
         wandb_args_dict = simple_parse_args_string(args.wandb_args)
         wandb_config_args_dict = simple_parse_args_string(args.wandb_config_args)
@@ -435,7 +436,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
-        args.model_args = args.model_args + ",trust_remote_code=True"
+        if isinstance(args.model_args, dict):
+            args.model_args["trust_remote_code"] = True
+        else:
+            args.model_args = args.model_args + ",trust_remote_code=True"
     (
         eval_logger.info(f"Selected Tasks: {task_names}")
         if eval_logger.getEffectiveLevel() >= logging.INFO

@@ -1,0 +1,7 @@
+"dataset_name": "jurisprudence"
+"include": "_default_egymmlu_template_yaml"
+"tag":
+- "egymmlu_humanities_tasks"
+- "egymmlu_mmlu_tasks"
+"task": "egymmlu_jurisprudence"
+"task_alias": "jurisprudence"
