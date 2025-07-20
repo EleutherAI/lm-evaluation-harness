@@ -19,7 +19,7 @@ def load_dataset(filename="data/dataset.yaml"):
         return yaml.safe_load(f)
 
 
-def convert_yaml_to_hfdataset(yaml_file = "data/dataset.yaml", output_dir = "data/hf_dataset"):
+def convert_yaml_to_hfdataset(data):
     """
     Convert a YAML file to a Hugging Face Dataset format.
 
@@ -28,8 +28,6 @@ def convert_yaml_to_hfdataset(yaml_file = "data/dataset.yaml", output_dir = "dat
         output_dir (str): Directory where the output dataset will be saved.
     """
     
-    # Load the YAML file
-    data = load_dataset(filename=yaml_file)
         
     # Convert the data to a pandas DataFrame
     df = pd.DataFrame(data)
@@ -38,11 +36,17 @@ def convert_yaml_to_hfdataset(yaml_file = "data/dataset.yaml", output_dir = "dat
     df['rules_letter_must_be_in'] = df['rules_letter_must_be_in'].astype(str)
     hf_dataset = Dataset.from_pandas(df)
     #hf_dataset = Dataset.from_dict(hf_dataset.to_dict())
+    return hf_dataset
+    
+    
+
+if __name__ == "__main__":
+    yaml_file = "data/dataset.yaml"
+    output_dir = "data/hf_dataset"
+    # Load the YAML file
+    data = load_dataset(filename=yaml_file)
+    hf_datasetconvert_yaml_to_hfdataset(data)
     
     # Save the dataset to the specified output directory
     hf_dataset.save_to_disk(output_dir)
     print(f"Dataset saved to {output_dir}")
-    
-
-if __name__ == "__main__":
-    convert_yaml_to_hfdataset()

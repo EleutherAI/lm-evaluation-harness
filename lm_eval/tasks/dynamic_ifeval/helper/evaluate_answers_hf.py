@@ -94,7 +94,6 @@ def average_success_rates(success_rates):
     evaluation_results = {}
     for model_name, success_rates_matrix in success_rates.items():
         evaluation_results[model_name] = [sum(row)/len(row) for row in success_rates_matrix]
-        #print(f"len(evaluation_results[{model_name}]) = {len(evaluation_results[model_name])}")
     return evaluation_results
 
 
@@ -107,7 +106,7 @@ def evaluate_answers():
     
     evaluation_results = average_success_rates(success_rates)
     save_evaluation_results_to_yaml(evaluation_results=evaluation_results)
-    
-    
+
+
 if __name__ == "__main__":
     evaluate_answers()

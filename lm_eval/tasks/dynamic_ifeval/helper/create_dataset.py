@@ -131,7 +131,10 @@ def generate_tests(dataset, texts, rules, number_tests_per_setup, update_rules=N
     return dataset
 
 
-def create_dataset(texts):
+def create_dataset(texts, seed=42):
+    random.seed(seed)  # For reproducibility
+    
+
     number_tests_per_setup = 20
     
     dataset = []
@@ -171,12 +174,6 @@ def create_dataset(texts):
     
     dataset = generate_tests(dataset, texts, mixed_rules, number_tests_per_setup, lambda rules : sample_count_rules(rules, randomize_mixed_rules))
     
-    return dataset
-
-
-def save_dataset(dataset, filename="data/dataset.yaml"):
-    yaml.add_representer(tuple, tuple_representer)
-    yaml.add_constructor(u'tag:yaml.org,2002:python/tuple', tuple_constructor)
     # Convert each tuple in the dataset to a dictionary for YAML serialization
     data_to_save = []
     for prompt, rules, rules_letter_must_be_in, count_number, sum_characters_value in dataset:
@@ -187,6 +184,13 @@ def save_dataset(dataset, filename="data/dataset.yaml"):
             "count_number": make_serializable(count_number),
             "sum_characters_value": sum_characters_value
         })
+    
+    return data_to_save
+
+
+def save_dataset(data_to_save, filename="data/dataset.yaml"):
+    yaml.add_representer(tuple, tuple_representer)
+    yaml.add_constructor(u'tag:yaml.org,2002:python/tuple', tuple_constructor)
         
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     
