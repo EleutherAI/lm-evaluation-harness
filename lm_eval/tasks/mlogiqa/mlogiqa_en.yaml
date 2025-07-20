@@ -1,0 +1,3 @@
+task: mlogiqa_en
+include: _mlogiqa_yaml
+dataset_name: en

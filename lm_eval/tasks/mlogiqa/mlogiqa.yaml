@@ -1,0 +1,21 @@
+group: mlogiqa
+task:
+  - mlogiqa_ar
+  - mlogiqa_en
+  - mlogiqa_es
+  - mlogiqa_fr
+  - mlogiqa_ja
+  - mlogiqa_ko
+  - mlogiqa_pt
+  - mlogiqa_th
+  - mlogiqa_vi
+  - mlogiqa_zh
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
