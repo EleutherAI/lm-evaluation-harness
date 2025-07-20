@@ -29,7 +29,32 @@ With respect to the evaluation prompt, the authors state:
 
 > Prompts. In addition to the original input problem Q, we append the instruction “Note: Please put the final answer in $\boxed{}$.” after it to help extract the final answer. Each language uses its own version of this instruction, as detailed in Appendix C.2.
 
-In this implementation, the evaluation prompt follows the format shown in the original paper (## Problem: {{question}}\n## Answer:\n) and the instruction for the answer format in each language is taken from Figure 8 of the original paper.
+In this implementation, the evaluation prompt follows the format shown in appendix examples of the original paper (## Problem: {{question}}\n## Answer:\n) and the instruction for the answer format in each language is taken from Figure 8 of the original paper.
+
+With respect to the evaluation metric, the authors state:
+
+> At each level, we obtain an accuracy (ACC) result for each model and language, corresponding to the pass@1 metric. 
+
+Finally, for the aggregation, the authors introduce the Difficulty-Weighted Accuracy (DWACC):
+
+> This metric assigns level-specific weights w1, w2, w3, w4 to each problem from the low/medium/high/top level, respectively. The weights double at each ascending level: By default, we set w1 = 1, leading to w2 = 2, w3 = 4, w4 = 8. This means that solving eight low-level problems is equivalent to solving a single top-level problem in terms of contribution to the final score.
+
+The DWACC formula is defined as:
+
+```
+DWACC = (w₁a₁ + w₂a₂ + w₃a₃ + w₄a₄) / (w₁ + w₂ + w₃ + w₄)
+```
+
+Where:
+- a₁, a₂, a₃, a₄ are the accuracy scores at each difficulty level (low, medium, high, top)
+- w₁, w₂, w₃, w₄ are the corresponding weights (1, 2, 4, 8)
+
+Since the weights sum to 15 (1 + 2 + 4 + 8 = 15), this can also be written as:
+
+```
+DWACC = (a₁ + 2a₂ + 4a₃ + 8a₄) / 15
+```
+
 
 ### Groups, Tags, and Tasks
 
