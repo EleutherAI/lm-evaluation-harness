@@ -61,7 +61,12 @@ def create_language_group(language: str) -> dict:
             f"polymath_{language}_top",
         ],
         "aggregate_metric_list": [
-            {"metric": "exact_match", "aggregation": "mean", "weight_by_size": True}
+            {
+                "metric": "exact_match",
+                "aggregation": "mean",
+                "weight_by_size": True,
+                "filter_list": ["no-filter", "flexible-extract", "strict-match"],
+            }
         ],
         "metadata": {"version": "1.0"},
     }
@@ -75,7 +80,12 @@ def create_difficulty_group(difficulty: str) -> dict:
         "group_alias": f"PolyMath {difficulty_name}",
         "task": [f"polymath_{lang}_{difficulty}" for lang in LANGUAGES.keys()],
         "aggregate_metric_list": [
-            {"metric": "exact_match", "aggregation": "mean", "weight_by_size": True}
+            {
+                "metric": "exact_match",
+                "aggregation": "mean",
+                "weight_by_size": True,
+                "filter_list": ["no-filter", "flexible-extract", "strict-match"],
+            }
         ],
         "metadata": {"version": "1.0"},
     }
@@ -88,7 +98,12 @@ def create_main_group() -> dict:
         "group_alias": "PolyMath",
         "task": [f"polymath_{lang}" for lang in LANGUAGES],
         "aggregate_metric_list": [
-            {"metric": "exact_match", "aggregation": "mean", "weight_by_size": True}
+            {
+                "metric": "exact_match",
+                "aggregation": "mean",
+                "weight_by_size": True,
+                "filter_list": ["no-filter", "flexible-extract", "strict-match"],
+            }
         ],
         "metadata": {
             "version": "1.0",

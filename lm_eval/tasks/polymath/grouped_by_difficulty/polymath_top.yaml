@@ -23,5 +23,9 @@ aggregate_metric_list:
 - metric: exact_match
   aggregation: mean
   weight_by_size: true
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - strict-match
 metadata:
   version: '1.0'
