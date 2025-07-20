@@ -8,6 +8,15 @@ Large language models (LLMs) demonstrate exceptional performance on complex reas
 
 Homepage: https://huggingface.co/datasets/HAERAE-HUB/HRM8K
 
+### Evaluation Settings (Default)
+
+Unless otherwise noted, we follow the paper (Appendix B) and set  
+
+* **Sampling temperature:** `0.7`  
+* **Top‑p:** `0.95`  
+* **Output length:** *min* `8` tokens, *max* `2 048` tokens (`max_gen_toks`)
+
+These values supersede the previous hard limit of `512` tokens.
 
 ### Citation
 
