@@ -1,0 +1,13 @@
+group: polymath_de
+group_alias: PolyMath German
+task:
+- polymath_de_low
+- polymath_de_medium
+- polymath_de_high
+- polymath_de_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+metadata:
+  version: '1.0'

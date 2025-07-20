@@ -1,0 +1,13 @@
+group: polymath_zh
+group_alias: PolyMath Chinese
+task:
+- polymath_zh_low
+- polymath_zh_medium
+- polymath_zh_high
+- polymath_zh_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+metadata:
+  version: '1.0'

@@ -1,0 +1,4 @@
+task: polymath_ms_high
+include: _polymath_yaml
+dataset_name: ms
+test_split: high

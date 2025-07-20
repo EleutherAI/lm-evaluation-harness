@@ -1,0 +1,4 @@
+task: polymath_ru_top
+include: _polymath_yaml
+dataset_name: ru
+test_split: top

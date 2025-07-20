@@ -1,0 +1,13 @@
+group: polymath_es
+group_alias: PolyMath Spanish
+task:
+- polymath_es_low
+- polymath_es_medium
+- polymath_es_high
+- polymath_es_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+metadata:
+  version: '1.0'

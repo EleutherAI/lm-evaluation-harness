@@ -1,0 +1,13 @@
+group: polymath_te
+group_alias: PolyMath Telugu
+task:
+- polymath_te_low
+- polymath_te_medium
+- polymath_te_high
+- polymath_te_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+metadata:
+  version: '1.0'

@@ -1,0 +1,13 @@
+group: polymath_ar
+group_alias: PolyMath Arabic
+task:
+- polymath_ar_low
+- polymath_ar_medium
+- polymath_ar_high
+- polymath_ar_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+metadata:
+  version: '1.0'

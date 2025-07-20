@@ -1,0 +1,4 @@
+task: polymath_vi_high
+include: _polymath_yaml
+dataset_name: vi
+test_split: high

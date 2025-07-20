@@ -1,0 +1,4 @@
+task: polymath_ru_medium
+include: _polymath_yaml
+dataset_name: ru
+test_split: medium

@@ -1,0 +1,13 @@
+group: polymath_ms
+group_alias: PolyMath Malay
+task:
+- polymath_ms_low
+- polymath_ms_medium
+- polymath_ms_high
+- polymath_ms_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+metadata:
+  version: '1.0'

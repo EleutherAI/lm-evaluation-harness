@@ -1,0 +1,4 @@
+task: polymath_te_medium
+include: _polymath_yaml
+dataset_name: te
+test_split: medium

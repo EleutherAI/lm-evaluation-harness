@@ -1,0 +1,4 @@
+task: polymath_vi_top
+include: _polymath_yaml
+dataset_name: vi
+test_split: top
