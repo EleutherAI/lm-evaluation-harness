@@ -167,20 +167,24 @@ def get_aggregation(name: str) -> Callable[..., Any] | None:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name: str) -> Callable[[], dict[str, Callable]] | None:
+def get_metric_aggregation(name: str) -> Callable[[], dict[str, Callable[..., Any]]]:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
-        eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
+        eval_logger.warning(
+            f"{name} metric is not assigned a default aggregation!. Using default aggregation mean"
+        )
+        return AGGREGATION_REGISTRY["mean"]
 
 
-def is_higher_better(metric_name: str) -> bool | None:
+def is_higher_better(metric_name: str) -> bool:
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
         eval_logger.warning(
-            f"higher_is_better not specified for metric '{metric_name}'!"
+            f"higher_is_better not specified for metric '{metric_name}'!. Will default to True."
         )
+        return True
 
 
 def register_filter(name: str):
