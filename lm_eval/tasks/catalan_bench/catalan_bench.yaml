@@ -6,6 +6,7 @@ task:
     - copa_ca
     - openbookqa_ca
     - parafraseja
+    - eqbench_ca
     - paws_ca
     - piqa_ca
     - siqa_ca
