@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Any
@@ -12,7 +12,7 @@ class MetricConfig:
 
     name: str
     fn: Callable | None = None
-    kwargs: dict | None = None
+    kwargs: Mapping[str, Any] | None = None
     aggregation_fn: Callable | None = None
     higher_is_better: bool = True
     hf_evaluate: bool = False
@@ -23,7 +23,7 @@ class MetricConfig:
         return self.name
 
     @cached_property
-    def aggregation(self) -> Callable:
+    def aggregation(self) -> Callable[..., Any] | None:
         from lm_eval.api.registry import get_aggregation
 
         if self.aggregation_fn is None:
@@ -31,7 +31,7 @@ class MetricConfig:
         return self.aggregation_fn
 
     @cached_property
-    def _higher_is_better(self) -> bool:
+    def _higher_is_better(self) -> bool | None:
         from lm_eval.api.registry import is_higher_better
 
         if self.higher_is_better is None:
@@ -42,7 +42,7 @@ class MetricConfig:
         """Calculates the metric using the provided function and arguments."""
         if self.fn is None:
             raise ValueError(f"Metric function for {self.name} is not defined.")
-        return self.fn(*args, **{**self.kwargs, **kwargs})
+        return self.fn(*args, **{**(self.kwargs or {}), **kwargs})
 
     def compute_aggregation(self, values: list[Any]) -> Any:
         """Computes the aggregation of the metric values."""

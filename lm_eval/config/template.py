@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING, Callable
 
 
 if TYPE_CHECKING:
@@ -11,19 +13,19 @@ class TemplateConfig:
     """Encapsulates information about a template."""
 
     template: str
-    doc_to_text: Union[str, Callable[[dict], str]]
-    doc_to_choice: Union[str, list, Callable[[dict], list]]
-    doc_to_target: Union[int, Callable[[dict], int]]
+    doc_to_text: str | Callable[[dict], str]
+    doc_to_choice: str | list | Callable[[dict], list]
+    doc_to_target: int | Callable[[dict], int]
     description: str
     context_prefix: str
     prefix_delimiter: str
     context_delimiter: str
     answer_suffix: str
     target_delimiter: str
-    choice_format: Optional[str]
-    choice_delimiter: Optional[str]
+    choice_format: str | None
+    choice_delimiter: str | None
     fewshot_delimiter: str
-    metric_list: Optional[Union[list[str], list["MetricConfig"]]] = field(
+    metric_list: list[str] | list[MetricConfig] | None = field(
         default_factory=lambda: ["acc", "acc_norm"]
     )
 
@@ -40,19 +42,19 @@ class MCQTemplateConfig:
     Answer:` doc_to_choice(doc)` for each choice.
     """
 
-    doc_to_text: Union[str, Callable[[dict], str]]
-    doc_to_choice: Union[str, list, Callable[[dict], list]]
-    doc_to_target: Union[int, Callable[[dict], int]]
+    doc_to_text: str | Callable[[dict], str]
+    doc_to_choice: str | list | Callable[[dict], list]
+    doc_to_target: int | Callable[[dict], int]
     template = "mcq"
     context_prefix: str = "Question:"
     prefix_delimiter: str = " "
     context_delimiter: str = "\n"
     answer_suffix: str = "Answer:"
     target_delimiter: str = "\n"
-    choice_format: Optional[str] = "letters"
-    choice_delimiter: Optional[str] = "\n"
+    choice_format: str | None = "letters"
+    choice_delimiter: str | None = "\n"
     fewshot_delimiter: str = "\n\n"
-    metric_list: Optional[list["MetricConfig"]] = field(default_factory=lambda: ["acc"])
+    metric_list: list[MetricConfig] | None = field(default_factory=lambda: ["acc"])
 
 
 @dataclass
@@ -63,9 +65,9 @@ class ClozeTemplateConfig:
     Answer:` <doc_to_target(doc)>`
     """
 
-    doc_to_text: Union[str, Callable[[dict], str]]
-    doc_to_choice: Union[str, list, Callable[[dict], list]]
-    doc_to_target: Union[int, Callable[[dict], int]]
+    doc_to_text: str | Callable[[dict], str]
+    doc_to_choice: str | list | Callable[[dict], list]
+    doc_to_target: int | Callable[[dict], int]
     template: str = "cloze"
     description: str = ""
     context_prefix: str = "Question:"
@@ -73,9 +75,9 @@ class ClozeTemplateConfig:
     context_delimiter: str = "\n"
     answer_suffix: str = "Answer:"
     target_delimiter: str = " "
-    choice_format: Optional[str] = None
-    choice_delimiter: Optional[str] = None
+    choice_format: str | None = None
+    choice_delimiter: str | None = None
     fewshot_delimiter: str = "\n\n"
-    metric_list: Optional[list["MetricConfig"]] = field(
+    metric_list: list[MetricConfig] | None = field(
         default_factory=lambda: ["acc", "acc_norm"]
     )

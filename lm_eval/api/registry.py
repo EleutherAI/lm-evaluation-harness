@@ -160,7 +160,7 @@ def register_aggregation(name: str):
     return decorate
 
 
-def get_aggregation(name: str) -> Callable[[], dict[str, Callable]] | None:
+def get_aggregation(name: str) -> Callable[..., Any] | None:
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:

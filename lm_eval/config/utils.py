@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from inspect import getsource
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
 
 def serialize_callable(
-    value: Union[Callable[..., Any], str], keep_callable=False
-) -> Union[Callable[..., Any], str]:
+    value: Callable[..., Any] | str, keep_callable=False
+) -> Callable[..., Any] | str:
     """Serializes a given function or string.
 
     If 'keep_callable' is True, the original callable is returned.
@@ -20,9 +22,7 @@ def serialize_callable(
             return str(value)
 
 
-def maybe_serialize(
-    val: Union[Callable, Any], keep_callable=False
-) -> Union[Callable, Any]:
+def maybe_serialize(val: Callable | Any, keep_callable=False) -> Callable | Any:
     """Conditionally serializes a value if it is callable."""
 
     return (

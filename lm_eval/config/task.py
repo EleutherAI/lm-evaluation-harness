@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import logging
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Callable
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
@@ -20,8 +23,8 @@ class RepeatConfig:
     """Encapsulates information about a single repeat."""
 
     repeats: int = 1
-    metric_fn: Union[str, Callable] = "pass@N"
-    kwargs: Optional[dict] = field(default_factory=dict)
+    metric_fn: str | Callable = "pass@N"
+    kwargs: dict | None = field(default_factory=dict)
 
 
 @dataclass
@@ -38,11 +41,11 @@ class FewshotConfig:
     # hack: this returns task.config.num_fewshot
     # to keep in sync as it is runtime-modified
     num_fewshot: Callable[[], int]
-    split: Optional[str] = None
-    sampler: Union[str, Callable] = "default"
-    samples: Union[Callable[[], list[dict]], list[dict], None] = None
-    process_docs: Optional[Callable[[list[dict]], Iterable[dict]]] = None
-    fewshot_indices: Optional[list[int]] = None
+    split: str | None = None
+    sampler: str | Callable = "default"
+    samples: Callable[[], list[dict]] | list[dict] | None = None
+    process_docs: Callable[[list[dict]], Iterable[dict]] | None = None
+    fewshot_indices: list[int] | None = None
     rnd: int = field(init=False, default=False)
 
     def __post_init__(self) -> None:
@@ -65,22 +68,20 @@ class FewshotConfig:
 
     def _get_raw_docs(
         self, dataset
-    ) -> Union[list[dict], Callable[[], Iterable[dict]], None]:
+    ) -> list[dict] | Callable[[], Iterable[dict]] | None:
         """Get raw documents from configured source."""
         if self.split is not None:
             return dataset[self.split]
 
         if self.samples is not None:
-            if isinstance(self.samples, list):
-                return self.samples
-            elif callable(self.samples):
+            if isinstance(self.samples, list) or callable(self.samples):
                 return self.samples
             else:
                 raise TypeError(
                     "samples must be either a list of dicts or a callable returning a list"
                 )
 
-    def get_docs(self, dataset) -> Optional[Iterable[dict]]:
+    def get_docs(self, dataset) -> Iterable[dict] | None:
         """Get processed documents from configured source."""
         raw_docs = self._get_raw_docs(dataset)
         if raw_docs is None:
@@ -100,8 +101,8 @@ class FewshotConfig:
             return self.sampler
 
     def init_sampler(
-        self, docs: list[dict], task: "Task", rnd=None, fewshot_indices=None
-    ) -> "ContextSampler":
+        self, docs: list[dict], task: Task, rnd=None, fewshot_indices=None
+    ) -> ContextSampler:
         """Initialize the sampler with the given documents and task."""
         if rnd is None:
             raise ValueError(
@@ -120,49 +121,49 @@ class FewshotConfig:
 @dataclass
 class TaskConfig(dict):
     # task naming/registry
-    task: Optional[str] = None
-    task_alias: Optional[str] = None
-    tag: Optional[Union[str, list]] = None
+    task: str | None = None
+    task_alias: str | None = None
+    tag: str | list | None = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Optional[Callable] = None
-    dataset_path: Optional[str] = None
-    dataset_name: Optional[str] = None
-    dataset_kwargs: Optional[dict] = field(default_factory=dict)
-    training_split: Optional[str] = None
-    validation_split: Optional[str] = None
-    test_split: Optional[str] = None
-    fewshot_split: Optional[str] = (
+    custom_dataset: Callable | None = None
+    dataset_path: str | None = None
+    dataset_name: str | None = None
+    dataset_kwargs: dict | None = field(default_factory=dict)
+    training_split: str | None = None
+    validation_split: str | None = None
+    test_split: str | None = None
+    fewshot_split: str | None = (
         None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    process_docs: Optional[Callable] = None
-    doc_to_text: Optional[Union[Callable, str]] = None
-    doc_to_target: Optional[Union[Callable, str]] = None
-    doc_to_image: Union[Callable, str, None] = None
-    doc_to_audio: Union[Callable, str, None] = None
+    process_docs: Callable | None = None
+    doc_to_text: Callable | str | None = None
+    doc_to_target: Callable | str | None = None
+    doc_to_image: Callable | str | None = None
+    doc_to_audio: Callable | str | None = None
     unsafe_code: bool = False
-    doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
-    process_results: Optional[Union[Callable, str]] = None
-    use_prompt: Optional[str] = None
+    doc_to_choice: Callable | str | dict | list | None = None
+    process_results: Callable | str | None = None
+    use_prompt: str | None = None
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
-    fewshot_config: Optional[dict] = None
+    fewshot_config: dict | None = None
     # runtime configuration options
-    num_fewshot: Optional[int] = 0
-    generation_kwargs: Optional[dict] = None
+    num_fewshot: int | None = 0
+    generation_kwargs: dict | None = None
     # scoring options
-    metric_list: Optional[list] = None
+    metric_list: list | None = None
     output_type: OutputType = "generate_until"
     repeats: int = 1
-    filter_list: Optional[list[dict]] = None
+    filter_list: list[dict] | None = None
     should_decontaminate: bool = False
-    doc_to_decontamination_query: Optional[str] = None
-    gen_prefix: Optional[str] = None
-    metadata: Optional[dict] = field(
+    doc_to_decontamination_query: str | None = None
+    gen_prefix: str | None = None
+    metadata: dict | None = field(
         default_factory=dict
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
@@ -215,9 +216,7 @@ class TaskConfig(dict):
             fewshot_indices=_fewshot_cfg.get("fewshot_indices", None),
         )
 
-    def _get_metric(
-        self, metric_list: Optional[list[dict]] = None
-    ) -> list["MetricConfig"]:
+    def _get_metric(self, metric_list: list[dict] | None = None) -> list[MetricConfig]:
         from lm_eval.api.registry import (
             AGGREGATION_REGISTRY,
             DEFAULT_METRIC_REGISTRY,
@@ -314,7 +313,7 @@ class TaskConfig(dict):
         return metrics
 
     @property
-    def get_filters(self) -> list["FilterConfig"]:
+    def get_filters(self) -> list[FilterConfig]:
         from lm_eval.filters import build_filter_ensemble
 
         if not self.filter_list:
@@ -354,7 +353,7 @@ class TaskConfig(dict):
             return x
 
     @classmethod
-    def from_yaml(cls, data: dict) -> "TaskConfig":
+    def from_yaml(cls, data: dict) -> TaskConfig:
         """Create a TaskConfig instance from a YAML-like dictionary."""
         return cls(**data)
 
