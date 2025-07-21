@@ -12,7 +12,6 @@ import sacrebleu
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
-
 T = TypeVar("T")
 
 eval_logger = logging.getLogger(__name__)
@@ -586,9 +585,9 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
-    assert metrics is not None, (
-        "Need to pass a list of each subtask's metric for this stderr aggregation"
-    )
+    assert (
+        metrics is not None
+    ), "Need to pass a list of each subtask's metric for this stderr aggregation"
     assert len(stderrs) == len(sizes) and len(sizes) == len(metrics)
 
     # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1390 for more documentation.
@@ -627,3 +626,19 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
     assert len(metrics) == len(sizes)
 
     return sum([metric * size for metric, size in zip(metrics, sizes)]) / sum(sizes)
+
+
+@register_aggregation("dwacc")
+def dwacc_aggregation(arr):
+    """
+    Difficulty-Weighted Accuracy (DWACC) aggregation for PolyMath.
+    Expects a list of 4 accuracy values: [low, medium, high, top].
+    DWACC = (a1 + 2*a2 + 4*a3 + 8*a4) / 15
+    """
+    if len(arr) != 4:
+        raise ValueError(
+            f"DWACC aggregation expects 4 values (low, medium, high, top), got {len(arr)}: {arr}"
+        )
+    weights = [1, 2, 4, 8]
+    weighted_sum = sum(w * a for w, a in zip(weights, arr))
+    return weighted_sum / 15

@@ -87,8 +87,8 @@ def create_language_group(language: str) -> dict:
         "aggregate_metric_list": [
             {
                 "metric": "exact_match",
-                "aggregation": "mean",
-                "weight_by_size": True,
+                "aggregation": "dwacc",
+                "weight_by_size": False,
                 "filter_list": [
                     "no-filter",
                     "flexible-extract",

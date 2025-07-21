@@ -15,7 +15,6 @@ from lm_eval.api.metrics import (
 from lm_eval.api.task import Task
 from lm_eval.utils import positional_deprecated
 
-
 eval_logger = logging.getLogger(__name__)
 
 
@@ -116,9 +115,11 @@ class TaskOutput:
             if isinstance(bootstrap_iters, int):
                 stderr_fn = stderr_for_metric(
                     metric=agg_fn,
-                    bootstrap_iters=min(bootstrap_iters, 100)
-                    if metric in ["bleu", "chrf", "ter"]
-                    else bootstrap_iters,
+                    bootstrap_iters=(
+                        min(bootstrap_iters, 100)
+                        if metric in ["bleu", "chrf", "ter"]
+                        else bootstrap_iters
+                    ),
                 )
                 self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
@@ -248,9 +249,11 @@ def prepare_print_tasks(
         return dict(
             sorted(
                 task_dict.items(),
-                key=lambda item: item[0].group_name
-                if isinstance(item[0], ConfigurableGroup)
-                else item[0],
+                key=lambda item: (
+                    item[0].group_name
+                    if isinstance(item[0], ConfigurableGroup)
+                    else item[0]
+                ),
             )
         )
 
@@ -484,11 +487,17 @@ def consolidate_group_results(
                         # compute group's pooled metric and stderr
                         if metric_config["aggregation"] == "mean":
                             aggregate_fn = aggregate_subtask_metrics
+                        elif metric_config["aggregation"] == "dwacc":
+                            from lm_eval.api.metrics import dwacc_aggregation
+
+                            aggregate_fn = lambda metrics, sizes, weight_by_size: dwacc_aggregation(
+                                metrics
+                            )
                         elif callable(metric_config["aggregation"]):
                             aggregate_fn = metric_config["aggregation"]
                         else:
                             raise ValueError(
-                                f"Currently, only 'mean' is supported for automatically aggregating scores across groups' subtasks. Got '{metric_config['aggregation']}' for group '{group_or_task}'"
+                                f"Currently, only 'mean' and 'dwacc' are supported for automatically aggregating scores across groups' subtasks. Got '{metric_config['aggregation']}' for group '{group_or_task}'"
                             )
 
                         results[group_or_task][metric] = aggregate_fn(

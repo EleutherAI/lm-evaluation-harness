@@ -35,6 +35,8 @@ With respect to the evaluation metric, the authors state:
 
 > At each level, we obtain an accuracy (ACC) result for each model and language, corresponding to the pass@1 metric. 
 
+We use the `exact_match` metric to evaluate the accuracy of the model's output.
+
 Finally, for the aggregation, the authors introduce the Difficulty-Weighted Accuracy (DWACC):
 
 > This metric assigns level-specific weights w1, w2, w3, w4 to each problem from the low/medium/high/top level, respectively. The weights double at each ascending level: By default, we set w1 = 1, leading to w2 = 2, w3 = 4, w4 = 8. This means that solving eight low-level problems is equivalent to solving a single top-level problem in terms of contribution to the final score.
@@ -54,7 +56,6 @@ Since the weights sum to 15 (1 + 2 + 4 + 8 = 15), this can also be written as:
 ```
 DWACC = (a₁ + 2a₂ + 4a₃ + 8a₄) / 15
 ```
-
 
 ### Groups, Tags, and Tasks
 

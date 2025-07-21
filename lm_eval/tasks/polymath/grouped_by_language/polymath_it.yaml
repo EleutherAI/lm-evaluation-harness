@@ -7,8 +7,8 @@ task:
 - polymath_it_top
 aggregate_metric_list:
 - metric: exact_match
-  aggregation: mean
-  weight_by_size: true
+  aggregation: dwacc
+  weight_by_size: false
   filter_list:
   - no-filter
   - flexible-extract
