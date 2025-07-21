@@ -6,8 +6,8 @@ import os
 import random
 import re
 import string
-from collections.abc import Iterable, Sequence
-from typing import Callable, Generic, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import Generic, TypeVar
 
 import numpy as np
 
@@ -207,8 +207,8 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def exact_match_hf_evaluate(
-    predictions,
-    references,
+    predictions: Iterable[str],
+    references: Iterable[str],
     regexes_to_ignore=None,
     ignore_case=False,
     ignore_punctuation=False,
