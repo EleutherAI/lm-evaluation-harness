@@ -28,3 +28,16 @@ def maybe_serialize(val: Callable | Any, keep_callable=False) -> Callable | Any:
     return (
         serialize_callable(val, keep_callable=keep_callable) if callable(val) else val
     )
+
+
+def create_mc_choices(choices: list[str], choice_delimiter: str | None = "\n") -> str:
+    """Creates a multiple-choice question format from a list of choices."""
+    if len(choices) < 2:
+        raise ValueError(
+            "At least two choices are required for a multiple-choice question."
+        )
+    if choice_delimiter is None:
+        choice_delimiter = "\n"
+
+    formatted_choices = [f"{chr(65 + i)}. {choice}" for i, choice in enumerate(choices)]
+    return choice_delimiter.join(formatted_choices)

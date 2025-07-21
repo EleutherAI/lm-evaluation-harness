@@ -167,7 +167,7 @@ def get_aggregation(name: str) -> Callable[..., Any] | None:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name: str) -> Callable[[], dict[str, Callable]]:
+def get_metric_aggregation(name: str) -> Callable[[], dict[str, Callable[..., Any]]]:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:

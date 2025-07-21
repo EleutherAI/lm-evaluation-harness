@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable
+
+from lm_eval.config.utils import create_mc_choices
 
 
 if TYPE_CHECKING:
@@ -9,10 +12,12 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class TemplateConfig:
+class TemplateConfig(ABC):
     """Encapsulates information about a template."""
 
+    #
     template: str
+    task: str
     doc_to_text: str | Callable[[dict], str]
     doc_to_choice: str | list | Callable[[dict], list]
     doc_to_target: int | Callable[[dict], int]
@@ -28,6 +33,19 @@ class TemplateConfig:
     metric_list: list[str] | list[MetricConfig] | None = field(
         default_factory=lambda: ["acc", "acc_norm"]
     )
+
+    @abstractmethod
+    def _doc_to_text(self, doc: dict) -> str:
+        """Convert a document to text."""
+        raise NotImplementedError
+
+    def _doc_to_choice(self, doc: dict) -> str:
+        """Convert a document to choices."""
+        raise NotImplementedError
+
+    def _doc_to_target(self, doc: dict) -> int | str:
+        """Convert a document to target."""
+        raise NotImplementedError
 
 
 @dataclass
@@ -55,6 +73,33 @@ class MCQTemplateConfig(TemplateConfig):
     choice_delimiter: str | None = "\n"
     fewshot_delimiter: str = "\n\n"
     metric_list: list[MetricConfig] | None = field(default_factory=lambda: ["acc"])
+
+    def _doc_to_text(self, doc: dict) -> str:
+        """Convert a document to text."""
+        doc_to_text = (
+            self.doc_to_text
+            if isinstance(self.doc_to_text, str)
+            else self.doc_to_text(doc)
+        )
+        return self.context_prefix + doc_to_text
+
+    def _doc_to_choice(self, doc: dict) -> str:
+        if callable(self.doc_to_choice):
+            doc_to_choice = self.doc_to_choice(doc)
+        elif isinstance(self.doc_to_choice, str):
+            doc_to_choice = doc[self.doc_to_choice]
+        else:
+            doc_to_choice = self.doc_to_choice
+        return create_mc_choices(doc_to_choice, choice_delimiter=self.choice_delimiter)
+
+    def _doc_to_target(self, doc: dict) -> int:
+        """Convert a document to target."""
+        if callable(self.doc_to_target):
+            return self.doc_to_target(doc)
+        elif isinstance(self.doc_to_target, str):
+            return doc[self.doc_to_target]
+        else:
+            return self.doc_to_target
 
 
 @dataclass
