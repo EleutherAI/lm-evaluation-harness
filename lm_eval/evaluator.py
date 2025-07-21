@@ -700,10 +700,13 @@ def evaluate(
         ) = consolidate_results(eval_tasks)
 
         ### Calculate group metrics ###
+        # default to no group-table if there are no results
+        show_group_table = False
         if bool(results):
             results, versions, show_group_table, *_ = consolidate_group_results(
                 results, versions, task_dict
             )
+
 
         results_agg, group_agg = prepare_print_tasks(task_dict, results)
         subtask_list = get_subtask_list(task_dict)
@@ -733,28 +736,28 @@ def evaluate(
                 higher_is_better[group] = _higher_is_better
 
         results_dict = {
-            "results": dict(results_agg.items()),
-            **(
-                {"groups": dict(group_agg.items())}
-                if (bool(group_agg) & show_group_table)
-                else {}
-            ),
-            "group_subtasks": dict(reversed(subtask_list.items())),
-            "configs": dict(sorted(configs.items())),
-            "versions": dict(sorted(versions.items())),
-            "n-shot": dict(sorted(num_fewshot.items())),
-            "higher_is_better": dict(sorted(higher_is_better.items())),
-            "n-samples": {
-                task_output.task_name: {
-                    "original": len(task_output.task.eval_docs),
-                    "effective": min(
-                        limit if limit else len(task_output.task.eval_docs),
-                        len(task_output.task.eval_docs),
-                    ),
-                }
-                for task_output, limit in zip(eval_tasks, limits)
-            },
-        }
+          "results": dict(results_agg.items()),
+          **(
+              {"groups": dict(group_agg.items())}
+              if bool(group_agg) and show_group_table
+              else {}
+          ),
+          "group_subtasks": dict(reversed(subtask_list.items())),
+          "configs": dict(sorted(configs.items())),
+          "versions": dict(sorted(versions.items())),
+          "n-shot": dict(sorted(num_fewshot.items())),
+          "higher_is_better": dict(sorted(higher_is_better.items())),
+          "n-samples": {
+              task_output.task_name: {
+                  "original": len(task_output.task.eval_docs),
+                  "effective": min(
+                      limit if limit else len(task_output.task.eval_docs),
+                      len(task_output.task.eval_docs),
+                  ),
+              }
+              for task_output, limit in zip(eval_tasks, limits)
+          },
+      }
         if log_samples:
             # default: hash images
             samples = (
