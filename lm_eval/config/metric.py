@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -8,9 +11,9 @@ class MetricConfig:
     """Encapsulates information about a single metric."""
 
     name: str
-    fn: Optional[Callable] = None
-    kwargs: Optional[dict] = None
-    aggregation_fn: Optional[Callable] = None
+    fn: Callable | None = None
+    kwargs: dict | None = None
+    aggregation_fn: Callable | None = None
     higher_is_better: bool = True
     hf_evaluate: bool = False
     is_elementwise: bool = True
@@ -41,7 +44,7 @@ class MetricConfig:
             raise ValueError(f"Metric function for {self.name} is not defined.")
         return self.fn(*args, **{**self.kwargs, **kwargs})
 
-    def compute_aggregation(self, values: List[Any]) -> Any:
+    def compute_aggregation(self, values: list[Any]) -> Any:
         """Computes the aggregation of the metric values."""
         if self.aggregation_fn is None:
             raise ValueError(f"Aggregation function for {self.name} is not defined.")

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable
 
 
 if TYPE_CHECKING:
@@ -36,13 +38,14 @@ def register_model(*names):
     return decorate
 
 
-def get_model(model_name: str) -> type["LM"]:
+def get_model(model_name: str) -> type[LM]:
     try:
         return MODEL_REGISTRY[model_name]
-    except KeyError:
-        raise ValueError(
-            f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}"
-        )
+    except KeyError as err:
+        available_models = ", ".join(MODEL_REGISTRY.keys())
+        raise KeyError(
+            f"Model '{model_name}' not found. Available models: {available_models}"
+        ) from err
 
 
 TASK_REGISTRY = {}
@@ -81,7 +84,7 @@ def register_group(name):
 OUTPUT_TYPE_REGISTRY = {}
 METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
-AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
+AGGREGATION_REGISTRY: dict[str, Callable[[], dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
 FILTER_REGISTRY = {}
 
@@ -125,7 +128,7 @@ def register_metric(**args):
     return decorate
 
 
-def get_metric(name: str, hf_evaluate_metric=False) -> Optional[Callable]:
+def get_metric(name: str, hf_evaluate_metric=False) -> Callable[..., Any] | None:
     if not hf_evaluate_metric:
         if name in METRIC_REGISTRY:
             return METRIC_REGISTRY[name]
@@ -157,21 +160,21 @@ def register_aggregation(name: str):
     return decorate
 
 
-def get_aggregation(name: str) -> Optional[Callable[[], Dict[str, Callable]]]:
+def get_aggregation(name: str) -> Callable[[], dict[str, Callable]] | None:
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name: str) -> Optional[Callable[[], Dict[str, Callable]]]:
+def get_metric_aggregation(name: str) -> Callable[[], dict[str, Callable]] | None:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
 
 
-def is_higher_better(metric_name: str) -> Optional[bool]:
+def is_higher_better(metric_name: str) -> bool | None:
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
@@ -192,7 +195,7 @@ def register_filter(name: str):
     return decorate
 
 
-def get_filter(filter_name: Union[str, Callable]) -> Callable:
+def get_filter(filter_name: str | Callable) -> Callable:
     try:
         return FILTER_REGISTRY[filter_name]
     except KeyError as e:
