@@ -102,13 +102,11 @@ plugins.md028.enabled = false # no-blanks-blockquote
 plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
-[tool.ruff.lint]
-extend-select = ["I"]
 
 [tool.ruff]
 target-version = "py39"
-extend-select = ["I", "UP", "E", "C419"]
-ignore = ["E402", "E731"]
+extend-select = ["I", "UP", "E", "C419", "F", "B", "SIM"]
+ignore = ["E402", "E731", "E501", "E111", "E114", "E117"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -117,7 +115,6 @@ known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401","F402","F403"]
-"utils.py" = ["F401"]
 
 [dependency-groups]
 dev = [
