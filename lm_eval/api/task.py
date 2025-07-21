@@ -1413,63 +1413,15 @@ class ConfigurableTask(Task):
                 # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
-            # we expect multiple_targets to be a list.
-            elif self.multiple_target:
-                gold = list(gold)
-            # TODO: handle this better
-            elif type(gold) is not type(result) and not (
-                "bypass" in use_metric or isinstance(result, list)
-            ):
-                # cast gold to the same type as result
-                gold = type(result)(gold)
-
-            for metric in self.config._metric_list:
-                if self.multiple_target:
-                    # in the case where we have multiple targets,
-                    # return true if any are true
-                    # TODO: this may break for multipLe_target, non zero-or-1 metrics
-                    scores = []
-                    if not isinstance(gold, list):
-                        # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        # print(gold)
-                        gold = [gold]
-                    if metric.name == "exact_match":
-                        result = [result for _ in range(len(gold))]
-                        scores = metric.fn(
-                            references=gold,
-                            predictions=result,
-                            **metric.kwargs,
-                        )[metric]
-                        result_score = 1.0 if scores > 0.0 else 0.0
-                    else:
-                        for gold_option in gold:
-                            try:
-                                result_score = metric.fn(
-                                    references=[gold_option],
-                                    predictions=[result],
-                                    **metric.kwargs,
-                                )
-                            except (
-                                TypeError
-                            ):  # TODO: this is hacky and I don't want to do it
-                                result_score = metric.fn([gold_option, result])
-                            if isinstance(result_score, dict):
-                                # TODO: this handles the case where HF evaluate returns a dict.
-                                result_score = result_score[metric]
-                            scores.append(result_score)
-                        if any(scores):
-                            result_score = 1.0
-                        else:
-                            result_score = 0.0
-                else:
-                    try:
-                        result_score = metric.fn(
-                            references=[gold],
-                            predictions=[result],
-                            **metric.kwargs,
-                        )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = metric.fn([gold, result])
+            for metric in self._metric_fn_list.keys():
+                try:
+                    result_score = self._metric_fn_list[metric](
+                        references=[gold] if not isinstance(gold, list) else gold,
+                        predictions=[result],
+                        **self._metric_fn_kwargs[metric],
+                    )
+                except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    result_score = self._metric_fn_list[metric]([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
                     # This allows for multiple metrics to be returned from the same function
