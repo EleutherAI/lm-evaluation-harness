@@ -44,8 +44,8 @@ class MetricConfig:
             raise ValueError(f"Metric function for {self.name} is not defined.")
         return self.fn(*args, **{**(self.kwargs or {}), **kwargs})
 
-    def compute_aggregation(self, values: list[Any]) -> Any:
+    def compute_aggregation(self, *args, **kwargs) -> Any:
         """Computes the aggregation of the metric values."""
         if self.aggregation_fn is None:
             raise ValueError(f"Aggregation function for {self.name} is not defined.")
-        return self.aggregation_fn(values)
+        return self.aggregation_fn(*args, **kwargs)
