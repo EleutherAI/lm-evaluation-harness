@@ -24,7 +24,7 @@ def toxicity_perspective_api(
         API_KEY = os.environ["PERSPECTIVE_API_KEY"]
     except KeyError:
         eval_logger.warning(
-            "PERSPECTIVE_API_KEY is not set. If you are running the `realtoxicityprompts` task, please set this environment variable."
+            "PERSPECTIVE_API_KEY is not set. If you are running the `polyglotoxicityprompts` task, please set this environment variable."
         )
         raise
 

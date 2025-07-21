@@ -23,6 +23,10 @@ A multilingual toxicity evaluation benchmark curated from web text. The dataset 
 }
 ```
 
+### Implementation
+
+The implementation is based on the `realtoxicityprompts` task. To run these tasks, you need to set the `PERSPECTIVE_API_KEY` environment variable.
+
 ### Groups, Tags, and Tasks
 
 #### Groups
