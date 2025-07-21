@@ -1,0 +1,56 @@
+group: cultural_bench_hard
+task:
+  - cultural_bench_hard_argentina
+  - cultural_bench_hard_australia
+  - cultural_bench_hard_bangladesh
+  - cultural_bench_hard_brazil
+  - cultural_bench_hard_canada
+  - cultural_bench_hard_chile
+  - cultural_bench_hard_china
+  - cultural_bench_hard_czech_republic
+  - cultural_bench_hard_egypt
+  - cultural_bench_hard_france
+  - cultural_bench_hard_germany
+  - cultural_bench_hard_hong_kong
+  - cultural_bench_hard_india
+  - cultural_bench_hard_indonesia
+  - cultural_bench_hard_iran
+  - cultural_bench_hard_israel
+  - cultural_bench_hard_italy
+  - cultural_bench_hard_japan
+  - cultural_bench_hard_lebanon
+  - cultural_bench_hard_malaysia
+  - cultural_bench_hard_mexico
+  - cultural_bench_hard_morocco
+  - cultural_bench_hard_nepal
+  - cultural_bench_hard_netherlands
+  - cultural_bench_hard_new_zealand
+  - cultural_bench_hard_nigeria
+  - cultural_bench_hard_pakistan
+  - cultural_bench_hard_peru
+  - cultural_bench_hard_philippines
+  - cultural_bench_hard_poland
+  - cultural_bench_hard_romania
+  - cultural_bench_hard_russia
+  - cultural_bench_hard_saudi_arabia
+  - cultural_bench_hard_singapore
+  - cultural_bench_hard_south_africa
+  - cultural_bench_hard_south_korea
+  - cultural_bench_hard_spain
+  - cultural_bench_hard_taiwan
+  - cultural_bench_hard_thailand
+  - cultural_bench_hard_turkey
+  - cultural_bench_hard_ukraine
+  - cultural_bench_hard_united_kingdom
+  - cultural_bench_hard_united_states
+  - cultural_bench_hard_vietnam
+  - cultural_bench_hard_zimbabwe
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

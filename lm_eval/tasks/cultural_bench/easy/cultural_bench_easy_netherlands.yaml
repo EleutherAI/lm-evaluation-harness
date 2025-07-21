@@ -1,0 +1,3 @@
+include: _easy_template_yaml
+task: cultural_bench_easy_netherlands
+process_docs: !function utils.process_netherlands

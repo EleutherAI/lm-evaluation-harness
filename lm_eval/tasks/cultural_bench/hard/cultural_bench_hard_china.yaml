@@ -1,0 +1,3 @@
+include: _hard_template_yaml
+task: cultural_bench_hard_china
+process_docs: !function utils.process_china

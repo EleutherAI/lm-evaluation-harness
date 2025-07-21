@@ -1,0 +1,3 @@
+include: _easy_template_yaml
+task: cultural_bench_easy_saudi_arabia
+process_docs: !function utils.process_saudi_arabia
