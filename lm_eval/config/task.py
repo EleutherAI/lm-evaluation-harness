@@ -240,7 +240,7 @@ class TaskConfig(dict):
                     name=metric_name,
                     fn=get_metric(metric_name),
                     aggregation_fn=get_metric_aggregation(metric_name),
-                    higher_is_better=is_higher_better(metric_name),
+                    higher_is_better=is_higher_better(metric_name) or True,
                 )
                 for metric_name in _metric_list
             )

@@ -31,7 +31,7 @@ class TemplateConfig:
 
 
 @dataclass
-class MCQTemplateConfig:
+class MCQTemplateConfig(TemplateConfig):
     """Encapsulates information about a template.
     Would return a sample with the following format:
     Question: <doc_to_text(doc)>
@@ -58,7 +58,7 @@ class MCQTemplateConfig:
 
 
 @dataclass
-class ClozeTemplateConfig:
+class ClozeTemplateConfig(TemplateConfig):
     """Encapsulates information about a template.
     Would return a sample with the following format:
     Question:  <doc_to_text(doc)>
