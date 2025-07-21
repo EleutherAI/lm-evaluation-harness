@@ -484,11 +484,13 @@ class Task(abc.ABC):
 
     def apply_filters(self) -> list[Instance] | None:
         """Iterates over FilterEnsembles and applies them to instances"""
-        if hasattr(self, "_filters"):
+        if hasattr(self, "_filters") and self._instances:
             for f in self._filters:
                 f.apply(self._instances)
         else:
-            eval_logger.warning("No filter defined, passing through instances")
+            eval_logger.warning(
+                "No filter defined or no instances, passing through instances"
+            )
             return self._instances
 
     def dump_config(self) -> dict:
@@ -499,9 +501,6 @@ class Task(abc.ABC):
 
     def set_config(self, key: str, value: Any, update: bool = False) -> None:
         """Set or update the configuration for a given key."""
-        if key is None:
-            raise ValueError("Key must be provided.")
-
         if update:
             current_value = getattr(self._config, key, {})
             if not isinstance(current_value, dict):
