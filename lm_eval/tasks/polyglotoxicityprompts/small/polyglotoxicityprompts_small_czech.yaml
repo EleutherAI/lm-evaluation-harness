@@ -1,0 +1,4 @@
+task: polyglotoxicityprompts_small_czech
+include: ../_polyglotoxicityprompts_yaml
+dataset_name: ptp-cs
+test_split: small

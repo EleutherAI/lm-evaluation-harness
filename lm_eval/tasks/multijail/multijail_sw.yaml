@@ -1,0 +1,3 @@
+task: multijail_sw
+include: _multijail_yaml
+doc_to_text: "{{sw}}"

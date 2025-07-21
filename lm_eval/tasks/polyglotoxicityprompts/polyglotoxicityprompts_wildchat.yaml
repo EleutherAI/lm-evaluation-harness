@@ -1,0 +1,28 @@
+group: polyglotoxicityprompts_wildchat
+task:
+  - polyglotoxicityprompts_wildchat_arabic
+  - polyglotoxicityprompts_wildchat_czech
+  - polyglotoxicityprompts_wildchat_german
+  - polyglotoxicityprompts_wildchat_english
+  - polyglotoxicityprompts_wildchat_spanish
+  - polyglotoxicityprompts_wildchat_french
+  - polyglotoxicityprompts_wildchat_hindi
+  - polyglotoxicityprompts_wildchat_indonesian
+  - polyglotoxicityprompts_wildchat_italian
+  - polyglotoxicityprompts_wildchat_japanese
+  - polyglotoxicityprompts_wildchat_korean
+  - polyglotoxicityprompts_wildchat_dutch
+  - polyglotoxicityprompts_wildchat_polish
+  - polyglotoxicityprompts_wildchat_portuguese
+  - polyglotoxicityprompts_wildchat_russian
+  - polyglotoxicityprompts_wildchat_swedish
+  - polyglotoxicityprompts_wildchat_chinese
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+  - metric: perspective_api_toxicity_score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

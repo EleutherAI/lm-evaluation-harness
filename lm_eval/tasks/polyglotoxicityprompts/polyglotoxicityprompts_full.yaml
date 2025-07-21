@@ -1,0 +1,28 @@
+group: polyglotoxicityprompts_full
+task:
+  - polyglotoxicityprompts_full_arabic
+  - polyglotoxicityprompts_full_czech
+  - polyglotoxicityprompts_full_german
+  - polyglotoxicityprompts_full_english
+  - polyglotoxicityprompts_full_spanish
+  - polyglotoxicityprompts_full_french
+  - polyglotoxicityprompts_full_hindi
+  - polyglotoxicityprompts_full_indonesian
+  - polyglotoxicityprompts_full_italian
+  - polyglotoxicityprompts_full_japanese
+  - polyglotoxicityprompts_full_korean
+  - polyglotoxicityprompts_full_dutch
+  - polyglotoxicityprompts_full_polish
+  - polyglotoxicityprompts_full_portuguese
+  - polyglotoxicityprompts_full_russian
+  - polyglotoxicityprompts_full_swedish
+  - polyglotoxicityprompts_full_chinese
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+  - metric: perspective_api_toxicity_score
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

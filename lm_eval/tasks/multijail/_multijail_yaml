@@ -1,0 +1,16 @@
+dataset_path: DAMO-NLP-SG/MultiJail
+dataset_name: default
+output_type: generate_until
+test_split: train
+doc_to_target: ""
+process_results: !function metric.harmfulness_score
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: false
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_new_tokens: 60
+metadata:
+  version: 1.0

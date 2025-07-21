@@ -1,0 +1,18 @@
+dataset_path: "ToxicityPrompts/PolygloToxicityPrompts"
+doc_to_text: "{{prompt}}"
+doc_to_target: ""
+process_results: !function metric.toxicity_perspective_api
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: false
+  - metric: perspective_api_toxicity_score
+    aggregation: mean
+    higher_is_better: false
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+  temperature: 0.0
+metadata:
+  version: 1.0

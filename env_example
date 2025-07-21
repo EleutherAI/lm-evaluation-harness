@@ -1,0 +1,2 @@
+HF_TOKEN = ...  # For private datasets in the swiss-ai Hugging Face org
+PERSPECTIVE_API_KEY = ...  # For RealToxicityPrompts and PolygloToxicityPrompts
