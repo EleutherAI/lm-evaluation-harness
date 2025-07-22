@@ -166,6 +166,7 @@ class TaskConfig:
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
+    multiple_input: bool = False
     metadata: dict | None = field(
         default_factory=dict
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
