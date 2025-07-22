@@ -659,7 +659,7 @@ class ConfigurableTask(Task):
 
         # Test One Doc
         self.features: list[str] = list(self.task_docs.features.keys())
-        self.multiple_input = 0
+        self.multiple_input = self.config.multiple_input
         self.multiple_target = 0
         test_doc = self.task_docs[0]
         test_text = self.doc_to_text(test_doc)
