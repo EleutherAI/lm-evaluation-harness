@@ -53,9 +53,7 @@ if __name__ == "__main__":
 
         que_desc = lang_lib_list[3]
         with (
-            open(
-                f"{CURRENT_DIR}/template/_lang_template_yaml", "r"
-            ) as reader,
+            open(f"{CURRENT_DIR}/template/_lang_template_yaml", "r") as reader,
             open(
                 f"{CURRENT_DIR}/{lang_abbr}/_{lang_abbr}_lite_template_yaml",
                 "w",
@@ -77,7 +75,9 @@ if __name__ == "__main__":
                     line = line.format(que_prefix=lang_lib_list[0])
                 writer.write(line)
 
-        shutil.copy(f"{CURRENT_DIR}/template/utils.py", f"{CURRENT_DIR}/{lang_abbr}/utils.py")
+        shutil.copy(
+            f"{CURRENT_DIR}/template/utils.py", f"{CURRENT_DIR}/{lang_abbr}/utils.py"
+        )
 
         group_name = f"mmlu_prox_lite_{lang_abbr}"
         group_dict = dict(

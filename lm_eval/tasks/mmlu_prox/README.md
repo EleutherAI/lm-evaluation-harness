@@ -4,18 +4,18 @@
 
 Title: `MMLU-ProX: A Multilingual Benchmark for Advanced Large Language Model Evaluation`
 
-Abstract: `Existing large language model (LLM) evaluation benchmarks primarily focus on English, while current multilingual tasks lack parallel questions that specifically assess cross-linguistic reasoning abilities. 
-This dual limitation makes it challenging to comprehensively assess LLMs' performance in the multilingual setting. To fill this gap, we introduce MMLU-ProX, a comprehensive benchmark covering 29 languages, built on an English benchmark. 
-Each language version consists of 11,829 identical questions, enabling direct cross-linguistic comparisons. Additionally, to meet efficient evaluation needs, we provide a lite version containing 658 questions per language. 
-To ensure the high quality of MMLU-ProX, we employ a rigorous development process that involves multiple powerful LLMs for translation, followed by expert review to ensure accurate expression, consistent terminology, and cultural relevance. 
-Building on this, we systematically evaluate 36 state-of-the-art LLMs, including reasoning-enhanced and multilingual-optimized LLMs. 
-The results reveal significant disparities in the multilingual capabilities of LLMs: While they perform well in high-resource languages, their performance declines markedly in low-resource languages, with gaps of up to 24.3%. 
-Through MMLU-ProX, we aim to advance the development of more inclusive AI systems and promote equitable access to technology across global contexts. 
+Abstract: `Existing large language model (LLM) evaluation benchmarks primarily focus on English, while current multilingual tasks lack parallel questions that specifically assess cross-linguistic reasoning abilities.
+This dual limitation makes it challenging to comprehensively assess LLMs' performance in the multilingual setting. To fill this gap, we introduce MMLU-ProX, a comprehensive benchmark covering 29 languages, built on an English benchmark.
+Each language version consists of 11,829 identical questions, enabling direct cross-linguistic comparisons. Additionally, to meet efficient evaluation needs, we provide a lite version containing 658 questions per language.
+To ensure the high quality of MMLU-ProX, we employ a rigorous development process that involves multiple powerful LLMs for translation, followed by expert review to ensure accurate expression, consistent terminology, and cultural relevance.
+Building on this, we systematically evaluate 36 state-of-the-art LLMs, including reasoning-enhanced and multilingual-optimized LLMs.
+The results reveal significant disparities in the multilingual capabilities of LLMs: While they perform well in high-resource languages, their performance declines markedly in low-resource languages, with gaps of up to 24.3%.
+Through MMLU-ProX, we aim to advance the development of more inclusive AI systems and promote equitable access to technology across global contexts.
 We plan to continuously expand MMLU-ProX by incorporating additional languages to further enhance its coverage and utility for the global AI research community.`
 
 Homepage: https://mmluprox.github.io
 
-Huggingface: 
+Huggingface:
 - https://huggingface.co/datasets/li-lab/MMLU-ProX
 - https://huggingface.co/datasets/li-lab/MMLU-ProX-Lite
 

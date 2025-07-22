@@ -54,9 +54,7 @@ if __name__ == "__main__":
         que_desc = lang_lib_list[3]
 
         with (
-            open(
-                f"{CURRENT_DIR}/template/_lang_template_yaml", "r"
-            ) as reader,
+            open(f"{CURRENT_DIR}/template/_lang_template_yaml", "r") as reader,
             open(
                 f"{CURRENT_DIR}/{lang_abbr}/_{lang_abbr}_template_yaml",
                 "w",
