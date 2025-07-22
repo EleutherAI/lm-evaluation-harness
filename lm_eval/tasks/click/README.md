@@ -13,7 +13,7 @@ Homepage: https://huggingface.co/datasets/EunsuKim/CLIcK
 
 ```
 @misc{kim2024click,
-      title={CLIcK: A Benchmark Dataset of Cultural and Linguistic Intelligence in Korean}, 
+      title={CLIcK: A Benchmark Dataset of Cultural and Linguistic Intelligence in Korean},
       author={Eunsu Kim and Juyoung Suk and Philhoon Oh and Haneul Yoo and James Thorne and Alice Oh},
       year={2024},
       eprint={2403.06412},
