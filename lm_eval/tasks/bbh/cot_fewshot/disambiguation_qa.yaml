@@ -23,9 +23,7 @@ fewshot_config:
       (B) The counselor took the day off
 
       (C) Ambiguous'
-    target: 'Let''s think step by step.
-
-      Here we need to determine who the pronoun "they" might be referring to. There
+    target: 'Here we need to determine who the pronoun "they" might be referring to. There
       are two possible referents for "they", namely the chief and the counselor. The
       verb "told" might be able to help us determine which one is more likely (if
       either). Let X be the chief and Y the counselor. The sentence is then of the
@@ -54,9 +52,7 @@ fewshot_config:
       (B) The manager didn''t reply yet
 
       (C) Ambiguous'
-    target: 'Let''s think step by step.
-
-      Here we need to determine who the pronoun "he" might be referring to. There
+    target: 'Here we need to determine who the pronoun "he" might be referring to. There
       are two possible referents for "he", namely the manager and the secretary. The
       verbs "sent" and "reply" might be able to help us determine which one is more
       likely (if either). Let X be the manager and Y the secretary. The sentence is
@@ -84,9 +80,7 @@ fewshot_config:
       (B) It will be the director''s office
 
       (C) Ambiguous'
-    target: 'Let''s think step by step.
-
-      Here we need to determine who the pronoun "his" might be referring to. There
+    target: 'Here we need to determine who the pronoun "his" might be referring to. There
       are two possible referents for "his", namely Bailey''s and the director''s.
       The verb phrase "plan to meet" might be able to help us determine which one
       is more likely (if either). Let X be Bailey and Y the director. The sentence
