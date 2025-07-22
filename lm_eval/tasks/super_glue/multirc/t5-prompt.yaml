@@ -1,13 +1,13 @@
 tag:
   - super-glue-t5-prompt
 task: super_glue-multirc-t5-prompt
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: multirc
 training_split: train
 validation_split: validation
 output_type: generate_until
 doc_to_text: "multirc question: {{question}} answer: {{answer}} paragraph: {{paragraph}}"
-doc_to_target: label
+doc_to_target: "{% set group_id = idx.question|string %}{{[group_id+'_False', group_id+'_True'][label]}}"
 doc_to_choice: "{% set group_id = idx.question|string %}{{[group_id+'_False', group_id+'_True']}}"
 generation_kwargs:
   until:

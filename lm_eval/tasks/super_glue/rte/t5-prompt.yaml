@@ -1,14 +1,14 @@
 tag:
   - super-glue-t5-prompt
 task: super_glue-rte-t5-prompt
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: rte
 training_split: train
 validation_split: validation
 output_type: generate_until
 doc_to_text: "rte hypothesis: {{hypothesis}} premise: {{premise}}"
-doc_to_target: label
-doc_to_choice: ['entailment', 'not_entailment']
+doc_to_target: "{{ [entailment, not_entailment][label|int] }}"
+doc_to_choice: ["entailment", "not_entailment"]
 generation_kwargs:
   until:
     - "</s>"

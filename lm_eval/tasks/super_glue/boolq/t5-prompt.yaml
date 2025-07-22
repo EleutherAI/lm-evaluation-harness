@@ -1,14 +1,14 @@
 tag:
   - super-glue-t5-prompt
 task: super_glue-boolq-t5-prompt
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: boolq
 training_split: train
 validation_split: validation
 output_type: generate_until
 doc_to_text: "boolq passage: {{passage}} question: {{question}}"
-doc_to_target: label
-doc_to_choice: ['False', 'True']
+doc_to_target: "{{['False', 'True'][label|int]}}"
+doc_to_choice: ["False", "True"]
 generation_kwargs:
   until:
     - "</s>"
