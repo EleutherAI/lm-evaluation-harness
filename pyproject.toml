@@ -106,7 +106,8 @@ plugins.md034.enabled = false # no-bare-urls
 [tool.ruff]
 target-version = "py39"
 lint.extend-select = ["I", "UP", "E", "C419", "F", "B", "SIM"]
-lint.ignore = ["E402", "E731", "E501", "E111", "E114", "E117"]
+lint.ignore = ["E402", "E731", "E501", "E111", "E114", "E117", "E741"]
+fixable = ["I001", "F401", "UP"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
