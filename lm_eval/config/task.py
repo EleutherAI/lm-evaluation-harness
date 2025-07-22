@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
@@ -45,7 +45,9 @@ class FewshotConfig:
     split: str | None = None
     sampler: str | Callable = "default"
     samples: Callable[[], list[dict]] | list[dict] | None = None
-    process_docs: Callable[[list[dict]], Iterable[dict]] | None = None
+    process_docs: Callable[[list[dict[str, Any]]], Iterable[dict[str, Any]]] | None = (
+        None
+    )
     fewshot_indices: list[int] | None = None
     rnd: int = field(init=False, default=False)
 
@@ -82,7 +84,7 @@ class FewshotConfig:
                     "samples must be either a list of dicts or a callable returning a list"
                 )
 
-    def get_docs(self, dataset) -> Iterable[dict] | None:
+    def get_docs(self, dataset) -> Iterable[dict[str, Any]] | None:
         """Get processed documents from configured source."""
         raw_docs = self._get_raw_docs(dataset)
         if raw_docs is None:
@@ -93,7 +95,7 @@ class FewshotConfig:
         return raw_docs
 
     @property
-    def get_sampler(self):
+    def get_sampler(self) -> Callable[..., Any] | None:
         from lm_eval.api import samplers
 
         if isinstance(self.sampler, str):

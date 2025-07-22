@@ -990,13 +990,12 @@ class ConfigurableTask(Task):
         """
         return doc
 
-    def doc_to_text(self, doc: dict, doc_to_text: int | str | Callable | None = None):
+    def doc_to_text(
+        self, doc: dict, doc_to_text: int | str | Callable[..., str] | None = None
+    ) -> str:
         # if self.prompt is not None:
         #     doc_to_text = self.prompt
-        if doc_to_text is not None:
-            doc_to_text = doc_to_text
-        else:
-            doc_to_text = self.config.doc_to_text
+        doc_to_text = doc_to_text or self.config.doc_to_text
 
         if isinstance(doc_to_text, int):
             return doc_to_text

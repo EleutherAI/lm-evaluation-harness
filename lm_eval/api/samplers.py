@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import logging
 import warnings
+from collections.abc import Iterable, Sequence
 from functools import partial
-from typing import TYPE_CHECKING, Iterable, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any
 
 import datasets
 
@@ -18,9 +21,9 @@ class ContextSampler:
     def __init__(
         self,
         docs: list[dict],
-        task: Union["Task", "ConfigurableTask"],
-        fewshot_indices: Optional[Iterable] = None,
-        rnd: Optional["Random"] = None,
+        task: Task | ConfigurableTask,
+        fewshot_indices: Iterable | None = None,
+        rnd: Random | None = None,
     ) -> None:
         self.rnd = rnd
         if not self.rnd:
@@ -75,7 +78,7 @@ class ContextSampler:
                 )
             self.docs = self.docs.select(fewshot_indices)
 
-    def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str = None):
+    def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str | None = None):
         # draw an extra fewshot sample if using same split as evaluating on
         prefix = gen_prefix + " " if gen_prefix else ""
         n_samples = (
@@ -95,10 +98,13 @@ class ContextSampler:
         for doc in selected_docs:
             doc_content = self.doc_to_text(doc)
             doc_target = self.doc_to_target(doc)
-            if self.config.doc_to_choice is None or isinstance(doc_content, str):
+            if (
+                self.config.doc_to_choice is None and isinstance(doc_content, str)
+            ) or isinstance(doc_content, str):
                 labeled_examples += doc_content
             else:
-                labeled_examples += self.doc_to_choice(doc)[doc_content]
+                if isinstance(doc_content, int):
+                    labeled_examples += self.doc_to_choice(doc)[doc_content]
 
             if doc_target != "":
                 if self.target_delimiter.isspace() and str(doc_target)[0].isspace():
@@ -126,7 +132,7 @@ class ContextSampler:
         doc: dict,
         num_fewshot: int,
         fewshot_as_multiturn: bool = False,
-        gen_prefix: Optional[str] = None,
+        gen_prefix: str | None = None,
     ):
         # TODO: Do we need any other delimiter
         prefix = gen_prefix + " " if gen_prefix else ""
@@ -181,16 +187,22 @@ class ContextSampler:
 
         return chat_history
 
+    # @classmethod
+    # def from_fewshot_dfg(cls, cfg: FewshotConfig):
+    #     if not
+
     def sample(self, n: int) -> Sequence[dict]:
         """
         Draw `n` samples from our fewshot docs. This method should be overridden by subclasses.
         """
-
+        assert self.rnd is not None, (
+            "Error: `rnd` must be set to a random.Random instance before sampling."
+        )
         return self.rnd.sample(self.docs, n)
 
 
 class FirstNSampler(ContextSampler):
-    def sample(self, n: int) -> Sequence[dict]:
+    def sample(self, n: int) -> Sequence[dict[str, Any]]:
         """
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
@@ -202,22 +214,22 @@ class FirstNSampler(ContextSampler):
 
 
 class BalancedSampler(ContextSampler):
-    def sample(self, n: int) -> None:
+    def sample(self, n: int):
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples.
         TODO: what order should they be in? maybe random?
         """
 
-        pass
+        raise NotImplementedError
 
 
 class ManualSampler(ContextSampler):
-    def sample(self, n: int) -> None:
+    def sample(self, n: int):
         """ """
-        pass
+        raise NotImplementedError
 
 
-SAMPLER_REGISTRY = {
+SAMPLER_REGISTRY: dict[str, type[ContextSampler]] = {
     "default": ContextSampler,
     "first_n": FirstNSampler,
 }
@@ -226,7 +238,7 @@ SAMPLER_REGISTRY = {
 def get_sampler(name: str):
     try:
         return SAMPLER_REGISTRY[name]
-    except KeyError:
-        raise ValueError(
+    except KeyError as e:
+        raise KeyError(
             f"Attempted to use contextsampler '{name}', but no sampling strategy for this name found! Supported model names: {', '.join(SAMPLER_REGISTRY.keys())}"
-        )
+        ) from e
