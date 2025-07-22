@@ -8,7 +8,6 @@ validation_split: validation
 output_type: generate_until
 doc_to_text: "copa choice1: {{choice1}} choice2: {{choice2}} premise: {{premise}} question: {{question}}"
 doc_to_target: "{{ [choice1, choice2][label|int] }}"
-doc_to_choice: ["choice1", "choice2"]
 generation_kwargs:
   until:
     - "</s>"

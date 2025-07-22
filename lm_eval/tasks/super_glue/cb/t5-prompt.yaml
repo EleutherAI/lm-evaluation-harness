@@ -8,7 +8,6 @@ validation_split: validation
 output_type: generate_until
 doc_to_text: "cb hypothesis: {{hypothesis}} premise: {{premise}}"
 doc_to_target: "{{ ['entailment', 'contradiction', 'neutral'][label|int] }}"
-doc_to_choice: ["entailment", "contradiction", "neutral"]
 generation_kwargs:
   until:
     - "</s>"

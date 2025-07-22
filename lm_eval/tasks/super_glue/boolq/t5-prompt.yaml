@@ -8,7 +8,6 @@ validation_split: validation
 output_type: generate_until
 doc_to_text: "boolq passage: {{passage}} question: {{question}}"
 doc_to_target: "{{['False', 'True'][label|int]}}"
-doc_to_choice: ["False", "True"]
 generation_kwargs:
   until:
     - "</s>"

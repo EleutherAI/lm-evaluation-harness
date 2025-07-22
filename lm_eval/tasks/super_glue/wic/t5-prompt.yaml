@@ -8,7 +8,6 @@ validation_split: validation
 output_type: generate_until
 doc_to_text: "wic sentence1: {{sentence1}} sentence2: {{sentence2}} word: {{word}}"
 doc_to_target: "{{ ['False', 'True'][label|int] }}"
-doc_to_choice: ["False", "True"]
 generation_kwargs:
   until:
     - "</s>"
