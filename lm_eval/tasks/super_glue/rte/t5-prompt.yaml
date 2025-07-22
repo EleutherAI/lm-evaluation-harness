@@ -7,8 +7,7 @@ training_split: train
 validation_split: validation
 output_type: generate_until
 doc_to_text: "rte hypothesis: {{hypothesis}} premise: {{premise}}"
-doc_to_target: "{{ [entailment, not_entailment][label|int] }}"
-doc_to_choice: ["entailment", "not_entailment"]
+doc_to_target: "{{ ['entailment', 'not_entailment'][label|int] }}"
 generation_kwargs:
   until:
     - "</s>"
