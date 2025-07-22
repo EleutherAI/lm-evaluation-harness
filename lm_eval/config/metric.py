@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any
 
@@ -11,8 +11,8 @@ class MetricConfig:
     """Encapsulates information about a single metric."""
 
     name: str
-    fn: Callable | None = None
-    kwargs: Mapping[str, Any] | None = None
+    fn: Callable
+    kwargs: Mapping[str, Any] = field(default_factory=dict)
     aggregation_fn: Callable | None = None
     higher_is_better: bool = True
     hf_evaluate: bool = False

@@ -11,6 +11,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
+    overload,
 )
 
 import datasets
@@ -192,7 +193,7 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            if self.config.get("num_fewshot", 0) > 0:
+            if self.config.num_fewshot and self.config.num_fewshot > 0:
                 eval_logger.warning(
                     f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
                     ", using test_docs as fewshot_docs but this is not recommended."
@@ -331,7 +332,7 @@ class Task(abc.ABC):
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
-                metadata=(self.config["task"], doc_id, self.config.repeats),
+                metadata=(self.config.task, doc_id, self.config.repeats),
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
             )
@@ -990,9 +991,21 @@ class ConfigurableTask(Task):
         """
         return doc
 
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: None = None) -> str | int: ...
+
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: int) -> int: ...
+
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: str) -> str: ...
+
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: Callable[..., str]) -> str: ...
+
     def doc_to_text(
         self, doc: dict, doc_to_text: int | str | Callable[..., str] | None = None
-    ) -> str:
+    ) -> str | int:
         # if self.prompt is not None:
         #     doc_to_text = self.prompt
         doc_to_text = doc_to_text or self.config.doc_to_text
@@ -1024,6 +1037,25 @@ class ConfigurableTask(Task):
         else:
             print(type(doc_to_text))
             raise TypeError
+
+    @overload
+    def doc_to_target(
+        self, doc: dict, doc_to_target: None = None
+    ) -> int | str | list[int]: ...
+
+    @overload
+    def doc_to_target(self, doc: dict, doc_to_target: int) -> int: ...
+
+    @overload
+    def doc_to_target(self, doc: dict, doc_to_target: str) -> int | str | list[int]: ...
+
+    @overload
+    def doc_to_target(self, doc: dict, doc_to_target: list) -> list[int]: ...
+
+    @overload
+    def doc_to_target(
+        self, doc: dict, doc_to_target: Callable[..., int | str | list[int]]
+    ) -> int | str | list[int]: ...
 
     def doc_to_target(self, doc: dict, doc_to_target=None) -> int | str | list[int]:
         # if self.prompt is not None:
@@ -1071,6 +1103,23 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: None = None) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: str) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: list) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: dict) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(
+        self, doc: dict, doc_to_choice: Callable[..., list[str]]
+    ) -> list[str]: ...
+
     def doc_to_choice(
         self,
         doc: dict,
@@ -1102,6 +1151,18 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: None = None) -> None: ...
+
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: list) -> list: ...
+
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: str) -> int | str | None: ...
+
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: Callable[..., Any]) -> Any: ...
+
     def doc_to_image(self, doc: dict, doc_to_image=None) -> int | str | list | None:
         if doc_to_image is not None:
             doc_to_image = doc_to_image
@@ -1124,6 +1185,18 @@ class ConfigurableTask(Task):
             return doc_to_image(doc)
         else:
             return None
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: None = None) -> None: ...
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: list) -> list: ...
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: str) -> int | str | None: ...
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: Callable[..., Any]) -> Any: ...
 
     def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list | None:
         if doc_to_audio is not None:
@@ -1369,15 +1442,15 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
-            for metric in self._metric_fn_list:
+            for metric in self.config._metric_list:
                 try:
-                    result_score = self._metric_fn_list[metric](
+                    result_score = metric.fn(
                         references=[gold] if not isinstance(gold, list) else gold,
                         predictions=[result],
-                        **self._metric_fn_kwargs[metric],
+                        **metric.kwargs,
                     )
                 except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                    result_score = self._metric_fn_list[metric]([gold, result])
+                    result_score = metric.fn([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
                     # This allows for multiple metrics to be returned from the same function

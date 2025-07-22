@@ -44,7 +44,7 @@ class FewshotConfig:
     num_fewshot: Callable[[], int]
     split: str | None = None
     sampler: str | Callable = "default"
-    samples: Callable[[], list[dict]] | list[dict] | None = None
+    samples: Callable[[], Iterable[dict]] | Iterable[dict] | None = None
     process_docs: Callable[[list[dict[str, Any]]], Iterable[dict[str, Any]]] | None = (
         None
     )
@@ -71,7 +71,7 @@ class FewshotConfig:
 
     def _get_raw_docs(
         self, dataset
-    ) -> list[dict] | Callable[[], Iterable[dict]] | None:
+    ) -> list[dict] | Callable[[], Iterable[dict[str, Any]]] | None:
         """Get raw documents from configured source."""
         if self.split is not None:
             return dataset[self.split]
@@ -424,12 +424,6 @@ class TaskConfig:
 
         # Create and return TaskConfig instance
         return cls(**config_dict)
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         def _ser(x):
