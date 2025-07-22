@@ -7,11 +7,7 @@ import random
 import re
 from collections.abc import Callable
 from copy import deepcopy
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Literal,
-)
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 import datasets
 import numpy as np
@@ -24,7 +20,7 @@ from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.utils import check_gold_index_error
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.metric import MetricConfig
-from lm_eval.config.task import TaskConfig
+from lm_eval.config.task import DataSet, TaskConfig
 from lm_eval.filters import build_filter_ensemble
 
 
@@ -133,6 +129,7 @@ class Task(abc.ABC):
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
         """
+        assert self.DATASET_PATH is not None, "DATASET_PATH must be set in Task class"
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
@@ -146,43 +143,40 @@ class Task(abc.ABC):
         """Returns the TaskConfig associated with this class."""
         return self._config
 
-    @abc.abstractmethod
     def has_training_docs(self) -> bool:
         """Whether the task has a training set"""
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def has_validation_docs(self) -> bool:
         """Whether the task has a validation set"""
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def has_test_docs(self) -> bool:
         """Whether the task has a test set"""
-        pass
+        raise NotImplementedError
 
-    def training_docs(self) -> Iterable:
+    def training_docs(self) -> DataSet | None:
         """
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
         return []
 
-    def validation_docs(self) -> Iterable:
+    def validation_docs(self) -> DataSet | None:
         """
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
         return []
 
-    def test_docs(self) -> Iterable:
+    def test_docs(self) -> DataSet | None:
         """
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
         return []
 
-    def fewshot_docs(self) -> Iterable:
+    def fewshot_docs(self) -> DataSet | None:
         """
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
@@ -192,7 +186,7 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            if self.config.get("num_fewshot", 0) > 0:
+            if self.config.num_fewshot and self.config.num_fewshot > 0:
                 eval_logger.warning(
                     f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
                     ", using test_docs as fewshot_docs but this is not recommended."
@@ -331,7 +325,7 @@ class Task(abc.ABC):
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
-                metadata=(self.config["task"], doc_id, self.config.repeats),
+                metadata=(self.config.task, doc_id, self.config.repeats),
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
             )
@@ -586,7 +580,7 @@ class ConfigurableTask(Task):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
-        config: dict | None = None,
+        config: Mapping[str, Any] | None = None,
     ) -> None:
         # Get pre-configured attributes
         self._config = self.CONFIG
@@ -727,6 +721,9 @@ class ConfigurableTask(Task):
             )
             self.dataset = df(**(self.config.dataset_kwargs | self.config.metadata))
         else:
+            assert self.config.dataset_path is not None, (
+                "dataset_path must be set in TaskConfig"
+            )
             self.dataset = datasets.load_dataset(
                 path=self.config.dataset_path,
                 name=self.config.dataset_name,
@@ -742,7 +739,7 @@ class ConfigurableTask(Task):
     def has_test_docs(self) -> bool:
         return self.config.test_split is not None
 
-    def training_docs(self) -> datasets.Dataset | None:
+    def training_docs(self) -> DataSet | None:
         if self.has_training_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
@@ -750,7 +747,7 @@ class ConfigurableTask(Task):
                 )
             return self.dataset[self.config.training_split]
 
-    def validation_docs(self) -> datasets.Dataset | None:
+    def validation_docs(self) -> DataSet | None:
         if self.has_validation_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
@@ -758,7 +755,7 @@ class ConfigurableTask(Task):
                 )
             return self.dataset[self.config.validation_split]
 
-    def test_docs(self) -> datasets.Dataset | None:
+    def test_docs(self) -> DataSet | None:
         if self.has_test_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
@@ -996,9 +993,21 @@ class ConfigurableTask(Task):
         """
         return doc
 
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: None = None) -> str | int: ...
+
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: int) -> int: ...
+
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: str) -> str: ...
+
+    @overload
+    def doc_to_text(self, doc: dict, doc_to_text: Callable[..., str]) -> str: ...
+
     def doc_to_text(
         self, doc: dict, doc_to_text: int | str | Callable[..., str] | None = None
-    ) -> str:
+    ) -> str | int:
         # if self.prompt is not None:
         #     doc_to_text = self.prompt
         doc_to_text = doc_to_text or self.config.doc_to_text
@@ -1030,6 +1039,25 @@ class ConfigurableTask(Task):
         else:
             print(type(doc_to_text))
             raise TypeError
+
+    @overload
+    def doc_to_target(
+        self, doc: dict, doc_to_target: None = None
+    ) -> int | str | list[int]: ...
+
+    @overload
+    def doc_to_target(self, doc: dict, doc_to_target: int) -> int: ...
+
+    @overload
+    def doc_to_target(self, doc: dict, doc_to_target: str) -> int | str | list[int]: ...
+
+    @overload
+    def doc_to_target(self, doc: dict, doc_to_target: list) -> list[int]: ...
+
+    @overload
+    def doc_to_target(
+        self, doc: dict, doc_to_target: Callable[..., int | str | list[int]]
+    ) -> int | str | list[int]: ...
 
     def doc_to_target(self, doc: dict, doc_to_target=None) -> int | str | list[int]:
         # if self.prompt is not None:
@@ -1077,6 +1105,23 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: None = None) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: str) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: list) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(self, doc: dict, doc_to_choice: dict) -> list[str]: ...
+
+    @overload
+    def doc_to_choice(
+        self, doc: dict, doc_to_choice: Callable[..., list[str]]
+    ) -> list[str]: ...
+
     def doc_to_choice(
         self,
         doc: dict,
@@ -1108,6 +1153,18 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: None = None) -> None: ...
+
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: list) -> list: ...
+
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: str) -> int | str | None: ...
+
+    @overload
+    def doc_to_image(self, doc: dict, doc_to_image: Callable[..., Any]) -> Any: ...
+
     def doc_to_image(self, doc: dict, doc_to_image=None) -> int | str | list | None:
         if doc_to_image is not None:
             doc_to_image = doc_to_image
@@ -1130,6 +1187,18 @@ class ConfigurableTask(Task):
             return doc_to_image(doc)
         else:
             return None
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: None = None) -> None: ...
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: list) -> list: ...
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: str) -> int | str | None: ...
+
+    @overload
+    def doc_to_audio(self, doc: Any, doc_to_audio: Callable[..., Any]) -> Any: ...
 
     def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list | None:
         if doc_to_audio is not None:
@@ -1375,15 +1444,15 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
-            for metric in self._metric_fn_list:
+            for metric in self.config._metric_list:
                 try:
-                    result_score = self._metric_fn_list[metric](
+                    result_score = metric.fn(
                         references=[gold] if not isinstance(gold, list) else gold,
                         predictions=[result],
-                        **self._metric_fn_kwargs[metric],
+                        **metric.kwargs,
                     )
                 except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                    result_score = self._metric_fn_list[metric]([gold, result])
+                    result_score = metric.fn([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
                     # This allows for multiple metrics to be returned from the same function

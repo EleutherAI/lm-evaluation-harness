@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Union
+
+import datasets
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
@@ -18,6 +20,9 @@ if TYPE_CHECKING:
 
 eval_logger = logging.getLogger(__name__)
 
+DataSet = Union[datasets.Dataset, Iterable[dict[str, Any]]]
+DSplits = dict[str, DataSet]
+
 
 @dataclass
 class RepeatConfig:
@@ -30,7 +35,7 @@ class RepeatConfig:
 
 @dataclass
 class FilterConfig:
-    """Encapsulates information about a single filter."""
+    """Encapsulates information about a single filter pipeline."""
 
     name: str
     ensemble: FilterEnsemble
@@ -44,10 +49,8 @@ class FewshotConfig:
     num_fewshot: Callable[[], int]
     split: str | None = None
     sampler: str | Callable = "default"
-    samples: Callable[[], list[dict]] | list[dict] | None = None
-    process_docs: Callable[[list[dict[str, Any]]], Iterable[dict[str, Any]]] | None = (
-        None
-    )
+    samples: Callable[[], DataSet] | DataSet | None = None
+    process_docs: Callable[[DataSet], DataSet] | None = None
     fewshot_indices: list[int] | None = None
     rnd: int = field(init=False, default=False)
 
@@ -69,22 +72,23 @@ class FewshotConfig:
         """Check if any fewshot source is configured."""
         return self.split is not None or self.samples is not None
 
-    def _get_raw_docs(
-        self, dataset
-    ) -> list[dict] | Callable[[], Iterable[dict]] | None:
+    def _get_raw_docs(self, dataset: DSplits) -> DataSet | None:
         """Get raw documents from configured source."""
         if self.split is not None:
             return dataset[self.split]
 
         if self.samples is not None:
-            if isinstance(self.samples, list) or callable(self.samples):
+            if isinstance(self.samples, list):
                 return self.samples
+            elif callable(self.samples):
+                # If samples is a callable, it should return a list of dicts
+                return self.samples()
             else:
                 raise TypeError(
                     "samples must be either a list of dicts or a callable returning a list"
                 )
 
-    def get_docs(self, dataset) -> Iterable[dict[str, Any]] | None:
+    def get_docs(self, dataset) -> DataSet | None:
         """Get processed documents from configured source."""
         raw_docs = self._get_raw_docs(dataset)
         if raw_docs is None:
@@ -130,34 +134,34 @@ class TaskConfig:
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Callable | None = None
+    custom_dataset: Callable[..., DataSet] | None = None
     dataset_path: str | None = None
     dataset_name: str | None = None
     dataset_kwargs: dict | None = field(default_factory=dict)
     training_split: str | None = None
     validation_split: str | None = None
     test_split: str | None = None
-    fewshot_split: str | None = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
-    )
+    fewshot_split: str | None = None
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    process_docs: Callable | None = None
-    doc_to_text: Callable | str | None = None
-    doc_to_target: Callable | str | None = None
-    doc_to_image: Callable | str | None = None
-    doc_to_audio: Callable | str | None = None
+    process_docs: Callable[[DataSet], DataSet] | None = None
+    doc_to_text: Callable[[dict[str, Any]], Any] | str | None = None
+    doc_to_target: Callable[[dict[str, Any]], Any] | str | None = None
+    doc_to_image: Callable[[dict[str, Any]], Any] | str | None = None
+    doc_to_audio: Callable[[dict[str, Any]], Any] | str | None = None
     unsafe_code: bool = False
-    doc_to_choice: Callable | str | dict | list | None = None
-    process_results: Callable | str | None = None
+    doc_to_choice: Callable[[dict[str, Any]], Any] | str | dict | list | None = None
+    process_results: (
+        Callable[[dict[str, Any], list[Any]], dict[str, Any]] | str | None
+    ) = None
     use_prompt: str | None = None
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
-    fewshot_config: dict | None = None
+    fewshot_config: dict[str, Any] | None = None
     # runtime configuration options
-    num_fewshot: int | None = 0
-    generation_kwargs: dict | None = None
+    num_fewshot: int | None = None
+    generation_kwargs: dict[str, Any] | None = None
     # scoring options
     metric_list: list | None = None
     output_type: OutputType = "generate_until"
@@ -357,7 +361,7 @@ class TaskConfig:
             return x
 
     @classmethod
-    def from_yaml(cls, data: dict) -> TaskConfig:
+    def from_yaml(cls, data: dict[str, Any]) -> TaskConfig:
         """Create a TaskConfig instance from a YAML-like dictionary."""
         return cls(**data)
 
@@ -424,12 +428,6 @@ class TaskConfig:
 
         # Create and return TaskConfig instance
         return cls(**config_dict)
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         def _ser(x):

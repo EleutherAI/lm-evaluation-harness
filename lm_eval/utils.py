@@ -1,6 +1,5 @@
 import collections
 import fnmatch
-import functools
 import hashlib
 import importlib.util
 import inspect
@@ -8,10 +7,12 @@ import json
 import logging
 import os
 import re
+from collections.abc import Generator
 from dataclasses import asdict, is_dataclass
+from functools import lru_cache, partial, wraps
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any, Callable, Optional
 
 import numpy as np
 import yaml
@@ -108,7 +109,7 @@ def escaped_split(text, sep_char, maxsplit=-1):
         return text
     maxsplit = max(0, maxsplit)
 
-    return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
+    return re.split(r"(?<!\\)" + sep_char, text, maxsplit=maxsplit)
 
 
 def handle_arg_string(arg):
@@ -125,7 +126,7 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
+    if isinstance(o, np.integer):
         return int(o)
     elif isinstance(o, set):
         return list(o)
@@ -235,21 +236,21 @@ def sanitize_task_name(task_name: str) -> str:
     return re.sub(r"\W", "_", task_name)
 
 
-def get_latest_filename(filenames: List[str]) -> str:
+def get_latest_filename(filenames: list[str]) -> str:
     """
     Given a list of filenames, returns the filename with the latest datetime.
     """
     return max(filenames, key=lambda f: get_file_datetime(f))
 
 
-def get_results_filenames(filenames: List[str]) -> List[str]:
+def get_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to aggregated results.
     """
     return [f for f in filenames if "/results_" in f and ".json" in f]
 
 
-def get_sample_results_filenames(filenames: List[str]) -> List[str]:
+def get_sample_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to sample results.
     """
@@ -257,8 +258,8 @@ def get_sample_results_filenames(filenames: List[str]) -> List[str]:
 
 
 def get_rolling_token_windows(
-    token_list: List[int], prefix_token: int, max_seq_len: int, context_len: int
-) -> Generator[Tuple[List[int], List[int]], None, None]:
+    token_list: list[int], prefix_token: int, max_seq_len: int, context_len: int
+) -> Generator[tuple[list[int], list[int]], None, None]:
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
       condition on some context
@@ -300,8 +301,8 @@ def get_rolling_token_windows(
 
 
 def make_disjoint_window(
-    pair: Tuple[List[int], List[int]],
-) -> Tuple[List[int], List[int]]:
+    pair: tuple[list[int], list[int]],
+) -> tuple[list[int], list[int]]:
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
@@ -320,7 +321,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 
 class Reorderer:
-    def __init__(self, arr: List[Any], fn: Callable) -> None:
+    def __init__(self, arr: list[Any], fn: Callable) -> None:
         """Reorder an array according to some function
 
         Args:
@@ -423,11 +424,11 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             # TODO: fix
             hib = "↑"
 
-            v = "%.4f" % v if isinstance(v, float) else v
+            v = f"{v:.4f}" if isinstance(v, float) else v
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                se = "   N/A" if se == "N/A" else "%.4f" % se
+                se = "   N/A" if se == "N/A" else f"{se:.4f}"
                 values.append([k, version, f, n, m, hib, v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
@@ -448,7 +449,8 @@ def positional_deprecated(fn):
     wrapped function, `fn`.
     """
 
-    @functools.wraps(fn)
+    wraps(fn)
+
     def _wrapper(*args, **kwargs):
         if len(args) != 1 if inspect.ismethod(fn) else 0:
             print(
@@ -494,7 +496,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full
         if yaml_path is None:
             raise ValueError("yaml_path must be provided if mode is 'full'.")
         # Attach yaml_path to the import function so that it can be used later
-        constructor_fn = functools.partial(import_function, yaml_path=Path(yaml_path))
+        constructor_fn = partial(import_function, yaml_path=Path(yaml_path))
 
     loader = yaml.CLoader if yaml.__with_libyaml__ else yaml.FullLoader
     # Add the import_function constructor to the YAML loader
@@ -543,13 +545,18 @@ def regex_replace(string, pattern, repl, count: int = 0):
 
 
 env = Environment(
-    loader=BaseLoader, undefined=StrictUndefined, keep_trailing_newline=True
+    loader=BaseLoader(), undefined=StrictUndefined, keep_trailing_newline=True
 )
 env.filters["regex_replace"] = regex_replace
 
 
+@lru_cache(maxsize=128)
+def _compile(raw: str):
+    return env.from_string(raw)
+
+
 def apply_template(template: str, doc: dict) -> str:
-    rtemplate = env.from_string(template)
+    rtemplate = _compile(template)
     return rtemplate.render(**doc)
 
 
