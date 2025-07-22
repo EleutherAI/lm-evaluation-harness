@@ -505,7 +505,6 @@ def bootstrap_stderr(
     if not os.getenv("DISABLE_MULTIPROC"):
         import multiprocessing as mp
 
-        pool = mp.Pool(mp.cpu_count())
         # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
         # equivalent to stderr calculated without Bessel's correction in the stddev.
         # Unfortunately, I haven't been able to figure out what the right correction is
@@ -517,17 +516,16 @@ def bootstrap_stderr(
         from tqdm import tqdm
 
         print("bootstrapping for stddev:", f.__name__)
-        for bootstrap in tqdm(
-            pool.imap(
-                _bootstrap_internal(f, chunk_size),
-                [(i, xs) for i in range(iters // chunk_size)],
-            ),
-            total=iters // chunk_size,
-        ):
-            # sample w replacement
-            res.extend(bootstrap)
-
-        pool.close()
+        with mp.Pool(mp.cpu_count()) as pool:
+            for bootstrap in tqdm(
+                pool.imap(
+                    _bootstrap_internal(f, chunk_size),
+                    [(i, xs) for i in range(iters // chunk_size)],
+                ),
+                total=iters // chunk_size,
+            ):
+                # sample w replacement
+                res.extend(bootstrap)
     else:
         res = _bootstrap_internal_no_mp(f, xs, iters)
 

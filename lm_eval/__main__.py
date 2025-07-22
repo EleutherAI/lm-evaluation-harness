@@ -436,7 +436,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
-        args.model_args = args.model_args + ",trust_remote_code=True"
+        if isinstance(args.model_args, dict):
+            args.model_args["trust_remote_code"] = True
+        else:
+            args.model_args = args.model_args + ",trust_remote_code=True"
     (
         eval_logger.info(f"Selected Tasks: {task_names}")
         if eval_logger.getEffectiveLevel() >= logging.INFO
