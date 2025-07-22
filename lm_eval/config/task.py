@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 DataSet = Union[datasets.Dataset, Iterable[dict[str, Any]]]
+DSplits = dict[str, DataSet]
 
 
 @dataclass
@@ -34,7 +35,7 @@ class RepeatConfig:
 
 @dataclass
 class FilterConfig:
-    """Encapsulates information about a single filter."""
+    """Encapsulates information about a single filter pipeline."""
 
     name: str
     ensemble: FilterEnsemble
@@ -71,16 +72,17 @@ class FewshotConfig:
         """Check if any fewshot source is configured."""
         return self.split is not None or self.samples is not None
 
-    def _get_raw_docs(
-        self, dataset
-    ) -> list[dict] | Callable[[], Iterable[dict[str, Any]]] | None:
+    def _get_raw_docs(self, dataset: DSplits) -> DataSet | None:
         """Get raw documents from configured source."""
         if self.split is not None:
             return dataset[self.split]
 
         if self.samples is not None:
-            if isinstance(self.samples, list) or callable(self.samples):
+            if isinstance(self.samples, list):
                 return self.samples
+            elif callable(self.samples):
+                # If samples is a callable, it should return a list of dicts
+                return self.samples()
             else:
                 raise TypeError(
                     "samples must be either a list of dicts or a callable returning a list"
@@ -158,7 +160,7 @@ class TaskConfig:
     fewshot_delimiter: str = "\n\n"
     fewshot_config: dict[str, Any] | None = None
     # runtime configuration options
-    num_fewshot: int | None = 0
+    num_fewshot: int | None = None
     generation_kwargs: dict[str, Any] | None = None
     # scoring options
     metric_list: list | None = None
@@ -359,7 +361,7 @@ class TaskConfig:
             return x
 
     @classmethod
-    def from_yaml(cls, data: dict) -> TaskConfig:
+    def from_yaml(cls, data: dict[str, Any]) -> TaskConfig:
         """Create a TaskConfig instance from a YAML-like dictionary."""
         return cls(**data)
 
