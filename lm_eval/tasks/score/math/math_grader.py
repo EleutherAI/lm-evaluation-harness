@@ -267,12 +267,12 @@ def normalize_answer_string(expr: str) -> str:
         "\\\\textit",
     ]:
         expr = expr.replace(surround_str, "")
-        pattern = f"^{surround_str}" + "\{(?P<text>.+?)\}$"
+        pattern = f"^{surround_str}" + r"\{(?P<text>.+?)\}$"
         m = re.search(pattern, expr)
         if m is not None:
             expr = m.group("text")
 
-    expr = expr.replace("\!", "")
+    expr = expr.replace(r"\!", "")
     expr = expr.replace("\\%", "%")
     expr = expr.replace("\\$", "$")
     expr = expr.replace("$", "")
@@ -305,7 +305,7 @@ def normalize_answer_string(expr: str) -> str:
         "p.m.",
         "PM",
     ]:
-        expr = re.sub(f"{unit}(es)?(s)? *(\^[0-9]+)?", "", expr)
+        expr = re.sub(rf"{unit}(es)?(s)? *(\^[0-9]+)?", "", expr)
 
     if "day" in expr:
         days = [
@@ -326,7 +326,7 @@ def normalize_answer_string(expr: str) -> str:
         if not weekday_expressed:
             expr = re.sub("day(s)?", "", expr)
 
-    expr = re.sub("\^ *\\\\circ", "", expr)
+    expr = re.sub("\\^ *\\\\circ", "", expr)
 
     if len(expr) > 0 and expr[0] == "{" and expr[-1] == "}":
         expr = expr[1:-1]
