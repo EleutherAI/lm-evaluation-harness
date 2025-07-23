@@ -1,11 +1,12 @@
-from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 from lm_eval.api.instance import Instance
 
 
-class Filter(ABC):
+@runtime_checkable
+class Filter(Protocol):
     """
     Filter classes operate on a per-task level.
     They take all model outputs (`instance.resps` for all `task.instances`)
@@ -19,7 +20,6 @@ class Filter(ABC):
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    @abstractmethod
     def apply(
         self, resps: Iterable[list[str]], docs: Iterable[dict]
     ) -> Iterable[list[str]]:
