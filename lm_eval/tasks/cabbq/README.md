@@ -14,13 +14,13 @@ It is fully parallel with the `esbbq` task group, the version in Spanish.
 
 ```
 @misc{esbbq-cabbq-2025,
-      title={EsBBQ and CaBBQ: The Spanish and Catalan Bias Benchmarks for Question Answering}, 
+      title={EsBBQ and CaBBQ: The Spanish and Catalan Bias Benchmarks for Question Answering},
       author={Valle Ruiz-Fernández and Mario Mina and Júlia Falcão and Luis Vasquez-Reina and Anna Sallés and Aitor Gonzalez-Agirre and Olatz Perez-de-Viñaspre},
       year={2025},
       eprint={2507.11216},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2507.11216}, 
+      url={https://arxiv.org/abs/2507.11216},
 }
 ```
 
