@@ -171,7 +171,7 @@ class TaskConfig:
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
     multiple_input: bool = False
-    metadata: dict | None = field(
+    metadata: dict = field(
         default_factory=dict
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
