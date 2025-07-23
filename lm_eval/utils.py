@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import fnmatch
 import hashlib
@@ -12,11 +14,11 @@ from dataclasses import asdict, is_dataclass
 from functools import lru_cache, partial, wraps
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import numpy as np
 import yaml
-from jinja2 import BaseLoader, Environment, StrictUndefined
+from jinja2 import BaseLoader, Environment, StrictUndefined, Template
 
 
 SPACING = " " * 47
@@ -129,7 +131,7 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string: Optional[str]) -> dict:
+def simple_parse_args_string(args_string: str | None) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
@@ -164,7 +166,7 @@ def group(arr, fn):
 
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
-def pattern_match(patterns, source_list):
+def pattern_match(patterns: list[str], source_list: list[str]) -> list[str]:
     if isinstance(patterns, str):
         patterns = [patterns]
 
@@ -181,7 +183,7 @@ def softmax(x) -> np.ndarray:
     return e_x / e_x.sum()
 
 
-def general_detokenize(string) -> str:
+def general_detokenize(string: str) -> str:
     string = string.replace(" n't", "n't")
     string = string.replace(" )", ")")
     string = string.replace("( ", "(")
@@ -209,7 +211,7 @@ def sanitize_model_name(model_name: str) -> str:
     """
     Given the model name, returns a sanitized version of it.
     """
-    return re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", model_name)
+    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
 
 
 def sanitize_task_name(task_name: str) -> str:
@@ -472,7 +474,9 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
     return function
 
 
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
+def load_yaml_config(
+    yaml_path: str | None = None, yaml_config=None, yaml_dir=None, mode="full"
+):
     if mode == "simple":
         constructor_fn = ignore_constructor
     elif mode == "full":
@@ -534,7 +538,7 @@ env.filters["regex_replace"] = regex_replace
 
 
 @lru_cache(maxsize=128)
-def _compile(raw: str):
+def _compile(raw: str) -> Template:
     return env.from_string(raw)
 
 
@@ -543,7 +547,13 @@ def apply_template(template: str, doc: dict) -> str:
     return rtemplate.render(**doc)
 
 
-def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
+def create_iterator(
+    raw_iterator: collections.Iterator,
+    *,
+    rank: int = 0,
+    world_size: int = 1,
+    limit: int | None = None,
+) -> islice:
     """
     Method for creating a (potentially) sliced and limited
     iterator from a raw document iterator. Used for splitting data

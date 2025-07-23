@@ -656,58 +656,6 @@ class ConfigurableTask(Task):
             )
         self.task_docs = self.eval_docs
 
-        # Test One Doc
-        self.features: list[str] = list(self.task_docs.features.keys())
-        self.multiple_input = self.config.multiple_input
-        self.multiple_target = 0
-        test_doc = self.task_docs[0]
-        test_text = self.doc_to_text(test_doc)
-        test_target = self.doc_to_target(test_doc)
-
-        if self.config.doc_to_choice is not None:
-            test_choice = self.doc_to_choice(test_doc)
-            if not isinstance(test_choice, list):
-                eval_logger.error("doc_to_choice must return list")
-            else:
-                num_choice = len(test_choice)
-
-            if isinstance(test_text, int):
-                eval_logger.debug(
-                    "doc_to_text returned an int. Assuming multiple inputs."
-                )
-                self.multiple_input = num_choice
-        else:
-            test_choice = None
-
-        if isinstance(test_target, list):
-            eval_logger.debug(
-                "doc_to_target returned a list. Assuming multiple targets."
-            )
-            self.multiple_target = len(test_target)
-        else:
-            if (isinstance(test_target, int)) and (test_choice is not None):
-                test_target = test_choice[test_target]
-            else:
-                test_target = str(test_target)
-
-        check_choices = test_choice if test_choice is not None else [test_target]
-        if self.config.doc_to_choice is not None:
-            for choice in check_choices:
-                choice_has_whitespace = choice[0].isspace()
-                delimiter_has_whitespace = (
-                    self.config.target_delimiter.rstrip()
-                    != self.config.target_delimiter
-                )
-
-                if delimiter_has_whitespace and choice_has_whitespace:
-                    eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
-                    )
-                elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
-                    eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
-                    )
-
         for _method, fn in self.config._fn.items():
             if hasattr(self, _method):
                 setattr(self, _method, MethodType(fn, self))
@@ -1469,6 +1417,56 @@ class ConfigurableTask(Task):
     @property
     def task_name(self) -> str | None:
         return getattr(self.config, "task", None)
+
+    def runtime_checks(self, test_doc):
+        # Test One Doc
+        self.features: list[str] = list(self.task_docs.features.keys())
+        self.multiple_target = 0
+        test_text = self.doc_to_text(test_doc)
+        test_target = self.doc_to_target(test_doc)
+
+        if self.config.doc_to_choice is not None:
+            test_choice = self.doc_to_choice(test_doc)
+            if not isinstance(test_choice, list):
+                eval_logger.error("doc_to_choice must return list")
+            # else:
+            #     num_choice = len(test_choice)
+
+            if isinstance(test_text, int):
+                eval_logger.debug(
+                    "doc_to_text returned an int. Assuming multiple inputs."
+                )
+        else:
+            test_choice = None
+
+        if isinstance(test_target, list):
+            eval_logger.debug(
+                "doc_to_target returned a list. Assuming multiple targets."
+            )
+            self.multiple_target = len(test_target)
+        else:
+            if (isinstance(test_target, int)) and (test_choice is not None):
+                test_target = test_choice[test_target]
+            else:
+                test_target = str(test_target)
+
+        check_choices = test_choice if test_choice is not None else [test_target]
+        if self.config.doc_to_choice is not None:
+            for choice in check_choices:
+                choice_has_whitespace = choice[0].isspace()
+                delimiter_has_whitespace = (
+                    self.config.target_delimiter.rstrip()
+                    != self.config.target_delimiter
+                )
+
+                if delimiter_has_whitespace and choice_has_whitespace:
+                    eval_logger.debug(
+                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
+                    )
+                elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
+                    eval_logger.debug(
+                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                    )
 
     def __repr__(self):
         return (
