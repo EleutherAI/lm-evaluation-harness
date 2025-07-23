@@ -131,7 +131,6 @@ class VLLM(TemplateLM):
         max_model_len: int = None,
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
-        device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
         # VLLM: enable thinking tags in the prompt.
@@ -173,7 +172,6 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
-            "device": str(device),
             "enable_lora": True if lora_local_path else False,
             "max_lora_rank": int(max_lora_rank),
         }
