@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import logging
 import os
@@ -99,7 +101,7 @@ class HFLM(TemplateLM):
         # end token for thinking, either the string or int token id.
         # splits to get response after this token (if provided).
         think_end_token: Union[str, int, None] = None,
-        chat_template_args: Optional[dict] = None,
+        enable_thinking: bool | None = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -239,7 +241,9 @@ class HFLM(TemplateLM):
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
-        self.chat_template_args = chat_template_args or {}
+        self.chat_template_args = (
+            {"enable_thinking": enable_thinking} if enable_thinking is not None else {}
+        )
 
         self.add_bos_token = add_bos_token
         if "gemma" in getattr(self.config, "model_type", ""):
