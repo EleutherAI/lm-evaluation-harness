@@ -1,0 +1,16 @@
+dataset_path: swiss-ai/harmbench
+output_type: generate_until
+test_split: test
+doc_to_text: "{{Behavior}}"
+doc_to_target: ""
+process_results: !function metrics.harmfulness_score
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: false
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_new_tokens: 60
+metadata:
+  version: 1.0

@@ -1,0 +1,3 @@
+task: harmbench_direct_request
+include: _harmbench_yaml
+dataset_name: DirectRequest
