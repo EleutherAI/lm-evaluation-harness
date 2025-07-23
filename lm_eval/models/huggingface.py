@@ -5,7 +5,7 @@ import logging
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 
 import jinja2
 import torch
@@ -102,6 +102,7 @@ class HFLM(TemplateLM):
         # splits to get response after this token (if provided).
         think_end_token: Union[str, int, None] = None,
         enable_thinking: bool | None = None,
+        chat_template_args: Optional[dict[str, Any]] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -242,7 +243,9 @@ class HFLM(TemplateLM):
         # select (or create) a pad token to use
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
         self.chat_template_args = (
-            {"enable_thinking": enable_thinking} if enable_thinking is not None else {}
+            chat_template_args or {} | dict(enable_thinking=enable_thinking)
+            if enable_thinking is not None
+            else {}
         )
 
         self.add_bos_token = add_bos_token
