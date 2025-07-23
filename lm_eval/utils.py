@@ -26,6 +26,23 @@ HIGHER_IS_BETTER_SYMBOLS = {
 }
 
 
+def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+    """
+    Wraps the given string to the specified width.
+    """
+    import textwrap
+
+    return textwrap.fill(
+        inspect.cleandoc(string),
+        width=width,
+        initial_indent="",
+        subsequent_indent=" " * 8,
+        break_long_words=False,
+        break_on_hyphens=False,
+        **kwargs,
+    )
+
+
 def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
     class CustomFormatter(logging.Formatter):
