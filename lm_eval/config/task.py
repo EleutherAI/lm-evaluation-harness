@@ -10,7 +10,7 @@ import datasets
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
 from lm_eval.config.metric import MetricConfig
-from lm_eval.config.utils import maybe_serialize
+from lm_eval.config.utils import doc_to_closure, maybe_serialize
 
 
 if TYPE_CHECKING:
@@ -179,6 +179,7 @@ class TaskConfig:
     _filter_list: list[FilterConfig] = field(default_factory=list)
     # ds_cfg: DatasetConfig = field(init=False)
     fewshot_cfg: FewshotConfig = field(init=False)
+    _fn: dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         ### ---setup generation kwargs--- ###
@@ -363,7 +364,8 @@ class TaskConfig:
     @classmethod
     def from_yaml(cls, data: dict[str, Any]) -> TaskConfig:
         """Create a TaskConfig instance from a YAML-like dictionary."""
-        return cls(**data)
+        fn = {k: doc_to_closure(v) for k, v in data.items() if callable(v)}
+        return cls(**data, _fn=fn)
 
     @classmethod
     def from_template(cls, template: TemplateConfig, **kwargs) -> TaskConfig:
