@@ -17,7 +17,7 @@ def try_parse_json(value: str) -> Union[str, dict, None]:
         if "{" in value:
             raise argparse.ArgumentTypeError(
                 f"Invalid JSON: {value}. Hint: Use double quotes for JSON strings."
-            )
+            ) from None
         return value
 
 
@@ -30,8 +30,8 @@ def _int_or_none_list_arg_type(
             return None
         try:
             return int(item)
-        except ValueError:
-            raise argparse.ArgumentTypeError(f"{item} is not an integer or None")
+        except ValueError as e:
+            raise argparse.ArgumentTypeError(f"{item} is not an integer or None") from e
 
     items = [parse_value(v) for v in value.split(split_char)]
     num_items = len(items)
@@ -433,8 +433,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # because it's already been determined based on the prior env var before launching our
         # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
         import datasets
+        from packaging.version import parse as vparse
 
-        datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+        if vparse(datasets.__version__) < vparse("4.0.0"):
+            datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
         if isinstance(args.model_args, dict):
             args.model_args["trust_remote_code"] = True
@@ -510,7 +512,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
         if args.log_samples:
-            for task_name, config in results["configs"].items():
+            for task_name, _config in results["configs"].items():
                 evaluation_tracker.save_results_samples(
                     task_name=task_name, samples=samples[task_name]
                 )

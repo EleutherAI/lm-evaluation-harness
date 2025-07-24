@@ -663,6 +663,11 @@ class ConfigurableTask(Task):
         print("hello")
 
     def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
+        from packaging.version import parse as vparse
+
+        if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
+            dataset_kwargs.pop("trust_remote_code", None)
+
         self.config.dataset_kwargs, self.config.metadata = (
             self.config.dataset_kwargs or {},
             self.config.metadata or {},
