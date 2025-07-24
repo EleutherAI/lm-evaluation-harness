@@ -209,7 +209,7 @@ class VLLM(TemplateLM):
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.chat_template_args = chat_template_args or {}
-        self.enable_thinking = chat_template_args.pop(
+        self.enable_thinking = self.chat_template_args.pop(
             "enable_thinking", enable_thinking
         )
         self.add_bos_token = add_bos_token
