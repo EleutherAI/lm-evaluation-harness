@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 import torch
+import pandas as pd
 
 import lm_eval.api.metrics
 import lm_eval.api.registry
@@ -622,6 +623,7 @@ def evaluate(
                 world_size=WORLD_SIZE,
                 samples=indices,
             )
+
             for doc_id, doc in doc_iterator:
                 if indices:
                     doc_id_true = indices[doc_id]
@@ -631,6 +633,7 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
+                                
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {
