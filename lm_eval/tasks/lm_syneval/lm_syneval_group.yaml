@@ -1,0 +1,228 @@
+group: lm_syneval
+task:
+  - group: lm_syneval__reflexives
+    task:
+      - group: lm_syneval__reflexives__simple_reflexives
+        task:
+          - lm_syneval__reflexives__simple_reflexives__sing_MS_ANPHR
+          - lm_syneval__reflexives__simple_reflexives__plur_MS_ANPHR
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__reflexives__reflexive_sent_comp
+        task:
+          - lm_syneval__reflexives__reflexive_sent_comp__sing_MS_ANPHR_sing_BS
+          - lm_syneval__reflexives__reflexive_sent_comp__sing_MS_ANPHR_plur_BS
+          - lm_syneval__reflexives__reflexive_sent_comp__plur_MS_ANPHR_sing_BS
+          - lm_syneval__reflexives__reflexive_sent_comp__plur_MS_ANPHR_plur_BS
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__reflexives__reflexives_across
+        task:
+          - lm_syneval__reflexives__reflexives_across__sing_MS_ANPHR_sing_ES_EV
+          - lm_syneval__reflexives__reflexives_across__sing_MS_ANPHR_plur_ES_EV
+          - lm_syneval__reflexives__reflexives_across__plur_MS_ANPHR_sing_ES_EV
+          - lm_syneval__reflexives__reflexives_across__plur_MS_ANPHR_plur_ES_EV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+  - group: lm_syneval__agreement
+    task:
+      - group: lm_syneval__agreement__obj_rel_within_inanim
+        task:
+          - lm_syneval__agreement__obj_rel_within_inanim__sing_ES_EV_sing_IS_IV
+          - lm_syneval__agreement__obj_rel_within_inanim__sing_ES_EV_plur_IS_IV
+          - lm_syneval__agreement__obj_rel_within_inanim__plur_ES_EV_sing_IS_IV
+          - lm_syneval__agreement__obj_rel_within_inanim__plur_ES_EV_plur_IS_IV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__vp_coord
+        task:
+          - lm_syneval__agreement__vp_coord__sing_MS_MV_MV
+          - lm_syneval__agreement__vp_coord__plur_MS_MV_MV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__sent_comp
+        task:
+          - lm_syneval__agreement__sent_comp__sing_MS_MV_sing_BS
+          - lm_syneval__agreement__sent_comp__sing_MS_MV_plur_BS
+          - lm_syneval__agreement__sent_comp__plur_MS_MV_sing_BS
+          - lm_syneval__agreement__sent_comp__plur_MS_MV_plur_BS
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_no_comp_within_inanim
+        task:
+          - lm_syneval__agreement__obj_rel_no_comp_within_inanim__sing_ES_EV_sing_IS_IV
+          - lm_syneval__agreement__obj_rel_no_comp_within_inanim__sing_ES_EV_plur_IS_IV
+          - lm_syneval__agreement__obj_rel_no_comp_within_inanim__plur_ES_EV_sing_IS_IV
+          - lm_syneval__agreement__obj_rel_no_comp_within_inanim__plur_ES_EV_plur_IS_IV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_within_anim
+        task:
+          - lm_syneval__agreement__obj_rel_within_anim__sing_ES_EV_sing_MS_MV
+          - lm_syneval__agreement__obj_rel_within_anim__sing_ES_EV_plur_MS_MV
+          - lm_syneval__agreement__obj_rel_within_anim__plur_ES_EV_sing_MS_MV
+          - lm_syneval__agreement__obj_rel_within_anim__plur_ES_EV_plur_MS_MV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__subj_rel
+        task:
+          - lm_syneval__agreement__subj_rel__sing_MS_EV_MV_sing_ES
+          - lm_syneval__agreement__subj_rel__sing_MS_EV_MV_plur_ES
+          - lm_syneval__agreement__subj_rel__plur_MS_EV_MV_sing_ES
+          - lm_syneval__agreement__subj_rel__plur_MS_EV_MV_plur_ES
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__prep_inanim
+        task:
+          - lm_syneval__agreement__prep_inanim__sing_IS_IV_sing_ES
+          - lm_syneval__agreement__prep_inanim__sing_IS_IV_plur_ES
+          - lm_syneval__agreement__prep_inanim__plur_IS_IV_sing_ES
+          - lm_syneval__agreement__prep_inanim__plur_IS_IV_plur_ES
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__long_vp_coord
+        task:
+          - lm_syneval__agreement__long_vp_coord__sing_MS_LMV_LMV
+          - lm_syneval__agreement__long_vp_coord__plur_MS_LMV_LMV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_across_anim
+        task:
+          - lm_syneval__agreement__obj_rel_across_anim__sing_MS_MV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_across_anim__sing_MS_MV_plur_ES_EV
+          - lm_syneval__agreement__obj_rel_across_anim__plur_MS_MV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_across_anim__plur_MS_MV_plur_ES_EV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_across_inanim
+        task:
+          - lm_syneval__agreement__obj_rel_across_inanim__sing_IS_IV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_across_inanim__sing_IS_IV_plur_ES_EV
+          - lm_syneval__agreement__obj_rel_across_inanim__plur_IS_IV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_across_inanim__plur_IS_IV_plur_ES_EV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_no_comp_across_anim
+        task:
+          - lm_syneval__agreement__obj_rel_no_comp_across_anim__sing_MS_MV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_no_comp_across_anim__sing_MS_MV_plur_ES_EV
+          - lm_syneval__agreement__obj_rel_no_comp_across_anim__plur_MS_MV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_no_comp_across_anim__plur_MS_MV_plur_ES_EV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_no_comp_across_inanim
+        task:
+          - lm_syneval__agreement__obj_rel_no_comp_across_inanim__sing_IS_IV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_no_comp_across_inanim__sing_IS_IV_plur_ES_EV
+          - lm_syneval__agreement__obj_rel_no_comp_across_inanim__plur_IS_IV_sing_ES_EV
+          - lm_syneval__agreement__obj_rel_no_comp_across_inanim__plur_IS_IV_plur_ES_EV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__simple_agrmt
+        task:
+          - lm_syneval__agreement__simple_agrmt__sing_MS_MV
+          - lm_syneval__agreement__simple_agrmt__plur_MS_MV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__prep_anim
+        task:
+          - lm_syneval__agreement__prep_anim__sing_MS_MV_sing_ES
+          - lm_syneval__agreement__prep_anim__sing_MS_MV_plur_ES
+          - lm_syneval__agreement__prep_anim__plur_MS_MV_sing_ES
+          - lm_syneval__agreement__prep_anim__plur_MS_MV_plur_ES
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__agreement__obj_rel_no_comp_within_anim
+        task:
+          - lm_syneval__agreement__obj_rel_no_comp_within_anim__sing_ES_EV_sing_MS_MV
+          - lm_syneval__agreement__obj_rel_no_comp_within_anim__sing_ES_EV_plur_MS_MV
+          - lm_syneval__agreement__obj_rel_no_comp_within_anim__plur_ES_EV_sing_MS_MV
+          - lm_syneval__agreement__obj_rel_no_comp_within_anim__plur_ES_EV_plur_MS_MV
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+  - group: lm_syneval__npi
+    task:
+      - group: lm_syneval__npi__npi_across_anim
+        task:
+          - lm_syneval__npi__npi_across_anim__past
+          - lm_syneval__npi__npi_across_anim__future
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__npi__npi_across_inanim
+        task:
+          - lm_syneval__npi__npi_across_inanim__past
+          - lm_syneval__npi__npi_across_inanim__future
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__npi__simple_npi_anim
+        task:
+          - lm_syneval__npi__simple_npi_anim__past
+          - lm_syneval__npi__simple_npi_anim__future
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+      - group: lm_syneval__npi__simple_npi_inanim
+        task:
+          - lm_syneval__npi__simple_npi_inanim__past
+          - lm_syneval__npi__simple_npi_inanim__future
+        aggregate_metric_list:
+          - metric: acc
+            aggregation: mean
+            weight_by_size: false
+    aggregate_metric_list:
+      - metric: acc
+        aggregation: mean
+        weight_by_size: false
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false
