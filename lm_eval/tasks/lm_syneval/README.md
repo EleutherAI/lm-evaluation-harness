@@ -40,7 +40,7 @@
 
 ## Groups, Tags, and Tasks
 
-The tasks are structured hierarchically as listed below. For more detailed explanations, see original paper and repository (linked above).
+The tasks are structured hierarchically as listed below. For more detailed explanations, see original paper and repository (linked above). In this implementation, group means are unweighted.
 
 * `lm_syneval`
     * `lm_syneval__reflexives`
