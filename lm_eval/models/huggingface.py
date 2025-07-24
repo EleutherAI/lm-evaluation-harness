@@ -941,11 +941,11 @@ class HFLM(TemplateLM):
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
 
-                assert self.AUTO_MODEL_CLASS in (
-                    transformers.AutoModelForCausalLM,
-                    transformers.AutoModelForVision2Seq,
-                )
-                return self.model(inps).logits
+            assert self.AUTO_MODEL_CLASS in (
+                transformers.AutoModelForCausalLM,
+                transformers.AutoModelForVision2Seq,
+            )
+            return self.model(inps).logits
 
     def _model_generate(
         self,

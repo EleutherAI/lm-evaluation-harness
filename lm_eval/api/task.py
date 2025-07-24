@@ -660,6 +660,8 @@ class ConfigurableTask(Task):
             if hasattr(self, _method):
                 setattr(self, _method, MethodType(fn, self))
 
+        self.runtime_checks(self.task_docs[0])
+
         print("hello")
 
     def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
@@ -1427,6 +1429,7 @@ class ConfigurableTask(Task):
         # Test One Doc
         self.features: list[str] = list(self.task_docs.features.keys())
         self.multiple_target = 0
+        self.multiple_input = 0
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
 
@@ -1434,13 +1437,19 @@ class ConfigurableTask(Task):
             test_choice = self.doc_to_choice(test_doc)
             if not isinstance(test_choice, list):
                 eval_logger.error("doc_to_choice must return list")
-            # else:
-            #     num_choice = len(test_choice)
+            else:
+                num_choice = len(test_choice)
 
             if isinstance(test_text, int):
                 eval_logger.debug(
                     "doc_to_text returned an int. Assuming multiple inputs."
                 )
+
+            if isinstance(test_text, int):
+                eval_logger.debug(
+                    "doc_to_text returned an int. Assuming multiple inputs."
+                )
+                self.multiple_input = num_choice
         else:
             test_choice = None
 
