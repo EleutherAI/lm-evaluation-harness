@@ -11,6 +11,7 @@ task:
   - xlsum_es
   - paws_es_spanish_bench
   - mgsm_direct_es_spanish_bench
+  - eqbench_es
   - flores_es
   - phrases_es
   - cocoteros_es
