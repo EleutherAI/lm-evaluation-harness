@@ -1,0 +1,9 @@
+description: 'A seguir estão perguntas de múltipla escolha (com respostas) sobre negócios.
+  Pense passo a passo e termine sua resposta com "A resposta é (X)" onde X é a letra
+  da opção correta.
+
+  '
+include: _pt_lite_template_yaml
+task: mmlu_prox_lite_pt_business
+task_alias: business
+process_docs: !function utils.process_business

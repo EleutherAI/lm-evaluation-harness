@@ -1,0 +1,9 @@
+description: 'Ось запитання з вибором відповідей на тему інформатика (з відповіддю).
+  Будь ласка, подумайте крок за кроком і закінчіть свою відповідь "Відповідь: (X)",
+  де X – літера правильного варіанту.
+
+  '
+include: _uk_template_yaml
+task: mmlu_prox_uk_computer_science
+task_alias: computer_science
+process_docs: !function utils.process_computer_science
