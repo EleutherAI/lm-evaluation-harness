@@ -17,7 +17,7 @@ def try_parse_json(value: str) -> Union[str, dict, None]:
         if "{" in value:
             raise argparse.ArgumentTypeError(
                 f"Invalid JSON: {value}. Hint: Use double quotes for JSON strings."
-            )
+            ) from None
         return value
 
 
@@ -30,8 +30,8 @@ def _int_or_none_list_arg_type(
             return None
         try:
             return int(item)
-        except ValueError:
-            raise argparse.ArgumentTypeError(f"{item} is not an integer or None")
+        except ValueError as e:
+            raise argparse.ArgumentTypeError(f"{item} is not an integer or None") from e
 
     items = [parse_value(v) for v in value.split(split_char)]
     num_items = len(items)
@@ -485,6 +485,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
+        # TODO: fix this!
+        results["higher_is_better"] = {
+            k: True for k, v in results["higher_is_better"].items()
+        }
         dumped = json.dumps(
             results, indent=2, default=handle_non_serializable, ensure_ascii=False
         )
@@ -508,7 +512,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
         if args.log_samples:
-            for task_name, config in results["configs"].items():
+            for task_name, _config in results["configs"].items():
                 evaluation_tracker.save_results_samples(
                     task_name=task_name, samples=samples[task_name]
                 )

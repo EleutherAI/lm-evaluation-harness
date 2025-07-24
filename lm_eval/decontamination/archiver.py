@@ -1,3 +1,14 @@
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#     "jsonlines",
+#     "mmap",
+#     "tqdm",
+#     "zstandard",
+# ]
+# ///
+
+# ruff: noqa
 import datetime
 import io
 import json
@@ -111,7 +122,7 @@ class TextReader:
         current_file_position = 0
         line_counter = 0
         with (
-            open(self.file_path, "r", encoding="utf-8") as fh,
+            open(self.file_path, encoding="utf-8") as fh,
             tqdm.tqdm(
                 total=os.path.getsize(self.file_path),
                 dynamic_ncols=True,
@@ -133,7 +144,7 @@ class TextReader:
 
     def read_and_tell(self):
         current_file_position = 0
-        with open(self.file_path, "r", encoding="utf8") as fh:
+        with open(self.file_path, encoding="utf8") as fh:
             with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
                 for line in iter(mmap_obj.readline, b""):
                     line = line.decode("utf-8")
@@ -143,14 +154,14 @@ class TextReader:
                     yield line[:-1], raw_bytes_read
 
     def read(self):
-        with open(self.file_path, "r", encoding="utf8") as fh:
+        with open(self.file_path, encoding="utf8") as fh:
             with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
                 for line in iter(mmap_obj.readline, b""):
                     line = line.decode("utf-8")
                     yield line[:-1]
 
     def read_slow(self):
-        with open(self.file_path, "r", encoding="utf8") as fh:
+        with open(self.file_path, encoding="utf8") as fh:
             while True:
                 line = fh.readline()
                 if line == -1 or line == "":

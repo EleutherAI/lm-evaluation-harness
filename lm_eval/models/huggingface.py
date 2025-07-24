@@ -673,8 +673,7 @@ class HFLM(TemplateLM):
             )
 
         if peft:
-            from peft import PeftModel
-            from peft import __version__ as PEFT_VERSION
+            from peft import PeftModel, __version__ as PEFT_VERSION
 
             if model_kwargs.get("load_in_4bit") and vparse(PEFT_VERSION) < vparse(
                 "0.4.0"
@@ -942,11 +941,11 @@ class HFLM(TemplateLM):
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
 
-            assert self.AUTO_MODEL_CLASS in (
-                transformers.AutoModelForCausalLM,
-                transformers.AutoModelForVision2Seq,
-            )
-            return self.model(inps).logits
+                assert self.AUTO_MODEL_CLASS in (
+                    transformers.AutoModelForCausalLM,
+                    transformers.AutoModelForVision2Seq,
+                )
+                return self.model(inps).logits
 
     def _model_generate(
         self,
