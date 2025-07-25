@@ -1,6 +1,8 @@
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Callable, List, Optional, Union
+from typing import Callable, Optional, Union
+
+from datasets.features.pdf import field
 
 
 @dataclass
@@ -25,9 +27,9 @@ class AggMetricConfig(dict):
 class GroupConfig:
     group: Optional[str] = None
     group_alias: Optional[str] = None
-    task: Optional[Union[str, list]] = None
+    task: Union[str, list] = field(default_factory=list)
     aggregate_metric_list: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
+        Union[list[AggMetricConfig], AggMetricConfig, dict]
     ] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks

@@ -1,5 +1,4 @@
-"""
-Tests for the task index builder that discovers YAML task configurations.
+"""Tests for the task index builder that discovers YAML task configurations.
 
 Test coverage:
 - TaskIndexBuilder._kind_of: identifies task/group/tag/task_list/py_task
@@ -14,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from lm_eval.tasks._task_index import TaskIndexBuilder, TaskKind
+from lm_eval.tasks._task_index import TaskIndex, TaskKind
 
 
 @pytest.fixture
@@ -40,28 +39,28 @@ class TestTaskKindOf:
     def test_kind_of_task(self):
         """Single task with string name."""
         cfg = {"task": "my_task", "dataset_path": "data"}
-        assert TaskIndexBuilder._kind_of(cfg) == TaskKind.TASK
+        assert TaskIndex._kind_of(cfg) == TaskKind.TASK
 
     def test_kind_of_group(self):
         """Group has task as list."""
         cfg = {"task": ["task1", "task2"], "group": "my_group"}
-        assert TaskIndexBuilder._kind_of(cfg) == TaskKind.GROUP
+        assert TaskIndex._kind_of(cfg) == TaskKind.GROUP
 
     def test_kind_of_py_task(self):
         """Python task has class field."""
         cfg = {"task": "my_task", "class": "tasks.MyTask"}
-        assert TaskIndexBuilder._kind_of(cfg) == TaskKind.PY_TASK
+        assert TaskIndex._kind_of(cfg) == TaskKind.PY_TASK
 
     def test_kind_of_task_list(self):
         """Task list has task_list field."""
         cfg = {"task_list": ["task1", "task2"]}
-        assert TaskIndexBuilder._kind_of(cfg) == TaskKind.TASK_LIST
+        assert TaskIndex._kind_of(cfg) == TaskKind.TASK_LIST
 
     def test_kind_of_unknown(self):
         """Unknown config raises ValueError."""
         cfg = {"unknown": "field"}
         with pytest.raises(ValueError, match="Unknown config shape"):
-            TaskIndexBuilder._kind_of(cfg)
+            TaskIndex._kind_of(cfg)
 
 
 class TestIterYamlFiles:
@@ -75,8 +74,8 @@ class TestIterYamlFiles:
         (temp_dir / "subdir" / "task2.yaml").touch()
         (temp_dir / "other.txt").touch()
 
-        builder = TaskIndexBuilder()
-        yaml_files = list(builder._iter_yaml_files(temp_dir))
+        builder = TaskIndex()
+        yaml_files = list(builder._iter_yaml_files())
 
         assert len(yaml_files) == 2
         names = {f.name for f in yaml_files}
@@ -90,8 +89,8 @@ class TestIterYamlFiles:
         (temp_dir / ".ipynb_checkpoints").mkdir()
         (temp_dir / ".ipynb_checkpoints" / "also_ignored.yaml").touch()
 
-        builder = TaskIndexBuilder()
-        yaml_files = list(builder._iter_yaml_files(temp_dir))
+        builder = TaskIndex()
+        yaml_files = list(builder._iter_yaml_files())
 
         assert len(yaml_files) == 1
         assert yaml_files[0].name == "task.yaml"
@@ -106,8 +105,8 @@ class TestProcessCfg:
         path = temp_dir / "task.yaml"
         index = {}
 
-        builder = TaskIndexBuilder()
-        builder._process_cfg(cfg, path, index)
+        builder = TaskIndex()
+        builder.process_cfg(cfg, path, index)
 
         assert "my_task" in index
         entry = index["my_task"]
@@ -122,8 +121,8 @@ class TestProcessCfg:
         path = temp_dir / "group.yaml"
         index = {}
 
-        builder = TaskIndexBuilder()
-        builder._process_cfg(cfg, path, index)
+        builder = TaskIndex()
+        builder.process_cfg(cfg, path, index)
 
         assert "my_group" in index
         entry = index["my_group"]
@@ -138,8 +137,8 @@ class TestProcessCfg:
         path = temp_dir / "py_task.yaml"
         index = {}
 
-        builder = TaskIndexBuilder()
-        builder._process_cfg(cfg, path, index)
+        builder = TaskIndex()
+        builder.process_cfg(cfg, path, index)
 
         assert "py_task" in index
         entry = index["py_task"]
@@ -154,27 +153,30 @@ class TestProcessCfg:
             "task_list": [
                 "simple_task",
                 {"task": "complex_task", "tag": ["tag1", "tag2"]},
-            ]
+            ],
         }
         path = temp_dir / "list.yaml"
         index = {}
 
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         # The implementation has a bug - it calls entry.get() on string entries
         # This test documents the current behavior which will fail
         with pytest.raises(AttributeError, match="'str' object has no attribute 'get'"):
-            builder._process_cfg(cfg, path, index)
+            builder.process_cfg(cfg, path, index)
 
     def test_process_task_list_dict_entries(self, temp_dir):
         """Task list with only dict entries works."""
         cfg = {
-            "task_list": [{"task": "task1"}, {"task": "task2", "tag": ["tag1", "tag2"]}]
+            "task_list": [
+                {"task": "task1"},
+                {"task": "task2", "tag": ["tag1", "tag2"]},
+            ],
         }
         path = temp_dir / "list.yaml"
         index = {}
 
-        builder = TaskIndexBuilder()
-        builder._process_cfg(cfg, path, index)
+        builder = TaskIndex()
+        builder.process_cfg(cfg, path, index)
 
         # Task without tags
         assert "task1" in index
@@ -197,7 +199,7 @@ class TestRegisterTags:
     def test_register_single_tag(self):
         """Single tag creates TAG entry."""
         index = {}
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
 
         builder._register_tags("task1", "my_tag", index)
 
@@ -210,7 +212,7 @@ class TestRegisterTags:
     def test_register_multiple_tags(self):
         """Multiple tags create multiple TAG entries."""
         index = {}
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
 
         builder._register_tags("task1", ["tag1", "tag2"], index)
 
@@ -222,7 +224,7 @@ class TestRegisterTags:
     def test_register_tags_accumulates(self):
         """Multiple tasks can have same tag."""
         index = {}
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
 
         builder._register_tags("task1", "shared_tag", index)
         builder._register_tags("task2", "shared_tag", index)
@@ -237,7 +239,7 @@ class TestBuild:
 
     def test_build_empty_directory(self, temp_dir):
         """Empty directory returns empty index."""
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         index = builder.build([temp_dir])
         assert index == {}
 
@@ -245,7 +247,7 @@ class TestBuild:
         """Single task file is discovered."""
         yaml_file("task: my_task\ndataset_path: data\n")
 
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         index = builder.build([temp_dir])
 
         assert len(index) == 1
@@ -269,7 +271,7 @@ class TestBuild:
         # Python task
         yaml_file("task: py_task\nclass: MyClass\n", "python.yaml")
 
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         index = builder.build([temp_dir])
 
         # Check all entries exist
@@ -297,7 +299,7 @@ class TestBuild:
         yaml_file("task: sub_task\n", "subdir/sub.yaml")
         yaml_file("task: deep_task\n", "subdir/deeper/deep.yaml")
 
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         index = builder.build([temp_dir])
 
         assert len(index) == 3
@@ -308,7 +310,7 @@ class TestBuild:
         yaml_file("task: valid_task\n", "valid.yaml")
         yaml_file("invalid: [\n", "invalid.yaml")  # Invalid YAML
 
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         index = builder.build([temp_dir])
 
         assert len(index) == 1
@@ -325,7 +327,7 @@ class TestBuild:
         (dir1 / "task1.yaml").write_text("task: task1\n")
         (dir2 / "task2.yaml").write_text("task: task2\n")
 
-        builder = TaskIndexBuilder()
+        builder = TaskIndex()
         index = builder.build([dir1, dir2])
 
         assert len(index) == 2

@@ -103,7 +103,8 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
-extend-select = ["I"]
+select = ["ASYNC","B", "C4", "E", "F", "I", "LOG","PIE", "PTH","SIM", "UP", "PERF", "ISC001", "ISC002", "ICN001", "C901","FURB", "RUF"]
+ignore = ["E501", "E111", "E114", "E117", "E501", "PERF203", "B011"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
@@ -111,7 +112,6 @@ known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401","F402","F403"]
-"utils.py" = ["F401"]
 
 [dependency-groups]
 dev = [
