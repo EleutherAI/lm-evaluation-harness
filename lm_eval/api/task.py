@@ -27,7 +27,6 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
-from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
@@ -1803,6 +1802,8 @@ class MultipleChoiceTask(Task):
         }
 
     def aggregation(self) -> dict:
+        from lm_eval.api.metrics import mean
+
         return {
             "acc": mean,
             "acc_norm": mean,
@@ -1869,6 +1870,8 @@ class PerplexityTask(Task):
         }
 
     def aggregation(self) -> dict:
+        from lm_eval.api.metrics import bits_per_byte, weighted_perplexity
+
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,

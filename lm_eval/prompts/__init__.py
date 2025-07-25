@@ -3,6 +3,8 @@ import logging
 import os
 from typing import Dict
 
+import lm_eval.tasks
+import lm_eval.utils
 from lm_eval import utils
 
 
@@ -122,7 +124,7 @@ class PromptString:
         if "doc_to_choice" in self.prompt_string:
             raise NotImplementedError("Not yet implemented to accept doc_to_choice")
 
-        text_string = utils.apply_template(doc_to_text, doc)
-        target_string = utils.apply_template(doc_to_target, doc)
+        text_string = lm_eval.utils.apply_template(doc_to_text, doc)
+        target_string = lm_eval.utils.apply_template(doc_to_target, doc)
 
         return [text_string, target_string]
