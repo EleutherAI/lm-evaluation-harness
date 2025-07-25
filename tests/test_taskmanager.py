@@ -173,18 +173,18 @@ class TestWalkthroughConfigs:
 
         # Test config detection methods
         assert self.tm._config_is_task(configs[0])
-        assert not self.tm._config_is_group(configs[0])
+        assert not self.tm._config_is_group()
         assert not self.tm._config_is_task_list(configs[0])
 
         assert not self.tm._config_is_task(configs[1])
-        assert self.tm._config_is_group(configs[1])
+        assert self.tm._config_is_group()
         assert not self.tm._config_is_task_list(configs[1])
 
         # Test task_list detection with actual config
         task_list_config = {"task_list": [{"task": "task1"}, {"task": "task2"}]}
         assert self.tm._config_is_task_list(task_list_config)
         assert not self.tm._config_is_task(task_list_config)
-        assert not self.tm._config_is_group(task_list_config)
+        assert not self.tm._config_is_group()
 
 
 if __name__ == "__main__":

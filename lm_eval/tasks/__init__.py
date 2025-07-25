@@ -567,23 +567,27 @@ class TaskManager:
             and self.task_index[name]["type"] == "python_task"
         )
 
-    def _config_is_task(self, config: dict) -> bool:
+    @staticmethod
+    def _config_is_task(config: dict) -> bool:
         """Check if a config dictionary defines a single task."""
         return "task" in config and isinstance(config["task"], str)
 
-    def _config_is_group(self, config: dict) -> bool:
+    @staticmethod
+    def _config_is_group(config: dict) -> bool:
         """Check if a config dictionary defines a group of tasks."""
         return "task" in config and isinstance(config["task"], list)
 
-    def _config_is_python_task(self, config: dict) -> bool:
+    @staticmethod
+    def _config_is_python_task(config: dict) -> bool:
         """Check if a config dictionary defines a Python class-based task."""
         return "class" in config
 
-    def _config_is_task_list(self, config: dict) -> bool:
+    @staticmethod
+    def _config_is_task_list(config: dict) -> bool:
         """Check if a config dictionary defines a task list."""
         return "task_list" in config and isinstance(config["task_list"], list)
 
-    def _get_yaml_path(self, name: str) -> Union[str, int]:
+    def _get_yaml_path(self, name: str) -> Union[str, int, list[str]]:
         """
         Get the YAML file path for a registered task.
 
@@ -645,7 +649,7 @@ class TaskManager:
         yaml_path: str,
         tasks_and_groups: dict[str, dict],
         config: Optional[dict] = None,
-        populate_tags_fn: Optional[callable] = None,
+        populate_tags_fn: Optional[Callable] = None,
     ) -> None:
         """Helper method to register a task in the tasks_and_groups dict"""
         tasks_and_groups[task_name] = {
@@ -779,11 +783,12 @@ class TaskManager:
 
         grp = GroupConfig(**cfg)
         subtasks: list[Union[str, dict]] = []
-        for t in grp.task:
-            if isinstance(t, str) and self._name_is_tag(t):
-                subtasks.extend(self._get_tasklist(t))
-            else:
-                subtasks.append(t)
+        if grp.task:
+            for t in grp.task:
+                if isinstance(t, str) and self._name_is_tag(t):
+                    subtasks.extend(self._get_tasklist(t))
+                else:
+                    subtasks.append(t)
         return grp, subtasks
 
     def _load_subtasks(
