@@ -10,7 +10,7 @@ import datasets
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import OutputType
 from lm_eval.config.metric import MetricConfig
-from lm_eval.config.utils import doc_to_closure, maybe_serialize
+from lm_eval.config.utils import maybe_serialize
 
 
 if TYPE_CHECKING:
@@ -364,7 +364,7 @@ class TaskConfig:
     @classmethod
     def from_yaml(cls, data: dict[str, Any]) -> TaskConfig:
         """Create a TaskConfig instance from a YAML-like dictionary."""
-        fn = {k: doc_to_closure(v) for k, v in data.items() if callable(v)}
+        fn = {k: v for k, v in data.items() if callable(v)}
         return cls(**data, _fn=fn)
 
     @classmethod
