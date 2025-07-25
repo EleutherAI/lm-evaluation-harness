@@ -20,7 +20,7 @@ Test coverage:
 - load():
   - test_load_simple_yaml: basic YAML parsing
   - test_load_with_function_resolved: !function tags resolved to callables
-  - test_load_with_function_not_resolved: !function tags become no-op lambdas
+  - test_load_with_function_not_resolved: !function tags become strings
   - test_load_with_includes: include files merged, main values win
   - test_load_with_absolute_include: absolute path includes
   - test_load_without_includes_resolution: includes preserved when disabled
@@ -38,9 +38,10 @@ import pytest
 
 from lm_eval.tasks._config_loader import (
     _Base,
-    _import_function,
+    _import_func_in_yml,
     _make_loader,
     _mk_function_ctor,
+    import_fun_from_str,
     load_yaml,
 )
 
@@ -75,7 +76,7 @@ class TestMkFunctionCtor:
     """Tests for the YAML !function constructor factory."""
 
     def test_mk_function_ctor_with_resolve_false(self, temp_dir):
-        """When resolve=False, should return a no-op lambda."""
+        """When resolve=False, should return a string."""
         ctor = _mk_function_ctor(temp_dir, resolve=False)
 
         loader = MagicMock()
@@ -84,8 +85,7 @@ class TestMkFunctionCtor:
 
         result = ctor(loader, node)
 
-        assert callable(result)
-        assert result("arg1", kwarg="value") is None
+        assert isinstance(result, str)
 
     def test_mk_function_ctor_with_resolve_true(self, temp_dir, python_module):
         """When resolve=True, should import and return the actual function."""
@@ -136,7 +136,7 @@ class TestImportFunction:
         # Create a local module
         python_module("def local_func(x, y):\n    return x + y\n")
 
-        func = _import_function("utils.local_func", temp_dir)
+        func = _import_func_in_yml("utils.local_func", temp_dir)
 
         assert callable(func)
         assert func(2, 3) == 5
@@ -149,7 +149,7 @@ class TestImportFunction:
             "def nested_func():\n    return 'nested'\n"
         )
 
-        func = _import_function("sub.module.nested_func", temp_dir)
+        func = _import_func_in_yml("sub.module.nested_func", temp_dir)
 
         assert callable(func)
         assert func() == "nested"
@@ -157,19 +157,19 @@ class TestImportFunction:
     def test_import_standard_module(self, temp_dir):
         """Falls back to standard import for non-local modules."""
         # Import from standard library
-        func = _import_function("os.path.join", temp_dir)
+        func = _import_func_in_yml("os.path.join", temp_dir)
 
         assert callable(func)
         assert func("a", "b") in ("a/b", "a\\b")  # Unix or Windows
 
     def test_import_caching(self, temp_dir, python_module):
         # Clear cache first
-        _import_function.cache_clear()
+        _import_func_in_yml.cache_clear()
 
         python_module("def cached_func():\n    return 42\n")
 
-        func1 = _import_function("utils.cached_func", temp_dir)
-        func2 = _import_function("utils.cached_func", temp_dir)
+        func1 = _import_func_in_yml("utils.cached_func", temp_dir)
+        func2 = _import_func_in_yml("utils.cached_func", temp_dir)
 
         assert func1 is func2  # Cached
 
@@ -177,7 +177,7 @@ class TestImportFunction:
         """Verifies LRU cache behavior - file changes require cache clear."""
 
         # Clear the LRU cache
-        _import_function.cache_clear()
+        _import_func_in_yml.cache_clear()
 
         # Create a module
         module_path = temp_dir / "test_mtime.py"
@@ -185,15 +185,100 @@ class TestImportFunction:
 
         # Import it
         import_key = "test_mtime.value"
-        value1 = _import_function(import_key, temp_dir)
+        value1 = _import_func_in_yml(import_key, temp_dir)
         assert value1 == 1
 
-        value2 = _import_function(import_key, temp_dir)
+        value2 = _import_func_in_yml(import_key, temp_dir)
         assert value2 == 1  # From cache
 
-        _import_function.cache_clear()
-        value3 = _import_function(import_key, temp_dir)
+        _import_func_in_yml.cache_clear()
+        value3 = _import_func_in_yml(import_key, temp_dir)
         assert value3 == 1  # Re-imported
+
+
+class TestImportFunFromStr:
+    """Tests for import_fun_from_str function."""
+
+    def test_import_from_absolute_path(self, temp_dir):
+        """Test importing function from absolute path."""
+        # Create a test module
+        module_path = temp_dir / "test_module.py"
+        module_path.write_text("def test_func(x):\n    return x * 2\n")
+
+        # Import using absolute path
+        func = import_fun_from_str(f"{module_path.with_suffix('')}.test_func")
+
+        assert callable(func)
+        assert func(5) == 10
+
+    def test_import_with_py_extension(self, temp_dir):
+        """Test importing when .py is included in the path."""
+        # Create a test module
+        module_path = temp_dir / "test_module.py"
+        module_path.write_text("def test_func(x):\n    return x + 10\n")
+
+        # Import with .py in the path
+        func = import_fun_from_str(f"{module_path}.test_func")
+
+        assert callable(func)
+        assert func(5) == 15
+
+    def test_import_nested_function(self, temp_dir):
+        """Test importing from nested module structure."""
+        # Create nested directory
+        (temp_dir / "subdir").mkdir()
+        module_path = temp_dir / "subdir" / "nested.py"
+        module_path.write_text("def nested_func():\n    return 'nested'\n")
+
+        # Import from nested path
+        func = import_fun_from_str(f"{module_path.with_suffix('')}.nested_func")
+
+        assert callable(func)
+        assert func() == "nested"
+
+    def test_import_missing_module(self, temp_dir):
+        """Test error when module doesn't exist."""
+        with pytest.raises(ImportError, match="Module file not found"):
+            import_fun_from_str(f"{temp_dir}/nonexistent.test_func")
+
+    def test_import_missing_function(self, temp_dir):
+        """Test error when function doesn't exist in module."""
+        module_path = temp_dir / "test_module.py"
+        module_path.write_text("def other_func():\n    pass\n")
+
+        with pytest.raises(AttributeError, match="Function 'missing_func' not found"):
+            import_fun_from_str(f"{module_path.with_suffix('')}.missing_func")
+
+    def test_import_invalid_format(self):
+        """Test error with invalid path format."""
+        with pytest.raises(ValueError, match="Invalid path format"):
+            import_fun_from_str("/path/without/function")
+
+    def test_import_caching(self, temp_dir):
+        """Test that modules are cached by mtime."""
+        # Clear any existing cache
+        import sys
+
+        keys_to_remove = [k for k in sys.modules if str(temp_dir) in k]
+        for k in keys_to_remove:
+            del sys.modules[k]
+
+        module_path = temp_dir / "cached_module.py"
+        module_path.write_text(
+            "call_count = 0\ndef func():\n    global call_count\n    call_count += 1\n    return call_count\n"
+        )
+
+        # First import
+        func1 = import_fun_from_str(f"{module_path.with_suffix('')}.func")
+        _result1 = func1()
+
+        # Second import should use cached module
+        func2 = import_fun_from_str(f"{module_path.with_suffix('')}.func")
+        result2 = func2()
+
+        # Both should refer to the same module instance
+        assert func1 is func2
+        assert result2 == 2  # call_count incremented
 
 
 class TestLoad:
@@ -237,8 +322,10 @@ doc_to_text: !function utils.process_doc
 
         result = load_yaml(file_path, resolve_functions=False)
 
-        assert callable(result["doc_to_text"])
-        assert result["doc_to_text"]("hello") is None  # No-op lambda
+        assert isinstance(result["doc_to_text"], str)
+        # When resolve_functions=False, it returns the full path + function spec
+        assert result["doc_to_text"].endswith("utils.process_doc")
+        assert result["doc_to_text"] == str(file_path.parent / "utils.process_doc")
 
     def test_load_with_includes(self, temp_dir, yaml_file):
         """Include files are merged with local values taking precedence."""
@@ -388,3 +475,7 @@ shared_key: from_main
             mock_expand.assert_called_once()
 
         assert result["test"] == "value"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])
