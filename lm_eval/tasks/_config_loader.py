@@ -30,7 +30,9 @@ def _make_loader(base_dir: Path, *, resolve_funcs: bool) -> type[yaml.Loader]:
     class Loader(_Base): ...  # type: ignore[no-redef]
 
     yaml.add_constructor(
-        "!function", _mk_function_ctor(base_dir, resolve_funcs), Loader=Loader
+        "!function",
+        _mk_function_ctor(base_dir, resolve_funcs),
+        Loader=Loader,
     )
     return Loader
 
@@ -63,8 +65,7 @@ def load_yaml(
     resolve_includes: bool = True,
     _seen: set[Path] | None = None,
 ) -> dict[str, str | Callable[..., Any]]:
-    """
-    Pure data‑loading helper.
+    """Pure data‑loading helper.
     Returns a dict ready for higher‑level interpretation.
     •No task/group/tag semantics here.
     """
@@ -91,7 +92,7 @@ def load_yaml(
                 resolve_functions=resolve_functions,
                 resolve_includes=True,
                 _seen=_seen,
-            )
+            ),
         )
     merged.update(cfg)  # local keys win
     return merged
