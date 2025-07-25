@@ -21,14 +21,12 @@ def get_texts(
     return TextPool(ls)
 
 
-def custom_dataset(*args, **kwargs):
+def custom_dataset(*args, **kwargs) -> Dict[str, Dataset]:
     
     texts_dataset = load_dataset("david-e-g/Texts_Samples")["train"]
     texts = get_texts(texts_dataset)
     dataset = create_dataset(texts=texts)
-    save_dataset(dataset)
-    convert_yaml_to_hfdataset()
-    hf_dataset = Dataset.load_from_disk("data/hf_dataset")
+    hf_dataset = convert_yaml_to_hfdataset(dataset)
     return {"train": hf_dataset}
 
 
