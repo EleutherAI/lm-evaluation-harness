@@ -29,5 +29,3 @@ generation_kwargs:
   max_gen_toks: 1024
 metadata:
   version: 2.0
-dataset_kwargs:
-  trust_remote_code: true
