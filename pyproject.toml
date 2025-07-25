@@ -21,7 +21,7 @@ license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
     "evaluate",
-    "datasets>=2.16.0",
+    "datasets>=2.16.0,<4.0",
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
@@ -106,7 +106,7 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["I", "W605"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
