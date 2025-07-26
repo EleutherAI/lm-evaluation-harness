@@ -11,6 +11,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
     handle_stop_sequences,
+    postprocess_generated_text,
 )
 from lm_eval.utils import (
     get_rolling_token_windows,
@@ -59,6 +60,8 @@ class SGLangLM(TemplateLM):
         dp_size: int = 1,
         tp_size: int = 1,
         prefix_token_id: Optional[int] = None,
+        # End marker for thinking tags - splits to get response after this token (if provided).
+        think_end_token: Optional[str] = None,
         **kwargs,
     ):
         super().__init__()
@@ -74,6 +77,7 @@ class SGLangLM(TemplateLM):
             "Either context_length or max_model_len may be provided, but not both"
         )
         # Initialize your sglang model here
+        self.think_end_token = think_end_token
         self._max_length = (
             max_model_len if max_model_len is not None else context_length
         )
@@ -263,6 +267,9 @@ class SGLangLM(TemplateLM):
             # cache generations
             for output, context in zip(cont, context):
                 generated_text = output.get("text", "")
+                generated_text = postprocess_generated_text(
+                    generated_text, until, self.think_end_token
+                )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text

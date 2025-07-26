@@ -25,7 +25,7 @@ fewshot_config:
       - valid
 
       - invalid'
-    target: "Let's think step by step.\n(1) Lesley is a close friend of Fernando:\
+    target: "(1) Lesley is a close friend of Fernando:\
       \ Lesley = friend(Fernando).\n(2) Being a close friend of Fernando or a schoolmate\
       \ of Lowell is sufficient for being a great-grandfather of Leroy: If X = friend(Fernando)\
       \ OR SCHOOLMATE(Lowell), then X = great-grandfather(Leroy).\nHypothesis: Does\
@@ -49,7 +49,7 @@ fewshot_config:
       - valid
 
       - invalid'
-    target: "Let's think step by step.\n(1) Whoever is not a great-grandfather of\
+    target: "(1) Whoever is not a great-grandfather of\
       \ Clyde is a stepbrother of Brian: If X = NOT (great-grandfather(Clyde)), then\
       \ X = stepbrother(Brian).\n(2): Being an ancestor of Dana is sufficient for\
       \ not being a great-grandfather of Clyde: If X = ancestor(Dana), X = NOT (great-grandfather(Clyde)).\n\
@@ -78,7 +78,7 @@ fewshot_config:
       - valid
 
       - invalid'
-    target: "Let's think step by step.\n(1) Every infrequent user of Paul Mitchell\
+    target: "(1) Every infrequent user of Paul Mitchell\
       \ shampoo is either a rare consumer of Nioxin shampoo or a loyal buyer of Caress\
       \ soap, or both: If X = infrequent-user(Paul Mitchell), then X = rare-consumer(Nioxin)\
       \ OR X = loyal-buyer(Caress).\n(2): No regular consumer of Lush soap is a rare\

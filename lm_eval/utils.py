@@ -8,9 +8,10 @@ import json
 import logging
 import os
 import re
+from collections.abc import Generator
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 from jinja2 import BaseLoader, Environment, StrictUndefined
@@ -24,12 +25,28 @@ HIGHER_IS_BETTER_SYMBOLS = {
 }
 
 
+def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+    """
+    Wraps the given string to the specified width.
+    """
+    import textwrap
+
+    return textwrap.fill(
+        inspect.cleandoc(string),
+        width=width,
+        initial_indent="",
+        subsequent_indent=" " * 8,
+        break_long_words=False,
+        break_on_hyphens=False,
+        **kwargs,
+    )
+
+
 def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
     class CustomFormatter(logging.Formatter):
         def format(self, record):
-            if record.name.startswith("lm_eval."):
-                record.name = record.name[len("lm_eval.") :]
+            record.name = record.name.removeprefix("lm_eval.")
             return super().format(record)
 
     formatter = CustomFormatter(

@@ -28,9 +28,7 @@ generation_kwargs:
 process_results: !function utils_agieval.non_greedy_robustness_process_results
 metric_list:
   - metric: non_greedy_accuracy
-    aggregation:  !function utils_agieval.non_greedy_accuracy
+    aggregation: !function utils_agieval.non_greedy_accuracy
     higher_is_better: true
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true
