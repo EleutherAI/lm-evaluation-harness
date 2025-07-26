@@ -33,7 +33,7 @@ from lm_eval.utils import (
 
 try:
     import ray
-    from vllm import LLM, SamplingParams
+    from vllm import LLM, SamplingParams, TokensPrompt
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
     from vllm.utils import get_open_port
@@ -79,7 +79,7 @@ def _vllm_mp_worker(
     try:
         llm = LLM(**model_args)
         res = llm.generate(
-            prompt_token_ids=requests,
+            [TokensPrompt(prompt_token_ids=request) for request in requests],
             sampling_params=sampling_params,
             lora_request=lora_request,
         )
@@ -239,13 +239,6 @@ class VLLM(TemplateLM):
                     model_config = engine_args.create_model_config()
 
                     kwargs_resolve_hf_chat_template["model_config"] = model_config
-
-            # https://github.com/vllm-project/vllm/pull/18259
-            if (
-                "trsut_remote_code"
-                in inspect.signature(resolve_hf_chat_template).parameters
-            ):
-                kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
             else:
                 kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
 
