@@ -1,4 +1,4 @@
-|             Tasks             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|             Tasks             |Version|Filter|n_shot|Metric|   |Value |   |Stderr|
 |-------------------------------|------:|------|-----:|------|---|-----:|---|------|
 |stem                           |      2|none  |      |acc   |↑  |0.2474|±  |   N/A|
 | - abstract_algebra            |      1|none  |     0|acc   |↑  |0.2000|±  |   N/A|
