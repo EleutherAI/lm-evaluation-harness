@@ -3,7 +3,6 @@ from __future__ import annotations
 import inspect
 from collections.abc import Mapping
 from copy import deepcopy
-from functools import lru_cache
 from typing import Any
 
 from lm_eval.api.group import GroupConfig
@@ -12,7 +11,7 @@ from lm_eval.tasks._config_loader import load_yaml as load_cfg
 from lm_eval.tasks.index import Entry, Kind
 
 
-load_cfg_cached = lru_cache(maxsize=512)(load_cfg)  # type: ignore[no-redef]
+load_cfg_cached = load_cfg  # type: ignore[no-redef]
 
 
 class TaskFactory:
@@ -108,7 +107,6 @@ class TaskFactory:
     ) -> dict[str, Any]:
         if entry.yaml_path:
             cfg = deepcopy(load_cfg_cached(entry.yaml_path, resolve_functions=True))
-            print(f"Loaded task config from {load_cfg_cached.cache_info()}")
         else:
             cfg = {"metadata": {"config": "unknown"}}  # python task without YAML
 
