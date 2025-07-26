@@ -3,11 +3,16 @@ from __future__ import annotations
 from collections import defaultdict
 from itertools import chain
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+from lm_eval.api.task import Task
 from lm_eval.tasks.factory import TaskFactory
 from lm_eval.tasks.index import Entry, Kind, TaskIndex
 from lm_eval.utils import setup_logging
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.task import Task
 
 
 class TaskManager:
@@ -77,3 +82,20 @@ class TaskManager:
             if isinstance(task_list, list)
             else [self.load_spec(task_list)]
         )
+
+
+def get_task_dict(
+    task_name_list: str | list[str | dict | Task],
+    task_manager: TaskManager | None = None,
+):
+    if not task_manager:
+        task_manager = TaskManager()
+    else:
+        assert isinstance(task_manager, TaskManager)
+
+    return {
+        task_name: task_manager.load_spec(task_name)
+        if isinstance(task_name, str)
+        else task_name
+        for task_name in task_name_list
+    }

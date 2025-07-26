@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from lm_eval.tasks._task_index import TaskIndex, TaskKind
+from lm_eval.tasks.index import Kind, TaskIndex
 
 
 @pytest.fixture
@@ -33,28 +33,28 @@ def yaml_file(temp_dir):
     return _create_yaml
 
 
-class TestTaskKindOf:
+class TestKindOf:
     """Tests for identifying task configuration types."""
 
     def test_kind_of_task(self):
         """Single task with string name."""
         cfg = {"task": "my_task", "dataset_path": "data"}
-        assert TaskIndex._kind_of(cfg) == TaskKind.TASK
+        assert TaskIndex._kind_of(cfg) == Kind.TASK
 
     def test_kind_of_group(self):
         """Group has task as list."""
         cfg = {"task": ["task1", "task2"], "group": "my_group"}
-        assert TaskIndex._kind_of(cfg) == TaskKind.GROUP
+        assert TaskIndex._kind_of(cfg) == Kind.GROUP
 
     def test_kind_of_py_task(self):
         """Python task has class field."""
         cfg = {"task": "my_task", "class": "tasks.MyTask"}
-        assert TaskIndex._kind_of(cfg) == TaskKind.PY_TASK
+        assert TaskIndex._kind_of(cfg) == Kind.PY_TASK
 
     def test_kind_of_task_list(self):
         """Task list has task_list field."""
         cfg = {"task_list": ["task1", "task2"]}
-        assert TaskIndex._kind_of(cfg) == TaskKind.TASK_LIST
+        assert TaskIndex._kind_of(cfg) == Kind.TASK_LIST
 
     def test_kind_of_unknown(self):
         """Unknown config raises ValueError."""
@@ -75,7 +75,7 @@ class TestIterYamlFiles:
         (temp_dir / "other.txt").touch()
 
         builder = TaskIndex()
-        yaml_files = list(builder._iter_yaml_files())
+        yaml_files = list(builder._iter_yaml_files(temp_dir))
 
         assert len(yaml_files) == 2
         names = {f.name for f in yaml_files}
@@ -90,7 +90,7 @@ class TestIterYamlFiles:
         (temp_dir / ".ipynb_checkpoints" / "also_ignored.yaml").touch()
 
         builder = TaskIndex()
-        yaml_files = list(builder._iter_yaml_files())
+        yaml_files = list(builder._iter_yaml_files(temp_dir))
 
         assert len(yaml_files) == 1
         assert yaml_files[0].name == "task.yaml"
@@ -111,7 +111,7 @@ class TestProcessCfg:
         assert "my_task" in index
         entry = index["my_task"]
         assert entry.name == "my_task"
-        assert entry.kind == TaskKind.TASK
+        assert entry.kind == Kind.TASK
         assert entry.yaml_path == path
         assert entry.tags == {"tag1", "tag2"}
 
@@ -127,7 +127,7 @@ class TestProcessCfg:
         assert "my_group" in index
         entry = index["my_group"]
         assert entry.name == "my_group"
-        assert entry.kind == TaskKind.GROUP
+        assert entry.kind == Kind.GROUP
         assert entry.yaml_path == path
         assert entry.tags == {"grp_tag"}
 
@@ -143,7 +143,7 @@ class TestProcessCfg:
         assert "py_task" in index
         entry = index["py_task"]
         assert entry.name == "py_task"
-        assert entry.kind == TaskKind.PY_TASK
+        assert entry.kind == Kind.PY_TASK
         assert entry.yaml_path is None  # Python tasks don't store yaml_path
         assert entry.tags == {"py_tag"}
 
@@ -181,14 +181,14 @@ class TestProcessCfg:
         # Task without tags
         assert "task1" in index
         task1 = index["task1"]
-        assert task1.kind == TaskKind.TASK
+        assert task1.kind == Kind.TASK
         assert task1.yaml_path == path
         assert task1.tags == set()
 
         # Task with tags
         assert "task2" in index
         task2 = index["task2"]
-        assert task2.kind == TaskKind.TASK
+        assert task2.kind == Kind.TASK
         assert task2.yaml_path == path
         assert task2.tags == {"tag1", "tag2"}
 
@@ -205,7 +205,7 @@ class TestRegisterTags:
 
         assert "my_tag" in index
         tag_entry = index["my_tag"]
-        assert tag_entry.kind == TaskKind.TAG
+        assert tag_entry.kind == Kind.TAG
         assert tag_entry.yaml_path is None
         assert "task1" in tag_entry.tags  # TAG entries use tags set for task names
 
@@ -252,7 +252,7 @@ class TestBuild:
 
         assert len(index) == 1
         assert "my_task" in index
-        assert index["my_task"].kind == TaskKind.TASK
+        assert index["my_task"].kind == Kind.TASK
 
     def test_build_mixed_types(self, temp_dir, yaml_file):
         """Discovers various task types."""
@@ -283,12 +283,12 @@ class TestBuild:
         assert "common" in index  # Tag entry
 
         # Check types
-        assert index["task1"].kind == TaskKind.TASK
-        assert index["group1"].kind == TaskKind.GROUP
-        assert index["task2"].kind == TaskKind.TASK
-        assert index["task3"].kind == TaskKind.TASK
-        assert index["py_task"].kind == TaskKind.PY_TASK
-        assert index["common"].kind == TaskKind.TAG
+        assert index["task1"].kind == Kind.TASK
+        assert index["group1"].kind == Kind.GROUP
+        assert index["task2"].kind == Kind.TASK
+        assert index["task3"].kind == Kind.TASK
+        assert index["py_task"].kind == Kind.PY_TASK
+        assert index["common"].kind == Kind.TAG
 
         # Check tag has both tasks
         assert index["common"].tags == {"task1", "task3"}
