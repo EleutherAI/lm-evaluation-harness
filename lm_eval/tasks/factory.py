@@ -106,7 +106,7 @@ class TaskFactory:
         self, entry: Entry, overrides: dict[str, Any] | None
     ) -> dict[str, Any]:
         if entry.yaml_path:
-            cfg = deepcopy(load_cfg_cached(entry.yaml_path, resolve_functions=True))
+            cfg = deepcopy(load_cfg_cached(entry.yaml_path, resolve_func=True))
         else:
             cfg = {"metadata": {"config": "unknown"}}  # python task without YAML
 

@@ -308,7 +308,7 @@ doc_to_text: !function utils.process_doc
 """
         file_path = yaml_file(content)
 
-        result = load_yaml(file_path, resolve_functions=True)
+        result = load_yaml(file_path, resolve_func=True)
 
         assert callable(result["doc_to_text"])
         assert result["doc_to_text"]("hello") == "HELLO"
@@ -320,7 +320,7 @@ doc_to_text: !function utils.process_doc
 """
         file_path = yaml_file(content)
 
-        result = load_yaml(file_path, resolve_functions=False)
+        result = load_yaml(file_path, resolve_func=False)
 
         assert isinstance(result["doc_to_text"], str)
         # When resolve_functions=False, it returns the full path + function spec
@@ -345,7 +345,7 @@ shared_value: 100
 """
         main_path = yaml_file(main_content, "main.yaml")
 
-        result = load_yaml(main_path, resolve_includes=True)
+        result = load_yaml(main_path, recursive=True)
 
         assert result["task"] == "main_task"
         assert result["shared_metric"] == "f1_score"
@@ -368,7 +368,7 @@ main_key: main_value
 """
         main_path = yaml_file(main_content)
 
-        result = load_yaml(main_path, resolve_includes=True)
+        result = load_yaml(main_path, recursive=True)
 
         assert result["main_key"] == "main_value"
         assert result["included_key"] == "included_value"
@@ -381,7 +381,7 @@ task: test_task
 """
         file_path = yaml_file(content)
 
-        result = load_yaml(file_path, resolve_includes=False)
+        result = load_yaml(file_path, recursive=False)
 
         assert result["include"] == ["other.yaml"]
         assert result["task"] == "test_task"

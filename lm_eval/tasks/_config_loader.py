@@ -146,8 +146,8 @@ def _import_fun_from_str(path_str: str) -> Any:
 def load_yaml(
     path: str | Path,
     *,
-    resolve_functions: bool = True,
-    resolve_includes: bool = True,
+    resolve_func: bool = True,
+    recursive: bool = True,
     _seen: set[Path] | None = None,
 ) -> dict[str, Any]:
     """Pure data-loading helper.
@@ -161,11 +161,11 @@ def load_yaml(
         raise ValueError(f"Include cycle at {path}")
     _seen.add(path)
 
-    loader_cls = _make_loader(path.parent, resolve_funcs=resolve_functions)
+    loader_cls = _make_loader(path.parent, resolve_funcs=resolve_func)
     with path.open("rb") as fh:
         cfg = yaml.load(fh, Loader=loader_cls)
 
-    if not resolve_includes or "include" not in cfg:
+    if not recursive or "include" not in cfg:
         return cfg
     else:
         includes = cfg.pop("include")
@@ -176,8 +176,8 @@ def load_yaml(
         merged.update(
             load_yaml(
                 inc_path,
-                resolve_functions=resolve_functions,
-                resolve_includes=True,
+                resolve_func=resolve_func,
+                recursive=True,
                 _seen=_seen,
             ),
         )

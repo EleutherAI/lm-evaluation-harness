@@ -56,8 +56,8 @@ class TaskIndex:
                 try:
                     cfg = load_cfg(
                         yaml_path,
-                        resolve_functions=False,
-                        resolve_includes=resolve_includes,
+                        resolve_func=False,
+                        recursive=resolve_includes,
                     )
                     self.process_cfg(cfg, yaml_path, index)
                 except Exception as err:
