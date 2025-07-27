@@ -1,7 +1,7 @@
 import os
 from typing import List, Union
 
-from lm_eval.utils import load_yaml_config
+from lm_eval.tasks._config_loader import load_yaml
 
 
 # {{{CI}}}
@@ -12,7 +12,7 @@ from lm_eval.utils import load_yaml_config
 # reads a text file and returns a list of words
 # used to read the output of the changed txt from tj-actions/changed-files
 def load_changed_files(file_path: str) -> List[str]:
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
         words_list = list(content.split())
     return words_list
@@ -26,7 +26,7 @@ def parser(full_path: List[str]) -> List[str]:
     _output = set()
     for x in full_path:
         if x.endswith(".yaml") and os.path.exists(x):
-            config = load_yaml_config(x, mode="simple")
+            config = load_yaml(x, recursive=True, resolve_func=True)
             if isinstance(config["task"], str):
                 _output.add(config["task"])
             elif isinstance(config["task"], list):

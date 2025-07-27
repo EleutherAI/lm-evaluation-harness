@@ -7,6 +7,8 @@ from functools import partial
 from pathlib import Path
 from typing import Union
 
+import lm_eval.tasks
+
 
 def try_parse_json(value: str) -> Union[str, dict, None]:
     if value is None:
@@ -401,14 +403,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             task_names = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
-                config = utils.load_yaml_config(yaml_file)
+                config = lm_eval.tasks.load_yaml_config(yaml_file)
                 task_names.append(config)
         else:
             task_list = args.tasks.split(",")
             task_names = task_manager.match_tasks(task_list)
             for task in [task for task in task_list if task not in task_names]:
                 if os.path.isfile(task):
-                    config = utils.load_yaml_config(task)
+                    config = lm_eval.tasks.load_yaml_config(task)
                     task_names.append(config)
             task_missing = [
                 task for task in task_list if task not in task_names and "*" not in task

@@ -3,18 +3,15 @@ import ast
 import logging
 import random
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import (
     Any,
     Dict,
-    Iterable,
-    Iterator,
     List,
     Literal,
-    Mapping,
     Optional,
     Tuple,
     Union,
@@ -27,7 +24,6 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
-from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
@@ -114,7 +110,7 @@ class TaskConfig(dict):
 
             if "until" not in self.generation_kwargs:
                 eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={self.fewshot_delimiter!r}"
                 )
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
@@ -290,17 +286,14 @@ class Task(abc.ABC):
     @abc.abstractmethod
     def has_training_docs(self):
         """Whether the task has a training set"""
-        pass
 
     @abc.abstractmethod
     def has_validation_docs(self):
         """Whether the task has a validation set"""
-        pass
 
     @abc.abstractmethod
     def has_test_docs(self):
         """Whether the task has a test set"""
-        pass
 
     def training_docs(self) -> Iterable:
         """
@@ -519,7 +512,6 @@ class Task(abc.ABC):
             The number of times each instance in a dataset is inferred on. Defaults to 1,
             can be increased for techniques like majority voting.
         """
-        pass
 
     @abc.abstractmethod
     def process_results(self, doc, results):
@@ -532,7 +524,6 @@ class Task(abc.ABC):
         :param results:
             The results of the requests created in construct_requests.
         """
-        pass
 
     @abc.abstractmethod
     def aggregation(self):
@@ -541,7 +532,6 @@ class Task(abc.ABC):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metric scores
         """
-        pass
 
     @abc.abstractmethod
     def higher_is_better(self):
@@ -550,7 +540,6 @@ class Task(abc.ABC):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        pass
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
@@ -676,8 +665,8 @@ class Task(abc.ABC):
             self.aggregation = lambda: {
                 metric_name: get_metric_aggregation(metric_name)
             }
-        setattr(self._config, "metric_list", [{"metric": metric_name}])
-        setattr(self._config, "process_results", None)
+        self._config.metric_list = [{"metric": metric_name}]
+        self._config.process_results = None
 
     def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
         self.fewshot_rnd = random.Random(seed)
@@ -836,7 +825,7 @@ class ConfigurableTask(Task):
                     agg_name = metric_config["aggregation"]
                     if isinstance(agg_name, str):
                         self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
+                    elif callable(agg_name):
                         self._aggregation_list[metric_name] = metric_config[
                             "aggregation"
                         ]
@@ -1503,7 +1492,7 @@ class ConfigurableTask(Task):
         ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
             multimodal_arg = {
                 **multimodal_arg,
-                **{"visual": self.doc_to_image(doc)},
+                "visual": self.doc_to_image(doc),
             }
 
         if (
@@ -1511,7 +1500,7 @@ class ConfigurableTask(Task):
         ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
             multimodal_arg = {
                 **multimodal_arg,
-                **{"audio": self.doc_to_audio(doc)},
+                "audio": self.doc_to_audio(doc),
             }
 
         if bool(multimodal_arg):
@@ -1774,7 +1763,7 @@ class MultipleChoiceTask(Task):
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice)),
+                arguments=(ctx, f" {choice}"),
                 idx=i,
                 **kwargs,
             )
@@ -1803,6 +1792,8 @@ class MultipleChoiceTask(Task):
         }
 
     def aggregation(self) -> dict:
+        from lm_eval.api.metrics import mean
+
         return {
             "acc": mean,
             "acc_norm": mean,
@@ -1869,6 +1860,8 @@ class PerplexityTask(Task):
         }
 
     def aggregation(self) -> dict:
+        from lm_eval.api.metrics import bits_per_byte, weighted_perplexity
+
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
