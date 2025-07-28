@@ -41,8 +41,8 @@ def _register_all_models():
     for name, path in MODEL_MAPPING.items():
         # Only register if not already present (avoids conflicts when modules are imported)
         if name not in model_registry:
-            # Register the lazy placeholder directly
-            model_registry.register(name, path)
+            # Register the lazy placeholder using lazy parameter
+            model_registry.register(name, lazy=path)
 
 
 # Call registration on module import
