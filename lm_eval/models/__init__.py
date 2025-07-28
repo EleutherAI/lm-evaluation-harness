@@ -42,7 +42,7 @@ def _register_all_models():
         # Only register if not already present (avoids conflicts when modules are imported)
         if name not in model_registry:
             # Call register with the lazy parameter, returns a decorator
-            model_registry.register(name, lazy=path)(None)
+            model_registry.register(name, lazy=path)
 
 
 # Call registration on module import
