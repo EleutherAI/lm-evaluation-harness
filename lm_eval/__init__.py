@@ -1,6 +1,9 @@
 import logging
 import os
 
+from .api import metrics, registry  # initializes the registries
+from .filters import *
+
 
 __version__ = "0.4.9.1"
 
