@@ -5,7 +5,7 @@ import random
 import re
 import string
 from collections.abc import Iterable, Sequence
-from typing import Callable, List, Optional, TypeVar
+from typing import Callable, Generic, List, Optional, TypeVar
 
 import numpy as np
 import sacrebleu
@@ -451,7 +451,7 @@ def _sacreformat(refs, preds):
 # stderr stuff
 
 
-class _bootstrap_internal:
+class _bootstrap_internal(Generic[T]):
     """
     Pool worker: `(i, xs)` → `n` bootstrap replicates
     of `f(xs)`using a RNG seeded with `i`.
