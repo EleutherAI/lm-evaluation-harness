@@ -1,0 +1,37 @@
+dataset_path: openrlhf/rl_data/chenru/structure_elucidation.jsonl
+dataset_name: null
+test_split: train
+validation_split: null
+fewshot_split: train
+
+process_docs: !function utils.process_molecular_docs
+
+doc_to_text: >
+  You are a chemist assistant with expertise in molecular structure elucidation. Your task is to determine the molecular structure based on spectroscopic data.
+  
+  Given the following spectroscopic data: {{input}}
+  
+  Determine the molecular structure and provide the SMILES representation of the compound. Answer with only the SMILES string.
+
+doc_to_target: "{{output}}"
+task: molecular_structure_elucidation
+filter_list:
+  - name: "remove-whitespace"
+    filter:
+      - function: "remove_whitespace"
+  - name: "normalize-smiles"
+    filter:
+      - function: "normalize_smiles_answer"
+generation_kwargs:
+  max_tokens: 256
+  temperature: 0.0
+  do_sample: false
+  until:
+    - "</s>"
+    - "<|im_end|>"
+    - "\n\n"
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true 

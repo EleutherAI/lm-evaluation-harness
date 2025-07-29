@@ -1,0 +1,23 @@
+group:
+  - molecular_structure_elucidation
+  - molecular_name_conversion
+  - molecular_dou_calculation
+  - molecular_multiple_choice
+  - experiment_techniques
+
+task: molecular_reasoning
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+  - metric: exact_match_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
