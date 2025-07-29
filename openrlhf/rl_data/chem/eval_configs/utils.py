@@ -96,6 +96,29 @@ def process_molecular_docs(dataset: List[Dict]) -> List[Dict]:
     return processed
 
 
+def process_corrosion_prediction(dataset: List[Dict]) -> List[Dict]:
+    """
+    Process corrosion prediction documents.
+    Ensures SMILES field is properly formatted and label is available.
+    """
+    processed = []
+    for doc in dataset:
+        # Make a copy to avoid modifying the original
+        processed_doc = doc.copy()
+        
+        # Ensure SMILES field exists and is properly formatted
+        if 'smiles' in doc:
+            processed_doc['smiles'] = doc['smiles'].strip()
+        
+        # Ensure label field exists
+        if 'label' not in processed_doc and 'output' in doc:
+            processed_doc['label'] = doc['output'].strip()
+            
+        processed.append(processed_doc)
+    
+    return processed
+
+
 # Filter functions that can be used in YAML configs
 def regex_filter(text: str, regex_pattern: str, group_select: int = 0, fallback: str = "[invalid]") -> str:
     """
@@ -137,5 +160,6 @@ __all__ = [
     'choice_filter',
     'normalize_smiles_answer',
     'normalize_number_answer',
-    'process_molecular_docs'
+    'process_molecular_docs',
+    'process_corrosion_prediction'
 ] 

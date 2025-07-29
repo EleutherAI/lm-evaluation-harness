@@ -1,9 +1,11 @@
-group: molecular_reasoning
-task:
+group:
   - molecular_structure_elucidation
   - molecular_name_conversion
   - molecular_dou_calculation
   - molecular_multiple_choice
+  - experiment_techniques
+
+task: molecular_reasoning
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
