@@ -3,16 +3,24 @@ dataset_path: EleutherAI/drop
 output_type: generate_until
 training_split: train
 validation_split: validation
+fewshot_split: train
+test_split: validation
+num_fewshot: 3
 process_docs: !function utils.process_docs
-doc_to_text: "{{passage}} {{question}}"
-doc_to_target: "{{ answer|join(',')}}"
+doc_to_text: "Passage: {{passage}}\nQuestion: {{question}}\nAnswer: "
+doc_to_target: !function utils.doc_to_target
 target_delimiter: ""
 process_results: !function utils.process_results
 should_decontaminate: true
-doc_to_decontamination_query: "{{passage}} {{question}}"
+doc_to_decontamination_query: "Passage: {{passage}}\nQuestion: {{question}}\nAnswer: "
 generation_kwargs:
   until:
-    - "."
+    - "Passage:"
+    - "Question:"
+    - </s>
+    - <|im_end|>
+    - <|endoftext|>
+    - <|eot_id|>
 metric_list:
   - metric: em
     aggregation: mean
