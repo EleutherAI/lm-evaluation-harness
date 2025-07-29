@@ -783,14 +783,20 @@ class HFLM(TemplateLM):
                 model_name, **kwargs
             )
 
-    def _detect_batch_size(self, requests: Sequence | None = None, pos: int = 0):
+    def _detect_batch_size(self, requests: Sequence | None = None, pos: int = 0, is_generation_call: bool = False) -> int:
         if requests:
-            _, context_enc, continuation_enc = requests[pos]
-            max_length = len(
-                (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
-            )
-            max_context_enc = len(context_enc[-(self.max_length + 1) :])
-            max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
+            if is_generation_call:
+                context, gen_kwargs= requests[pos]
+                max_gen_toks= gen_kwargs.get("max_gen_toks", self.max_gen_toks)
+                con_encoder= self.tok_encode(context)
+                max_length=con_encoder+max_gen_toks
+            else:
+                _, context_enc, continuation_enc = requests[pos]
+                max_length = len(
+                    (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
+                )
+                max_context_enc = len(context_enc[-(self.max_length + 1) :])
+                max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
         else:
             max_length = self.max_length
             max_context_enc = max_length
@@ -1112,11 +1118,12 @@ class HFLM(TemplateLM):
             # if previous batch size is already maximal, skip recomputation
             self.batch_sizes[sched] = self.max_batch_size
             return self.batch_sizes[sched]
-        print(
+        eval_logger.info(
             f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size"
         )
-        self.batch_sizes[sched] = self._detect_batch_size(n_reordered_requests, pos)
-        print(f"Determined largest batch size: {self.batch_sizes[sched]}")
+        longest_request_sample = n_reordered_requests[pos]
+        self.batch_sizes[sched] = self._detect_batch_size([longest_request_sample,pos=0, is_generation_call=True])
+        eval_logger.info(f"Determined largest batch size: {self.batch_sizes[sched]}")
         return self.batch_sizes[sched]
 
     def _loglikelihood_tokens(
@@ -1375,26 +1382,10 @@ class HFLM(TemplateLM):
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
-        adaptive_batch_size = None
-        if self.batch_size == "auto":
-            # using rolling window with maximum context
-            print("Passed argument batch_size = auto. Detecting largest batch size")
-            batch_size = self._detect_batch_size()
-            print(f"Determined Largest batch size: {batch_size}")
-            adaptive_batch_size = batch_size
-        # for each different set of kwargs, we execute all requests, by batch.
-        batch_size = (
-            self.batch_size
-            if self.batch_size != "auto"
-            else adaptive_batch_size
-            if adaptive_batch_size is not None
-            else 0
-        )
-        batch_fn = (
-            self._batch_scheduler
-            if self.batch_size == "auto" and not adaptive_batch_size
-            else None
-        )
+
+        batch_size = self.batch_size if self.batch_size != "auto" else 0
+        batch_fn=self._batch_scheduler if batch_size==0 else None
+        eval_logger.info(f"Determined Largest batch size: {batch_size}")
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
