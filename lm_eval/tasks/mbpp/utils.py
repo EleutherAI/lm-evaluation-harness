@@ -29,6 +29,22 @@ def pass_at_1(
     )[0]["pass@1"]
 
 
+def pass_at_10(
+    references: Union[str, list[str]], predictions: Union[str, list[list[str]]]
+) -> float:
+    if isinstance(references, str):
+        references = [references]
+    if isinstance(predictions[0], str):
+        predictions = [[p] for p in predictions]
+    print("references: ", references)
+    print("predictions: ", predictions)
+    pass_at_k = hf_evaluate.load("code_eval")
+    res = pass_at_k.compute(
+        references=references, predictions=predictions, k=[10], num_workers=20
+    )
+    return res[0]
+
+
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"

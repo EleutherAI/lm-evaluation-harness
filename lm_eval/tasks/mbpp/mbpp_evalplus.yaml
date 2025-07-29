@@ -1,0 +1,49 @@
+task: mbpp_evalplus
+dataset_path: google-research-datasets/mbpp
+dataset_name: full
+unsafe_code: true
+output_type: generate_until
+test_split: test
+repeats: 20
+#doc_to_text: "You are an expert Python programmer, and here is your task: {{text}} Your code should pass these tests:\n\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}\n[BEGIN]\n"
+doc_to_text: |
+  Please provide a self-contained Python script that solves the following problem in a markdown code block:
+  ```
+  {{text|trim}}
+  {{test_list|random}}
+  ```
+
+doc_to_target: "{% if is_fewshot is defined %}{{code}}\n[DONE]{% else %}{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}{% endif %}"
+target_delimiter: ""
+gen_prefix: "Here is the completed function:\n\n```python\n"
+metric_list:
+  - metric: !function utils.pass_at_10
+    aggregation: mean
+    higher_is_better: true
+filter_list:
+  - name: "create_test"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions
+generation_kwargs:
+  until: [
+                  "\nclass",
+                  "\nassert",
+                  '\n"""',
+                  "\nprint",
+                  "\nif",
+                  "\n```",
+                  "\n#",
+                  "\n<|/",
+                  "<|eot_id|>",
+              ]
+  do_sample: true
+  temperature: 0.8
+  top_p: 0.95
+  max_gen_toks: 2
+num_fewshot: 0
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples
+metadata:
+  version: 1.0
