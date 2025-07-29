@@ -34,15 +34,17 @@ The benchmark is inspired and offers a dynamic version of
 datasets
 
 ### Example Usage
-source /cluster/scratch/dguidobene/venvs/lmharness/bin/activate
 lm_eval \
   --model vllm \
-  --model_args '{"pretrained":"Qwen/Qwen3-1.7B","trust_remote_code":true,"max_model_len":16384,"enable_thinking":true}' \
+  --model_args '{"pretrained":"Qwen/Qwen3-4B","trust_remote_code":true,"max_model_len":16384,"enable_thinking":true}' \
   --gen_kwargs '{"max_gen_toks":8192,"until":["Input","Input:","<eot_id>","<|im_end|>","###","Question","question","####","Problem","Response"],"temperature":0.6}' \
   --apply_chat_template \
   --tasks dynamic_ifeval \
-  --device cuda:0 \
-  --batch_size auto
+  --batch_size auto \
+  --output_path 'results.jsonl'
+
+You can set the seed used for the generation of the dataset with the following flag:
+  --metadata '{"dataset_seed":131}' \
 
 ### Task Validity Checklist
 

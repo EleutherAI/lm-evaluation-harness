@@ -3,7 +3,6 @@ task: dynamic_ifeval
 dataset_name: null       # we’re not using a named HF dataset
 dataset_kwargs:
   hf_dataset_name : david-e-g/Texts_Samples
-  seed : 19
   #data_files:
     # single file:
   #  - data/texts_dataset.json
