@@ -1,7 +1,8 @@
+from collections.abc import Generator
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import torch
 from peft.peft_model import PeftModel

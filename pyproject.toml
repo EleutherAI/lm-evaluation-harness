@@ -106,14 +106,14 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
-extend-select = ["I", "W605"]
+extend-select = ["I", "W605", "UP"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"__init__.py" = ["F401","F402","F403"]
+"__init__.py" = ["F401","F402","F403","F405"]
 "utils.py" = ["F401"]
 
 [dependency-groups]
