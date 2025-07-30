@@ -1122,7 +1122,7 @@ class HFLM(TemplateLM):
             f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size"
         )
         longest_request_sample = n_reordered_requests[pos]
-        self.batch_sizes[sched] = self._detect_batch_size([longest_request_sample,pos=0, is_generation_call=True])
+        self.batch_sizes[sched] = self._detect_batch_size([longest_request_sample],pos=0, is_generation_call=True)
         eval_logger.info(f"Determined largest batch size: {self.batch_sizes[sched]}")
         return self.batch_sizes[sched]
 
