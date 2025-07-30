@@ -1488,8 +1488,9 @@ class ConfigurableTask(Task):
                 # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
                 # TODO: should these be strided? will have to modify the processing in process_results if so
+                # TODO: Allow setting of custom prompt
                 aux_arguments = [
-                    ("", f"{target_delimiter}{choice}") for choice in choices
+                    ("Answer:", f"{target_delimiter}{choice}") for choice in choices
                 ]
 
                 arguments.extend(aux_arguments)
