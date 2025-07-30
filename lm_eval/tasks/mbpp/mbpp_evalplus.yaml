@@ -40,7 +40,7 @@ generation_kwargs:
   do_sample: true
   temperature: 0.8
   top_p: 0.95
-  max_gen_toks: 2
+  max_gen_toks: 512
 num_fewshot: 0
 fewshot_config:
   sampler: first_n
