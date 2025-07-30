@@ -32,13 +32,11 @@ def pass_at_1(
 def pass_at_10(
     references: Union[str, list[str]], predictions: Union[str, list[list[str]]]
 ) -> float:
+    global pass_at_k
     if isinstance(references, str):
         references = [references]
     if isinstance(predictions[0], str):
         predictions = [[p] for p in predictions]
-    print("references: ", references)
-    print("predictions: ", predictions)
-    pass_at_k = hf_evaluate.load("code_eval")
     res = pass_at_k.compute(
         references=references, predictions=predictions, k=[10], num_workers=20
     )
@@ -47,6 +45,7 @@ def pass_at_10(
 
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
+    ignore_annotations = "from __future__ import annotations/n"
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
     # (+ ```) as we add the opening "```python" to the gen_prefix
     matches = re.findall(pattern, r"```" + text, re.DOTALL)
@@ -55,9 +54,9 @@ def extract_code_blocks(text: str) -> str:
         text_without_lang = re.sub(r"```python", "```", text)
         matches = re.findall(pattern, text_without_lang, re.DOTALL)
     if not matches:
-        return ""
+        return ignore_annotations + text
     else:
-        return matches[0]
+        return ignore_annotations + matches[0]
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
