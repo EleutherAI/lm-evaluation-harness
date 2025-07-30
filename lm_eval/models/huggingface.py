@@ -789,7 +789,7 @@ class HFLM(TemplateLM):
                 context, gen_kwargs= requests[pos]
                 max_gen_toks= gen_kwargs.get("max_gen_toks", self.max_gen_toks)
                 con_encoder= self.tok_encode(context)
-                max_length=con_encoder+max_gen_toks
+                max_length=len(con_encoder)+max_gen_toks
             else:
                 _, context_enc, continuation_enc = requests[pos]
                 max_length = len(
