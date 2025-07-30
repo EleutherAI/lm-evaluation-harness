@@ -203,3 +203,6 @@ def _normalize(answer):
     tokens = [token for token in tokens if token.strip()]
     normalized = " ".join(tokens).strip()
     return normalized
+
+def doc_to_target(doc):
+    return ", ".join(doc["answers"][0])
