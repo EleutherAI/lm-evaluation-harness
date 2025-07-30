@@ -45,7 +45,7 @@ def pass_at_10(
 
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
-    ignore_annotations = "from __future__ import annotations/n"
+    ignore_annotations = "from __future__ import annotations\n"
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
     # (+ ```) as we add the opening "```python" to the gen_prefix
     matches = re.findall(pattern, r"```" + text, re.DOTALL)
