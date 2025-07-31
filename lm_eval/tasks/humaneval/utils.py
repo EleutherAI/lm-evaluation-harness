@@ -24,7 +24,7 @@ def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] 
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-    return [[doc["prompt"] + r for r in resp] for resp, doc in zip(resps, docs)]
+    return [[doc["prompt"] + r.replace("```python\n", "") for r in resp] for resp, doc in zip(resps, docs)]
 
 
 def build_predictions_instruct(
