@@ -1,0 +1,16 @@
+group: acp_bench_bool
+task:
+  - acp_areach_bool
+  - acp_app_bool
+  - acp_just_bool
+  - acp_land_bool
+  - acp_prog_bool
+  - acp_reach_bool
+  - acp_val_bool
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list: "extract-yes-no"
+metadata:
+  version: 1
