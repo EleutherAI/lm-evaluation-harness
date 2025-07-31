@@ -1123,7 +1123,7 @@ class HFLM(TemplateLM):
         )
         longest_request_sample = n_reordered_requests[pos]
         self.batch_sizes[sched] = self._detect_batch_size([longest_request_sample],pos=0, is_generation_call=True)
-        eval_logger.info(f"Determined {sched}/{self.batch_schedule} Largest batch size: {self.batch_sizes[sched]}")
+        eval_logger.info(f"Determined Largest batch size: {self.batch_sizes[sched]} for schedule {sched}")
         return self.batch_sizes[sched]
 
     def _loglikelihood_tokens(
