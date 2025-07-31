@@ -6,6 +6,6 @@ aggregate_metric_list:
   - metric: exact_match
     aggregation: mean
     weight_by_size: true
-    filter_list: "extract-yes-no"
+    filter_list: ["extract-yes-no", "mcq-extract"]
 metadata:
   version: 1
