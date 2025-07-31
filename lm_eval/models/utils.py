@@ -616,16 +616,22 @@ class Collator:
         [10]
         ```
         """
-        arr = []
         _iter = tuple(_iter)
-        for i, x in enumerate(_iter):
-            arr.append(x)
-            if len(arr) == (fn(i, _iter) if fn else n):
-                yield arr
-                arr = []
-
-        if arr:
-            yield arr
+        if not fn:
+            if n == 0 and _iter:
+                yield list(_iter)
+            elif n > 0:
+                for i in range(0, len(_iter), n):
+                    yield list(_iter[i : i + n])
+                return
+        i = 0
+        while i < len(_iter):
+            chunk_size = fn(i, _iter)
+            if chunk_size == 0:
+                chunk_size=1
+            chunk= _iter[i : i + chunk_size]
+            yield list(chunk)
+            i += chunk_size
 
 
 def configure_pad_token(

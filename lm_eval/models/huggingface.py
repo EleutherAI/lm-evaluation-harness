@@ -1384,7 +1384,6 @@ class HFLM(TemplateLM):
 
         batch_size = self.batch_size if self.batch_size != "auto" else 0
         batch_fn=self._batch_scheduler if batch_size==0 else None
-        eval_logger.info(f"Determined Largest batch size: {self.batch_size}")
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
