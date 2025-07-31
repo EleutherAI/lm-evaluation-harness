@@ -1123,7 +1123,6 @@ class HFLM(TemplateLM):
         )
         longest_request_sample = n_reordered_requests[pos]
         self.batch_sizes[sched] = self._detect_batch_size([longest_request_sample],pos=0, is_generation_call=True)
-        eval_logger.info(f"Determined largest batch size: {self.batch_sizes[sched]}")
         return self.batch_sizes[sched]
 
     def _loglikelihood_tokens(
@@ -1385,7 +1384,7 @@ class HFLM(TemplateLM):
 
         batch_size = self.batch_size if self.batch_size != "auto" else 0
         batch_fn=self._batch_scheduler if batch_size==0 else None
-        eval_logger.info(f"Determined Largest batch size: {batch_size}")
+        eval_logger.info(f"Determined Largest batch size: {self.batch_size}")
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
