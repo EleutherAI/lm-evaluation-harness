@@ -5,26 +5,34 @@ task:
     task:
       - mmlu_flan_cot_fewshot_stem
     aggregate_metric_list:
-      - metric: acc
+      - aggregation: mean
+        metric: exact_match
         weight_by_size: True
+        filter_list: get-answer
   - group: other
     task:
       - mmlu_flan_cot_fewshot_other
     aggregate_metric_list:
-      - metric: acc
+      - aggregation: mean
+        metric: exact_match
         weight_by_size: True
+        filter_list: get-answer
   - group: social sciences
     task:
       - mmlu_flan_cot_fewshot_social_sciences
     aggregate_metric_list:
-      - metric: acc
+      - aggregation: mean
+        metric: exact_match
         weight_by_size: True
+        filter_list: get-answer
   - group: humanities
     task:
       - mmlu_flan_cot_fewshot_humanities
     aggregate_metric_list:
-      - metric: acc
+      - aggregation: mean
+        metric: exact_match
         weight_by_size: True
+        filter_list: get-answer
 aggregate_metric_list:
   - aggregation: mean
     metric: exact_match
