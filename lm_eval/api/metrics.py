@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 import logging
 import math
 import os
 import random
 import re
 import string
-from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import Generic, TypeVar
 
 import numpy as np
-import sacrebleu
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -25,36 +26,36 @@ def bypass_agg(arr):
 
 
 @register_aggregation("nanmean")
-def nanmean(arr):
+def nanmean(arr: list[float]) -> float:
     if len(arr) == 0 or all(np.isnan(arr)):
         return np.nan
     return np.nanmean(arr)
 
 
 @register_aggregation("mean")
-def mean(arr):
+def mean(arr: Sequence[float]) -> float:
     return sum(arr) / len(arr)
 
 
 @register_aggregation("median")
-def median(arr):
+def median(arr: list[float]) -> float:
     return arr[len(arr) // 2]
 
 
 # Certain metrics must be calculated across all documents in a benchmark.
 # We use them as aggregation metrics, paired with no-op passthrough metric fns.
 @register_aggregation("perplexity")
-def perplexity(items):
+def perplexity(items: list[float]) -> float:
     return math.exp(-mean(items))
 
 
 @register_aggregation("weighted_perplexity")
-def weighted_perplexity(items):
+def weighted_perplexity(items: list[tuple[float, float]]) -> float:
     return math.exp(-weighted_mean(items))
 
 
 @register_aggregation("bits_per_byte")
-def bits_per_byte(items):
+def bits_per_byte(items: list[tuple[float, float]]) -> float:
     return -weighted_mean(items) / math.log(2)
 
 
@@ -71,7 +72,7 @@ def f1_score(items):
 
 
 @register_aggregation("matthews_corrcoef")
-def matthews_corrcoef(items):
+def matthews_corrcoef(items: Iterable[tuple[int, int] | tuple[str, str]]) -> float:
     from sklearn.metrics import matthews_corrcoef
 
     unzipped_list = list(zip(*items))
@@ -81,7 +82,7 @@ def matthews_corrcoef(items):
 
 
 @register_aggregation("bleu")
-def bleu(items):
+def bleu(items: Iterable[tuple[str, str]]):
     """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
     for evaluating a generated sentence to a reference sentence. It counts matching
     n-grams in the candidate translation to n-grams in the reference text, where
@@ -92,6 +93,8 @@ def bleu(items):
 
     Higher is better
     """
+    import sacrebleu
+
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
@@ -107,6 +110,8 @@ def chrf(items):
 
     Higher is better  # TODO I think
     """
+    import sacrebleu
+
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
@@ -114,7 +119,7 @@ def chrf(items):
 
 
 @register_aggregation("ter")
-def ter(items):
+def ter(items: Iterable[tuple[str, str]]):
     """Translation Error Rate is an error metric for machine translation that
     measures the number of edits required to change a system output into one
     of the references
@@ -123,6 +128,8 @@ def ter(items):
 
     Lower is better
     """
+    import sacrebleu
+
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
@@ -130,7 +137,9 @@ def ter(items):
 
 
 @register_aggregation("brier_score")
-def brier_score(items):  # This is a passthrough function
+def brier_score(
+    items: Iterable[tuple[str, float]],
+):  # This is a passthrough function
     gold, predictions = list(zip(*items))
     bs, num_class = np.array(predictions).shape
 
@@ -198,13 +207,48 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def exact_match_hf_evaluate(
-    predictions,
-    references,
-    regexes_to_ignore=None,
-    ignore_case=False,
-    ignore_punctuation=False,
-    ignore_numbers=False,
+    predictions: Iterable[str] | str,
+    references: Iterable[str] | str,
+    regexes_to_ignore: list[str] | None = None,
+    ignore_case: bool = False,
+    ignore_punctuation: bool = False,
+    ignore_numbers: bool = False,
+    multi_target: bool = False,
 ):
+    """
+    Compute exact match scores between predictions and references.
+
+    This function computes the exact match score by comparing predictions
+    and references. It supports optional preprocessing steps such as ignoring
+    case, punctuation, numbers, and specific regex patterns.
+
+    Note:
+        predictions and references can have different lengths.
+        numpy broadcasting rule applies
+
+    Args:
+        predictions (Iterable[str] | str): The predicted strings to evaluate.
+        references (Iterable[str] | str): The reference strings to compare against.
+        regexes_to_ignore (list[str], optional): A list of regex patterns to remove
+            from both predictions and references before comparison. Defaults to None.
+        ignore_case (bool, optional): If True, ignores case differences during comparison.
+            Defaults to False.
+        ignore_punctuation (bool, optional): If True, removes punctuation from strings
+            before comparison. Defaults to False.
+        ignore_numbers (bool, optional): If True, removes numeric characters from strings
+            before comparison. Defaults to False.
+        multi_target (bool, optional): If True, returns 1.0 if any prediction matches any
+            reference, otherwise 0.0. Defaults to False.
+
+    Returns:
+        dict: A dictionary containing the exact match score:
+            - "exact_match" (float): The mean exact match score or 1.0/0.0 if `multi_target` is True.
+    """
+    predictions, references = list(predictions), list(references)
+    assert len(predictions) == len(references) if not multi_target else True, (
+        "predictions and references must have the same length unless `multi_target` is True"
+    )
+
     if regexes_to_ignore is not None:
         for s in regexes_to_ignore:
             predictions = np.array([re.sub(s, "", x) for x in predictions])
@@ -229,7 +273,11 @@ def exact_match_hf_evaluate(
 
     score_list = predictions == references
 
-    return {"exact_match": np.mean(score_list)}
+    return {
+        "exact_match": np.mean(score_list)
+        if not multi_target
+        else float(np.any(score_list))
+    }
 
 
 ###
@@ -241,8 +289,8 @@ def exact_match_hf_evaluate(
     output_type="generate_until",
     aggregation="mean",
 )
-def exact_match_fn(**kwargs):
-    return exact_match_hf_evaluate(**kwargs)
+def exact_match_fn(references: list[str], predictions: list[str], **kwargs):
+    return exact_match_hf_evaluate(predictions, references, **kwargs)
 
 
 @register_metric(
@@ -261,7 +309,7 @@ def perplexity_fn(items):  # This is a passthrough function
     output_type="loglikelihood_rolling",
     aggregation="weighted_perplexity",
 )
-def word_perplexity_fn(items):  # This is a passthrough function
+def word_perplexity_fn(items: T) -> T:  # This is a passthrough function
     return items
 
 
@@ -271,7 +319,7 @@ def word_perplexity_fn(items):  # This is a passthrough function
     output_type="loglikelihood_rolling",
     aggregation="weighted_perplexity",
 )
-def byte_perplexity_fn(items):  # This is a passthrough function
+def byte_perplexity_fn(items: T) -> T:  # This is a passthrough function
     return items
 
 
@@ -281,7 +329,7 @@ def byte_perplexity_fn(items):  # This is a passthrough function
     output_type="loglikelihood_rolling",
     aggregation="bits_per_byte",
 )
-def bits_per_byte_fn(items):  # This is a passthrough function
+def bits_per_byte_fn(items: T) -> T:  # This is a passthrough function
     return items
 
 
@@ -290,7 +338,7 @@ def pop_stddev(arr):
     return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
 
 
-def sample_stddev(arr: Sequence[T]) -> float:
+def sample_stddev(arr: Sequence[float]) -> float:
     mu = mean(arr)
     return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
 
@@ -411,7 +459,7 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     return max(scores_for_ground_truths)
 
 
-def weighted_mean(items):
+def weighted_mean(items: list[tuple[float, float]]) -> float:
     a, b = zip(*items)
     return sum(a) / sum(b)
 
@@ -422,15 +470,15 @@ def is_non_str_iterable(obj):
 
 def _sacreformat(refs, preds):
     """Format refs and preds for sacrebleu corpus calculation. It is very particular"""
-    # Sacrebleu expects (List[str], List[List[str])
+    # Sacrebleu expects (list[str], list[list[str])
     #   e.g. sacrebleu.corpus_bleu([pred_t], [[ref1_stream], [ref2_stream], ...])
 
     # Note [ref1_stream] is the first reference for each pred.
     # So lists are size N and (M, N) for N preds and M possible refs for each pred
     # This is a different order of dimensions that I would expect
 
-    # We expect refs to be List[str] or List[List[str]], the outer list corresponding to preds
-    # Must become List[List[str]] with the inner list corresponding to preds
+    # We expect refs to be list[str] or list[list[str]], the outer list corresponding to preds
+    # Must become list[list[str]] with the inner list corresponding to preds
     if not is_non_str_iterable(refs):
         refs = list(refs)
     if not is_non_str_iterable(refs[0]):
@@ -438,7 +486,7 @@ def _sacreformat(refs, preds):
     refs = list(zip(*refs))
     # Note the number of refs in each ref list much match the number of preds
 
-    # We expect preds to be List[str] or List[List[str]]. Must become List[str]
+    # We expect preds to be list[str] or list[list[str]]. Must become list[str]
     if not is_non_str_iterable(preds):
         preds = list(preds)
     if is_non_str_iterable(preds[0]):
@@ -451,7 +499,7 @@ def _sacreformat(refs, preds):
 # stderr stuff
 
 
-class _bootstrap_internal:
+class _bootstrap_internal(Generic[T]):
     """
     Pool worker: `(i, xs)` → `n` bootstrap replicates
     of `f(xs)`using a RNG seeded with `i`.
@@ -534,7 +582,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -564,10 +612,10 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -585,7 +633,7 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )
@@ -617,7 +665,9 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
     return np.sqrt(variance)
 
 
-def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
+def aggregate_subtask_metrics(
+    metrics: list[float], sizes: list[float], weight_by_size: bool = True
+):
     # A helper function that is used to aggregate
     # subtask scores cross-task.
     # TODO: does not hold for non-mean aggregations
@@ -626,4 +676,4 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
 
     assert len(metrics) == len(sizes)
 
-    return sum([metric * size for metric, size in zip(metrics, sizes)]) / sum(sizes)
+    return sum(metric * size for metric, size in zip(metrics, sizes)) / sum(sizes)

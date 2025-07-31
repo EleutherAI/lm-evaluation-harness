@@ -24,3 +24,6 @@ journal	= {Transactions of the Association of Computational Linguistics}}
 ### Tasks
 
 * `nq_open`
+
+### Changelog
+* 2025-07-21: Added `multi_target` to `exact_match`. Scores should not change.
