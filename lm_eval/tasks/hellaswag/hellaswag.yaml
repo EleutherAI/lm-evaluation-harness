@@ -6,6 +6,8 @@ dataset_name: null
 output_type: multiple_choice
 training_split: train
 validation_split: validation
+fewshot_split: train
+num_fewshot: 5
 test_split: null
 process_docs: !function utils.process_docs
 doc_to_text: "{{query}}"
