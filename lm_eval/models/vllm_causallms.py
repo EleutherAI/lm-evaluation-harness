@@ -1,6 +1,5 @@
 import copy
 import gc
-import inspect
 import logging
 import os
 from importlib.metadata import version
@@ -239,15 +238,6 @@ class VLLM(TemplateLM):
                     model_config = engine_args.create_model_config()
 
                     kwargs_resolve_hf_chat_template["model_config"] = model_config
-
-            # https://github.com/vllm-project/vllm/pull/18259
-            if (
-                "trsut_remote_code"
-                in inspect.signature(resolve_hf_chat_template).parameters
-            ):
-                kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
-            else:
-                kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
 
             self.hf_chat_template = resolve_hf_chat_template(
                 **kwargs_resolve_hf_chat_template
