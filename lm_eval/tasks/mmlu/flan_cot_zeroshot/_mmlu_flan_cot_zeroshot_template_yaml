@@ -8,7 +8,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=The answer is: )(.*)(?=.)|(?<=answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
       - function: "take_first"
   - name: "flexible-extract"
     filter:
