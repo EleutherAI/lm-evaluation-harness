@@ -1,0 +1,11 @@
+group: acp_bench
+task:
+  - acp_bench_bool
+  - acp_bench_mcq
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list: ["extract-yes-no", "mcq-extract"]
+metadata:
+  version: 1

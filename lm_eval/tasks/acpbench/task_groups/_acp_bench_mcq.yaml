@@ -1,0 +1,16 @@
+group: acp_bench_mcq
+task:
+  - acp_areach_mcq
+  - acp_app_mcq
+  - acp_just_mcq
+  - acp_land_mcq
+  - acp_prog_mcq
+  - acp_reach_mcq
+  - acp_val_mcq
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list: "mcq-extract"
+metadata:
+  version: 1
