@@ -623,3 +623,7 @@ def hash_dict_images(data_dict):
         if importlib.util.find_spec("PIL")
         else data_dict
     )
+
+
+def validate_index(index: int, length: int) -> int:
+    return index if index < length else -100
