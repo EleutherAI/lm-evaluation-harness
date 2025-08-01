@@ -9,7 +9,7 @@ metric_list:
   - metric: !function utils.pass_at_k
     aggregation: mean
     higher_is_better: true
-    k: [10]
+    k: [1]
 generation_kwargs:
   until:
     - "\nclass"
