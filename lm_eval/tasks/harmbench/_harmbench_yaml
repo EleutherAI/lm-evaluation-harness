@@ -10,7 +10,5 @@ metric_list:
     higher_is_better: false
 generation_kwargs:
   do_sample: false
-  temperature: 0.0
-  max_new_tokens: 60
 metadata:
   version: 1.0
