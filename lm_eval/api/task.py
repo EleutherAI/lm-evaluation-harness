@@ -946,13 +946,13 @@ class ConfigurableTask(Task):
                 # e.g. text: 1, choice: [Maria was better than Sarah, Sarah was better than Sarah]
                 # target: so she was envious
                 assert isinstance(test_text, int), (
-                    "doc_to_text must return int for multiple inputs"
+                    f"[{self.config.task}] doc_to_text must return int for multiple inputs"
                 )
                 assert isinstance(test_target, str), (
-                    "doc_to_target must return str for multiple inputs"
+                    f"[{self.config.task}] doc_to_target must return str for multiple inputs"
                 )
                 assert self.config.output_type != "generate_until", (
-                    "Only multiple-choice tasks can be used with multiple inputs"
+                    f"[{self.config.task}] Only multiple-choice tasks can be used with multiple inputs"
                 )
                 test_text = test_choice[0]
 
@@ -962,18 +962,18 @@ class ConfigurableTask(Task):
                 # doc_to_choice: list
                 # doc_to_target: list
                 assert isinstance(test_target, (list, tuple)), (
-                    "doc_to_target must be an iterable for multiple targets"
+                    f"[{self.config.task}] doc_to_target must be an iterable for multiple targets"
                 )
                 test_target = test_target[0]
             else:
                 assert isinstance(test_target, int), (
-                    "doc_to_target must return int for multiple choices"
+                    f"[{self.config.task}] doc_to_target must return int for multiple-choice tasks"
                 )
                 test_target = test_choice[test_target]
 
             assert hasattr(test_choice, "__iter__") and not isinstance(
                 test_choice, (str, bytes)
-            ), "doc_to_choice must be an iterable!"
+            ), f"[{self.config.task}] doc_to_choice must be an iterable!"
 
             for choice in test_choice:
                 choice_has_whitespace = choice[0].isspace()
@@ -984,11 +984,13 @@ class ConfigurableTask(Task):
 
                 if delimiter_has_whitespace and choice_has_whitespace:
                     eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
+                        f'[{self.config.task}] Both target_delimiter "{self.config.target_delimiter}" and target '
+                        f'choice: "{choice}" have whitespace'
                     )
                 elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
                     eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                        f'[{self.config.task}] Both target_delimiter "{self.config.target_delimiter}" and target '
+                        f'choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
     def download(
