@@ -1,0 +1,3 @@
+task: hallulens_mixedentities
+include: _hallulens_yaml
+dataset_name: mixed_entities
