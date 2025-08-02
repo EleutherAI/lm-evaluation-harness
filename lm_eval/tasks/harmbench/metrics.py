@@ -8,6 +8,7 @@ from datasets import load_dataset
 from datasketch import MinHash
 from huggingface_hub import hf_hub_download
 from spacy.cli import download
+import numpy as np
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM
 # from vllm import LLM, SamplingParams
@@ -179,14 +180,15 @@ def compute_results_classifier(behavior_dict, completion, model, tokenizer, temp
         max_new_tokens=max_new_tokens,
         do_sample=False,
     )
-    preds = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    # now take the new tokens only
+    outputs_new_tokens = outputs[:, inputs["input_ids"].shape[1]:]
+    preds = tokenizer.decode(outputs_new_tokens[0], skip_special_tokens=True)
 
-    preds = preds[len(inputs["input_ids"][0]):].strip()
 
 
     labels = ["yes", "no"]
-    p = int(preds.lower() == "yes") if preds.lower() in labels else -1
+    p = int(preds.lower() == "yes") if preds.lower() in labels else np.nan
+    if np.isnan(p):
+        print(f"Warning: Predicted label '{preds}' not in expected labels {labels}. Returning NaN.")
     return {
         "score": p,
     }

@@ -6,7 +6,7 @@ doc_to_target: ""
 process_results: !function metrics.harmfulness_score
 metric_list:
   - metric: score
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: false
 generation_kwargs:
   do_sample: false
