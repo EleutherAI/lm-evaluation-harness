@@ -9,6 +9,7 @@ metric_list:
     aggregation: nanmean
     higher_is_better: false
 generation_kwargs:
+  until: []
   do_sample: false
 metadata:
   version: 1.0
