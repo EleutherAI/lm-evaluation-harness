@@ -971,10 +971,6 @@ class ConfigurableTask(Task):
                 )
                 test_target = test_choice[test_target]
 
-            assert hasattr(test_choice, "__iter__") and not isinstance(
-                test_choice, (str, bytes)
-            ), f"[{self.config.task}] doc_to_choice must be an iterable!"
-
             for choice in test_choice:
                 choice_has_whitespace = choice[0].isspace()
                 delimiter_has_whitespace = (
