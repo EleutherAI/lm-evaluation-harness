@@ -176,7 +176,6 @@ def compute_results_classifier(behavior_dict, completion, model, tokenizer, temp
     inputs = tokenizer(inputs, return_tensors="pt").to(model.device)
     outputs = model.generate(
         **inputs,
-        temperature=temperature,
         max_new_tokens=max_new_tokens,
         do_sample=False,
     )
@@ -279,3 +278,4 @@ def check_output_with_sliding_window(
                 return True, f"Near match found! Score: {score}"
 
     return False, f"No match found, Max Score: {max_similarity}"
+
