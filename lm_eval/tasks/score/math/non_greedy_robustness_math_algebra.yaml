@@ -18,7 +18,7 @@ dataset_name: algebra
 output_type: generate_until
 test_split: test
 process_docs: !function utils_math.non_greedy_robustness_process_docs
-doc_to_text:  !function utils_math.math_robustness_doc_to_text
+doc_to_text: !function utils_math.math_robustness_doc_to_text
 doc_to_target: answer
 generation_kwargs:
   max_gen_toks: 1024
@@ -28,9 +28,7 @@ generation_kwargs:
 process_results: !function utils_math.non_greedy_robustness_process_results
 metric_list:
   - metric: non_greedy_accuracy
-    aggregation:  !function utils_math.non_greedy_accuracy
+    aggregation: !function utils_math.non_greedy_accuracy
     higher_is_better: true
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true

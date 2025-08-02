@@ -27,9 +27,7 @@ fewshot_config:
       (B) blue ball
 
       (C) pink ball'
-    target: 'Let''s think step by step.
-
-      (0) At the start: Alice: yellow, Bob: blue, Claire: pink.
+    target: '(0) At the start: Alice: yellow, Bob: blue, Claire: pink.
 
       (1) Claire and Alice swap balls: Alice: pink, Bob: blue, Claire: yellow.
 
@@ -53,9 +51,7 @@ fewshot_config:
       (B) purple ball
 
       (C) pink ball'
-    target: 'Let''s think step by step.
-
-      (0) At the start: Alice: white, Bob: purple, Claire: pink.
+    target: '(0) At the start: Alice: white, Bob: purple, Claire: pink.
 
       (1) Bob and Alice swap balls: Alice: purple, Bob: white, Claire: pink.
 
@@ -79,9 +75,7 @@ fewshot_config:
       (B) Rodrigo
 
       (C) Patrick'
-    target: 'Let''s think step by step.
-
-      (0) At the start: Alice: Lola, Bob: Rodrigo, Claire: Patrick.
+    target: '(0) At the start: Alice: Lola, Bob: Rodrigo, Claire: Patrick.
 
       (1) Alice and Bob switch partners: Alice: Rodrigo, Bob: Lola, Claire: Patrick.
 

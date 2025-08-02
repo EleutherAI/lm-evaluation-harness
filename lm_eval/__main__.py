@@ -433,10 +433,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # because it's already been determined based on the prior env var before launching our
         # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
         import datasets
+        from packaging.version import parse as vparse
 
-        datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+        if vparse(datasets.__version__) < vparse("4.0.0"):
+            datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
-        args.model_args = args.model_args + ",trust_remote_code=True"
+        if isinstance(args.model_args, dict):
+            args.model_args["trust_remote_code"] = True
+        else:
+            args.model_args = args.model_args + ",trust_remote_code=True"
     (
         eval_logger.info(f"Selected Tasks: {task_names}")
         if eval_logger.getEffectiveLevel() >= logging.INFO
