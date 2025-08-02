@@ -1,6 +1,5 @@
 import copy
 import gc
-import inspect
 import logging
 import os
 from importlib.metadata import version
@@ -388,7 +387,7 @@ class VLLM(TemplateLM):
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
-                    prompt_token_ids=requests,
+                    [TokensPrompt(prompt_token_ids=request) for request in requests],
                     sampling_params=sampling_params,
                     lora_request=lora_request,
                 )
@@ -477,7 +476,7 @@ class VLLM(TemplateLM):
 
         else:
             outputs = self.model.generate(
-                prompt_token_ids=requests,
+                [TokensPrompt(prompt_token_ids=request) for request in requests],
                 sampling_params=sampling_params,
                 use_tqdm=True if self.batch_size == "auto" else False,
                 lora_request=self.lora_request,
