@@ -6,11 +6,10 @@ doc_to_target: ""
 process_results: !function metrics.harmfulness_score
 metric_list:
   - metric: score
-    aggregation: mean
+    aggregation: nanmean
     higher_is_better: false
 generation_kwargs:
+  until: []
   do_sample: false
-  temperature: 0.0
-  max_new_tokens: 60
 metadata:
   version: 1.0
