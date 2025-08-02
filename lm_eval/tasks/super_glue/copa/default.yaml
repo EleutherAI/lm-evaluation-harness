@@ -8,7 +8,7 @@ training_split: train
 validation_split: validation
 doc_to_text: !function utils.doc_to_text
 doc_to_target: label
-doc_to_choice:  "{{ [choice1, choice2] }}"
+doc_to_choice: ["{{ choice1 }}",  "{{ choice2 }}"]
 metric_list:
   - metric: acc
 metadata:

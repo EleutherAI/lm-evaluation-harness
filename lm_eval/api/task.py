@@ -18,6 +18,7 @@ from typing import (
     Optional,
     Tuple,
     Union,
+    cast,
 )
 
 import datasets
@@ -1382,9 +1383,9 @@ class ConfigurableTask(Task):
             if doc_to_choice in self.features:
                 return doc[doc_to_choice]
             else:
-                return utils.apply_template(doc_to_choice, doc)
+                return cast(list, utils.apply_template(doc_to_choice, doc))
         elif isinstance(doc_to_choice, list):
-            return doc_to_choice
+            return utils.apply_template(doc_to_choice, doc)
         elif isinstance(doc_to_choice, dict):
             return list(doc_to_choice.values())
         elif callable(doc_to_choice):
@@ -1606,8 +1607,8 @@ class ConfigurableTask(Task):
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)
 
-            gold = (
-                self.doc_to_text(doc)
+            gold = backup = (
+                self.doc_to_target(doc)
                 if not self.multiple_inputs
                 else self.doc_to_text(doc)
             )
@@ -1625,7 +1626,7 @@ class ConfigurableTask(Task):
 
             if gold_index_error:
                 eval_logger.warning(
-                    f"Label index was not in within range of available choices,"
+                    f"Label [{backup}] index was not in within range of available choices {choices},"
                     f"Sample:\n\n{doc}\n\n"
                 )
 
