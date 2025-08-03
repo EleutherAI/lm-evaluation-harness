@@ -584,9 +584,21 @@ def evaluate(
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
+        raw_resps = []
+        if reqtype == "generate_until" and hasattr(lm, "raw_generations"):
+            raw_resps = lm.raw_generations
+            if len(raw_resps) != len(resps):
+                eval_logger.warning(
+                    f"Length of raw generations ({len(raw_resps)}) does not match length of processed responses ({len(resps)})."
+                )
+
         # put responses from model into a list of length K for each request.
-        for x, req in zip(resps, cloned_reqs):
+        for i, (x, req) in enumerate(zip(resps, cloned_reqs)):
             req.resps.append(x)
+            if raw_resps and i < len(raw_resps):
+                if not hasattr(req, "raw_resps"):
+                    req.raw_resps = []
+                req.raw_resps.append(raw_resps[i])
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
@@ -638,7 +650,10 @@ def evaluate(
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],
-                        "resps": [req.resps for req in requests],
+                        "resps": [
+                            req.raw_resps if hasattr(req, "raw_resps") else req.resps
+                            for req in requests
+                        ],
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],

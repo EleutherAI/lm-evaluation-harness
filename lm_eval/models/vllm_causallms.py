@@ -140,6 +140,7 @@ class VLLM(TemplateLM):
         max_lora_rank: int = 16,
         **kwargs,
     ):
+        self.raw_generations = []
         super().__init__()
 
         if not find_spec("vllm"):
@@ -555,6 +556,7 @@ class VLLM(TemplateLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
+        self.raw_generations = []
         res = []
 
         # batch tokenize contexts
@@ -632,15 +634,16 @@ class VLLM(TemplateLM):
 
             # cache generations
             for output, context in zip(cont, context):
-                generated_text: str = output.outputs[0].text
+                raw_generated_text: str = output.outputs[0].text
+                self.raw_generations.append(raw_generated_text)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), raw_generated_text
+                )
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
-                    generated_text, until, self.think_end_token
+                    raw_generated_text, until, self.think_end_token
                 )
                 res.append(generated_text)
-                self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
-                )
                 pbar.update(1)
 
         pbar.close()
