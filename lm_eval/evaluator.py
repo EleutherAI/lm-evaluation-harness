@@ -373,7 +373,9 @@ def simple_evaluate(
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
 
-    if lm.rank == 0:
+    if lm.rank == 0 and (
+        not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0
+    ):
         if isinstance(model, str):
             model_name = model
         elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
@@ -552,7 +554,9 @@ def evaluate(
             reqtype = instance.request_type
             requests[reqtype].append(instance)
 
-        if lm.world_size > 1:
+        is_accelerator = getattr(lm, "accelerator", True)
+        dp_group = getattr(lm, "dp_group", None)
+        if lm.world_size > 1 and is_accelerator:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
             gathered_item = (
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
@@ -577,7 +581,7 @@ def evaluate(
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
 
-        if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
+        if (lm.world_size > 1) and (padding_requests[reqtype] > 0) and is_accelerator:
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
@@ -588,9 +592,10 @@ def evaluate(
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
 
-        if lm.world_size > 1:
+        if lm.world_size > 1 and is_accelerator:
             lm.accelerator.wait_for_everyone()
-
+    if lm.world_size > 1 and not is_accelerator and torch.distributed.is_initialized():
+        torch.distributed.barrier()
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
@@ -670,7 +675,9 @@ def evaluate(
                 torch.distributed.gather_object(
                     obj=task_output.logged_samples,
                     object_gather_list=full_samples,
-                    dst=0,
+                    dst=0 if dp_group is None else None,
+                    group=dp_group,
+                    group_dst=0 if dp_group is not None else None,
                 )
 
                 if RANK == 0:
@@ -684,14 +691,18 @@ def evaluate(
                 torch.distributed.gather_object(
                     obj=task_output.sample_metrics[metrics],
                     object_gather_list=metric_list,
-                    dst=0,
+                    dst=0 if dp_group is None else None,
+                    group=dp_group,
+                    group_dst=0 if dp_group is not None else None,
                 )
                 if RANK == 0:
                     task_output.sample_metrics[metrics] = list(
                         itertools.chain.from_iterable(metric_list)
                     )
 
-    if RANK == 0:
+    if RANK == 0 and (
+        not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0
+    ):
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for task_output in eval_tasks:
