@@ -556,6 +556,7 @@ def evaluate(
 
         has_accelerator = getattr(lm, "accelerator", True)
         dp_group = getattr(lm, "dp_group", None)
+        # in case we have dp_group we will gather only within that group and not across all ranks
         if lm.world_size > 1 and has_accelerator:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
             gathered_item = (
@@ -582,6 +583,7 @@ def evaluate(
             cloned_reqs.extend([req] * req.repeats)
 
         if (lm.world_size > 1) and (padding_requests[reqtype] > 0) and has_accelerator:
+            # ddp requests can differ in size we just need to put barrier when all ranks finished
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
@@ -595,6 +597,7 @@ def evaluate(
         if lm.world_size > 1 and has_accelerator:
             lm.accelerator.wait_for_everyone()
     if lm.world_size > 1 and not has_accelerator and torch.distributed.is_initialized():
+        # in case of DDP, we need to wait for all ranks to finish, no need to wait per request because they run independently
         torch.distributed.barrier()
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
