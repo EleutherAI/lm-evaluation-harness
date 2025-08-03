@@ -556,8 +556,8 @@ class VLLM(TemplateLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        self.raw_generations = []
         res = []
+        raw_generations_buffer = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
@@ -635,7 +635,7 @@ class VLLM(TemplateLM):
             # cache generations
             for output, context in zip(cont, context):
                 raw_generated_text: str = output.outputs[0].text
-                self.raw_generations.append(raw_generated_text)
+                raw_generations_buffer.append(raw_generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), raw_generated_text
                 )
@@ -647,7 +647,9 @@ class VLLM(TemplateLM):
                 pbar.update(1)
 
         pbar.close()
+        
         # reorder all group of results back to original unsorted form
+        self.raw_generations = re_ords.get_original(raw_generations_buffer)
         return re_ords.get_original(res)
 
     def _loglikelihood_tokens(
