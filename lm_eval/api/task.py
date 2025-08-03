@@ -1290,8 +1290,10 @@ class ConfigurableTask(Task):
         doc_to_text = doc_to_text or self.config.doc_to_text
 
         if isinstance(doc_to_text, int):
+            # doc_to_text: 2
             return doc_to_text
         elif isinstance(doc_to_text, str):
+            # return df field
             if doc_to_text in self.features:
                 return doc[doc_to_text]
             else:
@@ -1306,13 +1308,13 @@ class ConfigurableTask(Task):
         elif callable(doc_to_text):
             return doc_to_text(doc)
         # Used when applying a Promptsource template
-        elif hasattr(doc_to_text, "apply"):
-            applied_prompt = doc_to_text.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[0]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
+        # elif hasattr(doc_to_text, "apply"):
+        #     applied_prompt = doc_to_text.apply(doc)
+        #     if len(applied_prompt) == 2:
+        #         return applied_prompt[0]
+        #     else:
+        #         eval_logger.warning("Applied prompt returns empty string")
+        #         return self.config.fewshot_delimiter
         else:
             print(type(doc_to_text))
             raise TypeError
@@ -1322,26 +1324,34 @@ class ConfigurableTask(Task):
     ) -> Union[int, str, list]:
         doc_to_target = doc_to_target or self.config.doc_to_target
 
-        if isinstance(doc_to_target, int) or isinstance(doc_to_target, list):
+        if isinstance(doc_to_target, int):
+            # yaml int; doc_to_target: 2
             return doc_to_target
         elif isinstance(doc_to_target, str):
+            # return the df field
             if doc_to_target in self.features:
                 return doc[doc_to_target]
             target_string = utils.apply_template(doc_to_target, doc)
+            # Target is usually integer for multiple-choice but jinja _always_ returns str.
+            # doc_to_target: {{answer[0]}} -> "2"
             if target_string.isdigit() and self._config.doc_to_choice is not None:
                 return ast.literal_eval(target_string)
             else:
                 return target_string
         elif callable(doc_to_target):
+            # !function utils.func
             return doc_to_target(doc)
+        elif isinstance(doc_to_target, list):
+            # ["{{field}}", "{{field}}"]
+            return utils.apply_template(doc_to_target, doc)
         # Used when applying a Promptsource template
-        elif hasattr(doc_to_target, "apply"):
-            applied_prompt = doc_to_target.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[1]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
+        # elif hasattr(doc_to_target, "apply"):
+        #     applied_prompt = doc_to_target.apply(doc)
+        #     if len(applied_prompt) == 2:
+        #         return applied_prompt[1]
+        #     else:
+        #         eval_logger.warning("Applied prompt returns empty string")
+        #         return self.config.fewshot_delimiter
         else:
             raise TypeError
 
@@ -1352,18 +1362,20 @@ class ConfigurableTask(Task):
 
         if isinstance(doc_to_choice, str):
             if doc_to_choice in self.features:
+                # return the df field
                 return doc[doc_to_choice]
             else:
                 # literal_eval for parsing "{{[x, y]}}"
                 return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
         elif isinstance(doc_to_choice, list):
+            # ["{{x}}", "{{y}}"]
             return utils.apply_template(doc_to_choice, doc)
         elif isinstance(doc_to_choice, dict):
             return list(doc_to_choice.values())
         elif callable(doc_to_choice):
             return doc_to_choice(doc)
-        elif hasattr(doc_to_choice, "get_answer_choices_list"):
-            return doc_to_choice.get_answer_choices_list(doc)
+        # elif hasattr(doc_to_choice, "get_answer_choices_list"):
+        #     return doc_to_choice.get_answer_choices_list(doc)
         else:
             raise TypeError
 
