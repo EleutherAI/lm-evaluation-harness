@@ -554,9 +554,9 @@ def evaluate(
             reqtype = instance.request_type
             requests[reqtype].append(instance)
 
-        is_accelerator = getattr(lm, "accelerator", True)
+        has_accelerator = getattr(lm, "accelerator", True)
         dp_group = getattr(lm, "dp_group", None)
-        if lm.world_size > 1 and is_accelerator:
+        if lm.world_size > 1 and has_accelerator:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
             gathered_item = (
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
@@ -581,7 +581,7 @@ def evaluate(
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
 
-        if (lm.world_size > 1) and (padding_requests[reqtype] > 0) and is_accelerator:
+        if (lm.world_size > 1) and (padding_requests[reqtype] > 0) and has_accelerator:
             for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
@@ -592,9 +592,9 @@ def evaluate(
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
 
-        if lm.world_size > 1 and is_accelerator:
+        if lm.world_size > 1 and has_accelerator:
             lm.accelerator.wait_for_everyone()
-    if lm.world_size > 1 and not is_accelerator and torch.distributed.is_initialized():
+    if lm.world_size > 1 and not has_accelerator and torch.distributed.is_initialized():
         torch.distributed.barrier()
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
