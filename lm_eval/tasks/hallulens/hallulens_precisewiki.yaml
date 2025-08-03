@@ -1,3 +1,13 @@
 task: hallulens_precisewiki
 include: _hallulens_yaml
 dataset_name: precise_wiki
+metric_list:
+  - metric: hallu_rate
+    aggregation: nanmean
+    higher_is_better: false
+  - metric: refusal_rate
+    aggregation: nanmean
+    higher_is_better: false
+  - metric: correct_rate
+    aggregation: nanmean
+    higher_is_better: true

@@ -7,7 +7,5 @@ process_results: !function metrics.get_score
 generation_kwargs:
   until: []
   do_sample: false
-  temperature: 0.0
-  max_new_tokens: 512
 metadata:
   version: 1.0

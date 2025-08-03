@@ -1,3 +1,16 @@
 task: hallulens_longwiki
 include: _hallulens_yaml
 dataset_name: longwiki
+metric_list:
+  - metric: abstained
+    aggregation: nanmean
+    higher_is_better: false
+  - metric: precision
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: recall
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: f1
+    aggregation: nanmean
+    higher_is_better: true

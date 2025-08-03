@@ -3,7 +3,7 @@ import re
 from typing import List
 
 
-def generate(prompt, model, tokenizer, temperature=0.0, top_p=1.0, max_tokens=512):
+def generate(prompt, model, tokenizer, temperature=0.0, max_tokens=512):
         prompt = tokenizer.apply_chat_template(
             [{"role": "user", "content": prompt}],
             tokenize=False,
@@ -13,12 +13,12 @@ def generate(prompt, model, tokenizer, temperature=0.0, top_p=1.0, max_tokens=51
         #input = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_len).to(model.device)
         input = tokenizer(prompt, return_tensors="pt", truncation=True).to(model.device)
         if temperature > 0.0:
+            print(f"Generating with temperature: {temperature}, max_tokens: {max_tokens}")
             output = model.generate(
                 input_ids=input["input_ids"],
                 attention_mask=input["attention_mask"],
                 max_new_tokens=max_tokens,
                 temperature=temperature,
-                top_p=top_p,
             )
         else:
             # If temperature is 0, we use greedy decoding
@@ -33,7 +33,7 @@ def generate(prompt, model, tokenizer, temperature=0.0, top_p=1.0, max_tokens=51
         del input  # Free memory
         return result
 
-def generate_batch(prompts, model, tokenizer, temperature=0.0, top_p=1.0, max_tokens=512):
+def generate_batch(prompts, model, tokenizer, temperature=0.0, max_tokens=512):
     prompts = [
         tokenizer.apply_chat_template([{"role": "user", "content": p}], tokenize=False, add_generation_prompt=True)
         for p in prompts
@@ -42,14 +42,23 @@ def generate_batch(prompts, model, tokenizer, temperature=0.0, top_p=1.0, max_to
     #inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, max_length=max_len).to(model.device)
     inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(model.device)
 
-    output = model.generate(
-        input_ids=inputs["input_ids"],
-        attention_mask=inputs["attention_mask"],
-        max_new_tokens=max_tokens,
-        temperature=temperature if temperature > 0.0 else None,
-        top_p=top_p,
-        do_sample=temperature > 0.0
-    )
+    if temperature > 0.0:
+        print(f"Generating with temperature: {temperature}, max_tokens: {max_tokens}")
+        output = model.generate(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            do_sample=True
+        )
+    else:
+        # If temperature is 0, we use greedy decoding
+        output = model.generate(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            max_new_tokens=max_tokens,
+            do_sample=False
+        )
 
     prompt_lengths = (inputs["attention_mask"].sum(dim=1)).tolist()
     result = [
@@ -111,7 +120,7 @@ def jsonify_ans_longwiki(raw_responses, eval_prompts, model, tokenizer, key):
                     if error_count > 3:
                         print("Error count exceeded 3. Skipping this prompt.")
                         jsonifyed_res.append({"error": "Error count exceeded 3. Skipping this prompt."})
-                        break
+                        return []
                 jsonifyed_res.append(json_res)
                 print("<<< PASS >>>")
 

@@ -1,3 +1,7 @@
 task: hallulens_generatedentities
 include: _hallulens_yaml
 dataset_name: generated_entities
+metric_list:
+  - metric: abstention
+    aggregation: nanmean
+    higher_is_better: true

@@ -21,6 +21,7 @@ class LongWikiDB(DocDB):
         # import DocDB from FactScore
         super(LongWikiDB, self).__init__(db_path, data_path)
         self.title_db_path = db_path.replace(".db", "-title.db")
+        #print(f"Connecting to LongWikiDB at {db_path} and titles at {self.title_db_path}")
         self.title_connection = sqlite3.connect(self.title_db_path, check_same_thread=False)
         self.SPECIAL_SEPARATOR = "####SPECIAL####SEPARATOR####"
 

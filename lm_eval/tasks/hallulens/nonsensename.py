@@ -74,9 +74,13 @@ class NonsenseMixedEval(NonsenseNameEval):
 
         abstains_eval_raw = generate(abstain_prompt, self.eval_model, self.eval_tokenizer)
 
-        abstains_eval = jsonify_ans(raw_responses=abstains_eval_raw, eval_prompts=abstain_prompt, key=JSON_KEY)
+        abstains_eval = jsonify_ans(raw_response=abstains_eval_raw, eval_prompt=abstain_prompt, key=JSON_KEY,
+                                    model=self.eval_model, tokenizer=self.eval_tokenizer)
         abstains_eval_res = []
         for o in abstains_eval:
             abstains_eval_res.append(not o[JSON_KEY])
         
+        if len(abstains_eval_res) == 0:
+            #print("No valid response received from the evaluator.")
+            return {"abstention": None}
         return {"abstention": abstains_eval_res[0]}

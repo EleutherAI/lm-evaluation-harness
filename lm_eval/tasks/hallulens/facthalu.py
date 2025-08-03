@@ -8,6 +8,7 @@
 import os
 import time
 import json
+import numpy as np
 
 from dataclasses import dataclass
 from typing import List, Optional, Dict
@@ -15,11 +16,11 @@ from typing import List, Optional, Dict
 import pandas as pd
 from tqdm import tqdm   
 
-import lm_eval.tasks.hallulens.prompt_templates
+import lm_eval.tasks.hallulens.prompt_templates as prompt_templates
 from segtok.segmenter import split_single
 
 from transformers import AutoTokenizer
-import lm_eval.tasks.hallulens.utils
+import lm_eval.tasks.hallulens.utils as base_utils
 from lm_eval.tasks.hallulens.longwiki_retrieval import LongWikiRetrieval, LongWikiDB
 import lm_eval.tasks.hallulens.longwiki_utils as utils
 
@@ -66,9 +67,12 @@ class FactHalu:
             claim_verifier_tokenizer,
 
             k: int = 32,
-            db_path="/data/wiki_data/.cache/enwiki-20230401.db",
+            db_path=None,
             args=None
         ):
+        
+        if db_path is None:
+            raise ValueError("db_path must be provided")
         
         self.k = k
         self.db_path = db_path
@@ -90,10 +94,10 @@ class FactHalu:
         Saves results to output_csv as jsonl with one line per prompt.
         """
         final_result = {
-            "abstained": 0,
-            "precision": None,
-            "recall": None,
-            "f1": None,
+            "abstained": np.nan,
+            "precision": np.nan,
+            "recall": np.nan,
+            "f1": np.nan,
         }
         #initiate generation object
         _generation = Generation(
@@ -105,14 +109,19 @@ class FactHalu:
         _generation.topic = title
 
         ### [[STEP #1]] False Refusal Test
-        _generation = self.eval_abstention(
+        abstained = self.eval_abstention(
             prompt=prompt,
             generation=generation,
         )
 
-        if _generation.abstain:
-            final_result["abstained"] = 1
-            return final_result
+        _generation.abstain = abstained
+
+        if _generation.abstain is not None:
+            if _generation.abstain:
+                final_result["abstained"] = 1
+                return final_result
+            else:
+                final_result["abstained"] = 0
 
         ### [[STEP #2]] Extract claims
         print("\n[[Step 2]] Extracting Claims starts")
@@ -121,9 +130,10 @@ class FactHalu:
             prompt=prompt
         )
 
-        if _generation.abstain:
-            final_result["abstained"] = 1
-            return final_result
+        if _generation.abstain is not None:
+            if _generation.abstain:
+                final_result["abstained"] = 1
+                return final_result
 
         ### [[STEP #3]] Verify claims
         print(f"\n[[Step 3]] Verifying Claims starts. Len: {len(all_claims)}")
@@ -188,7 +198,7 @@ class FactHalu:
             max_tokens=128,
         )
 
-        abstains_eval = utils.jsonify_ans_longwiki(
+        abstains_eval = base_utils.jsonify_ans_longwiki(
             raw_responses=[abstains_eval_raw],
             eval_prompts=[abstain_prompt],
             model=self.abstention_model,
@@ -196,8 +206,11 @@ class FactHalu:
             key="is_knowledgeable"
         )
 
-        evaluation = abstains_eval[0]
-        return not evaluation["is_knowledgeable"]
+        if len(abstains_eval) == 0:
+            return None
+        else:
+           return not abstains_eval[0]["is_knowledgeable"]
+        
 
     def extract_claims(self, generation, prompt):
         all_claim_extractions = []
@@ -211,13 +224,16 @@ class FactHalu:
         to_extract_prompts = [a.prompt for a in all_sentences]
 
         for prompt in to_extract_prompts:
-            batch_results = utils.generate(prompt, self.claim_extractor, tokenizer=self.claim_extractor_tokenizer, max_tokens=512)
-            all_claim_extractions.extend(batch_results)
+            results = base_utils.generate(prompt, self.claim_extractor, tokenizer=self.claim_extractor_tokenizer, max_tokens=512)
+            all_claim_extractions.append(results)
         
         print("***** [2-2] Parsing extracted claims")
+        # print(f"length of all_sentences: {len(all_sentences)}, all_sentences: {all_sentences}")
+        # print(f"length of all_claim_extractions: {len(all_claim_extractions)}, all_claim_extractions: {all_claim_extractions}")
         all_claims = []
         deduplicate = set()
-        assert len(all_claim_extractions) == len(all_sentences)
+        assert len(all_claim_extractions) == len(all_sentences), \
+            f"Length of all_claim_extractions ({len(all_claim_extractions)}) and all_sentences ({len(all_sentences)}) do not match."
 
         for claim_extraction, sentence in zip(all_claim_extractions, all_sentences):
             if (not claim_extraction) or \
@@ -282,7 +298,7 @@ class FactHalu:
 
         assert len(claim_verification_res) == len(all_claims)
         # 3. post process the verification result
-        claim_verification_results = utils.jsonify_ans_longwiki(raw_responses=claim_verification_res, \
+        claim_verification_results = base_utils.jsonify_ans_longwiki(raw_responses=claim_verification_res, \
                                                             eval_prompts=verification_prompts, 
                                                             evaluator=self.verification_model,
                                                             tokenizer=self.verifier_tokenizer,
@@ -300,9 +316,9 @@ def make_claim_extraction_prompts(generation, prompt, tokenizer):
     """
     sentences = []
     # split the text into sentences
-    sentences_text = [x.strip() for x in split_single(generation)]
+    sentences_text = [x.strip() for x in split_single(generation.generation)]
     question = prompt.replace("Answer in one paragraph.", "").strip()
-    response = generation.strip()
+    response = generation.generation.strip()
 
     for i, sentence in list(enumerate(sentences_text)):
         if len(sentence) < 5:
@@ -343,5 +359,5 @@ def make_claim_extraction_prompts(generation, prompt, tokenizer):
                 prompt=prompt_text, sentence=target_sentence, generation=generation
             )
         )
-
+    generation.sentences = sentences
     return sentences
