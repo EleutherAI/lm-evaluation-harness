@@ -35,6 +35,9 @@ metric_list:
   - metric: !function utils.rougeLsum
     aggregation: !function utils.agg_rougelsum
     higher_is_better: true
+  - metric: !function utils.bert_score
+    aggregation: !function utils.agg_bert_score
+    higher_is_better: true
 
 metadata:
   version: 1.0
