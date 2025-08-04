@@ -19,6 +19,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "query": preprocess(doc["activity_label"] + ": " + ctx),
             "choices": [preprocess(ending) for ending in doc["endings"]],
             "gold": int(doc["label"]),
+            "answer_letter": chr(ord("A") + int(doc["label"])),
         }
         return out_doc
 
