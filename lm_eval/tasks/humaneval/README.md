@@ -50,3 +50,7 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 v2 20-MAR-2025: `humaneval_instruct`, `humaneval_instruct_64`: fixed typo in gen_prefix
+
+v3 30-JUN-2025: Updated prompt generation and output parsing to align with the official `Llama-3.1-70B-Instruct-evals`. This corrects the prompt format and fixes a bug in locating the code block. See PR [#3092](https://github.com/EleutherAI/lm-evaluation-harness/pull/3092).
+
+v4 01-AUG-2025: Synchronized definitions between `humaneval_instruct` and `humaneval_instruct_64`. The former had a trailing space in `gen_prefix`, and the latter's `doc_to_text` was outdated.

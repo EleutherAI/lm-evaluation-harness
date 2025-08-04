@@ -26,6 +26,23 @@ HIGHER_IS_BETTER_SYMBOLS = {
 }
 
 
+def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+    """
+    Wraps the given string to the specified width.
+    """
+    import textwrap
+
+    return textwrap.fill(
+        inspect.cleandoc(string),
+        width=width,
+        initial_indent="",
+        subsequent_indent=" " * 8,
+        break_long_words=False,
+        break_on_hyphens=False,
+        **kwargs,
+    )
+
+
 def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
     class CustomFormatter(logging.Formatter):
@@ -550,3 +567,59 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def convert_pil_to_hash(value):
+    from io import BytesIO
+
+    img_bytes = BytesIO()
+    value.save(img_bytes, format="PNG")
+    return hashlib.sha256(str(img_bytes).encode()).hexdigest()
+
+
+def convert_bytes_to_hash(value):
+    return hashlib.sha256(str(value).encode()).hexdigest()
+
+
+def hash_dict_images(data_dict):
+    """
+    Create a deep copy of `data_dict` where all bytes and PIL.Image.Image values
+    are replaced by their respective hashes using the provided converter functions.
+
+    Parameters:
+        data_dict (dict): The input dictionary with arbitrary nesting of dicts and lists.
+
+    Returns:
+        dict: A new dictionary with the same structure as `data_dict`, but with all
+              bytes and PIL.Image.Image objects replaced by their hashes.
+    """
+
+    def _process_value(value):
+        # Bytes -> hash
+        from PIL import Image
+
+        if isinstance(value, (bytes, bytearray)):
+            return convert_bytes_to_hash(value)
+        # PIL Image -> hash
+        if isinstance(value, Image.Image):
+            return convert_pil_to_hash(value)
+        # Nested dictionary -> recurse
+        if isinstance(value, dict):
+            return {k: _process_value(v) for k, v in value.items()}
+        # List or tuple -> recurse, preserving type
+        if isinstance(value, list):
+            return [_process_value(v) for v in value]
+        if isinstance(value, tuple):
+            return tuple(_process_value(v) for v in value)
+        # Other types remain unchanged
+        return value
+
+    # Ensure the top-level is a dict
+    if not isinstance(data_dict, dict):
+        raise TypeError("Input must be a dictionary")
+
+    return (
+        {key: _process_value(val) for key, val in data_dict.items()}
+        if importlib.util.find_spec("PIL")
+        else data_dict
+    )

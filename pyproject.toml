@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.9"
+version = "0.4.9.1"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -21,7 +21,7 @@ license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
     "evaluate",
-    "datasets>=2.16.0",
+    "datasets>=2.16.0,<4.0",
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
@@ -60,8 +60,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
-deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy", "unitxt==1.22.0", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 hf_transfer = ["hf_transfer"]
@@ -70,6 +69,7 @@ ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 ipex = ["optimum"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench=["jieba", "fuzzywuzzy", "rouge"]
+libra=["pymorphy2"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
@@ -79,43 +79,24 @@ promptsource = ["promptsource>=0.2.3"]
 ruler = ["nltk", "wonderwords", "scipy"]
 sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
-sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 sparsify = ["sparsify"]
 discrim_eval = ["statsmodels==0.14.4"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
+unitxt = ["unitxt==1.22.0"]
 vllm = ["vllm>=0.4.2"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
-all = [
+tasks = [
     "lm_eval[acpbench]",
-    "lm_eval[api]",
-    "lm_eval[audiolm_qwen]",
-    "lm_eval[deepsparse]",
-    "lm_eval[dev]",
-    "lm_eval[gptq]",
-    "lm_eval[gptqmodel]",
-    "lm_eval[hf_transfer]",
-    "lm_eval[ibm_watsonx_ai]",
+    "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
-    "lm_eval[ipex]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
+    "lm_eval[libra]",
     "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
-    "lm_eval[neuronx]",
-    "lm_eval[optimum]",
-    "lm_eval[promptsource]",
     "lm_eval[ruler]",
-    "lm_eval[sae_lens]",
-    "lm_eval[sentencepiece]",
-    "lm_eval[sparseml]",
-    "lm_eval[sparsify]",
-    "lm_eval[discrim_eval]",
-    "lm_eval[testing]",
-    "lm_eval[vllm]",
-    "lm_eval[wandb]",
-    "lm_eval[zeno]",
 ]
 
 [tool.pymarkdown]
@@ -127,7 +108,7 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["I", "W605"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2

@@ -1,0 +1,8 @@
+group: libra_question_answering_and_multiple_choice
+group_alias: Question Answering and Multiple Choice
+task:
+  - matreshka_yes_no
+  - matreshka_names
+  - librusec_history
+  - ru_sci_abstract_retrieval
+  - ru_quality

@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
@@ -33,6 +34,22 @@ def parse_args():
         help="The name of the generated Zeno project.",
     )
     return parser.parse_args()
+
+
+def sanitize_string(model_args_raw: Union[str, dict]) -> str:
+    """Sanitize the model_args string or dict"""
+    # Convert to string if it's a dictionary
+    model_args_str = (
+        json.dumps(model_args_raw)
+        if isinstance(model_args_raw, dict)
+        else model_args_raw
+    )
+    # Apply the sanitization
+    return re.sub(
+        r"[\"<>:/|\\?*\[\]]+",
+        "__",
+        model_args_str,
+    )
 
 
 def main():
@@ -87,13 +104,16 @@ def main():
             latest_sample_results = get_latest_filename(
                 [Path(f).name for f in model_sample_filenames if task in f]
             )
-            model_args = re.sub(
-                r"[\"<>:/\|\\?\*\[\]]+",
-                "__",
+            # Load the model_args, which can be either a string or a dictionary
+            model_args = sanitize_string(
                 json.load(
-                    open(Path(args.data_path, model, latest_results), encoding="utf-8")
-                )["config"]["model_args"],
+                    open(
+                        Path(args.data_path, model, latest_results),
+                        encoding="utf-8",
+                    )
+                )["config"]["model_args"]
             )
+
             print(model_args)
             data = []
             with open(

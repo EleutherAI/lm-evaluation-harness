@@ -1,0 +1,28 @@
+tag:
+- libra
+task: librusec_history
+task_alias: LibrusecHistory
+dataset_name: librusec_history
+dataset_kwargs:
+  dataset_name: librusec_history
+include: _template_yaml
+doc_to_text: 'Тебе предоставляется длинный текст, в котором нужно найти ответ на вопрос.
+
+  {{context}}
+
+  Найди ответ в тексте на следующий вопрос.
+
+  Вопрос:{{input}}
+
+  Ответ:'
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 32
+metric_list:
+- metric: libra_score
+  aggregation: !function utils.aggregate_results_em
+  higher_is_better: true
+  weight_by_size: true
+metadata:
+  version: 0.0
