@@ -10,7 +10,7 @@ fewshot_split: train
 num_fewshot: 5
 test_split: null
 process_docs: !function utils.process_docs
-doc_to_text: "{{query}}"
+doc_to_text: "Context: {{query}}\nChoices:\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
 doc_to_target: "{{label}}"
 doc_to_choice: "choices"
 metric_list:
