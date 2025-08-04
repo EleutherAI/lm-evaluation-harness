@@ -6,14 +6,18 @@ requires = ["setuptools>=40.8.0", "wheel"]
 name = "lm_eval"
 version = "0.4.9.1"
 authors = [
-  {email = "contact@eleuther.ai", name = "EleutherAI"}
+    {name="EleutherAI", email="contact@eleuther.ai"}
 ]
+description = "A framework for evaluating language models"
+readme = "README.md"
 classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent"
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
 ]
+requires-python = ">=3.9"
+license = { "text" = "MIT" }
 dependencies = [
   "accelerate>=0.26.0",
   "datasets>=2.16.0,<4.0",
@@ -30,12 +34,6 @@ dependencies = [
   "word2number",
   "more_itertools"
 ]
-description = "A framework for evaluating language models"
-license = {"text" = "MIT"}
-name = "lm_eval"
-readme = "README.md"
-requires-python = ">=3.9"
-version = "0.4.9"
 
 [dependency-groups]
 dev = [
