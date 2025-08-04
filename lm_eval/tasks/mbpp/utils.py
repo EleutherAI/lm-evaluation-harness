@@ -29,6 +29,9 @@ def pass_at_1(
     )[0]["pass@1"]
 
 
+def clean_text(text: str) -> str:
+    return re.sub(r'\n(▁+)', lambda m: '\n' + ' ' * len(m.group(1)), text)
+
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
@@ -41,7 +44,7 @@ def extract_code_blocks(text: str) -> str:
     if not matches:
         return ""
     else:
-        return matches[0]
+        return clean_text(matches[0])
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
