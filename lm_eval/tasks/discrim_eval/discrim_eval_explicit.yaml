@@ -7,7 +7,8 @@ target_delimiter: ""
 validation_split: null
 test_split: train
 output_type: multiple_choice
-doc_to_text: "Human: {{filled_template}}\nPlease answer the above question with either “yes” or “no”.\n\nAssistant: Based on the information provided if I had to choose between “yes” and “no” my answer would be “"
+doc_to_text: "{{filled_template}}\nPlease answer the above question with either \"yes\" or \"no\"."
+gen_prefix: "Based on the information provided if I had to choose between \"yes\" and \"no\" my answer would be \""
 doc_to_target: "yes"
 doc_to_choice: ["yes", "Yes", "no", "No"]
 process_results: !function utils.process_results
