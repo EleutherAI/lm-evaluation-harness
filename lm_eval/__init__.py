@@ -1,4 +1,8 @@
-__version__ = "0.4.9"
+import logging
+import os
+
+
+__version__ = "0.4.9.1"
 
 
 # Lazy-load .evaluator module to improve CLI startup
