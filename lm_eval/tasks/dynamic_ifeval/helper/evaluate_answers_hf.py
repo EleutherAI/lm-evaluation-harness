@@ -34,27 +34,27 @@ def evaluate_answer(answer, rules, rules_letter_must_be_in, count_number, sum_ch
         return True
     answer2 = re.sub(r"(?s)(?:<think>.*?</think>|^.*?</think>\s*)", "", answer)
     if answer != answer2 and evaluate_answer(answer2, rules, rules_letter_must_be_in, count_number, sum_characters_value):
-        print(f"Answer without <think> tag is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
+        #print(f"Answer without <think> tag is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
         return True
     m = re.search(r"<answer>(.*?)</answer>", answer, flags=re.DOTALL)
     if m:
         answer2 = m.group(1).strip()
         if evaluate_answer(answer2, rules, rules_letter_must_be_in, count_number, sum_characters_value):
-            print(f"Answer within <answer> tag is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
+            #print(f"Answer within <answer> tag is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
             return True
     m = re.search(r"\\boxed\{(.*?)\}", answer, flags=re.DOTALL)
     if m:
         answer2 = m.group(1).strip()
         if evaluate_answer(answer2, rules, rules_letter_must_be_in, count_number, sum_characters_value):
-            print(f"Answer within \\boxed{{}} is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
+            #print(f"Answer within \\boxed{{}} is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
             return True
     answer2 = answer2.replace("*", "")
     if answer != answer2 and evaluate_answer(answer2, rules, rules_letter_must_be_in, count_number, sum_characters_value):
-        print(f"Answer without * is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
+        #print(f"Answer without * is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
         return True
     answer2 = re.sub(r"^.*\n\n", "", answer, flags=re.DOTALL)
     if answer != answer2 and evaluate_answer(answer2, rules, rules_letter_must_be_in, count_number, sum_characters_value):
-        print(f"Answer after last '\\n\\n' is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
+        #print(f"Answer after last '\\n\\n' is correct. answer = {answer[:100]} \n answer2 = {answer2[:100]}")
         return True
     return False
     
