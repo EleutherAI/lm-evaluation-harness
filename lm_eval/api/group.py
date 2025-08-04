@@ -1,14 +1,13 @@
-import abc
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 
 @dataclass
 class AggMetricConfig(dict):
     metric: Optional[str] = None
     aggregation: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
+    weight_by_size: bool = False
     # list of filter names which should be incorporated into the aggregated metric.
     filter_list: Optional[Union[str, list]] = "none"
 
@@ -28,8 +27,9 @@ class GroupConfig(dict):
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
     aggregate_metric_list: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
+        Union[list[AggMetricConfig], AggMetricConfig, dict]
     ] = None
+    version: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -49,6 +49,11 @@ class GroupConfig(dict):
                 AggMetricConfig(**item) if isinstance(item, dict) else item
                 for item in self.aggregate_metric_list
             ]
+        self.version = (
+            self.version or self.metadata.get("version", "1.0")
+            if self.metadata
+            else "1.0"
+        )
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         """dumps the current config as a dictionary object, as a printable format.
@@ -84,7 +89,7 @@ class GroupConfig(dict):
                 return str(value)
 
 
-class ConfigurableGroup(abc.ABC):
+class ConfigurableGroup:
     def __init__(
         self,
         config: Optional[dict] = None,
