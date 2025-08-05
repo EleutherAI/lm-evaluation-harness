@@ -1,4 +1,4 @@
-group: include_base_44_dutch
+group: include_base_44_dutch_few_shot_og
 task:
 - include_base_44_dutch_few_shot_og_arts_humanities
 - include_base_44_dutch_few_shot_og_stem

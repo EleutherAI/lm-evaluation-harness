@@ -17,6 +17,10 @@ We add the following evaluations:
 - prompting with instructions in english for the 5-shot setting (`few_shot_en`)
 - prompting with instructions in the in-sample language for the 5-shot setting (`few_shot_og`)
 
+The groups to simply run the default tasks are:
+- `include_base_44`
+- `include_base_44_few_shot_en`
+- `include_base_44_few_shot_og`
 
 ### Languages
 

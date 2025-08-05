@@ -1,0 +1,49 @@
+group: include_base_44
+task:
+  - include_base_44_albanian
+  - include_base_44_arabic
+  - include_base_44_armenian
+  - include_base_44_azerbaijani
+  - include_base_44_basque
+  - include_base_44_belarusian
+  - include_base_44_bengali
+  - include_base_44_bulgarian
+  - include_base_44_chinese
+  - include_base_44_croatian
+  - include_base_44_dutch
+  - include_base_44_finnish
+  - include_base_44_french
+  - include_base_44_georgian
+  - include_base_44_german
+  - include_base_44_greek
+  - include_base_44_hebrew
+  - include_base_44_hindi
+  - include_base_44_hungarian
+  - include_base_44_indonesian
+  - include_base_44_italian
+  - include_base_44_japanese
+  - include_base_44_kazakh
+  - include_base_44_korean
+  - include_base_44_lithuanian
+  - include_base_44_malay
+  - include_base_44_malayalam
+  - include_base_44_nepali
+  - include_base_44_north macedonian
+  - include_base_44_persian
+  - include_base_44_polish
+  - include_base_44_portuguese
+  - include_base_44_russian
+  - include_base_44_serbian
+  - include_base_44_spanish
+  - include_base_44_tagalog
+  - include_base_44_tamil
+  - include_base_44_telugu
+  - include_base_44_turkish
+  - include_base_44_ukrainian
+  - include_base_44_uzbek
+  - include_base_44_vietnamese
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1.0

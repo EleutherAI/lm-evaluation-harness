@@ -1,0 +1,51 @@
+group: include_base_44_few_shot_en
+task:
+  - include_base_44_albanian_few_shot_en
+  - include_base_44_arabic_few_shot_en
+  - include_base_44_armenian_few_shot_en
+  - include_base_44_azerbaijani_few_shot_en
+  - include_base_44_basque_few_shot_en
+  - include_base_44_belarusian_few_shot_en
+  - include_base_44_bengali_few_shot_en
+  - include_base_44_bulgarian_few_shot_en
+  - include_base_44_chinese_few_shot_en
+  - include_base_44_croatian_few_shot_en
+  - include_base_44_dutch_few_shot_en
+  - include_base_44_estonian_few_shot_en
+  - include_base_44_finnish_few_shot_en
+  - include_base_44_french_few_shot_en
+  - include_base_44_georgian_few_shot_en
+  - include_base_44_german_few_shot_en
+  - include_base_44_greek_few_shot_en
+  - include_base_44_hebrew_few_shot_en
+  - include_base_44_hindi_few_shot_en
+  - include_base_44_hungarian_few_shot_en
+  - include_base_44_indonesian_few_shot_en
+  - include_base_44_italian_few_shot_en
+  - include_base_44_japanese_few_shot_en
+  - include_base_44_kazakh_few_shot_en
+  - include_base_44_korean_few_shot_en
+  - include_base_44_lithuanian_few_shot_en
+  - include_base_44_malay_few_shot_en
+  - include_base_44_malayalam_few_shot_en
+  - include_base_44_nepali_few_shot_en
+  - include_base_44_north macedonian_few_shot_en
+  - include_base_44_persian_few_shot_en
+  - include_base_44_polish_few_shot_en
+  - include_base_44_portuguese_few_shot_en
+  - include_base_44_russian_few_shot_en
+  - include_base_44_serbian_few_shot_en
+  - include_base_44_spanish_few_shot_en
+  - include_base_44_tagalog_few_shot_en
+  - include_base_44_tamil_few_shot_en
+  - include_base_44_telugu_few_shot_en
+  - include_base_44_turkish_few_shot_en
+  - include_base_44_ukrainian_few_shot_en
+  - include_base_44_urdu_few_shot_en
+  - include_base_44_uzbek_few_shot_en
+  - include_base_44_vietnamese_few_shot_en
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1.0

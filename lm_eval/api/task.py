@@ -3,6 +3,7 @@ import ast
 import logging
 import random
 import re
+import time
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
@@ -23,6 +24,7 @@ from typing import (
 import datasets
 import numpy as np
 from tqdm import tqdm
+import huggingface_hub
 
 from lm_eval import utils
 from lm_eval.api import samplers

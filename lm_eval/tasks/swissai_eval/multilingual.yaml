@@ -1,5 +1,6 @@
 group: multilingual
 task:
+  - include_base_44
   - global_mmlu
   - xcopa
   - xnli
