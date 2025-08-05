@@ -1,0 +1,9 @@
+description: 'Evo pitanja sa višestrukim izborom o matematika (sa odgovorom). Molimo
+  vas da razmislite korak po korak i završite svoj odgovor sa "Odgovor je (X)", gde
+  je X slovo tačne opcije.
+
+  '
+include: _sr_template_yaml
+task: mmlu_prox_sr_math
+task_alias: math
+process_docs: !function utils.process_math

@@ -1,0 +1,8 @@
+description: 'فيما يلي أسئلة اختيار من متعدد (مع إجابات) حول الفيزياء. فكر خطوة بخطوة
+  ثم أنهِ إجابتك بـ ''الإجابة هي (X)'' حيث X هو حرف الخيار الصحيح.
+
+  '
+include: _ar_lite_template_yaml
+task: mmlu_prox_lite_ar_physics
+task_alias: physics
+process_docs: !function utils.process_physics

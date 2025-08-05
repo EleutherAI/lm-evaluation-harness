@@ -1,0 +1,9 @@
+description: 'Ниже приведен вопрос с множественным выбором о Философия (с ответами).
+  Пожалуйста, размышляйте шаг за шагом, а затем завершите свой ответ с "Ответ - (X)",
+  где X - это буква правильного варианта.
+
+  '
+include: _ru_template_yaml
+task: mmlu_prox_ru_philosophy
+task_alias: philosophy
+process_docs: !function utils.process_philosophy

@@ -1,0 +1,9 @@
+description: 'Li ci topp ay laaj yu am tànneef la (ak tontu) ci mbir mi ñuy wax filosofi.
+  Xalaatal ci dooley dooley te nga jeexal sa tontu ak "Tontu bi mooy (X)" fu X di
+  araf bi jëkk ci tontu bi.
+
+  '
+include: _wo_template_yaml
+task: mmlu_prox_wo_philosophy
+task_alias: philosophy
+process_docs: !function utils.process_philosophy
