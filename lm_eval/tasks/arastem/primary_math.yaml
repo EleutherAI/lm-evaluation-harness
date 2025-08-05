@@ -1,0 +1,11 @@
+dataset_kwargs:
+  data_files:
+    test:
+      - /l/users/george.ibrahim/IFM/ONEDRIVE/Data/jais/llm_harness/benchmarks/AraSTEM/splits/primary__math.json
+dataset_name: null
+dataset_path: json
+
+include: arastem_template.yaml
+tag: arastem_primary_math
+task: primary_math
+test_split: test

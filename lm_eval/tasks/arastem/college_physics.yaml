@@ -1,0 +1,11 @@
+dataset_kwargs:
+  data_files:
+    test:
+      - /l/users/george.ibrahim/IFM/ONEDRIVE/Data/jais/llm_harness/benchmarks/AraSTEM/splits/college__physics.json
+dataset_name: null
+dataset_path: json
+
+include: arastem_template.yaml
+tag: arastem_college_physics
+task: college_physics
+test_split: test
