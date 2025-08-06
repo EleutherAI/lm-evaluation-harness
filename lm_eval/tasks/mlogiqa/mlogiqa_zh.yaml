@@ -1,0 +1,3 @@
+task: mlogiqa_zh
+include: _mlogiqa_yaml
+dataset_name: zh

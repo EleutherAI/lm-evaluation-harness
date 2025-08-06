@@ -1,0 +1,16 @@
+group: aime
+group_alias: AIME
+task:
+  - aime_2022
+  - aime_2023
+  - aime_2024
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list:
+    - no-filter
+    - flexible-extract
+    - strict-match
+metadata:
+  version: 1.0

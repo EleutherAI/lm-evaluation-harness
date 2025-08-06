@@ -1,0 +1,5 @@
+task: polymath_ja_low
+include: _polymath_yaml
+dataset_name: ja
+test_split: low
+doc_to_text: "## Problem: {{question}}\n## Answer:\n注意：最終的な答えを $\boxed{}$ に入れてください。"

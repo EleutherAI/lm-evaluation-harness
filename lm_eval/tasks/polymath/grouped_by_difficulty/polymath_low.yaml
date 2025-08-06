@@ -1,0 +1,31 @@
+group: polymath_low
+group_alias: PolyMath Low
+task:
+- polymath_ar_low
+- polymath_bn_low
+- polymath_de_low
+- polymath_en_low
+- polymath_es_low
+- polymath_fr_low
+- polymath_id_low
+- polymath_it_low
+- polymath_ja_low
+- polymath_ko_low
+- polymath_ms_low
+- polymath_pt_low
+- polymath_ru_low
+- polymath_sw_low
+- polymath_te_low
+- polymath_th_low
+- polymath_vi_low
+- polymath_zh_low
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

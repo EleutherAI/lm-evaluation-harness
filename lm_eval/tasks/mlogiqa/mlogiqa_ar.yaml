@@ -1,0 +1,3 @@
+task: mlogiqa_ar
+include: _mlogiqa_yaml
+dataset_name: ar

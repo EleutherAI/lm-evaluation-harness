@@ -1,0 +1,6 @@
+task: polymath_de_medium
+include: _polymath_yaml
+dataset_name: de
+test_split: medium
+doc_to_text: "## Problem: {{question}}\n## Answer:\nHinweis: Bitte setzen Sie die\
+  \ endgültige Antwort in $\boxed{}$."

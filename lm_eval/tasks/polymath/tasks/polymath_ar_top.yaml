@@ -1,0 +1,9 @@
+task: polymath_ar_top
+include: _polymath_yaml
+dataset_name: ar
+test_split: top
+doc_to_text: '## Problem: {{question}}
+
+  ## Answer:
+
+  ملاحظة: يُرجى وضع الإجابة النهائية في $\boxed{}$.'

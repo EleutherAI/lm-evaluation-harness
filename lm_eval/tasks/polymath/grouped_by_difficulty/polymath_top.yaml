@@ -1,0 +1,31 @@
+group: polymath_top
+group_alias: PolyMath Top
+task:
+- polymath_ar_top
+- polymath_bn_top
+- polymath_de_top
+- polymath_en_top
+- polymath_es_top
+- polymath_fr_top
+- polymath_id_top
+- polymath_it_top
+- polymath_ja_top
+- polymath_ko_top
+- polymath_ms_top
+- polymath_pt_top
+- polymath_ru_top
+- polymath_sw_top
+- polymath_te_top
+- polymath_th_top
+- polymath_vi_top
+- polymath_zh_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

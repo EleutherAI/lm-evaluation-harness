@@ -1,0 +1,6 @@
+task: polymath_ms_low
+include: _polymath_yaml
+dataset_name: ms
+test_split: low
+doc_to_text: "## Problem: {{question}}\n## Answer:\nNota: Sila letakkan jawapan akhir\
+  \ dalam $\boxed{}$."

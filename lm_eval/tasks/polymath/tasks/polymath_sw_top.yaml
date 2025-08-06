@@ -1,0 +1,6 @@
+task: polymath_sw_top
+include: _polymath_yaml
+dataset_name: sw
+test_split: top
+doc_to_text: "## Problem: {{question}}\n## Answer:\nKumbuka: Tafadhali weka jibu la\
+  \ mwisho katika $\boxed{}$."

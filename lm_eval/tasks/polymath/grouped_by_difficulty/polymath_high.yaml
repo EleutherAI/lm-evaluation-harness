@@ -1,0 +1,31 @@
+group: polymath_high
+group_alias: PolyMath High
+task:
+- polymath_ar_high
+- polymath_bn_high
+- polymath_de_high
+- polymath_en_high
+- polymath_es_high
+- polymath_fr_high
+- polymath_id_high
+- polymath_it_high
+- polymath_ja_high
+- polymath_ko_high
+- polymath_ms_high
+- polymath_pt_high
+- polymath_ru_high
+- polymath_sw_high
+- polymath_te_high
+- polymath_th_high
+- polymath_vi_high
+- polymath_zh_high
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

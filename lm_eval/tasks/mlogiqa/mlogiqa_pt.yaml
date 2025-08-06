@@ -1,0 +1,3 @@
+task: mlogiqa_pt
+include: _mlogiqa_yaml
+dataset_name: pt

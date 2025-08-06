@@ -1,0 +1,17 @@
+group: polymath_th
+group_alias: PolyMath Thai
+task:
+- polymath_th_low
+- polymath_th_medium
+- polymath_th_high
+- polymath_th_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: dwacc
+  weight_by_size: false
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

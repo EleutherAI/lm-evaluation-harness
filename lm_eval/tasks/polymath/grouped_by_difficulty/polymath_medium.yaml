@@ -1,0 +1,31 @@
+group: polymath_medium
+group_alias: PolyMath Medium
+task:
+- polymath_ar_medium
+- polymath_bn_medium
+- polymath_de_medium
+- polymath_en_medium
+- polymath_es_medium
+- polymath_fr_medium
+- polymath_id_medium
+- polymath_it_medium
+- polymath_ja_medium
+- polymath_ko_medium
+- polymath_ms_medium
+- polymath_pt_medium
+- polymath_ru_medium
+- polymath_sw_medium
+- polymath_te_medium
+- polymath_th_medium
+- polymath_vi_medium
+- polymath_zh_medium
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: mean
+  weight_by_size: true
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

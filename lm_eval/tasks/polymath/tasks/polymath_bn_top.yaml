@@ -1,0 +1,6 @@
+task: polymath_bn_top
+include: _polymath_yaml
+dataset_name: bn
+test_split: top
+doc_to_text: "## Problem: {{question}}\n## Answer:\nব িঃদ্রিঃ: অনুগ্রহ করে চূ ড়ান্ত\
+  \ উত্তেটি $\boxed{}$ এে মরযে ে়াখুন।"

@@ -1,0 +1,6 @@
+task: polymath_vi_low
+include: _polymath_yaml
+dataset_name: vi
+test_split: low
+doc_to_text: "## Problem: {{question}}\n## Answer:\nLưu ý: Vui lòng đặt câu trả lời\
+  \ cuối cùng trong $\boxed{}$"

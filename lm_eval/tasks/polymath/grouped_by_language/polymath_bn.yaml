@@ -1,0 +1,17 @@
+group: polymath_bn
+group_alias: PolyMath Bengali
+task:
+- polymath_bn_low
+- polymath_bn_medium
+- polymath_bn_high
+- polymath_bn_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: dwacc
+  weight_by_size: false
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

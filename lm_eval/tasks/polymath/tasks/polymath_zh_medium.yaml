@@ -1,0 +1,5 @@
+task: polymath_zh_medium
+include: _polymath_yaml
+dataset_name: zh
+test_split: medium
+doc_to_text: "## Problem: {{question}}\n## Answer:\n注意：请将最终答案放在 $\boxed{}$ 中。"

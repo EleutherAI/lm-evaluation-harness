@@ -1,0 +1,17 @@
+group: polymath_pt
+group_alias: PolyMath Portuguese
+task:
+- polymath_pt_low
+- polymath_pt_medium
+- polymath_pt_high
+- polymath_pt_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: dwacc
+  weight_by_size: false
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

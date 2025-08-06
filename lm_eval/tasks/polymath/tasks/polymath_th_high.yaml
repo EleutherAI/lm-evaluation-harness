@@ -1,0 +1,6 @@
+task: polymath_th_high
+include: _polymath_yaml
+dataset_name: th
+test_split: high
+doc_to_text: "## Problem: {{question}}\n## Answer:\nหมายเหตุ: กรุณาใส่ค าตอบสุดท้ายใน\
+  \ $\boxed{}$."

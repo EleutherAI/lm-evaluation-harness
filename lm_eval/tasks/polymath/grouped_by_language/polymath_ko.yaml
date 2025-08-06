@@ -1,0 +1,17 @@
+group: polymath_ko
+group_alias: PolyMath Korean
+task:
+- polymath_ko_low
+- polymath_ko_medium
+- polymath_ko_high
+- polymath_ko_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: dwacc
+  weight_by_size: false
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

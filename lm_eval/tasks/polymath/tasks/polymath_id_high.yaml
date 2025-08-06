@@ -1,0 +1,6 @@
+task: polymath_id_high
+include: _polymath_yaml
+dataset_name: id
+test_split: high
+doc_to_text: "## Problem: {{question}}\n## Answer:\nCatatan: Silakan letakkan jawaban\
+  \ akhir di dalam $\boxed{}$."

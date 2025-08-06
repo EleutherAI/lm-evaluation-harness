@@ -1,0 +1,6 @@
+task: polymath_es_low
+include: _polymath_yaml
+dataset_name: es
+test_split: low
+doc_to_text: "## Problem: {{question}}\n## Answer:\nNota: Por favor, coloque la respuesta\
+  \ final en el $\boxed{}$."

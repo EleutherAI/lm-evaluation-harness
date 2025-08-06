@@ -1,0 +1,6 @@
+task: polymath_ru_medium
+include: _polymath_yaml
+dataset_name: ru
+test_split: medium
+doc_to_text: "## Problem: {{question}}\n## Answer:\nПримечание: Пожалуйста, поместите\
+  \ окончательный ответ в $\boxed{}$."

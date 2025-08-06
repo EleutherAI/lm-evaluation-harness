@@ -1,0 +1,6 @@
+task: polymath_te_top
+include: _polymath_yaml
+dataset_name: te
+test_split: top
+doc_to_text: "## Problem: {{question}}\n## Answer:\nగమనిక: దయచేసి తుది జవాబును $\b\
+  oxed{}$ లో ఉంచండి."

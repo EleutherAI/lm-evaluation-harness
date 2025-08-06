@@ -1,0 +1,17 @@
+group: polymath_it
+group_alias: PolyMath Italian
+task:
+- polymath_it_low
+- polymath_it_medium
+- polymath_it_high
+- polymath_it_top
+aggregate_metric_list:
+- metric: exact_match
+  aggregation: dwacc
+  weight_by_size: false
+  filter_list:
+  - no-filter
+  - flexible-extract
+  - boxed-extract
+metadata:
+  version: '1.0'

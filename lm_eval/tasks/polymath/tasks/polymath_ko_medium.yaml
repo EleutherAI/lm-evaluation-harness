@@ -1,0 +1,5 @@
+task: polymath_ko_medium
+include: _polymath_yaml
+dataset_name: ko
+test_split: medium
+doc_to_text: "## Problem: {{question}}\n## Answer:\n참고: 최종 답안을 $\boxed{}$ 안에 넣어 주세요."
