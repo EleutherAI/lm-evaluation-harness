@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import abc
 import ast
 import logging
-import random
 import re
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
+from functools import partial
 from inspect import getsource
 from typing import (
     Any,
@@ -37,6 +39,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.api.samplers import ContextSampler
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -51,6 +54,16 @@ ALL_OUTPUT_TYPES = [
 ]
 
 eval_logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Turn:
+    role: str  # "system" | "user" | "assistant" | delimiter
+    content: str
+
+
+def format_turn(context: str, role: str):
+    return {"role": role, "content": context}
 
 
 @dataclass
@@ -70,7 +83,8 @@ class TaskConfig(dict):
     validation_split: Optional[str] = None
     test_split: Optional[str] = None
     fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
+        None
+        # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
@@ -244,9 +258,7 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[random.Random] = (
-            None  # purposely induce errors in case of improper usage
-        )
+        self.fewshot_rnd = 1234
 
     def download(
         self,
@@ -388,8 +400,10 @@ class Task(abc.ABC):
     def doc_to_audio(self, doc):
         raise NotImplementedError
 
-    def doc_to_prefix(self, doc) -> Union[str, None]:
-        return ""
+    @staticmethod
+    def resolve_field(doc: dict[str, str], field: Optional[str] = None):
+        if field is not None:
+            return doc[field] if field in doc else utils.apply_template(field, doc)
 
     def build_all_requests(
         self,
@@ -469,7 +483,7 @@ class Task(abc.ABC):
                 apply_chat_template=apply_chat_template,
                 fewshot_as_multiturn=fewshot_as_multiturn,
                 chat_template=chat_template,
-                gen_prefix=self.doc_to_prefix(doc),
+                gen_prefix=self.resolve_field(doc, self.config.gen_prefix),
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -570,7 +584,9 @@ class Task(abc.ABC):
         return len(re.split(r"\s+", doc))
 
     @utils.positional_deprecated
-    def fewshot_context(self, doc, num_fewshot, rnd=None, description=None, **kwargs):
+    def fewshot_context_old(
+        self, doc, num_fewshot, rnd=None, description=None, **kwargs
+    ):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -684,9 +700,8 @@ class Task(abc.ABC):
         setattr(self._config, "process_results", None)
 
     def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
-        self.fewshot_rnd = random.Random(seed)
         if hasattr(self, "sampler"):
-            self.sampler.rnd = self.fewshot_rnd
+            self.sampler.set_rnd(seed)
 
     @property
     def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
@@ -731,6 +746,115 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
+    def _doc_to_message_pair(
+        self,
+        doc: dict[str, Any],
+        gen_prefix: str | None,
+        *,
+        include_answer: bool = True,
+    ) -> list[Turn]:
+        """Return `[user, assistant?]` for a single doc."""
+        q = self.doc_to_text(doc)
+        a = self.doc_to_target(doc)
+        # Handle multiple-choice indirection
+        if isinstance(q, int) and self.config.doc_to_choice:
+            q = self.doc_to_choice(doc)[q]
+        if isinstance(a, int) and self.config.doc_to_choice:
+            a = self.doc_to_choice(doc)[a]
+
+        msgs = [Turn("user", q)]
+        if include_answer:
+            prefix = gen_prefix + " " if gen_prefix else ""
+            answer_txt = prefix + (a if not isinstance(a, list) else a[0])
+            msgs.append(Turn("assistant", answer_txt))
+        else:
+            msgs.append(Turn("assistant", gen_prefix)) if gen_prefix else None
+        return msgs
+
+    def fewshot_context(
+        self,
+        doc: dict,
+        num_fewshot: int,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable[..., str]] = None,
+        gen_prefix: Optional[str] = None,
+    ):
+        messages: list[Turn] = []
+        tgt_delim, few_delim = (
+            self.config.target_delimiter,
+            self.config.fewshot_delimiter,
+        )
+        chat_template = (
+            partial(chat_template, add_generation_prompt=not gen_prefix)
+            if chat_template
+            else None
+        )
+        description = self.resolve_field(doc, self.config.description) or ""
+        system_prompt = few_delim.join(filter(None, [system_instruction, description]))
+        if system_prompt:
+            messages.append(Turn("system", system_prompt))
+
+        for fs_doc in self.sampler.sample(
+            n=num_fewshot,
+            doc=doc if self.config.fewshot_split == self.config.test_split else None,
+        ):
+            messages += self._doc_to_message_pair(fs_doc, gen_prefix)
+
+        # format actual doc
+        messages += self._doc_to_message_pair(doc, gen_prefix, include_answer=False)
+
+        if apply_chat_template and chat_template:
+            if fewshot_as_multiturn:
+                return chat_template([m.__dict__ for m in messages])
+            else:
+                # if final message is assistant then that's the prefix
+                context = [
+                    format_turn(
+                        self._turns_to_text(
+                            messages, tgt_delim=tgt_delim, few_delim=few_delim
+                        )
+                        if (has_prefix := messages[-1].role != "assistant")
+                        else self._turns_to_text(
+                            messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
+                        ),
+                        role="user",
+                    )
+                ]
+                context += (
+                    [format_turn(messages[-1].content, role="assistant")]
+                    if not has_prefix
+                    else []
+                )
+
+                return chat_template(context)
+        else:
+            return self._turns_to_text(
+                messages, tgt_delim=tgt_delim, few_delim=few_delim
+            )
+
+    @staticmethod
+    def _turns_to_text(
+        messages: list[Turn],
+        *,
+        tgt_delim=" ",
+        few_delim="\n\n",
+    ) -> str:
+        buff = []
+        for i, m in enumerate(messages):
+            if m.role == "system":
+                buff.append(m.content)
+            elif m.role == "user":
+                buff.append(m.content)
+            elif m.role == "assistant":
+                buff.append(tgt_delim + m.content)
+                if i != len(messages) - 1:
+                    # then this is not assis prefill
+                    buff.append(few_delim)
+
+        return "".join(buff)
+
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -746,6 +870,7 @@ class ConfigurableTask(Task):
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
         self._config = self.CONFIG
+        self.fewshot_rnd = 1234
 
         # Use new configurations if there was no preconfiguration
         if self.config is None:
@@ -905,28 +1030,22 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.fewshot_rnd = (
-                random.Random()
-            )  # setting with no seed, to be overridden at a later time
-            config_sampler: Union[str, Callable] = (
+            config_sampler = (
                 self.config.fewshot_config.get("sampler", "default")
                 if self.config.fewshot_config
                 else "default"
             )
             if isinstance(config_sampler, str):
                 self.sampler = samplers.get_sampler(config_sampler)(
-                    list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
-                )
-            elif callable(config_sampler) and issubclass(
-                config_sampler, samplers.ContextSampler
-            ):
-                self.sampler = config_sampler(
-                    docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
+                    list(self.fewshot_docs()), rnd=self.fewshot_rnd
                 )
             else:
-                raise TypeError(
-                    f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
-                    f"not {type(config_sampler)}"
+                assert callable(config_sampler), (
+                    "fewshot_config.sampler should be a string or callable of ContextSampler"
+                )
+                self.sampler = cast(type[ContextSampler], config_sampler)
+                self.sampler = config_sampler(
+                    list(self.fewshot_docs()), rnd=self.fewshot_rnd
                 )
 
         self.task_docs = self.eval_docs
@@ -1098,155 +1217,6 @@ class ConfigurableTask(Task):
         if gen_prefix:
             labeled_examples.append({"role": "assistant", "content": gen_prefix})
 
-    @utils.positional_deprecated
-    def fewshot_context(
-        self,
-        doc: dict,
-        num_fewshot: int,
-        system_instruction: Optional[str] = None,
-        apply_chat_template: bool = False,
-        fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
-        gen_prefix: Optional[str] = None,
-    ) -> Union[str, List[str]]:
-        """Returns a fewshot context string that is made up of a prepended description
-        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
-
-        :param doc: str
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param num_fewshot: int
-            The number of fewshot examples to provide in the returned context string.
-        :param  system_instruction: str
-            System instruction to be applied to the prompt.
-        :param apply_chat_template: bool
-            Whether to apply the chat template to the fewshot context.
-        :param fewshot_as_multiturn: bool
-            Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param chat_template:
-            callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
-        :param gen_prefix:
-            String to append after the <|assistant|> token.
-        :returns: str
-            The fewshot context.
-        """
-        if apply_chat_template:
-            labeled_examples = []
-        else:
-            labeled_examples = ""
-
-        # get task description
-        if description := self.config.description:
-            description = utils.apply_template(self.config.description, doc)
-
-        # create system prompt based on the provided system instruction and description
-        if system_instruction is not None and description:
-            system_prompt = (
-                f"{system_instruction}{self.sampler.fewshot_delimiter}{description}"
-            )
-        elif system_instruction is not None:
-            system_prompt = system_instruction
-        elif description:
-            system_prompt = description
-        else:
-            system_prompt = ""
-
-        # add system prompt if specified
-        if system_prompt:
-            if apply_chat_template:
-                labeled_examples.append({"role": "system", "content": system_prompt})
-            else:
-                labeled_examples = system_prompt
-        # if few-shot - append examples after the system prompt
-        if num_fewshot > 0:
-            if apply_chat_template:
-                labeled_examples.extend(
-                    self.sampler.get_chat_context(
-                        doc,
-                        num_fewshot,
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                )
-            else:
-                labeled_examples += self.sampler.get_context(
-                    doc, num_fewshot, gen_prefix=gen_prefix
-                )
-
-        example = self.doc_to_text(doc)
-        if apply_chat_template:
-            if self.multiple_inputs:
-                # TODO: append prefill?
-                if not labeled_examples:
-                    return ""
-                return chat_template(labeled_examples)
-            if isinstance(example, str):
-                self.append_target_question(
-                    labeled_examples,
-                    example,
-                    fewshot_as_multiturn,
-                    gen_prefix=gen_prefix,
-                )
-            # for loglikelihood create a list of questions with appended choices
-            elif isinstance(example, list):
-                labeled_examples_list = []
-                # copy chat history for each example and append the answer
-                for ex in example:
-                    chat = deepcopy(labeled_examples)
-                    self.append_target_question(
-                        chat,
-                        ex,
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                    # TODO: append prefill?
-                    labeled_examples_list.append(
-                        chat_template(
-                            chat,
-                            add_generation_prompt=False if gen_prefix else True,
-                        )
-                    )
-                return labeled_examples_list
-            # if example is an integer, append the choice or convert to string
-            elif isinstance(example, int):
-                if self.config.doc_to_choice is not None:
-                    choices = self.doc_to_choice(doc)
-                    self.append_target_question(
-                        labeled_examples,
-                        choices[example],
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                else:
-                    self.append_target_question(
-                        labeled_examples,
-                        str(example),
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                # return lm.apply_chat_template(labeled_examples)
-            return chat_template(
-                labeled_examples,
-                add_generation_prompt=False if gen_prefix else True,
-            )
-        else:
-            prefix = (
-                self.config.target_delimiter + gen_prefix
-                if gen_prefix is not None
-                else ""
-            )
-            if self.multiple_inputs:
-                return labeled_examples
-            if isinstance(example, str):
-                return labeled_examples + example + prefix
-            elif isinstance(example, list):
-                return [labeled_examples + ex + prefix for ex in example]
-            elif isinstance(example, int):
-                if self.config.doc_to_choice is not None:
-                    choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example] + prefix
-                else:
-                    return labeled_examples + str(example) + prefix
-
     def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
@@ -1407,15 +1377,6 @@ class ConfigurableTask(Task):
             return doc_to_audio(doc)
         else:
             return None
-
-    def doc_to_prefix(self, doc) -> Union[str, None]:
-        if (gen_prefix := self.config.gen_prefix) is not None:
-            return (
-                doc[gen_prefix]
-                if gen_prefix in self.features
-                else utils.apply_template(gen_prefix, doc)
-            )
-        return None
 
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
