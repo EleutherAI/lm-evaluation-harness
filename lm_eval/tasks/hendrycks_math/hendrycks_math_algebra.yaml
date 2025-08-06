@@ -15,6 +15,19 @@ generation_kwargs:
     - "Problem:"
   do_sample: false
   temperature: 0
+filter_list:
+- filter:
+  - function: regex
+    regex_pattern: \\boxed\{([^}]*)\}
+    group_select: 1
+  - function: take_first
+  name: boxed-extract
+- filter:
+  - function: regex
+    regex_pattern: (-?[0-9]+\.?[0-9]*)|(-?\\frac\{[^}]*\}\{[^}]*\})
+    group_select: -1
+  - function: take_first
+  name: flexible-extract
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -23,3 +36,4 @@ metadata:
   version: 1.0
 dataset_kwargs:
   trust_remote_code: true
+  
