@@ -7,20 +7,24 @@ fewshot_split: train
 test_split: validation
 num_fewshot: 3
 process_docs: !function utils.process_docs
-doc_to_text: "Passage: {{passage}}\nQuestion: {{question}}\nAnswer: "
+doc_to_text: "Passage: {{passage}}\nQuestion: {{question}}"
 doc_to_target: !function utils.doc_to_target
 target_delimiter: ""
 process_results: !function utils.process_results
 should_decontaminate: true
-doc_to_decontamination_query: "Passage: {{passage}}\nQuestion: {{question}}\nAnswer: "
+doc_to_decontamination_query: "Passage: {{passage}}\nQuestion: {{question}}"
+gen_prefix: "Answer: "
+description: "Return only the answer. No explanation."
 generation_kwargs:
   until:
     - "Passage:"
     - "Question:"
+    - "\n\n"
     - </s>
     - <|im_end|>
     - <|endoftext|>
     - <|eot_id|>
+  do_sample: false
 metric_list:
   - metric: em
     aggregation: mean
