@@ -2,7 +2,7 @@ import openai
 import os
 
 # Set up OpenAI client
-client = openai.Client(api_key=os.getenv("OPENAI_API_KEY"), base_url="https://api.swissai.cscs.ch/v1")
+client = openai.Client(api_key=os.getenv("SWISSAI_API_KEY"), base_url="https://api.swissai.cscs.ch/v1")
 
 def build_translation_prompt(response):
     return f"""Translate the following text into English.
