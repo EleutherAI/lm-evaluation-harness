@@ -32,7 +32,8 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: " (-?[$0-9.,]{2,})|(-?[0-9]+)"
+        regex_pattern: "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+        group_select: -1
       - function: "take_first"
   - name: "flexible-extract"
     filter:
