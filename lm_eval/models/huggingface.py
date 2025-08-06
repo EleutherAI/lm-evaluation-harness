@@ -964,7 +964,7 @@ class HFLM(TemplateLM):
     def _model_generate(
         self,
         context,
-        max_length: int,
+        max_new_tokens: int,
         stop: list[str],
         **generation_kwargs: dict[str, Any],
     ) -> torch.Tensor:
@@ -992,7 +992,7 @@ class HFLM(TemplateLM):
         ):
             return self.model.generate(
                 input_ids=context,
-                max_length=max_length,
+                max_new_tokens=max_new_tokens,
                 stopping_criteria=stopping_criteria,
                 pad_token_id=self.tokenizer.pad_token_id,
                 use_cache=True,
@@ -1437,8 +1437,8 @@ class HFLM(TemplateLM):
             context_enc = context_enc.to(self.device)
             attn_masks = attn_masks.to(self.device)
 
-            if "max_length" not in kwargs:
-                kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
+            if "max_new_tokens" not in kwargs:
+                kwargs["max_new_tokens"] =  max_gen_toks
 
             # perform batched generation
             cont = self._model_generate(
