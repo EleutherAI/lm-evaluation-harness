@@ -1,0 +1,11 @@
+group: aradice_culture
+metadata:
+    description: AraDiCE-Culture tasks
+    version: 0
+task:
+- AraDiCE_egypt_cultural
+- AraDiCE_jordan_cultural
+- AraDiCE_lebanon_cultural
+- AraDiCE_palestine_cultural
+- AraDiCE_qatar_cultural
+- AraDiCE_syria_cultural
