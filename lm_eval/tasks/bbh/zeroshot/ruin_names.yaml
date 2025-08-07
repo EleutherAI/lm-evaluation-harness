@@ -1,6 +1,7 @@
 "dataset_name": "ruin_names"
 "description": "Select the humorous edit that 'ruins' the input movie or musical artist name.\n\n"
-"doc_to_text": "Q: {{input}}\nA:"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_ruin_names"
 filter_list:
