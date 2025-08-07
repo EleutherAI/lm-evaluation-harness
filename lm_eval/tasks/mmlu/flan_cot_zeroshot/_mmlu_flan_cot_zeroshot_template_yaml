@@ -9,7 +9,7 @@ filter_list:
     filter:
       - function: "regex"
         group_select: -1 # takes last match
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=The answer is: )(.*)(?=.)|(?<=answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.)|(?<=answer is )[A-Z])" # since last update: also includes format of "answer is A", without the brackets
+        regex_pattern: "(?:(?<=The answer is )|(?<=The answer is: )|(?<=answer is )|(?<=The answer: )|(?<=The final answer: ))\\(?([A-D])\\)?" # Extracts only the letter choice, with or without parentheses
       - function: "take_first"
   - name: "flexible-extract"
     filter:
@@ -17,7 +17,7 @@ filter_list:
         group_select: -1
         ignore_case: true
         ignore_punctuation: true
-        regex_pattern: "(\\([A-Z]\\)|[A-Z])"
+        regex_pattern: "(\\([A-D]\\)|[A-D])" # last update: also includes format of simply taking last letter "X", without the brackets
       - function: "take_first"
 generation_kwargs:
   until:
