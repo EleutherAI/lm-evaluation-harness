@@ -18,8 +18,6 @@ generation_kwargs:
 filter_list:
 - filter:
   - function: regex
-    regex_pattern: \\boxed\{([^}]*)\}
-    group_select: 1
   - function: take_first
   name: boxed-extract
 - filter:
