@@ -1,0 +1,4 @@
+"dataset_name": "security_studies"
+"tag": "mmlu_flan_cot_zeroshot_nosystem_social_sciences"
+"include": "_mmlu_flan_cot_zeroshot_nosystem_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_nosystem_security_studies"

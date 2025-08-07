@@ -1,0 +1,4 @@
+"dataset_name": "astronomy"
+"tag": "mmlu_flan_cot_zeroshot_nosystem_stem"
+"include": "_mmlu_flan_cot_zeroshot_nosystem_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_nosystem_astronomy"

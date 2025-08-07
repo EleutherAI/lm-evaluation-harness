@@ -1,0 +1,4 @@
+"dataset_name": "virology"
+"tag": "mmlu_flan_cot_zeroshot_nosystem_other"
+"include": "_mmlu_flan_cot_zeroshot_nosystem_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_nosystem_virology"

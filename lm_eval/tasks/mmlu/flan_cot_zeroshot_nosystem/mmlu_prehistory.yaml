@@ -1,0 +1,4 @@
+"dataset_name": "prehistory"
+"tag": "mmlu_flan_cot_zeroshot_nosystem_humanities"
+"include": "_mmlu_flan_cot_zeroshot_nosystem_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_nosystem_prehistory"

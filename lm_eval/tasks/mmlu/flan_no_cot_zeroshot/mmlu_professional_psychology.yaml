@@ -1,0 +1,6 @@
+"dataset_name": "professional_psychology"
+"description": "The following are multiple choice questions (with answers) about professional\
+  \ psychology. Your response should be concise, and you should end with \"The answer is (X)\", where X is the correct letter choice.\n\n"
+"tag": "mmlu_flan_no_cot_zeroshot_social_sciences"
+"include": "_mmlu_flan_no_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_no_cot_zeroshot_professional_psychology"

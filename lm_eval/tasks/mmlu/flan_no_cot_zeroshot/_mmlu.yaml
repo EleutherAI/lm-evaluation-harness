@@ -1,0 +1,62 @@
+group: mmlu_flan_no_cot_zeroshot
+group_alias: mmlu (flan style, zeroshot no cot)
+task:
+  - group: mmlu_flan_no_cot_zeroshot_stem
+    task:
+      - mmlu_flan_no_cot_zeroshot_stem
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        filter_list: strict-match
+        weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: flexible-extract
+        weight_by_size: True
+  - group: mmlu_flan_no_cot_zeroshot_other
+    task:
+      - mmlu_flan_no_cot_zeroshot_other
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        filter_list: strict-match
+        weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: flexible-extract
+        weight_by_size: True
+  - group: mmlu_flan_no_cot_zeroshot_social_sciences
+    task:
+      - mmlu_flan_no_cot_zeroshot_social_sciences
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        filter_list: strict-match
+        weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: flexible-extract
+        weight_by_size: True
+  - group: mmlu_flan_no_cot_zeroshot_humanities
+    task:
+      - mmlu_flan_no_cot_zeroshot_humanities
+    aggregate_metric_list:
+      - metric: exact_match
+        aggregation: mean
+        filter_list: strict-match
+        weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: flexible-extract
+        weight_by_size: True
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: True
+    filter_list: strict-match
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: True
+    filter_list: flexible-extract
+metadata:
+  version: 2
