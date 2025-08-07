@@ -1,11 +1,7 @@
 dataset_name: dyck_languages
-description: 'Correctly close a Dyck-n word.
-
-
-  '
-doc_to_text: 'Q: {{input}}
-
-  A:'
+description: "Correctly close a Dyck-n word.\n\n"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 fewshot_config:
   sampler: first_n
   samples:
