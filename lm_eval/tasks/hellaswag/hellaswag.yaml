@@ -6,11 +6,13 @@ dataset_name: null
 output_type: multiple_choice
 training_split: train
 validation_split: validation
+fewshot_split: train
+num_fewshot: 5
 test_split: null
 process_docs: !function utils.process_docs
-doc_to_text: "{{query}}"
-doc_to_target: "{{label}}"
-doc_to_choice: "choices"
+doc_to_text: "Context: {{query}}\n\nChoose the best continuation:\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\n\nAnswer:"
+doc_to_target: "{{answer_letter}}. {{choices[gold]}}"
+doc_to_choice: !function utils.doc_to_choice
 metric_list:
   - metric: acc
     aggregation: mean

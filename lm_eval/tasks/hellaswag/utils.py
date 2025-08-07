@@ -19,7 +19,13 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "query": preprocess(doc["activity_label"] + ": " + ctx),
             "choices": [preprocess(ending) for ending in doc["endings"]],
             "gold": int(doc["label"]),
+            "answer_letter": chr(ord("A") + int(doc["label"])),
         }
         return out_doc
 
     return dataset.map(_process_doc)
+
+
+def doc_to_choice(doc):
+    """Return the formatted choices with letters and dots for logits computation."""
+    return [f"{chr(ord('A') + i)}. {choice}" for i, choice in enumerate(doc["choices"])]
