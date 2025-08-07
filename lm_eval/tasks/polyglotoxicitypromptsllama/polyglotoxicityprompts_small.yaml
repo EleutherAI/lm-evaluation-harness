@@ -1,0 +1,17 @@
+group: polyglotoxicitypromptsllama_small
+task:
+  - polyglotoxicitypromptsllama_small_german
+  - polyglotoxicitypromptsllama_small_english
+  - polyglotoxicitypromptsllama_small_spanish
+  - polyglotoxicitypromptsllama_small_french
+  - polyglotoxicitypromptsllama_small_hindi
+  - polyglotoxicitypromptsllama_small_italian
+  - polyglotoxicitypromptsllama_small_portuguese
+
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+
+metadata:
+  version: 1.0

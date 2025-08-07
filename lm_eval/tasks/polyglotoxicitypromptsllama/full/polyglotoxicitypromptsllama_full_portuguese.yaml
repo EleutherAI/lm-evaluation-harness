@@ -1,0 +1,4 @@
+task: polyglotoxicitypromptsllama_full_portuguese
+include: ../_polyglotoxicityprompts_yaml
+dataset_name: ptp-pt
+test_split: full
