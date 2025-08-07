@@ -2,7 +2,7 @@ dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_trai
 validation_split: validation
 fewshot_split: dev
 output_type: generate_until
-doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nLet's think step by step."
+doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}."
 doc_to_target: "{{['(A)', '(B)', '(C)', '(D)'][answer]}}"
 filter_list:
   - name: "strict-match"

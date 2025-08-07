@@ -1,0 +1,4 @@
+"dataset_name": "world_religions"
+"tag": "mmlu_flan_cot_zeroshot_nosystem_humanities"
+"include": "_mmlu_flan_cot_zeroshot_nosystem_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_nosystem_world_religions"
