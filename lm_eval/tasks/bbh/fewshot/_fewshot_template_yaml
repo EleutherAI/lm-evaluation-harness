@@ -12,7 +12,7 @@ generation_kwargs:
   until:
     - "</s>"
     - "Q"
-    - "\n\n"
+#    - "\n\n"
   do_sample: false
   temperature: 0.0
 num_fewshot: 3

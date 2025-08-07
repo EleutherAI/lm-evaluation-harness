@@ -1,11 +1,7 @@
 dataset_name: boolean_expressions
-description: 'Evaluate the result of a random Boolean expression.
-
-
-  '
-doc_to_text: 'Q: {{input}}
-
-  A:'
+description: "Evaluate the result of a random Boolean expression.\n\n"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 fewshot_config:
   sampler: first_n
   samples:

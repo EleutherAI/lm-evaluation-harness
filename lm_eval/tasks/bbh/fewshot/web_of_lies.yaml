@@ -1,11 +1,7 @@
 dataset_name: web_of_lies
-description: 'Evaluate a random boolean function expressed as a word problem.
-
-
-  '
-doc_to_text: 'Q: {{input}}
-
-  A:'
+description: "Evaluate a random boolean function expressed as a word problem.\n\n"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 fewshot_config:
   sampler: first_n
   samples:

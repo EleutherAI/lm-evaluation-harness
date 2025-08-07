@@ -1,11 +1,7 @@
 dataset_name: multistep_arithmetic_two
-description: 'Solve multi-step arithmetic problems.
-
-
-  '
-doc_to_text: 'Q: {{input}}
-
-  A:'
+description: "Solve multi-step arithmetic problems.\n\n"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 fewshot_config:
   sampler: first_n
   samples:

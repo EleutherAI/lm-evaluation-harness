@@ -1,6 +1,7 @@
 "dataset_name": "logical_deduction_five_objects"
 "description": "A logical deduction task which requires deducing the order of a sequence of objects.\n\n"
-"doc_to_text": "Q: {{input}}\nA:"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_logical_deduction_five_objects"
 filter_list:

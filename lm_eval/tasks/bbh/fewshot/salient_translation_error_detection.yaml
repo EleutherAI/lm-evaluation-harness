@@ -1,12 +1,8 @@
 dataset_name: salient_translation_error_detection
-description: 'Detect the type of error in an English translation of a German source
-  sentence.
-
-
-  '
-doc_to_text: 'Q: {{input}}
-
-  A:'
+description: "Detect the type of error in an English translation of a German source
+  sentence.\n\n"
+doc_to_text: "Q: {{input}}\n"
+gen_prefix: "A:"
 fewshot_config:
   sampler: first_n
   samples:
