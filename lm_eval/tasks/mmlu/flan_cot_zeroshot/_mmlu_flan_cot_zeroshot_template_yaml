@@ -8,7 +8,8 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=The answer is: )(.*)(?=.)|(?<=answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+        group_select: -1 # takes last match
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=The answer is: )(.*)(?=.)|(?<=answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.)|(?<=answer is )[A-Z])" # since last update: also includes format of "answer is A", without the brackets
       - function: "take_first"
   - name: "flexible-extract"
     filter:
@@ -16,7 +17,7 @@ filter_list:
         group_select: -1
         ignore_case: true
         ignore_punctuation: true
-        regex_pattern: "(\\([A-Z]\\))"
+        regex_pattern: "(\\([A-Z]\\)|[A-Z])"
       - function: "take_first"
 generation_kwargs:
   until:
