@@ -1,4 +1,4 @@
-group: lm_syneval
+group: zhoblimp
 task:
   - BA_BEI_subj_drop
   - BA_deletion
