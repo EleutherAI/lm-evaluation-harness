@@ -1456,7 +1456,7 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
-            if apply_chat_template:
+            if apply_chat_template and not self.config.gen_prefix:
                 target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
