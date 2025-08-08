@@ -1,3 +1,3 @@
-include: _it_template.yaml
+include: _it_template_yaml
 process_docs: !function utils.process_geography
 task: switzerland_qa_it_geography

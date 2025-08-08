@@ -1,3 +1,3 @@
-include: _it_template.yaml
+include: _it_template_yaml
 process_docs: !function utils.process_social_life
 task: switzerland_qa_it_social_life

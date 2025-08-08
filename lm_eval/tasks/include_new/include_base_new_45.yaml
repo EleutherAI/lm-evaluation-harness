@@ -1,0 +1,62 @@
+group: include_base_new_45
+task:
+  - include_base_new_45_amharic
+  - include_base_new_45_assamese
+  - include_base_new_45_czech
+  - include_base_new_45_dagbani
+  - include_base_new_45_dangme
+  - include_base_new_45_danish
+  - include_base_new_45_darija
+  - include_base_new_45_dogri
+  - include_base_new_45_ekpeye
+  - include_base_new_45_embu
+  - include_base_new_45_esan
+  - include_base_new_45_ewe
+  - include_base_new_45_fante
+  - include_base_new_45_fula
+  - include_base_new_45_ga
+  - include_base_new_45_gujarati
+  - include_base_new_45_hausa
+  - include_base_new_45_ibibio
+  - include_base_new_45_idoma
+  - include_base_new_45_igala
+  - include_base_new_45_igbo
+  - include_base_new_45_jju
+  - include_base_new_45_kannada
+  - include_base_new_45_kinyarwanda
+  - include_base_new_45_luo
+  - include_base_new_45_maithili
+  - include_base_new_45_makhuwa
+  - include_base_new_45_marathi
+  - include_base_new_45_nyanja
+  - include_base_new_45_obolo
+  - include_base_new_45_oriya
+  - include_base_new_45_oromo
+  - include_base_new_45_punjabi
+  - include_base_new_45_sena
+  - include_base_new_45_sindhi
+  - include_base_new_45_sinhala
+  - include_base_new_45_slovak
+  - include_base_new_45_somali
+  - include_base_new_45_swahili
+  - include_base_new_45_swedish
+  - include_base_new_45_tangale
+  - include_base_new_45_tigrinya
+  - include_base_new_45_twi
+  - include_base_new_45_tyap
+  - include_base_new_45_yoruba
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true 
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+  - metric: perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: f1
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
