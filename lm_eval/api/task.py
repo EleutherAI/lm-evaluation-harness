@@ -259,6 +259,8 @@ class Task(abc.ABC):
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
         self.fewshot_rnd = 1234
+        self.sampler = ContextSampler(list(self.fewshot_docs))
+        self.multiple_input = False
 
     def download(
         self,
@@ -751,11 +753,13 @@ class Task(abc.ABC):
         doc: dict[str, Any],
         gen_prefix: str | None,
         *,
+        q: str | None = None,
+        a: str | None = None,
         include_answer: bool = True,
     ) -> list[Turn]:
         """Return `[user, assistant?]` for a single doc."""
-        q = self.doc_to_text(doc)
-        a = self.doc_to_target(doc)
+        q = q or self.doc_to_text(doc)
+        a = a or self.doc_to_target(doc)
         # Handle multiple-choice indirection
         if isinstance(q, int) and self.config.doc_to_choice:
             q = self.doc_to_choice(doc)[q]
@@ -771,17 +775,48 @@ class Task(abc.ABC):
             msgs.append(Turn("assistant", gen_prefix)) if gen_prefix else None
         return msgs
 
+    @staticmethod
+    def _format_chat_template(
+        messages: list[Turn],
+        chat_template: Callable[..., str],
+        *,
+        tgt_delim: str = " ",
+        few_delim: str = "\n\n",
+        multiturn=True,
+    ):
+        if multiturn:
+            return chat_template([m.__dict__ for m in messages])
+        else:
+            context = [
+                format_turn(
+                    Task._turns_to_text(
+                        messages, tgt_delim=tgt_delim, few_delim=few_delim
+                    )
+                    if not (has_prefix := messages[-1].role == "assistant")
+                    else Task._turns_to_text(
+                        messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
+                    ),
+                    role="user",
+                )
+            ]
+            context += (
+                [format_turn(messages[-1].content, role="assistant")]
+                if has_prefix
+                else []
+            )
+            return chat_template(context)
+
     def fewshot_context(
         self,
-        doc: dict,
+        doc: dict[str, str],
         num_fewshot: int,
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable[..., str]] = None,
         gen_prefix: Optional[str] = None,
-    ):
-        messages: list[Turn] = []
+    ) -> str | list[str]:
+        messages = []
         tgt_delim, few_delim = (
             self.config.target_delimiter,
             self.config.fewshot_delimiter,
@@ -802,37 +837,34 @@ class Task(abc.ABC):
         ):
             messages += self._doc_to_message_pair(fs_doc, gen_prefix)
 
-        # format actual doc
-        messages += self._doc_to_message_pair(doc, gen_prefix, include_answer=False)
+        if self.multiple_input:
+            messages = [
+                messages
+                + self._doc_to_message_pair(doc, gen_prefix, q=q, include_answer=False)
+                for q in self.doc_to_text(doc)
+            ]
+        else:
+            messages += self._doc_to_message_pair(doc, gen_prefix, include_answer=False)
+            messages = [messages]
 
         if apply_chat_template and chat_template:
-            if fewshot_as_multiturn:
-                return chat_template([m.__dict__ for m in messages])
-            else:
-                # if final message is assistant then that's the prefix
-                context = [
-                    format_turn(
-                        self._turns_to_text(
-                            messages, tgt_delim=tgt_delim, few_delim=few_delim
-                        )
-                        if (has_prefix := messages[-1].role != "assistant")
-                        else self._turns_to_text(
-                            messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
-                        ),
-                        role="user",
-                    )
-                ]
-                context += (
-                    [format_turn(messages[-1].content, role="assistant")]
-                    if not has_prefix
-                    else []
+            res = [
+                self._format_chat_template(
+                    m,
+                    chat_template,
+                    tgt_delim=tgt_delim,
+                    few_delim=few_delim,
+                    multiturn=fewshot_as_multiturn,
                 )
-
-                return chat_template(context)
+                for m in messages
+            ]
         else:
-            return self._turns_to_text(
-                messages, tgt_delim=tgt_delim, few_delim=few_delim
-            )
+            res = [
+                self._turns_to_text(m, tgt_delim=tgt_delim, few_delim=few_delim)
+                for m in messages
+            ]
+
+        return res[0] if not self.multiple_input else res
 
     @staticmethod
     def _turns_to_text(
@@ -843,9 +875,7 @@ class Task(abc.ABC):
     ) -> str:
         buff = []
         for i, m in enumerate(messages):
-            if m.role == "system":
-                buff.append(m.content)
-            elif m.role == "user":
+            if m.role == "system" or m.role == "user":
                 buff.append(m.content)
             elif m.role == "assistant":
                 buff.append(tgt_delim + m.content)
@@ -1379,44 +1409,29 @@ class ConfigurableTask(Task):
             return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
+        self, doc: dict, ctx: str | list[str], **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
-        chat_template: Union[Callable, None] = kwargs.pop("chat_template", None)
+        # chat_template: Union[Callable, None] = kwargs.pop("chat_template", None)
 
         aux_arguments = None
 
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            arguments = (self.doc_to_target(doc),)
+            arguments = (self.doc_to_target(doc), None)
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
-            target_delimiter = self.config.target_delimiter
-            if apply_chat_template:
-                target_delimiter = ""
+            target_delimiter = (
+                self.config.target_delimiter if not apply_chat_template else ""
+            )
             if self.multiple_inputs:
-                # If there are multiple inputs, choices are placed in the ctx
-                # apply chat_template to choices if apply_chat_template
-                cont = self.doc_to_target(doc)
-
-                arguments = [
-                    (
-                        ctx
-                        + (
-                            chat_template([{"role": "user", "content": choice}])
-                            if apply_chat_template
-                            else choice
-                        ),
-                        f"{target_delimiter}{cont}",
-                    )
-                    for choice in choices
-                ]
+                # If there are multiple inputs, assume only one choice
+                arguments = [(_ctx, f"{target_delimiter}{choices[0]}") for _ctx in ctx]
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
-            # TODO: we should raise a warning telling users this will at most ~2x runtime.
             if "acc_mutual_info" in self._metric_fn_list.keys():
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
@@ -1424,7 +1439,6 @@ class ConfigurableTask(Task):
                 # here mutual info refers to calculating
                 # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
                 # in other words normalizing by subtracting the unconditional logprob of each choice.
-                # TODO: should these be strided? will have to modify the processing in process_results if so
                 aux_arguments = [
                     ("", f"{target_delimiter}{choice}") for choice in choices
                 ]

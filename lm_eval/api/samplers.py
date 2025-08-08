@@ -17,13 +17,13 @@ eval_logger = logging.getLogger(__name__)
 class ContextSampler:
     def __init__(
         self,
-        docs: list[dict[str, Any]],
+        docs: list[dict[str, Any]] | None = None,
         *,
         rnd: int = 1234,
         fewshot_indices: list[int] | None = None,
     ) -> None:
         self.rnd = Random(rnd)
-        self.docs = docs
+        self.docs = docs or []
         self.fewshot_indices = fewshot_indices
 
         if self.fewshot_indices:
@@ -47,7 +47,7 @@ class ContextSampler:
         return (
             self.rnd.sample(self.docs, sample_size)
             if not doc
-            else self.remove_doc(doc, self.docs)
+            else self.remove_doc(doc, self.rnd.sample(self.docs, sample_size + 1))
         )
 
     def set_rnd(self, rnd: int) -> None:
