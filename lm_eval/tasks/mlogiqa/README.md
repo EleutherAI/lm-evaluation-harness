@@ -22,6 +22,16 @@ Homepage: https://huggingface.co/datasets/Qwen/P-MMEval/viewer/mlogiqa
 }
 ```
 
+### Implementation
+
+Figure 12 from the original paper shows the prompt used:
+
+> "Passage: {context}\nQuestion: {question}\nChoices:\nA. {option_a}\nB. {option_b}\nC. {option_c}\nD.{option_d}\nPlease choose the most suitable one among A, B, C and Das the answer to this question, and return it in the following JSON format:\n{'answer': '[choice]'}\nwhere [choice] must be one of A, B, C and D."
+
+In this MCQA implementation, we remove the last part of the original prompt:
+
+> "Passage: {context}\nQuestion: {question}\nChoices:\nA. {option_a}\nB. {option_b}\nC. {option_c}\nD.{option_d}\nPlease choose the most suitable one among A, B, C and Das the answer to this question."
+
 ### Groups, Tags, and Tasks
 
 #### Groups
