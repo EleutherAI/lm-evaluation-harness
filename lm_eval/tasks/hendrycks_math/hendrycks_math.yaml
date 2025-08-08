@@ -8,7 +8,7 @@ task:
   - hendrycks_math_prealgebra
   - hendrycks_math_precalc
 aggregate_metric_list:
-  - metric: exact_match
+  - metric: math_verify
     aggregation: mean
     weight_by_size: true
 metadata:
