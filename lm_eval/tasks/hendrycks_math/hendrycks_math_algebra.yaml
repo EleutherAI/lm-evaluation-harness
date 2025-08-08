@@ -18,11 +18,7 @@ generation_kwargs:
 filter_list:
 - filter:
   - function: regex
-  - function: take_first
-  name: boxed-extract
-- filter:
-  - function: regex
-    regex_pattern: (-?[0-9]+\.?[0-9]*)|(-?\\frac\{[^}]*\}\{[^}]*\})
+    regex_pattern: ^(?:[\\s\\S]*\\boxed\\s*\{((?:[^{}]|\{[^{}]*\})*)\}[\\s\\S]*|[\\s\\S]*\\boxed\\s+([^\\$\\n\\r]*)[\\s\\S]*|(?![\\s\\S]*\\boxed)[\\s\\S]*?((?:(?<![0-9.])-?[0-9]+(?:\\.[0-9]+)?(?![0-9.]))|-?\\frac\{[^}]*\}\{[^}]*\})(?![\\s\\S]*(?:(?<![0-9.])-?[0-9]+(?:\\.[0-9]+)?(?![0-9.])|-?\\frac\{[^}]*\}\{[^}]*\}))[\\s\\S]*)$
     group_select: -1
   - function: take_first
   name: flexible-extract
