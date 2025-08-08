@@ -34,11 +34,9 @@ aggregate_metric_list:
   - metric: acc
     aggregation: mean
     weight_by_size: true
-    higher_is_better: true
   - metric: acc_norm
     aggregation: mean
     weight_by_size: true
-    higher_is_better: true
 metadata:
   version: 1.0
 output_type: multiple_choice
