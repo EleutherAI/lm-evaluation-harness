@@ -1,0 +1,40 @@
+group: truthfulqa_multilingual_mc2
+task:
+  - truthfulqa_ar_mc2
+  - truthfulqa_bn_mc2
+  - truthfulqa_ca_mc2
+  - truthfulqa_da_mc2
+  - truthfulqa_de_mc2
+  - truthfulqa_es_mc2
+  - truthfulqa_eu_mc2
+  - truthfulqa_fr_mc2
+  - truthfulqa_gu_mc2
+  - truthfulqa_hi_mc2
+  - truthfulqa_hr_mc2
+  - truthfulqa_hu_mc2
+  - truthfulqa_hy_mc2
+  - truthfulqa_id_mc2
+  - truthfulqa_it_mc2
+  - truthfulqa_kn_mc2
+  - truthfulqa_ml_mc2
+  - truthfulqa_mr_mc2
+  - truthfulqa_ne_mc2
+  - truthfulqa_nl_mc2
+  - truthfulqa_pt_mc2
+  - truthfulqa_ro_mc2
+  - truthfulqa_ru_mc2
+  - truthfulqa_sk_mc2
+  - truthfulqa_sr_mc2
+  - truthfulqa_sv_mc2
+  - truthfulqa_ta_mc2
+  - truthfulqa_te_mc2
+  - truthfulqa_uk_mc2
+  - truthfulqa_vi_mc2
+  - truthfulqa_zh_mc2
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
