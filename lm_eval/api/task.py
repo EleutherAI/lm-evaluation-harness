@@ -1435,10 +1435,10 @@ class ConfigurableTask(Task):
             return None
 
     def construct_requests(
-        self, doc: dict, ctx: str | list[str], **kwargs
+        self, doc: dict[str, str], ctx: str | list[str], **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
-        # chat_template: Callable | None = kwargs.pop("chat_template", None)
+        chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
 
         aux_arguments = None
 
@@ -1449,7 +1449,9 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = (
-                self.config.target_delimiter if not apply_chat_template else ""
+                ""
+                if (apply_chat_template and not self.config.gen_prefix)
+                else self.config.target_delimiter
             )
             if self.multiple_input:
                 # If there are multiple inputs, assume only one choice
