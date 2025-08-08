@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
     from typing import Any, TypeVar
 
     _T = TypeVar("_T")
@@ -17,19 +17,22 @@ eval_logger = logging.getLogger(__name__)
 class ContextSampler:
     def __init__(
         self,
-        docs: list[dict[str, Any]] | None = None,
+        docs: Sequence[dict[str, Any]] | None = None,
         *,
-        rnd: int = 1234,
+        rnd: int | None = None,
         fewshot_indices: list[int] | None = None,
+        **kwargs,
     ) -> None:
         self.rnd = Random(rnd)
         self.docs = docs or []
         self.fewshot_indices = fewshot_indices
 
-        if self.fewshot_indices:
+        if self.fewshot_indices and self.docs:
             self.docs = [self.docs[i] for i in self.fewshot_indices]
 
-    def sample(self, n: int, doc: dict[str, Any] | None = None, **kwargs) -> list[dict]:
+    def sample(
+        self, n: int, doc: dict[str, Any] | None = None, **kwargs
+    ) -> Sequence[dict]:
         """
         Sample n documents from the pool.
 
@@ -40,14 +43,12 @@ class ContextSampler:
         Returns:
             List of sampled documents
         """
-        # Filter out excluded document if specified
-        sample_size = min(n, len(self.docs))
-        if sample_size == 0:
+        if n <= 0:
             return []
         return (
-            self.rnd.sample(self.docs, sample_size)
+            self.rnd.sample(self.docs, n)
             if not doc
-            else self.remove_doc(doc, self.rnd.sample(self.docs, sample_size + 1))
+            else self.remove_doc(doc, self.rnd.sample(self.docs, n + 1))
         )
 
     def set_rnd(self, rnd: int) -> None:
