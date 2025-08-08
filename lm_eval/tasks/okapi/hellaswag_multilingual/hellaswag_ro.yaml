@@ -1,4 +1,4 @@
-include: _hellaswag_yaml
+include: _template_yaml
 task: hellaswag_ro
 dataset_path: alexandrainst/m_hellaswag
 dataset_name: ro
