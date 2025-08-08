@@ -1,0 +1,23 @@
+group: mgsm_en_cot
+task:
+  - mgsm_en_cot_bn
+  - mgsm_en_cot_de
+  - mgsm_en_cot_en
+  - mgsm_en_cot_es
+  - mgsm_en_cot_fr
+  - mgsm_en_cot_ja
+  - mgsm_en_cot_ru
+  - mgsm_en_cot_sw
+  - mgsm_en_cot_te
+  - mgsm_en_cot_th
+  - mgsm_en_cot_zh
+
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list:
+      - strict-match
+      - flexible-extract
+metadata:
+  version: 1.0
