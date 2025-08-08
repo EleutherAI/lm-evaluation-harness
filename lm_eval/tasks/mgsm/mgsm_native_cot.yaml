@@ -1,0 +1,23 @@
+group: mgsm_native_cot
+task:
+  - mgsm_native_cot_bn
+  - mgsm_native_cot_de
+  - mgsm_native_cot_en
+  - mgsm_native_cot_es
+  - mgsm_native_cot_fr
+  - mgsm_native_cot_ja
+  - mgsm_native_cot_ru
+  - mgsm_native_cot_sw
+  - mgsm_native_cot_te
+  - mgsm_native_cot_th
+  - mgsm_native_cot_zh
+
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list:
+      - strict-match
+      - flexible-extract
+metadata:
+  version: 1.0

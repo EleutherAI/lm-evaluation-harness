@@ -1,0 +1,23 @@
+group: mgsm_direct
+task:
+  - mgsm_direct_bn
+  - mgsm_direct_de
+  - mgsm_direct_en
+  - mgsm_direct_es
+  - mgsm_direct_fr
+  - mgsm_direct_ja
+  - mgsm_direct_ru
+  - mgsm_direct_sw
+  - mgsm_direct_te
+  - mgsm_direct_th
+  - mgsm_direct_zh
+
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list:
+      - remove_whitespace
+      - flexible-extract
+metadata:
+  version: 1.0
