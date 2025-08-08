@@ -15,6 +15,7 @@ generation_kwargs:
     - "Problem:"
   do_sample: false
   temperature: 0
+  max_gen_toks: 1024
 metric_list:
   - metric: exact_match
     aggregation: mean

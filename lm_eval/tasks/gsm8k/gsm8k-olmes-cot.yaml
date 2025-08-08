@@ -1,7 +1,7 @@
 tag:
   - math_word_problems
   - chain_of_thought
-task: gsm8k_cot
+task: gsm8k_olmes_cot
 dataset_path: gsm8k
 dataset_name: main
 output_type: generate_until
