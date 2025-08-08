@@ -761,8 +761,8 @@ class Task(abc.ABC):
         q = q or self.doc_to_text(doc)
         a = a or self.doc_to_target(doc)
         # Handle multiple-choice indirection
-        if isinstance(q, int) and self.config.doc_to_choice:
-            q = self.doc_to_choice(doc)[q]
+        if isinstance(q, list) and self.config.doc_to_choice:
+            q = q[cast(int, self.doc_to_target(doc))]
         if isinstance(a, int) and self.config.doc_to_choice:
             a = self.doc_to_choice(doc)[a]
 
