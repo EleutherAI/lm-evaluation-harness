@@ -57,13 +57,13 @@ eval_logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Turn:
-    role: str  # "system" | "user" | "assistant" | delimiter
+class Message:
+    role: str  # "system" | "user" | "assistant"
     content: str
 
 
-def format_turn(context: str, role: str):
-    return {"role": role, "content": context}
+def format_turn(content: str, role: str):
+    return {"role": role, "content": content}
 
 
 @dataclass
@@ -748,7 +748,7 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
-    def _doc_to_message_pair(
+    def _doc_to_qa_pair(
         self,
         doc: dict[str, Any],
         gen_prefix: str | None,
@@ -756,7 +756,7 @@ class Task(abc.ABC):
         q: str | None = None,
         a: str | None = None,
         include_answer: bool = True,
-    ) -> list[Turn]:
+    ) -> list[Message]:
         """Return `[user, assistant?]` for a single doc."""
         q = q or self.doc_to_text(doc)
         a = a or self.doc_to_target(doc)
@@ -766,44 +766,49 @@ class Task(abc.ABC):
         if isinstance(a, int) and self.config.doc_to_choice:
             a = self.doc_to_choice(doc)[a]
 
-        msgs = [Turn("user", q)]
+        assert isinstance(q, str), "Context is not a string!"
+        msgs = [Message("user", q)]
         if include_answer:
             prefix = gen_prefix + " " if gen_prefix else ""
             answer_txt = prefix + (a if not isinstance(a, list) else a[0])
-            msgs.append(Turn("assistant", answer_txt))
+            msgs.append(Message("assistant", answer_txt))
         else:
-            msgs.append(Turn("assistant", gen_prefix)) if gen_prefix else None
+            msgs.append(Message("assistant", gen_prefix)) if gen_prefix else None
         return msgs
 
     @staticmethod
-    def _format_chat_template(
-        messages: list[Turn],
-        chat_template: Callable[..., str],
+    def _render_chat_template(
+        messages: list[Message],
+        chat_template: Callable[[list[dict[str, str]]], str],
         *,
         tgt_delim: str = " ",
         few_delim: str = "\n\n",
         multiturn=True,
-    ):
+    ) -> str:
         if multiturn:
             return chat_template([m.__dict__ for m in messages])
         else:
-            context = [
-                format_turn(
-                    Task._turns_to_text(
-                        messages, tgt_delim=tgt_delim, few_delim=few_delim
+            has_prefix = messages[-1].role == "assistant"
+            if not has_prefix:
+                context = [
+                    format_turn(
+                        Task._message_to_text(
+                            messages, tgt_delim=tgt_delim, few_delim=few_delim
+                        ),
+                        role="user",
                     )
-                    if not (has_prefix := messages[-1].role == "assistant")
-                    else Task._turns_to_text(
-                        messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
-                    ),
-                    role="user",
-                )
-            ]
-            context += (
-                [format_turn(messages[-1].content, role="assistant")]
-                if has_prefix
-                else []
-            )
+                ]
+            else:
+                context = [
+                    format_turn(
+                        Task._message_to_text(
+                            messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
+                        ),
+                        role="user",
+                    )
+                ]
+                context += [format_turn(**messages[-1].__dict__)]
+
             return chat_template(context)
 
     def fewshot_context(
@@ -829,27 +834,27 @@ class Task(abc.ABC):
         description = self.resolve_field(doc, self.config.description) or ""
         system_prompt = few_delim.join(filter(None, [system_instruction, description]))
         if system_prompt:
-            messages.append(Turn("system", system_prompt))
+            messages.append(Message("system", system_prompt))
 
         for fs_doc in self.sampler.sample(
             n=num_fewshot,
             doc=doc if self.config.fewshot_split == self.config.test_split else None,
         ):
-            messages += self._doc_to_message_pair(fs_doc, gen_prefix)
+            messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
 
         if self.multiple_input:
             messages = [
                 messages
-                + self._doc_to_message_pair(doc, gen_prefix, q=q, include_answer=False)
+                + self._doc_to_qa_pair(doc, gen_prefix, q=q, include_answer=False)
                 for q in self.doc_to_text(doc)
             ]
         else:
-            messages += self._doc_to_message_pair(doc, gen_prefix, include_answer=False)
+            messages += self._doc_to_qa_pair(doc, gen_prefix, include_answer=False)
             messages = [messages]
 
         if apply_chat_template and chat_template:
             res = [
-                self._format_chat_template(
+                self._render_chat_template(
                     m,
                     chat_template,
                     tgt_delim=tgt_delim,
@@ -860,15 +865,15 @@ class Task(abc.ABC):
             ]
         else:
             res = [
-                self._turns_to_text(m, tgt_delim=tgt_delim, few_delim=few_delim)
+                self._message_to_text(m, tgt_delim=tgt_delim, few_delim=few_delim)
                 for m in messages
             ]
 
         return res[0] if not self.multiple_input else res
 
     @staticmethod
-    def _turns_to_text(
-        messages: list[Turn],
+    def _message_to_text(
+        messages: list[Message],
         *,
         tgt_delim=" ",
         few_delim="\n\n",
@@ -1223,30 +1228,6 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
-    @staticmethod
-    def append_target_question(
-        labeled_examples: List[Dict[str, str]],
-        question: str,
-        fewshot_as_multiturn: bool = False,
-        gen_prefix: Optional[str] = None,
-    ) -> None:
-        """Adds a target question to the labeled examples list.
-        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
-        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
-        """
-        if not fewshot_as_multiturn:
-            # if no messages or last message is system, append as new user entry
-            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
-            # if last message is user, append to it to avoid two user messages in a row
-            else:
-                labeled_examples[-1]["content"] += question
-        else:
-            # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append({"role": "user", "content": question})
-        if gen_prefix:
-            labeled_examples.append({"role": "assistant", "content": gen_prefix})
-
     def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
@@ -1409,10 +1390,10 @@ class ConfigurableTask(Task):
             return None
 
     def construct_requests(
-        self, doc: dict, ctx: str | list[str], **kwargs
+        self, doc: dict[str, str], ctx: str | list[str], **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
-        # chat_template: Union[Callable, None] = kwargs.pop("chat_template", None)
+        chat_template: Union[Callable, None] = kwargs.pop("chat_template", None)  # noqa: F841
 
         aux_arguments = None
 
@@ -1423,7 +1404,9 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = (
-                self.config.target_delimiter if not apply_chat_template else ""
+                ""
+                if (apply_chat_template and not self.config.gen_prefix)
+                else self.config.target_delimiter
             )
             if self.multiple_inputs:
                 # If there are multiple inputs, assume only one choice

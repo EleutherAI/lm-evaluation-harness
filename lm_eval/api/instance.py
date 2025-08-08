@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal, Optional, Tuple
+from typing import Any, Literal, Optional, Tuple
 
 
 OutputType = Literal[
@@ -10,7 +10,7 @@ OutputType = Literal[
 @dataclass
 class Instance:
     request_type: OutputType
-    doc: dict
+    doc: dict[str, Any]
     arguments: tuple
     idx: int
     metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
