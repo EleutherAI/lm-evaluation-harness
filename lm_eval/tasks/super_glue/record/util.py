@@ -19,7 +19,7 @@ def format_answer(query, entity):
 
 def doc_to_target(doc):
     # We only output the first correct entity in a doc
-    return format_answer(query=doc["query"], entity=doc["answers"][0])
+    return doc["entities"].index(doc["answers"][0])
 
 
 def doc_to_choice(doc):
