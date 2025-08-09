@@ -575,13 +575,13 @@ class Task(abc.ABC):
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
-    @classmethod
-    def count_bytes(cls, doc):
+    @staticmethod
+    def count_bytes(doc):
         """Used for byte-level perplexity metrics in rolling loglikelihood"""
         return len(doc.encode("utf-8"))
 
-    @classmethod
-    def count_words(cls, doc):
+    @staticmethod
+    def count_words(doc):
         """Downstream loglikelihood_rolling perplexity tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
 
