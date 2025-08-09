@@ -622,7 +622,12 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps.keys():
+        available_filters = list(task.instances[0].filtered_resps.keys())
+        # Only log samples for a single preferred filter to avoid duplicate per-doc entries
+        preferred_filter_for_logging = (
+            "flexible-extract" if "flexible-extract" in available_filters else available_filters[0]
+        )
+        for filter_key in available_filters:
             indices = (
                 samples.get(task_output.task_name, None)
                 if samples is not None
@@ -643,7 +648,7 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
-                if log_samples:
+                if log_samples and filter_key == preferred_filter_for_logging:
                     target = task.doc_to_target(doc)
                     example = {
                         "doc_id": doc_id_true,

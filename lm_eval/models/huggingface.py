@@ -1412,6 +1412,9 @@ class HFLM(TemplateLM):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+                # sanitize problematic stop sequences that can appear in CoT traces
+                if until:
+                    until = [u for u in until if u.strip().lower() != "question:"]
             else:
                 raise TypeError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
