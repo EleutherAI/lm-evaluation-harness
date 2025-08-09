@@ -1,7 +1,7 @@
 tag:
   - math_word_problems
 task: mathqa
-dataset_path: math_qa
+dataset_path: swiss-ai/math_qa
 output_type: multiple_choice
 training_split: train
 validation_split: validation
