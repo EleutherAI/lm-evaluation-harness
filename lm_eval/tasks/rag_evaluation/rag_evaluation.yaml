@@ -1,0 +1,53 @@
+task: rag_evaluation
+dataset_path: JoyboyBrian/RED6k-toy
+dataset_name: null
+dataset_kwargs: null
+output_type: generate_until
+training_split: null
+validation_split: train
+test_split: null
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results_all_metrics
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 512
+metric_list:
+  - metric: average_score
+    aggregation: !function utils.aggregate_all_rag_metrics
+    higher_is_better: true
+  - metric: query_relevance_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: query_completeness_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: context_adherence_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: context_completeness_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: response_coherence_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: response_length_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: refusal_quality_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: refusal_clarification_quality_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: refusal_presence_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+  - metric: correctness_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: "Comprehensive RAG evaluation task including all metrics"

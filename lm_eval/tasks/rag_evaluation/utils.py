@@ -321,27 +321,28 @@ def evaluate_with_gpt4(
         print(f"Error: {e}")
         return {"score": 0.0, "explanation": f"Evaluation failed: {str(e)}"}
 
-def aggregate_rag_metrics(results: List[Dict[str, Any]]) -> Dict[str, float]:
-    """Aggregate RAG evaluation metrics."""
+def aggregate_rag_metrics(results: List[Dict[str, Any]]) -> float:
+    """Aggregate RAG evaluation metrics and return mean score."""
     if not results:
-        return {}
+        return 0.0
     
     # Extract scores from results
     scores = []
-    explanations = []
     
     for result in results:
         if isinstance(result, dict):
             # Handle different possible score keys
             score = None
-            for key in ["relevance_score", "score", "rag_score"]:
+            for key in ["relevance_score", "completeness_score", "adherence_score", 
+                       "context_completeness_score", "coherence_score", "length_score",
+                       "refusal_quality_score", "refusal_clarification_score", 
+                       "refusal_presence_score", "correctness_score", "score", "rag_score"]:
                 if key in result and isinstance(result[key], (int, float)):
                     score = float(result[key])
                     break
             
             if score is not None:
                 scores.append(score)
-                explanations.append(result.get("explanation", ""))
             else:
                 print(f"Warning: No valid score found in result: {result}")
                 scores.append(0.0)
@@ -352,19 +353,10 @@ def aggregate_rag_metrics(results: List[Dict[str, Any]]) -> Dict[str, float]:
             scores.append(0.0)
     
     if not scores:
-        return {}
+        return 0.0
     
-    # Calculate statistics
-    mean_score = sum(scores) / len(scores)
-    min_score = min(scores)
-    max_score = max(scores)
-    
-    return {
-        "mean_score": mean_score,
-        "min_score": min_score,
-        "max_score": max_score,
-        "num_evaluations": len(scores)
-    }
+    # Return mean score
+    return sum(scores) / len(scores)
 
 def process_results(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results for RAG task."""
@@ -402,22 +394,19 @@ def process_results(doc: Dict, results: List[str]) -> Dict[str, Any]:
         "metric": metric_name
     }
 
-def process_results_relevance(doc: Dict, results: List[str]) -> Dict[str, Any]:
-    """Process evaluation results specifically for query relevance metric."""
+def process_results_single_metric(doc: Dict, results: List[str], metric_name: str) -> Dict[str, Any]:
+    """Generic process_results function for any single metric."""
     query = doc["query"]
     context = doc["context"]
     ground_truth = doc.get("ground_truth", "")
     
-    print(f"Processing relevance evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    print(f"Processing {metric_name} evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
     
-    # Use the model response from the framework results instead of doc
     if results and len(results) > 0:
         model_response = results[0]
     else:
         model_response = doc.get("model_response", "")
     
-    # Evaluate with GPT-4 for query relevance metric
-    metric_name = "query relevance"
     evaluation_result = evaluate_with_gpt4(
         query=query,
         context=context,
@@ -426,5 +415,268 @@ def process_results_relevance(doc: Dict, results: List[str]) -> Dict[str, Any]:
         ground_truth=ground_truth
     )
     
-    print(f"Relevance evaluation completed. Score: {evaluation_result.get('score', 'N/A')}")
-    return {"relevance_score": evaluation_result.get("score", 0.0)} 
+    print(f"{metric_name} evaluation completed. Score: {evaluation_result.get('score', 'N/A')}")
+    
+    # Convert metric name to score key
+    score_key = metric_name.replace(" ", "_") + "_score"
+    return {score_key: evaluation_result.get("score", 0.0)}
+
+# Individual metric functions for backward compatibility
+def process_results_relevance(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for query relevance metric."""
+    return process_results_single_metric(doc, results, "query relevance")
+
+def process_results_completeness(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for query completeness metric."""
+    return process_results_single_metric(doc, results, "query completeness")
+
+def process_results_adherence(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for context adherence metric."""
+    return process_results_single_metric(doc, results, "context adherence")
+
+def process_results_context_completeness(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for context completeness metric."""
+    return process_results_single_metric(doc, results, "context completeness")
+
+def process_results_coherence(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for response coherence metric."""
+    return process_results_single_metric(doc, results, "response coherence")
+
+def process_results_length(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for response length metric."""
+    return process_results_single_metric(doc, results, "response length")
+
+def process_results_refusal_quality(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for refusal quality metric."""
+    return process_results_single_metric(doc, results, "refusal quality")
+
+def process_results_refusal_clarification(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for refusal clarification quality metric."""
+    return process_results_single_metric(doc, results, "refusal clarification quality")
+
+def process_results_refusal_presence(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for refusal presence metric."""
+    return process_results_single_metric(doc, results, "refusal presence")
+
+def process_results_correctness(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results specifically for correctness metric."""
+    return process_results_single_metric(doc, results, "correctness")
+
+def aggregate_all_rag_metrics(results: List[Dict[str, Any]]) -> float:
+    """Aggregate all RAG metrics and return overall average score."""
+    if not results:
+        return 0.0
+    
+    # Extract scores from results
+    scores = []
+    
+    for result in results:
+        if isinstance(result, dict):
+            # Handle different possible score keys
+            score = None
+            for key in ["relevance_score", "completeness_score", "adherence_score", 
+                       "context_completeness_score", "coherence_score", "length_score",
+                       "refusal_quality_score", "refusal_clarification_score", 
+                       "refusal_presence_score", "correctness_score", "score", "rag_score"]:
+                if key in result and isinstance(result[key], (int, float)):
+                    score = float(result[key])
+                    break
+            
+            if score is not None:
+                scores.append(score)
+            else:
+                print(f"Warning: No valid score found in result: {result}")
+                scores.append(0.0)
+        elif isinstance(result, (int, float)):
+            scores.append(float(result))
+        else:
+            print(f"Warning: Unexpected result format: {result}")
+            scores.append(0.0)
+    
+    if not scores:
+        return 0.0
+    
+    # Return mean score
+    return sum(scores) / len(scores)
+
+def process_results_all_metrics(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results for all RAG metrics in a single pass."""
+    query = doc["query"]
+    context = doc["context"]
+    ground_truth = doc.get("ground_truth", "")
+    
+    print(f"Processing all metrics evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    
+    if results and len(results) > 0:
+        model_response = results[0]
+    else:
+        model_response = doc.get("model_response", "")
+    
+    # Define all metrics to evaluate
+    metrics = [
+        "query relevance",
+        "query completeness", 
+        "context adherence",
+        "context completeness",
+        "response coherence",
+        "response length",
+        "refusal quality",
+        "refusal clarification quality",
+        "refusal presence",
+        "correctness"
+    ]
+    
+    # Evaluate all metrics
+    all_scores = {}
+    scores_list = []
+    for metric_name in metrics:
+        try:
+            evaluation_result = evaluate_with_gpt4(
+                query=query,
+                context=context,
+                response=model_response,
+                metric_name=metric_name,
+                ground_truth=ground_truth
+            )
+            
+            # Map metric names to score keys
+            score_key = metric_name.replace(" ", "_") + "_score"
+            score_value = evaluation_result.get("score", 0.0)
+            all_scores[score_key] = score_value
+            scores_list.append(score_value)
+            
+            print(f"{metric_name} evaluation completed. Score: {evaluation_result.get('score', 'N/A')}")
+            
+        except Exception as e:
+            print(f"Error evaluating {metric_name}: {e}")
+            score_key = metric_name.replace(" ", "_") + "_score"
+            all_scores[score_key] = 0.0
+            scores_list.append(0.0)
+    
+    # Calculate overall mean score
+    if scores_list:
+        overall_mean = sum(scores_list) / len(scores_list)
+        all_scores["average_score"] = overall_mean
+    
+    print(f"All metrics evaluation completed for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    return all_scores
+
+def process_results_all_metrics_optimized(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results for all RAG metrics with a single OpenAI call."""
+    query = doc["query"]
+    context = doc["context"]
+    ground_truth = doc.get("ground_truth", "")
+    
+    print(f"Processing all metrics evaluation (optimized) for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    
+    if results and len(results) > 0:
+        model_response = results[0]
+    else:
+        model_response = doc.get("model_response", "")
+    
+    # Create a comprehensive prompt for all metrics
+    system_prompt = """You are an expert evaluator for RAG (Retrieval-Augmented Generation) systems. 
+    You will evaluate a model response across multiple dimensions. For each metric, provide a score from 0 to 10 
+    and a brief explanation. Output your evaluation in JSON format.
+
+    Metrics to evaluate:
+    1. query_relevance: How much the information in the response is related to the query
+    2. query_completeness: How thoroughly the response answers the query
+    3. context_adherence: How much of the response is directly based on the context
+    4. context_completeness: How much relevant context is incorporated into the response
+    5. response_coherence: Overall coherence, grammar, fluency and readability
+    6. response_length: Whether the response length is appropriate
+    7. refusal_quality: How well the response explains its refusal (if applicable)
+    8. refusal_clarification_quality: Quality of clarification questions (if applicable)
+    9. refusal_presence: Whether the response contains a refusal (0 or 1)
+    10. correctness: How correct the response is compared to ground truth
+
+    Output format:
+    {
+        "query_relevance": {"score": X, "explanation": "..."},
+        "query_completeness": {"score": X, "explanation": "..."},
+        ...
+    }"""
+
+    user_prompt = f"""
+    Query: {query}
+    Context: {context}
+    Model Response: {model_response}
+    Ground Truth: {ground_truth}
+
+    Please evaluate the model response across all metrics and provide scores and explanations.
+    """
+
+    try:
+        # Single OpenAI call for all metrics
+        evaluation_result = evaluate_with_gpt4_comprehensive(
+            query=query,
+            context=context,
+            response=model_response,
+            ground_truth=ground_truth,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt
+        )
+        
+        # Parse the comprehensive result
+        all_scores = {}
+        if isinstance(evaluation_result, dict) and "scores" in evaluation_result:
+            scores_data = evaluation_result["scores"]
+            for metric_name, score_data in scores_data.items():
+                if isinstance(score_data, dict) and "score" in score_data:
+                    all_scores[metric_name + "_score"] = float(score_data["score"])
+                else:
+                    all_scores[metric_name + "_score"] = 0.0
+        else:
+            # Fallback to individual evaluations if comprehensive evaluation fails
+            print("Comprehensive evaluation failed, falling back to individual evaluations")
+            return process_results_all_metrics(doc, results)
+        
+        print(f"All metrics evaluation (optimized) completed for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+        return all_scores
+        
+    except Exception as e:
+        print(f"Error in comprehensive evaluation: {e}, falling back to individual evaluations")
+        return process_results_all_metrics(doc, results)
+
+def evaluate_with_gpt4_comprehensive(
+    query: str, 
+    context: List[str], 
+    response: str, 
+    ground_truth: str = None,
+    system_prompt: str = None,
+    user_prompt: str = None,
+    openai_client: OpenAI = None,
+    gpt_model: str = "gpt-4o"
+) -> Dict[str, Any]:
+    """Evaluate all metrics with a single OpenAI call."""
+    if openai_client is None:
+        openai_client = OpenAI()
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
+    
+    try:
+        response_obj = openai_client.chat.completions.create(
+            model=gpt_model,
+            messages=messages,
+            temperature=0.0,
+            max_tokens=2000
+        )
+        
+        content = response_obj.choices[0].message.content
+        
+        # Try to parse JSON response
+        try:
+            import json
+            scores_data = json.loads(content)
+            return {"scores": scores_data}
+        except json.JSONDecodeError:
+            print(f"Failed to parse JSON response: {content}")
+            return {"scores": {}}
+            
+    except Exception as e:
+        print(f"Error calling OpenAI API: {e}")
+        return {"scores": {}} 

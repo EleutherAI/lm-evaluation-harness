@@ -1,0 +1,23 @@
+task: rag_evaluation_coherence
+dataset_path: JoyboyBrian/RED6k-toy
+dataset_name: null
+dataset_kwargs: null
+output_type: generate_until
+training_split: null
+validation_split: train
+test_split: null
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results_coherence
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 512
+metric_list:
+  - metric: coherence_score
+    aggregation: !function utils.aggregate_rag_metrics
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: "RAG evaluation task focusing on response coherence metric"
