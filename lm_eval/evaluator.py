@@ -656,6 +656,11 @@ def evaluate(
                         "target_hash": hash_string(str(target)),
                     }
                     example.update(metrics)
+                    
+                    # Add sample information if available
+                    if "_sample_info" in doc:
+                        example["sample"] = doc["_sample_info"]
+                    
                     task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)

@@ -9,7 +9,7 @@ test_split: null
 process_docs: !function utils.process_docs
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
-process_results: !function utils.process_results_all_metrics
+process_results: !function utils.process_results_all_metrics_with_samples
 generation_kwargs:
   do_sample: false
   temperature: 0.0

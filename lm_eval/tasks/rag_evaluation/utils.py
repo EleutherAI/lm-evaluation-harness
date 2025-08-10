@@ -243,20 +243,21 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         else:
             context = [str(context)]
         
-        out_doc = {
+        # Update the original doc with standardized fields
+        doc.update({
             "query": query,
-            "context": context,
+            "contexts": context,
             "ground_truth": ground_truth,
             "model_response": model_response,
-        }
-        return out_doc
+        })
+        return doc
 
     return dataset.map(_process_doc)
 
 def doc_to_text(doc) -> str:
     """Format document for text generation."""
     query = doc["query"]
-    context = doc["context"]
+    context = doc["contexts"]
     
     # Convert context list to string if needed
     if isinstance(context, list):
@@ -363,7 +364,7 @@ def process_results(doc: Dict, results: List[str]) -> Dict[str, Any]:
     # This function will be called by the framework to process results
     # For RAG evaluation, we need to evaluate the model's response using GPT-4
     query = doc["query"]
-    context = doc["context"]
+    context = doc["contexts"]
     model_response = doc.get("model_response", "")
     ground_truth = doc.get("ground_truth", "")
     
@@ -388,7 +389,7 @@ def process_results(doc: Dict, results: List[str]) -> Dict[str, Any]:
         "rag_score": evaluation_result["score"],
         "rag_explanation": evaluation_result["explanation"],
         "query": query,
-        "context": context,
+        "contexts": context,
         "model_response": model_response,
         "ground_truth": ground_truth,
         "metric": metric_name
@@ -397,7 +398,7 @@ def process_results(doc: Dict, results: List[str]) -> Dict[str, Any]:
 def process_results_single_metric(doc: Dict, results: List[str], metric_name: str) -> Dict[str, Any]:
     """Generic process_results function for any single metric."""
     query = doc["query"]
-    context = doc["context"]
+    context = doc["contexts"]
     ground_truth = doc.get("ground_truth", "")
     
     print(f"Processing {metric_name} evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
@@ -424,43 +425,43 @@ def process_results_single_metric(doc: Dict, results: List[str], metric_name: st
 # Individual metric functions for backward compatibility
 def process_results_relevance(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for query relevance metric."""
-    return process_results_single_metric(doc, results, "query relevance")
+    return process_results_single_metric_with_samples(doc, results, "query relevance")
 
 def process_results_completeness(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for query completeness metric."""
-    return process_results_single_metric(doc, results, "query completeness")
+    return process_results_single_metric_with_samples(doc, results, "query completeness")
 
 def process_results_adherence(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for context adherence metric."""
-    return process_results_single_metric(doc, results, "context adherence")
+    return process_results_single_metric_with_samples(doc, results, "context adherence")
 
 def process_results_context_completeness(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for context completeness metric."""
-    return process_results_single_metric(doc, results, "context completeness")
+    return process_results_single_metric_with_samples(doc, results, "context completeness")
 
 def process_results_coherence(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for response coherence metric."""
-    return process_results_single_metric(doc, results, "response coherence")
+    return process_results_single_metric_with_samples(doc, results, "response coherence")
 
 def process_results_length(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for response length metric."""
-    return process_results_single_metric(doc, results, "response length")
+    return process_results_single_metric_with_samples(doc, results, "response length")
 
 def process_results_refusal_quality(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for refusal quality metric."""
-    return process_results_single_metric(doc, results, "refusal quality")
+    return process_results_single_metric_with_samples(doc, results, "refusal quality")
 
 def process_results_refusal_clarification(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for refusal clarification quality metric."""
-    return process_results_single_metric(doc, results, "refusal clarification quality")
+    return process_results_single_metric_with_samples(doc, results, "refusal clarification quality")
 
 def process_results_refusal_presence(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for refusal presence metric."""
-    return process_results_single_metric(doc, results, "refusal presence")
+    return process_results_single_metric_with_samples(doc, results, "refusal presence")
 
 def process_results_correctness(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results specifically for correctness metric."""
-    return process_results_single_metric(doc, results, "correctness")
+    return process_results_single_metric_with_samples(doc, results, "correctness")
 
 def aggregate_all_rag_metrics(results: List[Dict[str, Any]]) -> float:
     """Aggregate all RAG metrics and return overall average score."""
@@ -499,10 +500,152 @@ def aggregate_all_rag_metrics(results: List[Dict[str, Any]]) -> float:
     # Return mean score
     return sum(scores) / len(scores)
 
+def process_results_single_metric_with_samples(doc: Dict, results: List[str], metric_name: str) -> Dict[str, Any]:
+    """Process evaluation results for a single RAG metric with sample logging support."""
+    query = doc["query"]
+    context = doc["contexts"]
+    ground_truth = doc.get("ground_truth", "")
+    
+    if results and len(results) > 0:
+        model_response = results[0]
+    else:
+        model_response = doc.get("model_response", "")
+    
+    print(f"Processing {metric_name} evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    
+    try:
+        evaluation_result = evaluate_with_gpt4(
+            query=query,
+            context=context,
+            response=model_response,
+            metric_name=metric_name,
+            ground_truth=ground_truth
+        )
+        
+        score_key = metric_name.replace(" ", "_") + "_score"
+        score_value = evaluation_result.get("score", 0.0)
+        explanation = evaluation_result.get("explanation", "")
+        
+        # Store sample information in doc for later use
+        doc["_sample_info"] = {
+            "question": query,
+            "slm_response": model_response,
+            "metric": metric_name,
+            "score": score_value,
+            "explanation": explanation
+        }
+        
+        result = {
+            score_key: score_value
+        }
+        
+        print(f"{metric_name} evaluation completed. Score: {score_value}")
+        return result
+        
+    except Exception as e:
+        print(f"Error evaluating {metric_name}: {e}")
+        score_key = metric_name.replace(" ", "_") + "_score"
+        
+        # Store sample information in doc for later use
+        doc["_sample_info"] = {
+            "question": query,
+            "slm_response": model_response,
+            "metric": metric_name,
+            "score": 0.0,
+            "explanation": f"Evaluation failed: {str(e)}"
+        }
+        
+        return {score_key: 0.0}
+
+def process_results_all_metrics_with_samples(doc: Dict, results: List[str]) -> Dict[str, Any]:
+    """Process evaluation results for all RAG metrics with sample logging support."""
+    query = doc["query"]
+    context = doc["contexts"]
+    ground_truth = doc.get("ground_truth", "")
+    
+    print(f"Processing all metrics evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    
+    if results and len(results) > 0:
+        model_response = results[0]
+    else:
+        model_response = doc.get("model_response", "")
+    
+    # Define all metrics to evaluate
+    metrics = [
+        "query relevance",
+        "query completeness", 
+        "context adherence",
+        "context completeness",
+        "response coherence",
+        "response length",
+        "refusal quality",
+        "refusal clarification quality",
+        "refusal presence",
+        "correctness"
+    ]
+    
+    # Evaluate all metrics
+    all_scores = {}
+    scores_list = []
+    metrics_array = []
+    
+    for metric_name in metrics:
+        try:
+            evaluation_result = evaluate_with_gpt4(
+                query=query,
+                context=context,
+                response=model_response,
+                metric_name=metric_name,
+                ground_truth=ground_truth
+            )
+            
+            # Map metric names to score keys
+            score_key = metric_name.replace(" ", "_") + "_score"
+            score_value = evaluation_result.get("score", 0.0)
+            explanation = evaluation_result.get("explanation", "")
+            
+            all_scores[score_key] = score_value
+            scores_list.append(score_value)
+            
+            # Add to metrics array for sample logging
+            metrics_array.append({
+                "metric": metric_name,
+                "score": score_value,
+                "explanation": explanation
+            })
+            
+            print(f"{metric_name} evaluation completed. Score: {score_value}")
+            
+        except Exception as e:
+            print(f"Error evaluating {metric_name}: {e}")
+            score_key = metric_name.replace(" ", "_") + "_score"
+            all_scores[score_key] = 0.0
+            scores_list.append(0.0)
+            
+            metrics_array.append({
+                "metric": metric_name,
+                "score": 0.0,
+                "explanation": f"Evaluation failed: {str(e)}"
+            })
+    
+    # Calculate overall mean score
+    if scores_list:
+        overall_mean = sum(scores_list) / len(scores_list)
+        all_scores["average_score"] = overall_mean
+    
+    # Store sample information in doc for later use
+    doc["_sample_info"] = {
+        "question": query,
+        "metrics": metrics_array
+    }
+    
+    print(f"All metrics evaluation completed for query: {query[:50]}{'...' if len(query) > 50 else ''}")
+    return all_scores
+
 def process_results_all_metrics(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results for all RAG metrics in a single pass."""
     query = doc["query"]
-    context = doc["context"]
+    context = doc["contexts"]
     ground_truth = doc.get("ground_truth", "")
     
     print(f"Processing all metrics evaluation for query: {query[:50]}{'...' if len(query) > 50 else ''}")
@@ -564,7 +707,7 @@ def process_results_all_metrics(doc: Dict, results: List[str]) -> Dict[str, Any]
 def process_results_all_metrics_optimized(doc: Dict, results: List[str]) -> Dict[str, Any]:
     """Process evaluation results for all RAG metrics with a single OpenAI call."""
     query = doc["query"]
-    context = doc["context"]
+    context = doc["contexts"]
     ground_truth = doc.get("ground_truth", "")
     
     print(f"Processing all metrics evaluation (optimized) for query: {query[:50]}{'...' if len(query) > 50 else ''}")
