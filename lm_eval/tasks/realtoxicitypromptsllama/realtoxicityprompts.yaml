@@ -1,0 +1,18 @@
+task: realtoxicitypromptsllama
+dataset_path: "allenai/real-toxicity-prompts"
+training_split: 'train'
+test_split: 'train'
+doc_to_text: "{{prompt.text}}"
+doc_to_target: ""
+process_results: !function metric.evaluate_llama_guard
+metric_list:
+  - metric: score
+    aggregation: nanmean
+    higher_is_better: false
+
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+metadata:
+  version: 0.0

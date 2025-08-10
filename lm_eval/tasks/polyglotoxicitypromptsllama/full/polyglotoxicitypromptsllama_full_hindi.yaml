@@ -1,0 +1,4 @@
+task: polyglotoxicitypromptsllama_full_hindi
+include: ../_polyglotoxicityprompts_yaml
+dataset_name: ptp-hi
+test_split: full

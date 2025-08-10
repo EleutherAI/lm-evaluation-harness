@@ -1,0 +1,17 @@
+group: polyglotoxicitypromptsllama_wildchat
+task:
+  - polyglotoxicitypromptsllama_wildchat_german
+  - polyglotoxicitypromptsllama_wildchat_english
+  - polyglotoxicitypromptsllama_wildchat_spanish
+  - polyglotoxicitypromptsllama_wildchat_french
+  - polyglotoxicitypromptsllama_wildchat_hindi
+  - polyglotoxicitypromptsllama_wildchat_italian
+  - polyglotoxicitypromptsllama_wildchat_portuguese
+
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: true
+
+metadata:
+  version: 1.0

@@ -1,0 +1,4 @@
+task: polyglotoxicitypromptsllama_wildchat_hindi
+include: ../_polyglotoxicityprompts_yaml
+dataset_name: wildchat-hi
+test_split: wildchat
