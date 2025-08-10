@@ -396,14 +396,17 @@ def _doc_to_choice_groups(doc):
 
 def doc_to_targets(doc):
     """
-    Returns a list of all the possible targets;
-    i.e., add other unknown responses as possible targets.
+    Returns a list of all the possible correct labels for the given document. i.e., add other unknown responses as possible targets.
+
+    :Note: Target refers to the correct choices, not to BBQ's target bias.
+
+    :Warning: This function assumes UNKNOWN_RESPONSES indices are [0 or 1 or 2] + [3, ..., 3 + len(UNKNOWN_RESPONSES) - 1].
     """
     label = doc["label"]
     choices = [doc["ans0"], doc["ans1"], doc["ans2"]]
     target_word = choices[label]
     if target_word in UNKNOWN_RESPONSES:
-        targets = list(range(2, 2 + len(UNKNOWN_RESPONSES) + 1))
+        targets = [label] + list(range(3, 3 + len(UNKNOWN_RESPONSES) - 1))
     else:
         targets = [doc_to_choice(doc).index(target_word)]
     return targets
