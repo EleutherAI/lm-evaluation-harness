@@ -406,7 +406,7 @@ def doc_to_targets(doc):
     choices = [doc["ans0"], doc["ans1"], doc["ans2"]]
     target_word = choices[label]
     if target_word in UNKNOWN_RESPONSES:
-        targets = [label] + list(range(3, 3 + len(UNKNOWN_RESPONSES)))
+        targets = [label] + list(range(3, 3 + len(UNKNOWN_RESPONSES) - 1))
     else:
         targets = [doc_to_choice(doc).index(target_word)]
     return targets
