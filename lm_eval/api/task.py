@@ -705,9 +705,9 @@ class Task(abc.ABC):
 
     @property
     def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
-        if self.has_test_docs:
+        if self.has_test_docs():
             return self.test_docs()
-        elif self.has_validation_docs:
+        elif self.has_validation_docs():
             return self.validation_docs()
         else:
             raise ValueError(
@@ -1017,15 +1017,12 @@ class ConfigurableTask(Task):
                 **dataset_kwargs if dataset_kwargs is not None else {},
             )
 
-    @property
     def has_training_docs(self) -> bool:
         return self.config.training_split is not None
 
-    @property
     def has_validation_docs(self) -> bool:
         return self.config.validation_split is not None
 
-    @property
     def has_test_docs(self) -> bool:
         return self.config.test_split is not None
 
@@ -1332,7 +1329,7 @@ class ConfigurableTask(Task):
         ):
             messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
 
-        if self.multiple_input:
+        if self.multiple_inputs:
             # if multiple inputs, then doc_to_text: list[str]
             messages = [
                 messages
