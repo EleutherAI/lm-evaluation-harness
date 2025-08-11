@@ -74,8 +74,6 @@ def validate_hf_model(model_name: str) -> bool:
         
         if info:
             print(f"✅ Model found: {model_name}")
-            print(f"✅ Model type: {info.model_type or 'Unknown'}")
-            print(f"✅ Last modified: {info.last_modified}")
             return True
         else:
             print(f"❌ Model not found: {model_name}")
