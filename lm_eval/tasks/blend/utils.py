@@ -5,6 +5,69 @@ BLEnD: A Benchmark for LLMs on Everyday Knowledge in Diverse Cultures and Langua
 
 import json
 from functools import partial
+from datasets import concatenate_datasets
+
+
+def balanced_language_category_sample(ds, k, seed=42):
+    """
+    Sample k examples per country, evenly distributed across categories.
+
+    Args:
+        ds (datasets.Dataset): The dataset with columns "country" and "ID".
+        k (int): Number of samples to take per language.
+        seed (int): Random seed for reproducibility.
+
+    Returns:
+        datasets.Dataset: The balanced sampled dataset.
+    """
+    all_lang_samples = []
+
+    for lang in ds.unique("country"):
+        # Subset to this language
+        ds_lang = ds.filter(lambda ex, l=lang: ex["country"] == l)
+
+        cats = ds_lang.unique("ID")
+        num_cats = len(cats)
+        if num_cats == 0:
+            continue
+
+        # Even target per category for this language
+        base = k // num_cats
+        rem = k % num_cats
+        cats_sorted = sorted(cats)
+        targets = {c: base + (i < rem) for i, c in enumerate(cats_sorted)}
+
+        per_cat_samples = []
+        leftovers = []
+
+        # Sample from each category
+        for c in cats_sorted:
+            ds_cat = ds_lang.filter(lambda ex, cat=c: ex["ID"] == cat).shuffle(seed=seed)
+            want = targets[c]
+            take = min(want, len(ds_cat))
+            if take > 0:
+                per_cat_samples.append(ds_cat.select(range(take)))
+            if len(ds_cat) > take:
+                leftovers.append(ds_cat.select(range(take, len(ds_cat))))
+
+        # Merge category samples for this language
+        lang_sample = concatenate_datasets(per_cat_samples) if per_cat_samples else None
+
+        # Top up if some categories were too small
+        got = len(lang_sample) if lang_sample is not None else 0
+        need = max(0, k - got)
+        if need > 0 and leftovers:
+            leftover_pool = concatenate_datasets(leftovers).shuffle(seed=seed)
+            top_up = leftover_pool.select(range(min(need, len(leftover_pool))))
+            lang_sample = top_up if lang_sample is None else concatenate_datasets([lang_sample, top_up])
+
+        if lang_sample is not None:
+            lang_sample = lang_sample.shuffle(seed=seed)
+            all_lang_samples.append(lang_sample)
+
+    # Combine all languages
+    final_sample = concatenate_datasets(all_lang_samples).shuffle(seed=seed)
+    return final_sample
 
 
 def process_docs_by_country(dataset, country):
@@ -33,7 +96,8 @@ def process_docs_by_country(dataset, country):
         return doc
 
     filtered_dataset = dataset.filter(lambda x: x["country"] == country).select(range(500))
-    return filtered_dataset.map(parse_choices)
+    sampled_dataset = balanced_language_category_sample(filtered_dataset, 500)
+    return sampled_dataset.map(parse_choices)
 
 
 # Create process functions for specific countries
