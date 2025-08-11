@@ -1,9 +1,9 @@
-task: summ_SumArabic_ar
+task: summ_XLSum
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/SumArabic.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/XLSum.json
 test_split: test
 
 output_type: generate_until

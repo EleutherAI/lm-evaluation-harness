@@ -1,0 +1,7 @@
+task: summ_CrossSum_en_ar
+include: _default_summarization_template_yaml
+dataset_kwargs:
+  data_files:
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/CrossSum_en_ar.json
+
+doc_to_text: "summarize the following from English to Arabic: {{ prompt }}"

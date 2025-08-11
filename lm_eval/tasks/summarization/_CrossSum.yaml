@@ -1,0 +1,7 @@
+group: summ_CrossSum
+metadata:
+    description: CrossSum Benchmark
+    version: 0
+task:
+- summ_CrossSum_ar_en
+- summ_CrossSum_en_ar
