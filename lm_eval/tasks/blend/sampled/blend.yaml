@@ -1,0 +1,27 @@
+group: blend_sample
+task:
+  - blend_algeria_sample
+  - blend_assam_sample
+  - blend_azerbaijan_sample
+  - blend_china_sample
+  - blend_ethiopia_sample
+  - blend_greece_sample
+  - blend_indonesia_sample
+  - blend_iran_sample
+  - blend_mexico_sample
+  - blend_north_korea_sample
+  - blend_northern_nigeria_sample
+  - blend_south_korea_sample
+  - blend_spain_sample
+  - blend_uk_sample
+  - blend_us_sample
+  - blend_west_java_sample
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0 
