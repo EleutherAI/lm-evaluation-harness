@@ -1114,18 +1114,21 @@ class ConfigurableTask(Task):
         """
         return doc
 
-    def doc_to_text(self, doc, doc_to_text=None):
+    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str]:
         doc_to_text = doc_to_text or self.config.doc_to_text
 
-        if isinstance(doc_to_text, int):
-            # doc_to_text: 2
-            return doc_to_text
+        if isinstance(doc_to_text, list):
+            return utils.apply_template(doc_to_text, doc)
         elif isinstance(doc_to_text, str):
             # return df field
             if doc_to_text in self.features:
                 return doc[doc_to_text]
             else:
-                return utils.apply_template(doc_to_text, doc)
+                return (
+                    utils.apply_template(doc_to_text, doc)
+                    if not self.multiple_inputs
+                    else ast.literal_eval(utils.apply_template(doc_to_text, doc))
+                )
         elif callable(doc_to_text):
             return doc_to_text(doc)
         else:
@@ -1134,7 +1137,7 @@ class ConfigurableTask(Task):
 
     def doc_to_target(
         self, doc: dict[str, Any], doc_to_target=None
-    ) -> Union[int, str, list]:
+    ) -> Union[int, str, list[int], list[str]]:
         doc_to_target = doc_to_target or self.config.doc_to_target
 
         if isinstance(doc_to_target, int):
@@ -1149,6 +1152,8 @@ class ConfigurableTask(Task):
             # doc_to_target: {{answer[0]}} -> "2"
             if target_string.isdigit() and self._config.doc_to_choice is not None:
                 return ast.literal_eval(target_string)
+            elif self.multiple_targets:
+                return ast.literal_eval(target_string)
             else:
                 return target_string
         elif callable(doc_to_target):
@@ -1156,11 +1161,14 @@ class ConfigurableTask(Task):
             return doc_to_target(doc)
         elif isinstance(doc_to_target, list):
             # ["{{field}}", "{{field}}"]
-            return utils.apply_template(doc_to_target, doc)
+            res = utils.apply_template(doc_to_target, doc)
+            return (
+                res if not self.multiple_targets else [ast.literal_eval(x) for x in res]
+            )
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> List[str]:
+    def doc_to_choice(self, doc: dict[str, Any], doc_to_choice=None) -> list[str]:
         doc_to_choice = doc_to_choice or self.config.doc_to_choice
         if doc_to_choice is None:
             eval_logger.error("doc_to_choice was called but not set in config")
