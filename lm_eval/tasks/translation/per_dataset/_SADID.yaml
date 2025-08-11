@@ -1,0 +1,9 @@
+group: trans_SADID
+metadata:
+    description: Translation task for SADID Benchmark  
+    version: 0
+task:
+- translation_sadid__apc-en
+- translation_sadid__arz-en
+- translation_sadid__en-apc
+- translation_sadid__en-arz
