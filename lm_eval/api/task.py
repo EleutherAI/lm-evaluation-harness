@@ -106,7 +106,7 @@ class TaskConfig(dict):
     # scoring options
     metric_list: Optional[list] = None
     output_type: OutputType = "generate_until"
-    generation_kwargs: Optional[dict] = None
+    generation_kwargs: Optional[dict[str, Any]] = None
     repeats: int = 1
     filter_list: Optional[Union[str, list]] = None
     should_decontaminate: bool = False
@@ -227,7 +227,7 @@ class Task(abc.ABC):
         data_dir: Optional[str] = None,
         cache_dir: Optional[str] = None,
         download_mode: Optional[datasets.DownloadMode] = None,
-        config: Optional[Mapping] = None,  # Union[dict, TaskConfig]
+        config: Optional[Mapping[str, Any]] = None,  # Union[dict, TaskConfig]
     ) -> None:
         """
         :param data_dir: str
@@ -707,9 +707,9 @@ class Task(abc.ABC):
 
     @property
     def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
-        if self.has_test_docs():
+        if self.has_test_docs:
             return self.test_docs()
-        elif self.has_validation_docs():
+        elif self.has_validation_docs:
             return self.validation_docs()
         else:
             raise ValueError(
@@ -843,12 +843,14 @@ class Task(abc.ABC):
             messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
 
         if self.multiple_input:
+            # if multiple inputs, then doc_to_text: list[str]
             messages = [
                 messages
                 + self._doc_to_qa_pair(doc, gen_prefix, q=q, include_answer=False)
                 for q in self.doc_to_text(doc)
             ]
         else:
+            # otherwise, doc_to_text: str for all other cases
             messages += self._doc_to_qa_pair(doc, gen_prefix, include_answer=False)
             messages = [messages]
 
@@ -1162,26 +1164,20 @@ class ConfigurableTask(Task):
                 **dataset_kwargs if dataset_kwargs is not None else {},
             )
 
+    @property
     def has_training_docs(self) -> bool:
-        if self.config.training_split is not None:
-            return True
-        else:
-            return False
+        return self.config.training_split is not None
 
+    @property
     def has_validation_docs(self) -> bool:
-        if self.config.validation_split is not None:
-            return True
-        else:
-            return False
+        return self.config.validation_split is not None
 
+    @property
     def has_test_docs(self) -> bool:
-        if self.config.test_split is not None:
-            return True
-        else:
-            return False
+        return self.config.test_split is not None
 
     def training_docs(self) -> datasets.Dataset:
-        if self.has_training_docs():
+        if self.has_training_docs:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.training_split]
@@ -1189,7 +1185,7 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.training_split]
 
     def validation_docs(self) -> datasets.Dataset:
-        if self.has_validation_docs():
+        if self.has_validation_docs:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.validation_split]
@@ -1197,7 +1193,7 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.validation_split]
 
     def test_docs(self) -> datasets.Dataset:
-        if self.has_test_docs():
+        if self.has_test_docs:
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
