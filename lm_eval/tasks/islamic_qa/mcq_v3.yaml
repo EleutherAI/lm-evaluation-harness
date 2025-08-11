@@ -1,4 +1,4 @@
-task: religious_mcq
+task: mcq.islamic_qa
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
