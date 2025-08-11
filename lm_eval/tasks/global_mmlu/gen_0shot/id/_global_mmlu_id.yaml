@@ -1,0 +1,13 @@
+group: global_mmlu_id_gen_0shot
+task:
+  - global_mmlu_id_business_gen_0shot
+  - global_mmlu_id_humanities_gen_0shot
+  - global_mmlu_id_medical_gen_0shot
+  - global_mmlu_id_other_gen_0shot
+  - global_mmlu_id_stem_gen_0shot
+  - global_mmlu_id_social_sciences_gen_0shot
+aggregate_metric_list:
+  - metric: exact_match
+    filter_list: "extract-answer"
+metadata:
+  version: 0.0

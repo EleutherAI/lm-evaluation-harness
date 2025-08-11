@@ -1,0 +1,22 @@
+group: global_mmlu_gen_0shot_cot
+task:
+  - global_mmlu_ar_gen_0shot_cot
+  - global_mmlu_bn_gen_0shot_cot
+  - global_mmlu_de_gen_0shot_cot
+  - global_mmlu_en_gen_0shot_cot
+  - global_mmlu_es_gen_0shot_cot
+  - global_mmlu_fr_gen_0shot_cot
+  - global_mmlu_hi_gen_0shot_cot
+  - global_mmlu_id_gen_0shot_cot
+  - global_mmlu_it_gen_0shot_cot
+  - global_mmlu_ja_gen_0shot_cot
+  - global_mmlu_ko_gen_0shot_cot
+  - global_mmlu_pt_gen_0shot_cot
+  - global_mmlu_sw_gen_0shot_cot
+  - global_mmlu_yo_gen_0shot_cot
+  - global_mmlu_zh_gen_0shot_cot
+aggregate_metric_list:
+  - metric: exact_match
+    filter_list: "extract-answer"
+metadata:
+  version: 0.0
