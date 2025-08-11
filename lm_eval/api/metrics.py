@@ -200,8 +200,8 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def exact_match_hf_evaluate(
-    predictions: Iterable[str] | str,
-    references: Iterable[str] | str,
+    predictions: list[str],
+    references: list[str],
     regexes_to_ignore: list[str] | None = None,
     ignore_case: bool = False,
     ignore_punctuation: bool = False,
@@ -220,8 +220,8 @@ def exact_match_hf_evaluate(
         numpy broadcasting rule applies
 
     Args:
-        predictions (Iterable[str] | str): The predicted strings to evaluate.
-        references (Iterable[str] | str): The reference strings to compare against.
+        predictions (list[str]): The predicted strings to evaluate.
+        references (list[str]): The reference strings to compare against.
         regexes_to_ignore (list[str], optional): A list of regex patterns to remove
             from both predictions and references before comparison. Defaults to None.
         ignore_case (bool, optional): If True, ignores case differences during comparison.
@@ -237,11 +237,6 @@ def exact_match_hf_evaluate(
         dict: A dictionary containing the exact match score:
             - "exact_match" (float): The mean exact match score or 1.0/0.0 if `multi_target` is True.
     """
-    predictions, references = list(predictions), list(references)
-    assert len(predictions) == len(references) if not multiple_targets else True, (
-        "predictions and references must have the same length unless `multi_target` is True"
-    )
-
     if regexes_to_ignore is not None:
         for s in regexes_to_ignore:
             predictions = np.array([re.sub(s, "", x) for x in predictions])
