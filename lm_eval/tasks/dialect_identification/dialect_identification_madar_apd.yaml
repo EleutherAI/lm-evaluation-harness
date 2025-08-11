@@ -1,9 +1,9 @@
-task: dialect_identification_ar_madar
+task: dialect_identification_madar_apd
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/dialect_identification/mcq/MADAR.json
+    test: /home/mostafa.awad/BGM/dialect_identification//mcq_split_by_dialect/MADAR/apd/test.jsonl
 test_split: test
 
 output_type: multiple_choice
