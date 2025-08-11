@@ -45,3 +45,4 @@ examples/wandb/
 
 # PyInstaller
 *.spec
+out/*

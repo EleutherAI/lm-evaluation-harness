@@ -1,3 +1,0 @@
-include: _template_yaml
-task: blend_us
-process_docs: !function utils.process_us 

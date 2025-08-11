@@ -1,3 +1,0 @@
-include: _template_yaml
-task: blend_mexico
-process_docs: !function utils.process_mexico 

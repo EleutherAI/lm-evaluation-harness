@@ -1,3 +1,0 @@
-include: _template_yaml
-task: blend_northern_nigeria
-process_docs: !function utils.process_northern_nigeria 
