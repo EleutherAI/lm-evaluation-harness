@@ -1,0 +1,51 @@
+group: include_base_44_gen_0shot
+task:
+  - include_base_44_albanian_gen_0shot
+  - include_base_44_arabic_gen_0shot
+  - include_base_44_armenian_gen_0shot
+  - include_base_44_azerbaijani_gen_0shot
+  - include_base_44_basque_gen_0shot
+  - include_base_44_belarusian_gen_0shot
+  - include_base_44_bengali_gen_0shot
+  - include_base_44_bulgarian_gen_0shot
+  - include_base_44_chinese_gen_0shot
+  - include_base_44_croatian_gen_0shot
+  - include_base_44_dutch_gen_0shot
+  - include_base_44_estonian_gen_0shot
+  - include_base_44_finnish_gen_0shot
+  - include_base_44_french_gen_0shot
+  - include_base_44_georgian_gen_0shot
+  - include_base_44_german_gen_0shot
+  - include_base_44_greek_gen_0shot
+  - include_base_44_hebrew_gen_0shot
+  - include_base_44_hindi_gen_0shot
+  - include_base_44_hungarian_gen_0shot
+  - include_base_44_indonesian_gen_0shot
+  - include_base_44_italian_gen_0shot
+  - include_base_44_japanese_gen_0shot
+  - include_base_44_kazakh_gen_0shot
+  - include_base_44_korean_gen_0shot
+  - include_base_44_lithuanian_gen_0shot
+  - include_base_44_malay_gen_0shot
+  - include_base_44_malayalam_gen_0shot
+  - include_base_44_nepali_gen_0shot
+  - include_base_44_north macedonian_gen_0shot
+  - include_base_44_persian_gen_0shot
+  - include_base_44_polish_gen_0shot
+  - include_base_44_portuguese_gen_0shot
+  - include_base_44_russian_gen_0shot
+  - include_base_44_serbian_gen_0shot
+  - include_base_44_spanish_gen_0shot
+  - include_base_44_tagalog_gen_0shot
+  - include_base_44_tamil_gen_0shot
+  - include_base_44_telugu_gen_0shot
+  - include_base_44_turkish_gen_0shot
+  - include_base_44_ukrainian_gen_0shot
+  - include_base_44_urdu_gen_0shot
+  - include_base_44_uzbek_gen_0shot
+  - include_base_44_vietnamese_gen_0shot
+aggregate_metric_list:
+- metric: exact_match
+  filter_list: "extract-answer"
+metadata:
+  version: 1.0

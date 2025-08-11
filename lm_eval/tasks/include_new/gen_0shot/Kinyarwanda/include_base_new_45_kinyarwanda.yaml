@@ -1,0 +1,3 @@
+include: ../_base_template_yaml
+dataset_name: Kinyarwanda
+task: include_base_new_45_kinyarwanda_gen_0shot

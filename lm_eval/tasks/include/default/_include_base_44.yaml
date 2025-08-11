@@ -11,6 +11,7 @@ task:
   - include_base_44_chinese
   - include_base_44_croatian
   - include_base_44_dutch
+  - include_base_44_estonian
   - include_base_44_finnish
   - include_base_44_french
   - include_base_44_georgian

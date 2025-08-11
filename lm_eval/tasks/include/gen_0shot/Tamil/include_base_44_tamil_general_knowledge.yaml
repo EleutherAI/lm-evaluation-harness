@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Tamil
+description: பின்வருபவை General knowledge பற்றிய பல தேர்வு கேள்விகள் (பதில்களுடன்)
+  உள்ளன.
+process_docs: !function '../utils.process_general_knowledge'
+task: include_base_44_tamil_gen_0shot_general_knowledge

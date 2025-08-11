@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Portuguese
+description: A seguir estão perguntas de múltipla escolha (com respostas) sobre Health
+  oriented education.
+process_docs: !function '../utils.process_health_oriented_education'
+task: include_base_44_portuguese_gen_0shot_cot_health_oriented_education

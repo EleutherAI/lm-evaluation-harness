@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Chinese
+description: 以下是关于 Business & Commerce 的多项选择题（附答案）。
+process_docs: !function '../utils.process_business_commerce'
+task: include_base_44_chinese_gen_0shot_business_commerce

@@ -1,0 +1,3 @@
+include: ../_base_template_yaml
+dataset_name: Assamese
+task: include_base_new_45_assamese_gen_0shot

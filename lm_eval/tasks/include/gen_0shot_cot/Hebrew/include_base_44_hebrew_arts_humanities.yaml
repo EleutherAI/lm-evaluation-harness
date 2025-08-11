@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Hebrew
+description: להלן שאלות ברירות רבות (עם תשובות) על Arts & Humanities.
+process_docs: !function '../utils.process_arts_humanities'
+task: include_base_44_hebrew_gen_0shot_cot_arts_humanities

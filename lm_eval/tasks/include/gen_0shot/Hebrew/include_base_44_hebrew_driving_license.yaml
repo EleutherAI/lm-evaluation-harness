@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Hebrew
+description: להלן שאלות ברירות רבות (עם תשובות) על Driving license.
+process_docs: !function '../utils.process_driving_license'
+task: include_base_44_hebrew_gen_0shot_driving_license

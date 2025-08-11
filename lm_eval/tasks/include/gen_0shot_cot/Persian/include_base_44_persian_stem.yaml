@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Persian
+description: در زیر سؤالات چند گزینه ای (همراه با پاسخ) در مورد STEM آمده است.
+process_docs: !function '../utils.process_stem'
+task: include_base_44_persian_gen_0shot_cot_stem

@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Greek
+description: Ακολουθούν ερωτήσεις πολλαπλής επιλογής (με απαντήσεις) σχετικά με το
+  Medical License.
+process_docs: !function '../utils.process_medical_license'
+task: include_base_44_greek_gen_0shot_cot_medical_license

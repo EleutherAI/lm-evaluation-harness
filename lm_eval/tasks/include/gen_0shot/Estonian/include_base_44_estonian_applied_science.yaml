@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Estonian
+description: Järgmised on valikvastustega küsimused (koos vastustega) teemal Applied
+  Science.
+process_docs: !function '../utils.process_applied_science'
+task: include_base_44_estonian_gen_0shot_applied_science

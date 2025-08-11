@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Italian
+description: Di seguito sono riportate domande a scelta multipla (con risposte) su
+  Social Science.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_italian_gen_0shot_cot_social_science

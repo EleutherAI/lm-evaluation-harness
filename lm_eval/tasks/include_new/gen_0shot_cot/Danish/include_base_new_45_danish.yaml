@@ -1,0 +1,3 @@
+include: ../_base_template_yaml
+dataset_name: Danish
+task: include_base_new_45_danish_gen_0shot_cot

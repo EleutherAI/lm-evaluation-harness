@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Ukrainian
+description: Нижче наведено запитання з кількома варіантами відповідей (з відповідями)
+  про Social Science.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_ukrainian_gen_0shot_social_science

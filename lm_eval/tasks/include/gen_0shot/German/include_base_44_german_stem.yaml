@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: German
+description: Nachfolgend finden Sie Multiple-Choice-Fragen (mit Antworten) zu STEM.
+process_docs: !function '../utils.process_stem'
+task: include_base_44_german_gen_0shot_stem

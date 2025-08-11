@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Turkish
+description: Aşağıda Social Science ile ilgili çoktan seçmeli sorular (cevaplarıyla
+  birlikte) bulunmaktadır.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_turkish_gen_0shot_cot_social_science

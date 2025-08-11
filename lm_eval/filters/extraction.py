@@ -198,7 +198,15 @@ class MultiChoiceRegexFilter(RegexFilter):
             without_paren_fallback_regexes = []
             without_paren_to_target = {}
 
-            choices = doc["choices"]
+            if "choices" in doc:
+                choices = doc["choices"]
+            else:
+                # Collect choices from keys like choice_a, choice_b, choice_c, option_a, option_b, etc.
+                choices = []
+                for key in sorted(doc.keys()):
+                    if key.startswith("choice_") or key.startswith("option_"):
+                        choices.append(doc[key])
+
             for c in choices:
                 m = filter_ignores(c.strip())
                 fallback_regexes.append(f"{re.escape(m)}")

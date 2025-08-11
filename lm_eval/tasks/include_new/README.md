@@ -3,10 +3,14 @@
 
 ### Tasks:
 We add the following evaluations:
-- prompting with instructions in english for the 0-shot setting (`default`)
+- prompting with instructions in English for the 0-shot setting with probabilistic evaluation (`default`)
+- prompting with instructions in English for the 0-shot setting with open-generation evaluation (`gen_0shot`)
+- prompting with instructions in English for the 0-shot CoT setting with open-generation evaluation (`gen_0shot_cot`)
 
 The groups to simply run the default tasks are:
 - `include_base_new_45`
+- `include_base_new_45_gen_0shot`
+- `include_base_new_45_gen_0shot_cot`
 
 ### Languages
 

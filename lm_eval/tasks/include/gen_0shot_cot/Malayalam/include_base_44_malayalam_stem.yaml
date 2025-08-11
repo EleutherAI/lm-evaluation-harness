@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Malayalam
+description: ഇനിപ്പറയുന്നവ STEM നെക്കുറിച്ചുള്ള മൾട്ടിപ്പിൾ ചോയ്‌സ് ചോദ്യങ്ങളാണ് (ഉത്തരങ്ങളോടെ).
+process_docs: !function '../utils.process_stem'
+task: include_base_44_malayalam_gen_0shot_cot_stem

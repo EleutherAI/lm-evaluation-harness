@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Dutch
+description: Hieronder staan ​​meerkeuzevragen (met antwoorden) over Social Science.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_dutch_gen_0shot_cot_social_science

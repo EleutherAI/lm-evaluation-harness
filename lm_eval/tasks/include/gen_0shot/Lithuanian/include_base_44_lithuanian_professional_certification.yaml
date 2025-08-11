@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Lithuanian
+description: Toliau pateikiami klausimai su atsakymų variantais (su atsakymais) apie
+  Professional certification.
+process_docs: !function '../utils.process_professional_certification'
+task: include_base_44_lithuanian_gen_0shot_professional_certification

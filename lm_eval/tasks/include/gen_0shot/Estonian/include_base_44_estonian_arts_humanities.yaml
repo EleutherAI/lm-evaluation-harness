@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Estonian
+description: Järgmised on valikvastustega küsimused (koos vastustega) teemal Arts
+  & Humanities.
+process_docs: !function '../utils.process_arts_humanities'
+task: include_base_44_estonian_gen_0shot_arts_humanities

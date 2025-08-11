@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Uzbek
+description: Quyida Social Science boʻyicha koʻp tanlovli savollar (javoblari bilan)
+  keltirilgan.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_uzbek_gen_0shot_social_science

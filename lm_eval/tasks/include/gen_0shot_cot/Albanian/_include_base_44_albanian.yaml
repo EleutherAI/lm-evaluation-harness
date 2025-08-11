@@ -1,0 +1,12 @@
+group: include_base_44_albanian_gen_0shot_cot
+task:
+- include_base_44_albanian_gen_0shot_cot_arts_humanities
+- include_base_44_albanian_gen_0shot_cot_stem
+- include_base_44_albanian_gen_0shot_cot_business_commerce
+- include_base_44_albanian_gen_0shot_cot_social_science
+- include_base_44_albanian_gen_0shot_cot_health_oriented_education
+aggregate_metric_list:
+- metric: exact_match
+  filter_list: "extract-answer"
+metadata:
+  version: 0.0

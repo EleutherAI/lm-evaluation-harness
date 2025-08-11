@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Vietnamese
+description: Sau đây là các câu hỏi trắc nghiệm (có đáp án) về Arts & Humanities.
+process_docs: !function '../utils.process_arts_humanities'
+task: include_base_44_vietnamese_gen_0shot_arts_humanities

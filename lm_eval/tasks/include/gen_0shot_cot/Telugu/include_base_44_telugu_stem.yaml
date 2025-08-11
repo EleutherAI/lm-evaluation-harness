@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Telugu
+description: STEM గురించిన బహుళ-ఎంపిక ప్రశ్నలు (సమాధానాలతో) క్రిందివి.
+process_docs: !function '../utils.process_stem'
+task: include_base_44_telugu_gen_0shot_cot_stem

@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Spanish
+description: Las siguientes son preguntas de opción múltiple (con respuestas) sobre
+  Social Science.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_spanish_gen_0shot_social_science

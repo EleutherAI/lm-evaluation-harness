@@ -1,0 +1,52 @@
+group: include_base_new_45_gen_0shot_cot
+task:
+  - include_base_new_45_amharic_gen_0shot_cot
+  - include_base_new_45_assamese_gen_0shot_cot
+  - include_base_new_45_czech_gen_0shot_cot
+  - include_base_new_45_dagbani_gen_0shot_cot
+  - include_base_new_45_dangme_gen_0shot_cot
+  - include_base_new_45_danish_gen_0shot_cot
+  - include_base_new_45_darija_gen_0shot_cot
+  - include_base_new_45_dogri_gen_0shot_cot
+  - include_base_new_45_ekpeye_gen_0shot_cot
+  - include_base_new_45_embu_gen_0shot_cot
+  - include_base_new_45_esan_gen_0shot_cot
+  - include_base_new_45_ewe_gen_0shot_cot
+  - include_base_new_45_fante_gen_0shot_cot
+  - include_base_new_45_fula_gen_0shot_cot
+  - include_base_new_45_ga_gen_0shot_cot
+  - include_base_new_45_gujarati_gen_0shot_cot
+  - include_base_new_45_hausa_gen_0shot_cot
+  - include_base_new_45_ibibio_gen_0shot_cot
+  - include_base_new_45_idoma_gen_0shot_cot
+  - include_base_new_45_igala_gen_0shot_cot
+  - include_base_new_45_igbo_gen_0shot_cot
+  - include_base_new_45_jju_gen_0shot_cot
+  - include_base_new_45_kannada_gen_0shot_cot
+  - include_base_new_45_kinyarwanda_gen_0shot_cot
+  - include_base_new_45_luo_gen_0shot_cot
+  - include_base_new_45_maithili_gen_0shot_cot
+  - include_base_new_45_makhuwa_gen_0shot_cot
+  - include_base_new_45_marathi_gen_0shot_cot
+  - include_base_new_45_nyanja_gen_0shot_cot
+  - include_base_new_45_obolo_gen_0shot_cot
+  - include_base_new_45_oriya_gen_0shot_cot
+  - include_base_new_45_oromo_gen_0shot_cot
+  - include_base_new_45_punjabi_gen_0shot_cot
+  - include_base_new_45_sena_gen_0shot_cot
+  - include_base_new_45_sindhi_gen_0shot_cot
+  - include_base_new_45_sinhala_gen_0shot_cot
+  - include_base_new_45_slovak_gen_0shot_cot
+  - include_base_new_45_somali_gen_0shot_cot
+  - include_base_new_45_swahili_gen_0shot_cot
+  - include_base_new_45_swedish_gen_0shot_cot
+  - include_base_new_45_tangale_gen_0shot_cot
+  - include_base_new_45_tigrinya_gen_0shot_cot
+  - include_base_new_45_twi_gen_0shot_cot
+  - include_base_new_45_tyap_gen_0shot_cot
+  - include_base_new_45_yoruba_gen_0shot_cot
+aggregate_metric_list:
+- metric: exact_match
+  filter_list: "extract-answer"
+metadata:
+  version: 1.0

@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Azerbaijani
+description: Aşağıdakılar Business & Commerce haqqında çoxseçimli suallardır (cavabları
+  ilə).
+process_docs: !function '../utils.process_business_commerce'
+task: include_base_44_azerbaijani_gen_0shot_business_commerce

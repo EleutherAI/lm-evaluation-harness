@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Malay
+description: Berikut ialah soalan aneka pilihan (dengan jawapan) tentang Business
+  & Commerce.
+process_docs: !function '../utils.process_business_commerce'
+task: include_base_44_malay_gen_0shot_business_commerce

@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Basque
+description: Honako hauek aukera anitzeko galderak dira (erantzunekin) Professional
+  certification-i buruz.
+process_docs: !function '../utils.process_professional_certification'
+task: include_base_44_basque_gen_0shot_cot_professional_certification

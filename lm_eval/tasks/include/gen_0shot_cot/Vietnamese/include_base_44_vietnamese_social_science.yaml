@@ -1,0 +1,5 @@
+include: ../_base_template_yaml
+dataset_name: Vietnamese
+description: Sau đây là các câu hỏi trắc nghiệm (có đáp án) về Social Science.
+process_docs: !function '../utils.process_social_science'
+task: include_base_44_vietnamese_gen_0shot_cot_social_science

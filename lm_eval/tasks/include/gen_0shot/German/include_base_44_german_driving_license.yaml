@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: German
+description: Nachfolgend finden Sie Multiple-Choice-Fragen (mit Antworten) zu Driving
+  License.
+process_docs: !function '../utils.process_driving_license'
+task: include_base_44_german_gen_0shot_driving_license

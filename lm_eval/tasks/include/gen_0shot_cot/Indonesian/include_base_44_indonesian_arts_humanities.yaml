@@ -1,0 +1,6 @@
+include: ../_base_template_yaml
+dataset_name: Indonesian
+description: Berikut ini adalah pertanyaan pilihan ganda (dengan jawaban) tentang
+  Arts & Humanities.
+process_docs: !function '../utils.process_arts_humanities'
+task: include_base_44_indonesian_gen_0shot_cot_arts_humanities
