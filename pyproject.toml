@@ -42,7 +42,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["lm_eval*"]
+include = ["lm_eval*", "rag*"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
@@ -51,6 +51,7 @@ lm_eval = ["**/*.yaml", "tasks/**/*"]
 [project.scripts]
 lm-eval = "lm_eval.__main__:cli_evaluate"
 lm_eval = "lm_eval.__main__:cli_evaluate"
+rag = "rag.__main__:cli_rag_evaluate"
 
 [project.urls]
 Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
