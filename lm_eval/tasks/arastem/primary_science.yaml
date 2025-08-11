@@ -5,7 +5,7 @@ dataset_kwargs:
 dataset_name: null
 dataset_path: json
 
-include: arastem_template.yaml
-tag: arastem_primary_science
-task: primary_science
+include: _default_arastem_template_yaml
+# tag: arastem_primary_science
+task: arastem_primary_science
 test_split: test

@@ -5,7 +5,7 @@ dataset_kwargs:
 dataset_name: null
 dataset_path: json
 
-include: arastem_template.yaml
-tag: arastem_secondary_chemistry
-task: secondary_chemistry
+include: _default_arastem_template_yaml
+# tag: arastem_secondary_chemistry
+task: arastem_secondary_chemistry
 test_split: test

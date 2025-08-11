@@ -5,7 +5,7 @@ dataset_kwargs:
 dataset_name: null
 dataset_path: json
 
-include: arastem_template.yaml
-tag: arastem_college_information_technology
-task: college_information_technology
+include: _default_arastem_template_yaml
+# tag: arastem_college_information_technology
+task: arastem_college_information_technology
 test_split: test

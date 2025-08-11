@@ -1,0 +1,19 @@
+group: mcq.arastem
+metadata:
+    description: AraSTEM tasks
+    version: 0
+task:
+- arstem_primary_math
+- arstem_primary_science
+- arstem_secondary_biology
+- arstem_secondary_chemistry
+- arstem_secondary_math
+- arstem_secondary_physics
+- arstem_secondary_science
+- arstem_college_biology
+- arstem_college_chemistry
+- arstem_college_dentistry
+- arstem_college_information_technology
+- arstem_college_medicine
+- arstem_college_pharmacy
+- arstem_college_physics

@@ -5,7 +5,7 @@ dataset_kwargs:
 dataset_name: null
 dataset_path: json
 
-include: arastem_template.yaml
-tag: arastem_primary_math
-task: primary_math
+include: _default_arastem_template_yaml
+# tag: arastem_primary_math
+task: arastem_primary_math
 test_split: test

@@ -15,5 +15,3 @@ doc_to_target: !function utils.doc_to_target
 
 metadata:
   version: 0.0
-
-

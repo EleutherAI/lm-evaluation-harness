@@ -5,7 +5,7 @@ dataset_kwargs:
 dataset_name: null
 dataset_path: json
 
-include: arastem_template.yaml
-tag: arastem_secondary_physics
-task: secondary_physics
+include: _default_arastem_template_yaml
+# tag: arastem_secondary_physics
+task: arastem_secondary_physics
 test_split: test
