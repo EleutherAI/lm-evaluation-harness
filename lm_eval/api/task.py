@@ -1125,14 +1125,7 @@ class ConfigurableTask(Task):
             if doc_to_text in self.features:
                 return doc[doc_to_text]
             else:
-                text_string = utils.apply_template(doc_to_text, doc)
-                if not self.multiple_inputs:
-                    return text_string
-                else:
-                    assert text_string.isdigit(), (
-                        "doc_to_text should be int label for multiple_inputs!"
-                    )
-                    return ast.literal_eval(text_string)
+                return utils.apply_template(doc_to_text, doc)
         elif callable(doc_to_text):
             return doc_to_text(doc)
         else:
@@ -1251,7 +1244,11 @@ class ConfigurableTask(Task):
         if isinstance(q, list) and self.config.doc_to_choice:
             q = q[cast(int, self.doc_to_target(doc))]
         if isinstance(a, int) and self.config.doc_to_choice:
-            a = self.doc_to_choice(doc)[a]
+            a = (
+                self.doc_to_choice(doc)[a]
+                if not self.multiple_inputs
+                else self.doc_to_choice(doc)[0]
+            )
 
         assert isinstance(q, str), "Context is not a string!"
         msgs = [Message("user", q)]
@@ -1333,7 +1330,12 @@ class ConfigurableTask(Task):
             # if multiple inputs, then doc_to_text: list[str]
             messages = [
                 messages
-                + self._doc_to_qa_pair(doc, gen_prefix, q=q, include_answer=False)
+                + self._doc_to_qa_pair(
+                    doc,
+                    gen_prefix,
+                    q=q,
+                    include_answer=False,
+                )
                 for q in cast(list[str], self.doc_to_text(doc))
             ]
         else:
@@ -1358,7 +1360,7 @@ class ConfigurableTask(Task):
                 for m in messages
             ]
 
-        return res[0] if not self.multiple_input else res
+        return res[0] if not self.multiple_inputs else res
 
     @staticmethod
     def _message_to_text(
