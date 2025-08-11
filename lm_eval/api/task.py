@@ -18,6 +18,7 @@ from typing import (
     Optional,
     Tuple,
     Union,
+    cast,
 )
 
 import datasets
@@ -39,6 +40,7 @@ from lm_eval.api.registry import (
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.utils import validate_index
 
 
 ALL_OUTPUT_TYPES = [
@@ -96,6 +98,8 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: Optional[str] = None
     gen_prefix: Optional[str] = None
+    multiple_inputs: bool = False
+    multiple_targets: bool = False
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -384,7 +388,7 @@ class Task(abc.ABC):
     def doc_to_audio(self, doc):
         raise NotImplementedError
 
-    def doc_to_prefix(self, doc):
+    def doc_to_prefix(self, doc) -> Union[str, None]:
         return ""
 
     def build_all_requests(
@@ -767,6 +771,12 @@ class ConfigurableTask(Task):
                 )
             self.OUTPUT_TYPE = self.config.output_type
 
+        self.multiple_targets = self.config.multiple_targets
+        self.multiple_inputs = self.config.multiple_inputs
+        assert not (self.multiple_targets and self.multiple_inputs), (
+            "Cannot have both multiple_targets and multiple_inputs"
+        )
+
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
@@ -923,68 +933,66 @@ class ConfigurableTask(Task):
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
-        self.multiple_input = 0
-        self.multiple_target = 0
         test_doc = self.task_docs[0]
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
 
         if self.config.doc_to_choice is not None:
             test_choice = self.doc_to_choice(test_doc)
-            if not isinstance(test_choice, list):
-                eval_logger.error("doc_to_choice must return list")
-            else:
-                num_choice = len(test_choice)
-
-            if isinstance(test_text, int):
-                eval_logger.debug(
-                    "doc_to_text returned an int. Assuming multiple inputs."
+            if self.multiple_inputs:
+                # we require:
+                # doc_to_text: list
+                # doc_to_choice: list
+                # doc_to_target: int
+                # e.g. text: [Maria was better than Sarah, Sarah was better than Sarah], choice: [so she was envious]
+                # target: 0
+                assert isinstance(test_text, list), (
+                    f"[{self.config.task}] doc_to_text must return list for multiple inputs"
                 )
-                self.multiple_input = num_choice
-        else:
-            test_choice = None
+                assert isinstance(test_target, int), (
+                    f"[{self.config.task}] doc_to_target must return int label for multiple inputs"
+                )
+                assert self.config.output_type != "generate_until", (
+                    f"[{self.config.task}] Only multiple-choice tasks can be used with multiple inputs"
+                )
+                test_text = test_choice[0]
 
-        if isinstance(test_target, list):
-            eval_logger.debug(
-                "doc_to_target returned a list. Assuming multiple targets."
-            )
-            self.multiple_target = len(test_target)
-        else:
-            if (isinstance(test_target, int)) and (test_choice is not None):
-                test_target = test_choice[test_target]
+            elif self.multiple_targets:
+                # we require:
+                # doc_to_text: str
+                # doc_to_choice: list
+                # doc_to_target: list
+                assert isinstance(test_target, (list, tuple)), (
+                    f"[{self.config.task}] doc_to_target must be an iterable for multiple targets"
+                )
+                test_target = test_target[0]
             else:
-                test_target = str(test_target)
+                assert isinstance(test_target, int), (
+                    f"[{self.config.task}] doc_to_target must return int for multiple-choice tasks"
+                )
+                test_target = test_choice[test_target]
 
-        if test_choice is not None:
-            check_choices = test_choice
-        else:
-            check_choices = [test_target]
-        if self.config.doc_to_choice is not None:
-            for choice in check_choices:
-                choice_has_whitespace = True if choice[0].isspace() else False
-                delimiter_has_whitespace = (
-                    True
-                    if self.config.target_delimiter.rstrip()
-                    != self.config.target_delimiter
-                    else False
+            for choice in test_choice:
+                choice_has_whitespace, delimiter_has_whitespace = (
+                    choice[0].isspace(),
+                    self.config.target_delimiter.rstrip()
+                    != self.config.target_delimiter,
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
                     eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
+                        f'[{self.config.task}] Both target_delimiter "{self.config.target_delimiter}" and target '
+                        f'choice: "{choice}" have whitespace'
                     )
                 elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
                     eval_logger.debug(
-                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                        f'[{self.config.task}] Both target_delimiter "{self.config.target_delimiter}" and target '
+                        f'choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
     def download(
         self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
     ) -> None:
-        from packaging.version import parse as vparse
-
-        if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
-            dataset_kwargs.pop("trust_remote_code", None)
         if isinstance(self.config.custom_dataset, Callable):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
@@ -1166,7 +1174,7 @@ class ConfigurableTask(Task):
 
         example = self.doc_to_text(doc)
         if apply_chat_template:
-            if self.multiple_input:
+            if self.multiple_inputs:
                 # TODO: append prefill?
                 if not labeled_examples:
                     return ""
@@ -1226,7 +1234,7 @@ class ConfigurableTask(Task):
                 if gen_prefix is not None
                 else ""
             )
-            if self.multiple_input:
+            if self.multiple_inputs:
                 return labeled_examples
             if isinstance(example, str):
                 return labeled_examples + example + prefix
@@ -1280,110 +1288,77 @@ class ConfigurableTask(Task):
         return doc
 
     def doc_to_text(self, doc, doc_to_text=None):
-        if self.prompt is not None:
-            doc_to_text = self.prompt
-        elif doc_to_text is not None:
-            doc_to_text = doc_to_text
-        else:
-            doc_to_text = self.config.doc_to_text
+        doc_to_text = doc_to_text or self.config.doc_to_text
 
         if isinstance(doc_to_text, int):
+            # doc_to_text: 2
             return doc_to_text
         elif isinstance(doc_to_text, str):
+            # return df field
             if doc_to_text in self.features:
-                # if self.config.doc_to_choice is not None:
-                #     return self.doc_to_choice(doc)[doc[doc_to_text]]
-                # else:
                 return doc[doc_to_text]
             else:
                 text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit() and self._config.doc_to_choice is not None:
-                    return ast.literal_eval(text_string)
-                else:
+                if not self.multiple_inputs:
                     return text_string
+                else:
+                    assert text_string.isdigit(), (
+                        "doc_to_text should be int label for multiple_inputs!"
+                    )
+                    return ast.literal_eval(text_string)
         elif callable(doc_to_text):
             return doc_to_text(doc)
-        # Used when applying a Promptsource template
-        elif hasattr(doc_to_text, "apply"):
-            applied_prompt = doc_to_text.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[0]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
         else:
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
-        if self.prompt is not None:
-            doc_to_target = self.prompt
-        elif doc_to_target is not None:
-            doc_to_target = doc_to_target
-        else:
-            doc_to_target = self.config.doc_to_target
+    def doc_to_target(
+        self, doc: dict[str, Any], doc_to_target=None
+    ) -> Union[int, str, list]:
+        doc_to_target = doc_to_target or self.config.doc_to_target
 
         if isinstance(doc_to_target, int):
+            # yaml int; doc_to_target: 2
             return doc_to_target
         elif isinstance(doc_to_target, str):
+            # return the df field
             if doc_to_target in self.features:
-                # if self.config.doc_to_choice is not None:
-                #     return self.doc_to_choice(doc)[doc[doc_to_target]]
-                # else:
                 return doc[doc_to_target]
+            target_string = utils.apply_template(doc_to_target, doc)
+            # Target is usually integer for multiple-choice but jinja _always_ returns str.
+            # doc_to_target: {{answer[0]}} -> "2"
+            if target_string.isdigit() and self._config.doc_to_choice is not None:
+                return ast.literal_eval(target_string)
             else:
-                target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit() and self._config.doc_to_choice is not None:
-                    return ast.literal_eval(target_string)
-                elif (
-                    len(target_string) >= 2
-                    and (target_string[0] == "[")
-                    and (target_string[-1] == "]")
-                ):
-                    try:
-                        return ast.literal_eval(target_string)
-                    except (SyntaxError, ValueError):
-                        return target_string
-                else:
-                    return target_string
-        elif isinstance(doc_to_target, list):
-            return doc_to_target
+                return target_string
         elif callable(doc_to_target):
+            # !function utils.func
             return doc_to_target(doc)
-        # Used when applying a Promptsource template
-        elif hasattr(doc_to_target, "apply"):
-            applied_prompt = doc_to_target.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[1]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
+        elif isinstance(doc_to_target, list):
+            # ["{{field}}", "{{field}}"]
+            return utils.apply_template(doc_to_target, doc)
         else:
             raise TypeError
 
     def doc_to_choice(self, doc: Any, doc_to_choice=None) -> List[str]:
-        if self.prompt is not None:
-            doc_to_choice = self.prompt
-        elif doc_to_choice is not None:
-            doc_to_choice = doc_to_choice
-        elif self.config.doc_to_choice is None:
+        doc_to_choice = doc_to_choice or self.config.doc_to_choice
+        if doc_to_choice is None:
             eval_logger.error("doc_to_choice was called but not set in config")
-        else:
-            doc_to_choice = self.config.doc_to_choice
 
         if isinstance(doc_to_choice, str):
             if doc_to_choice in self.features:
+                # return the df field
                 return doc[doc_to_choice]
             else:
+                # literal_eval for parsing "{{[x, y]}}"
                 return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
         elif isinstance(doc_to_choice, list):
-            return doc_to_choice
+            # ["{{x}}", "{{y}}"]
+            return utils.apply_template(doc_to_choice, doc)
         elif isinstance(doc_to_choice, dict):
             return list(doc_to_choice.values())
         elif callable(doc_to_choice):
             return doc_to_choice(doc)
-        elif hasattr(doc_to_choice, "get_answer_choices_list"):
-            return doc_to_choice.get_answer_choices_list(doc)
         else:
             raise TypeError
 
@@ -1433,19 +1408,20 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def doc_to_prefix(self, doc):
+    def doc_to_prefix(self, doc) -> Union[str, None]:
         if (gen_prefix := self.config.gen_prefix) is not None:
-            if gen_prefix in self.features:
-                return doc[gen_prefix]
-            else:
-                return utils.apply_template(gen_prefix, doc)
+            return (
+                doc[gen_prefix]
+                if gen_prefix in self.features
+                else utils.apply_template(gen_prefix, doc)
+            )
         return None
 
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
-        chat_template: Callable | None = kwargs.pop("chat_template", None)
+        chat_template: Union[Callable, None] = kwargs.pop("chat_template", None)
 
         aux_arguments = None
 
@@ -1458,7 +1434,7 @@ class ConfigurableTask(Task):
             target_delimiter = self.config.target_delimiter
             if apply_chat_template:
                 target_delimiter = ""
-            if self.multiple_input:
+            if self.multiple_inputs:
                 # If there are multiple inputs, choices are placed in the ctx
                 # apply chat_template to choices if apply_chat_template
                 cont = self.doc_to_target(doc)
@@ -1580,7 +1556,11 @@ class ConfigurableTask(Task):
             lls, is_greedy = zip(*results)
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
-            choices = self.doc_to_choice(doc)
+            choices = (
+                self.doc_to_choice(doc)
+                if not self.multiple_inputs
+                else cast(list[str], self.doc_to_text(doc))
+            )
             completion_len = np.array([float(len(i)) for i in choices])
 
             if (
@@ -1599,32 +1579,26 @@ class ConfigurableTask(Task):
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)
 
-            if self.multiple_input:
-                gold = self.doc_to_text(doc)
-            else:
-                gold = self.doc_to_target(doc)
+            gold = backup = self.doc_to_target(doc)
 
-            gold_index_error = False
             if isinstance(gold, list):
-                gold = [i if i < len(choices) else -100 for i in gold]
-                if -100 in gold:
-                    gold_index_error = True
+                gold = [validate_index(g, len(choices)) for g in gold]
+                gold_index_error = -100 in gold
             else:
                 if isinstance(gold, int):
-                    gold = gold if gold < len(choices) else -100
+                    gold = validate_index(gold, len(choices))
                 elif isinstance(gold, str):
                     gold = choices.index(gold) if gold in choices else -100
 
-                if gold == -100:
-                    gold_index_error = True
+                gold_index_error = gold == -100
 
             if gold_index_error:
                 eval_logger.warning(
-                    f"Label index was not in within range of available choices,"
+                    f"Label [{backup}] index was not in within range of available choices {choices},"
                     f"Sample:\n\n{doc}\n\n"
                 )
 
-            if self.multiple_target:
+            if self.multiple_targets:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
                 exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
@@ -1661,13 +1635,8 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
-            if self.config.doc_to_choice is not None:
-                # If you set doc_to_choice,
-                # it assumes that doc_to_target returns a number.
-                choices = self.doc_to_choice(doc)
-                gold = choices[gold]
             # we expect multiple_targets to be a list.
-            elif self.multiple_target:
+            if self.multiple_target:
                 gold = list(gold)
             # TODO: handle this better
             elif type(gold) is not type(result) and not (
