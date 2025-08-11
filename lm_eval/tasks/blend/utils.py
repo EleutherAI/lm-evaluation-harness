@@ -32,7 +32,7 @@ def process_docs_by_country(dataset, country):
 
         return doc
 
-    filtered_dataset = dataset.filter(lambda x: x["country"] == country)
+    filtered_dataset = dataset.filter(lambda x: x["country"] == country).select(range(500))
     return filtered_dataset.map(parse_choices)
 
 
