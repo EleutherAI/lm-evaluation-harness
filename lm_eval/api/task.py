@@ -1152,8 +1152,11 @@ class ConfigurableTask(Task):
             # doc_to_target: {{answer[0]}} -> "2"
             if target_string.isdigit() and self._config.doc_to_choice is not None:
                 return ast.literal_eval(target_string)
-            elif self.multiple_targets:
-                return ast.literal_eval(target_string)
+            elif target_string.startswith("[") and target_string.endswith("]"):
+                try:
+                    return ast.literal_eval(target_string)
+                except (ValueError, SyntaxError):
+                    return target_string
             else:
                 return target_string
         elif callable(doc_to_target):
