@@ -1,0 +1,40 @@
+dataset_path: CohereForAI/Global-MMLU-Lite
+test_split: test
+output_type: generate_until
+
+# Prompt template
+num_fewshot: 0
+doc_to_text: |-
+  Question: {{ question | trim }}
+  Choices:
+  (A) {{ option_a | trim }}
+  (B) {{ option_b | trim }}
+  (C) {{ option_c | trim }}
+  (D) {{ option_d | trim }}
+  Think step by step and then finish your answer with "The answer is (X)" where X is the correct letter choice.
+
+# Ground-truth letter
+doc_to_target: answer
+
+# Post-process model generations to a single letter via your helper
+filter_list:
+  - name: "extract-answer"
+    filter:
+      - function: "regex"
+        group_select: -1 # takes last match
+        regex_pattern: '(?i)^\s*[\(\[\{"]?\s*(?P<lead_letter>[ABCD])\s*[\)\]\}"]?(?=[\s:)\].,;!?-]|$)|(?:^|[^\w])(?:the\s+)?answer(?:\s+is)?\s*[:\-]?(?:(?P<answer_letter>[ABCD])\b|(?P<answer_fallback>[^\n\r]+?))\s*$'  # Prefer a leading, standalone letter like "B: ...", "(C) ...", etc., otherwise, look for the 'answer' token and take A–D if present, else capture whatever comes after it as a fallback.
+      - function: "take_first"
+
+generation_kwargs:
+  until:
+    - "</s>"
+    - "Question:"
+    - "<|im_end|>"
+  max_gen_toks: 1024
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
