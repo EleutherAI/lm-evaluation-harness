@@ -1,0 +1,4 @@
+task: realtoxicitypromptsllama_small
+include: _realtoxicityprompts_yaml
+dataset_name: realtoxicityprompts_small
+test_split: train

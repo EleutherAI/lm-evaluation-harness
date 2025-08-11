@@ -1,0 +1,4 @@
+task: realtoxicitypromptsllama_full
+include: _realtoxicityprompts_yaml
+dataset_name: realtoxicityprompts_full
+test_split: train
