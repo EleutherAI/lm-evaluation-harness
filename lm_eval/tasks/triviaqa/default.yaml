@@ -27,6 +27,6 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
-    multi_target: true
+    multiple_targets: true
 metadata:
   version: 3.0

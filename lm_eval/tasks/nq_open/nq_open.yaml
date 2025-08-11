@@ -27,7 +27,7 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
     regexes_to_ignore:
-    - "\\b(?:The |the |An |A |The |a |an )"
-    multi_target: true
+      - "\\b(?:The |the |An |A |The |a |an )"
+    multiple_targets: true
 metadata:
   version: 4.0
