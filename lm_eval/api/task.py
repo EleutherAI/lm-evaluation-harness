@@ -258,7 +258,7 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd = 1234
+        self.fewshot_rnd = None
         self.sampler = ContextSampler(list(self.fewshot_docs))
         self.multiple_input = False
 
@@ -586,9 +586,7 @@ class Task(abc.ABC):
         return len(re.split(r"\s+", doc))
 
     @utils.positional_deprecated
-    def fewshot_context_old(
-        self, doc, num_fewshot, rnd=None, description=None, **kwargs
-    ):
+    def fewshot_context(self, doc, num_fewshot, rnd=None, description=None, **kwargs):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -747,150 +745,6 @@ class Task(abc.ABC):
                 world_size=int(world_size),
             )
         return doc_iterator
-
-    def _doc_to_qa_pair(
-        self,
-        doc: dict[str, Any],
-        gen_prefix: str | None,
-        *,
-        q: str | None = None,
-        a: str | None = None,
-        include_answer: bool = True,
-    ) -> list[Message]:
-        """Return `[user, assistant?]` for a single doc."""
-        q = q or self.doc_to_text(doc)
-        a = a or self.doc_to_target(doc)
-        # Handle multiple-choice indirection
-        if isinstance(q, list) and self.config.doc_to_choice:
-            q = q[cast(int, self.doc_to_target(doc))]
-        if isinstance(a, int) and self.config.doc_to_choice:
-            a = self.doc_to_choice(doc)[a]
-
-        assert isinstance(q, str), "Context is not a string!"
-        msgs = [Message("user", q)]
-        if include_answer:
-            prefix = gen_prefix + " " if gen_prefix else ""
-            answer_txt = prefix + (a if not isinstance(a, list) else a[0])
-            msgs.append(Message("assistant", answer_txt))
-        else:
-            msgs.append(Message("assistant", gen_prefix)) if gen_prefix else None
-        return msgs
-
-    @staticmethod
-    def _render_chat_template(
-        messages: list[Message],
-        chat_template: Callable[[list[dict[str, str]]], str],
-        *,
-        tgt_delim: str = " ",
-        few_delim: str = "\n\n",
-        multiturn=True,
-    ) -> str:
-        if multiturn:
-            return chat_template([m.__dict__ for m in messages])
-        else:
-            has_prefix = messages[-1].role == "assistant"
-            if not has_prefix:
-                context = [
-                    format_turn(
-                        Task._message_to_text(
-                            messages, tgt_delim=tgt_delim, few_delim=few_delim
-                        ),
-                        role="user",
-                    )
-                ]
-            else:
-                context = [
-                    format_turn(
-                        Task._message_to_text(
-                            messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
-                        ),
-                        role="user",
-                    )
-                ]
-                context += [format_turn(**messages[-1].__dict__)]
-
-            return chat_template(context)
-
-    def fewshot_context(
-        self,
-        doc: dict[str, str],
-        num_fewshot: int,
-        system_instruction: Optional[str] = None,
-        apply_chat_template: bool = False,
-        fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable[..., str]] = None,
-        gen_prefix: Optional[str] = None,
-    ) -> str | list[str]:
-        messages = []
-        tgt_delim, few_delim = (
-            self.config.target_delimiter,
-            self.config.fewshot_delimiter,
-        )
-        chat_template = (
-            partial(chat_template, add_generation_prompt=not gen_prefix)
-            if chat_template
-            else None
-        )
-        description = self.resolve_field(doc, self.config.description) or ""
-        system_prompt = few_delim.join(filter(None, [system_instruction, description]))
-        if system_prompt:
-            messages.append(Message("system", system_prompt))
-
-        for fs_doc in self.sampler.sample(
-            n=num_fewshot,
-            doc=doc if self.config.fewshot_split == self.config.test_split else None,
-        ):
-            messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
-
-        if self.multiple_input:
-            # if multiple inputs, then doc_to_text: list[str]
-            messages = [
-                messages
-                + self._doc_to_qa_pair(doc, gen_prefix, q=q, include_answer=False)
-                for q in self.doc_to_text(doc)
-            ]
-        else:
-            # otherwise, doc_to_text: str for all other cases
-            messages += self._doc_to_qa_pair(doc, gen_prefix, include_answer=False)
-            messages = [messages]
-
-        if apply_chat_template and chat_template:
-            res = [
-                self._render_chat_template(
-                    m,
-                    chat_template,
-                    tgt_delim=tgt_delim,
-                    few_delim=few_delim,
-                    multiturn=fewshot_as_multiturn,
-                )
-                for m in messages
-            ]
-        else:
-            res = [
-                self._message_to_text(m, tgt_delim=tgt_delim, few_delim=few_delim)
-                for m in messages
-            ]
-
-        return res[0] if not self.multiple_input else res
-
-    @staticmethod
-    def _message_to_text(
-        messages: list[Message],
-        *,
-        tgt_delim=" ",
-        few_delim="\n\n",
-    ) -> str:
-        buff = []
-        for i, m in enumerate(messages):
-            if m.role == "system" or m.role == "user":
-                buff.append(m.content)
-            elif m.role == "assistant":
-                buff.append(tgt_delim + m.content)
-                if i != len(messages) - 1:
-                    # then this is not assis prefill
-                    buff.append(few_delim)
-
-        return "".join(buff)
 
 
 class ConfigurableTask(Task):
@@ -1080,15 +934,14 @@ class ConfigurableTask(Task):
                 assert callable(config_sampler), (
                     "fewshot_config.sampler should be a string or callable of ContextSampler"
                 )
-                self.sampler = cast(type[ContextSampler], config_sampler)
-                self.sampler = config_sampler(
+                self.sampler = cast(type[ContextSampler], config_sampler)(
                     list(self.fewshot_docs()), rnd=self.fewshot_rnd
                 )
 
         self.task_docs = self.eval_docs
 
         # Test One Doc
-        self.features = list(self.task_docs.features.keys())
+        self.features = list(self.task_docs[0].keys())
         test_doc = self.task_docs[0]
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
@@ -1384,6 +1237,150 @@ class ConfigurableTask(Task):
             return doc_to_audio(doc)
         else:
             return None
+
+    def _doc_to_qa_pair(
+        self,
+        doc: dict[str, Any],
+        gen_prefix: str | None,
+        *,
+        q: str | None = None,
+        a: str | None = None,
+        include_answer: bool = True,
+    ) -> list[Message]:
+        """Return `[user, assistant?]` for a single doc."""
+        q = q or self.doc_to_text(doc)
+        a = a or self.doc_to_target(doc)
+        # Handle multiple-choice indirection
+        if isinstance(q, list) and self.config.doc_to_choice:
+            q = q[cast(int, self.doc_to_target(doc))]
+        if isinstance(a, int) and self.config.doc_to_choice:
+            a = self.doc_to_choice(doc)[a]
+
+        assert isinstance(q, str), "Context is not a string!"
+        msgs = [Message("user", q)]
+        if include_answer:
+            prefix = gen_prefix + " " if gen_prefix else ""
+            answer_txt = prefix + (a if not isinstance(a, list) else a[0])
+            msgs.append(Message("assistant", answer_txt))
+        else:
+            msgs.append(Message("assistant", gen_prefix)) if gen_prefix else None
+        return msgs
+
+    @staticmethod
+    def _render_chat_template(
+        messages: list[Message],
+        chat_template: Callable[[list[dict[str, str]]], str],
+        *,
+        tgt_delim: str = " ",
+        few_delim: str = "\n\n",
+        multiturn=True,
+    ) -> str:
+        if multiturn:
+            return chat_template([m.__dict__ for m in messages])
+        else:
+            has_prefix = messages[-1].role == "assistant"
+            if not has_prefix:
+                context = [
+                    format_turn(
+                        ConfigurableTask._message_to_text(
+                            messages, tgt_delim=tgt_delim, few_delim=few_delim
+                        ),
+                        role="user",
+                    )
+                ]
+            else:
+                context = [
+                    format_turn(
+                        ConfigurableTask._message_to_text(
+                            messages[:-1], tgt_delim=tgt_delim, few_delim=few_delim
+                        ),
+                        role="user",
+                    )
+                ]
+                context += [format_turn(**messages[-1].__dict__)]
+
+            return chat_template(context)
+
+    def fewshot_context(
+        self,
+        doc: dict[str, str],
+        num_fewshot: int,
+        system_instruction: Optional[str] = None,
+        apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
+        chat_template: Optional[Callable[..., str]] = None,
+        gen_prefix: Optional[str] = None,
+    ) -> str | list[str]:
+        messages = []
+        tgt_delim, few_delim = (
+            self.config.target_delimiter,
+            self.config.fewshot_delimiter,
+        )
+        chat_template = (
+            partial(chat_template, add_generation_prompt=not gen_prefix)
+            if chat_template
+            else None
+        )
+        description = self.resolve_field(doc, self.config.description) or ""
+        system_prompt = few_delim.join(filter(None, [system_instruction, description]))
+        if system_prompt:
+            messages.append(Message("system", system_prompt))
+
+        for fs_doc in self.sampler.sample(
+            n=num_fewshot,
+            doc=doc if self.config.fewshot_split == self.config.test_split else None,
+        ):
+            messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
+
+        if self.multiple_input:
+            # if multiple inputs, then doc_to_text: list[str]
+            messages = [
+                messages
+                + self._doc_to_qa_pair(doc, gen_prefix, q=q, include_answer=False)
+                for q in cast(list[str], self.doc_to_text(doc))
+            ]
+        else:
+            # otherwise, doc_to_text: str for all other cases
+            messages += self._doc_to_qa_pair(doc, gen_prefix, include_answer=False)
+            messages = [messages]
+
+        if apply_chat_template and chat_template:
+            res = [
+                self._render_chat_template(
+                    m,
+                    chat_template,
+                    tgt_delim=tgt_delim,
+                    few_delim=few_delim,
+                    multiturn=fewshot_as_multiturn,
+                )
+                for m in messages
+            ]
+        else:
+            res = [
+                self._message_to_text(m, tgt_delim=tgt_delim, few_delim=few_delim)
+                for m in messages
+            ]
+
+        return res[0] if not self.multiple_input else res
+
+    @staticmethod
+    def _message_to_text(
+        messages: list[Message],
+        *,
+        tgt_delim=" ",
+        few_delim="\n\n",
+    ) -> str:
+        buff = []
+        for i, m in enumerate(messages):
+            if m.role == "system" or m.role == "user":
+                buff.append(m.content)
+            elif m.role == "assistant":
+                buff.append(tgt_delim + m.content)
+                if i != len(messages) - 1:
+                    # then this is not assis prefill
+                    buff.append(few_delim)
+
+        return "".join(buff)
 
     def construct_requests(
         self, doc: dict[str, str], ctx: str | list[str], **kwargs
