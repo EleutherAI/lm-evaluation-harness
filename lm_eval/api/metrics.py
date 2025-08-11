@@ -387,7 +387,9 @@ def schema_conform_with_format_checker(
     output_type=["generate_until"],
     aggregation="mean",
 )
-def json_validity(references: list[str], predictions: list[str], strip: True) -> bool:
+def json_validity(
+    references: list[str], predictions: list[str], strip: bool = True
+) -> bool:
     assert len(predictions) == 1, (
         "Currently, we don't support pass@k for JSON schema validation."
     )
@@ -466,6 +468,36 @@ def grammar_compliance(
             return False
 
     raise ValueError(f"Unknown grammar type: {grammar_type}")
+
+
+@register_metric(
+    metric="json_answer_match",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="mean",
+)
+def json_answer_match(
+    predictions,
+    references,
+    target_field,
+):
+    extracted_predictions = [""] * len(predictions)
+    for i in range(len(predictions)):
+        try:
+            extracted_predictions[i] = json.loads(predictions[i].strip())[target_field]
+        except (json.JSONDecodeError, KeyError):
+            continue
+
+    # This is an ad hoc solution. We need to generalize it.
+    if isinstance(references[0], str):
+        extracted_predictions = list(map(str, extracted_predictions))
+
+    extracted_predictions = np.array(extracted_predictions)
+    references = np.array(references)
+
+    score_list = extracted_predictions == references
+
+    return {"json_answer_match": np.mean(score_list)}
 
 
 @register_metric(
