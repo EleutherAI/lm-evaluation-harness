@@ -1,0 +1,12 @@
+group: switzerland_qa_it_0shot
+task:
+- switzerland_qa_it_geography_0shot
+- switzerland_qa_it_history_0shot
+- switzerland_qa_it_insurance_0shot
+- switzerland_qa_it_political_life_0shot
+- switzerland_qa_it_social_life_0shot
+aggregate_metric_list:
+- metric: exact_match
+  filter_list: "extract-answer"
+metadata:
+  version: '1.0'

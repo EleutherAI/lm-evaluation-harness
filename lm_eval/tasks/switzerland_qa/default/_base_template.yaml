@@ -1,5 +1,4 @@
 dataset_path: swiss-ai/switzerland_qa
-dataset_name: French
 test_split: test
 output_type: multiple_choice
 doc_to_text: "{{question.strip()}}\nA. {{option_a}}\nB. {{option_b}}\nC. {{option_c}}\nD. {{option_d}}\nAnswer:"

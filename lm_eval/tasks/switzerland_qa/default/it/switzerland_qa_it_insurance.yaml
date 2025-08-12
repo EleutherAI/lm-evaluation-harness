@@ -1,3 +1,4 @@
-include: _it_template_yaml
-process_docs: !function utils.process_insurance
+include: ../_base_template.yaml
+dataset_name: Italian
+process_docs: !function ../utils.process_insurance
 task: switzerland_qa_it_insurance

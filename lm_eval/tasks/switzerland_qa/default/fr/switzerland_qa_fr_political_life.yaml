@@ -1,3 +1,4 @@
-include: _fr_template_yaml
-process_docs: !function utils.process_political_life
+include: ../_base_template.yaml
+dataset_name: French
+process_docs: !function ../utils.process_political_life
 task: switzerland_qa_fr_political_life

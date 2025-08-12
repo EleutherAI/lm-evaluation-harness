@@ -1,0 +1,4 @@
+include: ../_base_template_yaml
+dataset_name: Romansh
+process_docs: !function ../utils.process_political_life
+task: switzerland_qa_rm_political_life_0shot

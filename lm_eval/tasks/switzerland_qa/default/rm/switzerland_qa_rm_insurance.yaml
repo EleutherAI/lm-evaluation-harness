@@ -1,3 +1,4 @@
-include: _rm_template_yaml
-process_docs: !function utils.process_insurance
+include: ../_base_template.yaml
+dataset_name: Romansh
+process_docs: !function ../utils.process_insurance
 task: switzerland_qa_rm_insurance

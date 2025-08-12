@@ -1,0 +1,12 @@
+group: switzerland_qa_0shot
+task:
+- switzerland_qa_de_0shot
+- switzerland_qa_en_0shot
+- switzerland_qa_fr_0shot
+- switzerland_qa_it_0shot
+- switzerland_qa_rm_0shot
+aggregate_metric_list:
+- metric: exact_match
+  filter_list: "extract-answer"
+metadata:
+  version: '1.0'
