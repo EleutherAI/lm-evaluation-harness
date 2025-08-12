@@ -234,12 +234,14 @@ class FactHalu:
             prompt=prompt,
             tokenizer=self.claim_extractor_tokenizer
         )
+        print('Number of sentences: ', len(all_sentences))
 
         to_extract_prompts = [a.prompt for a in all_sentences]
 
         for prompt in to_extract_prompts:
+
             batch_results = utils.generate(prompt, self.claim_extractor, tokenizer=self.claim_extractor_tokenizer, max_tokens=512)
-            all_claim_extractions.extend(batch_results)
+            all_claim_extractions.append(batch_results)
         
         print("***** [2-2] Parsing extracted claims")
         all_claims = []

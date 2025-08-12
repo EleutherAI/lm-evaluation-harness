@@ -81,7 +81,7 @@ def jsonify_ans_longwiki(raw_responses, eval_prompts, model, tokenizer, key):
             try:
                 jsonifyed_res.append(json.loads(r))
             except:
-                print(f"Error in eval_answer: {r}")
+                # print(f"Error in eval_answer: {r}")
                 error = True
                 error_count = 0
                 
