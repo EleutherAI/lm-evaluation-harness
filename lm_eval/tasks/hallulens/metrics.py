@@ -223,7 +223,7 @@ def run_eval_precise_wiki(original_prompt, generated_answer, gold_answer):
     abstantion_res, halu_test_res = process_res(abstantion_raw_gen, halu_test_raw_gen)
     if abstantion_res is None or halu_test_res is None:
         return {"hallu_rate": np.nan, "refusal_rate": np.nan, "correct_rate": np.nan}
-    not_abstained = 0 if abstention_res else 1
+    not_abstained = 0 if abstantion_res else 1
     if not_abstained == 0:
         # in case there was abstantion
         hallu_rate_not_abstain = np.nan
