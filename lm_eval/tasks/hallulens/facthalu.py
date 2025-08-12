@@ -230,7 +230,7 @@ class FactHalu:
         all_claim_extractions = []
 
         all_sentences = make_claim_extraction_prompts(
-            generation=_generation,
+            generation=_generation.generation,
             prompt=prompt,
             tokenizer=self.claim_extractor_tokenizer
         )
