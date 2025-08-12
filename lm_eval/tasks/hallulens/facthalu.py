@@ -20,7 +20,7 @@ import lm_eval.tasks.hallulens.prompt_templates
 from segtok.segmenter import split_single
 
 from transformers import AutoTokenizer
-import lm_eval.tasks.hallulens.utils
+import lm_eval.tasks.hallulens.utils as base_utils
 from lm_eval.tasks.hallulens.longwiki_retrieval import LongWikiRetrieval, LongWikiDB
 import lm_eval.tasks.hallulens.longwiki_utils as utils
 import lm_eval.tasks.hallulens.prompt_templates as prompt_templates
@@ -207,7 +207,7 @@ class FactHalu:
             max_tokens=128,
         )
 
-        abstains_eval = utils.jsonify_ans_longwiki(
+        abstains_eval = base_utils.jsonify_ans_longwiki(
             raw_responses=[abstains_eval_raw],
             eval_prompts=[abstain_prompt],
             model=self.abstention_model,
@@ -301,7 +301,7 @@ class FactHalu:
 
         assert len(claim_verification_res) == len(all_claims)
         # 3. post process the verification result
-        claim_verification_results = utils.jsonify_ans_longwiki(raw_responses=claim_verification_res, \
+        claim_verification_results = base_utils.jsonify_ans_longwiki(raw_responses=claim_verification_res, \
                                                             eval_prompts=verification_prompts, 
                                                             evaluator=self.verification_model,
                                                             tokenizer=self.verifier_tokenizer,
