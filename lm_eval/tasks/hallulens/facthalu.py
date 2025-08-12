@@ -127,7 +127,7 @@ class FactHalu:
         ### [[STEP #1]] False Refusal Test
         _generation = self.eval_abstention(
             prompt=prompt,
-            generation=_generation,
+            _generation=_generation,
         )
         # if _generation.abstain is True, set to 1, if it is np.nan,, set to np.nan
         if _generation.abstain is True:
