@@ -2,7 +2,7 @@
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from lm_eval.tasks.hallulens.facthalu import FactHalu
-from lm_eval.tasks.hallulens.utils import jsonify_ans, generate
+from lm_eval.tasks.hallulens.utils import jsonify_ans, generate, try_remote_generate
 from lm_eval.tasks.hallulens.nonsensename import NonsenseNameEval, NonsenseMixedEval
 import json
 import os
@@ -126,10 +126,19 @@ Chatbot: {generation}
 Result:
 """
 
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-70B-Instruct")
-model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B-Instruct", device_map="auto")
+# tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-70B-Instruct")
+# model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B-Instruct", device_map="auto")
+test = try_remote_generate('hello there')
 
-model.eval()
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.3-70B-Instruct")
+if test is None:
+    print('WARNING: Remote generation failed, using local model instead.')
+    model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.3-70B-Instruct", device_map="auto")
+    model.eval()
+else:
+    print('Remote generation successful, using remote model.')
+    model = None
+    
 
 
 def get_score(doc, predictions, **kwargs):

@@ -1,9 +1,61 @@
 import json
 import re
 from typing import List
+import torch
+import gc
+import requests
+import os
 
+API_URL = "https://api.swissai.cscs.ch/v1"
+API_KEY = os.getenv("API_KEY")
 
-def generate(prompt, model, tokenizer, temperature=0.0, max_tokens=512):
+def try_remote_generate(prompt, temperature=0.0, max_tokens=512):
+    """
+    Attempt to generate text from the SwissAI API.
+    Returns the text if successful, raises an exception otherwise.
+    """
+    try:
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "meta-llama/Llama-3.3-70B-Instruct",  # adjust if you want a specific SwissAI model
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+            "max_tokens": max_tokens
+        }
+
+        resp = requests.post(f"{API_URL}/chat/completions", headers=headers, json=payload, timeout=10)
+
+        if resp.status_code != 200:
+            raise RuntimeError(f"SwissAI API returned status {resp.status_code}: {resp.text}")
+
+        data = resp.json()
+        
+        return data["choices"][0]["message"]["content"]
+    
+    # if there is any error, return None
+    except Exception as e:
+        print(f"Error in remote generation: {e}")
+        return None
+
+def clear_memory():
+    """
+    Clear the GPU memory to avoid OOM errors.
+    """
+    torch.cuda.empty_cache()
+    gc.collect()
+    print("Amount of free memory after clearing:", torch.cuda.memory_allocated() / 1e9, "GB")
+    return True
+
+def generate(prompt, model=None, tokenizer=None, temperature=0.0, max_tokens=512):
+    if model is None or tokenizer is None:
+        # remote generation
+        result = try_remote_generate(prompt, temperature=temperature, max_tokens=max_tokens)
+        assert result != None, "If no model or tokenizer is given, remote generation should be functional."
+        return result
+    else:
         prompt = tokenizer.apply_chat_template(
             [{"role": "user", "content": prompt}],
             tokenize=False,
@@ -31,42 +83,54 @@ def generate(prompt, model, tokenizer, temperature=0.0, max_tokens=512):
         prompt_length = input["input_ids"].shape[1]
         result = tokenizer.decode(output[0][prompt_length:], skip_special_tokens=True)
         del input  # Free memory
+        clear_memory()  # Clear memory after generation
         return result
 
-def generate_batch(prompts, model, tokenizer, temperature=0.0, max_tokens=512):
-    prompts = [
-        tokenizer.apply_chat_template([{"role": "user", "content": p}], tokenize=False, add_generation_prompt=True)
-        for p in prompts
-    ]
-    #max_len = min(tokenizer.model_max_length, 4096)
-    #inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, max_length=max_len).to(model.device)
-    inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(model.device)
-
-    if temperature > 0.0:
-        print(f"Generating with temperature: {temperature}, max_tokens: {max_tokens}")
-        output = model.generate(
-            input_ids=inputs["input_ids"],
-            attention_mask=inputs["attention_mask"],
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            do_sample=True
-        )
+def generate_batch(prompts, model=None, tokenizer=None, temperature=0.0, max_tokens=512):
+    if model is None or tokenizer is None:
+        # remote generation
+        results = []
+        for p in prompts:
+            result = try_remote_generate(p, temperature=temperature, max_tokens=max_tokens)
+            assert result is not None, "If no model or tokenizer is given, remote generation should be functional."
+            results.append(result)
+        return results
     else:
-        # If temperature is 0, we use greedy decoding
-        output = model.generate(
-            input_ids=inputs["input_ids"],
-            attention_mask=inputs["attention_mask"],
-            max_new_tokens=max_tokens,
-            do_sample=False
-        )
 
-    prompt_lengths = (inputs["attention_mask"].sum(dim=1)).tolist()
-    result = [
-        tokenizer.decode(out[p_len:], skip_special_tokens=True)
-        for out, p_len in zip(output, prompt_lengths)
-    ]
-    del inputs  # Free memory
-    return result
+        prompts = [
+            tokenizer.apply_chat_template([{"role": "user", "content": p}], tokenize=False, add_generation_prompt=True)
+            for p in prompts
+        ]
+        #max_len = min(tokenizer.model_max_length, 4096)
+        #inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, max_length=max_len).to(model.device)
+        inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(model.device)
+
+        if temperature > 0.0:
+            print(f"Generating with temperature: {temperature}, max_tokens: {max_tokens}")
+            output = model.generate(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
+                max_new_tokens=max_tokens,
+                temperature=temperature,
+                do_sample=True
+            )
+        else:
+            # If temperature is 0, we use greedy decoding
+            output = model.generate(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs["attention_mask"],
+                max_new_tokens=max_tokens,
+                do_sample=False
+            )
+
+        prompt_lengths = (inputs["attention_mask"].sum(dim=1)).tolist()
+        result = [
+            tokenizer.decode(out[p_len:], skip_special_tokens=True)
+            for out, p_len in zip(output, prompt_lengths)
+        ]
+        del inputs  # Free memory
+        clear_memory()  # Clear memory after generation
+        return result
 
 
 def jsonify_ans_longwiki(raw_responses, eval_prompts, model, tokenizer, key):

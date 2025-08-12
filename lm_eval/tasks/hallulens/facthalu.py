@@ -333,7 +333,8 @@ def make_claim_extraction_prompts(generation, prompt, tokenizer):
         )
         # check token 
         prompt_len = len(tokenizer.encode(prompt_text))
-        if prompt_len > 3500:
+        MAX_PROMPT_LENGTH = 2000
+        if prompt_len > MAX_PROMPT_LENGTH:
             context1 = " ".join(sentences_text[max(0, i - 2) : i])
             snippet = f"{context1.strip()} {sentence.strip()} {context2.strip()}".strip()
             
@@ -341,18 +342,18 @@ def make_claim_extraction_prompts(generation, prompt, tokenizer):
             snippet=snippet, sentence=sentence
             )   
             
-            if len(tokenizer.encode(prompt_text)) > 3500:
+            if len(tokenizer.encode(prompt_text)) > MAX_PROMPT_LENGTH:
                 
                 prompt_text = prompt_templates.EXTRACT_CLAIMS_EXTREME_SHORT_TEMPLATE.format(
                     snippet=snippet, sentence=sentence
                 ) 
                 
-                if len(tokenizer.encode(prompt_text)) > 3500:
+                if len(tokenizer.encode(prompt_text)) > MAX_PROMPT_LENGTH:
                     prompt_text = prompt_templates.EXTRACT_CLAIMS_EXTREME_EXTREME_SHORT_TEMPLATE.format(
                         snippet=snippet, sentence=sentence
                     )
                 
-            assert len(tokenizer.encode(prompt_text)) <= 3500
+            assert len(tokenizer.encode(prompt_text)) <= MAX_PROMPT_LENGTH
 
         sentences.append(
             Sentence(
