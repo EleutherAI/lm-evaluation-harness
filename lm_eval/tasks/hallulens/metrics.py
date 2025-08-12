@@ -102,11 +102,10 @@ User: {prompt}
 Chatbot: {generation}
 Result:
 """
-
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B-Instruct", device_map="auto")
 # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-70B-Instruct")
 # model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B-Instruct", device_map="auto")
-tokenizer = AutoTokenizer.from_pretrained("mehmetkeremturkcan/SmollerLM2-100M-Instruct-sft")
-model = AutoModelForCausalLM.from_pretrained("mehmetkeremturkcan/SmollerLM2-100M-Instruct-sft", device_map="auto")
 model.eval()
 
 
@@ -224,13 +223,23 @@ def run_eval_precise_wiki(original_prompt, generated_answer, gold_answer):
     abstantion_res, halu_test_res = process_res(abstantion_raw_gen, halu_test_raw_gen)
     if abstantion_res is None or halu_test_res is None:
         return {"hallu_rate": np.nan, "refusal_rate": np.nan, "correct_rate": np.nan}
-    not_abstained = sum([1 for x in abstantion_res if x == False])
+    not_abstained = 0 if abstention_res else 1
     if not_abstained == 0:
-        hallu_rate_not_abstain = 0
+        # in case there was abstantion
+        hallu_rate_not_abstain = np.nan
+        refusal_rate = 1
+        correct_rate = np.nan
     else:
-        hallu_rate_not_abstain = sum([1 for is_abstaining, is_hallucinated in zip(abstantion_res, halu_test_res) if is_abstaining == False and is_hallucinated == True])/not_abstained
-    refusal_rate = sum([1 for is_abstaining in abstantion_res if is_abstaining == True])/len(abstantion_res)
-    correct_rate = sum([1 for is_hallucinated in halu_test_res if is_hallucinated == False])/len(halu_test_res)
+        refusal_rate = 0
+        # in case there was no abstantion
+        if halu_test_res == True:
+            # if there was hallucination
+            hallu_rate_not_abstain = 1
+            
+        else:
+            # if there was no hallucination
+            hallu_rate_not_abstain = 0
+    correct_rate = 0 if halu_test_res else 1
     return {"hallu_rate": hallu_rate_not_abstain, "refusal_rate": refusal_rate, "correct_rate": correct_rate}
 
 

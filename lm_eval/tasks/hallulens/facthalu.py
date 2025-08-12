@@ -145,6 +145,7 @@ class FactHalu:
         )
 
         if _generation.abstain is True:
+            print("No claims extracted, returning abstained result")
             final_result["abstained"] = 1
             return final_result
 
@@ -187,9 +188,16 @@ class FactHalu:
         overall_recall = final_results_df.groupby("prompt").recall.first().mean()
         overall_precision = final_results_df.groupby("prompt").precision.first().mean()
         overall_f1 = final_results_df.groupby("prompt").f1.first().mean()
+        if overall_recall is None:
+            overall_recall = np.nan
+        if overall_precision is None:
+            overall_precision = np.nan
+        if overall_f1 is None:
+            overall_f1 = np.nan
         final_result["precision"] = overall_precision
         final_result["recall"] = overall_recall
         final_result["f1"] = overall_f1
+        print(final_result)
         return final_result
 
         
@@ -234,7 +242,6 @@ class FactHalu:
             prompt=prompt,
             tokenizer=self.claim_extractor_tokenizer
         )
-        print('Number of sentences: ', len(all_sentences))
 
         to_extract_prompts = [a.prompt for a in all_sentences]
 
