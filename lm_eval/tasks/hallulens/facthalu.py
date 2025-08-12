@@ -23,6 +23,23 @@ from transformers import AutoTokenizer
 import lm_eval.tasks.hallulens.utils
 from lm_eval.tasks.hallulens.longwiki_retrieval import LongWikiRetrieval, LongWikiDB
 import lm_eval.tasks.hallulens.longwiki_utils as utils
+import lm_eval.tasks.hallulens.prompt_templates as prompt_templates
+
+
+#import hf_hub_download
+from huggingface_hub import hf_hub_download
+
+DB_PATH = hf_hub_download(
+    repo_id="swiss-ai/hallulens",
+    filename="wiki_data/enwiki-20230401.db",
+    repo_type="dataset"
+)
+
+DB_TITLE_PATH = hf_hub_download(
+    repo_id="swiss-ai/hallulens",
+    filename="wiki_data/enwiki-2024.titles.txt",
+    repo_type="dataset"
+)
 
 @dataclass
 class Claim:
@@ -67,13 +84,14 @@ class FactHalu:
             claim_verifier_tokenizer,
 
             k: int = 32,
-            db_path="/data/wiki_data/.cache/enwiki-20230401.db",
+            db_path=DB_PATH,
             args=None
         ):
-        
+
+
         self.k = k
-        self.db_path = db_path
-        self.db = LongWikiDB(db_path=db_path)
+        self.db_path = DB_PATH
+        self.db = LongWikiDB(db_path=self.db_path, db_title_path=DB_TITLE_PATH)
 
         self.abstention_model = abstention_model
         self.abstention_tokenizer = abstention_tokenizer

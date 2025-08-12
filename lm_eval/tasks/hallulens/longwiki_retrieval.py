@@ -17,10 +17,10 @@ from lm_eval.tasks.hallulens.retrieval import DocDB
 from transformers import pipeline, AutoTokenizer, AutoModelForTokenClassification
 
 class LongWikiDB(DocDB):
-    def __init__(self, db_path:str, data_path:str = None):
+    def __init__(self, db_path:str, data_path:str = None, db_title_path:str = None):
         # import DocDB from FactScore
         super(LongWikiDB, self).__init__(db_path, data_path)
-        self.title_db_path = db_path.replace(".db", "-title.db")
+        self.title_db_path = db_title_path
         self.title_connection = sqlite3.connect(self.title_db_path, check_same_thread=False)
         self.SPECIAL_SEPARATOR = "####SPECIAL####SEPARATOR####"
 
