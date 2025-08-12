@@ -6,28 +6,4 @@ dataset_kwargs:
     test: /home/mostafa.awad/BGM/MedArabiQ_Benchmarking/processed_files/patient_doctor_qa_llm.json
 test_split: test
 
-output_type: generate_until
-
-doc_to_text: |
-  انت مساعد طبي محترف. اقرأ الجملة التالية، ثم قدم نصيحة طبية مناسبة
-  "{{ question }}"
-doc_to_target: "{{ output }}"
-
-generation_kwargs:
-  until:
-    - "<end_of_turn>"
-    - "<eos>"
-    - "</s>"
-    - "<|end_of_text|>"
-    - "<|eot_id|>"
-    - "<|endoftext|>"
-  do_sample: false
-  temperature: 0.0
-
-metric_list:
-  - metric: !function utils.bert_score
-    aggregation: !function utils.agg_bert_score
-    higher_is_better: true
-
-metadata:
-  version: 1.0
+include: _default_gen_qa_template_yaml

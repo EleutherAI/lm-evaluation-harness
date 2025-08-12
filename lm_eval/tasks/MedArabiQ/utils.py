@@ -17,9 +17,11 @@ def bert_score(items): return items
 
 def agg_bert_score(items):
     print("Computing BERT score...")
-    # chose this model due to its small size compared to its good performance
-    # on ArabicMTEB benchmark
-    # src: https://arxiv.org/pdf/2411.01192
+    # the same model used in the paper: https://arxiv.org/pdf/2505.03427
+    # (according to the paper)
+    # For BERTScore evaluation, the model used is XLM-RoBERTa-Large, as it
+    # was trained on multiple languages, including Arabic,
+    # making it more suitable than monolingual models. 
     model_name = "FacebookAI/xlm-roberta-large"
     bert_score = evaluate.load("bertscore")
     predictions, references = zip(*items)
