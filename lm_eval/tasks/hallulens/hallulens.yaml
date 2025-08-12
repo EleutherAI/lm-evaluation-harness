@@ -7,6 +7,5 @@ task:
     aggregate_metric_list:
       - metric: abstention
         aggregation: mean
-  - task: 
-    - hallulens_precisewiki
-    - hallulens_longwiki
+  - hallulens_precisewiki
+  - hallulens_longwiki

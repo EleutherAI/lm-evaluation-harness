@@ -2,72 +2,38 @@ import json
 import re
 from typing import List
 
-def try_remote_generate(prompt, temperature=0.0, max_tokens=512):
-    """
-    Attempt to generate text from the SwissAI API.
-    Returns the text if successful, raises an exception otherwise.
-    """
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "model": "default",  # adjust if you want a specific SwissAI model
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": temperature,
-        "max_tokens": max_tokens
-    }
 
-    resp = requests.post(f"{API_URL}/chat/completions", headers=headers, json=payload, timeout=10)
-
-    if resp.status_code != 200:
-        raise RuntimeError(f"SwissAI API returned status {resp.status_code}: {resp.text}")
-
-    data = resp.json()
-    return data["choices"][0]["message"]["content"]
-
-
-def generate(prompt, model, tokenizer, temperature=0.0, top_p=1.0, max_tokens=512):
-    try:
-        # Send batch requests one by one (SwissAI may not support true batch input)
-        return try_remote_generate(prompt, temperature, max_tokens)
-    except Exception as e:
-        print(f"[SwissAI API batch failed: {e}] Falling back to local model...")
-
-    prompt = tokenizer.apply_chat_template(
-        [{"role": "user", "content": prompt}],
-        tokenize=False,
-        add_generation_prompt=True,
-    )
-    input = tokenizer(prompt, return_tensors="pt", truncation=True).to(model.device)
-    if temperature > 0.0:
-        output = model.generate(
-            input_ids=input["input_ids"],
-            attention_mask=input["attention_mask"],
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
+def generate(prompt, model, tokenizer, temperature=0.0, max_tokens=512):
+        prompt = tokenizer.apply_chat_template(
+            [{"role": "user", "content": prompt}],
+            tokenize=False,
+            add_generation_prompt=True,
         )
-    else:
-        # If temperature is 0, we use greedy decoding
-        output = model.generate(
-            input_ids=input["input_ids"],
-            attention_mask=input["attention_mask"],
-            max_new_tokens=max_tokens,
-            do_sample=False,
-        )
-    prompt_length = input["input_ids"].shape[1]
-    result = tokenizer.decode(output[0][prompt_length:], skip_special_tokens=True)
-    del input  # Free memory
-    return result
+        #max_len = min(tokenizer.model_max_length, 4096)  # defensive coding
+        #input = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=max_len).to(model.device)
+        input = tokenizer(prompt, return_tensors="pt", truncation=True).to(model.device)
+        if temperature > 0.0:
+            print(f"Generating with temperature: {temperature}, max_tokens: {max_tokens}")
+            output = model.generate(
+                input_ids=input["input_ids"],
+                attention_mask=input["attention_mask"],
+                max_new_tokens=max_tokens,
+                temperature=temperature,
+            )
+        else:
+            # If temperature is 0, we use greedy decoding
+            output = model.generate(
+                input_ids=input["input_ids"],
+                attention_mask=input["attention_mask"],
+                max_new_tokens=max_tokens,
+                do_sample=False,
+            )
+        prompt_length = input["input_ids"].shape[1]
+        result = tokenizer.decode(output[0][prompt_length:], skip_special_tokens=True)
+        del input  # Free memory
+        return result
 
-def generate_batch(prompts, model, tokenizer, temperature=0.0, top_p=1.0, max_tokens=512):
-    try:
-        # Send batch requests one by one (SwissAI may not support true batch input)
-        return [try_remote_generate(p, temperature, max_tokens) for p in prompts]
-    except Exception as e:
-        print(f"[SwissAI API batch failed: {e}] Falling back to local model...")
-
+def generate_batch(prompts, model, tokenizer, temperature=0.0, max_tokens=512):
     prompts = [
         tokenizer.apply_chat_template([{"role": "user", "content": p}], tokenize=False, add_generation_prompt=True)
         for p in prompts
@@ -76,14 +42,23 @@ def generate_batch(prompts, model, tokenizer, temperature=0.0, top_p=1.0, max_to
     #inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, max_length=max_len).to(model.device)
     inputs = tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(model.device)
 
-    output = model.generate(
-        input_ids=inputs["input_ids"],
-        attention_mask=inputs["attention_mask"],
-        max_new_tokens=max_tokens,
-        temperature=temperature if temperature > 0.0 else None,
-        top_p=top_p,
-        do_sample=temperature > 0.0
-    )
+    if temperature > 0.0:
+        print(f"Generating with temperature: {temperature}, max_tokens: {max_tokens}")
+        output = model.generate(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            do_sample=True
+        )
+    else:
+        # If temperature is 0, we use greedy decoding
+        output = model.generate(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            max_new_tokens=max_tokens,
+            do_sample=False
+        )
 
     prompt_lengths = (inputs["attention_mask"].sum(dim=1)).tolist()
     result = [
@@ -115,7 +90,7 @@ def jsonify_ans_longwiki(raw_responses, eval_prompts, model, tokenizer, key):
             try:
                 jsonifyed_res.append(json.loads(r))
             except:
-                # print(f"Error in eval_answer: {r}")
+                print(f"Error in eval_answer: {r}")
                 error = True
                 error_count = 0
                 
@@ -145,10 +120,8 @@ def jsonify_ans_longwiki(raw_responses, eval_prompts, model, tokenizer, key):
                     if error_count > 3:
                         print("Error count exceeded 3. Skipping this prompt.")
                         jsonifyed_res.append({"error": "Error count exceeded 3. Skipping this prompt."})
-
-                        break
-                if not error:
-                    jsonifyed_res.append(json_res)
+                        return []
+                jsonifyed_res.append(json_res)
                 print("<<< PASS >>>")
 
     return jsonifyed_res

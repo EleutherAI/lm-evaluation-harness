@@ -7,6 +7,29 @@ from lm_eval.tasks.hallulens.nonsensename import NonsenseNameEval, NonsenseMixed
 import json
 import os
 import numpy as np
+from huggingface_hub import HfApi, hf_hub_download
+
+home_dir = os.path.expanduser("~")
+local_db = os.path.join(home_dir, "wiki_data/enwiki-20230401.db")
+local_titles = os.path.join(home_dir, "wiki_data/enwiki-2024.titles.txt")
+# Check whether "/data/wiki_data/.cache/enwiki-20230401.db" and  "/data/wiki_data/enwiki-2024.titles.txt", 
+# if not load it from huggingface repo 'swiss-ai/hallulens', in the folder 'wiki_data'
+# check if the file exists
+if not os.path.exists(local_db):
+    hf_hub_download(
+        repo_id="swiss-ai/hallulens",
+        filename="wiki_data/enwiki-20230401.db",
+        local_dir=home_dir,
+        repo_type="dataset"
+    )
+
+if not os.path.exists(local_titles):
+    hf_hub_download(
+        repo_id="swiss-ai/hallulens",
+        filename="wiki_data/enwiki-2024.titles.txt",
+        local_dir=home_dir,
+        repo_type="dataset"
+    )
 
 
 
@@ -102,10 +125,10 @@ User: {prompt}
 Chatbot: {generation}
 Result:
 """
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
-model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B-Instruct", device_map="auto")
-# tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-70B-Instruct")
-# model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B-Instruct", device_map="auto")
+
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-70B-Instruct")
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-70B-Instruct", device_map="auto")
+
 model.eval()
 
 
@@ -138,7 +161,7 @@ def get_score(doc, predictions, **kwargs):
         claim_verifier=model,
         claim_verifier_tokenizer=tokenizer,
         k=32,
-        db_path="/data/wiki_data/.cache/enwiki-20230401.db",
+        db_path=local_db,
         )
         
         return evaluator.run(original_prompt, completion, title, reference)
@@ -190,7 +213,7 @@ def eval_abstention(original_prompt, generated_answer, model, tokenizer):
         if ABSTAIN_JSON_KEY in o:
             refusal_res.append(o[ABSTAIN_JSON_KEY])
         else:
-            refusal_res.append(False)
+            refusal_res.append(None)
 
     return refusal_res, generated_evaluation
 
@@ -223,23 +246,20 @@ def run_eval_precise_wiki(original_prompt, generated_answer, gold_answer):
     abstantion_res, halu_test_res = process_res(abstantion_raw_gen, halu_test_raw_gen)
     if abstantion_res is None or halu_test_res is None:
         return {"hallu_rate": np.nan, "refusal_rate": np.nan, "correct_rate": np.nan}
-    not_abstained = 0 if abstantion_res else 1
+    not_abstained = 0 if abstantion_res else 1 # if 0, then the sample abstained, if 1 then it did not abstain
     if not_abstained == 0:
-        # in case there was abstantion
-        hallu_rate_not_abstain = np.nan
+        hallu_rate_not_abstain = 0
         refusal_rate = 1
-        correct_rate = np.nan
     else:
         refusal_rate = 0
-        # in case there was no abstantion
-        if halu_test_res == True:
-            # if there was hallucination
+        if halu_test_res: # if it is hallucinated
             hallu_rate_not_abstain = 1
-            
         else:
-            # if there was no hallucination
             hallu_rate_not_abstain = 0
-    correct_rate = 0 if halu_test_res else 1
+    if halu_test_res: # if it is hallucinated
+        correct_rate = 0
+    else:
+        correct_rate = 1
     return {"hallu_rate": hallu_rate_not_abstain, "refusal_rate": refusal_rate, "correct_rate": correct_rate}
 
 

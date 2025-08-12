@@ -14,33 +14,15 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict
 
 import pandas as pd
-
 from tqdm import tqdm   
 
-import lm_eval.tasks.hallulens.prompt_templates
+import lm_eval.tasks.hallulens.prompt_templates as prompt_templates
 from segtok.segmenter import split_single
 
 from transformers import AutoTokenizer
 import lm_eval.tasks.hallulens.utils as base_utils
 from lm_eval.tasks.hallulens.longwiki_retrieval import LongWikiRetrieval, LongWikiDB
 import lm_eval.tasks.hallulens.longwiki_utils as utils
-import lm_eval.tasks.hallulens.prompt_templates as prompt_templates
-
-
-#import hf_hub_download
-from huggingface_hub import hf_hub_download
-
-DB_PATH = hf_hub_download(
-    repo_id="swiss-ai/hallulens",
-    filename="wiki_data/enwiki-20230401.db",
-    repo_type="dataset"
-)
-
-DB_TITLE_PATH = hf_hub_download(
-    repo_id="swiss-ai/hallulens",
-    filename="wiki_data/enwiki-2024.titles.txt",
-    repo_type="dataset"
-)
 
 @dataclass
 class Claim:
@@ -85,14 +67,16 @@ class FactHalu:
             claim_verifier_tokenizer,
 
             k: int = 32,
-            db_path=DB_PATH,
+            db_path=None,
             args=None
         ):
-
-
+        
+        if db_path is None:
+            raise ValueError("db_path must be provided")
+        
         self.k = k
-        self.db_path = DB_PATH
-        self.db = LongWikiDB(db_path=self.db_path, db_title_path=DB_TITLE_PATH)
+        self.db_path = db_path
+        self.db = LongWikiDB(db_path=db_path)
 
         self.abstention_model = abstention_model
         self.abstention_tokenizer = abstention_tokenizer
@@ -110,7 +94,7 @@ class FactHalu:
         Saves results to output_csv as jsonl with one line per prompt.
         """
         final_result = {
-            "abstained": 0,
+            "abstained": np.nan,
             "precision": np.nan,
             "recall": np.nan,
             "f1": np.nan,
@@ -125,29 +109,31 @@ class FactHalu:
         _generation.topic = title
 
         ### [[STEP #1]] False Refusal Test
-        _generation = self.eval_abstention(
+        abstained = self.eval_abstention(
             prompt=prompt,
-            _generation=_generation,
+            generation=generation,
         )
-        # if _generation.abstain is True, set to 1, if it is np.nan,, set to np.nan
-        if _generation.abstain is True:
-            final_result["abstained"] = 1
-            return final_result
-        elif _generation.abstain is np.nan:
-            final_result["abstained"] = np.nan
-    
+
+        _generation.abstain = abstained
+
+        if _generation.abstain is not None:
+            if _generation.abstain:
+                final_result["abstained"] = 1
+                return final_result
+            else:
+                final_result["abstained"] = 0
 
         ### [[STEP #2]] Extract claims
         print("\n[[Step 2]] Extracting Claims starts")
         all_claims = self.extract_claims(
-            _generation=_generation,
+            generation=_generation,
             prompt=prompt
         )
 
-        if _generation.abstain is True:
-            print("No claims extracted, returning abstained result")
-            final_result["abstained"] = 1
-            return final_result
+        if _generation.abstain is not None:
+            if _generation.abstain:
+                final_result["abstained"] = 1
+                return final_result
 
         ### [[STEP #3]] Verify claims
         print(f"\n[[Step 3]] Verifying Claims starts. Len: {len(all_claims)}")
@@ -188,16 +174,9 @@ class FactHalu:
         overall_recall = final_results_df.groupby("prompt").recall.first().mean()
         overall_precision = final_results_df.groupby("prompt").precision.first().mean()
         overall_f1 = final_results_df.groupby("prompt").f1.first().mean()
-        if overall_recall is None:
-            overall_recall = np.nan
-        if overall_precision is None:
-            overall_precision = np.nan
-        if overall_f1 is None:
-            overall_f1 = np.nan
         final_result["precision"] = overall_precision
         final_result["recall"] = overall_recall
         final_result["f1"] = overall_f1
-        print(final_result)
         return final_result
 
         
@@ -206,9 +185,9 @@ class FactHalu:
 ##########################################################################################
 
 
-    def eval_abstention(self, prompt, _generation):
+    def eval_abstention(self, prompt, generation):
         abstain_prompt = prompt_templates.ABSTAIN_PROMPT.format(
-            prompt=prompt.strip(), generation=_generation.generation
+            prompt=prompt.strip(), generation=generation
         ).strip()
 
         abstains_eval_raw = utils.generate(
@@ -227,18 +206,17 @@ class FactHalu:
             key="is_knowledgeable"
         )
 
-        evaluation = abstains_eval[0]
-        if "is_knowledgeable" not in evaluation:
-            _generation.abstain = np.nan
+        if len(abstains_eval) == 0:
+            return None
         else:
-            _generation.abstain = evaluation["is_knowledgeable"]
-        return _generation
+           return not abstains_eval[0]["is_knowledgeable"]
+        
 
-    def extract_claims(self, _generation, prompt):
+    def extract_claims(self, generation, prompt):
         all_claim_extractions = []
 
         all_sentences = make_claim_extraction_prompts(
-            generation=_generation.generation,
+            generation=generation,
             prompt=prompt,
             tokenizer=self.claim_extractor_tokenizer
         )
@@ -246,14 +224,16 @@ class FactHalu:
         to_extract_prompts = [a.prompt for a in all_sentences]
 
         for prompt in to_extract_prompts:
-
-            batch_results = utils.generate(prompt, self.claim_extractor, tokenizer=self.claim_extractor_tokenizer, max_tokens=512)
-            all_claim_extractions.append(batch_results)
+            results = base_utils.generate(prompt, self.claim_extractor, tokenizer=self.claim_extractor_tokenizer, max_tokens=512)
+            all_claim_extractions.append(results)
         
         print("***** [2-2] Parsing extracted claims")
+        # print(f"length of all_sentences: {len(all_sentences)}, all_sentences: {all_sentences}")
+        # print(f"length of all_claim_extractions: {len(all_claim_extractions)}, all_claim_extractions: {all_claim_extractions}")
         all_claims = []
         deduplicate = set()
-        assert len(all_claim_extractions) == len(all_sentences)
+        assert len(all_claim_extractions) == len(all_sentences), \
+            f"Length of all_claim_extractions ({len(all_claim_extractions)}) and all_sentences ({len(all_sentences)}) do not match."
 
         for claim_extraction, sentence in zip(all_claim_extractions, all_sentences):
             if (not claim_extraction) or \
@@ -285,7 +265,7 @@ class FactHalu:
 
         # if deduplicate is empty, return empty list
         if not deduplicate:
-            _generation.abstain = True
+            generation.abstain = True
 
         return all_claims
 
@@ -336,9 +316,9 @@ def make_claim_extraction_prompts(generation, prompt, tokenizer):
     """
     sentences = []
     # split the text into sentences
-    sentences_text = [x.strip() for x in split_single(generation)]
+    sentences_text = [x.strip() for x in split_single(generation.generation)]
     question = prompt.replace("Answer in one paragraph.", "").strip()
-    response = generation.strip()
+    response = generation.generation.strip()
 
     for i, sentence in list(enumerate(sentences_text)):
         if len(sentence) < 5:
@@ -379,5 +359,5 @@ def make_claim_extraction_prompts(generation, prompt, tokenizer):
                 prompt=prompt_text, sentence=target_sentence, generation=generation
             )
         )
-
+    generation.sentences = sentences
     return sentences
