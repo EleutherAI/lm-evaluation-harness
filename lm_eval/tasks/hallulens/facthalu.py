@@ -140,7 +140,7 @@ class FactHalu:
         ### [[STEP #2]] Extract claims
         print("\n[[Step 2]] Extracting Claims starts")
         all_claims = self.extract_claims(
-            generation=_generation,
+            _generation=_generation,
             prompt=prompt
         )
 
