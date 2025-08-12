@@ -127,7 +127,7 @@ class FactHalu:
         ### [[STEP #1]] False Refusal Test
         _generation = self.eval_abstention(
             prompt=prompt,
-            generation=generation,
+            generation=_generation,
         )
         # if _generation.abstain is True, set to 1, if it is np.nan,, set to np.nan
         if _generation.abstain is True:
@@ -198,9 +198,9 @@ class FactHalu:
 ##########################################################################################
 
 
-    def eval_abstention(self, prompt, generation):
+    def eval_abstention(self, prompt, _generation):
         abstain_prompt = prompt_templates.ABSTAIN_PROMPT.format(
-            prompt=prompt.strip(), generation=generation
+            prompt=prompt.strip(), generation=_generation.generation
         ).strip()
 
         abstains_eval_raw = utils.generate(
@@ -221,16 +221,16 @@ class FactHalu:
 
         evaluation = abstains_eval[0]
         if "is_knowledgeable" not in evaluation:
-            generation.abstain = np.nan
+            _generation.abstain = np.nan
         else:
-            generation.abstain = evaluation["is_knowledgeable"]
-        return generation
+            _generation.abstain = evaluation["is_knowledgeable"]
+        return _generation
 
-    def extract_claims(self, generation, prompt):
+    def extract_claims(self, _generation, prompt):
         all_claim_extractions = []
 
         all_sentences = make_claim_extraction_prompts(
-            generation=generation,
+            generation=_generation,
             prompt=prompt,
             tokenizer=self.claim_extractor_tokenizer
         )
