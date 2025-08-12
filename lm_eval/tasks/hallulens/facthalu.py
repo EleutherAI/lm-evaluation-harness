@@ -276,7 +276,7 @@ class FactHalu:
 
         # if deduplicate is empty, return empty list
         if not deduplicate:
-            generation.abstain = True
+            _generation.abstain = True
 
         return all_claims
 
