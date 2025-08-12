@@ -221,10 +221,10 @@ class FactHalu:
 
         evaluation = abstains_eval[0]
         if "is_knowledgeable" not in evaluation:
-            _generation.abstain = np.nan
+            generation.abstain = np.nan
         else:
-            _generation.abstain = evaluation["is_knowledgeable"]
-        return _generation
+            generation.abstain = evaluation["is_knowledgeable"]
+        return generation
 
     def extract_claims(self, generation, prompt):
         all_claim_extractions = []
