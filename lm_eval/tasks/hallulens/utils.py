@@ -111,8 +111,10 @@ def jsonify_ans_longwiki(raw_responses, eval_prompts, model, tokenizer, key):
                     if error_count > 3:
                         print("Error count exceeded 3. Skipping this prompt.")
                         jsonifyed_res.append({"error": "Error count exceeded 3. Skipping this prompt."})
+
                         break
-                jsonifyed_res.append(json_res)
+                if not error:
+                    jsonifyed_res.append(json_res)
                 print("<<< PASS >>>")
 
     return jsonifyed_res
