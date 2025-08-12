@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict
 
 import pandas as pd
+
 from tqdm import tqdm   
 
 import lm_eval.tasks.hallulens.prompt_templates
@@ -128,10 +129,13 @@ class FactHalu:
             prompt=prompt,
             generation=generation,
         )
-
-        if _generation.abstain:
+        # if _generation.abstain is True, set to 1, if it is np.nan,, set to np.nan
+        if _generation.abstain is True:
             final_result["abstained"] = 1
             return final_result
+        elif _generation.abstain is np.nan:
+            final_result["abstained"] = np.nan
+    
 
         ### [[STEP #2]] Extract claims
         print("\n[[Step 2]] Extracting Claims starts")
@@ -140,7 +144,7 @@ class FactHalu:
             prompt=prompt
         )
 
-        if _generation.abstain:
+        if _generation.abstain is True:
             final_result["abstained"] = 1
             return final_result
 
@@ -216,7 +220,11 @@ class FactHalu:
         )
 
         evaluation = abstains_eval[0]
-        return not evaluation["is_knowledgeable"]
+        if "is_knowledgeable" not in evaluation:
+            _generation.abstain = np.nan
+        else:
+            _generation.abstain = evaluation["is_knowledgeable"]
+        return _generation
 
     def extract_claims(self, generation, prompt):
         all_claim_extractions = []
