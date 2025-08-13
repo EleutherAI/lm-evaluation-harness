@@ -1,9 +1,6 @@
 task: MedArabiQ_patient_doctor_qa_llm
-dataset_path: json
-dataset_name: null
 dataset_kwargs:
   data_files:
     test: /home/mostafa.awad/BGM/MedArabiQ_Benchmarking/processed_files/patient_doctor_qa_llm.json
-test_split: test
 
 include: _default_gen_qa_template_yaml

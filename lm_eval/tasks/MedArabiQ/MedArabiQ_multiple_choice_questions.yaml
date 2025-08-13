@@ -1,9 +1,6 @@
 task: MedArabiQ_multiple_choice_questions
-dataset_path: json
-dataset_name: null
 dataset_kwargs:
   data_files:
     test: /home/mostafa.awad/BGM/MedArabiQ_Benchmarking/processed_files/multiple_choice_questions.json
-test_split: test
 
 include: _default_mcq_template_yaml

@@ -1,9 +1,6 @@
 task: dialect_identification_madar_ars
-dataset_path: json
-dataset_name: null
 dataset_kwargs:
   data_files:
     test: /home/mostafa.awad/BGM/dialect_identification//mcq_split_by_dialect/MADAR/ars/test.jsonl
-test_split: test
 
 include: _default_dialect_identification_template_yaml
