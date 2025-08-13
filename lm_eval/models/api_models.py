@@ -381,12 +381,23 @@ class TemplateAPI(TemplateLM):
             # by default for CausalLM - false or self.add_bos_token is set
             if not add_special_tokens:
                 add_special_tokens = False or self.add_bos_token
-            encoding: Union[List[List[int]], List[int]] = self.tokenizer(
-                string,
-                add_special_tokens=add_special_tokens,
-                truncation=truncation,
-                return_attention_mask=False,
-            ).input_ids
+            try:
+                encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+                    string,
+                    add_special_tokens=add_special_tokens,
+                    truncation=truncation,
+                    return_attention_mask=False,
+                ).input_ids
+            except TypeError as e:
+                if "return_attention_mask" in str(e):
+                    # Fallback for tokenizers like MistralTokenizer that don't support return_attention_mask
+                    encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+                        string,
+                        add_special_tokens=add_special_tokens,
+                        truncation=truncation,
+                    ).input_ids
+                else:
+                    raise
 
             # left-truncate the encoded context to be at most `left_truncate_len` tokens long
             if left_truncate_len:
