@@ -1,0 +1,20 @@
+task: eqbench_ca
+dataset_path: BSC-LT/EQ-bench_ca
+output_type: generate_until
+validation_split: test
+doc_to_text: prompt
+doc_to_target: reference_answer_fullscale
+process_results: !function utils.calculate_score_fullscale
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 80
+metric_list:
+  - metric: eqbench
+    aggregation: mean
+    higher_is_better: true
+  - metric: percent_parseable
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
