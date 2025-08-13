@@ -1,3 +1,7 @@
+dataset_path: json
+dataset_name: null
+test_split: test
+
 output_type: multiple_choice
 
 doc_to_text: |
