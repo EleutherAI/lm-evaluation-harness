@@ -1,0 +1,13 @@
+dataset_kwargs:
+  data_files:
+    test:
+      - /l/users/george.ibrahim/IFM/ONEDRIVE/Data/jais/llm_harness/benchmarks/3LM/3lm_native_qa_Geography.json
+dataset_name: null
+dataset_path: json
+
+include: 3lm_template.yaml
+tag: 3lm_native_qa_geography
+task: 3lm_native_qa_geography
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
