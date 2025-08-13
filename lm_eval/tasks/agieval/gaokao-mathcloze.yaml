@@ -9,7 +9,7 @@ doc_to_text: "{{query}}"
 doc_to_target: "{{answer}}"
 process_results: !function utils.process_results
 generation_kwargs:
-  max_gen_toks: 32
+  max_gen_toks: 1024
   do_sample: False
   temperature: 0.0
   until:
