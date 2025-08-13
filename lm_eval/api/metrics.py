@@ -12,16 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar
 
 import numpy as np
 import sacrebleu
-
-
-# check if jsonschema is installed
-try:
-    import jsonschema
-    from jsonschema import Draft202012Validator, FormatChecker, ValidationError
-except ImportError as e:
-    raise ImportError(
-        "jsonschema is not installed. Please install it using 'pip install jsonschema[format]'"
-    ) from e
+from jsonschema import Draft202012Validator, FormatChecker, SchemaError, ValidationError
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -354,9 +345,9 @@ def is_json_schema_valid(schema: dict):
     """
     try:
         # Check if the schema is valid
-        jsonschema.Draft202012Validator.check_schema(schema)
+        Draft202012Validator.check_schema(schema)
         return True
-    except jsonschema.SchemaError:
+    except SchemaError:
         return False
 
 

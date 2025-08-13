@@ -24,6 +24,8 @@ dependencies = [
     "datasets>=2.16.0,<4.0",
     "evaluate>=0.4.0",
     "jsonlines",
+    "jsonschema>4.18.0",
+    "xgrammar",
     "numexpr",
     "peft>=0.2.0",
     "pybind11>=2.6.2",
