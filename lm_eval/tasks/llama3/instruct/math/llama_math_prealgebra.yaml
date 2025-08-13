@@ -1,0 +1,3 @@
+include: llama_math_algebra.yaml
+dataset_name: prealgebra
+task: llama_math_prealgebra
