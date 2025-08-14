@@ -1,4 +1,4 @@
 task: realtoxicitypromptsllama_small
 include: _realtoxicityprompts_yaml
-dataset_name: realtoxicityprompts_small
+dataset_name: Small
 test_split: train
