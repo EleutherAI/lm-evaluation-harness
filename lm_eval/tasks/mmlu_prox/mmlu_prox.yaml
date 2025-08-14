@@ -1,0 +1,22 @@
+group: mmlu_prox
+task:
+- mmlu_prox_ar
+- mmlu_prox_bn
+- mmlu_prox_de
+- mmlu_prox_en
+- mmlu_prox_es
+- mmlu_prox_fr
+- mmlu_prox_hi
+- mmlu_prox_ja
+- mmlu_prox_ko
+- mmlu_prox_pt
+- mmlu_prox_sw
+- mmlu_prox_th
+- mmlu_prox_zh
+aggregate_metric_list:
+- aggregation: mean
+  metric: exact_match
+  weight_by_size: true
+  filter_list: custom-extract
+metadata:
+  version: 0.0

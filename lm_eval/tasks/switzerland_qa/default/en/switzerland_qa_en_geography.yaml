@@ -1,3 +1,4 @@
-include: _en_template_yaml
-process_docs: !function utils.process_geography
+include: ../_base_template.yaml
+dataset_name: English
+process_docs: !function ../utils.process_geography
 task: switzerland_qa_en_geography

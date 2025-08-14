@@ -1,3 +1,4 @@
-include: _rm_template_yaml
-process_docs: !function utils.process_social_life
+include: ../_base_template.yaml
+dataset_name: Romansh
+process_docs: !function ../utils.process_social_life
 task: switzerland_qa_rm_social_life

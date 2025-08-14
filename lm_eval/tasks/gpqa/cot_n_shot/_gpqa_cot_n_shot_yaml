@@ -7,13 +7,13 @@ training_split: train
 validation_split: train
 test_split: null
 description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
-doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step: "
+doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step and then finish your answer with \"The answer is (X)\" where X is the correct letter choice."
 doc_to_target: answer
 filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=The answer is )(.*)(?=.)"
+        regex_pattern: '(?i)^\s*[\(\[\{"]?\s*(?P<lead_letter>[ABCD])\s*[\)\]\}"]?(?=[\s:)\].,;!?-]|$)|(?:^|[^\w])(?:the\s+)?answer(?:\s+is)?\s*[:\-]?(?:(?P<answer_letter>[ABCD])\b|(?P<answer_fallback>[^\n\r]+?))\s*$'  # Prefer a leading, standalone letter like "B: ...", "(C) ...", etc., otherwise, look for the 'answer' token and take A–D if present, else capture whatever comes after it as a fallback.
       - function: "take_first"
   - name: "flexible-extract"
     filter:
@@ -28,6 +28,7 @@ generation_kwargs:
     - "</s>"
   do_sample: false
   temperature: 0.0
+  max_gen_toks: 1024
 metric_list:
   - metric: exact_match
     aggregation: mean

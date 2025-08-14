@@ -1,0 +1,10 @@
+# this file is kinda stupid, but it's just for grouping metrics, because the original group (arc_multilingual) logs only individual languages
+# and we want to log the aggregated metrics in the default group (m_arc)
+group: m_arc_0shot
+task:
+  - arc_multilingual_0shot # very big, 31 languages
+aggregate_metric_list:
+- metric: exact_match
+  filter_list: "extract-answer"
+metadata:
+  version: 1.0

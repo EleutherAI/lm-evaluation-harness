@@ -19,6 +19,7 @@ generation_kwargs:
   until:
     - "</s>"
     - "Q:"
+    - "Question:"
     - "问题："
     - "<|im_end|>"
   do_sample: false

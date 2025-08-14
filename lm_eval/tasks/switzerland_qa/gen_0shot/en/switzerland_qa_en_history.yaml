@@ -1,0 +1,4 @@
+include: ../_base_template_yaml
+dataset_name: English
+process_docs: !function ../utils.process_history
+task: switzerland_qa_en_history_0shot

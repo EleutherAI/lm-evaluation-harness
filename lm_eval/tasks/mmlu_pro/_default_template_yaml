@@ -9,15 +9,23 @@ output_type: generate_until
 doc_to_text: !function utils.doc_to_text
 doc_to_target: answer
 filter_list:
-  - name: "custom-extract"
+  # - name: "custom-extract"
+  #   filter:
+  #     - function: "regex"
+  #       regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
+  #       # regex_pattern: r".*[aA]nswer:\s*([A-J])",
+  #     - function: "take_first"
+  - name: "extract-answer"
     filter:
       - function: "regex"
-        regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
-        # regex_pattern: r".*[aA]nswer:\s*([A-J])",
+        group_select: -1 # takes last match
+        regex_pattern: '(?i)^\s*[\(\[\{"]?\s*(?P<lead_letter>[ABCD])\s*[\)\]\}"]?(?=[\s:)\].,;!?-]|$)|(?:^|[^\w])(?:the\s+)?answer(?:\s+is)?\s*[:\-]?(?:(?P<answer_letter>[ABCD])\b|(?P<answer_fallback>[^\n\r]+?))\s*$'  # Prefer a leading, standalone letter like "B: ...", "(C) ...", etc., otherwise, look for the 'answer' token and take A–D if present, else capture whatever comes after it as a fallback.
       - function: "take_first"
 generation_kwargs:
   until:
+    - "</s>"
     - "Question:"
+    - "<|im_end|>"
   max_gen_toks: 2048
   do_sample: false
   temperature: 0.0

@@ -1,0 +1,7 @@
+include: _arc_yaml
+task: arc_sr_0shot
+dataset_path: alexandrainst/m_arc
+dataset_name: sr
+training_split: train
+validation_split: validation
+test_split: test
