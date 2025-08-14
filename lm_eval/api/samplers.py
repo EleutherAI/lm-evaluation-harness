@@ -76,8 +76,15 @@ class ContextSampler:
             self.docs = self.docs.select(fewshot_indices)
 
     def get_context(self, doc: dict, num_fewshot: int, gen_prefix: str = None):
+        if gen_prefix and not gen_prefix[-1].isspace():
+            # Note for PR: maybe we should still append a space here, until some version when this is actually deprecated?
+            eval_logger.warning(
+                "`gen_prefix` no longer has a space appended to it by default. It's recommended to add a space at the end of `gen_prefix` if you want it to be separated from the answer."
+            )
+        elif gen_prefix is None:
+            gen_prefix = ""
+
         # draw an extra fewshot sample if using same split as evaluating on
-        prefix = gen_prefix + " " if gen_prefix else ""
         n_samples = (
             num_fewshot + 1
             if self.config.fewshot_split == self.config.test_split
@@ -109,7 +116,7 @@ class ContextSampler:
                         stacklevel=2,
                     )
                 labeled_examples += self.target_delimiter
-                labeled_examples += prefix
+                labeled_examples += gen_prefix
                 labeled_examples += (
                     str(doc_target[0])
                     if isinstance(doc_target, list)
@@ -129,7 +136,14 @@ class ContextSampler:
         gen_prefix: Optional[str] = None,
     ):
         # TODO: Do we need any other delimiter
-        prefix = gen_prefix + " " if gen_prefix else ""
+        if gen_prefix and not gen_prefix[-1].isspace():
+            # Note for PR: maybe we should still append a space here, until some version when this is actually deprecated?
+            eval_logger.warning(
+                "`gen_prefix` no longer has a space appended to it by default. It's recommended to add a space at the end of `gen_prefix` if you want it to be separated from the answer."
+            )
+        elif gen_prefix is None:
+            gen_prefix = ""
+
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
@@ -160,12 +174,12 @@ class ContextSampler:
                 chat_history.append(
                     {
                         "role": "assistant",
-                        "content": prefix + str(doc_target[0])
+                        "content": gen_prefix + str(doc_target[0])
                         if isinstance(doc_target, list)
-                        else prefix + doc_target
+                        else gen_prefix + doc_target
                         if self.config.doc_to_choice is None
                         or isinstance(doc_target, str)
-                        else prefix + str(self.doc_to_choice(doc)[doc_target]),
+                        else gen_prefix + str(self.doc_to_choice(doc)[doc_target]),
                     }
                 )
         else:
