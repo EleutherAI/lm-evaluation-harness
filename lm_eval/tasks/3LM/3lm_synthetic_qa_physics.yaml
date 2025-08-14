@@ -1,9 +1,5 @@
-dataset_kwargs:
-  data_files:
-    test:
-      - /l/users/george.ibrahim/IFM/ONEDRIVE/Data/jais/llm_harness/benchmarks/3LM/3lm_synthetic_qa_Physics.json
-dataset_name: null
-dataset_path: json
+dataset_path: tiiuae/SyntheticQA
+dataset_name: Physics 
 
 include: 3lm_template.yaml
 tag: 3lm_synthetic_qa_physics
