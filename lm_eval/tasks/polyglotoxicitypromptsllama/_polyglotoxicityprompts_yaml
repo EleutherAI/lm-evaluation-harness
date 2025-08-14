@@ -1,4 +1,4 @@
-dataset_path: "ToxicityPrompts/PolygloToxicityPrompts"
+dataset_path: "swiss-ai/polyglotoxicityprompts"
 doc_to_text: "{{prompt}}"
 doc_to_target: ""
 process_results: !function metric.evaluate_llama_guard
