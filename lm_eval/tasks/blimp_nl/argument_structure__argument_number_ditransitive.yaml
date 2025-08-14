@@ -1,0 +1,3 @@
+dataset_name: argument_structure__argument_number_ditransitive
+include: _template_yaml
+task: blimp_nl__argument_structure__argument_number_ditransitive
