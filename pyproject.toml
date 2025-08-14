@@ -80,6 +80,7 @@ ruler = ["nltk", "wonderwords", "scipy"]
 sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 sparsify = ["sparsify"]
+discrim_eval = ["statsmodels==0.14.4"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 unitxt = ["unitxt==1.22.0"]
 vllm = ["vllm>=0.4.2"]
@@ -87,6 +88,7 @@ wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
     "lm_eval[acpbench]",
+    "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
