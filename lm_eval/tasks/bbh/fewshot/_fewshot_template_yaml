@@ -15,6 +15,20 @@ generation_kwargs:
     - "\n\n"
   do_sample: false
   temperature: 0.0
+filter_list:
+  - name: remove_whitespace
+    filter:
+      # Filter everything after the first break line
+      - function: "regex"
+        regex_pattern: "^(.*?)(?=\\n|$)"
+      - function: remove_whitespace
+      # function to ignore right white spaces or line breaks
+      - function: "regex"
+        regex_pattern: "^(.*?)\\s*$"
+      # If there are things  between brackets, match those
+      - function: "regex"
+        regex_pattern: "\\([^()]*\\)|[^()]*"
+      - function: take_first
 num_fewshot: 3
 metadata:
   version: 2.0
