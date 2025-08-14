@@ -91,33 +91,26 @@ def synthetic_parse_choices(raw, labels):
         raise ValueError(f"Cannot determine how to split choices: {raw!r}")
 
 
-def make_filter_synthetic(domain):
-    def filter_fn(doc):
-        labels = ["أ)", "ب)", "ج)", "د)"]
-        raw = doc["choices"]
-        choices = synthetic_parse_choices(raw, labels)
-        choices = [re.sub(r"^\)?\s*", "", c).strip(" []'\"\n") for c in choices]
-        latin_to_arabic = {"A": "أ", "B": "ب", "C": "ج", "D": "د"}
-        arabic_to_latin = {v: k for k, v in latin_to_arabic.items()}
-        valid_keys_arabic = list(latin_to_arabic.values())
-        self_answer_arabic = doc["self_answer"].strip()
-        self_answer_latin = arabic_to_latin.get(self_answer_arabic)        
+def doc_to_text_synthetic(doc):
+    labels = ["أ)", "ب)", "ج)", "د)"]
+    raw = doc["choices"]
+    choices = synthetic_parse_choices(raw, labels)
+    choices = [re.sub(r"^\)?\s*", "", c).strip(" []'\"\n") for c in choices]
+    latin_to_arabic = {"A": "أ", "B": "ب", "C": "ج", "D": "د"}
+    arabic_to_latin = {v: k for k, v in latin_to_arabic.items()}
+    valid_keys_arabic = list(latin_to_arabic.values())
+    self_answer_arabic = doc["self_answer"].strip()
+    self_answer_latin = arabic_to_latin.get(self_answer_arabic)        
         
-        instruction = "السؤال التالي هو سؤال متعدد الإختيارات. اختر الإجابة الصحيحة:\n\n"
-        question = doc["question"]
-        query = f"{instruction}{question}\n"
-        for arab_label, choice_text in zip(valid_keys_arabic, choices):
-            choice_text = re.sub(r"^\)?\s*", "", choice_text).strip(" []'\"\n")
-            query += f"{arab_label}. {choice_text}\n"
-        query += "الإجابة:"
+    instruction = "السؤال التالي هو سؤال متعدد الإختيارات. اختر الإجابة الصحيحة:\n\n"
+    question = doc["question"]
+    query = f"{instruction}{question}\n"
+    for arab_label, choice_text in zip(valid_keys_arabic, choices):
+        choice_text = re.sub(r"^\)?\s*", "", choice_text).strip(" []'\"\n")
+        query += f"{arab_label}. {choice_text}\n"
+    query += "الإجابة:"
 
-        return doc_to_text(query)
-    return filter_fn
+    return doc_to_text(query)
 
-doc_to_text_biology = make_filter_synthetic("Biology")
-doc_to_text_physics= make_filter_synthetic("Physics")
-doc_to_text_math = make_filter_synthetic("Math")
-doc_to_text_chemistry = make_filter_synthetic("Chemistry")
-doc_to_text_general_science = make_filter_synthetic("General_Science")
 
 
