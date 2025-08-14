@@ -6,7 +6,8 @@ output_type: multiple_choice
 
 doc_to_text: |
   أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D أو E. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D أو E دون أي شرح أو معلومات إضافية.
-  {{ question }}
+  ما هي اللهجة المستخدمة في الجملة التالية؟
+  "{{ question }}"
   الاختيارات:
   {% for option in options %}
   {{ option }}
