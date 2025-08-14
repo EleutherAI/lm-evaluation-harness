@@ -1,0 +1,9 @@
+description: 'Okulandelayo yimibuzo ehlukahlukene (enezimpendulo) mayelana ne-izibalo.
+  Cabanga isinyathelo ngesinyathelo bese uqeda impendulo yakho nge-"Impendulo ithi
+  (X)" lapho u-X eyinhlamvu eyisinqumo esifanele.
+
+  '
+include: _zu_lite_template_yaml
+task: mmlu_prox_lite_zu_math
+task_alias: math
+process_docs: !function utils.process_math

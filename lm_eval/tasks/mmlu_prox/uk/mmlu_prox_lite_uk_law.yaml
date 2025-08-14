@@ -1,0 +1,9 @@
+description: 'Ось запитання з вибором відповідей на тему право (з відповіддю). Будь
+  ласка, подумайте крок за кроком і закінчіть свою відповідь "Відповідь: (X)", де
+  X – літера правильного варіанту.
+
+  '
+include: _uk_lite_template_yaml
+task: mmlu_prox_lite_uk_law
+task_alias: law
+process_docs: !function utils.process_law

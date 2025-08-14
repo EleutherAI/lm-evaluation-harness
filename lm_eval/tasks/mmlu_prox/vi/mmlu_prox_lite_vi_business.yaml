@@ -1,0 +1,9 @@
+description: 'Dưới đây là câu hỏi trắc nghiệm về Kinh doanh (kèm đáp án). Vui lòng
+  suy nghĩ từng bước, sau đó kết thúc câu trả lời của bạn bằng "Câu trả lời là (X)",
+  trong đó X là chữ cái của lựa chọn đúng.
+
+  '
+include: _vi_lite_template_yaml
+task: mmlu_prox_lite_vi_business
+task_alias: business
+process_docs: !function utils.process_business
