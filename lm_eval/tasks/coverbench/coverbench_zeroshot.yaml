@@ -1,0 +1,25 @@
+task: coverbench_zeroshot
+dataset_path: google/coverbench
+dataset_name: eval
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text_zeroshot
+doc_to_target: !function utils.doc_to_target
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<|im_end|>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+filter_list:
+  - name: strict-match
+    filter:
+      - function: take_first
+metadata:
+  version: 0.0
