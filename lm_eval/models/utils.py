@@ -646,29 +646,49 @@ def configure_pad_token(
     Raises:
         AssertionError: If the tokenizer is of type RWKVWorldTokenizer or Rwkv5Tokenizer and the padding token id is not 0.
     """
-    if tokenizer.pad_token:
-        pass
-    elif tokenizer.unk_token:
-        tokenizer.pad_token_id = tokenizer.unk_token_id
-    elif tokenizer.eos_token:
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-    else:
-        # handle special cases
-        if model_config and getattr(model_config, "model_type", None) == "qwen":
-            # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
-            tokenizer.pad_token = "<|endoftext|>"
-        elif (
-            tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
-            or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
-        ):
-            # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
-            # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
-            # ---
-            # Note that the world tokenizer class name, might change in the future for the final huggingface merge
-            # https://github.com/huggingface/transformers/pull/26963
-            assert tokenizer.pad_token_id == 0
+    try:
+        if tokenizer.pad_token:
+            pass
+        elif tokenizer.unk_token:
+            tokenizer.pad_token_id = tokenizer.unk_token_id
+        elif tokenizer.eos_token:
+            tokenizer.pad_token_id = tokenizer.eos_token_id
         else:
+            # handle special cases
+            if model_config and getattr(model_config, "model_type", None) == "qwen":
+                # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
+                tokenizer.pad_token = "<|endoftext|>"
+            elif (
+                tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
+                or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
+            ):
+                # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
+                # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
+                # ---
+                # Note that the world tokenizer class name, might change in the future for the final huggingface merge
+                # https://github.com/huggingface/transformers/pull/26963
+                assert tokenizer.pad_token_id == 0
+            else:
+                tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+
+    except (NotImplementedError, AttributeError):
+        try:
+            # If pad_token is not implemented, try adding special tokens
             tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+        except AttributeError:
+            # NOTE: For MistralTokenizer (https://github.com/vllm-project/vllm/blob/main/vllm/transformers_utils/tokenizers/mistral.py),
+            # accessing `pad_token` raises NotImplementedError,
+            # and `add_special_tokens` isn't implemented neither.
+            if tokenizer.__class__.__name__ == "MistralTokenizer":
+                # Set pad_token directly using the underlying tokenizer's pad_id
+                tokenizer.tokenizer.pad_id = tokenizer.tokenizer.eos_id
+                tokenizer.pad_token_id = tokenizer.tokenizer.pad_id
+                # Set "name_or_path" attribute for MistralTokenizer
+                tokenizer.name_or_path = "MistralTokenizer"
+            else:
+                raise    
+    
+
 
     return tokenizer
 
