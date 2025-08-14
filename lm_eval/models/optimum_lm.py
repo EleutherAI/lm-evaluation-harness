@@ -27,11 +27,6 @@ class OptimumLM(HFLM):
         device="cpu",
         **kwargs,
     ) -> None:
-        if "backend" in kwargs:
-            # optimum currently only supports causal models
-            assert kwargs["backend"] == "causal", (
-                "Currently, only OVModelForCausalLM is supported."
-            )
 
         self.openvino_device = device
 
