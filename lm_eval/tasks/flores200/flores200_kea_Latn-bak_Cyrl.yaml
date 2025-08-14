@@ -1,0 +1,7 @@
+"dataset_name": "kea_Latn-bak_Cyrl"
+"doc_to_target": "{{sentence_bak_Cyrl}}"
+"doc_to_text": "{{sentence_kea_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kea_Latn-bak_Cyrl"
+"test_split": "dev"

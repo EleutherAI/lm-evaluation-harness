@@ -1,0 +1,7 @@
+"dataset_name": "ell_Grek-hye_Armn"
+"doc_to_target": "{{sentence_hye_Armn}}"
+"doc_to_text": "{{sentence_ell_Grek}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ell_Grek-hye_Armn"
+"test_split": "dev"

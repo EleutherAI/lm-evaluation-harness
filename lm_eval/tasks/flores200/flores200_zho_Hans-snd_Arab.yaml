@@ -1,0 +1,7 @@
+"dataset_name": "zho_Hans-snd_Arab"
+"doc_to_target": "{{sentence_snd_Arab}}"
+"doc_to_text": "{{sentence_zho_Hans}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_zho_Hans-snd_Arab"
+"test_split": "dev"
