@@ -55,15 +55,6 @@ def doc_to_text_native(doc):
     return doc_to_text(query)
 
 #Synthetic
-# def extract_choices(choice_str):
-#     """
-#     Extract all text between single quotes as separate options
-#     and clean up extra ') ' after the option letter.
-#     """
-#     options = re.findall(r"'(.*?)'", choice_str)
-#     cleaned_options = [opt.replace(") )", ")").strip() for opt in options]
-#     return cleaned_options
-
 def synthetic_parse_choices(raw, labels):
     if all(lbl in raw for lbl in labels):
         positions_and_labels = sorted((raw.find(lbl), lbl) for lbl in labels if raw.find(lbl) != -1)
@@ -111,6 +102,7 @@ def doc_to_text_synthetic(doc):
     query += "الإجابة:"
 
     return doc_to_text(query)
+
 
 
 
