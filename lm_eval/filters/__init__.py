@@ -1,14 +1,13 @@
 from functools import partial
-from typing import List
 
 from lm_eval.api.filter import FilterEnsemble
-from lm_eval.api.registry import get_filter
+from lm_eval.api.registry import filter_registry, get_filter
 
 from . import custom, extraction, selection, transformation
 
 
 def build_filter_ensemble(
-    filter_name: str, components: List[List[str]]
+    filter_name: str, components: list[list[str]]
 ) -> FilterEnsemble:
     """
     Create a filtering pipeline.
@@ -23,3 +22,12 @@ def build_filter_ensemble(
         filters.append(f)
 
     return FilterEnsemble(name=filter_name, filters=filters)
+
+
+__all__ = [
+    "custom",
+    "extraction",
+    "selection",
+    "transformation",
+    "build_filter_ensemble",
+]

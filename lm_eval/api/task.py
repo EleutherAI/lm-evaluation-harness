@@ -3,18 +3,15 @@ import ast
 import logging
 import random
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import (
     Any,
     Dict,
-    Iterable,
-    Iterator,
     List,
     Literal,
-    Mapping,
     Optional,
     Tuple,
     Union,
@@ -1774,7 +1771,7 @@ class MultipleChoiceTask(Task):
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice)),
+                arguments=(ctx, f" {choice}"),
                 idx=i,
                 **kwargs,
             )
