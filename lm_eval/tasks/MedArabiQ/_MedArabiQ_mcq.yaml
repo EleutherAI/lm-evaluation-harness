@@ -1,0 +1,7 @@
+group: MedArabiQ_mcq
+metadata:
+    description: MedArabiQ mcq Benchmark  
+    version: 0
+task:
+- MedArabiQ_fill_in_blank_choices
+- MedArabiQ_multiple_choice_questions

@@ -1,0 +1,9 @@
+group: MedArabiQ_generation
+metadata:
+    description: MedArabiQ generation Benchmark  
+    version: 0
+task:
+- MedArabiQ_fill_in_blank_nochoices
+- MedArabiQ_patient_doctor_qa
+- MedArabiQ_patient_doctor_qa_gec
+- MedArabiQ_patient_doctor_qa_llm

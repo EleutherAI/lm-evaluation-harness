@@ -1,9 +1,5 @@
-task: dialect_identification_ar_nadi2024
 dataset_path: json
 dataset_name: null
-dataset_kwargs:
-  data_files:
-    test: /home/mostafa.awad/BGM/dialect_identification/mcq/NADI2024.json
 test_split: test
 
 output_type: multiple_choice
