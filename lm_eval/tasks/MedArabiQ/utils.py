@@ -29,6 +29,6 @@ def agg_bert_score(items):
         predictions=predictions,
         references=references,
         model_type=model_name,
-        num_layers=12
+        num_layers=24
     )
     return sum(score['f1']) / len(score['f1'])

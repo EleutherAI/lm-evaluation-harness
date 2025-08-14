@@ -6,12 +6,7 @@ output_type: multiple_choice
 
 doc_to_text: |
   This is a multiple choice question, choose the correct option. The output should consist only of the single letter of the correct answer with no explanation.
-  Question:
   {{ question }}
-  Options:
-  {% for option in options %}
-  {{ option }}
-  {% endfor %}
 doc_to_choice: !function utils.doc_to_choice
 doc_to_target: !function utils.doc_to_target
 
