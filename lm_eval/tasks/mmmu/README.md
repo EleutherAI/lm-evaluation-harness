@@ -71,7 +71,7 @@ Qwen2-VL-2B:
 hf-multimodal (pretrained=Qwen/Qwen2-VL-2B-Instruct,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
 ```
 ```
-|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|             Groups             |Version|Filter|n_shot|Metric|   |Value |   |Stderr|
 |--------------------------------|------:|------|------|------|---|-----:|---|-----:|
 |mmmu_val                        |      0|none  |      |acc   |↑  |0.3778|±  |0.0155|
 | - Art and Design               |      0|none  |      |acc   |↑  |0.5500|±  |0.0415|
@@ -89,7 +89,7 @@ Qwen2-VL-7B:
 hf-multimodal (pretrained=Qwen/Qwen2-VL-7B-Instruct,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
 ```
 ```
-|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|             Groups             |Version|Filter|n_shot|Metric|   |Value |   |Stderr|
 |--------------------------------|------:|------|------|------|---|-----:|---|-----:|
 |mmmu_val                        |      0|none  |      |acc   |↑  |0.5056|±  |0.0160|
 | - Art and Design               |      0|none  |      |acc   |↑  |0.6917|±  |0.0398|
@@ -106,7 +106,7 @@ Idefics2-8B:
 hf-multimodal (pretrained=HuggingFaceM4/idefics2-8b,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True,max_images=2), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
 ```
 ```
-|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|             Groups             |Version|Filter|n_shot|Metric|   |Value |   |Stderr|
 |--------------------------------|------:|------|------|------|---|-----:|---|-----:|
 |mmmu_val                        |      0|none  |      |acc   |↑  |0.4011|±  |0.0154|
 | - Art and Design               |      0|none  |      |acc   |↑  |0.6167|±  |0.0436|
@@ -123,7 +123,7 @@ Llava-v1.6-Mistral-7B:
 hf-multimodal (pretrained=llava-hf/llava-v1.6-mistral-7b-hf,attn_implementation=flash_attention_2,dtype=bfloat16,convert_img_format=True), gen_kwargs: (None), limit: None, num_fewshot: None, batch_size: 2
 ```
 ```
-|             Groups             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|             Groups             |Version|Filter|n_shot|Metric|   |Value |   |Stderr|
 |--------------------------------|------:|------|------|------|---|-----:|---|-----:|
 |mmmu_val                        |      0|none  |      |acc   |↑  |0.3522|±  |0.0151|
 | - Art and Design               |      0|none  |      |acc   |↑  |0.5167|±  |0.0440|
