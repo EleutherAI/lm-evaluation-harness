@@ -142,7 +142,6 @@ else:
 
 
 def get_score(doc, predictions, **kwargs):
-    hf_repo = "swiss-ai/harmbench"
     completion = predictions[0]
     category = doc["category"]
     original_prompt = doc["prompt"]
