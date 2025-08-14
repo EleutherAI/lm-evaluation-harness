@@ -81,6 +81,8 @@ class ContextSampler:
             eval_logger.warning(
                 "`gen_prefix` no longer has a space appended to it by default. It's recommended to add a space at the end of `gen_prefix` if you want it to be separated from the answer."
             )
+        elif gen_prefix is None:
+            gen_prefix = ""
 
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
@@ -139,6 +141,8 @@ class ContextSampler:
             eval_logger.warning(
                 "`gen_prefix` no longer has a space appended to it by default. It's recommended to add a space at the end of `gen_prefix` if you want it to be separated from the answer."
             )
+        elif gen_prefix is None:
+            gen_prefix = ""
 
         chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
