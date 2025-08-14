@@ -680,10 +680,17 @@ class HFLM(TemplateLM):
                 "0.4.0"
             ):
                 raise AssertionError("load_in_4bit requires peft >= 0.4.0")
-            if self._model.config.vocab_size != len(self.tokenizer):
+
+            # Compatible with Gemma3 (multimodal) and old models
+            if hasattr(self._model.config, "text_config") and hasattr(self._model.config.text_config, "vocab_size"):
+                vocab_size = self._model.config.text_config.vocab_size
+            else:
+                vocab_size = self._model.config.vocab_size
+            
+            if vocab_size != len(self.tokenizer):
                 # resize model for LoRAs with added tokens
                 eval_logger.info(
-                    f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
+                    f"Model config indicates vocab_size='{vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
                 )
                 self._model.resize_token_embeddings(len(self.tokenizer))
             self._model = PeftModel.from_pretrained(
