@@ -83,7 +83,10 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         retval = 0
 
     # math_verify
-    res = verify(parse(doc["answer"]), parse(candidates))
+    res = verify(
+        parse(normalize_final_answer(last_boxed_only_string(doc["solution"]))),
+        parse(candidates),
+    )
     mathval = 1 if res else 0
 
     results = {
