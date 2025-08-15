@@ -1,0 +1,7 @@
+group: trans_Tarjama-25
+metadata:
+    description: Translation task for Tarjama-25 Benchmark  
+    version: 0
+task:
+- translation_Tarjama-25__ar-en
+- translation_Tarjama-25__en-ar

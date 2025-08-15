@@ -1,0 +1,10 @@
+include: _default_translation_template_yaml
+
+task: translation_Tarjama-25__en-ar
+
+dataset_path: Misraj/Tarjama-25
+test_split: train
+
+process_docs: !function tarjama-25_utils.get_en_to_ar_samples 
+doc_to_text: "ترجم ما يلي من اللغة الإنجليزية إلى اللغة العربية:\n{{ English }}"
+doc_to_target: "{{ Arabic }}"
