@@ -1,0 +1,13 @@
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+group: 3lm_synthetic_qa
+metadata:
+    description: 3LM Synthetic QA Tasks
+    version: 0
+task:
+- 3lm_synthetic_qa_biology
+- 3lm_synthetic_qa_chemistry
+- 3lm_synthetic_qa_general_science
+- 3lm_synthetic_qa_math
+- 3lm_synthetic_qa_physics
