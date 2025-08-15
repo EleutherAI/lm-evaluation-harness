@@ -1,7 +1,7 @@
 aggregate_metric_list:
     metric: acc
     weight_by_size: true
-group: synthetic_qa
+group: 3lm_synthetic_qa
 metadata:
     description: 3LM Synthetic QA Tasks
     version: 0
