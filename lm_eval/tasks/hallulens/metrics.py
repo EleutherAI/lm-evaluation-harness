@@ -139,7 +139,12 @@ else:
     print('Remote generation successful, using remote model.')
     model = None
     
-
+def replace_none_with_nan(scores):
+    """Replace None values in the scores dictionary with NaN."""
+    for key, value in scores.items():
+        if value is None:
+            scores[key] = np.nan
+    return scores
 
 def get_score(doc, predictions, **kwargs):
     completion = predictions[0]
@@ -158,7 +163,7 @@ def get_score(doc, predictions, **kwargs):
     # ----------Precise wiki
     if category == "precise_wiki":
         halu_rate = run_eval_precise_wiki(original_prompt, completion, golden_answer)
-        return halu_rate
+        return replace_none_with_nan(halu_rate)
 
     if category == "longwiki":
         evaluator = FactHalu(
@@ -171,8 +176,8 @@ def get_score(doc, predictions, **kwargs):
         k=32,
         db_path=local_db,
         )
-        
-        return evaluator.run(original_prompt, completion, title, reference)
+
+        return replace_none_with_nan(evaluator.run(original_prompt, completion, title, reference))
 
     if category == "mixed_entities":
         _type = doc["type"]
@@ -180,7 +185,8 @@ def get_score(doc, predictions, **kwargs):
             eval_model=model,
             eval_tokenizer=tokenizer
         )
-        return mixed_eval.run_eval_mixed(completion, original_prompt, _type, name)
+
+        return replace_none_with_nan(mixed_eval.run_eval_mixed(completion, original_prompt, _type, name))
         
     if category == "generated_entities":
         _type = doc["type_"]
@@ -189,7 +195,7 @@ def get_score(doc, predictions, **kwargs):
             evaluator_model=model,
             evaluator_tokenizer=tokenizer
         )
-        return generated_eval.run_eval_generated(completion, name, _type, place)
+        return replace_none_with_nan(generated_eval.run_eval_generated(completion, name, _type, place))
 
 
 ############################################# SHORTFORM ########################################################################
