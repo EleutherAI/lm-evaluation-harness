@@ -84,7 +84,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     # math_verify
     res = verify(
-        parse(last_boxed_only_string(doc["solution"])),
+        parse(doc["solution"]),
         parse(candidates),
     )
     mathval = 1 if res else 0
