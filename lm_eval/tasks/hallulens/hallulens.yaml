@@ -1,0 +1,11 @@
+group: hallulens
+task:
+  - group: hallulens_nonsensical
+    task:
+      - hallulens_generatedentities
+      - hallulens_mixedentities
+    aggregate_metric_list:
+      - metric: abstention
+        aggregation: mean
+  - hallulens_precisewiki
+  - hallulens_longwiki

@@ -1,0 +1,11 @@
+dataset_path: swiss-ai/hallulens
+output_type: generate_until
+test_split: test
+doc_to_text: "{{prompt}}"
+doc_to_target: ""
+process_results: !function metrics.get_score
+generation_kwargs:
+  until: []
+  do_sample: false
+metadata:
+  version: 1.0
