@@ -1,0 +1,45 @@
+task: diacritization_sadded-25
+dataset_path: Misraj/SadeedDiac-25
+test_split: train
+dataset_name: null
+
+# prompt was taken from the paper: https://arxiv.org/pdf/2504.21635
+doc_to_text: |
+  <|SYSTEM_PROMPT|>
+  أنتَ مُشَكِّل آلي مُهِمَتكَ إضافة التّشكيل إلى النّصوص العربية الغير مشكلة. النص يكون بعد عبارة <|USER_TOKEN|> ويكون الجواب بعد عبارة <|ASSISTENT_TOKEN|>
+
+  <|SYSTEM_PROMPT_END|>
+  <|USER_TOKEN|>:
+  {{ input }}
+
+  <|ASSISTENT_TOKEN|>:
+doc_to_target: "{{ output }}"
+
+output_type: generate_until 
+generation_kwargs:
+  until:
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+
+metric_list:
+  - metric: !function utils.wer
+    aggregation: !function utils.agg_wer
+    higher_is_better: false
+  - metric: !function utils.der
+    aggregation: !function utils.agg_der
+    higher_is_better: false
+  - metric: !function utils.morph_wer
+    aggregation: !function utils.agg_morph_wer
+    higher_is_better: false
+  - metric: !function utils.morph_der
+    aggregation: !function utils.agg_morph_wer
+    higher_is_better: false
+
+metadata:
+  version: 0.0
