@@ -1,0 +1,13 @@
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+group: native_qa
+metadata:
+    description: 3LM Native QA Tasks
+    version: 0
+task:
+- 3lm_native_qa_biology
+- 3lm_native_qa_chemistry
+- 3lm_native_qa_geography
+- 3lm_native_qa_math
+- 3lm_native_qa_physics
