@@ -5,6 +5,13 @@ task: translation_Tarjama-25__ar-en
 dataset_path: Misraj/Tarjama-25
 test_split: train
 
-process_docs: !function tarjama-25_utils.get_ar_to_en_samples 
-doc_to_text: "Translate the following from Arabic to English:\n{{ Arabic }}"
+process_docs: !function tarjama-25_utils.get_ar_to_en_samples
+
+# prompt was taken from the paper: https://arxiv.org/pdf/2505.17894
+doc_to_text: |
+  Translate this from Arabic to English.
+  Arabic:
+  {{ Arabic }}
+  English:
+  
 doc_to_target: "{{ English }}"
