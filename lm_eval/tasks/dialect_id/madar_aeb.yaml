@@ -1,0 +1,6 @@
+task: dialect_id_madar_aeb
+dataset_kwargs:
+  data_files:
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/dialect_id/per_dialect/MADAR_aeb.json
+
+include: _default_template_yaml

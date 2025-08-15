@@ -1,0 +1,15 @@
+group: dialect_id_MADAR
+metadata:
+    description: Dialect identification for MADAR Benchmark  
+    version: 0
+task:
+- dialect_id_madar_acm
+- dialect_id_madar_aeb
+- dialect_id_madar_afb
+- dialect_id_madar_apc
+- dialect_id_madar_apd
+- dialect_id_madar_ar
+- dialect_id_madar_arq
+- dialect_id_madar_ars
+- dialect_id_madar_ary
+- dialect_id_madar_arz
