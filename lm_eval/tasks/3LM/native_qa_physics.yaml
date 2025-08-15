@@ -1,0 +1,5 @@
+include: _default_native_qa_template_yaml
+tag: 3lm_native_qa_physics
+task: 3lm_native_qa_physics
+
+process_docs: !function utils.process_docs_physics

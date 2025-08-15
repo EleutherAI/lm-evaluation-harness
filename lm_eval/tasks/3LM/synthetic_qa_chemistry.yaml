@@ -1,0 +1,4 @@
+include: _default_synthetic_qa_template_yaml
+dataset_name: Chemistry 
+tag: 3lm_synthetic_qa_chemistry
+task: 3lm_synthetic_qa_chemistry

@@ -1,9 +1,0 @@
-dataset_path: tiiuae/SyntheticQA
-dataset_name: Biology 
-
-include: 3lm_template.yaml
-tag: 3lm_synthetic_qa_biology
-task: 3lm_synthetic_qa_biology
-doc_to_text: !function utils.doc_to_text_synthetic
-doc_to_choice: !function utils.doc_to_choice
-doc_to_target: !function utils.doc_to_target
