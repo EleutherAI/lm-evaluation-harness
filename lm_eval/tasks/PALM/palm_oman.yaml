@@ -1,0 +1,3 @@
+include: _default_template_yaml
+task: palm_oman
+process_docs: !function utils.get_oman_samples
