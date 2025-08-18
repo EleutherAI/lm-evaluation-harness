@@ -13,14 +13,13 @@ metric_list:
 generation_kwargs:
   until:
     - "\nclass"
-    - "\n#"
     - "\nif"
     - "\nprint"
     - "\n```"
     - "\n```\n\n"
     - "<|eot_id|>"
     - "</s>"
-  max_gen_toks: 1024
+  max_gen_toks: 2048
   do_sample: true
   temperature: 0.8
   top_p: 0.95
