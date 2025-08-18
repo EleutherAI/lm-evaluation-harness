@@ -10,6 +10,7 @@ filter_list:
   - name: "extract-yes-no"
     filter:
       - function: "regex"
+        group_select: -1
         regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.)|(?<=..Final Answer..: )(.*)(?=.)|(?<=..answer..: )(.*)(?=.)|(?<=..Answer..: )(.*)(?=.)|\\b(Yes|No|yes|no)\\b)"
       - function: "take_first"
 generation_kwargs:
@@ -20,7 +21,7 @@ generation_kwargs:
     - "\n\n\n\n"
   do_sample: false
   temperature: 0.0
-  max_gen_toks: 1024
+  max_gen_toks: 2048
 metric_list:
   - metric: exact_match
     aggregation: mean

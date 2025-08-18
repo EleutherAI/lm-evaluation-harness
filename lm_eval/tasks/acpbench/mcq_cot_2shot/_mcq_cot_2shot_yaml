@@ -14,7 +14,7 @@ generation_kwargs:
     - "Q:"
   do_sample: false
   temperature: 0.0
-  max_gen_toks: 1024
+  max_gen_toks: 2048
 metric_list:
   - metric: exact_match
     ignore_case: true
