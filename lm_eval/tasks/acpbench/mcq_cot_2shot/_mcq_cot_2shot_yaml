@@ -32,7 +32,7 @@ filter_list:
         group_select: -1
         ignore_case: true
         ignore_punctuation: true
-        regex_pattern: '(((?<=[answer is ])[A-D])|([A-D]\n)|([A-D]\.)|( [A-D] )|(^[A-D]$)|(\[[A-D]\])|([A-D])|(?<=..Final Answer..: )(.*)(?=.)|(?<=..answer..: )(.*)(?=.)|(?<=..Answer..: )(.*)(?=.))'
+        regex_pattern: '\*\*Final Answer\*\*:\s*([A-D])\b|Final Answer:\s*([A-D])\b|[Tt]he final answer is\s+([A-D])\b|[Tt]he answer is\s+([A-D])\b|Answer:\s*([A-D])\b|\b([A-D])\b'
       - function: "take_first"
 metadata:
   version: 1.0

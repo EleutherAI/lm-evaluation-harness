@@ -11,7 +11,7 @@ filter_list:
     filter:
       - function: "regex"
         group_select: -1
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.)|(?<=..Final Answer..: )(.*)(?=.)|(?<=..answer..: )(.*)(?=.)|(?<=..Answer..: )(.*)(?=.)|\\b(Yes|No|yes|no)\\b)"
+        regex_pattern: '(?i)(?<=\*\*Final Answer\*\*: )\b(yes|no)\b|(?<=Final Answer: )\b(yes|no)\b|(?<=The final answer is )\b(yes|no)\b|(?<=The answer is )\b(yes|no)\b|(?<=Answer: )\b(yes|no)\b'
       - function: "take_first"
 generation_kwargs:
   until:
