@@ -13,15 +13,15 @@ generation_kwargs:
   max_gen_toks: 1024
   until:
     - "</s>"
-    - "Q"
-#     - "\n\n"
+    - "Q:"
+  #     - "\n\n"
   do_sample: false
   temperature: 0.0
 filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=the answer is )(.*)(?=.)"
+        regex_pattern: "(?<=[Tt]he answer is )\\s*(.*?)(?=\\s*\\.)"
       - function: "take_first"
 num_fewshot: 3
 metadata:
