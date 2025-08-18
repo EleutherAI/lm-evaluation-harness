@@ -6,7 +6,8 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
-doc_to_text: "Question: {{Problem}}\nAnswer:"
+doc_to_text: "Question: {{Problem}}"
+gen_prefix: "Answer: "
 doc_to_target: "{{['a', 'b', 'c', 'd', 'e'].index(correct)}}"
 doc_to_choice: !function utils.doc_to_choice
 should_decontaminate: true
