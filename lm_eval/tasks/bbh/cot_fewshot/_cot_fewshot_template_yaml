@@ -20,8 +20,12 @@ generation_kwargs:
 filter_list:
   - name: "get-answer"
     filter:
-      - function: "regex"
-        regex_pattern: "(?<=[Tt]he answer is )\\s*(.*?)(?=\\s*\\.)"
+      - function: "ordered_regex"
+        regex_patterns:
+          - '(?<=[Tt]he answer is)\s*(.*?)(?=\s*\.)'
+          - '(?<=[Aa]nswer:)\s*(.*?)(?=\s*\?)'
+          - '(?<=[Tt]he result is)\s*(.*?)(?=\s*\?)'
+        group_select: -1
       - function: "take_first"
 num_fewshot: 3
 metadata:
