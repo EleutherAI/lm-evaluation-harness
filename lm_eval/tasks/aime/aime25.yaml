@@ -4,9 +4,9 @@ task: aime25
 dataset_path: math-ai/aime25
 # dataset_name: null
 output_type: generate_until
-training_split: train
-fewshot_split: train
-test_split: train
+training_split: test
+fewshot_split: test
+test_split: test
 doc_to_text: "Question: {{problem}}\nAnswer:"
 doc_to_target: "{{answer}}" # "{{Answer.split('### ')[-1].rstrip()}}"
 metric_list:
