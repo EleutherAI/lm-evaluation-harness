@@ -239,3 +239,66 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
+
+
+@register_filter("ordered_regex")
+class OrderedRegexFilter(Filter):
+    """A filter that applies multiple regex patterns in order with fallback behavior.
+
+    This filter tries each regex pattern sequentially. If a pattern matches, it returns
+    the match. If no pattern matches, it proceeds to the next pattern. Only if all
+    patterns fail does it return the fallback value.
+
+    Useful for implementing multiple extraction strategies in order of preference.
+    """
+
+    def __init__(
+        self,
+        regex_patterns: list[str] = [r"#### (\-?[0-9\.\,]+)"],
+        group_select: int = 0,
+        fallback: str = "[invalid]",
+    ) -> None:
+        """
+        Args:
+            regex_patterns: List of regex patterns to try in order. Each pattern is
+                          compiled and tried sequentially until a match is found.
+            group_select: Selects the (group_select)th match from the findall result.
+            fallback: The value returned if none of the regex patterns match.
+        """
+        self.regex_patterns = regex_patterns
+        self.regexes = [re.compile(pattern) for pattern in regex_patterns]
+        self.group_select = group_select
+        self.fallback = fallback
+
+    def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+        # here, we assume we have a list, in which each element is
+        # a list of model responses for some particular input/target pair.
+        # so we process each of these (same input/target response sets)
+        # independently (and keep them a list.)
+        def filter_set(inst):
+            filtered = []
+            for resp in inst:
+                match = None
+
+                for regex in self.regexes:
+                    match = regex.findall(resp)
+                    if match:
+                        match = match[self.group_select]
+                        if isinstance(match, tuple):
+                            match = [m for m in match if m]
+                            if match:
+                                match = match[0]
+                            else:
+                                match = None
+                        if match:
+                            match = match.strip()
+                            break
+
+                if not match:
+                    match = self.fallback
+
+                filtered.append(match)
+            return filtered
+
+        filtered_resps = list(map(lambda x: filter_set(x), resps))
+        return filtered_resps

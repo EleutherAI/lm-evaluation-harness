@@ -26,6 +26,18 @@ metric_list:
       - "\n"
       - '"'
 filter_list:
+  - name: "mcq-extract-ordered"
+    filter:
+      - function: "ordered_regex"
+        regex_patterns:
+          - '\*\*Final Answer\*\*: The final answer is\s*([A-D])\b'
+          - '\*\*Final Answer\*\*:\s*([A-D])\b'
+          - 'Final Answer:\s*([A-D])\b'
+          - '[Tt]he final answer is\s+([A-D])\b'
+          - '[Tt]he answer is\s+([A-D])\b'
+          - 'Answer:\s*([A-D])\b'
+          - '\b([A-D])\b'
+        group_select: -1
   - name: "mcq-extract"
     filter:
       - function: multi_choice_regex

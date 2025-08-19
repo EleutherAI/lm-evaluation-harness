@@ -5,6 +5,19 @@ output_type: generate_until
 doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nLet's think step by step."
 doc_to_target: "{{['(A)', '(B)', '(C)', '(D)'][answer]}}"
 filter_list:
+  - name: "ordered-extract"
+    filter:
+      - function: "ordered_regex"
+        regex_patterns:
+          - '[Tt]he answer is\s+\(?([A-D])\)?\b'
+          - '[Tt]he answer is:\s+\(?([A-D])\)?\b'
+          - '[Tt]he final answer is\s+\(?([A-D])\)?\b'
+          - 'answer is\s+\(?([A-D])\)?\b'
+          - '[Tt]he final answer:\s+\(?([A-D])\)?\b'
+          - '\(([A-D])\)'
+          - "([A-D])"
+        group_select: -1
+      - function: "take_first"
   - name: "strict-match"
     filter:
       - function: "regex"
