@@ -38,6 +38,7 @@ filter_list:
           - 'Answer:\s*([A-D])\b'
           - '\b([A-D])\b'
         group_select: -1
+      - function: "take_first"
   - name: "mcq-extract"
     filter:
       - function: multi_choice_regex

@@ -13,6 +13,10 @@ task:
         aggregation: mean
         filter_list: flexible-extract
         weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: ordered-extract
+        weight_by_size: True
   - group: mmlu_flan_cot_zeroshot_other
     task:
       - mmlu_flan_cot_zeroshot_other
@@ -24,6 +28,10 @@ task:
       - metric: exact_match
         aggregation: mean
         filter_list: flexible-extract
+        weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: ordered-extract
         weight_by_size: True
   - group: mmlu_flan_cot_zeroshot_social_sciences
     task:
@@ -37,6 +45,10 @@ task:
         aggregation: mean
         filter_list: flexible-extract
         weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: ordered-extract
+        weight_by_size: True
   - group: mmlu_flan_cot_zeroshot_humanities
     task:
       - mmlu_flan_cot_zeroshot_humanities
@@ -49,6 +61,10 @@ task:
         aggregation: mean
         filter_list: flexible-extract
         weight_by_size: True
+      - metric: exact_match
+        aggregation: mean
+        filter_list: ordered-extract
+        weight_by_size: True
 aggregate_metric_list:
   - aggregation: mean
     metric: exact_match
@@ -58,5 +74,9 @@ aggregate_metric_list:
     metric: exact_match
     weight_by_size: True
     filter_list: flexible-extract
+  - metric: exact_match
+    aggregation: mean
+    filter_list: ordered-extract
+    weight_by_size: True
 metadata:
   version: 2

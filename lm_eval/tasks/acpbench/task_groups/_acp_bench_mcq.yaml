@@ -12,5 +12,9 @@ aggregate_metric_list:
     aggregation: mean
     weight_by_size: true
     filter_list: "mcq-extract"
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+    filter_list: "mcq-extract-ordered"
 metadata:
   version: 1
