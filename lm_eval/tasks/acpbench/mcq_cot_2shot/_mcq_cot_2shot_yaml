@@ -17,6 +17,8 @@ generation_kwargs:
   max_gen_toks: 2048
 metric_list:
   - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
     regexes_to_ignore:
@@ -26,7 +28,7 @@ metric_list:
       - "\n"
       - '"'
 filter_list:
-  - name: "mcq-extract-ordered"
+  - name: "mcq-extract"
     filter:
       - function: "ordered_regex"
         regex_patterns:
@@ -38,14 +40,6 @@ filter_list:
           - 'Answer:\s*([A-D])\b'
           - '\b([A-D])\b'
         group_select: -1
-      - function: "take_first"
-  - name: "mcq-extract"
-    filter:
-      - function: multi_choice_regex
-        group_select: -1
-        ignore_case: true
-        ignore_punctuation: true
-        regex_pattern: '\*\*Final Answer\*\*:\s*([A-D])\b|Final Answer:\s*([A-D])\b|[Tt]he final answer is\s+([A-D])\b|[Tt]he answer is\s+([A-D])\b|Answer:\s*([A-D])\b|\b([A-D])\b'
       - function: "take_first"
 metadata:
   version: 1.0
