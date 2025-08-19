@@ -1,22 +1,8 @@
 # AIME
 
-## Paper
-
-[Homepage](https://www.kaggle.com/datasets/hemishveeraboina/aime-problem-set-1983-2024)
-
 ### Citation
 
 ```text
-@misc{hendrycks2021measuringmathematicalproblemsolving,
-      title={Measuring Mathematical Problem Solving With the MATH Dataset}, 
-      author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
-      year={2021},
-      eprint={2103.03874},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2103.03874}, 
-}
-
 @dataset{aime_1983_2024,
   author = {Hemish Veeraboina},
   title = {AIME Problem Set 1983-2024},
