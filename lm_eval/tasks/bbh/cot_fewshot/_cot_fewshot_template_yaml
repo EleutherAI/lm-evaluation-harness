@@ -25,6 +25,17 @@ filter_list:
           - '(?<=[Tt]he answer is)\s*(.*?)(?=\s*\.)'
           - '(?<=[Aa]nswer:)\s*(.*?)(?=\s*\?)'
           - '(?<=[Tt]he result is)\s*(.*?)(?=\s*\?)'
+        strip_extracts:
+          - "\\$"
+          - "\\("
+          - "\\)"
+          - "\\*\\*"
+          - "\\*\\*\\*"
+          - "\\["
+          - "\\]"
+          - "'"
+          - "`"
+          - '"'
         group_select: -1
       - function: "take_first"
 num_fewshot: 3
