@@ -28,4 +28,4 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def doc_to_choice(doc):
     """Return the formatted choices with letters and dots for logits computation."""
-    return [f"{chr(ord('A') + i)}. {choice}" for i, choice in enumerate(doc["choices"])]
+    return [f" {chr(ord('A') + i)}. {choice}" for i, choice in enumerate(doc["choices"])]
