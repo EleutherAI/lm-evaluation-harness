@@ -23,7 +23,8 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
             pass
     
     # Check if answer matches target
-    target = str(doc["answer"])
+    answer_key = next(k for k in doc.keys() if k.lower() == "answer")
+    target = str(doc[answer_key])
     if is_equiv(answer, target):
         retval = 1
 
