@@ -1,6 +1,6 @@
 tag:
   - math_word_problems
-task: aime
+task: aime24
 dataset_path: Maxwell-Jia/AIME_2024
 # dataset_name: null
 output_type: generate_until

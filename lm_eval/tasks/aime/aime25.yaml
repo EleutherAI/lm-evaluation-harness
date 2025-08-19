@@ -1,6 +1,6 @@
 tag:
   - math_word_problems
-task: aime
+task: aime25
 dataset_path: math-ai/aime25
 # dataset_name: null
 output_type: generate_until
@@ -30,7 +30,7 @@ generation_kwargs:
   do_sample: false
   temperature: 0.0
   max_gen_toks: 32768
-repeats: 10
+repeats: 1
 num_fewshot: 0
 filter_list:
   - name: "strict-match"
