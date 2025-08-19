@@ -8,6 +8,7 @@ output_type: generate_until
 training_split: null
 validation_split: null
 test_split: train
+num_fewshot: 0
 process_docs: !function utils.process_docs
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
@@ -26,7 +27,6 @@ metric_list:
     higher_is_better: true
 generation_kwargs:
   until:
-    - "Question:"
     - "</s>"
     - "<|im_end|>"
     - "<|endoftext|>"
@@ -37,4 +37,4 @@ repeats: 1
 num_fewshot: 0
 
 metadata:
-  version: 1.0 
+  version: 4.0 

@@ -63,16 +63,30 @@ The SPaRC dataset contains 1,000 2D grid pathfinding puzzles with varying diffic
 
 The task uses comprehensive evaluation metrics for detailed spatial reasoning assessment:
 
-### Primary Metrics
-2. **Path Validity**: Overall validation against known solutions in the dataset
+### Core Metrics
+1. **Contains Coordinates**: Surface-level check for coordinate patterns `(x,y)` in model responses
+2. **Path Validity Score**: Overall validation of extracted paths against known solutions in the dataset
+3. **Spatial Reasoning Analysis**: Detailed breakdown of spatial reasoning capabilities (see sub-metrics below)
+4. **Solve Rate by Difficulty**: Performance breakdown across different puzzle difficulty levels
 
-### Detailed Path Analysis Metrics
-3. **Starts at Start, Ends at Exit**: Whether the path correctly begins at 'S' and ends at 'E'
-4. **Connected Line**: Whether all path segments are properly connected (adjacent cells)
-5. **Non-Intersecting Line**: Whether the path avoids crossing itself
-6. **Start to Exit Connected**: Combined metric for proper start-to-end connectivity
-7. **No Rule Crossing**: Whether the path avoids rule cells (cells where both x,y coordinates are odd)
-8. **Fully Valid Path**: Comprehensive validation combining all spatial reasoning requirements
+### Spatial Reasoning Analysis Sub-Metrics
+The spatial reasoning analysis provides six granular metrics:
+
+- **Path Extraction Rate**: Successfully parsed complete coordinate paths from model output
+- **Starts at Start, Ends at Exit**: Whether the path correctly begins at 'S' and ends at 'E'
+- **Connected Line**: Whether all path segments are properly connected (adjacent cells)
+- **Non-Intersecting Line**: Whether the path avoids crossing itself
+- **Start to Exit Connected**: Combined metric for proper start-to-end connectivity
+- **No Rule Crossing**: Whether the path avoids rule cells (cells where both x,y coordinates are odd)
+- **Fully Valid Path**: Comprehensive validation combining all spatial reasoning requirements
+
+### Difficulty-Based Performance
+The solve rate by difficulty metric tracks:
+
+- **Overall Solve Rate**: Total percentage of puzzles solved correctly across all difficulties
+- **Solve Rate by Difficulty Level**: Individual solve percentages for each difficulty level (e.g., easy, medium, hard)
+
+This allows for fine-grained analysis of how model performance scales with puzzle complexity.
 
 ## Usage
 
@@ -81,9 +95,9 @@ To prevent truncation of longer sequences, we recommend setting the max_length p
 ```bash
 # Run SPaRC evaluation
 python -m lm_eval --model hf \
-    --model_args "pretrained=<model_name>,max_length=132768" \
-    --gen_kwargs "max_gen_toks=100000" \
+    --model_args "pretrained=<model_name>,max_length=20000" \
     --tasks sparc \
+    --gen_kwargs '{"max_gen_toks":10000,"top_p": 0.95,"top_k": 20,"min_p": 0}' \
     --batch_size 10 \
     --apply_chat_template \
     --system_instruction "You are an expert at solving puzzle games."
