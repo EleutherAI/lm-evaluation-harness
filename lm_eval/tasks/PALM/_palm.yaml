@@ -1,0 +1,28 @@
+group: palm
+metadata:
+    description: PALM generation Benchmark  
+    version: 0
+task:
+- palm_saudi_arabia
+- palm_syria
+- palm_egypt
+- palm_jordan
+- palm_djibouti
+- palm_somalia
+- palm_sudan
+- palm_yemen
+- palm_general
+- palm_tunisia
+- palm_mauritania
+- palm_morocco
+- palm_iraq
+- palm_palestine
+- palm_uae
+- palm_kuwait
+- palm_qatar
+- palm_algeria
+- palm_comors
+- palm_bahrain
+- palm_lebanon
+- palm_libya
+- palm_oman

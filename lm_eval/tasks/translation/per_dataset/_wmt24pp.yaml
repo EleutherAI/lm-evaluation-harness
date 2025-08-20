@@ -1,0 +1,9 @@
+group: trans_wmt24pp
+metadata:
+    description: Translation task for WMT24++ Benchmark  
+    version: 0
+task:
+- translation_wmt24pp__ars-en
+- translation_wmt24pp__arz-en
+- translation_wmt24pp__en-ars
+- translation_wmt24pp__en-arz

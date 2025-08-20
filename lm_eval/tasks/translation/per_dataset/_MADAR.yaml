@@ -1,0 +1,31 @@
+group: trans_MADAR
+metadata:
+    description: Translation task for MADAR Benchmark  
+    version: 0
+task:
+- translation_MADAR__aeb-ar
+- translation_MADAR__aeb-en
+- translation_MADAR__apc-ar
+- translation_MADAR__apc-en
+- translation_MADAR__ar-aeb
+- translation_MADAR__ar-apc
+- translation_MADAR__ar-arq
+- translation_MADAR__ar-ars
+- translation_MADAR__ar-ary
+- translation_MADAR__ar-arz
+- translation_MADAR__ar-en
+- translation_MADAR__arq-ar
+- translation_MADAR__arq-en
+- translation_MADAR__ars-ar
+- translation_MADAR__ars-en
+- translation_MADAR__ary-ar
+- translation_MADAR__ary-en
+- translation_MADAR__arz-ar
+- translation_MADAR__arz-en
+- translation_MADAR__en-aeb
+- translation_MADAR__en-apc
+- translation_MADAR__en-ar
+- translation_MADAR__en-arq
+- translation_MADAR__en-ars
+- translation_MADAR__en-ary
+- translation_MADAR__en-arz

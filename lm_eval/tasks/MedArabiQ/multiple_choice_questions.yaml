@@ -1,5 +1,5 @@
 task: MedArabiQ_multiple_choice_questions
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/MedArabiQ_Benchmarking/processed_files/multiple_choice_questions.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/MedArabiQ/multiple_choice_questions.json
 include: _default_mcq_template_yaml

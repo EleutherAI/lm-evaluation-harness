@@ -1,6 +1,0 @@
-task: dialect_identification_madar_acm
-dataset_kwargs:
-  data_files:
-    test: /home/mostafa.awad/BGM/dialect_identification//mcq_split_by_dialect/MADAR/acm/test.jsonl
-
-include: _default_dialect_identification_template_yaml

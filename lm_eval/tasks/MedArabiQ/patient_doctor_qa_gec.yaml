@@ -1,6 +1,6 @@
 task: MedArabiQ_patient_doctor_qa_gec
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/MedArabiQ_Benchmarking/processed_files/patient_doctor_qa_gec.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/MedArabiQ/patient_doctor_qa_gec.json
 
 include: _default_gen_qa_template_yaml

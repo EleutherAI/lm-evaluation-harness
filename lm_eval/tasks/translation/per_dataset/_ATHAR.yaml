@@ -1,0 +1,7 @@
+group: trans_ATHAR
+metadata:
+    description: Translation task for ATHAR Benchmark  
+    version: 0
+task:
+- translation_ATHAR__art-en
+- translation_ATHAR__en-art

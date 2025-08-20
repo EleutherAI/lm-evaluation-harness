@@ -1,7 +1,7 @@
 dataset_kwargs:
   data_files:
     test:
-      - /l/users/george.ibrahim/IFM/ONEDRIVE/Data/jais/llm_harness/benchmarks/AraSTEM/splits/secondary__physics.json
+      - /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/AraSTEM/secondary__physics.json
 dataset_name: null
 dataset_path: json
 

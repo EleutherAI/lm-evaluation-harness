@@ -1,0 +1,3 @@
+include: _default_template_yaml
+task: palm_somalia
+process_docs: !function utils.get_somalia_samples

@@ -1,0 +1,17 @@
+task: diacritization_sadeed_tashkeela
+
+include: _default_template_yaml
+dataset_path: Misraj/Sadeed_Tashkeela
+test_split: test
+dataset_name: null
+
+# prompt was taken from the paper: https://arxiv.org/pdf/2504.21635
+doc_to_text: |
+  <|SYSTEM_PROMPT|>
+  أنتَ مُشَكِّل آلي مُهِمَتكَ إضافة التّشكيل إلى النّصوص العربية الغير مشكلة. النص يكون بعد عبارة <|USER_TOKEN|> ويكون الجواب بعد عبارة <|ASSISTENT_TOKEN|>
+
+  <|SYSTEM_PROMPT_END|>
+  <|USER_TOKEN|>:
+  {{ input }}
+
+  <|ASSISTENT_TOKEN|>:

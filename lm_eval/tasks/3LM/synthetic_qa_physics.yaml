@@ -1,0 +1,3 @@
+include: _default_synthetic_qa_template_yaml
+dataset_name: Physics
+task: 3lm_synthetic_qa_physics

@@ -1,0 +1,7 @@
+group: trans_Arab-Acquis
+metadata:
+    description: Translation task for Arab-Acquis Benchmark  
+    version: 0
+task:
+- translation_Arab-Acquis__ar-en
+- translation_Arab-Acquis__en-ar

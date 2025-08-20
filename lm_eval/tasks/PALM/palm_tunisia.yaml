@@ -1,0 +1,3 @@
+include: _default_template_yaml
+task: palm_tunisia
+process_docs: !function utils.get_tunisia_samples

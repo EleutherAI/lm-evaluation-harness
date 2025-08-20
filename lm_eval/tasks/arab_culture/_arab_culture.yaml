@@ -1,6 +1,3 @@
-aggregate_metric_list:
-    metric: acc
-    weight_by_size: true
 group: arab_culture
 metadata:
     description: Arab Culture tasks
@@ -10,3 +7,7 @@ task:
 - arab_culture_levant
 - arab_culture_north_africa
 - arab_culture_nile_valley
+
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true

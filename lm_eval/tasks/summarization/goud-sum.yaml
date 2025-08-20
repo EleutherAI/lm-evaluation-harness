@@ -1,0 +1,5 @@
+task: summ_goud-sum
+include: _default_summarization_template_yaml
+dataset_kwargs:
+  data_files:
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/goud-sum.json

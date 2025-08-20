@@ -74,7 +74,7 @@ def agg_bert_score(items):
     # src: https://arxiv.org/pdf/2411.01192
     model_name = "intfloat/multilingual-e5-small"
     bert_score = evaluate.load("bertscore")
-    predictions, references = zip(*items)
+    references, predictions = zip(*items)
     score = bert_score.compute(
         predictions=predictions,
         references=references,

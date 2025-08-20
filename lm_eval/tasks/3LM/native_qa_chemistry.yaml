@@ -1,0 +1,4 @@
+include: _default_native_qa_template_yaml
+task: 3lm_native_qa_chemistry
+
+process_docs: !function utils.process_docs_chemistry
