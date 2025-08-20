@@ -239,8 +239,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
-
-
+    
 @register_filter("ordered_regex")
 class OrderedRegexFilter(Filter):
     """A filter that applies multiple regex patterns in order with fallback behavior.
@@ -249,7 +248,7 @@ class OrderedRegexFilter(Filter):
     the match. If no pattern matches, it proceeds to the next pattern. Only if all
     patterns fail does it return the fallback value.
 
-    Useful for implementing multiple extraction strategies in order of preference.
+    Optionally applies cleanup to the matched string via strip_extracts.
     """
 
     def __init__(
@@ -257,24 +256,27 @@ class OrderedRegexFilter(Filter):
         regex_patterns: list[str] = [r"#### (\-?[0-9\.\,]+)"],
         group_select: int = 0,
         fallback: str = "[invalid]",
+        strip_extracts: list[str] = None,
     ) -> None:
         """
         Args:
-            regex_patterns: List of regex patterns to try in order. Each pattern is
-                          compiled and tried sequentially until a match is found.
-            group_select: Selects the (group_select)th match from the findall result.
-            fallback: The value returned if none of the regex patterns match.
+            regex_patterns: List of regex patterns to try in order.
+            group_select: Which group to select from the match.
+            fallback: Fallback value if no match is found.
+            strip_extracts: Regexes to remove from the extracted result.
         """
         self.regex_patterns = regex_patterns
         self.regexes = [re.compile(pattern) for pattern in regex_patterns]
         self.group_select = group_select
         self.fallback = fallback
+        self.strip_extracts = [re.compile(p) for p in strip_extracts] if strip_extracts else []
+
+    def _clean_extracted(self, text: str) -> str:
+        for ignore_re in self.strip_extracts:
+            text = ignore_re.sub("", text)
+        return text.strip()
 
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-        # here, we assume we have a list, in which each element is
-        # a list of model responses for some particular input/target pair.
-        # so we process each of these (same input/target response sets)
-        # independently (and keep them a list.)
         def filter_set(inst):
             filtered = []
             for resp in inst:
@@ -291,7 +293,7 @@ class OrderedRegexFilter(Filter):
                             else:
                                 match = None
                         if match:
-                            match = match.strip()
+                            match = self._clean_extracted(match)
                             break
 
                 if not match:
