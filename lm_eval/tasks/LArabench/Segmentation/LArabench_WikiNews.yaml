@@ -1,0 +1,44 @@
+task: LArabench_Segmentation_WikiNews
+dataset_path: csv
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/mostafa.awad/BGM/LArabench_evaluation/LArabench_base_files/WikiNewsSegmentation/test_processed.tsv
+  delimiter: "\t"
+test_split: test
+
+output_type: generate_until
+
+doc_to_text: |
+  A word can be composed of one root and one or more affixes. Segment the following word into its morphological constituents, taking into account its meaning in the sentence.
+
+  Word to segment: "{{ input_word }}"
+  This word occurs in the sentence: "{{ input }}"
+
+  The output format should be the segmented form of the word, joined by a + sign.
+  Only use Arabic script. If it is punctuation or cannot be segmented, return it unchanged. Output only Arabic morphemes or the word itself with no explanations.
+  Generate the morphemes for the given word only, without adding any other words from the sentence.
+
+  The segmented form of "{{ input_word }}":
+doc_to_target: "{{ label_word }}"
+
+generation_kwargs:
+  until:
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+  
+process_results: !function utils.post_process
+
+metric_list:
+  - metric: eval
+    aggregation: !function utils.evaluate
+    higher_is_better: true
+
+metadata:
+  version: 1.0
