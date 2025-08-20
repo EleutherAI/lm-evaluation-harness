@@ -4,6 +4,7 @@ import copy
 import itertools
 import json
 import logging
+import os
 from functools import cached_property
 from typing import (
     Any,
@@ -97,7 +98,7 @@ class TemplateAPI(TemplateLM):
                 'Please install these via `pip install lm-eval[api]` or `pip install -e ."[api]"`'
             )
         self.model = model or pretrained
-        self.base_url = base_url
+        self.base_url = base_url or os.environ.get('OPENAI_BASE_URL')
         self.tokenizer = tokenizer
         if not isinstance(batch_size, int) and "auto" in batch_size:
             eval_logger.warning(

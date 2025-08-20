@@ -192,12 +192,14 @@ class LocalChatCompletion(LocalCompletionsAPI):
 class OpenAICompletionsAPI(LocalCompletionsAPI):
     def __init__(
         self,
-        base_url="https://api.openai.com/v1/completions",
+        base_url=None,
         tokenizer_backend="tiktoken",
         **kwargs,
     ):
         super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+            base_url=base_url or os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1/completions'), 
+            tokenizer_backend=tokenizer_backend, 
+            **kwargs
         )
 
     @cached_property
@@ -227,7 +229,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
 class OpenAIChatCompletion(LocalChatCompletion):
     def __init__(
         self,
-        base_url="https://api.openai.com/v1/chat/completions",
+        base_url=None,
         tokenizer_backend=None,
         tokenized_requests=False,
         **kwargs,
@@ -237,7 +239,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
                 "o1 models do not support `stop` and only support temperature=1"
             )
         super().__init__(
-            base_url=base_url,
+            base_url=base_url or os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1/chat/completions'),
             tokenizer_backend=tokenizer_backend,
             tokenized_requests=tokenized_requests,
             **kwargs,
