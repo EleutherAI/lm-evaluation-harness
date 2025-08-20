@@ -13,7 +13,7 @@ target_delimiter: ""
 process_results: !function utils.process_results
 should_decontaminate: true
 doc_to_decontamination_query: "Passage: {{passage}}\nQuestion: {{question}}"
-gen_prefix: "\nAnswer: "
+gen_prefix: "\nAnswer:"
 description: "Return only the answer. No explanation."
 generation_kwargs:
   until:
