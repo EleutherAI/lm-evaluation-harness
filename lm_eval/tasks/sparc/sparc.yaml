@@ -31,7 +31,7 @@ generation_kwargs:
     - "<|im_end|>"
     - "<|endoftext|>"
   do_sample: false
-  temperature: 0.0
+  temperature: 0.6
   max_gen_toks: 4000
 repeats: 1
 num_fewshot: 0
