@@ -1,0 +1,20 @@
+task: kobalt
+dataset_path: snunlp/KoBALT-700
+output_type: multiple_choice
+test_split: raw
+process_docs: !function utils.process_docs
+
+doc_to_text: "{{question}}"
+doc_to_target: "{{gold}}"
+doc_to_choice: "{{choices}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
