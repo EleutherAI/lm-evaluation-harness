@@ -1,0 +1,6 @@
+dataset_name: "college_mathematics"
+description: "The following are multiple choice questions (with answers) about college mathematics. Think step by step and then finish your answer with \"the answer is (X)\" where X is the correct letter choice.\n"
+include: "_default_template_yaml"
+task: "mmlu_redux_college_mathematics"
+task_alias: "college_mathematics"
+# process_docs: !function utils.process_college_mathematics

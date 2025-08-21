@@ -1,0 +1,6 @@
+dataset_name: "formal_logic"
+description: "The following are multiple choice questions (with answers) about formal logic. Think step by step and then finish your answer with \"the answer is (X)\" where X is the correct letter choice.\n"
+include: "_default_template_yaml"
+task: "mmlu_redux_formal_logic"
+task_alias: "formal_logic"
+# process_docs: !function utils.process_formal_logic

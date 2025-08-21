@@ -1,0 +1,6 @@
+dataset_name: "virology"
+description: "The following are multiple choice questions (with answers) about virology. Think step by step and then finish your answer with \"the answer is (X)\" where X is the correct letter choice.\n"
+include: "_default_template_yaml"
+task: "mmlu_redux_virology"
+task_alias: "virology"
+# process_docs: !function utils.process_virologys
