@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(lm_eval:*)",
+      "Bash(python:*)",
+      "Bash(pip3 install:*)",
+      "Bash(pip3 list:*)",
+      "Bash(chmod:*)",
+      "Bash(grep:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

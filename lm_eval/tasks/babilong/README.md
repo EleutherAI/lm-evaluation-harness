@@ -26,11 +26,10 @@ Homepage: `https://github.com/booydar/babilong`
 * `babilong`: All Babilong tasks
 * `babilong_qa`: Question answering tasks
 * `babilong_list`: List processing tasks  
-* `babilong_reasoning`: Complex reasoning tasks
 
 #### Tasks
 
-The benchmark includes 20 reasoning tasks at various context lengths:
+The benchmark includes 10 reasoning tasks at various context lengths:
 
 **QA Tasks (qa1-qa5):**
 * `babilong_qa1_single_fact`: Single supporting fact QA
@@ -45,20 +44,6 @@ The benchmark includes 20 reasoning tasks at various context lengths:
 * `babilong_qa8_lists_sets`: Lists and sets operations
 * `babilong_qa9_simple_negation`: Simple negation
 * `babilong_qa10_indefinite_knowledge`: Indefinite knowledge
-
-**Reasoning Tasks (qa11-qa15):**
-* `babilong_qa11_basic_coreference`: Basic coreference resolution
-* `babilong_qa12_conjunction`: Conjunction reasoning
-* `babilong_qa13_compound_coreference`: Compound coreference
-* `babilong_qa14_time_reasoning`: Time-based reasoning
-* `babilong_qa15_basic_deduction`: Basic deduction
-
-**Advanced Tasks (qa16-qa20):**
-* `babilong_qa16_basic_induction`: Basic induction
-* `babilong_qa17_positional_reasoning`: Positional reasoning
-* `babilong_qa18_size_reasoning`: Size-based reasoning
-* `babilong_qa19_path_finding`: Path finding in graphs
-* `babilong_qa20_agents_motivations`: Understanding agent motivations
 
 Each task is available at multiple context lengths:
 - 1k, 4k, 16k, 32k, 64k, 128k, 256k, 512k, 1M, 2M, 4M, 10M tokens
