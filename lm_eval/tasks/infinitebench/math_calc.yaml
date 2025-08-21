@@ -1,0 +1,21 @@
+tag:
+- infinitebench
+- infinitebench_math
+task: infinitebench_math_calc
+dataset_path: OpenBMB/InfiniteBench
+dataset_name: math_calc
+output_type: generate_until
+test_split: test
+doc_to_text: '!function utils.create_prompt'
+doc_to_target: '{{answer}}'
+generation_kwargs:
+  max_gen_toks: 30
+  temperature: 0.0
+  do_sample: false
+process_results: '!function utils.process_results_gen'
+metric_list:
+- metric: score
+  aggregation: mean
+  higher_is_better: true
+metadata:
+  version: '1.0'

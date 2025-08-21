@@ -1,0 +1,14 @@
+group: infinitebench
+task:
+- infinitebench_passkey
+- infinitebench_number_string
+- infinitebench_kv_retrieval
+- infinitebench_math_find
+- infinitebench_math_calc
+- infinitebench_code_run
+- infinitebench_code_debug
+- infinitebench_longbook_qa_eng
+- infinitebench_longbook_qa_chn
+- infinitebench_longbook_sum_eng
+- infinitebench_longbook_choice_eng
+- infinitebench_longdialogue_qa_eng

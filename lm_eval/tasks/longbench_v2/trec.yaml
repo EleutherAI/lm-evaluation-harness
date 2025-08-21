@@ -1,0 +1,31 @@
+tag:
+- longbench_v2
+task: longbench_v2_trec
+dataset_path: THUDM/LongBench
+dataset_name: trec
+output_type: generate_until
+test_split: test
+doc_to_text: 'Classify the following question into one of these categories: ABBR,
+  ENTY, DESC, HUM, LOC, NUM.
+
+
+  Examples:
+
+  {{context}}
+
+
+  Question: {{question}}
+
+  Category:'
+doc_to_target: '{{answer}}'
+generation_kwargs:
+  max_gen_toks: 10
+  temperature: 0.1
+  do_sample: false
+process_results: '!function utils.process_results_gen'
+metric_list:
+- metric: score
+  aggregation: mean
+  higher_is_better: true
+metadata:
+  version: '1.0'
