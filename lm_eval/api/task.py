@@ -24,6 +24,11 @@ import datasets
 import numpy as np
 from tqdm import tqdm
 
+from torchvision.transforms.functional import to_pil_image
+
+import io
+import base64
+
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import ContextInstance, Instance, OutputType
@@ -50,6 +55,7 @@ ALL_OUTPUT_TYPES = [
 
 DEFAULT_IMAGE_PLACEHOLDER = "<image>"
 DEFAULT_AUDIO_PLACEHOLDER = "<audio>"
+DEFAULT_VIDEO_PLACEHOLDER = "<video>"
 
 eval_logger = logging.getLogger(__name__)
 
@@ -84,6 +90,7 @@ class TaskConfig(dict):
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
     doc_to_audio: Union[Callable, str] = None
+    doc_to_video: Union[Callable, str] = None
     unsafe_code: bool = False
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
@@ -194,9 +201,11 @@ def sort_multimedia_content_in_chat(
     messages,
     image_token=DEFAULT_IMAGE_PLACEHOLDER,
     audio_token=DEFAULT_AUDIO_PLACEHOLDER,
+    video_token=DEFAULT_VIDEO_PLACEHOLDER,
 ):
     images = []
     audios = []
+    videos = []
     for msg in messages:
         for item in msg["content"]:
             if item["type"] == "text":
@@ -205,11 +214,13 @@ def sort_multimedia_content_in_chat(
                 images.append(item)
             elif item["type"] == "audio_url":
                 audios.append(item)
+            elif item["type"] == "video_url":
+                videos.append(item)
             else:
                 raise ValueError(f"Currently item type {item['type']} is not supported")
 
     token_pattern = re.compile(
-        rf"({re.escape(image_token)}|{re.escape(audio_token)})"
+        rf"({re.escape(image_token)}|{re.escape(audio_token)}|{re.escape(video_token)})"
     )
 
     result = []
@@ -223,6 +234,8 @@ def sort_multimedia_content_in_chat(
                         new_content.append(images.pop(0))
                     elif part == audio_token:
                         new_content.append(audios.pop(0))
+                    elif part == video_token:
+                        new_content.append(videos.pop(0))
                     elif part:
                         new_content.append({'type': 'text', 'text': part})
         if new_content:
@@ -231,10 +244,46 @@ def sort_multimedia_content_in_chat(
                 'content': new_content
             })
 
-    if images or audios:
-        raise ValueError("Something went wrong, amount of image or audio placeholders in chat doesn't match true amount")
+    if images or audios or videos:
+        raise ValueError("Something went wrong, amount of image, audio or video placeholders in chat doesn't match true amount")
 
     return result
+
+
+def replace_video_with_images(messages, num_images):
+    if num_images == 0:
+        return messages
+    for msg in messages:
+        new_content = []
+        for item in msg["content"]:
+            if item["type"] == "video_url":
+                frames = []
+                for frame in item["video_url"]:
+                    frames.append(frame)
+                for i in range(num_images):
+                    if i == 0:
+                        image = frames[0]
+                    elif i == num_images - 1:
+                        image = frames[-1]
+                    else:
+                        idx = round(i * (len(frames) - 1) / (num_images - 1))
+                        image = frames[idx]
+
+                    buf = io.BytesIO()
+                    to_pil_image(image["data"]).save(buf, format="PNG")
+                    image_bytes = buf.getvalue()
+                    image_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
+                    ith_image = {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": image_url
+                        }
+                    }
+                    new_content.append(ith_image)
+            else:
+                new_content.append(item)
+        msg["content"] = new_content
+    return messages
 
 
 class Task(abc.ABC):
@@ -438,6 +487,9 @@ class Task(abc.ABC):
     def doc_to_image(self, doc):
         raise NotImplementedError
 
+    def doc_to_video(self, doc):
+        raise NotImplementedError
+
     def doc_to_audio(self, doc):
         raise NotImplementedError
 
@@ -456,6 +508,7 @@ class Task(abc.ABC):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         pass_multimodal_args_to_chat_history: bool = False,
+        replace_videos_with_images_amount: int = 0,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         tokenizer_name: str = "",
@@ -527,6 +580,7 @@ class Task(abc.ABC):
 
             if pass_multimodal_args_to_chat_history:
                 fewshot_ctx = sort_multimedia_content_in_chat(fewshot_ctx)
+                fewshot_ctx = replace_video_with_images(fewshot_ctx, replace_videos_with_images_amount)
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(
@@ -835,6 +889,10 @@ class ConfigurableTask(Task):
             self.OUTPUT_TYPE = self.config.output_type
 
         if self.config.doc_to_image is not None:
+            # mark the task as requiring multimodality.
+            self.MULTIMODAL = True
+
+        if self.config.doc_to_video:
             # mark the task as requiring multimodality.
             self.MULTIMODAL = True
 
@@ -1531,6 +1589,29 @@ class ConfigurableTask(Task):
                 return ast.literal_eval(utils.apply_template(doc_to_image, doc))
         elif callable(doc_to_image):
             return doc_to_image(doc)
+        else:
+            return None
+
+    def doc_to_video(self, doc: Any, doc_to_video=None) -> Union[int, str, list]:
+        if doc_to_video is not None:
+            doc_to_video = doc_to_video
+        elif self.config.doc_to_video is not None:
+            doc_to_video = self.config.doc_to_video
+        else:
+            return None
+
+        if isinstance(doc_to_video, list):
+            video_feature = [
+                self.doc_to_video(doc, feature) for feature in doc_to_video
+            ]
+            return [feature for feature in video_feature if feature is not None]
+        elif isinstance(doc_to_video, str):
+            if doc_to_video in self.features:
+                return doc[doc_to_video]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_video, doc))
+        elif callable(doc_to_video):
+            return doc_to_video(doc)
         else:
             return None
 

@@ -70,6 +70,7 @@ def simple_evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     pass_multimodal_args_to_chat_history: bool = False,
+    replace_videos_with_images_amount: int = 0,
     fewshot_as_multiturn: bool = False,
     gen_kwargs: Union[str, dict, None] = None,
     task_manager: Optional[TaskManager] = None,
@@ -360,6 +361,7 @@ def simple_evaluate(
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         pass_multimodal_args_to_chat_history=pass_multimodal_args_to_chat_history,
+        replace_videos_with_images_amount=replace_videos_with_images_amount,
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
@@ -424,6 +426,7 @@ def evaluate(
     system_instruction: Optional[str] = None,
     apply_chat_template: Union[bool, str] = False,
     pass_multimodal_args_to_chat_history: bool = False,
+    replace_videos_with_images_amount: int = 0,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
@@ -550,6 +553,7 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=bool(apply_chat_template),
             pass_multimodal_args_to_chat_history=pass_multimodal_args_to_chat_history,
+            replace_videos_with_images_amount=replace_videos_with_images_amount,
             fewshot_as_multiturn=fewshot_as_multiturn,
             chat_template=getattr(lm, "apply_chat_template")
             if apply_chat_template

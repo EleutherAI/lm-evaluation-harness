@@ -217,6 +217,11 @@ def setup_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--replace_videos_with_images_amount",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
         "--fewshot_as_multiturn",
         action="store_true",
         default=False,
@@ -473,6 +478,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         system_instruction=args.system_instruction,
         apply_chat_template=args.apply_chat_template,
         pass_multimodal_args_to_chat_history=args.pass_multimodal_args_to_chat_history,
+        replace_videos_with_images_amount=args.replace_videos_with_images_amount,
         fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,

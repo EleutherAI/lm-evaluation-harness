@@ -99,6 +99,17 @@ class ContextSampler:
         else:
             self.doc_to_audio = self.task.doc_to_audio
 
+        if (
+            self.config.fewshot_config is not None
+            and self.config.fewshot_config.get("doc_to_video", None) is not None
+        ):
+            self.doc_to_audio = partial(
+                self.task.doc_to_video,
+                doc_to_audio=self.config.fewshot_config.get("doc_to_video", None),
+            )
+        else:
+            self.doc_to_video = self.task.doc_to_video
+
         self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
         if fewshot_indices:  # subset few-shot docs from
             if not isinstance(self.docs, datasets.Dataset):
@@ -129,9 +140,11 @@ class ContextSampler:
             multimodal_args.setdefault("visual", []).extend(self.doc_to_image(doc))
         if self.config.doc_to_audio:
             multimodal_args.setdefault("audio", []).extend(self.doc_to_audio(doc))
+        if self.config.doc_to_video:
+            multimodal_args.setdefault("video", []).extend(self.doc_to_video(doc))
         return multimodal_args
 
-    def update_user_content(self, user_content, doc=None, images=None, audios=None):
+    def update_user_content(self, user_content, doc=None, images=None, audios=None, videos=None):
         def add_image(image):
             user_content.append(
                 {
@@ -148,6 +161,14 @@ class ContextSampler:
                 }
             )
 
+        def add_video(video):
+            user_content.append(
+                {
+                    "type": "video_url",
+                    "video_url": video,
+                }
+            )
+
         if self.config.doc_to_image and doc:
             for image in self.doc_to_image(doc):
                 add_image(image)
@@ -160,6 +181,12 @@ class ContextSampler:
         if audios:
             for audio in audios:
                 add_audio(audio)
+        if self.config.doc_to_video and doc:
+            for video in self.doc_to_video(doc):
+                add_video(video)
+        if videos:
+            for video in videos:
+                add_video(video)
 
         return user_content
 
