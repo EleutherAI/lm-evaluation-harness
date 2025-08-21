@@ -1,17 +1,18 @@
 import re
 from typing import Dict, List
 
+
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
     response = results[0]
-    
+
     # Try to extract answer from $...$ format first
     indices = [pos for pos, char in enumerate(response) if char == "$"]
     if len(indices) <= 1:
         answer = response
     else:
         answer = response[indices[0] + 1 : indices[-1]]
-    
+
     # Extract from \\boxed{} if present
     boxed_answer = last_boxed_only_string(response)
     if boxed_answer is not None:
@@ -21,7 +22,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
                 answer = boxed_content
         except (AssertionError, IndexError):
             pass
-    
+
     # Check if answer matches target
     answer_key = next(k for k in doc.keys() if k.lower() == "answer")
     target = str(doc[answer_key])
