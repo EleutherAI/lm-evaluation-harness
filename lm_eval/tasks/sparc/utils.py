@@ -201,7 +201,6 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
         "puzzle_array": doc.get('puzzle_array', []),
         "grid_size": doc.get('grid_size', {}),
         "polyshapes": doc.get('polyshapes', {}),
-        # Include difficulty information - try multiple possible field names
         "difficulty": doc.get('difficulty_level', "unknown")
     }
     
@@ -210,82 +209,72 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
 
 
 def solve_rate_by_difficulty(predictions, references=None, **kwargs):
-    """Metric that tracks solve rates broken down by difficulty level."""
+    """Return a list of dicts: difficulty label and whether the item was solved."""
     if not predictions or not references:
-        return {"overall_solve_rate": 0.0}
-    
-    # Initialize tracking dictionaries
-    difficulty_stats = {}
-    total_count = len(predictions)
-    total_solved = 0
-    
+        return []
+
+    outputs = []
     for pred, ref in zip(predictions, references):
-        # Handle list responses
         if isinstance(pred, list):
             pred = pred[0] if pred else ""
         elif not isinstance(pred, str):
             pred = str(pred)
-        
-        # Extract path from prediction
+
         path = extract_solution_path(pred)
-        
-        # Parse puzzle data from reference
+        difficulty_label = "unknown"
+        solved_flag = False
+
         try:
             puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
-            
-            # Get difficulty information
             difficulty = puzzle_data.get('difficulty')
-            if difficulty is None:
-                difficulty = "unknown"
-            else:
-                difficulty = str(difficulty)
-            
-            # Initialize difficulty tracking if not seen before
-            if difficulty not in difficulty_stats:
-                difficulty_stats[difficulty] = {
-                    "total": 0,
-                    "solved": 0
-                }
-            
-            difficulty_stats[difficulty]["total"] += 1
-            
-            # Check if this puzzle was solved correctly
-            is_solved = False
-            if path:
-                is_solved = validate_solution(path, puzzle_data)
-                if is_solved:
-                    difficulty_stats[difficulty]["solved"] += 1
-                    total_solved += 1
-            
+            difficulty_label = str(difficulty) if difficulty is not None else "unknown"
+            if path and validate_solution(path, puzzle_data):
+                solved_flag = True
         except (json.JSONDecodeError, TypeError):
-            # Handle parsing errors by tracking as unknown difficulty
-            if "unknown" not in difficulty_stats:
-                difficulty_stats["unknown"] = {"total": 0, "solved": 0}
-            difficulty_stats["unknown"]["total"] += 1
-    
-    # Calculate solve rates for each difficulty (only percentages)
-    result = {
-        "overall_solve_rate": total_solved / total_count if total_count > 0 else 0.0
-    }
-    
-    for difficulty, stats in difficulty_stats.items():
-        solve_rate = stats["solved"] / stats["total"] if stats["total"] > 0 else 0.0
-        result[f"solve_rate_difficulty_{difficulty}"] = solve_rate
-    
-    return result
+            pass
+
+        outputs.append({"difficulty": difficulty_label, "solved": bool(solved_flag)})
+
+    return outputs
 
 
 def aggregate_difficulty_analysis(items, **kwargs):
-    """Aggregate solve rate by difficulty analysis across multiple items."""
+    """Flatten list-of-dicts and compute overall and per-difficulty solve rates."""
     if not items:
         return {"overall_solve_rate": 0.0}
-    
-    # The items should be the results from solve_rate_by_difficulty
-    # Just take the first item since it already contains aggregated results
-    if isinstance(items, list) and len(items) > 0:
-        return items[0]
-    else:
-        return items
+
+    items_list = items if isinstance(items, list) else [items]
+
+    combined = []
+    for item in items_list:
+        if isinstance(item, list):
+            combined.extend(item)
+        elif isinstance(item, dict):
+            combined.append(item)
+
+    total = len(combined)
+    if total == 0:
+        return {"overall_solve_rate": 0.0}
+
+    # Overall
+    solved_total = sum(1 for d in combined if bool(d.get("solved", False)))
+    result = {"overall_solve_rate": solved_total / total}
+
+    # Per-difficulty
+    buckets = {}
+    for d in combined:
+        diff = str(d.get("difficulty", "unknown"))
+        if diff not in buckets:
+            buckets[diff] = {"solved": 0, "total": 0}
+        buckets[diff]["total"] += 1
+        if bool(d.get("solved", False)):
+            buckets[diff]["solved"] += 1
+
+    for diff, stats in buckets.items():
+        denom = stats["total"]
+        result[f"solve_rate_difficulty_{diff}"] = (stats["solved"] / denom) if denom > 0 else 0.0
+
+    return result
 
 
 def extract_solution_path(
@@ -300,8 +289,7 @@ def extract_solution_path(
     Returns:
         List of coordinate dicts or None if no path found
     """
-    print("--------------------------------")
-    print(solution_text)
+    # Avoid noisy prints during evaluation
     # First, check if "Solution" appears in the text
     solution_marker = "####"
     if solution_marker in solution_text:
@@ -487,130 +475,64 @@ def analyze_path(solution_path: Optional[List[Dict[str, int]]], puzzle: Dict) ->
     }
 
 
-def contains_coordinates(predictions, references=None, **kwargs):
-    """Metric that checks if model output contains coordinate patterns."""
-    if not predictions:
-        return 0.0
-    
-    coord_count = 0
-    total_count = len(predictions)
-    
-    for pred in predictions:
-        # Handle list responses
-        if isinstance(pred, list):
-            pred = pred[0] if pred else ""
-        elif not isinstance(pred, str):
-            pred = str(pred)
-        
-        # Check if prediction contains coordinate patterns
-        coord_pattern = r"\((\d+),\s*(\d+)\)"
-        match = re.search(coord_pattern, pred)
-        
-        if match:
-            coord_count += 1
-    
-    final_score = coord_count / total_count if total_count > 0 else 0.0
-    return final_score
-
-
-def path_validity_score(predictions, references=None, **kwargs):
-    """Metric that validates extracted paths against known solutions."""
-    if not predictions or not references:
-        return 0.0
-    
-    valid_count = 0
-    total_count = len(predictions)
-    
-    for pred, ref in zip(predictions, references):
-        # Handle list responses
-        if isinstance(pred, list):
-            pred = pred[0] if pred else ""
-        elif not isinstance(pred, str):
-            pred = str(pred)
-        
-        # Extract path from prediction
-        path = extract_solution_path(pred)
-        
-        # Parse puzzle data from reference
-        try:
-            puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
-            
-            if path:
-                is_valid = validate_solution(path, puzzle_data)
-                if is_valid:
-                    valid_count += 1
-            
-        except (json.JSONDecodeError, TypeError):
-            # Give partial credit for extracting a path with multiple coordinates
-            if path and len(path) > 1:
-                valid_count += 0.5
-    
-    final_score = valid_count / total_count if total_count > 0 else 0.0
-    return final_score
-
-
 def spatial_reasoning_analysis(predictions, references=None, **kwargs):
-    """Detailed spatial reasoning analysis metric."""
+    """Return a list with one dict per item indicating which constraints are fulfilled."""
     if not predictions or not references:
-        return {
-            "starts_at_start_ends_at_exit": 0.0,
-            "connected_line": 0.0,
-            "non_intersecting_line": 0.0,
-            "start_to_exit_connected": 0.0,
-            "no_rule_crossing": 0.0,
-            "fully_valid_path": 0.0,
-            "path_extraction_rate": 0.0,
-        }
-    
-    total_count = len(predictions)
-    
-    # Initialize metric counters
-    metrics = {
-        "starts_at_start_ends_at_exit": 0,
-        "connected_line": 0,
-        "non_intersecting_line": 0,
-        "start_to_exit_connected": 0,
-        "no_rule_crossing": 0,
-        "fully_valid_path": 0,
-        "path_extraction_rate": 0,
-    }
-    
+        return [
+            {
+                "starts_at_start_ends_at_exit": False,
+                "connected_line": False,
+                "non_intersecting_line": False,
+                "start_to_exit_connected": False,
+                "no_rule_crossing": False,
+                "fully_valid_path": False,
+                "path_extraction_rate": False,
+            }
+        ]
+
+    outputs = []
     for pred, ref in zip(predictions, references):
-        # Handle list responses
         if isinstance(pred, list):
             pred = pred[0] if pred else ""
         elif not isinstance(pred, str):
             pred = str(pred)
-        
-        # Extract path from prediction
+
         path = extract_solution_path(pred)
-        
+        # Default flags if no path
+        flags = {
+            "starts_at_start_ends_at_exit": False,
+            "connected_line": False,
+            "non_intersecting_line": False,
+            "start_to_exit_connected": False,
+            "no_rule_crossing": False,
+            "fully_valid_path": False,
+            "path_extraction_rate": False,
+        }
+
         if path:
-            metrics["path_extraction_rate"] += 1
-            
-            # Parse puzzle data from reference for detailed analysis
+            flags["path_extraction_rate"] = True
             try:
                 puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
-                
                 analysis = analyze_path(path, puzzle_data)
-                
-                # Update counters based on analysis
-                for key in ["starts_at_start_ends_at_exit", "connected_line", 
-                           "non_intersecting_line", "start_to_exit_connected", 
-                           "no_rule_crossing", "fully_valid_path"]:
-                    if analysis.get(key, False):
-                        metrics[key] += 1
-                        
+                for key in [
+                    "starts_at_start_ends_at_exit",
+                    "connected_line",
+                    "non_intersecting_line",
+                    "start_to_exit_connected",
+                    "no_rule_crossing",
+                    "fully_valid_path",
+                ]:
+                    flags[key] = bool(analysis.get(key, False))
             except (json.JSONDecodeError, TypeError):
                 pass
-    
-    # Convert counts to ratios
-    final_metrics = {key: count / total_count for key, count in metrics.items()}
-    return final_metrics
+
+        outputs.append(flags)
+
+    return outputs
 
 
 def aggregate_spatial_analysis(items, **kwargs):
-    """Aggregate spatial reasoning analysis across multiple items."""
+    """Flatten list of dicts and take the mean per key."""
     if not items:
         return {
             "starts_at_start_ends_at_exit": 0.0,
@@ -621,10 +543,37 @@ def aggregate_spatial_analysis(items, **kwargs):
             "fully_valid_path": 0.0,
             "path_extraction_rate": 0.0,
         }
-    
-    # The items should be the results from spatial_reasoning_analysis
-    # Just take the first item since it already contains aggregated results
-    if isinstance(items, list) and len(items) > 0:
-        return items[0]
-    else:
-        return items 
+
+    items_list = items if isinstance(items, list) else [items]
+
+    combined = []
+    for item in items_list:
+        if isinstance(item, list):
+            combined.extend(item)
+        elif isinstance(item, dict):
+            combined.append(item)
+
+    keys = [
+        "starts_at_start_ends_at_exit",
+        "connected_line",
+        "non_intersecting_line",
+        "start_to_exit_connected",
+        "no_rule_crossing",
+        "fully_valid_path",
+        "path_extraction_rate",
+    ]
+
+    if len(combined) == 0:
+        return {k: 0.0 for k in keys}
+
+    # Treat booleans as 0/1 and average
+    result = {}
+    n = len(combined)
+    for k in keys:
+        s = 0.0
+        for d in combined:
+            v = d.get(k, False)
+            s += 1.0 if bool(v) else 0.0
+        result[k] = s / n
+
+    return result
