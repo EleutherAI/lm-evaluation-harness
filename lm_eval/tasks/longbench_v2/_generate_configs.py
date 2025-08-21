@@ -2,7 +2,9 @@
 """Generate all YAML configuration files for LongBench v2 tasks."""
 
 import os
+
 import yaml
+
 
 # Define all LongBench v2 tasks with their configurations
 TASKS = {
@@ -28,7 +30,6 @@ TASKS = {
         "metric": "qa_f1",
         "max_gen_toks": 50,
     },
-    
     # Multi-Document QA
     "hotpotqa": {
         "dataset_name": "hotpotqa",
@@ -51,7 +52,6 @@ TASKS = {
         "metric": "qa_f1",
         "max_gen_toks": 50,
     },
-    
     # Summarization
     "gov_report": {
         "dataset_name": "gov_report",
@@ -74,7 +74,6 @@ TASKS = {
         "metric": "rouge",
         "max_gen_toks": 300,
     },
-    
     # Few-shot Learning
     "trec": {
         "dataset_name": "trec",
@@ -97,7 +96,6 @@ TASKS = {
         "metric": "rouge",
         "max_gen_toks": 100,
     },
-    
     # Synthetic Tasks
     "passage_retrieval": {
         "dataset_name": "passage_retrieval_en",
@@ -120,7 +118,6 @@ TASKS = {
         "metric": "retrieval",
         "max_gen_toks": 20,
     },
-    
     # Code Tasks
     "lcc": {
         "dataset_name": "lcc",
@@ -143,7 +140,6 @@ TASKS = {
         "metric": "code_sim",
         "max_gen_toks": 200,
     },
-    
     # Extended Context Tasks
     "book_qa_eng": {
         "dataset_name": "book_qa_eng",
@@ -160,6 +156,7 @@ TASKS = {
         "max_gen_toks": 150,
     },
 }
+
 
 def generate_yaml_config(task_name, config):
     """Generate YAML configuration for a task."""
@@ -187,26 +184,34 @@ def generate_yaml_config(task_name, config):
         ],
         "metadata": {
             "version": "1.0",
-        }
+        },
     }
-    
+
     return yaml_content
+
 
 def main():
     """Generate all configuration files."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    
+
     for task_name, config in TASKS.items():
         yaml_content = generate_yaml_config(task_name, config)
-        
+
         # Write YAML file
         output_path = os.path.join(base_dir, f"{task_name}.yaml")
-        with open(output_path, 'w') as f:
-            yaml.dump(yaml_content, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
-        
+        with open(output_path, "w") as f:
+            yaml.dump(
+                yaml_content,
+                f,
+                default_flow_style=False,
+                sort_keys=False,
+                allow_unicode=True,
+            )
+
         print(f"Generated: {output_path}")
-    
+
     print(f"\nGenerated {len(TASKS)} configuration files for LongBench v2")
+
 
 if __name__ == "__main__":
     main()

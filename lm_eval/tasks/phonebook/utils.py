@@ -1,8 +1,8 @@
 """Utility functions for Phonebook Lookup evaluation."""
 
-import re
 import random
-from typing import List, Dict, Any, Tuple
+import re
+from typing import Any, Dict, List, Tuple
 
 
 def generate_phone_number() -> str:
