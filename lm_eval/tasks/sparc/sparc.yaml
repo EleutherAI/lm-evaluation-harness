@@ -7,7 +7,7 @@ dataset_name: all
 output_type: generate_until
 training_split: null
 validation_split: null
-test_split: train
+test_split: test
 num_fewshot: 0
 process_docs: !function utils.process_docs
 doc_to_text: !function utils.doc_to_text
@@ -30,11 +30,10 @@ generation_kwargs:
     - "</s>"
     - "<|im_end|>"
     - "<|endoftext|>"
-  do_sample: false
+  do_sample: true
   temperature: 0.6
   max_gen_toks: 4000
 repeats: 1
-num_fewshot: 0
 
 metadata:
   version: 4.0 
