@@ -129,16 +129,6 @@ TASK_METRICS = {
     "qa8": list_match,
     "qa9": exact_match,
     "qa10": exact_match,
-    "qa11": exact_match,
-    "qa12": exact_match,
-    "qa13": exact_match,
-    "qa14": exact_match,
-    "qa15": exact_match,
-    "qa16": exact_match,
-    "qa17": exact_match,
-    "qa18": exact_match,
-    "qa19": list_match,
-    "qa20": exact_match,
 }
 
 
