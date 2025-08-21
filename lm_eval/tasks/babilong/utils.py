@@ -129,6 +129,16 @@ TASK_METRICS = {
     "qa8": list_match,
     "qa9": exact_match,
     "qa10": exact_match,
+    "qa11": exact_match,  # basic coreference
+    "qa12": exact_match,  # conjunction
+    "qa13": exact_match,  # compound coreference
+    "qa14": exact_match,  # time reasoning
+    "qa15": exact_match,  # basic deduction
+    "qa16": exact_match,  # basic induction
+    "qa17": yes_no_match,  # positional reasoning
+    "qa18": yes_no_match,  # size reasoning
+    "qa19": exact_match,  # path finding
+    "qa20": exact_match,  # agents motivations
 }
 
 
@@ -162,7 +172,7 @@ def process_results_gen(doc: Dict[str, Any], results: List[str]) -> Dict[str, fl
 
 
 def create_prompt(doc: Dict[str, Any]) -> str:
-    """Create prompt for Babilong tasks."""
+    """Create prompt for Babilong tasks qa1-qa10."""
     context = doc.get("context", "")
     question = doc.get("question", "")
 
@@ -175,3 +185,39 @@ Question: {question}
 Answer:"""
 
     return prompt
+
+
+def create_prompt_v2(doc: Dict[str, Any]) -> str:
+    """Create prompt for Babilong tasks qa11-qa20."""
+    # qa11-qa20 use 'input' instead of 'context'
+    context = doc.get("input", "")
+    question = doc.get("question", "")
+
+    prompt = f"""Read the following text carefully and answer the question based only on the information provided.
+
+Context:
+{context}
+
+Question: {question}
+Answer:"""
+
+    return prompt
+
+
+def process_results_gen_v2(doc: Dict[str, Any], results: List[str]) -> Dict[str, float]:
+    """Process generation results for Babilong tasks qa11-qa20."""
+    prediction = results[0] if results else ""
+
+    # Get ground truth answer - qa11-qa20 use 'target' instead of 'answer'
+    answer = doc.get("target", "")
+    if isinstance(answer, list):
+        answer = answer[0] if answer else ""
+
+    # Get appropriate metric for the task
+    task_name = doc.get("task_name", "")
+    metric_fn = get_metric_for_task(task_name)
+
+    # Compute score
+    score = metric_fn(prediction, str(answer))
+
+    return {"acc": score}

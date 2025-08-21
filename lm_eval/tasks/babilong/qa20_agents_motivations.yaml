@@ -1,0 +1,21 @@
+tag:
+- babilong
+- babilong_qa
+task: babilong_qa20_agents_motivations
+dataset_path: booydar/babilong
+dataset_name: 0k
+output_type: generate_until
+test_split: qa20
+doc_to_text: '!function utils.create_prompt_v2'
+doc_to_target: '{{target}}'
+generation_kwargs:
+  max_gen_toks: 20
+  temperature: 0.0
+  do_sample: false
+process_results: '!function utils.process_results_gen_v2'
+metric_list:
+- metric: acc
+  aggregation: mean
+  higher_is_better: true
+metadata:
+  version: '1.0'

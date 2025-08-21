@@ -10,3 +10,13 @@ task:
 - babilong_qa8_lists_sets
 - babilong_qa9_simple_negation
 - babilong_qa10_indefinite_knowledge
+- babilong_qa11_basic_coreference
+- babilong_qa12_conjunction
+- babilong_qa13_compound_coreference
+- babilong_qa14_time_reasoning
+- babilong_qa15_basic_deduction
+- babilong_qa16_basic_induction
+- babilong_qa17_positional_reasoning
+- babilong_qa18_size_reasoning
+- babilong_qa19_path_finding
+- babilong_qa20_agents_motivations
