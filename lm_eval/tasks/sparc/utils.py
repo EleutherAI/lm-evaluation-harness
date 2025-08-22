@@ -215,6 +215,11 @@ def solve_rate_by_difficulty(predictions, references=None, **kwargs):
     - overall_solved: 0/1
     - solved_difficulty_{label}: 0/1 (only for this sample's label)
     """
+    print("Solve rate by difficulty")
+    print("Length of predictions: ", len(predictions))
+    print("Length of references: ", len(references))
+    print("Predictions: ", predictions)
+    print("References: ", references)
     if not predictions or not references:
         return {"overall_solved": 0.0}
 
@@ -242,6 +247,7 @@ def solve_rate_by_difficulty(predictions, references=None, **kwargs):
 
     result = {"overall_solved": 1.0 if solved_flag else 0.0}
     result[f"solved_difficulty_{difficulty_label}"] = 1.0 if solved_flag else 0.0
+    print("Result: ", result)
     return result
 
 
@@ -462,6 +468,11 @@ def analyze_path(solution_path: Optional[List[Dict[str, int]]], puzzle: Dict) ->
 
 def spatial_reasoning_analysis(predictions, references=None, **kwargs):
     """Per-sample dict of booleans-as-0/1 for spatial constraints (for mean agg)."""
+    print("Spatial reasoning analysis")
+    print("Length of predictions: ", len(predictions))
+    print("Length of references: ", len(references))
+    print("Predictions: ", predictions)
+    print("References: ", references)
     if not predictions or not references:
         return {
             "starts_at_start_ends_at_exit": 0.0,
@@ -508,7 +519,7 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
                 flags[key] = 1.0 if analysis.get(key, False) else 0.0
         except (json.JSONDecodeError, TypeError):
             pass
-
+    print("Flags: ", flags)
     return flags
 
 
