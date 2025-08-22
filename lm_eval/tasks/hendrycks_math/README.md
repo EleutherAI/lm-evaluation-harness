@@ -52,3 +52,6 @@ If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+### Changelog
+- 2025-07-29: v1.1: Added a new metric, `exact_match_flexible`, for more robust answer parsing.
