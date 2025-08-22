@@ -1,0 +1,18 @@
+group: m_ifeval
+task:
+  - m_ifeval_ja
+aggregate_metric_list:
+  - metric: prompt_level_strict_acc
+    weight_by_size: true
+    aggregation: mean
+  - metric: inst_level_strict_acc
+    weight_by_size: true
+    aggregation: mean
+  - metric: prompt_level_loose_acc
+    weight_by_size: true
+    aggregation: mean
+  - metric: inst_level_loose_acc
+    weight_by_size: true
+    aggregation: mean
+metadata:
+  version: 1.0

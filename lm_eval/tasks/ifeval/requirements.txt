@@ -1,0 +1,13 @@
+absl-py==1.4.0
+datasets==3.2.0
+immutabledict==4.2.1
+janome==0.5.0
+ja_sentence_segmenter==0.0.2
+langdetect==1.0.9
+nltk==3.9.1
+spacy==3.7.5
+vllm==0.7.1
+bitsandbytes==0.45.1
+hf-transfer==0.1.9
+openai==1.61.0
+anthropic==0.45.2
