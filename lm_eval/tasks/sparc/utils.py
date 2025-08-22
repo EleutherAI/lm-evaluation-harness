@@ -209,72 +209,57 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
 
 
 def solve_rate_by_difficulty(predictions, references=None, **kwargs):
-    """Return a list of dicts: difficulty label and whether the item was solved."""
+    """Per-sample dict for overall and per-difficulty solve flags (0/1).
+
+    Keys:
+    - overall_solved: 0/1
+    - solved_difficulty_{label}: 0/1 (only for this sample's label)
+    """
     if not predictions or not references:
-        return []
+        return {"overall_solved": 0.0}
 
-    outputs = []
-    for pred, ref in zip(predictions, references):
-        if isinstance(pred, list):
-            pred = pred[0] if pred else ""
-        elif not isinstance(pred, str):
-            pred = str(pred)
+    # Single-item evaluation for ConfigurableTask
+    pred = predictions[0] if isinstance(predictions, list) else predictions
+    if isinstance(pred, list):
+        pred = pred[0] if pred else ""
+    elif not isinstance(pred, str):
+        pred = str(pred)
 
-        path = extract_solution_path(pred)
-        difficulty_label = "unknown"
-        solved_flag = False
+    ref = references[0] if isinstance(references, list) else references
 
-        try:
-            puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
-            difficulty = puzzle_data.get('difficulty')
-            difficulty_label = str(difficulty) if difficulty is not None else "unknown"
-            if path and validate_solution(path, puzzle_data):
-                solved_flag = True
-        except (json.JSONDecodeError, TypeError):
-            pass
+    path = extract_solution_path(pred)
+    difficulty_label = "unknown"
+    solved_flag = False
 
-        outputs.append({"difficulty": difficulty_label, "solved": bool(solved_flag)})
+    try:
+        puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
+        difficulty = puzzle_data.get('difficulty')
+        difficulty_label = str(difficulty) if difficulty is not None else "unknown"
+        if path and validate_solution(path, puzzle_data):
+            solved_flag = True
+    except (json.JSONDecodeError, TypeError):
+        pass
 
-    return outputs
+    result = {"overall_solved": 1.0 if solved_flag else 0.0}
+    result[f"solved_difficulty_{difficulty_label}"] = 1.0 if solved_flag else 0.0
+    return result
 
 
 def aggregate_difficulty_analysis(items, **kwargs):
-    """Flatten list-of-dicts and compute overall and per-difficulty solve rates."""
+    """Not used when metric returns per-sample scalar dicts; fallback to mean externally."""
+    # Keep for compatibility if ever used directly
     if not items:
         return {"overall_solve_rate": 0.0}
-
-    items_list = items if isinstance(items, list) else [items]
-
-    combined = []
-    for item in items_list:
-        if isinstance(item, list):
-            combined.extend(item)
-        elif isinstance(item, dict):
-            combined.append(item)
-
-    total = len(combined)
-    if total == 0:
-        return {"overall_solve_rate": 0.0}
-
-    # Overall
-    solved_total = sum(1 for d in combined if bool(d.get("solved", False)))
-    result = {"overall_solve_rate": solved_total / total}
-
-    # Per-difficulty
-    buckets = {}
-    for d in combined:
-        diff = str(d.get("difficulty", "unknown"))
-        if diff not in buckets:
-            buckets[diff] = {"solved": 0, "total": 0}
-        buckets[diff]["total"] += 1
-        if bool(d.get("solved", False)):
-            buckets[diff]["solved"] += 1
-
-    for diff, stats in buckets.items():
-        denom = stats["total"]
-        result[f"solve_rate_difficulty_{diff}"] = (stats["solved"] / denom) if denom > 0 else 0.0
-
-    return result
+    # Convert per-sample flags into rates by averaging numeric keys
+    sums, counts = {}, {}
+    for item in items if isinstance(items, list) else [items]:
+        if not isinstance(item, dict):
+            continue
+        for k, v in item.items():
+            if isinstance(v, (int, float)):
+                sums[k] = sums.get(k, 0.0) + float(v)
+                counts[k] = counts.get(k, 0) + 1
+    return {k: (sums[k] / counts[k]) if counts.get(k, 0) > 0 else 0.0 for k in sums}
 
 
 def extract_solution_path(
@@ -476,63 +461,59 @@ def analyze_path(solution_path: Optional[List[Dict[str, int]]], puzzle: Dict) ->
 
 
 def spatial_reasoning_analysis(predictions, references=None, **kwargs):
-    """Return a list with one dict per item indicating which constraints are fulfilled."""
+    """Per-sample dict of booleans-as-0/1 for spatial constraints (for mean agg)."""
     if not predictions or not references:
-        return [
-            {
-                "starts_at_start_ends_at_exit": False,
-                "connected_line": False,
-                "non_intersecting_line": False,
-                "start_to_exit_connected": False,
-                "no_rule_crossing": False,
-                "fully_valid_path": False,
-                "path_extraction_rate": False,
-            }
-        ]
-
-    outputs = []
-    for pred, ref in zip(predictions, references):
-        if isinstance(pred, list):
-            pred = pred[0] if pred else ""
-        elif not isinstance(pred, str):
-            pred = str(pred)
-
-        path = extract_solution_path(pred)
-        # Default flags if no path
-        flags = {
-            "starts_at_start_ends_at_exit": False,
-            "connected_line": False,
-            "non_intersecting_line": False,
-            "start_to_exit_connected": False,
-            "no_rule_crossing": False,
-            "fully_valid_path": False,
-            "path_extraction_rate": False,
+        return {
+            "starts_at_start_ends_at_exit": 0.0,
+            "connected_line": 0.0,
+            "non_intersecting_line": 0.0,
+            "start_to_exit_connected": 0.0,
+            "no_rule_crossing": 0.0,
+            "fully_valid_path": 0.0,
+            "path_extraction_rate": 0.0,
         }
 
-        if path:
-            flags["path_extraction_rate"] = True
-            try:
-                puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
-                analysis = analyze_path(path, puzzle_data)
-                for key in [
-                    "starts_at_start_ends_at_exit",
-                    "connected_line",
-                    "non_intersecting_line",
-                    "start_to_exit_connected",
-                    "no_rule_crossing",
-                    "fully_valid_path",
-                ]:
-                    flags[key] = bool(analysis.get(key, False))
-            except (json.JSONDecodeError, TypeError):
-                pass
+    pred = predictions[0] if isinstance(predictions, list) else predictions
+    if isinstance(pred, list):
+        pred = pred[0] if pred else ""
+    elif not isinstance(pred, str):
+        pred = str(pred)
 
-        outputs.append(flags)
+    ref = references[0] if isinstance(references, list) else references
 
-    return outputs
+    path = extract_solution_path(pred)
+    flags = {
+        "starts_at_start_ends_at_exit": 0.0,
+        "connected_line": 0.0,
+        "non_intersecting_line": 0.0,
+        "start_to_exit_connected": 0.0,
+        "no_rule_crossing": 0.0,
+        "fully_valid_path": 0.0,
+        "path_extraction_rate": 0.0,
+    }
+
+    if path:
+        flags["path_extraction_rate"] = 1.0
+        try:
+            puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
+            analysis = analyze_path(path, puzzle_data)
+            for key in [
+                "starts_at_start_ends_at_exit",
+                "connected_line",
+                "non_intersecting_line",
+                "start_to_exit_connected",
+                "no_rule_crossing",
+                "fully_valid_path",
+            ]:
+                flags[key] = 1.0 if analysis.get(key, False) else 0.0
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    return flags
 
 
 def aggregate_spatial_analysis(items, **kwargs):
-    """Flatten list of dicts and take the mean per key."""
+    """Average numeric per-sample flags (dicts) across items (macro-mean)."""
     if not items:
         return {
             "starts_at_start_ends_at_exit": 0.0,
@@ -544,14 +525,14 @@ def aggregate_spatial_analysis(items, **kwargs):
             "path_extraction_rate": 0.0,
         }
 
-    items_list = items if isinstance(items, list) else [items]
-
-    combined = []
-    for item in items_list:
-        if isinstance(item, list):
-            combined.extend(item)
-        elif isinstance(item, dict):
-            combined.append(item)
+    sums, counts = {}, {}
+    for item in items if isinstance(items, list) else [items]:
+        if not isinstance(item, dict):
+            continue
+        for k, v in item.items():
+            if isinstance(v, (int, float)):
+                sums[k] = sums.get(k, 0.0) + float(v)
+                counts[k] = counts.get(k, 0) + 1
 
     keys = [
         "starts_at_start_ends_at_exit",
@@ -563,17 +544,4 @@ def aggregate_spatial_analysis(items, **kwargs):
         "path_extraction_rate",
     ]
 
-    if len(combined) == 0:
-        return {k: 0.0 for k in keys}
-
-    # Treat booleans as 0/1 and average
-    result = {}
-    n = len(combined)
-    for k in keys:
-        s = 0.0
-        for d in combined:
-            v = d.get(k, False)
-            s += 1.0 if bool(v) else 0.0
-        result[k] = s / n
-
-    return result
+    return {k: (sums.get(k, 0.0) / counts.get(k, 0) if counts.get(k, 0) > 0 else 0.0) for k in keys}
