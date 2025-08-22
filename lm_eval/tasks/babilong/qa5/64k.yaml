@@ -1,0 +1,9 @@
+include: ../_default_template_yaml
+task: babilong_qa5_64k
+dataset_name: qa5
+test_split: 64k
+doc_to_text: !function ../utils.doc_to_text_qa5
+tag:
+- babilong_tasks
+- babilong_qa5_tasks
+- babilong_64k_tasks

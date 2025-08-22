@@ -1,0 +1,20 @@
+group: babilong_256k
+task:
+- babilong_qa1_256k
+- babilong_qa2_256k
+- babilong_qa3_256k
+- babilong_qa4_256k
+- babilong_qa5_256k
+- babilong_qa6_256k
+- babilong_qa7_256k
+- babilong_qa8_256k
+- babilong_qa9_256k
+- babilong_qa10_256k
+aggregate_metric_list:
+- aggregation: mean
+  metric: exact_match
+  weight_by_size: true
+  filter_list: strip-whitespace
+metadata:
+  description: bAbI Long benchmark - 256k length across all QA tasks
+  version: '1.0'

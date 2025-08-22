@@ -1,0 +1,29 @@
+dataset_path: RMT-team/babilong
+output_type: generate_until
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+filter_list:
+  - name: "strip-whitespace"
+    filter:
+      - function: "regex"
+        regex_pattern: "^\\s*(.*?)\\s*$"
+        group_select: 0
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "Q:"
+    - "\n"
+    - "<|end_of_text|>"
+    - "<|endoftext|>"
+    - "<|im_end|>"
+    - '<|eot_id|>'
+  do_sample: false
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0
