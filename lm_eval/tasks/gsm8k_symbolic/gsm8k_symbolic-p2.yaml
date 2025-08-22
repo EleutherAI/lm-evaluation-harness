@@ -1,2 +1,3 @@
-include: _gsm8k_default_yaml
+include: _gsm8k_symbolic_template_yaml
 dataset_name: p2
+task: gsm8k_symbolic_p2
