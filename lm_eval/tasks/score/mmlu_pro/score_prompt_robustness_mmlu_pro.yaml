@@ -29,39 +29,37 @@ generation_kwargs:
 process_results: !function utils_mmlu_pro.prompt_robustness_process_results
 metric_list:
   - metric: 0_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_0
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_0
     higher_is_better: true
   - metric: 1_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_1
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_1
     higher_is_better: true
   - metric: 2_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_2
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_2
     higher_is_better: true
   - metric: 3_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_3
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_3
     higher_is_better: true
   - metric: 4_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_4
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_4
     higher_is_better: true
   - metric: 5_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_5
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_5
     higher_is_better: true
   - metric: 6_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_6
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_6
     higher_is_better: true
   - metric: 7_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_7
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_7
     higher_is_better: true
   - metric: 8_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_8
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_8
     higher_is_better: true
   - metric: 9_macro_accuracy
-    aggregation:  !function utils_mmlu_pro.per_prompt_accuracy_9
+    aggregation: !function utils_mmlu_pro.per_prompt_accuracy_9
     higher_is_better: true
   - metric: consistency_rate
-    aggregation:  !function utils_mmlu_pro.mmlu_pro_prompt_consistency_rate
+    aggregation: !function utils_mmlu_pro.mmlu_pro_prompt_consistency_rate
     higher_is_better: true
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true

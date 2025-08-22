@@ -35,6 +35,7 @@ from lm_eval.utils import (
     positional_deprecated,
     setup_logging,
     simple_parse_args_string,
+    wrap_text,
 )
 
 
@@ -154,15 +155,26 @@ def simple_evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
 
+    _NEEDS_CHAT_TEMPLATE = ("inst", "chat")
     if (
-        (isinstance(model_args, str) and "inst" in model_args.lower())
+        (
+            isinstance(model_args, str)
+            and any(kw in model_args.lower() for kw in _NEEDS_CHAT_TEMPLATE)
+        )
         or (
             isinstance(model_args, dict)
-            and any("inst" in str(v).lower() for v in model_args.values())
+            and any(
+                any(kw in str(v).lower() for kw in _NEEDS_CHAT_TEMPLATE)
+                for v in model_args.values()
+            )
         )
     ) and not apply_chat_template:
         eval_logger.warning(
-            "Model appears to be an instruct variant but chat template is not applied. Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`)."
+            wrap_text(
+                f"""pretrained={model_args.get("pretrained") if isinstance(model_args, dict) else model_args} appears to be an
+                instruct or chat variant but chat template is not applied.
+                Recommend setting `apply_chat_template` (optionally `fewshot_as_multiturn`).""",
+            )
         )
 
     if delete_requests_cache:
@@ -226,7 +238,9 @@ def simple_evaluate(
 
         else:
             eval_logger.info(
-                f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+                wrap_text(
+                    f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+                )
             )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,

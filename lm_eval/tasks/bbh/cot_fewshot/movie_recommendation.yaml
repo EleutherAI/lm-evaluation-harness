@@ -26,9 +26,7 @@ fewshot_config:
       (D) The Barkley Marathons The Race That Eats Its Young
 
       (E) Bug'
-    target: 'Let''s think step by step.
-
-      - Star Wars Episode IV - A New Hope (action, adventure, fantasy; 1977)
+    target: '- Star Wars Episode IV - A New Hope (action, adventure, fantasy; 1977)
 
       - Indiana Jones and the Last Crusade (action, adventure; 1989)
 
@@ -54,9 +52,7 @@ fewshot_config:
       (D) The Salton Sea
 
       (E) Extreme Days'
-    target: 'Let''s think step by step.
-
-      - Twister (action, adventure, thriller; 1996)
+    target: '- Twister (action, adventure, thriller; 1996)
 
       - The Silence of the Lambs (crime, drama, thriller; 1991)
 
@@ -79,9 +75,7 @@ fewshot_config:
       (C) Catwoman
 
       (D) Edge of Tomorrow'
-    target: 'Let''s think step by step.
-
-      - Minority Report (action, crime, mystery; 2002)
+    target: '- Minority Report (action, crime, mystery; 2002)
 
       - Total Recall (action, adventure, science-fiction; 2012)
 

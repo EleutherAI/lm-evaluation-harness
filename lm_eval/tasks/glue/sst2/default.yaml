@@ -1,6 +1,6 @@
 tag: glue
 task: sst2
-dataset_path: glue
+dataset_path: nyu-mll/glue
 dataset_name: sst2
 output_type: multiple_choice
 training_split: train
