@@ -6,8 +6,9 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import torch
 import torchvision
+import torchcodec
 from tqdm import tqdm
-from transformers import AutoModelForPreTraining, PreTrainedModel
+from transformers import AutoModelForPreTraining, PreTrainedModel, AutoModelForVision2Seq
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
@@ -25,7 +26,7 @@ eval_logger = logging.getLogger(__name__)
 @register_model("hf_video_llava")
 class HFVideoLlava(HFMultimodalLM):
     MULTIMODAL = True
-    AUTO_MODEL_CLASS = AutoModelForPreTraining
+    AUTO_MODEL_CLASS = AutoModelForVision2Seq
 
     def __init__(
         self,
@@ -183,7 +184,6 @@ class HFVideoLlava(HFMultimodalLM):
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
                 max_gen_toks = self.max_gen_toks
-
             # only one video
             video = [arg["video"][0] for arg in aux_arguments][0]
             if isinstance(video, torchvision.io.video_reader.VideoReader):
@@ -197,6 +197,8 @@ class HFVideoLlava(HFMultimodalLM):
             if isinstance(video, torch.Tensor):
                 # torchvision videos
                 clip = video[indices].numpy()
+            elif isinstance(video, torchcodec.decoders._video_decoder.VideoDecoder):
+                clip = video.get_frames_at(indices).data.numpy()
             else:
                 # docord videos
                 clip = video.get_batch(indices).asnumpy()
