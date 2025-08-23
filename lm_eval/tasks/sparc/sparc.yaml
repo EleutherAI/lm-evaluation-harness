@@ -14,10 +14,10 @@ doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
 metric_list:
   - metric: !function utils.spatial_reasoning_analysis
-    aggregation: mean
+    aggregation: !function utils.aggregate_spatial_analysis
     higher_is_better: true
   - metric: !function utils.solve_rate_by_difficulty
-    aggregation: mean
+    aggregation: !function utils.aggregate_difficulty_analysis
     higher_is_better: true
 generation_kwargs:
   until:
