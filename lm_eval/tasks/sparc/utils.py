@@ -215,11 +215,6 @@ def solve_rate_by_difficulty(predictions, references=None, **kwargs):
     - overall_solved: 0/1
     - solved_difficulty_{label}: 0/1 (only for this sample's label)
     """
-    print("Solve rate by difficulty")
-    print("Length of predictions: ", len(predictions))
-    print("Length of references: ", len(references))
-    print("Predictions: ", predictions)
-    print("References: ", references)
     if not predictions or not references:
         return {"overall_solved": 0.0}
 
@@ -247,24 +242,37 @@ def solve_rate_by_difficulty(predictions, references=None, **kwargs):
 
     result = {"overall_solved": 1.0 if solved_flag else 0.0}
     result[f"solved_difficulty_{difficulty_label}"] = 1.0 if solved_flag else 0.0
-    print("Result: ", result)
     return result
 
 
 def aggregate_difficulty_analysis(items, **kwargs):
-    """Not used when metric returns per-sample scalar dicts; fallback to mean externally."""
-    # Keep for compatibility if ever used directly
+    """Flatten nested lists and average numeric keys (defensive)."""
+    print("Items: ", items)
     if not items:
         return {"overall_solve_rate": 0.0}
+
+    # Flatten any nesting of lists
+    flat_items = []
+    stack = [items]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, list):
+            stack.extend(current)
+        else:
+            flat_items.append(current)
+    print("Flat items: ", flat_items)
+
     # Convert per-sample flags into rates by averaging numeric keys
     sums, counts = {}, {}
-    for item in items if isinstance(items, list) else [items]:
+    for item in flat_items:
         if not isinstance(item, dict):
             continue
         for k, v in item.items():
             if isinstance(v, (int, float)):
                 sums[k] = sums.get(k, 0.0) + float(v)
                 counts[k] = counts.get(k, 0) + 1
+    print("Sums: ", sums)
+    print("Counts: ", counts)
     return {k: (sums[k] / counts[k]) if counts.get(k, 0) > 0 else 0.0 for k in sums}
 
 
@@ -468,11 +476,6 @@ def analyze_path(solution_path: Optional[List[Dict[str, int]]], puzzle: Dict) ->
 
 def spatial_reasoning_analysis(predictions, references=None, **kwargs):
     """Per-sample dict of booleans-as-0/1 for spatial constraints (for mean agg)."""
-    print("Spatial reasoning analysis")
-    print("Length of predictions: ", len(predictions))
-    print("Length of references: ", len(references))
-    print("Predictions: ", predictions)
-    print("References: ", references)
     if not predictions or not references:
         return {
             "starts_at_start_ends_at_exit": 0.0,
@@ -519,12 +522,12 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
                 flags[key] = 1.0 if analysis.get(key, False) else 0.0
         except (json.JSONDecodeError, TypeError):
             pass
-    print("Flags: ", flags)
     return flags
 
 
 def aggregate_spatial_analysis(items, **kwargs):
-    """Average numeric per-sample flags (dicts) across items (macro-mean)."""
+    """Flatten nested lists and average numeric per-sample flags (macro-mean)."""
+    print("Items: ", items)
     if not items:
         return {
             "starts_at_start_ends_at_exit": 0.0,
@@ -536,8 +539,18 @@ def aggregate_spatial_analysis(items, **kwargs):
             "path_extraction_rate": 0.0,
         }
 
+    # Flatten any nesting of lists
+    flat_items = []
+    stack = [items]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, list):
+            stack.extend(current)
+        else:
+            flat_items.append(current)
+    print("Flat items: ", flat_items)
     sums, counts = {}, {}
-    for item in items if isinstance(items, list) else [items]:
+    for item in flat_items:
         if not isinstance(item, dict):
             continue
         for k, v in item.items():
@@ -554,5 +567,6 @@ def aggregate_spatial_analysis(items, **kwargs):
         "fully_valid_path",
         "path_extraction_rate",
     ]
-
+    print("Sums: ", sums)
+    print("Counts: ", counts)
     return {k: (sums.get(k, 0.0) / counts.get(k, 0) if counts.get(k, 0) > 0 else 0.0) for k in keys}
