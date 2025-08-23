@@ -1,0 +1,7 @@
+group: gsm8k_symbolic
+task:
+  - gsm8k_symbolic_main
+  - gsm8k_symbolic_p1
+  - gsm8k_symbolic_p2
+metadata:
+  version: 1.1

@@ -1,0 +1,39 @@
+group: mmlu_redux
+task:
+  - mmlu_redux_anatomy
+  - mmlu_redux_astronomy
+  - mmlu_redux_business_ethics
+  - mmlu_redux_clinical_knowledge
+  - mmlu_redux_college_chemistry
+  - mmlu_redux_college_computer_science
+  - mmlu_redux_college_mathematics
+  - mmlu_redux_college_medicine
+  - mmlu_redux_college_physics
+  - mmlu_redux_conceptual_physics
+  - mmlu_redux_econometrics
+  - mmlu_redux_electrical_engineering
+  - mmlu_redux_formal_logic
+  - mmlu_redux_global_facts
+  - mmlu_redux_high_school_chemistry
+  - mmlu_redux_high_school_geography
+  - mmlu_redux_high_school_macroeconomics
+  - mmlu_redux_high_school_mathematics
+  - mmlu_redux_high_school_physics
+  - mmlu_redux_high_school_statistics
+  - mmlu_redux_high_school_us_history
+  - mmlu_redux_human_aging
+  - mmlu_redux_logical_fallacies
+  - mmlu_redux_machine_learning
+  - mmlu_redux_miscellaneous
+  - mmlu_redux_philosophy
+  - mmlu_redux_professional_accounting
+  - mmlu_redux_professional_law
+  - mmlu_redux_public_relations
+  - mmlu_redux_virology
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+    filter_list: custom-extract
+metadata:
+  version: 1.0

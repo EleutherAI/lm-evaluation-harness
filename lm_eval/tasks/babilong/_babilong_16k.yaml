@@ -1,0 +1,20 @@
+group: babilong_16k
+task:
+- babilong_qa1_16k
+- babilong_qa2_16k
+- babilong_qa3_16k
+- babilong_qa4_16k
+- babilong_qa5_16k
+- babilong_qa6_16k
+- babilong_qa7_16k
+- babilong_qa8_16k
+- babilong_qa9_16k
+- babilong_qa10_16k
+aggregate_metric_list:
+- aggregation: mean
+  metric: exact_match
+  weight_by_size: true
+  filter_list: strip-whitespace
+metadata:
+  description: bAbI Long benchmark - 16k length across all QA tasks
+  version: '1.0'

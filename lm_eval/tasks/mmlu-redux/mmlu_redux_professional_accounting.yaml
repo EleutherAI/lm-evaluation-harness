@@ -1,0 +1,6 @@
+dataset_name: "professional_accounting"
+description: "The following are multiple choice questions (with answers) about professional accounting. Think step by step and then finish your answer with \"the answer is (X)\" where X is the correct letter choice.\n"
+include: "_default_template_yaml"
+task: "mmlu_redux_professional_accounting"
+task_alias: "professional_accounting"
+# process_docs: !function utils.process_professional_accounting

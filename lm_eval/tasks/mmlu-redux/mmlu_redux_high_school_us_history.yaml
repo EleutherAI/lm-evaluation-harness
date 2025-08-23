@@ -1,0 +1,6 @@
+dataset_name: "high_school_us_history"
+description: "The following are multiple choice questions (with answers) about high school US history. Think step by step and then finish your answer with \"the answer is (X)\" where X is the correct letter choice.\n"
+include: "_default_template_yaml"
+task: "mmlu_redux_high_school_us_history"
+task_alias: "high_school_us_history"
+# process_docs: !function utils.process_high_school_us_history

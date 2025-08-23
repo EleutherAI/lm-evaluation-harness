@@ -1,0 +1,3 @@
+include: _m_ifeval_template_yaml
+dataset_path: tokyotech-llm/M-IFEval-Ja
+task: m_ifeval_ja

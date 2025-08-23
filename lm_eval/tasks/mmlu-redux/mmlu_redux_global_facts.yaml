@@ -1,0 +1,6 @@
+dataset_name: "global_facts"
+description: "The following are multiple choice questions (with answers) about global facts. Think step by step and then finish your answer with \"the answer is (X)\" where X is the correct letter choice.\n"
+include: "_default_template_yaml"
+task: "mmlu_redux_global_facts"
+task_alias: "global_facts"
+# process_docs: !function utils.process_global_facts
