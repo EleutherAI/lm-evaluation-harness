@@ -79,6 +79,6 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 
-version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For
-details [see](https://huggingface.co/blog/math_verify_leaderboard)
-version 3.0 (21-Aug-2025); update `math_verify`
+- version 2.0: (21-Feb-2025); added math_verify (extraction) metric. For
+  details [see](https://huggingface.co/blog/math_verify_leaderboard)
+- version 3.0 (21-Aug-2025); pass the full solution and model generation to `math_verify`'s `parse`
