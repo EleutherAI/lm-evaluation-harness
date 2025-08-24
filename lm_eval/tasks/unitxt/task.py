@@ -68,6 +68,7 @@ class Unitxt(ConfigurableTask):
             config={
                 "metadata": {"version": self.VERSION},
                 "dataset_name": config["recipe"],
+                "dataset_kwargs": config.get("dataset_kwargs", {}),
             }
         )
         self.image_decoder = datasets.Image()
@@ -77,7 +78,10 @@ class Unitxt(ConfigurableTask):
         assert_unitxt_installed()
         from unitxt import load_dataset
 
-        self.dataset = load_dataset(self.DATASET_NAME, use_cache=True)
+        if dataset_kwargs is None:
+            dataset_kwargs = {}
+
+        self.dataset = load_dataset(self.DATASET_NAME, use_cache=True, **dataset_kwargs)
 
     def has_training_docs(self):
         return "train" in self.dataset
