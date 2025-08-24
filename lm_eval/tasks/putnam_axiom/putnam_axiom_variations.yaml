@@ -1,0 +1,4 @@
+include: putnam_axiom_original.yaml
+test_split: variations
+task: putnam_axiom_variations
+process_docs: !function utils.process_variations
