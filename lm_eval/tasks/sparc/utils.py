@@ -490,9 +490,9 @@ def process_results(doc: dict, results) -> dict:
     difficulty_metrics = {}
     for k in range(1, 6):
         if difficulty_num == k:
-            difficulty_metrics[f"difficulty_{k}"] = path_valid
+            difficulty_metrics[f"solved_difficulty_{k}"] = path_valid
         else:
-            difficulty_metrics[f"difficulty_{k}"] = -1.0
+            difficulty_metrics[f"solved_difficulty_{k}"] = -1.0
     print("Difficulty metrics: ", difficulty_metrics)
     print("Flags: ", flags)
     print("Contains coordinates: ", contains_coord)
@@ -501,7 +501,7 @@ def process_results(doc: dict, results) -> dict:
 
     return {
         "contains_coordinates": contains_coord,
-        "overall_solved": path_valid,
+        "solved_overall": path_valid,
         **flags,
         **difficulty_metrics,
     }

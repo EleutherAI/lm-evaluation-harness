@@ -17,7 +17,7 @@ metric_list:
   - metric: contains_coordinates
     aggregation: mean
     higher_is_better: true
-  - metric: overall_solved
+  - metric: solved_overall
     aggregation: mean
     higher_is_better: true
   - metric: starts_at_start_ends_at_exit
@@ -41,19 +41,19 @@ metric_list:
   - metric: path_extraction_rate
     aggregation: mean
     higher_is_better: true
-  - metric: difficulty_1
+  - metric: solved_difficulty_1
     aggregation: !function utils.aggregate_ignore_neg1_mean
     higher_is_better: true
-  - metric: difficulty_2
+  - metric: solved_difficulty_2
     aggregation: !function utils.aggregate_ignore_neg1_mean
     higher_is_better: true
-  - metric: difficulty_3
+  - metric: solved_difficulty_3
     aggregation: !function utils.aggregate_ignore_neg1_mean
     higher_is_better: true
-  - metric: difficulty_4
+  - metric: solved_difficulty_4
     aggregation: !function utils.aggregate_ignore_neg1_mean
     higher_is_better: true
-  - metric: difficulty_5
+  - metric: solved_difficulty_5
     aggregation: !function utils.aggregate_ignore_neg1_mean
     higher_is_better: true
 generation_kwargs:
