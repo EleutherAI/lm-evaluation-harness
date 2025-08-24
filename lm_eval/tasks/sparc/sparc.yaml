@@ -12,12 +12,49 @@ num_fewshot: 0
 process_docs: !function utils.process_docs
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
 metric_list:
-  - metric: !function utils.spatial_reasoning_analysis
-    aggregation: !function utils.aggregate_spatial_analysis
+  - metric: contains_coordinates
+    aggregation: mean
     higher_is_better: true
-  - metric: !function utils.solve_rate_by_difficulty
-    aggregation: !function utils.aggregate_difficulty_analysis
+  - metric: overall_solved
+    aggregation: mean
+    higher_is_better: true
+  - metric: starts_at_start_ends_at_exit
+    aggregation: mean
+    higher_is_better: true
+  - metric: connected_line
+    aggregation: mean
+    higher_is_better: true
+  - metric: non_intersecting_line
+    aggregation: mean
+    higher_is_better: true
+  - metric: start_to_exit_connected
+    aggregation: mean
+    higher_is_better: true
+  - metric: no_rule_crossing
+    aggregation: mean
+    higher_is_better: true
+  - metric: fully_valid_path
+    aggregation: mean
+    higher_is_better: true
+  - metric: path_extraction_rate
+    aggregation: mean
+    higher_is_better: true
+  - metric: difficulty_1
+    aggregation: !function utils.aggregate_ignore_neg1_mean
+    higher_is_better: true
+  - metric: difficulty_2
+    aggregation: !function utils.aggregate_ignore_neg1_mean
+    higher_is_better: true
+  - metric: difficulty_3
+    aggregation: !function utils.aggregate_ignore_neg1_mean
+    higher_is_better: true
+  - metric: difficulty_4
+    aggregation: !function utils.aggregate_ignore_neg1_mean
+    higher_is_better: true
+  - metric: difficulty_5
+    aggregation: !function utils.aggregate_ignore_neg1_mean
     higher_is_better: true
 generation_kwargs:
   until:

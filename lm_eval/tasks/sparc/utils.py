@@ -208,72 +208,7 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
     return json.dumps(target_data)
 
 
-def solve_rate_by_difficulty(predictions, references=None, **kwargs):
-    """Per-sample dict for overall and per-difficulty solve flags (0/1).
-
-    Keys:
-    - overall_solved: 0/1
-    - solved_difficulty_{label}: 0/1 (only for this sample's label)
-    """
-    if not predictions or not references:
-        return {"overall_solved": 0.0}
-
-    # Single-item evaluation for ConfigurableTask
-    pred = predictions[0] if isinstance(predictions, list) else predictions
-    if isinstance(pred, list):
-        pred = pred[0] if pred else ""
-    elif not isinstance(pred, str):
-        pred = str(pred)
-
-    ref = references[0] if isinstance(references, list) else references
-
-    path = extract_solution_path(pred)
-    difficulty_label = "unknown"
-    solved_flag = False
-
-    try:
-        puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
-        difficulty = puzzle_data.get('difficulty')
-        difficulty_label = str(difficulty) if difficulty is not None else "unknown"
-        if path and validate_solution(path, puzzle_data):
-            solved_flag = True
-    except (json.JSONDecodeError, TypeError):
-        pass
-
-    result = {"overall_solved": 1.0 if solved_flag else 0.0}
-    result[f"solved_difficulty_{difficulty_label}"] = 1.0 if solved_flag else 0.0
-    return result
-
-
-def aggregate_difficulty_analysis(items, **kwargs):
-    """Flatten nested lists and average numeric keys (defensive)."""
-    print("Items: ", items)
-    if not items:
-        return {"overall_solve_rate": 0.0}
-
-    # Flatten any nesting of lists
-    flat_items = []
-    stack = [items]
-    while stack:
-        current = stack.pop()
-        if isinstance(current, list):
-            stack.extend(current)
-        else:
-            flat_items.append(current)
-    print("Flat items: ", flat_items)
-
-    # Convert per-sample flags into rates by averaging numeric keys
-    sums, counts = {}, {}
-    for item in flat_items:
-        if not isinstance(item, dict):
-            continue
-        for k, v in item.items():
-            if isinstance(v, (int, float)):
-                sums[k] = sums.get(k, 0.0) + float(v)
-                counts[k] = counts.get(k, 0) + 1
-    print("Sums: ", sums)
-    print("Counts: ", counts)
-    return {k: (sums[k] / counts[k]) if counts.get(k, 0) > 0 else 0.0 for k in sums}
+# Legacy per-metric functions removed in favor of process_results
 
 
 def extract_solution_path(
@@ -474,27 +409,46 @@ def analyze_path(solution_path: Optional[List[Dict[str, int]]], puzzle: Dict) ->
     }
 
 
-def spatial_reasoning_analysis(predictions, references=None, **kwargs):
-    """Per-sample dict of booleans-as-0/1 for spatial constraints (for mean agg)."""
-    if not predictions or not references:
-        return {
-            "starts_at_start_ends_at_exit": 0.0,
-            "connected_line": 0.0,
-            "non_intersecting_line": 0.0,
-            "start_to_exit_connected": 0.0,
-            "no_rule_crossing": 0.0,
-            "fully_valid_path": 0.0,
-            "path_extraction_rate": 0.0,
-        }
+# Legacy spatial metric and aggregator removed; handled via process_results
 
-    pred = predictions[0] if isinstance(predictions, list) else predictions
-    if isinstance(pred, list):
-        pred = pred[0] if pred else ""
-    elif not isinstance(pred, str):
+
+def process_results(doc: dict, results) -> dict:
+    """Compute all SPaRC metrics per sample in one pass for generate_until tasks.
+
+    Returns per-sample scalar keys aggregated by mean (unless overridden in YAML):
+    - contains_coordinates (0/1)
+    - spatial flags (0/1): starts_at_start_ends_at_exit, connected_line, non_intersecting_line,
+      start_to_exit_connected, no_rule_crossing, fully_valid_path, path_extraction_rate
+    - overall_solved (0/1)
+    - difficulty_1..difficulty_5: 1 if this sample has that difficulty and is solved, else -1 if not that difficulty,
+      else 0 if that difficulty but unsolved.
+    """
+    print("Processing results")
+    print("Results: ", results)
+    print("Doc: ", doc)
+    # Extract prediction text
+    if isinstance(results, (list, tuple)) and len(results) > 0:
+        pred = results[0]
+        if isinstance(pred, list):
+            pred = pred[0] if pred else ""
+    else:
+        pred = str(results) if not isinstance(results, str) else results
+
+    if not isinstance(pred, str):
         pred = str(pred)
 
-    ref = references[0] if isinstance(references, list) else references
+    # Build puzzle data from doc
+    puzzle_data = {
+        "solutions": doc.get("solutions", []),
+        "puzzle_array": doc.get("puzzle_array", []),
+        "grid_size": doc.get("grid_size", {}),
+        "polyshapes": doc.get("polyshapes", {}),
+    }
 
+    # Contains coordinates
+    contains_coord = 1.0 if re.search(r"\((\d+),\s*(\d+)\)", pred) else 0.0
+
+    # Extract and analyze path
     path = extract_solution_path(pred)
     flags = {
         "starts_at_start_ends_at_exit": 0.0,
@@ -506,10 +460,10 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
         "path_extraction_rate": 0.0,
     }
 
+    is_valid = False
     if path:
         flags["path_extraction_rate"] = 1.0
         try:
-            puzzle_data = json.loads(ref) if isinstance(ref, str) else ref
             analysis = analyze_path(path, puzzle_data)
             for key in [
                 "starts_at_start_ends_at_exit",
@@ -520,53 +474,50 @@ def spatial_reasoning_analysis(predictions, references=None, **kwargs):
                 "fully_valid_path",
             ]:
                 flags[key] = 1.0 if analysis.get(key, False) else 0.0
-        except (json.JSONDecodeError, TypeError):
-            pass
-    return flags
+            is_valid = validate_solution(path, puzzle_data)
+        except Exception:
+            is_valid = False
+
+    path_valid = 1.0 if is_valid else 0.0
+
+    # Difficulty handling
+    difficulty_value = doc.get("difficulty_level")
+    try:
+        difficulty_num = int(difficulty_value) if difficulty_value is not None else None
+    except (TypeError, ValueError):
+        difficulty_num = None
+
+    difficulty_metrics = {}
+    for k in range(1, 6):
+        if difficulty_num == k:
+            difficulty_metrics[f"difficulty_{k}"] = path_valid
+        else:
+            difficulty_metrics[f"difficulty_{k}"] = -1.0
+    print("Difficulty metrics: ", difficulty_metrics)
+    print("Flags: ", flags)
+    print("Contains coordinates: ", contains_coord)
+    print("Path validity score: ", path_valid)
+    print("Overall solved: ", path_valid)
+
+    return {
+        "contains_coordinates": contains_coord,
+        "overall_solved": path_valid,
+        **flags,
+        **difficulty_metrics,
+    }
 
 
-def aggregate_spatial_analysis(items, **kwargs):
-    """Flatten nested lists and average numeric per-sample flags (macro-mean)."""
+def aggregate_ignore_neg1_mean(items, **kwargs) -> float:
+    """Mean ignoring entries strictly below 0 (e.g., -1 for not applicable)."""
+    print("Aggregating ignore neg1 mean")
     print("Items: ", items)
     if not items:
-        return {
-            "starts_at_start_ends_at_exit": 0.0,
-            "connected_line": 0.0,
-            "non_intersecting_line": 0.0,
-            "start_to_exit_connected": 0.0,
-            "no_rule_crossing": 0.0,
-            "fully_valid_path": 0.0,
-            "path_extraction_rate": 0.0,
-        }
-
-    # Flatten any nesting of lists
-    flat_items = []
-    stack = [items]
-    while stack:
-        current = stack.pop()
-        if isinstance(current, list):
-            stack.extend(current)
-        else:
-            flat_items.append(current)
-    print("Flat items: ", flat_items)
-    sums, counts = {}, {}
-    for item in flat_items:
-        if not isinstance(item, dict):
-            continue
-        for k, v in item.items():
-            if isinstance(v, (int, float)):
-                sums[k] = sums.get(k, 0.0) + float(v)
-                counts[k] = counts.get(k, 0) + 1
-
-    keys = [
-        "starts_at_start_ends_at_exit",
-        "connected_line",
-        "non_intersecting_line",
-        "start_to_exit_connected",
-        "no_rule_crossing",
-        "fully_valid_path",
-        "path_extraction_rate",
-    ]
-    print("Sums: ", sums)
-    print("Counts: ", counts)
-    return {k: (sums.get(k, 0.0) / counts.get(k, 0) if counts.get(k, 0) > 0 else 0.0) for k in keys}
+        return 0.0
+    if isinstance(items, list) and len(items) > 0 and isinstance(items[0], list):
+        # flatten one level if nested
+        flat = [x for sub in items for x in (sub if isinstance(sub, list) else [sub])]
+    else:
+        flat = items
+    vals = [float(x) for x in flat if isinstance(x, (int, float)) and float(x) >= 0.0]
+    print("Vals: ", vals)
+    return (sum(vals) / len(vals)) if len(vals) > 0 else 0.0
