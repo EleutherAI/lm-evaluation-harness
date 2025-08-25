@@ -11,24 +11,18 @@ from lm_eval.api.registry import register_model
 
 logger = logging.getLogger(__name__)
 
-
-def get_result(logprobs, context_length):
+def get_result(logprobs):
     is_greedy = True
-    offsets = logprobs["text_offset"]
-    tokens = logprobs["tokens"]
-    tokens_logprobs = logprobs["token_logprobs"]
+    content_logprobs = logprobs["content"]
+    continuation_logprobs = sum(item["logprob"] for item in content_logprobs)
 
-    idx = 0
-    while offsets[idx] < context_length:
-        idx += 1
-    continuation_logprobs = sum(tokens_logprobs[idx:-1])
-    for i in range(idx, len(tokens)):
-        token = tokens[i]
-        top_tokens = logprobs["top_logprobs"][i]
-        top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
-        if top_token != token:
-            is_greedy = False
-            break
+    for item in content_logprobs:
+        top_logprobs_list = item["top_logprobs"]
+        if top_logprobs_list:
+            top_item = max(top_logprobs_list, key=lambda x: x["logprob"])
+            if top_item["token"] != item["token"]:
+                is_greedy = False
+                break
 
     return continuation_logprobs, is_greedy
 
@@ -50,17 +44,25 @@ class GGUFLM(LM):
             try:
                 prompt = context
                 request = {
-                    "prompt": prompt,
-                    "logprobs": self.logprobs,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": prompt
+                        },
+                    ],
+                    "logprobs": True,
+                    "top_logprobs": self.logprobs,
                     "temperature": self.temperature,
                 }
                 if continuation:
                     prompt += continuation
-                    request.update({"prompt": prompt, "max_tokens": 1, "echo": True})
+                    request.update({"messages": [
+                                   {"role": "user", "content": prompt}], "max_completion_tokens": 1, "max_tokens": 1})
+
                 if stop is not None:
                     request["stop"] = stop
                 response = requests.post(
-                    f"{self.base_url}/v1/completions", json=request
+                    f"{self.base_url}/v1/chat/completions", json=request
                 )
                 response.raise_for_status()
                 return response.json()
@@ -79,16 +81,18 @@ class GGUFLM(LM):
         for context, continuation in tqdm(
             [req.args for req in requests], disable=disable_tqdm
         ):
-            response = self.gguf_completion(context=context, continuation=continuation)
+
+            response = self.gguf_completion(
+                context=context, continuation=continuation)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 logprobs = choice.get("logprobs")
                 if (
                     logprobs
-                    and "token_logprobs" in logprobs
-                    and logprobs["token_logprobs"]
+                    and "content" in logprobs
+                    and logprobs["content"]
                 ):
-                    logprob, is_greedy = get_result(logprobs, len(context))
+                    logprob, is_greedy = get_result(logprobs)
                     res.append((logprob, is_greedy))
                 else:
                     logger.warning(
@@ -113,8 +117,8 @@ class GGUFLM(LM):
             response = self.gguf_completion(context=inp, stop=until)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
-                if "text" in choice:
-                    generated_text = choice["text"].strip()
+                if "message" in choice and "content" in choice["message"] and choice["message"]["content"]:
+                    generated_text = choice["message"]["content"].strip()
                     res.append(generated_text)
                 else:
                     logger.error(
@@ -122,7 +126,8 @@ class GGUFLM(LM):
                     )
                     res.append(None)  # Add default value in case of error
             else:
-                logger.error(f"Invalid response for greedy_until. Response: {response}")
+                logger.error(
+                    f"Invalid response for greedy_until. Response: {response}")
                 res.append(None)  # Add default value in case of error
         return res
 
