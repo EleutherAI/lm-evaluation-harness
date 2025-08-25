@@ -208,9 +208,6 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
     return json.dumps(target_data)
 
 
-# Legacy per-metric functions removed in favor of process_results
-
-
 def extract_solution_path(
     solution_text: str, puzzle_data: Dict = None
 ) -> Optional[List[Dict[str, int]]]:
@@ -419,13 +416,10 @@ def process_results(doc: dict, results) -> dict:
     - contains_coordinates (0/1)
     - spatial flags (0/1): starts_at_start_ends_at_exit, connected_line, non_intersecting_line,
       start_to_exit_connected, no_rule_crossing, fully_valid_path, path_extraction_rate
-    - overall_solved (0/1)
-    - difficulty_1..difficulty_5: 1 if this sample has that difficulty and is solved, else -1 if not that difficulty,
+    - solved_overall (0/1)
+    - solved_difficulty_1..solved_difficulty_5: 1 if this sample has that difficulty and is solved, else -1 if not that difficulty,
       else 0 if that difficulty but unsolved.
     """
-    print("Processing results")
-    print("Results: ", results)
-    print("Doc: ", doc)
     # Extract prediction text
     if isinstance(results, (list, tuple)) and len(results) > 0:
         pred = results[0]
@@ -493,11 +487,6 @@ def process_results(doc: dict, results) -> dict:
             difficulty_metrics[f"solved_difficulty_{k}"] = path_valid
         else:
             difficulty_metrics[f"solved_difficulty_{k}"] = -1.0
-    print("Difficulty metrics: ", difficulty_metrics)
-    print("Flags: ", flags)
-    print("Contains coordinates: ", contains_coord)
-    print("Path validity score: ", path_valid)
-    print("Overall solved: ", path_valid)
 
     return {
         "contains_coordinates": contains_coord,
@@ -509,8 +498,6 @@ def process_results(doc: dict, results) -> dict:
 
 def aggregate_ignore_neg1_mean(items, **kwargs) -> float:
     """Mean ignoring entries strictly below 0 (e.g., -1 for not applicable)."""
-    print("Aggregating ignore neg1 mean")
-    print("Items: ", items)
     if not items:
         return 0.0
     if isinstance(items, list) and len(items) > 0 and isinstance(items[0], list):
@@ -519,5 +506,4 @@ def aggregate_ignore_neg1_mean(items, **kwargs) -> float:
     else:
         flat = items
     vals = [float(x) for x in flat if isinstance(x, (int, float)) and float(x) >= 0.0]
-    print("Vals: ", vals)
     return (sum(vals) / len(vals)) if len(vals) > 0 else 0.0

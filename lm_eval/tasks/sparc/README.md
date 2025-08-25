@@ -65,7 +65,6 @@ The task uses comprehensive evaluation metrics for detailed spatial reasoning as
 
 ### Core Metrics
 1. **Contains Coordinates**: Surface-level check for coordinate patterns `(x,y)` in model responses
-2. **Path Validity Score**: Overall validation of extracted paths against known solutions in the dataset
 3. **Spatial Reasoning Analysis**: Detailed breakdown of spatial reasoning capabilities (see sub-metrics below)
 4. **Solve Rate by Difficulty**: Performance breakdown across different puzzle difficulty levels
 
@@ -120,12 +119,9 @@ The detailed metrics help identify specific spatial reasoning failure modes:
 
 ## Implementation Notes
 
-- Uses comprehensive prompt format explaining The Witness puzzle mechanics with examples
-- Implements generative evaluation with enhanced path extraction supporting "####" solution markers
-- Implements multi-stage filter pipeline: extraction → validation → detailed analysis
-- Provides granular spatial reasoning metrics beyond simple accuracy
-- Includes detailed symbol legend and rule explanations in prompts
-- Reports 8 different metrics for comprehensive spatial reasoning assessment
+- Generative evaluation; robust path extraction using the `####` marker
+- Validation pipeline: extraction → validation → analysis in one `process_results`
+- Per-sample scalar metrics; aggregation handled in YAML (mean; ignore-(-1) for difficulty)
 
 ### Groups and Tasks
 
