@@ -29,6 +29,12 @@ def doc_to_target(doc):
     return [pos_tag_map[tag] for tag in doc["upos"]]
 
 
+def process_results(doc, results):
+    gold = doc_to_target(doc)
+    preds = results
+    return {"acc": (gold, preds)}
+
+
 def acc_score(items):
     unzipped_list = list(zip(*items))
 
