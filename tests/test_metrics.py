@@ -1,7 +1,8 @@
 import unittest.mock as mock
 
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
-from lm_eval.api.task import ConfigurableTask, TaskConfig
+from lm_eval.api.task import ConfigurableTask
+from lm_eval.config.task import TaskConfig
 
 
 class MockConfigurableTask(ConfigurableTask):
