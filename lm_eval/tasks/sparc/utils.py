@@ -1,50 +1,51 @@
-import re
 import json
+import re
+from typing import Any, Dict, List, Optional, Tuple
+
 import datasets
-from typing import List, Dict, Any, Tuple, Optional
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     """Process the SPaRC dataset documents."""
-    
+
     def _process_doc(doc):
         # Extract and clean the grid visualization if present
-        if 'text_visualization' in doc:
-            doc['visualization'] = doc['text_visualization']
-        
+        if "text_visualization" in doc:
+            doc["visualization"] = doc["text_visualization"]
+
         # Ensure solutions is a list
-        if 'solutions' in doc and isinstance(doc['solutions'], str):
+        if "solutions" in doc and isinstance(doc["solutions"], str):
             try:
-                doc['solutions'] = json.loads(doc['solutions'])
+                doc["solutions"] = json.loads(doc["solutions"])
             except json.JSONDecodeError:
-                doc['solutions'] = [doc['solutions']]
-        elif 'solutions' in doc and not isinstance(doc['solutions'], list):
-            doc['solutions'] = [doc['solutions']]
-        
+                doc["solutions"] = [doc["solutions"]]
+        elif "solutions" in doc and not isinstance(doc["solutions"], list):
+            doc["solutions"] = [doc["solutions"]]
+
         # Convert polyshapes if it's a string
-        if 'polyshapes' in doc and isinstance(doc['polyshapes'], str):
+        if "polyshapes" in doc and isinstance(doc["polyshapes"], str):
             try:
-                doc['polyshapes'] = json.loads(doc['polyshapes'])
+                doc["polyshapes"] = json.loads(doc["polyshapes"])
             except json.JSONDecodeError:
-                doc['polyshapes'] = {}
-        
+                doc["polyshapes"] = {}
+
         # Extract grid size
-        if 'grid_size' in doc:
-            if isinstance(doc['grid_size'], dict):
-                doc['grid_height'] = doc['grid_size'].get('height', 10)
-                doc['grid_width'] = doc['grid_size'].get('width', 10)
+        if "grid_size" in doc:
+            if isinstance(doc["grid_size"], dict):
+                doc["grid_height"] = doc["grid_size"].get("height", 10)
+                doc["grid_width"] = doc["grid_size"].get("width", 10)
             else:
-                doc['grid_height'] = 10
-                doc['grid_width'] = 10
-        
+                doc["grid_height"] = 10
+                doc["grid_width"] = 10
+
         return doc
-    
+
     return dataset.map(_process_doc)
 
 
 def doc_to_text(doc: Dict[str, Any]) -> str:
     """Convert a document to input text for the model using comprehensive prompt format."""
-    
+
     grid_size = doc.get("grid_size", {"width": 0, "height": 0})
     puzzle_array = doc.get("puzzle_array", [])
     grid_str = "\n".join(map(str, puzzle_array))
@@ -68,21 +69,21 @@ def doc_to_text(doc: Dict[str, Any]) -> str:
                 polyshapes_json = {}
         else:
             polyshapes_json = polyshapes_data
-            
+
         for shape_id, shape_def in polyshapes_json.items():
             polyshapes_str += f"Shape {shape_id}:\n"
             if isinstance(shape_def, list):
-                polyshapes_str += '\n'.join(str(row) for row in shape_def)
+                polyshapes_str += "\n".join(str(row) for row in shape_def)
             else:
                 polyshapes_str += str(shape_def)
             polyshapes_str += "\n\n"
-    
+
     return f"""
 ## Objective
 You are a specialized AI proficient in spatial reasoning and solving puzzles from the game 'The Witness'. Your goal is to find a valid path (a continuous line) from the specified Start Node to the End Node on the provided grid, adhering to all puzzle rules.
 
 ## Core Concepts & Grid Basics
-*   **Grid Dimensions:** The puzzle grid has {grid_size['width']} columns and {grid_size['height']} rows.
+*   **Grid Dimensions:** The puzzle grid has {grid_size["width"]} columns and {grid_size["height"]} rows.
 *   **Coordinate System:** Nodes are identified by `(x, y)` coordinates. `(0,0)` is the top-left node. `x` increases to the right, `y` increases downwards.
 *   **Path:** The solution is a single, continuous line connecting adjacent nodes either horizontally or vertically.
 *   **No Revisits:** The path **CANNOT** visit the same node more than once.
@@ -197,13 +198,13 @@ def doc_to_target(doc: Dict[str, Any]) -> str:
     """Extract the target solution and puzzle data for validation."""
     # Create a comprehensive target that includes both the solution and puzzle data
     target_data = {
-        "solutions": doc.get('solutions', []),
-        "puzzle_array": doc.get('puzzle_array', []),
-        "grid_size": doc.get('grid_size', {}),
-        "polyshapes": doc.get('polyshapes', {}),
-        "difficulty": doc.get('difficulty_level', "unknown")
+        "solutions": doc.get("solutions", []),
+        "puzzle_array": doc.get("puzzle_array", []),
+        "grid_size": doc.get("grid_size", {}),
+        "polyshapes": doc.get("polyshapes", {}),
+        "difficulty": doc.get("difficulty_level", "unknown"),
     }
-    
+
     # Return as JSON string so metrics can parse it
     return json.dumps(target_data)
 
@@ -268,7 +269,9 @@ def extract_solution_path(
     return None
 
 
-def validate_solution(extracted_path: Optional[List[Dict[str, int]]], puzzle_data: Dict) -> bool:
+def validate_solution(
+    extracted_path: Optional[List[Dict[str, int]]], puzzle_data: Dict
+) -> bool:
     """Validate if the solution is valid by comparing with known solutions
 
     Args:
