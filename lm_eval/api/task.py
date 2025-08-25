@@ -1269,7 +1269,7 @@ class ConfigurableTask(Task):
             elif gen_prefix:
                 prefix = gen_prefix
             else:
-                prefix = " "
+                prefix = ""
             answer_txt = prefix + (a if not isinstance(a, list) else a[0])
             msgs.append(Message("assistant", answer_txt))
         else:
