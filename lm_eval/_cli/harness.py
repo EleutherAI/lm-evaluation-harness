@@ -47,6 +47,7 @@ class HarnessCLI:
         """Parse arguments using the main parser."""
         if len(sys.argv) > 2 and sys.argv[1] not in self._subparsers.choices:
             # Backward compatibility: arguments provided but no valid subcommand - insert 'run'
+            # TODO: add warning
             sys.argv.insert(1, "run")
         elif len(sys.argv) == 2 and "run" in sys.argv:
             # if only 'run' is specified, ensure it is treated as a subcommand
