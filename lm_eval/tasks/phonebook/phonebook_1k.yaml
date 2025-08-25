@@ -1,0 +1,34 @@
+tag:
+- phonebook
+- phonebook_short
+task: phonebook_1k
+dataset_path: synthetic
+dataset_name: phonebook_lookup_1k
+output_type: generate_until
+test_split: test
+doc_to_text: '!function utils.create_prompt'
+doc_to_target: '{{answer}}'
+generation_kwargs:
+  max_gen_toks: 20
+  temperature: 0.0
+  do_sample: false
+process_results: '!function utils.process_results_gen'
+metric_list:
+- metric: acc
+  aggregation: mean
+  higher_is_better: true
+- metric: acc_beginning
+  aggregation: mean
+  higher_is_better: true
+- metric: acc_middle
+  aggregation: mean
+  higher_is_better: true
+- metric: acc_end
+  aggregation: mean
+  higher_is_better: true
+metadata:
+  version: '1.0'
+  context_tokens: 1000
+dataset_kwargs:
+  synthetic: true
+  generator: utils.generate_phonebook_data
