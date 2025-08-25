@@ -78,7 +78,7 @@ def doc_to_text(doc: Dict[str, Any]) -> str:
                 polyshapes_str += str(shape_def)
             polyshapes_str += "\n\n"
 
-    return f"""
+    prompt = f"""
 ## Objective
 You are a specialized AI proficient in spatial reasoning and solving puzzles from the game 'The Witness'. Your goal is to find a valid path (a continuous line) from the specified Start Node to the End Node on the provided grid, adhering to all puzzle rules.
 
@@ -192,6 +192,7 @@ Now we can draw a line to (5,0) to reach the end node.
 ####
 [(0, 0), (1, 0), (2, 0), (2, 1), ...]
 """
+    return prompt.rstrip("\n\r\t ")
 
 
 def doc_to_target(doc: Dict[str, Any]) -> str:
