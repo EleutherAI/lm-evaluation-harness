@@ -1027,7 +1027,7 @@ class ConfigurableTask(Task):
         return self.config.test_split is not None
 
     def training_docs(self) -> datasets.Dataset:
-        if self.has_training_docs:
+        if self.has_training_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.training_split]
@@ -1035,7 +1035,7 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.training_split]
 
     def validation_docs(self) -> datasets.Dataset:
-        if self.has_validation_docs:
+        if self.has_validation_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.validation_split]
@@ -1043,7 +1043,7 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.validation_split]
 
     def test_docs(self) -> datasets.Dataset:
-        if self.has_test_docs:
+        if self.has_test_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
@@ -1394,7 +1394,7 @@ class ConfigurableTask(Task):
 
     def construct_requests(
         self, doc: dict[str, str], ctx: str | list[str], **kwargs
-    ) -> Union[List[Instance], Instance]:
+    ) -> Union[list[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Union[Callable, None] = kwargs.pop("chat_template", None)  # noqa: F841
 
