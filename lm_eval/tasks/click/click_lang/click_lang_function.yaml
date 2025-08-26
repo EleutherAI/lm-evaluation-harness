@@ -1,0 +1,4 @@
+include: _default_click_lang_yaml
+process_docs: !function utils.extract_function
+task: click_lang_function
+tag: click_lang_tasks

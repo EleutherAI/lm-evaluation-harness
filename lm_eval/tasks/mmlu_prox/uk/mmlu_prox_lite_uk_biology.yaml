@@ -1,0 +1,9 @@
+description: 'Ось запитання з вибором відповідей на тему біологія (з відповіддю).
+  Будь ласка, подумайте крок за кроком і закінчіть свою відповідь "Відповідь: (X)",
+  де X – літера правильного варіанту.
+
+  '
+include: _uk_lite_template_yaml
+task: mmlu_prox_lite_uk_biology
+task_alias: biology
+process_docs: !function utils.process_biology
