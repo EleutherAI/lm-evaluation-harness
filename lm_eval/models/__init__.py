@@ -5,6 +5,7 @@ from . import (
     gguf,
     hf_audiolm,
     hf_steered,
+    hf_structured,
     hf_vlms,
     huggingface,
     ibm_watsonx_ai,
