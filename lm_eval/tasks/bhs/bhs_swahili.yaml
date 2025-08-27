@@ -1,0 +1,14 @@
+group: bhs_swahili
+task:
+  - bhs__swahili__N_of_Poss_D_AP_V_ni_AN
+  - bhs__swahili__N_of_Poss_D_AP_ni_AN
+  - bhs__swahili__N_of_Poss_D_A_V
+  - bhs__swahili__N_of_Poss_D_A_V1_V2
+  - bhs__swahili__N_of_Poss_D_V
+  - bhs__swahili__N_of_Poss_D_ni_A
+  - bhs__swahili__N_of_Poss_V
+  - bhs__swahili__N_of_Poss_ni_A
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: false

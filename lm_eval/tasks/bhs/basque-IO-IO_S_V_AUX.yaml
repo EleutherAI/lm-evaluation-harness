@@ -1,0 +1,3 @@
+dataset_name: basque-IO-IO_S_V_AUX
+include: _template_yaml
+task: bhs__basque__IO__IO_S_V_AUX
