@@ -1,5 +1,5 @@
 group: code2text
-task: 
+task:
   - code2text_go
   - code2text_java
   - code2text_javascript
