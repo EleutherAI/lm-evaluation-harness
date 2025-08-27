@@ -4,7 +4,7 @@ import logging
 import os
 from importlib.metadata import version
 from importlib.util import find_spec
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, get_context
 from queue import Empty
 from time import sleep
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
@@ -54,10 +54,8 @@ def _vllm_mp_worker(
     requests: list[list[int]],
     lora_request: "LoRARequest",
     result_queue: "Queue",
-    dp_size: int,
     local_dp_rank: int,
-    dp_master_port: int,
-    dp_master_ip: str = "127.0.0.1",
+    cuda_devices: str
 ) -> None:
     """
     Worker process for vLLM multiprocessing.
@@ -69,10 +67,7 @@ def _vllm_mp_worker(
         result_queue.put((local_dp_rank, []))
         return None
 
-    os.environ["VLLM_DP_RANK"] = os.environ["VLLM_DP_RANK_LOCAL"] = str(local_dp_rank)
-    os.environ["VLLM_DP_SIZE"] = str(dp_size)
-    os.environ["VLLM_DP_MASTER_IP"] = str(dp_master_ip)
-    os.environ["VLLM_DP_MASTER_PORT"] = str(dp_master_port)
+    os.environ["CUDA_VISIBLE_DEVICES"] = cuda_devices
 
     llm = None
     try:
@@ -408,17 +403,18 @@ class VLLM(TemplateLM):
             return undistribute(results)
         elif self.data_parallel_size > 1:
             # based on https://github.com/vllm-project/vllm/blob/a04720bc36401d831cb048c3917b9e58173d9c1d/examples/offline_inference/data_parallel.py
-            dp_size = self.data_parallel_size
-            dp_master_ip = os.environ.get("VLLM_DP_MASTER_IP", "127.0.0.1")
-            dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT") or get_open_port()
 
             requests = (list(x) for x in distribute(self.data_parallel_size, requests))
+            ctx = get_context("spawn")
+            procs, resq = [], ctx.Queue()
 
-            procs, resq = [], Queue()
+            tp_size = self.model_args['tensor_parallel_size']
             # We use Process as it is non-daemonic
             try:
                 for rank, req in enumerate(requests):
-                    proc = Process(
+                    cuda_devices = list(range(tp_size * rank, tp_size * rank + tp_size))
+                    cuda_devices = ",".join(map(str, cuda_devices))
+                    proc = ctx.Process(
                         target=_vllm_mp_worker,
                         args=(
                             self.model_args.copy(),
@@ -426,10 +422,8 @@ class VLLM(TemplateLM):
                             req,
                             self.lora_request,
                             resq,
-                            dp_size,
                             rank,
-                            dp_master_port,
-                            dp_master_ip,
+                            cuda_devices
                         ),
                     )
                     proc.start()
