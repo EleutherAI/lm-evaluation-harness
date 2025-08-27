@@ -66,7 +66,7 @@ if __name__ == "__main__":
                     line = line.format(lang=lang_abbr)
                 if "{ans_regex}" in line:
                     ans_regex = lang_lib_list[-1].replace(
-                        "({})", "\(?([ABCDEFGHIJ])\)?"
+                        "({})", r"\(?([ABCDEFGHIJ])\)?"
                     )
                     if lang_abbr == "en":
                         ans_regex = ans_regex.lstrip("the").strip()

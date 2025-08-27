@@ -76,7 +76,9 @@ class OptimumLM(HFLM):
                     "PIPELINE_PARALLEL"
                 )
 
-        model_cls = OVModelForCausalLM if self.backend == "causal" else OVModelForSeq2SeqLM
+        model_cls = (
+            OVModelForCausalLM if self.backend == "causal" else OVModelForSeq2SeqLM
+        )
         self._model = model_cls.from_pretrained(
             pretrained,
             revision=revision,

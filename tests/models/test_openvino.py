@@ -11,9 +11,21 @@ from lm_eval.api.registry import get_model
 
 
 SUPPORTED_ARCHITECTURES_TASKS = [
-    ("causal", "facebook/opt-125m", "lambada_openai",),
-    ("causal", "hf-internal-testing/tiny-random-gpt2", "wikitext",),
-    ("seq2seq", "hf-internal-testing/tiny-random-t5", "sst2",),
+    (
+        "causal",
+        "facebook/opt-125m",
+        "lambada_openai",
+    ),
+    (
+        "causal",
+        "hf-internal-testing/tiny-random-gpt2",
+        "wikitext",
+    ),
+    (
+        "seq2seq",
+        "hf-internal-testing/tiny-random-t5",
+        "sst2",
+    ),
 ]
 
 
@@ -21,9 +33,7 @@ SUPPORTED_ARCHITECTURES_TASKS = [
 def test_evaluator(backend, model_id, task):
     with tempfile.TemporaryDirectory() as tmpdirname:
         model_cls = OVModelForCausalLM if backend == "causal" else OVModelForSeq2SeqLM
-        model = model_cls.from_pretrained(
-            model_id, export=True, use_cache=True
-        )
+        model = model_cls.from_pretrained(model_id, export=True, use_cache=True)
         model.save_pretrained(tmpdirname)
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         tokenizer.save_pretrained(tmpdirname)
