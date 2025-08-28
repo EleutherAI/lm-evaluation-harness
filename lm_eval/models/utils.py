@@ -371,10 +371,8 @@ class Collator:
         sort_fn: Callable = lambda x: x,
         group_fn: Callable = lambda x: x[1],
         group_by: Union[Literal["gen_kwargs", "contexts"], None] = None,
-        gen_kwargs_exluded_keys: Union[List[str], None] = None,
     ) -> None:
         self._group_by = group_by
-        self.gen_kwargs_exluded_keys = gen_kwargs_exluded_keys
         # 0 indices are enumerated indices. Apply functions to original arr.
         self._sort_fn = lambda x: sort_fn(x[1])
         self._group_fn = lambda x: group_fn(x[1])
@@ -547,8 +545,8 @@ class Collator:
     def __len__(self):
         return self._size
 
+    @staticmethod
     def group(
-        self,
         arr: Iterable,
         fn: Callable,
         group_by: Literal["gen_kwargs", "contexts"] = "gen_kwargs",
@@ -576,11 +574,6 @@ class Collator:
                 res[tuple(fn(ob))].append(ob)
             else:
                 try:
-                    gen_kwargs_exluded_keys = (
-                        []
-                        if self.gen_kwargs_exluded_keys is None
-                        else self.gen_kwargs_exluded_keys
-                    )
                     hashable_dict = tuple(
                         (
                             key,
@@ -589,7 +582,6 @@ class Collator:
                             else value,
                         )
                         for key, value in sorted(fn(ob).items())
-                        if key not in gen_kwargs_exluded_keys
                     )
                     res[hashable_dict].append(ob)
                 except (TypeError, AttributeError):
