@@ -558,9 +558,6 @@ class VLLM(TemplateLM):
             # - any OOMs will happen right away rather than near the end
             return -len(_requests[0][1]), _requests[0][0]
 
-        # we group requests by their generation_kwargs,
-        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
-        # in the same batch.
         re_ords = Collator(
             requests,
             _collate_gen,
