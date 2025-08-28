@@ -564,8 +564,7 @@ class VLLM(TemplateLM):
         re_ords = Collator(
             requests,
             _collate_gen,
-            group_by="gen_kwargs",
-            gen_kwargs_exluded_keys=["seed"],
+            group_by=None,
         )
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
