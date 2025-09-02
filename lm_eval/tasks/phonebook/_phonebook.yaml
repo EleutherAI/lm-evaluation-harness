@@ -1,0 +1,9 @@
+group: phonebook
+task:
+- phonebook_1k
+- phonebook_5k
+- phonebook_10k
+- phonebook_25k
+- phonebook_50k
+- phonebook_100k
+- phonebook_200k

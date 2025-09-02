@@ -1,0 +1,22 @@
+group: longbench_v2
+task:
+  - longbench_v2_narrativeqa
+  - longbench_v2_qasper
+  - longbench_v2_multifieldqa
+  - longbench_v2_hotpotqa
+  - longbench_v2_2wikimqa
+  - longbench_v2_musique
+  - longbench_v2_gov_report
+  - longbench_v2_multi_news
+  - longbench_v2_book_sum
+  - longbench_v2_trec
+  - longbench_v2_triviaqa
+  - longbench_v2_samsum
+  - longbench_v2_passage_retrieval
+  - longbench_v2_passage_count
+  - longbench_v2_kv_retrieval
+  - longbench_v2_lcc
+  - longbench_v2_repobench
+  - longbench_v2_code_debug
+  - longbench_v2_book_qa_eng
+  - longbench_v2_paper_assistant
