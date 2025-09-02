@@ -1,0 +1,14 @@
+group: LArabench
+metadata:
+    description: LArabench Benchmark
+    version: 0
+task:
+- LArabench_diacritization_BibleDiacritization
+- LArabench_diacritization_WikiNews
+- LArabench_dialect_identification_QADI
+- LArabench_Lemmatization_WikiNews
+- LArabench_POS_QCRI
+- LArabench_POS_WikiNews
+- LArabench_POS_XGLUE
+- LArabench_Segmentation_QCRI
+- LArabench_Segmentation_WikiNews

@@ -1,10 +1,5 @@
-task: LArabench_diacritization_WikiNews
 dataset_path: csv
 dataset_name: null
-dataset_kwargs:
-  data_files:
-    test: /home/mostafa.awad/BGM/LArabench_evaluation/LArabench_base_files/WikiNewsDiacritization/sample.tsv
-  delimiter: "\t"
 test_split: test
 
 output_type: generate_until
