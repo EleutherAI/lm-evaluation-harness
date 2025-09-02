@@ -1,0 +1,14 @@
+task: icelandic_winogrande
+dataset_path: mideind/icelandic-winogrande
+output_type: multiple_choice
+test_split: train
+target_delimiter: ""
+doc_to_text: !function preprocess_winogrande.doc_to_text
+doc_to_target: !function preprocess_winogrande.doc_to_target
+doc_to_choice: !function preprocess_winogrande.doc_to_choice
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0
