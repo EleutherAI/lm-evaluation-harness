@@ -5,7 +5,10 @@ def doc_to_text(doc):
 
 def doc_to_target(doc):
     idx = doc["sentence"].index("_") + 1
-    return doc["sentence"][idx:].strip()
+    target = doc["sentence"][idx:].strip()
+    if target != ".":
+        target = " " + target
+    return target
 
 
 def doc_to_choice(doc):
