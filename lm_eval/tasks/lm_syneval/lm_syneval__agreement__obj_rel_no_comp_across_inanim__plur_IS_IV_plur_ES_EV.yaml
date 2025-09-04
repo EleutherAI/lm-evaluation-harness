@@ -1,0 +1,3 @@
+dataset_name: lm_syneval__agreement__obj_rel_no_comp_across_inanim__plur_IS_IV_plur_ES_EV
+include: _template_yaml
+task: lm_syneval__agreement__obj_rel_no_comp_across_inanim__plur_IS_IV_plur_ES_EV

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.9"
+version = "0.4.9.1"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
@@ -21,7 +21,7 @@ license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
     "evaluate",
-    "datasets>=2.16.0",
+    "datasets>=2.16.0,<4.0",
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
@@ -69,6 +69,7 @@ ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 ipex = ["optimum"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench=["jieba", "fuzzywuzzy", "rouge"]
+libra=["pymorphy2"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
@@ -79,6 +80,7 @@ ruler = ["nltk", "wonderwords", "scipy"]
 sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 sparsify = ["sparsify"]
+discrim_eval = ["statsmodels==0.14.4"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 unitxt = ["unitxt==1.22.0"]
 vllm = ["vllm>=0.4.2"]
@@ -86,9 +88,12 @@ wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
     "lm_eval[acpbench]",
+    "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
+    "lm_eval[libra]",
+    "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
     "lm_eval[ruler]",
@@ -103,7 +108,7 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["I", "W605"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
