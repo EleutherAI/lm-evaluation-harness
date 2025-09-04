@@ -1,6 +1,6 @@
 task: kobalt
 dataset_path: snunlp/KoBALT-700
-dataset_name: raw
+dataset_name: kobalt_v1
 output_type: multiple_choice
 process_docs: !function utils.process_docs
 
