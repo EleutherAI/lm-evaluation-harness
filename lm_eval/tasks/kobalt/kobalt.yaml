@@ -1,4 +1,5 @@
 task: kobalt
+test_split: raw
 dataset_path: snunlp/KoBALT-700
 dataset_name: kobalt_v1
 output_type: multiple_choice
