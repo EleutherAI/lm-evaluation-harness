@@ -1,0 +1,6 @@
+task: LArabench_diacritization_WikiNews
+dataset_kwargs:
+  data_files:
+    test: /home/mostafa.awad/BGM/LArabench_evaluation/LArabench_base_files/WikiNewsDiacritization/sample.tsv
+  delimiter: "\t"
+include: _default_template_yaml

@@ -1,0 +1,20 @@
+task: LArabench_POS_QCRI
+dataset_kwargs:
+  data_files:
+    test: BGM/LArabench_evaluation/LArabench_base_files/QCRIDialectalArabicPOS/all_combined/test_processed.tsv
+  delimiter: "\t"
+
+doc_to_text: |
+  Assign a POS tag to each morphological segment within the word, considering its meaning in the sentence.
+
+  Word to analyze: "{{ input_word }}"
+  This word occurs in the sentence: "{{ input }}"
+
+  Use only the following POS tag set:
+  ["ADJ", "ADV", "CASE", "CONJ", "DET", "EMOT", "FOREIGN", "FUT_PART", "HASH", "MENTION", "NEG_PART", "NOUN", "NSUFF", "NUM", "PART", "PREP", "PROG_PART", "PRON", "PUNC", "URL", "V"]
+
+  The output should consist only of the assigned POS tags for each morphological segment within the word.
+  If the word has more than one segment, group the corresponding tags using a + sign.
+
+  The tagged form of "{{ input_word }}" is:
+include: _default_template_yaml
