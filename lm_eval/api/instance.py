@@ -19,6 +19,9 @@ class Instance:
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
+    # OpenRouter统计信息字段
+    stats: Optional[dict] = field(default_factory=lambda: None)
+
     # initialized after init
     task_name: Optional[str] = None
     doc_id: Optional[int] = None

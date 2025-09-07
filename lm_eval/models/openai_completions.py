@@ -1,11 +1,13 @@
 import logging
 import os
+import time
+import requests
 from functools import cached_property
 from operator import itemgetter
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.api_models import TemplateAPI, JsonChatStr
 from lm_eval.models.utils import handle_stop_sequences
 
 
@@ -295,3 +297,139 @@ class OpenAIChatCompletion(LocalChatCompletion):
         elif "o3" in self.model:
             output.pop("temperature")
         return output
+
+
+class OpenRouterResponse:
+    """包装OpenRouter响应和统计信息的类"""
+    def __init__(self, text: str, stats: dict = None):
+        self.text = text
+        self.stats = stats or {}
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return f"OpenRouterResponse(text='{self.text[:50]}...', stats={self.stats})"
+
+
+@register_model("openrouter-chat-completions")
+class OpenRouterChatCompletion(OpenAIChatCompletion):
+    def __init__(
+        self,
+        base_url="https://openrouter.ai/api/v1/chat/completions",
+        tokenizer_backend=None,
+        tokenized_requests=False,
+        **kwargs,
+    ):
+        super().__init__(
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            tokenized_requests=tokenized_requests,
+            **kwargs,
+        )
+
+        # OpenRouter统计功能
+        self.is_openrouter = True
+        self.generation_stats = []
+
+    def _get_openrouter_stats(self, generation_id: str) -> Dict[str, Any]:
+        """获取OpenRouter生成统计信息"""
+        try:
+            url = "https://openrouter.ai/api/v1/generation"
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            params = {"id": generation_id}
+
+            # 等待一小段时间确保统计信息可用
+            time.sleep(0.5)
+
+            response = requests.get(url, headers=headers, params=params, timeout=10)
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {})
+                return {
+                    "total_cost": data.get("total_cost", 0),
+                    "prompt_tokens": data.get("tokens_prompt", 0),
+                    "completion_tokens": data.get("tokens_completion", 0),
+                    "generation_time": data.get("generation_time", 0),
+                    "latency": data.get("latency", 0),
+                    "model": data.get("model", ""),
+                    "provider_name": data.get("provider_name", ""),
+                    "finish_reason": data.get("finish_reason", ""),
+                    "native_tokens_prompt": data.get("native_tokens_prompt", 0),
+                    "native_tokens_completion": data.get("native_tokens_completion", 0)
+                }
+        except Exception as e:
+            eval_logger.warning(f"获取OpenRouter统计信息失败: {e}")
+
+        return {}
+
+    def model_call(
+        self,
+        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
+        *,
+        generate: bool = True,
+        gen_kwargs: Optional[Dict] = None,
+        **kwargs,
+    ) -> Optional[dict]:
+        """重写model_call方法以支持OpenRouter统计信息获取"""
+        # 调用父类方法获取基本响应
+        response = super().model_call(messages, generate=generate, gen_kwargs=gen_kwargs, **kwargs)
+
+        if response and self.is_openrouter:
+            # 尝试获取generation_id并获取统计信息
+            generation_id = response.get("id")
+            if generation_id:
+                stats = self._get_openrouter_stats(generation_id)
+                if stats:
+                    # 将统计信息添加到响应中
+                    response["openrouter_stats"] = stats
+                    self.generation_stats.append(stats)
+
+        return response
+
+    def generate_until(self, requests, disable_tqdm: bool = False):
+        """重写generate_until方法以支持统计信息传递"""
+        # 调用父类方法获取基本响应
+        responses = super().generate_until(requests, disable_tqdm)
+
+        # 如果不是OpenRouter或没有统计信息，直接返回原始响应
+        if not self.is_openrouter or not self.generation_stats:
+            return responses
+
+        # 将统计信息附加到响应中
+        enhanced_responses = []
+        stats_index = len(self.generation_stats) - len(responses)  # 获取最新的统计信息
+
+        for i, response in enumerate(responses):
+            if stats_index + i < len(self.generation_stats):
+                stats = self.generation_stats[stats_index + i]
+                enhanced_responses.append(OpenRouterResponse(response, stats))
+            else:
+                enhanced_responses.append(OpenRouterResponse(response))
+
+        return enhanced_responses
+
+    def get_aggregated_stats(self) -> Dict[str, Any]:
+        """获取聚合的统计信息"""
+        if not self.generation_stats:
+            return {}
+
+        total_cost = sum(stat.get("total_cost", 0) for stat in self.generation_stats)
+        total_prompt_tokens = sum(stat.get("prompt_tokens", 0) for stat in self.generation_stats)
+        total_completion_tokens = sum(stat.get("completion_tokens", 0) for stat in self.generation_stats)
+        avg_latency = sum(stat.get("latency", 0) for stat in self.generation_stats) / len(self.generation_stats)
+        avg_generation_time = sum(stat.get("generation_time", 0) for stat in self.generation_stats) / len(self.generation_stats)
+
+        return {
+            "total_requests": len(self.generation_stats),
+            "total_cost": total_cost,
+            "total_prompt_tokens": total_prompt_tokens,
+            "total_completion_tokens": total_completion_tokens,
+            "total_tokens": total_prompt_tokens + total_completion_tokens,
+            "average_latency": avg_latency,
+            "average_generation_time": avg_generation_time,
+            "per_request_stats": self.generation_stats
+        }

@@ -411,6 +411,16 @@ def simple_evaluate(
         results["date"] = start_date
         add_env_info(results)  # additional environment info to results
         add_tokenizer_info(results, lm)  # additional info about tokenizer
+
+        # 添加OpenRouter统计信息（如果可用）
+        if hasattr(lm, 'get_aggregated_stats'):
+            openrouter_stats = lm.get_aggregated_stats()
+            if openrouter_stats:
+                results["openrouter_statistics"] = openrouter_stats
+                eval_logger.info(f"OpenRouter统计信息: 总请求数={openrouter_stats.get('total_requests', 0)}, "
+                               f"总成本=${openrouter_stats.get('total_cost', 0):.4f}, "
+                               f"平均延迟={openrouter_stats.get('average_latency', 0):.2f}s")
+
         return results
     else:
         return None
@@ -586,7 +596,14 @@ def evaluate(
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
-            req.resps.append(x)
+            # 检查是否是OpenRouterResponse对象，如果是则提取统计信息
+            if hasattr(x, 'stats') and hasattr(x, 'text'):
+                # 这是OpenRouterResponse对象
+                req.resps.append(x.text)  # 保存文本响应
+                req.stats = x.stats       # 保存统计信息到Instance
+            else:
+                # 普通响应
+                req.resps.append(x)
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
@@ -655,6 +672,10 @@ def evaluate(
                         "prompt_hash": hash_string(requests[0].arguments[0]),
                         "target_hash": hash_string(str(target)),
                     }
+
+                    # 添加OpenRouter统计信息（如果存在）
+                    if hasattr(requests[0], 'stats') and requests[0].stats:
+                        example["openrouter_stats"] = requests[0].stats
                     example.update(metrics)
                     task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
