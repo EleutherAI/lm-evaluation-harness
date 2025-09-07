@@ -3,7 +3,7 @@ dataset_path: csv
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/LArabench_evaluation/LArabench_base_files/WikiNewsLemmatization/test_processed.tsv
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/WikiNewsLemmatization/test_processed.tsv
   delimiter: "\t"
 test_split: test
 

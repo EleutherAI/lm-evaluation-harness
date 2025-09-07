@@ -1,7 +1,7 @@
 task: LArabench_POS_QCRI
 dataset_kwargs:
   data_files:
-    test: BGM/LArabench_evaluation/LArabench_base_files/QCRIDialectalArabicPOS/all_combined/test_processed.tsv
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/QCRIDialectalArabicPOS/all_combined/test_processed.tsv
   delimiter: "\t"
 
 doc_to_text: |
