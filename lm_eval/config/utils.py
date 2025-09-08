@@ -36,17 +36,14 @@ def maybe_serialize(
     )
 
 
-def create_mc_choices(choices: list[str], choice_delimiter: str | None = "\n") -> str:
+def create_mc_choices(choices: list[str], choice_delimiter: str = "\n") -> str:
     """Creates a multiple-choice question format from a list of choices."""
-    if len(choices) < 2:
-        raise ValueError(
-            "At least two choices are required for a multiple-choice question."
-        )
-    if choice_delimiter is None:
-        choice_delimiter = "\n"
-
     formatted_choices = [f"{chr(65 + i)}. {choice}" for i, choice in enumerate(choices)]
     return choice_delimiter.join(formatted_choices)
+
+
+def create_cloze_choices(choices: list[str], choice_delimiter: str = "\n") -> str:
+    """Creates a cloze-style question format from a list of choices."""
 
 
 def doc_to_closure(fn: Callable[..., T]) -> Callable[..., T]:
