@@ -277,11 +277,11 @@ def main():
         "group_subtasks": {f"score_non_greedy_robustness_{args.dataset}": []},
         "configs": None,
         "versions": {f"score_non_greedy_robustness_{args.dataset}": 1},
-        "n-shot": {f"score_non_greedy_robustness_{args.dataset}": 0},
+        "n_shot": {f"score_non_greedy_robustness_{args.dataset}": 0},
         "higher_is_better": {
             f"score_non_greedy_robustness_{args.dataset}": higher_is_better
         },
-        "n-samples": None,
+        "n_samples": None,
     }
 
     dumped = json.dumps(
