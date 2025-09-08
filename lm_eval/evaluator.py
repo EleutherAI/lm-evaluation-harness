@@ -78,6 +78,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
+    distributed_executor_backend: str = "accelerate",
     metadata: Optional[dict] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -141,6 +142,8 @@ def simple_evaluate(
         Random seed for torch. If set to None, the seed will not be set.
     :param fewshot_random_seed: int
         Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
+    :param distributed_executor_backend: str
+        The backend to use for distributed execution, `accelerate` or `torchrun`. Defaults to "accelerate" for the `accelerate` library.
     :param metadata: dict
         Additional metadata to be added to the task manager. Will get passed to the download function of the task.
     return
@@ -208,6 +211,11 @@ def simple_evaluate(
             "No tasks specified, or no tasks found. Please verify the task names."
         )
 
+    if distributed_executor_backend not in {"accelerate", "torchrun"}:
+        raise ValueError(
+            f"distributed_executor_backend must be one of ['accelerate', 'torchrun'], but got {distributed_executor_backend}."
+        )
+
     if gen_kwargs is not None:
         if isinstance(gen_kwargs, str):
             gen_kwargs = simple_parse_args_string(gen_kwargs)
@@ -265,18 +273,14 @@ def simple_evaluate(
             use_cache
             # each rank receives a different cache db.
             # necessary to avoid multiple writes to cache at once
-            + "_rank"
-            + str(lm.rank)
-            + ".db",
+            + "_rank" + str(lm.rank) + ".db",
         )
 
     if task_manager is None:
         metadata = (
             simple_parse_args_string(model_args)
             if isinstance(model_args, str)
-            else model_args
-            if isinstance(model_args, dict)
-            else {}
+            else model_args if isinstance(model_args, dict) else {}
         ) | (metadata or {})
         task_manager = TaskManager(metadata=metadata)
 
@@ -348,9 +352,9 @@ def simple_evaluate(
             model_source=model,
             model_args=model_args,
             system_instruction=system_instruction,
-            chat_template=lm.chat_template(apply_chat_template)
-            if apply_chat_template
-            else None,
+            chat_template=(
+                lm.chat_template(apply_chat_template) if apply_chat_template else None
+            ),
             fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
@@ -369,6 +373,7 @@ def simple_evaluate(
         fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
+        distributed_executor_backend=distributed_executor_backend,
     )
     if verbosity is not None:
         setup_logging(verbosity=verbosity)
@@ -432,6 +437,7 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
+    distributed_executor_backend: str = "accelerate",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -466,6 +472,8 @@ def evaluate(
         Verbosity level for logging
     :param confirm_run_unsafe_code: bool
         Whether to confirm running tasks marked as unsafe.
+    :param distributed_executor_backend: str
+        The backend to use for distributed execution, `accelerate` or `torchrun`. Defaults to "accelerate" for the `accelerate` library.
     :return
         Dictionary of results
     """
@@ -525,9 +533,11 @@ def evaluate(
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            samples=samples.get(task_output.task_name, None)
-            if samples is not None
-            else samples,
+            samples=(
+                samples.get(task_output.task_name, None)
+                if samples is not None
+                else samples
+            ),
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -535,12 +545,12 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=bool(apply_chat_template),
             fewshot_as_multiturn=fewshot_as_multiturn,
-            chat_template=getattr(lm, "apply_chat_template")
-            if apply_chat_template
-            else None,
-            tokenizer_name=getattr(lm, "tokenizer_name", "")
-            if apply_chat_template
-            else "",
+            chat_template=(
+                getattr(lm, "apply_chat_template") if apply_chat_template else None
+            ),
+            tokenizer_name=(
+                getattr(lm, "tokenizer_name", "") if apply_chat_template else ""
+            ),
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
@@ -554,9 +564,20 @@ def evaluate(
 
         if lm.world_size > 1:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
-            gathered_item = (
-                lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
-            )
+
+            if distributed_executor_backend == "accelerate":
+                gathered_item = (
+                    lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
+                )
+            elif distributed_executor_backend == "torchrun":
+                gathered_item = [torch.zeros_like(instances_rnk)] * lm.world_size
+                torch.distributed.all_gather(gathered_item, instances_rnk)
+                gathered_item = [x.item() for x in gathered_item]
+            else:
+                raise ValueError(
+                    f"distributed_executor_backend must be one of ['accelerate', 'torchrun'], but got {distributed_executor_backend}."
+                )
+
             # "multiple_choice" task types dispatch (several) "loglikelihood" request types
             reqtype = (
                 "loglikelihood"
@@ -589,7 +610,14 @@ def evaluate(
             req.resps.append(x)
 
         if lm.world_size > 1:
-            lm.accelerator.wait_for_everyone()
+            if distributed_executor_backend == "accelerate":
+                lm.accelerator.wait_for_everyone()
+            elif distributed_executor_backend == "torchrun":
+                torch.distributed.barrier()
+            else:
+                raise ValueError(
+                    f"distributed_executor_backend must be one of ['accelerate', 'torchrun'], but got {distributed_executor_backend}."
+                )
 
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
