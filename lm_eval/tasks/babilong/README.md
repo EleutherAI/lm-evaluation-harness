@@ -47,7 +47,7 @@ The benchmark includes 1000 samples of 20 reasoning tasks at various context len
 * `babilong_qa12`: Conjunction
 * `babilong_qa13`: Compound coreference
 * `babilong_qa14`: Time reasoning
-* `babilong_qa15`: Basic deduction 
+* `babilong_qa15`: Basic deduction
 * `babilong_qa16`: Basic induction
 * `babilong_qa17`: Positional reasoning
 * `babilong_qa18`: Size reasoning
@@ -56,7 +56,7 @@ The benchmark includes 1000 samples of 20 reasoning tasks at various context len
 
 > [!NOTE]
 > When using babilong tasks, please note:
-> 1. This is the implementation with 100 samples per length. 
+> 1. This is the implementation with 100 samples per length.
 > 2. Supported lengths are 0k, 1, 2, 4, 8, 16, 32, 64, 128k tokens for tasks qa1-5. Tasks qa6-20 only have a length of 0k.
 > 3. The default maximum sequence length is 0k. For calculating metrics of different max seq lengths, specify additional lengths using the metadata parameter:
 >   `--metadata '{"max_seq_length":"0k,1k,2k,4k,8k,16k,32k,128k"}'`. The config currently only takes one context length at a time. The metadata parameter can also be passed to the TaskManager (metadata: dict).

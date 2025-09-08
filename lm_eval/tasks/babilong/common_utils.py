@@ -39,10 +39,10 @@ def postprocess_pred(prediction: list[str]) -> list[str]:
 
 def load_dataset(**kwargs):
     config_name = kwargs.get("max_seq_lengths", "0k")
-    
+
     # Get specific qa split
     qa_split = kwargs.get("qa_split")
-    
+
     eval_logger.info(
         f"Loading babilong dataset: max_seq_lengths={config_name}, split={qa_split}"
     )
