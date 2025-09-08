@@ -40,7 +40,7 @@ try:
     if parse_version(version("vllm")) >= parse_version("0.8.3"):
         from vllm.entrypoints.chat_utils import resolve_hf_chat_template
 except ModuleNotFoundError:
-    pass
+    print("njklsfnljnlsjnjlksnljnfvljnflsdnlksfnlkvnlksfvnlsfd")
 
 if TYPE_CHECKING:
     pass
