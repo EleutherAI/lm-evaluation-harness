@@ -1,0 +1,23 @@
+group: mmlu_prox_lite_ar
+task:
+- mmlu_prox_lite_ar_biology
+- mmlu_prox_lite_ar_business
+- mmlu_prox_lite_ar_chemistry
+- mmlu_prox_lite_ar_computer_science
+- mmlu_prox_lite_ar_economics
+- mmlu_prox_lite_ar_engineering
+- mmlu_prox_lite_ar_health
+- mmlu_prox_lite_ar_history
+- mmlu_prox_lite_ar_law
+- mmlu_prox_lite_ar_math
+- mmlu_prox_lite_ar_other
+- mmlu_prox_lite_ar_philosophy
+- mmlu_prox_lite_ar_physics
+- mmlu_prox_lite_ar_psychology
+aggregate_metric_list:
+- aggregation: mean
+  metric: exact_match
+  weight_by_size: true
+  filter_list: custom-extract
+metadata:
+  version: 0.0

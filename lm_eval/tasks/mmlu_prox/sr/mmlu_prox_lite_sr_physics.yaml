@@ -1,0 +1,9 @@
+description: 'Evo pitanja sa višestrukim izborom o fizika (sa odgovorom). Molimo vas
+  da razmislite korak po korak i završite svoj odgovor sa "Odgovor je (X)", gde je
+  X slovo tačne opcije.
+
+  '
+include: _sr_lite_template_yaml
+task: mmlu_prox_lite_sr_physics
+task_alias: physics
+process_docs: !function utils.process_physics

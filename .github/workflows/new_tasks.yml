@@ -50,12 +50,12 @@ jobs:
         with:
           python-version: 3.9
           cache: 'pip'
-          cache-dependency-path: setup.py
+          cache-dependency-path: pyproject.toml
       - name: Install dependencies
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         run: |
             python -m pip install --upgrade pip
-            pip install -e '.[dev,ifeval]' --extra-index-url https://download.pytorch.org/whl/cpu
+            pip install -e '.[dev,ifeval,unitxt]' --extra-index-url https://download.pytorch.org/whl/cpu
     #   Install optional git dependencies
     #       pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
     #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi

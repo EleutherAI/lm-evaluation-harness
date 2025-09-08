@@ -14,7 +14,5 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
-dataset_kwargs:
-  trust_remote_code: true
 metadata:
   version: 0

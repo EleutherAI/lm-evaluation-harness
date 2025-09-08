@@ -10,7 +10,6 @@ from . import (
     ibm_watsonx_ai,
     mamba_lm,
     nemo_lm,
-    neuralmagic,
     neuron_optimum,
     openai_completions,
     optimum_ipex,

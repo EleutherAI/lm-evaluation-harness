@@ -2,8 +2,6 @@ dataset_path: Helsinki-NLP/tatoeba_mt
 training_split: validation
 test_split: test
 output_type: generate_until
-dataset_kwargs:
-  trust_remote_code: true
 metric_list:
   - metric: bleu
     higher_is_better: true
