@@ -59,7 +59,7 @@ The benchmark includes 1000 samples of 20 reasoning tasks at various context len
 > 1. This is the implementation with 1000 samples per length. You can change the dataset path to `RMT-team/babilong` in `common_utils.py` for the dataset with 100 samples per length, which supports context lengths up to 10M tokens.
 > 2. Supported lengths are 0k, 1, 2, 4, 8, 16, 32, 64, 128k tokens for tasks qa1-5. Tasks qa6-20 only have a length of 0k.
 > 3. The default maximum sequence length is 0k. For calculating metrics of different max seq lengths, specify additional lengths using the metadata parameter:
->   `--metadata '{"max_seq_length":"0k,1k,2k,4k,8k,16k,32k,128k"}'`. The config currently only takes one context length at a time. The metadata parameter can also be passed to the TaskManager (metadata: dict).
+>   `--metadata '{"max_seq_lengths":"0k,1k,2k,4k,8k,16k,32k,128k"}'`. The config currently only takes one context length at a time. The metadata parameter can also be passed to the TaskManager (metadata: dict).
 
 
 ### Checklist

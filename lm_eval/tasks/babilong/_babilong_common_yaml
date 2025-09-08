@@ -1,5 +1,3 @@
-tag:
-  - longcxt
 dataset_path: RMT-team/babilong-1k-samples
 output_type: generate_until
 doc_to_target: "{{target}}"
