@@ -17,7 +17,7 @@ IFT_CHECKPOINTS=(
 CHECKPOINTS=("${IFT_CHECKPOINTS[@]}" "${BASE_CHECKPOINTS[@]}")
 
 BENCHMARKS=(
-    QASI_subtask1
+    QASI_subtask2
 )
 
 # import HF token
