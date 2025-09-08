@@ -1,9 +1,11 @@
 from itertools import islice
+from unittest.mock import patch
 
 import pytest
 
 from lm_eval import tasks as tasks
 from lm_eval.api.task import ConfigurableTask
+from lm_eval.tasks.unitxt.task import Unitxt
 from tests.test_tasks import BaseTasks, task_class
 
 
@@ -52,3 +54,14 @@ class TestUnitxtTasks(BaseTasks):
                 assert isinstance(x, str)
         else:
             pass
+
+    def test_unitxt_constructor_task_config(self, task_class):
+        """Test that Unitxt constructor properly sets task name from config 'task' key."""
+        # Patch the dataset to avoid downloads
+        with patch.object(task_class, 'dataset', {'test': [{'metrics': ['metric1']}]}, create=True):
+            unitxt_task = Unitxt(config={
+                "recipe": task_class.config.dataset_name,
+                "task": task_class.config.task
+            })
+
+            assert unitxt_task.task_name == task_class.config.task
