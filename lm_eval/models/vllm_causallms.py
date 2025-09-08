@@ -140,6 +140,7 @@ class VLLM(TemplateLM):
         max_lora_rank: int = 16,
         **kwargs,
     ):
+        self.raw_generations = []
         super().__init__()
 
         if not find_spec("vllm"):
@@ -557,6 +558,7 @@ class VLLM(TemplateLM):
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
         res = []
+        raw_generations_buffer = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
@@ -602,6 +604,9 @@ class VLLM(TemplateLM):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+                # sanitize problematic stop sequences that can appear in CoT traces
+                if until:
+                    until = [u for u in until if u.strip().lower() != "question:"]
             else:
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
@@ -633,19 +638,22 @@ class VLLM(TemplateLM):
 
             # cache generations
             for output, context in zip(cont, context):
-                generated_text: str = output.outputs[0].text
+                raw_generated_text: str = output.outputs[0].text
+                raw_generations_buffer.append(raw_generated_text)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), raw_generated_text
+                )
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
-                    generated_text, until, self.think_end_token
+                    raw_generated_text, until, self.think_end_token
                 )
                 res.append(generated_text)
-                self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
-                )
                 pbar.update(1)
 
         pbar.close()
+        
         # reorder all group of results back to original unsorted form
+        self.raw_generations = re_ords.get_original(raw_generations_buffer)
         return re_ords.get_original(res)
 
     def _loglikelihood_tokens(
