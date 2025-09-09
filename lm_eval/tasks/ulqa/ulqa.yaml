@@ -37,6 +37,7 @@ generation_kwargs:
   until: ["\n\n", "سۇئال:"]
   do_sample: false
   temperature: 0.0
+  max_gen_toks: 256
 repeats: 1
 num_fewshot: 5      
 metadata:
