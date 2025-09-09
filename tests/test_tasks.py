@@ -1,10 +1,8 @@
 import os
 from itertools import islice
 
+import datasets
 import pytest
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 import lm_eval.tasks as tasks
 from lm_eval.api.task import ConfigurableTask
@@ -13,16 +11,8 @@ from lm_eval.evaluator_utils import get_task_list
 from .utils import new_tasks
 
 
-# datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-session = requests.Session()
-retry_strategy = Retry(
-    total=5, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504]
-)
-adapter = HTTPAdapter(max_retries=retry_strategy)
-session.mount("https://", adapter)
-
 # Default Task
 TASKS = ["arc_easy"]
 

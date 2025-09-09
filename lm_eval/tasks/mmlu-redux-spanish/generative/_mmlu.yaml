@@ -19,12 +19,12 @@ task:
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
-  - group: humanities_spanish
-    task:
-      - mmlu_humanities_generative_spanish
-    aggregate_metric_list:
-      - metric: exact_match
-        weight_by_size: true
+#  - group: humanities_spanish
+#    task:
+#      - mmlu_humanities_generative_spanish
+#    aggregate_metric_list:
+#      - metric: exact_match
+#        weight_by_size: true
 aggregate_metric_list:
   - aggregation: mean
     metric: exact_match
