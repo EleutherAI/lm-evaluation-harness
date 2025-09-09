@@ -24,13 +24,7 @@ metric_list:
   - metric: bleu
     aggregation: mean
     higher_is_better: true
-  - metric: rouge
-    aggregation: mean
-    higher_is_better: true
   - metric: chrf
-    aggregation: mean
-    higher_is_better: true
-  - metric: bertscore
     aggregation: mean
     higher_is_better: true    
 generation_kwargs:
