@@ -21,14 +21,6 @@ metric_list:
       - "\\$"
       - "(?s).*#### "
       - "\\.$"
-  - metric: bleu
-    aggregation: mean
-    higher_is_better: true
-    reduce_fn: "score"
-  - metric: chrf
-    aggregation: mean
-    higher_is_better: true  
-    reduce_fn: "score"
 generation_kwargs:
   until: ["\n\n", "سۇئال:"]
   do_sample: false
