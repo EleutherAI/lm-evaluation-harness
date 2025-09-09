@@ -22,7 +22,7 @@ metric_list:
       - "(?s).*#### "
       - "\\.$"
 generation_kwargs:
-  until: ["\n\n", "سۇئال:"]
+  until: ["سۇئال:"]
   do_sample: false
   temperature: 0.0
   max_gen_toks: 256
