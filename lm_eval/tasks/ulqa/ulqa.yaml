@@ -16,18 +16,11 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: false
-    regexes_to_ignore:
-      - ","
-      - "\\$"
-      - "(?s).*#### "
-      - "\\.$"
 generation_kwargs:
   until: ["\n\n", "سۇئال:"]
-  do_sample: True
-  temperature: 0.7
-  max_gen_toks: 256
+  do_sample: false
+  temperature: 0.0
 repeats: 1
-num_fewshot: 5
-fewshot_delimiter: "\n\n"
+num_fewshot: 3
 metadata:
   version: 1.0.0
