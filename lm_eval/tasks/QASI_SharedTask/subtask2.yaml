@@ -1,0 +1,26 @@
+task: QASI_subtask2
+
+# Local JSONL via HuggingFace JSON loader
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  # Single file → split is named "train"
+  data_files: /home/mattia_llm/Desktop/culture/lm-evaluation-harness/lm_eval/tasks/QASI_SharedTask/subtask2.jsonl
+
+# Use the only split as test
+training_split: null
+validation_split: null
+test_split: train
+
+# Multiple-choice scoring (model outputs a single letter)
+output_type: multiple_choice
+
+# Field mapping
+doc_to_text: "{{prompt}}"
+doc_to_choice: choices
+doc_to_target: target
+
+# Metrics
+metric_list:
+  - metric: acc
+  - metric: acc_norm
