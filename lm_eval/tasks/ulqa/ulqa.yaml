@@ -22,11 +22,12 @@ metric_list:
       - "(?s).*#### "
       - "\\.$"
 generation_kwargs:
-  until: ["سۇئال:"]
-  do_sample: false
-  temperature: 0.0
+  until: ["\n\n", "سۇئال:"]
+  do_sample: True
+  temperature: 0.7
   max_gen_toks: 256
 repeats: 1
-num_fewshot: 5      
+num_fewshot: 5
+fewshot_delimiter: "\n\n"
 metadata:
   version: 1.0.0
