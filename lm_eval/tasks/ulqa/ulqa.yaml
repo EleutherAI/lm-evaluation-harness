@@ -22,10 +22,7 @@ metric_list:
       - "(?s).*#### "
       - "\\.$"
 generation_kwargs:
-  until:
-    - "Question:"
-    - "</s>"
-    - "<|im_end|>"
+  until: ["\n\n", "سۇئال:"]
   do_sample: false
   temperature: 0.0
 repeats: 1
