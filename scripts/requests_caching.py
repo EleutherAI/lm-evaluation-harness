@@ -13,6 +13,11 @@ from transformers import (
     pipeline as trans_pipeline,
 )
 
+try:
+    import torch_musa
+except ModuleNotFoundError:
+    torch_musa = None
+
 from lm_eval import simple_evaluate
 from lm_eval.evaluator import request_caching_arg_to_dict
 
@@ -27,7 +32,11 @@ MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 LM_HARNESS_CACHE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cpu"
+if torch.cuda.is_available():
+    DEVICE = "cuda"
+elif torch_musa is not None:
+    DEVICE = "musa"
 
 MODEL = "EleutherAI/pythia-70m"
 

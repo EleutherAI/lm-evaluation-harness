@@ -2,9 +2,16 @@ import copy
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
+from torch.cuda import empty_cache
 import transformers
 from tqdm import tqdm
 from transformers import BatchEncoding
+
+try:
+    import torch_musa
+    from torch_musa.core.memory import empty_cache
+except ModuleNotFoundError:
+    torch_musa = None
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
@@ -268,7 +275,7 @@ class HFAUDIOLMQWEN(HFLM):
             cont = self._model_multimodal_generate(inputs, stop=until, **kwargs)
 
             del inputs
-            torch.cuda.empty_cache()
+            empty_cache()
             import gc
 
             gc.collect()

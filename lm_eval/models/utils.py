@@ -22,6 +22,13 @@ from typing import (
 
 import torch
 import transformers
+from torch.cuda import empty_cache
+
+try:
+    import torch_musa
+    from torch_musa.core.memory import empty_cache
+except ModuleNotFoundError:
+    torch_musa = None
 
 
 eval_logger = logging.getLogger(__name__)
@@ -201,7 +208,7 @@ def pad_and_concat(
 
 def clear_torch_cache() -> None:
     gc.collect()
-    torch.cuda.empty_cache()
+    empty_cache()
 
 
 def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:

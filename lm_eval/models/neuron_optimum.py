@@ -17,6 +17,10 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import stop_sequences_criteria
 
+try:
+    import torch_musa
+except ModuleNotFoundError:
+    torch_musa = None
 
 try:
     NEURON_AVAILABLE = True

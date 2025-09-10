@@ -2,7 +2,14 @@
 # print(data)
 
 import torch
+from torch.cuda import is_available, device_count
+
+try:
+    import torch_musa
+    from torch_musa.core.device import is_available, device_count
+except ModuleNotFoundError:
+    torch_musa = None
 
 
-print(torch.cuda.is_available())  # Should return True
-print(torch.cuda.device_count())
+print(is_available())  # Should return True
+print(device_count())
