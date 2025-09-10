@@ -2,7 +2,7 @@ tag:
 - infinitebench
 - infinitebench_qa
 task: infinitebench_longbook_sum_eng
-dataset_path: OpenBMB/InfiniteBench
+dataset_path: xinrongzhang2022/InfiniteBench
 dataset_name: longbook_sum_eng
 output_type: generate_until
 test_split: test

@@ -2,7 +2,7 @@ tag:
 - infinitebench
 - infinitebench_dialogue
 task: infinitebench_longdialogue_qa_eng
-dataset_path: OpenBMB/InfiniteBench
+dataset_path: xinrongzhang2022/InfiniteBench
 dataset_name: longdialogue_qa_eng
 output_type: generate_until
 test_split: test

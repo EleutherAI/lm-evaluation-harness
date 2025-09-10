@@ -2,7 +2,7 @@ tag:
 - infinitebench
 - infinitebench_retrieval
 task: infinitebench_kv_retrieval
-dataset_path: OpenBMB/InfiniteBench
+dataset_path: xinrongzhang2022/InfiniteBench
 dataset_name: kv_retrieval
 output_type: generate_until
 test_split: test

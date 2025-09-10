@@ -2,7 +2,7 @@ tag:
 - infinitebench
 - infinitebench_qa
 task: infinitebench_longbook_qa_chn
-dataset_path: OpenBMB/InfiniteBench
+dataset_path: xinrongzhang2022/InfiniteBench
 dataset_name: longbook_qa_chn
 output_type: generate_until
 test_split: test

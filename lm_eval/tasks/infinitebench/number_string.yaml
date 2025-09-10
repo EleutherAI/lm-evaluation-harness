@@ -2,7 +2,7 @@ tag:
 - infinitebench
 - infinitebench_retrieval
 task: infinitebench_number_string
-dataset_path: OpenBMB/InfiniteBench
+dataset_path: xinrongzhang2022/InfiniteBench
 dataset_name: number_string
 output_type: generate_until
 test_split: test

@@ -2,7 +2,7 @@ tag:
 - infinitebench
 - infinitebench_code
 task: infinitebench_code_run
-dataset_path: OpenBMB/InfiniteBench
+dataset_path: xinrongzhang2022/InfiniteBench
 dataset_name: code_run
 output_type: generate_until
 test_split: test
