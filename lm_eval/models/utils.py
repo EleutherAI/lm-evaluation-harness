@@ -32,6 +32,7 @@ eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
+    from PIL import Image
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
 
@@ -431,9 +432,13 @@ class Collator:
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
         elif self._group_by == "contexts":
-            # Get one sample from each key
+            # Get one sample from each key.
+            # Select longest continuation per group to ensure sufficient context logits
             values = self._reorder(
-                [value[0] for value in self._arr_with_indices.values()]
+                [
+                    max(value, key=lambda x: len(x[1][-1]))
+                    for value in self._arr_with_indices.values()
+                ]
             )
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
@@ -740,56 +745,179 @@ def handle_stop_sequences(
 
 
 def content_image_to_content_image_url(content):
+    from io import BytesIO
+    
     if isinstance(content, str):
         return content
-    if content["type"] != "image":
+
+    if content["type"] not in ["image", "image_url"]:
         return content
 
     new_content = copy.deepcopy(content)
+    image = new_content[content["type"]]
 
-    b64 = base64.b64encode(new_content["image"]).decode("utf-8")
+    if not isinstance(image, Image.Image):
+        return content
+
+    buf = BytesIO()
+    image.save(buf, format="PNG")
+    img_bytes = buf.getvalue()
+
+    b64 = base64.b64encode(img_bytes).decode("utf-8")
     data_uri = f"data:image/png;base64,{b64}"
 
     new_content["type"] = "image_url"
     new_content["image_url"] = {
         "url": data_uri,
     }
-    del new_content["image"]
+    if "image" in new_content:
+        del new_content["image"]
 
     return new_content
 
 
 def resize_image(
-    image, input_image_width=None, input_image_height=None, input_image_max_side=None
-):
-    image_width, image_height = None, None
-    if input_image_width:
-        image_width = input_image_width
-    if input_image_height:
-        image_height = input_image_height
+    image: "Image.Image",
+    width: Optional[int] = None,
+    height: Optional[int] = None,
+    max_dimension: Optional[int] = None,
+    keep_aspect_ratio: bool = True,
+    resample_filter: Union[int, str] = "Image.BICUBIC",
+    min_width: int = 1,
+    min_height: int = 1,
+) -> "Image.Image":
+    """
+    Resizes a PIL Image object with flexible options.
 
-    if image_width and image_height:
-        if image.width <= image_width and image.height <= image_height:
-            return image
-    elif image_width:
-        if image.width <= image_width:
-            return image
-        image_height = int((image.height / image.width) * image_width)
-    elif image_height:
-        if image.height <= image_height:
-            return image
-        image_width = int((image.width / image.height) * image_height)
-    elif input_image_max_side:
-        if max(image.height, image.width) <= input_image_max_side:
-            return image
-        elif image.height > image.width:
-            image_height = input_image_max_side
-            image_width = int((image.width / image.height) * image_height)
-        else:
-            image_width = input_image_max_side
-            image_height = int((image.height / image.width) * image_width)
-    else:
+    Args:
+        image: The PIL Image object to resize.
+        width: Target width in pixels.
+        height: Target height in pixels.
+        max_dimension: Maximum size for the longer dimension of the image.
+        keep_aspect_ratio: If True (default) and both width and height are provided,
+                          the image is resized to fit within these dimensions while
+                          maintaining its aspect ratio. If False, the image is stretched
+                          to the exact width and height.
+        resample_filter: The resampling filter to use for resizing.
+                        Defaults to Image.BICUBIC.
+        min_width: Minimum width for the resized image. Defaults to 1.
+        min_height: Minimum height for the resized image. Defaults to 1.
+
+    Returns:
+        The resized PIL Image object. If no resize parameters are provided
+        or if the image already meets the criteria, the original image is returned.
+
+    Order of precedence for resizing:
+    1. If width AND height are provided:
+       - If keep_aspect_ratio is True: Fits image within bounds, preserving aspect ratio.
+       - If keep_aspect_ratio is False: Resizes to exact dimensions (may distort).
+    2. Else if only width is provided: Calculates height proportionally.
+    3. Else if only height is provided: Calculates width proportionally.
+    4. Else if max_dimension is provided: Resizes the longest side to max_dimension
+       and scales the other side proportionally.
+    5. If none of the above are provided, returns the original image.
+    """
+    original_width, original_height = image.size
+
+    # If no arguments are provided, return the original image
+    if width is None and height is None and max_dimension is None:
         return image
 
-    image = image.resize((image_width, image_height), Image.BICUBIC)
-    return image
+    new_width = original_width
+    new_height = original_height
+
+    if width is not None and height is not None:
+        # No resize needed if image is already smaller than target dimensions
+        if original_width <= width and original_height <= height:
+            return image
+
+        if keep_aspect_ratio:
+            # Calculate the ratio to fit within the target dimensions
+            ratio = min(width / original_width, height / original_height)
+            new_width = int(original_width * ratio)
+            new_height = int(original_height * ratio)
+        else:
+            # Stretch to exact dimensions
+            new_width = width
+            new_height = height
+    elif width is not None:
+        # No resize needed if width is already smaller
+        if original_width <= width:
+            return image
+        # Calculate height proportionally
+        new_width = width
+        new_height = int((original_height / original_width) * new_width)
+    elif height is not None:
+        # No resize needed if height is already smaller
+        if original_height <= height:
+            return image
+        # Calculate width proportionally
+        new_height = height
+        new_width = int((original_width / original_height) * new_height)
+    elif max_dimension is not None:
+        # No resize needed if both dimensions are smaller than max_dimension
+        if max(original_height, original_width) <= max_dimension:
+            return image
+
+        if original_width > original_height:
+            # Width is the longer side
+            new_width = max_dimension
+            new_height = int((original_height / original_width) * new_width)
+        else:
+            # Height is the longer side or sides are equal
+            new_height = max_dimension
+            new_width = int((original_width / original_height) * new_height)
+
+    # Ensure dimensions are at least minimum values
+    new_width = max(min_width, new_width)
+    new_height = max(min_height, new_height)
+
+    # Perform the resize operation with the calculated dimensions
+    return image.resize((new_width, new_height), resample_filter)
+
+
+def truncate_tokens(
+    tokens: List[int],
+    max_length: int,
+    tokenizer: "PreTrainedTokenizerBase",
+    strategy: str = "left",
+):
+    if strategy == "left":
+        return tokens[-max_length:]
+    elif strategy == "right":
+        return tokens[:max_length]
+    elif strategy == "middle":
+        # Truncate the middle of the sequence
+        left_length = max_length // 2
+        right_length = max_length - left_length
+        return tokens[:left_length] + tokens[-right_length:]
+    return None
+
+
+def postprocess_generated_text(
+    generation: str, stop: Union[list[str], str, None], think_end_token: Optional[str]
+) -> str:
+    """
+    Post-processes the generated text by stripping stop sequences and optional thinking markers.
+
+    Args:
+        generation (str): The generated text to be processed.
+        stop (Optional[list[str]]): Stop sequence(s) to remove. Text is truncated
+            at the first occurrence of any stop sequence.
+        think_end_token (Optional[str]): Token marking end of thinking section. If provided,
+            returns only the text after this token (discarding thinking content).
+
+    Returns:
+        str: The processed generation - text before stop sequences and after thinking sections.
+    """
+    if stop:
+        stop = [stop] if isinstance(stop, str) else stop
+        for term in stop:
+            if len(term) > 0:
+                # ignore '' separator,
+                # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
+                generation = generation.split(term)[0]
+    if think_end_token:
+        generation = generation.split(think_end_token)[-1].lstrip()
+
+    return generation

@@ -110,7 +110,7 @@ class VLLM_VLM(VLLM):
             outputs.append(inputs)
         return outputs
 
-    def _model_generate(
+    def _multimodal_model_generate(
         self,
         requests: List[List[dict]] = None,
         generate: bool = False,
@@ -226,7 +226,10 @@ class VLLM_VLM(VLLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        # TODO: support text-only reqs
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().generate_until(requests=requests, disable_tqdm=disable_tqdm)
+
         res = []
 
         def _collate(x):
@@ -321,13 +324,8 @@ class VLLM_VLM(VLLM):
                         new_chat_history.append(message)
                     inputs.append(new_chat_history)
 
-            cont = self._model_generate(
-                inputs,
-                stop=until,
-                generate=True,
-                max_tokens=max_gen_toks,
-                pass_multimodal_args_to_chat_history=pass_multimodal_args_to_chat_history,
-                **kwargs
+            cont = self._multimodal_model_generate(
+                inputs, stop=until, generate=True, max_tokens=max_gen_toks, pass_multimodal_args_to_chat_history=pass_multimodal_args_to_chat_history, **kwargs
             )
 
             for output, context in zip(cont, contexts):
@@ -342,3 +340,12 @@ class VLLM_VLM(VLLM):
 
         pbar.close()
         return res
+
+    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+        if requests and len(requests[0].args) < 3:
+            # Fall back to non-multimodal generation.
+            return super().loglikelihood_rolling(requests=requests)
+        raise NotImplementedError(
+            "model type `vllm-vlm` does not support loglikelihood_rolling. Use 'vlm' model type for text-only loglikelihood_rolling tasks ",
+            "this is because we do not support measuring the loglikelihood a model assigns to an image.",
+        )

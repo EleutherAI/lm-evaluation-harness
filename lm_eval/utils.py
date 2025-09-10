@@ -26,6 +26,23 @@ HIGHER_IS_BETTER_SYMBOLS = {
 }
 
 
+def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+    """
+    Wraps the given string to the specified width.
+    """
+    import textwrap
+
+    return textwrap.fill(
+        inspect.cleandoc(string),
+        width=width,
+        initial_indent="",
+        subsequent_indent=" " * 8,
+        break_long_words=False,
+        break_on_hyphens=False,
+        **kwargs,
+    )
+
+
 def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
     class CustomFormatter(logging.Formatter):
@@ -602,6 +619,7 @@ def hash_dict_images(data_dict):
             for prefix in multimodal_prefixes:
                 if prefix in value:
                     return convert_string_to_hash(value)
+
         # Other types remain unchanged
         return value
 
@@ -609,4 +627,8 @@ def hash_dict_images(data_dict):
     if not isinstance(data_dict, dict):
         raise TypeError("Input must be a dictionary")
 
-    return {key: _process_value(val) for key, val in data_dict.items()}
+    return (
+        {key: _process_value(val) for key, val in data_dict.items()}
+        if importlib.util.find_spec("PIL")
+        else data_dict
+    )

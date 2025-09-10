@@ -53,7 +53,7 @@ jobs:
 
       # Cache HuggingFace cache directory for CPU tests
       - name: Cache HuggingFace cache (CPU tests)
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-hf-cpu
         with:
           path: ~/.cache/huggingface
@@ -64,11 +64,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[dev,unitxt]' --extra-index-url https://download.pytorch.org/whl/cpu
           pip install hf_xet
 
       - name: Test with pytest
-        run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
+        run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_openvino.py --ignore=tests/models/test_hf_steered.py
         continue-on-error: true  # Continue workflow even if tests fail
 
       # Save test artifacts
@@ -79,36 +79,36 @@ jobs:
           path: |
             test_logs/*
 
-  testmodels:
-    name: External LM Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.9
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      # Cache HuggingFace cache directory for External LM tests
-      - name: Cache HuggingFace cache (External LM tests)
-        uses: actions/cache@v3
-        id: cache-hf-lm
-        with:
-          path: ~/.cache/huggingface
-          key: ${{ runner.os }}-hf-cache-external-lm
-          restore-keys: |
-            ${{ runner.os }}-hf-cache-external-lm
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e '.[dev,optimum,deepsparse,sparseml,api]' --extra-index-url https://download.pytorch.org/whl/cpu
-          pip install -U transformers peft accelerate
-
-      - name: Test with pytest
-        run: python -m pytest tests/models --showlocals -s -vv
-        continue-on-error: true  # Continue workflow even if tests fail
+#  testmodels:
+#    name: External LM Tests
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 30
+#    steps:
+#      - name: Checkout Code
+#        uses: actions/checkout@v4
+#      - name: Set up Python 3.9
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: 3.9
+#          cache: pip
+#          cache-dependency-path: pyproject.toml
+#
+#      # Cache HuggingFace cache directory for External LM tests
+#      - name: Cache HuggingFace cache (External LM tests)
+#        uses: actions/cache@v3
+#        id: cache-hf-lm
+#        with:
+#          path: ~/.cache/huggingface
+#          key: ${{ runner.os }}-hf-cache-external-lm
+#          restore-keys: |
+#            ${{ runner.os }}-hf-cache-external-lm
+#
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install -e '.[dev,optimum,api]' --extra-index-url https://download.pytorch.org/whl/cpu
+#          pip install -U transformers peft accelerate
+#
+#      - name: Test with pytest
+#        run: python -m pytest tests/models --showlocals -s -vv
+#        continue-on-error: true  # Continue workflow even if tests fail

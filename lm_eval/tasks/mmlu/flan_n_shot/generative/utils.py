@@ -17,7 +17,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         ignore_punctuation=False,
         regexes_to_ignore=None,
     ) -> None:
-        """
+        r"""
         regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
                         - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
                         - step 2 : We parse the choice with regex :[\s]*([A-?]), where ? varies by number of choices.
@@ -90,7 +90,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             fallback_regex = re.compile("|".join(fallback_regexes))
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
-                f":[\s]*({without_paren_fallback_regex})"
+                rf":[\s]*({without_paren_fallback_regex})"
             )
 
             filtered = []

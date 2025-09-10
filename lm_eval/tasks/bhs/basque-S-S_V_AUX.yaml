@@ -1,0 +1,3 @@
+dataset_name: basque-S-S_V_AUX
+include: _template_yaml
+task: bhs__basque__S__S_V_AUX

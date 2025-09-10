@@ -1,0 +1,13 @@
+group: sib
+task:
+  - sib_prompt_1
+  - sib_prompt_2
+  - sib_prompt_3
+  - sib_prompt_4
+  - sib_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

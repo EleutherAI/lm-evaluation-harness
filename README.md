@@ -5,7 +5,7 @@
 ---
 
 ## Latest News 📣
-
+- [2025/07] Added `think_end_token` arg to `hf` (token/str), `vllm` and `sglang` (str) for stripping CoT reasoning traces from models that support it.
 - [2025/03] Added support for steering HF models!
 - [2025/02] Added [SGLang](https://docs.sglang.ai/) support!
 - [2024/09] We are prototyping allowing users of LM Evaluation Harness to create and evaluate on text+image multimodal input, text output tasks, and have just added the `hf-multimodal` and `vllm-vlm` model types and `mmmu` task as a prototype feature. We welcome users to try out this in-progress feature and stress-test it for themselves, and suggest they check out [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval), a wonderful project originally forking off of the lm-evaluation-harness, for a broader range of multimodal tasks, models, and features.
@@ -109,6 +109,28 @@ lm_eval --model hf \
 
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
+
+#### Evaluating GGUF Models
+
+`lm-eval` supports evaluating models in GGUF format using the Hugging Face (`hf`) backend. This allows you to use quantized models compatible with `transformers`, `AutoModel`, and llama.cpp conversions.
+
+To evaluate a GGUF model, pass the path to the directory containing the model weights, the `gguf_file`, and optionally a separate `tokenizer` path using the `--model_args` flag.
+
+**🚨 Important Note:**  
+If no separate tokenizer is provided, Hugging Face will attempt to reconstruct the tokenizer from the GGUF file — this can take **hours** or even hang indefinitely. Passing a separate tokenizer avoids this issue and can reduce tokenizer loading time from hours to seconds.
+
+**✅ Recommended usage:**
+
+```bash
+lm_eval --model hf \
+    --model_args pretrained=/path/to/gguf_folder,gguf_file=model-name.gguf,tokenizer=/path/to/tokenizer \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8
+```
+
+> [!Tip]
+> Ensure the tokenizer path points to a valid Hugging Face tokenizer directory (e.g., containing tokenizer_config.json, vocab.json, etc.).
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -342,7 +364,7 @@ lm_eval --model local-completions --tasks gsm8k --model_args model=facebook/opt-
 Note that for externally hosted models, configs such as `--device` which relate to where to place a local model should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
 
 | API or Inference Server                                                                                                   | Implemented?                                                                                            | `--model <xxx>` name                                | Models supported:                                                                                                                                                                                                                                                                                                                                          | Request Types:                                                                 |
-| --------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+|---------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | OpenAI Completions                                                                                                        | :heavy_check_mark:                                                                                      | `openai-completions`, `local-completions`           | All OpenAI Completions API models                                                                                                                                                                                                                                                                                                                          | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | OpenAI ChatCompletions                                                                                                    | :heavy_check_mark:                                                                                      | `openai-chat-completions`, `local-chat-completions` | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                                                                                                                                                                                                                                                                              | `generate_until` (no logprobs)                                                 |
 | Anthropic                                                                                                                 | :heavy_check_mark:                                                                                      | `anthropic`                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)                                                                                                                                                                                                                                                               | `generate_until` (no logprobs)                                                 |
@@ -355,8 +377,6 @@ Note that for externally hosted models, configs such as `--device` which relate 
 | Huggingface Optimum (Causal LMs)                                                                                          | :heavy_check_mark:                                                                                      | `openvino`                                          | Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                                                                                                                                                                                                                            | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Huggingface Optimum-intel IPEX (Causal LMs)                                                                               | :heavy_check_mark:                                                                                      | `ipex`                                              | Any decoder-only AutoModelForCausalLM                                                                                                                                                                                                                                                                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Neuron via AWS Inf2 (Causal LMs)                                                                                          | :heavy_check_mark:                                                                                      | `neuronx`                                           | Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                                                                                                                                                                                            | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
-| [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)                                                      | :heavy_check_mark:                                                                                      | `deepsparse`                                        | Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                                                                                                                                                                                                       | `generate_until`, `loglikelihood`                                              |
-| [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)                                                          | :heavy_check_mark:                                                                                      | `sparseml`                                          | Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | NVIDIA NeMo                                                                                                               | :heavy_check_mark:                                                                                      | `nemo_lm`                                           | [All supported models](https://docs.nvidia.com/nemo-framework/user-guide/24.09/nemotoolkit/core/core.html#nemo-models)                                                                                                                                                                                                                                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
 | Watsonx.ai                                                                                                                | :heavy_check_mark:                                                                                      | `watsonx_llm`                                       | [Supported Watsonx.ai Engines](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/fm-models.html?context=wx)                                                                                                                                                                                                                                 | `generate_until` `loglikelihood`                                               |
 | [Your local inference server!](docs/API_guide.md)                                                                         | :heavy_check_mark:                                                                                      | `local-completions` or `local-chat-completions`     | Support for OpenAI API-compatible servers, with easy customization for other APIs.                                                                                                                                                                                                                                                                         | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                     |
@@ -550,9 +570,19 @@ lm_eval \
 
 In the stdout, you will find the link to the W&B run page as well as link to the generated report. You can find an example of this workflow in [examples/visualize-wandb.ipynb](examples/visualize-wandb.ipynb), and an example of how to integrate it beyond the CLI.
 
-## How to Contribute or Learn More?
+## Contributing
 
-For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
+Check out our [open issues](https://github.com/EleutherAI/lm-evaluation-harness/issues) and feel free to submit pull requests!
+
+For more information on the library and how everything fits together, see our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs).
+
+To get started with development, first clone the repository and install the dev dependencies:
+
+```bash
+git clone https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e ".[dev]"
+````
 
 ### Implementing new tasks
 
@@ -577,37 +607,24 @@ The best way to get support is to open an issue on this repo or join the [Eleuth
 
 Extras dependencies can be installed via `pip install -e ".[NAME]"`
 
-| Name                 | Use                                                   |
-| -------------------- | ----------------------------------------------------- |
-| api                  | For using api models (Anthropic, OpenAI API)          |
-| audiolm_qwen         | For running Qwen2 audio models                        |
-| deepsparse           | For running NM's DeepSparse models                    |
-| dev                  | For linting PRs and contributions                     |
-| gptq                 | For loading models with AutoGPTQ                      |
-| gptqmodel            | For loading models with GPTQModel                     |
-| hf_transfer          | For speeding up HF Hub file downloads                 |
-| ibm_watsonx_ai       | For using IBM watsonx.ai model apis                   |
-| ifeval               | For running the IFEval task                           |
-| ipex                 | For running on optimum-intel ipex backend             |
-| japanese_leaderboard | For running Japanese LLM Leaderboard tasks            |
-| longbench            | For running LongBench tasks                           |
-| mamba                | For loading Mamba SSM models                          |
-| math                 | For running math task answer checking                 |
-| multilingual         | For multilingual tokenizers                           |
-| neuronx              | For running on AWS inf2 instances                     |
-| optimum              | For running Intel OpenVINO models                     |
-| promptsource         | For using PromptSource prompts                        |
-| ruler                | For running RULER tasks                               |
-| sae_lens             | For using SAELens to steer models                     |
-| sentencepiece        | For using the sentencepiece tokenizer                 |
-| sparseml             | For using NM's SparseML models                        |
-| sparsify             | For using Sparsify to steer models                    |
-| testing              | For running library test suite                        |
-| vllm                 | For loading models with vLLM                          |
-| wandb                | For integration with `Weights and Biases` platform    |
-| zeno                 | For visualizing results with Zeno                     |
-| -------------------- | ----------------------------------------------------- |
-| all                  | Loads all extras (not recommended)                    |
+| NAME                 | Description                    | NAME           | Description                           |
+|----------------------|--------------------------------|----------------|---------------------------------------|
+| tasks                | All task-specific dependencies | api            | API models (Anthropic, OpenAI, local) |
+| acpbench             | ACP Bench tasks                | audiolm_qwen   | Qwen2 audio models                    |
+| ifeval               | IFEval task                    |                |                                       |
+| japanese_leaderboard | Japanese LLM tasks             | gptq           | AutoGPTQ models                       |
+| longbench            | LongBench tasks                | gptqmodel      | GPTQModel models                      |
+| math                 | Math answer checking           | hf_transfer    | Speed up HF downloads                 |
+| multilingual         | Multilingual tokenizers        | ibm_watsonx_ai | IBM watsonx.ai models                 |
+| ruler                | RULER tasks                    | ipex           | Intel IPEX backend                    |
+|                      |                                |                |                                       |
+| dev                  | Linting & contributions        | mamba          | Mamba SSM models                      |
+| promptsource         | PromptSource prompts           | neuronx        | AWS inf2 instances                    |
+| sentencepiece        | Sentencepiece tokenizer        | optimum        | Intel OpenVINO models                 |
+| testing              | Run test suite                 | sae_lens       | SAELens model steering                |
+| unitxt               | Run unitxt tasks               |                |                                       |
+| wandb                | Weights & Biases               | sparsify       | Sparsify model steering               |
+| zeno                 | Result visualization           | vllm           | vLLM models                           |
 
 ## Cite as
 
