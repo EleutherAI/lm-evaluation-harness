@@ -9,7 +9,7 @@ training_split: train
 fewshot_split: train
 test_split: train
 doc_to_text: "{{instruction}}\n{{passage}}\nسۇئال: {{question}}\nجاۋاپ:"
-doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
+doc_to_target: "{{answer}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -21,14 +21,13 @@ metric_list:
       - "\\$"
       - "(?s).*#### "
       - "\\.$"
+  - metric: bleu
+  - metric: chrf
 generation_kwargs:
-  until:
-    - "Question:"
-    - "</s>"
-    - "<|im_end|>"
+  until: ["سۇئال:"]
   do_sample: false
   temperature: 0.0
 repeats: 1
-num_fewshot: 5      
+num_fewshot: 0      
 metadata:
   version: 1.0.0
