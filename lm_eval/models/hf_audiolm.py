@@ -516,3 +516,369 @@ class HFAUDIOLM(HFLM):
         raise NotImplementedError(
             "'loglikelihood' requests for model type `hf-audiolm-audio-chat` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
         )
+
+
+@register_model("hf-audiolm-minicpm")
+class HFAUDIOLMMINICPM(HFLM):
+    """
+    Hugging Face model class for Audio LM model like MiniCPM.
+    """
+
+    AUTO_MODEL_CLASS = transformers.AutoModel
+    MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
+
+    def __init__(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        max_audios: Optional[int] = 5,
+        **kwargs,
+    ):
+        # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
+        # modify init behavior.
+        super().__init__(pretrained, **kwargs)
+
+        self.chat_applied: bool = False
+        self.max_audios = max_audios
+
+    def _create_tokenizer(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        tokenizer: Optional[
+            Union[
+                str,
+                transformers.ProcessorMixin,
+            ]
+        ],
+        revision: Optional[str] = "main",
+        trust_remote_code: Optional[bool] = False,
+        **kwargs,
+    ) -> None:
+        """
+        Helper method during initialization.
+        """
+        if tokenizer:
+            if isinstance(tokenizer, str):
+                return transformers.AutoTokenizer.from_pretrained(
+                    tokenizer,
+                    revision=revision,
+                    trust_remote_code=trust_remote_code,
+                    # use_fast=use_fast_tokenizer,
+                )
+            else:
+                assert isinstance(
+                    tokenizer, transformers.ProcessorMixin
+                )  # TODO: check this condition
+                return tokenizer
+
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            pretrained, trust_remote_code=True
+        )
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        self.chat_applied = True
+        for ch_h in chat_history:
+            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
+                ch_h["content"] = ch_h["content"].replace(placeholder, "")
+
+        return json.dumps(chat_history, ensure_ascii=False)
+
+    def tok_batch_multimodal_encode(
+        self,
+        strings: List[str],  # note that input signature of this fn is different
+        audios: List[List],
+    ) -> List[
+        Dict
+    ]:  # note that this return signature differs from HFLM tok_batch_encode.
+        def _replace_placeholder(placeholder, strings):
+            return [
+                replace_placeholders(string, placeholder, "", self.max_audios)
+                for string in strings
+            ]
+
+        if not self.chat_applied:
+            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
+                strings = _replace_placeholder(placeholder, strings)
+
+        encoded = self.tok_encode(strings[0])
+        question = encoded[0]["content"]
+
+        # sys_prompt = self.model.get_sys_prompt(mode='default', language='ru')
+
+        msg = {"role": "user", "content": [question, *audios]}
+        # msgs = [sys_prompt, msg]
+        msgs = [msg]
+
+        return msgs
+
+    def tok_encode(self, x):
+        return json.loads(x)
+
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
+        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments (text-only reqs)
+        res = []
+
+        def _collate(x):
+            toks = self.tok_encode(x[0])
+            return -len(toks), x[0]
+
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running generate_until requests with text+audio input",
+        )
+        # TODO: port auto-batch sizing into this.
+
+        # we group requests by their generation_kwargs,
+        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
+        # in the same batch.
+        re_ords = Collator(
+            [reg.args for reg in requests],
+            _collate,
+            group_by="gen_kwargs",
+            group_fn=lambda x: x[1],
+        )
+        chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
+
+        for chunk in chunks:
+            contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
+
+            audios = get_audios_from_args(aux_arguments)
+            msgs = self.tok_batch_multimodal_encode(contexts, audios)
+
+            gen_kwargs = {}
+            if "temperature" in all_gen_kwargs[0]:
+                if all_gen_kwargs[0]["temperature"] == 0:
+                    gen_kwargs["sampling"] = False
+                else:
+                    gen_kwargs["temperature"] = all_gen_kwargs[0]["temperature"]
+            if "do_sample" in all_gen_kwargs[0]:
+                gen_kwargs["sampling"] = True
+            else:
+                gen_kwargs["sampling"] = False
+            if "max_gen_toks" in all_gen_kwargs[0]:
+                gen_kwargs["max_new_tokens"] = all_gen_kwargs[0]["max_gen_toks"]
+
+            result = self.model.chat(
+                msgs=msgs,
+                tokenizer=self.tokenizer,
+                use_tts_template=False,
+                generate_audio=False,
+                max_slice_nums=1,
+                use_image_id=False,
+                return_dict=False,
+                **gen_kwargs,
+            )
+            res.append(result)
+
+        pbar.close()
+        return res
+
+    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+        raise NotImplementedError(
+            "model type `hf-audiolm-audio-chat` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
+            "this is because we do not support measuring the loglikelihood a model assigns to an image.",
+        )
+
+    def loglikelihood(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[Tuple[float, bool]]:
+        raise NotImplementedError(
+            "'loglikelihood' requests for model type `hf-audiolm-audio-chat` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
+        )
+
+
+@register_model("hf-audiolm-ultravox")
+class HFAUDIOLMULTRAVOX(HFLM):
+    """
+    Hugging Face model class for Audio LM model like Ultravox.
+    """
+
+    AUTO_MODEL_CLASS = transformers.AutoModel
+    MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
+
+    def __init__(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        max_audios: Optional[int] = 5,
+        **kwargs,
+    ):
+        # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
+        # modify init behavior.
+        super().__init__(pretrained, **kwargs)
+
+    def _create_tokenizer(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        tokenizer: Optional[
+            Union[
+                str,
+                transformers.ProcessorMixin,
+            ]
+        ],
+        revision: Optional[str] = "main",
+        trust_remote_code: Optional[bool] = False,
+        **kwargs,
+    ) -> None:
+        """
+        Helper method during initialization.
+        """
+        if tokenizer:
+            if isinstance(tokenizer, str):
+                return transformers.AutoTokenizer.from_pretrained(
+                    tokenizer,
+                    revision=revision,
+                    trust_remote_code=trust_remote_code,
+                    # use_fast=use_fast_tokenizer,
+                )
+            else:
+                assert isinstance(
+                    tokenizer, transformers.ProcessorMixin
+                )  # TODO: check this condition
+                return tokenizer
+
+        if isinstance(pretrained, str):
+            model_name = pretrained
+        else:
+            # get the HF hub name via accessor on model
+            model_name = self.model.name_or_path
+
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            model_name, trust_remote_code=True
+        )
+
+    def _create_model(
+        self,
+        pretrained: str,
+        revision: Optional[str] = "main",
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
+        trust_remote_code: Optional[bool] = False,
+        # arguments used for splitting a model across GPUs naively.
+        # only used if `parallelize=True`.
+        # (accelerate naive PP (device_map) options)
+        parallelize: Optional[bool] = False,
+        gpus: Optional[int] = None,
+        max_memory_per_gpu: Optional[Union[int, str]] = None,
+        max_cpu_memory: Optional[Union[int, str]] = None,
+        offload_folder: Optional[str] = "./offload",
+        # PEFT, delta weights and quantization options
+        peft: Optional[str] = None,
+        delta: Optional[str] = None,
+        autogptq: Optional[Union[bool, str]] = False,
+        **kwargs,
+    ) -> None:
+        self.pipe = transformers.pipeline(
+            model=pretrained, trust_remote_code=True, device=0
+        )
+        self._model = self.pipe.model
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        self.chat_applied = True
+        for ch_h in chat_history:
+            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
+                ch_h["content"] = ch_h["content"].replace(placeholder, "")
+
+        return json.dumps(chat_history, ensure_ascii=False)
+
+    def tok_batch_multimodal_encode(
+        self,
+        strings: List[str],  # note that input signature of this fn is different
+        # audios: List[List],
+    ) -> List[
+        Dict
+    ]:  # note that this return signature differs from HFLM tok_batch_encode.
+        def _replace_placeholder(placeholder, strings):
+            return [
+                replace_placeholders(string, placeholder, "", self.max_audios)
+                for string in strings
+            ]
+
+        if not self.chat_applied:
+            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
+                strings = _replace_placeholder(placeholder, strings)
+
+        encoded = self.tok_encode(strings[0])
+        question = encoded[0]["content"]
+
+        turns = [
+            # {
+            #   "role": "system",
+            #   "content": "You are a friendly and helpful character. You love to answer questions for people."
+            # },
+            {"role": "assistant", "content": question},
+        ]
+        return turns
+
+    def tok_encode(self, x):
+        return json.loads(x)
+
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
+        # TODO: back out to HFLM.generate_until() for all requests without aux_arguments (text-only reqs)
+        res = []
+
+        def _collate(x):
+            toks = self.tok_encode(x[0])
+            return -len(toks), x[0]
+
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running generate_until requests with text+audio input",
+        )
+        # TODO: port auto-batch sizing into this.
+
+        # we group requests by their generation_kwargs,
+        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
+        # in the same batch.
+        re_ords = Collator(
+            [reg.args for reg in requests],
+            _collate,
+            group_by="gen_kwargs",
+            group_fn=lambda x: x[1],
+        )
+        chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
+
+        for chunk in chunks:
+            contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
+
+            target_sr = 16000
+            audios = get_audios_from_args(aux_arguments, target_sr)
+
+            turns = self.tok_batch_multimodal_encode(contexts)
+
+            result = self.pipe(
+                {"audio": audios[0], "turns": turns, "sampling_rate": target_sr},
+                max_new_tokens=30,
+            )
+            res.append(result)
+
+        pbar.close()
+        return res
+
+    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+        raise NotImplementedError(
+            "model type `hf-audiolm-audio-chat` does not support loglikelihood_rolling. Use 'hf' model type for text-only loglikelihood_rolling tasks ",
+            "this is because we do not support measuring the loglikelihood a model assigns to an image.",
+        )
+
+    def loglikelihood(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[Tuple[float, bool]]:
+        raise NotImplementedError(
+            "'loglikelihood' requests for model type `hf-audiolm-audio-chat` are not yet tested. This feature will be enabled when a loglikelihood-based multiple-choice VQA dataset is added!"
+        )
+
+
