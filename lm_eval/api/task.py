@@ -89,6 +89,7 @@ class TaskConfig(dict):
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_image: Union[Callable, str] = None
+    doc_to_video: Union[Callable, str] = None
     doc_to_audio: Union[Callable, str] = None
     doc_to_video: Union[Callable, str] = None
     unsafe_code: bool = False
