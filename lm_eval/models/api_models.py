@@ -404,7 +404,8 @@ class TemplateAPI(TemplateLM):
             return answers
         # If the retries also fail
         except BaseException as e:
-            eval_logger.error(f"Exception:{repr(e)}, {outputs}, retrying.")
+            outputs_str = locals().get('outputs', 'undefined')
+            eval_logger.error(f"Exception:{repr(e)}, {outputs_str}, retrying.")
             raise e
         finally:
             if acquired:
