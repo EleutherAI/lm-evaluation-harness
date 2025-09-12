@@ -1,30 +1,37 @@
-task: islamic_qa
+task: gen.cuisine_hard_subset
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: ./religious_qa/mcq_v3.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/cuisine/hard_subset_v2.json
 test_split: test
 
-output_type: multiple_choice
+output_type: generate_until
 
 doc_to_text: |
   أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D أو E. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D أو E دون أي شرح أو معلومات إضافية.
-  السؤال: {{ question }}
-  الخيارات:
+  {{ question }}
+  الاختيارات:
   {% for option in options %}
   {{ option }}
   {% endfor %}
   الإجابة:
-doc_to_choice: ['A', 'B', 'C', 'D', 'E']
 doc_to_target: !function utils.doc_to_target
 
+generation_kwargs:
+  until:
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+
 metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
-    aggregation: mean
+  - metric: !function utils.custom_exact_match
+    aggregation: !function utils.agg_custom_exact_match
     higher_is_better: true
 
 metadata:

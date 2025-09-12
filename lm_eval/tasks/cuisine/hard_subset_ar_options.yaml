@@ -1,23 +1,24 @@
-task: islamic_qa
+task: cuisine_hard_subset_ar_options
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: ./religious_qa/mcq_v3.json
+    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/cuisine/hard_subset_v2_ar_options.json
 test_split: test
 
 output_type: multiple_choice
 
 doc_to_text: |
   أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D أو E. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D أو E دون أي شرح أو معلومات إضافية.
-  السؤال: {{ question }}
-  الخيارات:
+  {{ question }}
+  الاختيارات:
   {% for option in options %}
   {{ option }}
   {% endfor %}
   الإجابة:
-doc_to_choice: ['A', 'B', 'C', 'D', 'E']
+doc_to_choice: !function utils.doc_to_choice
 doc_to_target: !function utils.doc_to_target
+
 
 metric_list:
   - metric: acc
