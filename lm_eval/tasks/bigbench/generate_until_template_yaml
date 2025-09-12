@@ -1,4 +1,4 @@
-group: bigbench_generate_until
+tag: bigbench_generate_until
 dataset_path: hails/bigbench
 output_type: generate_until
 dataset_kwargs:

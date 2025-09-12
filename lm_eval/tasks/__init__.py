@@ -13,6 +13,8 @@ from lm_eval.evaluator_utils import get_subtask_list
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 
+eval_logger = logging.getLogger(__name__)
+
 
 class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
@@ -22,15 +24,15 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity="INFO",
+        verbosity: Optional[str] = None,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
+        metadata: Optional[dict] = None,
     ) -> None:
-        self.verbosity = verbosity
+        if verbosity is not None:
+            utils.setup_logging(verbosity)
         self.include_path = include_path
-        self.logger = utils.eval_logger
-        self.logger.setLevel(getattr(logging, f"{verbosity}"))
-
+        self.metadata = metadata
         self._task_index = self.initialize_tasks(
             include_path=include_path, include_defaults=include_defaults
         )
@@ -40,7 +42,11 @@ class TaskManager:
             [x for x in self._all_tasks if self._task_index[x]["type"] == "group"]
         )
         self._all_subtasks = sorted(
-            [x for x in self._all_tasks if self._task_index[x]["type"] == "task"]
+            [
+                x
+                for x in self._all_tasks
+                if self._task_index[x]["type"] in ["task", "python_task"]
+            ]
         )
         self._all_tags = sorted(
             [x for x in self._all_tasks if self._task_index[x]["type"] == "tag"]
@@ -52,15 +58,15 @@ class TaskManager:
         self,
         include_path: Optional[Union[str, List]] = None,
         include_defaults: bool = True,
-    ):
-        """Creates a dictionary of tasks index.
+    ) -> dict[str, dict]:
+        """Creates a dictionary of tasks indexes.
 
         :param include_path: Union[str, List] = None
             An additional path to be searched for tasks recursively.
             Can provide more than one such path as a list.
         :param include_defaults: bool = True
             If set to false, default tasks (those in lm_eval/tasks/) are not indexed.
-        :return
+        return
             Dictionary of task names as key and task metadata
         """
         if include_defaults:
@@ -75,7 +81,7 @@ class TaskManager:
         task_index = {}
         for task_dir in all_paths:
             tasks = self._get_task_and_group(task_dir)
-            task_index = {**tasks, **task_index}
+            task_index = {**task_index, **tasks}
 
         return task_index
 
@@ -165,54 +171,54 @@ class TaskManager:
             result += subtask_table.dumps() + "\n\n"
         return result
 
-    def match_tasks(self, task_list):
+    def match_tasks(self, task_list: list[str]) -> list[str]:
         return utils.pattern_match(task_list, self.all_tasks)
 
-    def _name_is_registered(self, name) -> bool:
+    def _name_is_registered(self, name: str) -> bool:
         if name in self.all_tasks:
             return True
         return False
 
-    def _name_is_task(self, name) -> bool:
+    def _name_is_task(self, name: str) -> bool:
         if self._name_is_registered(name) and (self.task_index[name]["type"] == "task"):
             return True
         return False
 
-    def _name_is_tag(self, name) -> bool:
+    def _name_is_tag(self, name: str) -> bool:
         if self._name_is_registered(name) and (self.task_index[name]["type"] == "tag"):
             return True
         return False
 
-    def _name_is_group(self, name) -> bool:
+    def _name_is_group(self, name: str) -> bool:
         if self._name_is_registered(name) and (
             self.task_index[name]["type"] == "group"
         ):
             return True
         return False
 
-    def _name_is_python_task(self, name):
+    def _name_is_python_task(self, name: str) -> bool:
         if self._name_is_registered(name) and (
             self.task_index[name]["type"] == "python_task"
         ):
             return True
         return False
 
-    def _config_is_task(self, config) -> bool:
+    def _config_is_task(self, config: dict) -> bool:
         if ("task" in config) and isinstance(config["task"], str):
             return True
         return False
 
-    def _config_is_group(self, config) -> bool:
+    def _config_is_group(self, config: dict) -> bool:
         if ("task" in config) and isinstance(config["task"], list):
             return True
         return False
 
-    def _config_is_python_task(self, config) -> bool:
+    def _config_is_python_task(self, config: dict) -> bool:
         if "class" in config:
             return True
         return False
 
-    def _get_yaml_path(self, name):
+    def _get_yaml_path(self, name: str):
         if name not in self.task_index:
             raise ValueError
         return self.task_index[name]["yaml_path"]
@@ -271,13 +277,21 @@ class TaskManager:
                     task_object = config["class"]()
                 if isinstance(task_object, ConfigurableTask):
                     # very scuffed: set task name here. TODO: fixme?
-                    task_object.config.task = config["task"]
+                    task_object.config.task = task
             else:
+                if self.metadata is not None:
+                    config["metadata"] = config.get("metadata", {}) | self.metadata
+                else:
+                    config["metadata"] = config.get("metadata", {})
                 task_object = ConfigurableTask(config=config)
 
             return {task: task_object}
 
-        def _get_group_and_subtask_from_config(config):
+        def _get_group_and_subtask_from_config(
+            config: dict,
+        ) -> tuple[ConfigurableGroup, list[str]]:
+            if self.metadata is not None:
+                config["metadata"] = config.get("metadata", {}) | self.metadata
             group_name = ConfigurableGroup(config=config)
             subtask_list = []
             for task in group_name.config["task"]:
@@ -287,7 +301,9 @@ class TaskManager:
                     subtask_list.append(task)
             return group_name, subtask_list
 
-        def _process_group_config(config, update_config=None):
+        def _process_group_config(
+            config: dict, update_config: dict = None
+        ) -> tuple[dict, dict]:
             if update_config is not None:
                 config = {**config, **update_config}
             _update_config = {
@@ -407,7 +423,12 @@ class TaskManager:
             task_list = [task_list]
 
         all_loaded_tasks = dict(
-            collections.ChainMap(*map(self._load_individual_task_or_group, task_list))
+            collections.ChainMap(
+                *map(
+                    lambda task: self._load_individual_task_or_group(task),
+                    task_list,
+                )
+            )
         )
         return all_loaded_tasks
 
@@ -436,6 +457,30 @@ class TaskManager:
         :return
             Dictionary of task names as key and task metadata
         """
+
+        def _populate_tags_and_groups(config, task, tasks_and_groups, print_info):
+            # TODO: remove group in next release
+            if "tag" in config:
+                attr_list = config["tag"]
+                if isinstance(attr_list, str):
+                    attr_list = [attr_list]
+
+                for tag in attr_list:
+                    if tag not in tasks_and_groups:
+                        tasks_and_groups[tag] = {
+                            "type": "tag",
+                            "task": [task],
+                            "yaml_path": -1,
+                        }
+                    elif tasks_and_groups[tag]["type"] != "tag":
+                        eval_logger.info(
+                            f"The tag '{tag}' is already registered as a group, this tag will not be registered. "
+                            "This may affect tasks you want to call."
+                        )
+                        break
+                    else:
+                        tasks_and_groups[tag]["task"].append(task)
+
         # TODO: remove group in next release
         print_info = True
         ignore_dirs = [
@@ -451,10 +496,14 @@ class TaskManager:
                     config = utils.load_yaml_config(yaml_path, mode="simple")
                     if self._config_is_python_task(config):
                         # This is a python class config
-                        tasks_and_groups[config["task"]] = {
+                        task = config["task"]
+                        tasks_and_groups[task] = {
                             "type": "python_task",
                             "yaml_path": yaml_path,
                         }
+                        _populate_tags_and_groups(
+                            config, task, tasks_and_groups, print_info
+                        )
                     elif self._config_is_group(config):
                         # This is a group config
                         tasks_and_groups[config["group"]] = {
@@ -483,43 +532,11 @@ class TaskManager:
                             "type": "task",
                             "yaml_path": yaml_path,
                         }
-
-                        # TODO: remove group in next release
-                        for attr in ["tag", "group"]:
-                            if attr in config:
-                                if attr == "group" and print_info:
-                                    self.logger.info(
-                                        "`group` and `group_alias` keys in TaskConfigs are deprecated and will be removed in v0.4.5 of lm_eval. "
-                                        "The new `tag` field will be used to allow for a shortcut to a group of tasks one does not wish to aggregate metrics across. "
-                                        "`group`s which aggregate across subtasks must be only defined in a separate group config file, "
-                                        "which will be the official way to create groups that support cross-task aggregation as in `mmlu`. "
-                                        "Please see the v0.4.4 patch notes and our documentation: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#advanced-group-configs "
-                                        "for more information."
-                                    )
-                                    print_info = False
-                                    # attr = "tag"
-
-                                attr_list = config[attr]
-                                if isinstance(attr_list, str):
-                                    attr_list = [attr_list]
-
-                                for tag in attr_list:
-                                    if tag not in tasks_and_groups:
-                                        tasks_and_groups[tag] = {
-                                            "type": "tag",
-                                            "task": [task],
-                                            "yaml_path": -1,
-                                        }
-                                    elif tasks_and_groups[tag]["type"] != "tag":
-                                        self.logger.info(
-                                            f"The tag {tag} is already registered as a group, this tag will not be registered. "
-                                            "This may affect tasks you want to call."
-                                        )
-                                        break
-                                    else:
-                                        tasks_and_groups[tag]["task"].append(task)
+                        _populate_tags_and_groups(
+                            config, task, tasks_and_groups, print_info
+                        )
                     else:
-                        self.logger.debug(f"File {f} in {root} could not be loaded")
+                        eval_logger.debug(f"File {f} in {root} could not be loaded")
 
         return tasks_and_groups
 
@@ -546,7 +563,7 @@ def get_task_name_from_object(task_object):
     )
 
 
-def _check_duplicates(task_dict: dict) -> List[str]:
+def _check_duplicates(task_dict: dict) -> None:
     """helper function solely used in validating get_task_dict output.
     Takes the output of lm_eval.evaluator_utils.get_subtask_list and
     returns a list of all leaf subtasks contained within, and errors if any such leaf subtasks are

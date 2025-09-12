@@ -1,7 +1,7 @@
 task: glianorex
 dataset_path: maximegmd/glianorex
 output_type: multiple_choice
-test_split: train
+test_split: test
 doc_to_text: !function preprocess_glianorex.doc_to_text
 doc_to_target: !function preprocess_glianorex.doc_to_target
 doc_to_choice: [ 'A', 'B', 'C', 'D' ]
@@ -12,3 +12,5 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 1.0

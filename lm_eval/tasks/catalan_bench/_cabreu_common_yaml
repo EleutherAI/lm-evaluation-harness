@@ -1,0 +1,17 @@
+tag: cabreu
+dataset_path: projecte-aina/caBreu
+dataset_name: null
+output_type: generate_until
+test_split: test
+training_split: train
+validation_split: validation
+process_docs: !function utils.process_doc_cabreu
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: !function utils.rouge1
+    aggregation: !function utils.rouge1_agg
+    higher_is_better: true
+metadata:
+  version: 1.0

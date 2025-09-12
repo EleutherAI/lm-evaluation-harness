@@ -1,0 +1,80 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 2.0/15
+      B: 1.0/7
+      C: 3.0/16
+      D: 1.0/5
+    input_correct_responses:
+    - B
+    input_question: "Un d\xE9 \xE0 6 faces est lanc\xE9 15 fois et les r\xE9sultats\
+      \ sont : la face 1 appara\xEEt 0 fois ; face 2\_: 1 fois ; face 3\_: 2 fois\
+      \ ; face 4\_: 3 fois ; face 5\_: 4 fois ; face 6\_: 5 fois. Sur la base de ces\
+      \ r\xE9sultats, quelle est la probabilit\xE9 que le c\xF4t\xE9 3 apparaisse\
+      \ lors de l&#39;utilisation du lissage Add-1\_?"
+  - input_choice_list:
+      A: "recadrage al\xE9atoire et retournement horizontal"
+      B: "recadrage al\xE9atoire et retournement vertical"
+      C: "post\xE9risation"
+      D: tramage
+    input_correct_responses:
+    - A
+    input_question: "Quelle augmentation de donn\xE9es d&#39;image est la plus courante\
+      \ pour les images naturelles\_?"
+  - input_choice_list:
+      A: "Ma m\xE9thode permet d&#39;obtenir une erreur d&#39;apprentissage inf\xE9\
+        rieure \xE0 toutes les m\xE9thodes pr\xE9c\xE9dentes\_!"
+      B: "Ma m\xE9thode obtient une erreur de test inf\xE9rieure \xE0 toutes les m\xE9\
+        thodes pr\xE9c\xE9dentes\_! (Note de bas de page\_: Lorsque le param\xE8tre\
+        \ de r\xE9gularisation \u03BB est choisi de mani\xE8re \xE0 minimiser l&#39;erreur\
+        \ de test.)"
+      C: "Ma m\xE9thode obtient une erreur de test inf\xE9rieure \xE0 toutes les m\xE9\
+        thodes pr\xE9c\xE9dentes\_! (Note de bas de page\_: Lorsque le param\xE8tre\
+        \ de r\xE9gularisation \u03BB est choisi de mani\xE8re \xE0 minimiser l&#39;erreur\
+        \ de validation crois\xE9e.)"
+      D: "Ma m\xE9thode obtient une erreur de validation crois\xE9e inf\xE9rieure\
+        \ \xE0 toutes les m\xE9thodes pr\xE9c\xE9dentes\_! (Note de bas de page\_\
+        : Lorsque le param\xE8tre de r\xE9gularisation \u03BB est choisi de mani\xE8\
+        re \xE0 minimiser l&#39;erreur de validation crois\xE9e.)"
+    input_correct_responses:
+    - C
+    input_question: "Vous r\xE9visez des articles pour la World&#39;s Fanciest Machine\
+      \ Learning Conference, et vous voyez des soumissions avec les affirmations suivantes.\
+      \ Lesquelles envisageriez-vous d&#39;accepter\_?"
+  - input_choice_list:
+      A: environ 10 exemples
+      B: environ 100 exemples
+      C: entre 100 et 500 exemplaires
+      D: plus de 1000 exemples
+    input_correct_responses:
+    - D
+    input_question: "Pour obtenir une estimation de perte 0/1 inf\xE9rieure \xE0 1\_\
+      % de la v\xE9ritable perte 0/1 (avec une probabilit\xE9 de 95\_%), selon l&#39;in\xE9\
+      galit\xE9 de Hoeffding, l&#39;ensemble de tests IID doit avoir combien d&#39;exemples\_\
+      ?"
+  - input_choice_list:
+      A: "C&#39;est trop co\xFBteux en calcul."
+      B: "Cela se traduirait probablement par un arbre de d\xE9cision qui obtiendrait\
+        \ de mauvais r\xE9sultats sur l&#39;ensemble d&#39;apprentissage et sur un\
+        \ ensemble de tests."
+      C: "Cela se traduirait probablement par un arbre de d\xE9cision qui obtiendrait\
+        \ de bons r\xE9sultats sur l&#39;ensemble d&#39;apprentissage, mais de mauvais\
+        \ r\xE9sultats sur un ensemble de tests."
+      D: "Cela se traduirait probablement par un arbre de d\xE9cision qui obtient\
+        \ de bons r\xE9sultats sur un ensemble de tests, mais de mauvais r\xE9sultats\
+        \ sur un ensemble d&#39;apprentissage."
+    input_correct_responses:
+    - C
+    input_question: "Traditionnellement, lorsque nous avons un attribut d&#39;entr\xE9\
+      e \xE0 valeur r\xE9elle lors de l&#39;apprentissage de l&#39;arbre de d\xE9\
+      cision, nous consid\xE9rons une division binaire selon que l&#39;attribut est\
+      \ sup\xE9rieur ou inf\xE9rieur \xE0 un certain seuil. Pat sugg\xE8re qu&#39;\xE0\
+      \ la place, nous devrions simplement avoir une division multivoie avec une branche\
+      \ pour chacune des valeurs distinctes de l&#39;attribut. Dans la liste ci-dessous,\
+      \ choisissez le plus gros probl\xE8me avec la suggestion de Pat\_:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_machine_learning
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_machine_learning
+task_alias: machine_learning

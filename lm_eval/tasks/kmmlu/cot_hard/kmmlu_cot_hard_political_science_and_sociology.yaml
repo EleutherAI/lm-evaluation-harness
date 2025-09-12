@@ -88,4 +88,5 @@ fewshot_config:
       범위에서도 활용되는 전략입니다. 도시의 이미지를 국제적으로 홍보하고, 외국인 투자자나 관광객을 유치하는 것이 도시마케팅의 일부이기 때문입니다.   도시마케팅의
       공간적 범위가 국내로만 한정되어 있다는 것은 잘못된 설명입니다. 따라서, 정답은 (D) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_political_science_and_sociology
+task: kmmlu_cot_hard_political_science_and_sociology
+tag: kmmlu_cot_hard_humss_tasks

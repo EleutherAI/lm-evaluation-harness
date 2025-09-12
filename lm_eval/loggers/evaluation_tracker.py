@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import time
@@ -18,7 +19,6 @@ from huggingface_hub import (
 from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
 
 from lm_eval.utils import (
-    eval_logger,
     get_file_datetime,
     get_file_task_name,
     get_results_filenames,
@@ -29,6 +29,9 @@ from lm_eval.utils import (
     sanitize_model_name,
     sanitize_task_name,
 )
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass(init=False)
@@ -335,11 +338,21 @@ class EvaluationTracker:
                 )
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
-                path = path.joinpath(self.general_config_tracker.model_name_sanitized)
-                path.mkdir(parents=True, exist_ok=True)
-
                 self.date_id = datetime.now().isoformat().replace(":", "-")
-                file_results_aggregated = path.joinpath(f"results_{self.date_id}.json")
+                if path.suffix == ".json":
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    file_results_aggregated = path.with_name(
+                        f"{path.stem}_{self.date_id}.json"
+                    )
+                else:
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
+                    path.mkdir(parents=True, exist_ok=True)
+                    file_results_aggregated = path.joinpath(
+                        f"results_{self.date_id}.json"
+                    )
+
                 file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
                 if self.api and self.push_results_to_hub:
@@ -356,12 +369,10 @@ class EvaluationTracker:
                     )
                     self.api.upload_file(
                         repo_id=repo_id,
-                        path_or_fileobj=str(
-                            path.joinpath(f"results_{self.date_id}.json")
-                        ),
+                        path_or_fileobj=str(file_results_aggregated),
                         path_in_repo=os.path.join(
                             self.general_config_tracker.model_name,
-                            f"results_{self.date_id}.json",
+                            file_results_aggregated.name,
                         ),
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
@@ -396,7 +407,12 @@ class EvaluationTracker:
                 eval_logger.info(f"Saving per-sample results for: {task_name}")
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
-                path = path.joinpath(self.general_config_tracker.model_name_sanitized)
+                if path.suffix == ".json":
+                    path = path.parent
+                else:
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
                 path.mkdir(parents=True, exist_ok=True)
 
                 file_results_samples = path.joinpath(
@@ -603,7 +619,7 @@ class EvaluationTracker:
         else:
             dataset_summary += f"{self.general_config_tracker.model_name}\n"
         dataset_summary += (
-            f"The dataset is composed of {len(card_metadata)-1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
+            f"The dataset is composed of {len(card_metadata) - 1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
             f"The dataset has been created from {len(results_files)} run(s). Each run can be found as a specific split in each "
             'configuration, the split being named using the timestamp of the run.The "train" split is always pointing to the latest results.\n\n'
             'An additional configuration "results" store all the aggregated results of the run.\n\n'
@@ -616,7 +632,7 @@ class EvaluationTracker:
             )
         dataset_summary += (
             "## Latest results\n\n"
-            f'These are the [latest results from run {latest_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
+            f"These are the [latest results from run {latest_datetime}]({last_results_file_path.replace('/resolve/', '/blob/')}) "
             "(note that there might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
             'You find each in the results and the "latest" split for each eval):\n\n'
             f"```python\n{results_string}\n```"

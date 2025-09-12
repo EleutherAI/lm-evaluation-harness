@@ -1,0 +1,8 @@
+include: _cabreu_common_yaml
+task: cabreu_abstractive
+description: "Examina el text següent i genera'n un resum abstractiu, expressant el significat del text original d'una manera més natural i concisa.\n"
+doc_to_text: >-
+  Text: {{content}}
+
+  Resum:
+doc_to_target: '{{summaries["abstractive"]["a1"]}}'

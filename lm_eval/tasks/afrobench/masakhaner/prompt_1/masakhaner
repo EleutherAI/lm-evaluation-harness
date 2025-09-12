@@ -1,0 +1,26 @@
+tag:
+- masakhaner_tasks
+- masakhaner_prompt_1
+dataset_path: masakhane/masakhaner-x
+dataset_name: null
+dataset_kwargs: {trust_remote_code: True}
+output_type: generate_until
+generation_kwargs:
+  do_sample: false
+  until:
+  - </s>
+  - <|im_end|>
+validation_split: validation
+test_split: test
+fewshot_split: train
+doc_to_target: target
+filter_list:
+ - name: flexible-extract
+   filter:
+     - function: format_span
+metric_list:
+  - metric: f1
+    aggregation: !function utils.span_f1_agg
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,5 +1,3 @@
-tag:
-  - kobest
 task: kobest_hellaswag
 dataset_path: skt/kobest_v1
 dataset_name: hellaswag

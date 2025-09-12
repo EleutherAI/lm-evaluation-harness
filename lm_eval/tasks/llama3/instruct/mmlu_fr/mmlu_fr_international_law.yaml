@@ -1,0 +1,75 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "L&#39;article 2(4) ne couvre que la force arm\xE9e"
+      B: L&#39;article 2, paragraphe 4, englobe tous les types de force, y compris
+        les sanctions
+      C: "L&#39;article 2(4) englobe toute ing\xE9rence dans les affaires int\xE9\
+        rieures des \xC9tats"
+      D: "L&#39;article 2(4) englobe la force dirig\xE9e uniquement contre l&#39;int\xE9\
+        grit\xE9 territoriale d&#39;un \xC9tat"
+    input_correct_responses:
+    - A
+    input_question: Quels types de force l&#39;article 2(4) de la Charte des Nations
+      Unies interdit-il ?
+  - input_choice_list:
+      A: "Si une partie \xE0 une affaire contentieuse devant la CIJ n&#39;a pas de\
+        \ si\xE8ge national en tant que juge, elle a le droit de nommer quelqu&#39;un\
+        \ comme juge uniquement pour cette affaire, avec le titre de juge ad hoc"
+      B: "Le juge ad hoc est le membre du si\xE8ge de la CIJ avec une voix pr\xE9\
+        pond\xE9rante"
+      C: "Le juge ad hoc est un juge suppl\xE9ant, en cas de disqualification ou de\
+        \ d\xE9c\xE8s d&#39;un juge"
+      D: Le juge ad hoc est le juge que chaque partie nommera toujours dans chaque
+        affaire contentieuse
+    input_correct_responses:
+    - A
+    input_question: Qu&#39;est-ce que le juge ad hoc ?
+  - input_choice_list:
+      A: "Il s&#39;agit d&#39;une r\xE9serve acceptable si la l\xE9gislation du pays\
+        \ r\xE9servataire emploie une d\xE9finition diff\xE9rente"
+      B: "Il s&#39;agit d&#39;une r\xE9serve inacceptable car elle contrevient \xE0\
+        \ l&#39;objet et au but du PIDCP"
+      C: "Il s&#39;agit d&#39;une r\xE9serve inacceptable car la d\xE9finition de\
+        \ la torture dans le PIDCP est conforme au droit international coutumier"
+      D: "Il s&#39;agit d&#39;une r\xE9serve acceptable car, en vertu du droit international\
+        \ g\xE9n\xE9ral, les \xC9tats ont le droit de formuler des r\xE9serves aux\
+        \ trait\xE9s"
+    input_correct_responses:
+    - B
+    input_question: "Une r\xE9serve \xE0 la d\xE9finition de la torture dans le PIDCP\
+      \ serait-elle acceptable dans la pratique contemporaine ?"
+  - input_choice_list:
+      A: "Le consentement peut servir de circonstance excluant l&#39;illic\xE9it\xE9\
+        \ chaque fois qu&#39;il est donn\xE9"
+      B: "Le consentement ne peut jamais servir de circonstance excluant l&#39;illic\xE9\
+        it\xE9"
+      C: "Le consentement peut servir de circonstance excluant l&#39;illic\xE9it\xE9\
+        , \xE0 condition que le consentement soit valable et dans la mesure o\xF9\
+        \ le comportement reste dans les limites du consentement donn\xE9"
+      D: "Le consentement peut toujours servir de circonstance excluant l&#39;illic\xE9\
+        it\xE9, quel que soit l&#39;organe de l&#39;\xC9tat qui le donne"
+    input_correct_responses:
+    - C
+    input_question: "Quand le \xAB consentement \xBB peut-il servir de circonstance\
+      \ excluant l&#39;illic\xE9it\xE9 d&#39;un comportement \xE9tatique ?"
+  - input_choice_list:
+      A: "Le consentement d&#39;un \xC9tat \xE0 \xEAtre li\xE9 ne s&#39;exprime que\
+        \ par la ratification"
+      B: "Le consentement d&#39;un \xC9tat \xE0 \xEAtre li\xE9 par un trait\xE9 peut\
+        \ \xEAtre exprim\xE9 par la signature, la ratification, l&#39;acceptation,\
+        \ l&#39;approbation ou l&#39;adh\xE9sion"
+      C: "Le consentement d&#39;un \xC9tat \xE0 \xEAtre li\xE9 s&#39;exprime par la\
+        \ signature"
+      D: "Le consentement d&#39;un \xC9tat \xE0 \xEAtre li\xE9 s&#39;exprime par le\
+        \ moyen de son choix"
+    input_correct_responses:
+    - B
+    input_question: "Comment le consentement \xE0 \xEAtre li\xE9 d&#39;un Etat peut-il\
+      \ \xEAtre exprim\xE9 ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_international_law
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_international_law
+task_alias: international_law

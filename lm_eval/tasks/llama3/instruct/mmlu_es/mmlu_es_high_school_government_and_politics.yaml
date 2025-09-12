@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "la definici\xF3n constitucional de esos poderes es amplia e inespec\xED\
+        fica"
+      B: "la mayor\xEDa de la gente est\xE1 de acuerdo en que la Constituci\xF3n impone\
+        \ demasiados l\xEDmites al poder presidencial"
+      C: "La Corte Suprema se niega sistem\xE1ticamente a pronunciarse sobre casos\
+        \ relacionados con los poderes presidenciales."
+      D: Las enmiendas constitucionales han aumentado considerablemente los poderes
+        presidenciales.
+    input_correct_responses:
+    - A
+    input_question: "La incertidumbre sobre los l\xEDmites del poder presidencial\
+      \ se debe principalmente al hecho de que"
+  - input_choice_list:
+      A: "aumento anual del gasto federal en el ej\xE9rcito"
+      B: importe de los intereses de la deuda nacional
+      C: diferencia entre las propuestas presupuestarias iniciales hechas por el presidente
+        y el Congreso
+      D: cantidad que el gobierno gasta por encima de sus ingresos
+    input_correct_responses:
+    - D
+    input_question: "El t\xE9rmino &quot;d\xE9ficit presupuestario&quot; se refiere\
+      \ a la"
+  - input_choice_list:
+      A: Semanas contra Estados Unidos
+      B: Betts contra Brady
+      C: Mapp contra Ohio
+      D: Miranda contra Arizona
+    input_correct_responses:
+    - D
+    input_question: "\xBFCu\xE1l de los siguientes casos sent\xF3 el precedente de\
+      \ que se debe informar al acusado sobre su derecho a guardar silencio, el derecho\
+      \ a un abogado y la protecci\xF3n contra la autoincriminaci\xF3n?"
+  - input_choice_list:
+      A: Son establecidos por el poder legislativo.
+      B: Sus miembros a menudo no tienen mucha influencia sobre las decisiones presidenciales.
+      C: "No todos pueden estar dirigidos por l\xEDderes que pertenezcan al mismo\
+        \ partido pol\xEDtico que el presidente."
+      D: No todas las agencias federales son departamentos del gabinete.
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones sobre los departamentos\
+      \ del gabinete es FALSA?"
+  - input_choice_list:
+      A: "Los pol\xEDticos honestos pueden impedir que se desarrollen facciones."
+      B: "Es m\xE1s probable que se produzcan facciones en rep\xFAblicas grandes que\
+        \ en las peque\xF1as."
+      C: Los efectos negativos del faccionalismo pueden reducirse mediante un gobierno
+        republicano.
+      D: Las elecciones libres son la mejor defensa del pueblo contra el faccionalismo.
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1l de las siguientes afirmaciones expresa mejor un argumento\
+      \ presentado por James Madison en The Federalist n\xFAmero 10?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_government_and_politics
+tag: mmlu_es_llama_social_sciences_tasks
+task: mmlu_es_llama_high_school_government_and_politics
+task_alias: high_school_government_and_politics

@@ -1,0 +1,12 @@
+group: include_base_44_albanian
+task:
+- include_base_44_albanian_arts_humanities
+- include_base_44_albanian_stem
+- include_base_44_albanian_business_commerce
+- include_base_44_albanian_social_science
+- include_base_44_albanian_health_oriented_education
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

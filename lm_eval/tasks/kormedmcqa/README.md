@@ -25,20 +25,21 @@ Homepage: https://huggingface.co/datasets/sean0042/KorMedMCQA
 
 ### Groups and Tasks
 
-* `kormedmcqa`: Runs `kormedmcqa_doctor`, `kormedmcqa_nurse`, and `kormedmcqa_pharm`.
+* `kormedmcqa`: Runs `kormedmcqa_doctor`, `kormedmcqa_nurse`, `kormedmcqa_pharm`, and `kormedmcqa_dentist`.
 
 #### Tasks
 
 * `kormedmcqa_doctor`: `Official Korean Doctor Examination`
 * `kormedmcqa_nurse`: `Official Korean Nurse Examination`
 * `kormedmcqa_pharm`: `Official Korean Pharmacist Examination`
+* `kormedmcqa_dentist`: `Official Korean Dentist Examination`
 
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
-* [x] Is the task an existing benchmark in the literature?
-  * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+* [ ] Is the task an existing benchmark in the literature?
+  * [ ] Have you referenced the original paper that introduced the task?
+  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 
 If other tasks on this dataset are already supported:

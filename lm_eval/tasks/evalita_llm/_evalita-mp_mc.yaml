@@ -1,0 +1,14 @@
+group: evalita-mp_mc
+group_alias: Evalita-LLM - PPL-based
+task:
+  - evalita-mp_te
+  - evalita-mp_sa
+  - evalita-mp_wic
+  - evalita-mp_hs
+  - evalita-mp_at
+  - evalita-mp_faq
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 1

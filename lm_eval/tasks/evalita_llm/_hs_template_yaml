@@ -1,0 +1,9 @@
+dataset_path: evalitahf/hatespeech_detection
+output_type: multiple_choice
+test_split: test_all
+fewshot_split: dev
+validation_split: dev
+doc_to_target: hs # 0 = Falso, 1 = Vero
+doc_to_choice: ["Falso", "Vero"]
+metadata:
+  version: 1

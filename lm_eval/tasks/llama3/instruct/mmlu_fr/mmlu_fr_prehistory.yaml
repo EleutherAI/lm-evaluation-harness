@@ -1,0 +1,66 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "satisfaire les puissants pr\xEAtres astronomes mayas."
+      B: "montrer sa g\xE9n\xE9rosit\xE9 envers les gens du commun, puisqu&#39;ils\
+        \ ont \xE9t\xE9 autoris\xE9s \xE0 vivre dans les temples."
+      C: effrayer les ennemis, en particulier les Espagnols.
+      D: "l\xE9gitimer sa royaut\xE9, puisque son p\xE8re n&#39;\xE9tait pas royal."
+    input_correct_responses:
+    - D
+    input_question: 'Le grand roi maya Pacal a construit des temples dans la ville
+      de Palenque afin de :'
+  - input_choice_list:
+      A: "un centre de la civilisation du Mississippien avec des conditions similaires\
+        \ \xE0 la mont\xE9e des premiers \xC9tats."
+      B: "les limites de l&#39;autorit\xE9 dans une soci\xE9t\xE9 am\xE9rindienne\
+        \ de butineurs \xE9galitaires."
+      C: "une chefferie simple ou peut-\xEAtre une chefferie complexe avait \xE9volu\xE9\
+        \ vers 1500 apr\xE8s JC."
+      D: "un centre de la civilisation du Mississippien avec des conditions similaires\
+        \ aux soci\xE9t\xE9s de la c\xF4te nord-ouest de l&#39;Am\xE9rique du Nord."
+    input_correct_responses:
+    - A
+    input_question: "Selon Timothy Pauketat, les preuves de la stratification sociale\
+      \ et du pouvoir politique \xE0 Cahokia sugg\xE8rent\_:"
+  - input_choice_list:
+      A: un cataclysme quelconque, tel qu&#39;un tremblement de terre, un volcan ou
+        un tsunami.
+      B: "d\xE9gradation \xE9cologique r\xE9sultant des techniques d&#39;agriculture\
+        \ itin\xE9rante sur br\xFBlis."
+      C: "des guerres interminables entre cit\xE9s-\xC9tats mayas voisines."
+      D: "pratiques de m\xE9tissage qui ont conduit \xE0 une forte augmentation des\
+        \ maladies cong\xE9nitales."
+    input_correct_responses:
+    - B
+    input_question: "Les chercheurs pensent maintenant que le d\xE9clin des Mayas\
+      \ a \xE9t\xE9 caus\xE9 principalement par :"
+  - input_choice_list:
+      A: "une grande diversit\xE9 d&#39;esp\xE8ces, ou une seule esp\xE8ce qui pr\xE9\
+        sentait une grande diversit\xE9."
+      B: "tr\xE8s peu de diversit\xE9 d&#39;esp\xE8ces durant cette p\xE9riode et\
+        \ tr\xE8s peu d&#39;hominid\xE9s."
+      C: "diminution de la diversit\xE9 des esp\xE8ces due \xE0 une p\xE9riode glaciaire\
+        \ prolong\xE9e suivie d&#39;une grave s\xE9cheresse."
+      D: "diminution de la diversit\xE9 des esp\xE8ces mais augmentation du nombre\
+        \ de percuteurs et d&#39;\xE9clats, indiquant la fabrication d&#39;outils\
+        \ en pierre."
+    input_correct_responses:
+    - A
+    input_question: "Des recherches r\xE9centes sur des esp\xE8ces d&#39;hominid\xE9\
+      s datant du Plioc\xE8ne moyen indiquent qu&#39;il y avait (en 2020):"
+  - input_choice_list:
+      A: moins de 650 cm3
+      B: environ 800 cm3
+      C: un peu moins de 1000 cm3
+      D: 1200 cm3
+    input_correct_responses:
+    - C
+    input_question: "Quelle est la capacit\xE9 cr\xE2nienne moyenne approximative\
+      \ de l&#39;Homo erectus ?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_prehistory
+tag: mmlu_fr_llama_humanities_tasks
+task: mmlu_fr_llama_prehistory
+task_alias: prehistory

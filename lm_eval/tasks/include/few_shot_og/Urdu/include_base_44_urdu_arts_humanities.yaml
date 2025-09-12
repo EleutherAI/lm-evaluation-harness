@@ -1,0 +1,5 @@
+include: _urdu_few_shot_og_template_yaml
+description: ذیل میں Arts & Humanities کے بارے میں متعدد انتخابی سوالات (جوابات کے
+  ساتھ) ہیں۔
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_urdu_few_shot_og_arts_humanities

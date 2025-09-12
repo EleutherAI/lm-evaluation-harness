@@ -92,3 +92,7 @@ If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+
+# changelog
+- (en_cot, direct) ver 3; (native_cot) ver 4: issue #2578; PR #2587
+  - fix fewshot format: Changed inconsistent usage of ':' (ASCII) and '：' (Chinese) to use '：' consistently.

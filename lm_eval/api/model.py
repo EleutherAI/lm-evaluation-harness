@@ -3,16 +3,20 @@ import hashlib
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Type, TypeVar, Union
 
-import transformers
-from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
 
 
-eval_logger = logging.getLogger("lm-eval")
+if TYPE_CHECKING:
+    from sqlitedict import SqliteDict
+
+    from lm_eval.api.instance import Instance
+
+
+eval_logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="LM")
 
@@ -27,10 +31,10 @@ class LM(abc.ABC):
         # set rank and world size to a single process, by default.
         self._rank = 0
         self._world_size = 1
-        self.cache_hook = CacheHook(None)
+        self.cache_hook: "CacheHook" = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests) -> list[tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -55,7 +59,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> List[float]:
+    def loglikelihood_rolling(self, requests) -> list[float]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -97,7 +101,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> list[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -113,13 +117,17 @@ class LM(abc.ABC):
         """
         pass
 
-    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
+    def apply_chat_template(
+        self, chat_history: list[dict[str, str]], add_generation_prompt=True
+    ) -> str:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
 
         :param chat_history: list[dict[str, str]]
             A list of dictionaries with keys 'role' and 'content'.
             Values are strings representing the role name and the content of the message, respectively.
+        :param add_generation_prompt: bool
+            Whether to append an assistant gen prefix (for e.g. <|assistant|>) to the assistant messages in the chat history. False if prefilling an assistant message.
         :return: str
             A string representing the chat history in a format that can be used as input to the LM.
         """
@@ -161,8 +169,7 @@ class LM(abc.ABC):
         - Instance of the LM class.
         """
 
-        additional_config = {} if additional_config is None else additional_config
-        additional_config = {
+        additional_config = additional_config or {} | {
             k: v for k, v in additional_config.items() if v is not None
         }
 
@@ -200,25 +207,25 @@ class LM(abc.ABC):
 
         return ""
 
-    def set_cache_hook(self, cache_hook) -> None:
+    def set_cache_hook(self, cache_hook: "CacheHook") -> None:
         self.cache_hook = cache_hook
 
 
 ### SQLite-based caching of LM responses
-def hash_args(attr, args):
+def hash_args(attr: str, args: Iterable[Any]) -> str:
     dat = json.dumps([attr] + list(args))
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
 class CacheHook:
-    def __init__(self, cachinglm) -> None:
+    def __init__(self, cachinglm: Optional["CachingLM"]) -> None:
         if cachinglm is None:
-            self.dbdict = None
+            self.dbdict: Optional["SqliteDict"] = None
             return
 
         self.dbdict = cachinglm.dbdict
 
-    def add_partial(self, attr, req, res) -> None:
+    def add_partial(self, attr: str, req: Iterable[Any], res: Any) -> None:
         if self.dbdict is None:
             return
         hsh = hash_args(attr, req)
@@ -226,7 +233,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm, cache_db) -> None:
+    def __init__(self, lm: LM, cache_db: str) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM
@@ -234,8 +241,10 @@ class CachingLM:
         :param cache_db: str
             Path to cache db
         """
-        self.lm = lm
-        self.cache_db = cache_db
+        from sqlitedict import SqliteDict
+
+        self.lm: LM = lm
+        self.cache_db: str = cache_db
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
@@ -243,13 +252,13 @@ class CachingLM:
         # add hook to lm
         lm.set_cache_hook(self.get_cache_hook())
 
-    def __getattr__(self, attr: str):
+    def __getattr__(self, attr: str) -> Any:
         lm_attr = getattr(self.lm, attr)
         if attr not in ["loglikelihood", "loglikelihood_rolling", "generate_until"]:
             eval_logger.debug(f"Passing through attribute '{attr}' to underlying LM")
             return lm_attr
 
-        def fn(requests):
+        def _fn(requests: list["Instance"]) -> list["Instance"]:
             res = []
             remaining_reqs = []
             warned = False
@@ -302,9 +311,9 @@ class CachingLM:
 
             return res
 
-        return fn
+        return _fn
 
-    def get_cache_hook(self):
+    def get_cache_hook(self) -> "CacheHook":
         return CacheHook(self)
 
 
@@ -327,19 +336,23 @@ class TemplateLM(LM):
         return self.eot_token_id
 
     @abc.abstractmethod
-    def tok_encode(self, string: str, **kwargs) -> List[int]:
+    def tok_encode(self, string: str, **kwargs) -> list[int]:
         """
         Tokenize a string using the model's tokenizer and return a list of token IDs.
         """
         pass
 
     @abc.abstractmethod
-    def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
+    def _loglikelihood_tokens(
+        self, requests: list["Instance"], **kwargs
+    ) -> list[tuple[float, bool]]:
         pass
 
     def _encode_pair(
         self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
+    ) -> tuple[list[int], list[int]]:
+        import transformers
+
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -360,8 +373,8 @@ class TemplateLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(
-        self, requests, disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+        self, requests: list["Instance"], disable_tqdm: bool = False
+    ) -> list[tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -380,11 +393,11 @@ class TemplateLM(LM):
     @abc.abstractmethod
     def loglikelihood_rolling(
         self, requests, disable_tqdm: bool = False
-    ) -> List[float]:
+    ) -> list[float]:
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
         pass
 
     def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
@@ -431,7 +444,12 @@ class TemplateLM(LM):
         using_default_template = False
 
         # First, handle the cases when the model has a dict of multiple templates
-        template = self.tokenizer.chat_template or self.tokenizer.default_chat_template
+        try:
+            template = (
+                self.tokenizer.chat_template or self.tokenizer.default_chat_template
+            )
+        except AttributeError:
+            return None
 
         if isinstance(template, dict):
             using_default_dict = self.tokenizer.chat_template is None

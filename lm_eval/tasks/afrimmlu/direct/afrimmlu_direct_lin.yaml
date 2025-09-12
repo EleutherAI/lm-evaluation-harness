@@ -1,3 +1,0 @@
-dataset_name: lin
-include: afrimmlu_common_yaml
-task: afrimmlu_direct_lin

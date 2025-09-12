@@ -1,0 +1,9 @@
+include: ../mgsm/direct/mgsm_direct_es.yaml
+doc_to_target: '{{answer_number|string}}'
+doc_to_text: '{% if answer is not none %}{{question+"\nRespuesta: "}}{% else %}{{"Pregunta: "+question+"\nRespuesta: "}}{% endif %}'
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\n"
+
+task: mgsm_direct_es_spanish_bench

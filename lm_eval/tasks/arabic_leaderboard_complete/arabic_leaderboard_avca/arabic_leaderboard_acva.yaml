@@ -1,0 +1,70 @@
+group: arabic_leaderboard_acva
+task:
+  - arabic_leaderboard_acva_Algeria
+  - arabic_leaderboard_acva_Ancient_Egypt
+  - arabic_leaderboard_acva_Arab_Empire
+  - arabic_leaderboard_acva_Arabic_Architecture
+  - arabic_leaderboard_acva_Arabic_Art
+  - arabic_leaderboard_acva_Arabic_Astronomy
+  - arabic_leaderboard_acva_Arabic_Calligraphy
+  - arabic_leaderboard_acva_Arabic_Ceremony
+  - arabic_leaderboard_acva_Arabic_Clothing
+  - arabic_leaderboard_acva_Arabic_Culture
+  - arabic_leaderboard_acva_Arabic_Food
+  - arabic_leaderboard_acva_Arabic_Funeral
+  - arabic_leaderboard_acva_Arabic_Geography
+  - arabic_leaderboard_acva_Arabic_History
+  - arabic_leaderboard_acva_Arabic_Language_Origin
+  - arabic_leaderboard_acva_Arabic_Literature
+  - arabic_leaderboard_acva_Arabic_Math
+  - arabic_leaderboard_acva_Arabic_Medicine
+  - arabic_leaderboard_acva_Arabic_Music
+  - arabic_leaderboard_acva_Arabic_Ornament
+  - arabic_leaderboard_acva_Arabic_Philosophy
+  - arabic_leaderboard_acva_Arabic_Physics_and_Chemistry
+  - arabic_leaderboard_acva_Arabic_Wedding
+  - arabic_leaderboard_acva_Bahrain
+  - arabic_leaderboard_acva_Comoros
+  - arabic_leaderboard_acva_Egypt_modern
+  - arabic_leaderboard_acva_InfluenceFromAncientEgypt
+  - arabic_leaderboard_acva_InfluenceFromByzantium
+  - arabic_leaderboard_acva_InfluenceFromChina
+  - arabic_leaderboard_acva_InfluenceFromGreece
+  - arabic_leaderboard_acva_InfluenceFromIslam
+  - arabic_leaderboard_acva_InfluenceFromPersia
+  - arabic_leaderboard_acva_InfluenceFromRome
+  - arabic_leaderboard_acva_Iraq
+  - arabic_leaderboard_acva_Islam_Education
+  - arabic_leaderboard_acva_Islam_branches_and_schools
+  - arabic_leaderboard_acva_Islamic_law_system
+  - arabic_leaderboard_acva_Jordan
+  - arabic_leaderboard_acva_Kuwait
+  - arabic_leaderboard_acva_Lebanon
+  - arabic_leaderboard_acva_Libya
+  - arabic_leaderboard_acva_Mauritania
+  - arabic_leaderboard_acva_Mesopotamia_civilization
+  - arabic_leaderboard_acva_Morocco
+  - arabic_leaderboard_acva_Oman
+  - arabic_leaderboard_acva_Palestine
+  - arabic_leaderboard_acva_Qatar
+  - arabic_leaderboard_acva_Saudi_Arabia
+  - arabic_leaderboard_acva_Somalia
+  - arabic_leaderboard_acva_Sudan
+  - arabic_leaderboard_acva_Syria
+  - arabic_leaderboard_acva_Tunisia
+  - arabic_leaderboard_acva_United_Arab_Emirates
+  - arabic_leaderboard_acva_Yemen
+  - arabic_leaderboard_acva_communication
+  - arabic_leaderboard_acva_computer_and_phone
+  - arabic_leaderboard_acva_daily_life
+  - arabic_leaderboard_acva_entertainment
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

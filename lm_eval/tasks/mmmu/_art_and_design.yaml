@@ -1,0 +1,13 @@
+group: mmmu_val_art_and_design
+group_alias: Art and Design
+task:
+  - mmmu_val_art
+  - mmmu_val_art_theory
+  - mmmu_val_design
+  - mmmu_val_music
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

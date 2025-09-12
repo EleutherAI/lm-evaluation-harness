@@ -106,4 +106,5 @@ fewshot_config:
       고려에 따라 변경된 경우에 형법 제1조 제2항이 적용되는 것은 맞지만, 법령의 변경이 있더라도 그것이 반성적 고려에서 비롯된 것이 아니라면
       형법 제1조 제2항이 적용되지 않습니다. 따라서, 정답은 (C) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_criminal_law
+task: kmmlu_cot_hard_criminal_law
+tag: kmmlu_cot_hard_humss_tasks

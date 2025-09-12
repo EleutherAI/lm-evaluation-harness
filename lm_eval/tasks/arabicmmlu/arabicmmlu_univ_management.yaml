@@ -1,5 +1,0 @@
-"dataset_name": "Univ Management"
-"tag": "arabicmmlu_other_tasks"
-"include": "_default_arabicmmlu_template_yaml"
-"task": "arabicmmlu_univ_management"
-"task_alias": "Univ Management"

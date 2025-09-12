@@ -1,0 +1,4 @@
+task: mmmu_val_literature
+include: _template_yaml
+task_alias: Literature
+dataset_name: Literature

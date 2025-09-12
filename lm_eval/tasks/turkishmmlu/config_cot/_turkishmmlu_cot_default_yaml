@@ -1,0 +1,34 @@
+tag: turkishmmlu_cot
+task: null
+dataset_path: AYueksel/TurkishMMLU
+dataset_name: TurkishMMLU
+test_split: test
+fewshot_split: dev
+output_type: generate_until
+doc_to_text: "\n\nSoru: {{ question.strip() }}\nA) {{ choices[0] }}\nB) {{ choices[1] }}\nC) {{ choices[2] }}\nD) {{ choices[3] }}\nE) {{ choices[4] }}\nÇözüm: Adım adım düşünelim."
+doc_to_target: "{{ answer }}"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "([A-E])(?= şıkkıdır| şıkkı)"
+      - function: "take_first"
+  - name: "get-choice"
+    filter:
+      - function: "regex"
+        regex_pattern: "([A-E])"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 0.0

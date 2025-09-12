@@ -1,0 +1,18 @@
+task: parafrases_gl
+dataset_path: proxectonos/parafrases_gl
+dataset_name: null
+training_split: train
+validation_split: validation
+test_split: test
+output_type: multiple_choice
+doc_to_text: ""
+doc_to_target: '{{0 if Avaliación == 0 else 1}}'
+process_docs: !function utils.process_docs_paraphrases
+doc_to_choice: '{{[Frase+", verdadeiro? Non, "+Paráfrase, Frase+", verdadeiro? Si, "+Paráfrase]}}'
+target_delimiter: ""
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

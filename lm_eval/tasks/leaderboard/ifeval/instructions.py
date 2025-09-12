@@ -722,7 +722,7 @@ class RephraseChecker(Instruction):
 
         if not self.is_change(value):
             raise ValueError(
-                f"value {value} does not contain " "changes in the form of *change me*."
+                f"value {value} does not contain changes in the form of *change me*."
             )
 
         response_without_changes = self.strip_changes(value)

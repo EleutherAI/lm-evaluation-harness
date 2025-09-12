@@ -34,9 +34,9 @@ NLTK_MIN_VERSION = "3.9.1"
 def download_nltk_resources():
     """Download 'punkt' if not already installed"""
     nltk_version = pkg_resources.get_distribution("nltk").version
-    assert (
-        version.parse(nltk_version) >= version.parse(NLTK_MIN_VERSION)
-    ), f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    assert version.parse(nltk_version) >= version.parse(NLTK_MIN_VERSION), (
+        f"`nltk` version {nltk_version} is not >= {NLTK_MIN_VERSION}. Please update `nltk` before proceeding--older versions are vulnerable to a remote code execution vulnerability."
+    )
 
     try:
         nltk.data.find("tokenizers/punkt_tab")

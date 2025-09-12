@@ -1,5 +1,0 @@
-"dataset_name": "Prof Law"
-"tag": "arabicmmlu_humanities_tasks"
-"include": "_default_arabicmmlu_template_yaml"
-"task": "arabicmmlu_prof_law"
-"task_alias": "Prof Law"

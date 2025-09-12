@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Ein asiatischer Mann oder eine asiatische Frau
+      B: Ein hispanischer Mann
+      C: Eine afroamerikanische Frau
+      D: "Ein wei\xDFer Mann oder eine wei\xDFe Frau"
+    input_correct_responses:
+    - C
+    input_question: Welche der folgenden Personen bleibt ab 2019 eher allein zu Hause?
+  - input_choice_list:
+      A: Jugendvorteil
+      B: Reminiszenz-Beule
+      C: Mahnmal Mahnmal
+      D: Quadratische Abrufspitze
+    input_correct_responses:
+    - B
+    input_question: Der Befund, dass Erwachsene sich tendenziell besser an Ereignisse
+      aus ihrer Jugendzeit erinnern als an andere Lebensabschnitte, wird als die bezeichnet
+  - input_choice_list:
+      A: Texas
+      B: Kalifornien
+      C: Hawaii
+      D: Vermont
+    input_correct_responses:
+    - A
+    input_question: "Wenn \xE4ltere Erwachsene nach der Pensionierung in ein neues\
+      \ Bundesland ziehen, welches der folgenden ist das wahrscheinlichere Ziel?"
+  - input_choice_list:
+      A: Nikotin
+      B: Teer
+      C: Kohlenmonoxid
+      D: Rauchpartikel
+    input_correct_responses:
+    - B
+    input_question: "Welches Element im Tabakrauch ist f\xFCr Krebs verantwortlich?"
+  - input_choice_list:
+      A: "Eine \xE4ltere hispanische Amerikanerin"
+      B: "Eine \xE4ltere Afroamerikanerin"
+      C: "Eine \xE4ltere asiatische Amerikanerin"
+      D: "Eine \xE4ltere Indianerin"
+    input_correct_responses:
+    - C
+    input_question: Bei sonst gleichen Bedingungen, welche der folgenden Personen
+      leidet eher an Osteoporose?
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_human_aging
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_human_aging
+task_alias: human_aging

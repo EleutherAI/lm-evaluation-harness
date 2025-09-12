@@ -88,4 +88,5 @@ fewshot_config:
       질소는 질소 가스나 암모니아의 형태로 존재합니다.  , 위의 분석에 따르면, (B) 옵션의 설명이 잘못되었습니다. 아연과 코발트는 일반적으로
       미량원소로 분류되지만, 이 설명에서는 그들을 다량 원소로 잘못 분류하고 있습니다. 따라서, 정답은 (B) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_ecology
+task: kmmlu_cot_hard_ecology
+tag: kmmlu_cot_hard_stem_tasks

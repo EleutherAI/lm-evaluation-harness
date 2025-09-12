@@ -1,0 +1,9 @@
+dataset_path: evalitahf/sentiment_analysis
+output_type: multiple_choice
+test_split: test
+fewshot_split: train
+validation_split: test
+doc_to_target: !function utils.sa_doc_to_target
+doc_to_choice: !function utils.sa_doc_to_choice
+metadata:
+  version: 1

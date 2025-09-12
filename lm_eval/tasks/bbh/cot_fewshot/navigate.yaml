@@ -21,9 +21,7 @@ fewshot_config:
       - Yes
 
       - No'
-    target: 'Let''s think step by step.
-
-      We start at the origin (0, 0), facing the positive y-axis.
+    target: 'We start at the origin (0, 0), facing the positive y-axis.
 
       (1) Turn left: (0, 0), facing the negative x-axis.
 
@@ -49,9 +47,7 @@ fewshot_config:
       - Yes
 
       - No'
-    target: 'Let''s think step by step.
-
-      We start at the origin (0, 0), facing the positive y-axis.
+    target: 'We start at the origin (0, 0), facing the positive y-axis.
 
       (1) Turn around: (0, 0), facing the negative y-axis.
 
@@ -76,9 +72,7 @@ fewshot_config:
       - Yes
 
       - No'
-    target: 'Let''s think step by step.
-
-      We start at the origin (0, 0), facing the positive y-axis.
+    target: 'We start at the origin (0, 0), facing the positive y-axis.
 
       (1) Always face forward: (0, 0), facing the positive y-axis.
 

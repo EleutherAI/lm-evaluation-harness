@@ -14,13 +14,13 @@ def load_questionsheet(qsheet: dict, no_context: bool = False):
             all_subquestions += "\n"
 
     if no_context:
-        prompt = f"""{qsheet['preamble']}
+        prompt = f"""{qsheet["preamble"]}
 
                  {all_subquestions}
                  """
     else:
-        prompt = f"""{qsheet['preamble']}
-                 {qsheet['context']}
+        prompt = f"""{qsheet["preamble"]}
+                 {qsheet["context"]}
 
                  {all_subquestions}
                  """

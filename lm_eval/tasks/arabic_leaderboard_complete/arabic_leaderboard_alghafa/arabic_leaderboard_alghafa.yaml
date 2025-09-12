@@ -1,0 +1,23 @@
+group: arabic_leaderboard_alghafa
+task:
+  - arabic_leaderboard_alghafa_mcq_exams_test_ar
+  - arabic_leaderboard_alghafa_meta_ar_dialects
+  - arabic_leaderboard_alghafa_meta_ar_msa
+  - arabic_leaderboard_alghafa_multiple_choice_facts_truefalse_balanced_task
+  - arabic_leaderboard_alghafa_multiple_choice_grounded_statement_soqal_task
+  - arabic_leaderboard_alghafa_multiple_choice_grounded_statement_xglue_mlqa_task
+  - arabic_leaderboard_alghafa_multiple_choice_rating_sentiment_no_neutral_task
+  - arabic_leaderboard_alghafa_multiple_choice_rating_sentiment_task
+  - arabic_leaderboard_alghafa_multiple_choice_sentiment_task
+
+
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

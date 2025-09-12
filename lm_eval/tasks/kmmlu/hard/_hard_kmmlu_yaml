@@ -1,6 +1,3 @@
-tag:
-    - kmmlu
-    - kmmlu_hard
 dataset_path: HAERAE-HUB/KMMLU-HARD
 output_type: multiple_choice
 test_split: test
@@ -10,9 +7,6 @@ doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: "{{answer-1}}"
 metric_list:
   - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
     aggregation: mean
     higher_is_better: true
 metadata:

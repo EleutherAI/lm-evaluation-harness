@@ -9,7 +9,7 @@
   D. {{choices[3]}}{% if choices is defined and choices|length > 4 %}\nE. {{choices[4]}}{%\
   \ endif %}{% if choices is defined and choices|length > 5 %}\nF. {{choices[5]}}{%\
   \ endif %}\nAnswer:"
-"tag": "tmlu_taiwan_specific"
+"tag": "tmlu_taiwan_specific_tasks"
 "include": "_default_template_yaml"
 "task": "tmlu_teacher_qualification"
 "task_alias": "teacher qualification"

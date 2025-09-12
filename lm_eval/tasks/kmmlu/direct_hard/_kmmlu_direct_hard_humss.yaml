@@ -1,0 +1,8 @@
+group: kmmlu_direct_hard_humss
+task:
+  - kmmlu_direct_hard_humss_tasks
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 2.0

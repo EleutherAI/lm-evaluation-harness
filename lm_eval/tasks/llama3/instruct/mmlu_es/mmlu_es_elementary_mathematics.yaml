@@ -1,0 +1,59 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 5 mil
+      B: 5 centenas
+      C: 5 decenas
+      D: 5 unos
+    input_correct_responses:
+    - A
+    input_question: "La poblaci\xF3n de la ciudad donde naci\xF3 Michelle es 145.826.\
+      \ \xBFCu\xE1l es el valor del 5 en el n\xFAmero 145,826?"
+  - input_choice_list:
+      A: "El d\xE9cimo n\xFAmero del patr\xF3n ser\xE1 un n\xFAmero par."
+      B: "El patr\xF3n num\xE9rico nunca tendr\xE1 dos n\xFAmeros pares uno al lado\
+        \ del otro."
+      C: "Los siguientes dos n\xFAmeros del patr\xF3n ser\xE1n un n\xFAmero par y\
+        \ luego un n\xFAmero impar."
+      D: "Si el patr\xF3n num\xE9rico comenzara con un n\xFAmero impar, entonces el\
+        \ patr\xF3n solo tendr\xEDa n\xFAmeros impares."
+    input_correct_responses:
+    - B
+    input_question: "Olivia us\xF3 la regla &quot;Suma 11&quot; para crear el patr\xF3\
+      n num\xE9rico que se muestra a continuaci\xF3n. 10, 21, 32, 43, 54 \xBFQu\xE9\
+      \ afirmaci\xF3n sobre el patr\xF3n num\xE9rico es verdadera?"
+  - input_choice_list:
+      A: Suma 5 a 30 para encontrar 35 equipos.
+      B: Divide 30 entre 5 para encontrar 6 equipos.
+      C: Multiplica 30 y 5 para encontrar 150 equipos.
+      D: Resta 5 de 30 para encontrar 25 equipos.
+    input_correct_responses:
+    - B
+    input_question: "Un total de 30 jugadores jugar\xE1n baloncesto en un parque.\
+      \ Habr\xE1 exactamente 5 jugadores en cada equipo. \xBFQu\xE9 afirmaci\xF3n\
+      \ explica correctamente c\xF3mo encontrar la cantidad de equipos necesarios?"
+  - input_choice_list:
+      A: '749'
+      B: '2.675'
+      C: 2,945
+      D: '4.250'
+    input_correct_responses:
+    - B
+    input_question: "Una tienda vende 107 colores diferentes de pintura. Tienen 25\
+      \ latas de cada color almacenadas. La cantidad de latas de pintura que la tienda\
+      \ tiene almacenadas se puede encontrar usando la siguiente expresi\xF3n. 107\
+      \ \xD7 25. \xBFCu\xE1ntas latas de pintura tiene almacenadas la tienda?"
+  - input_choice_list:
+      A: (5 x 4) x (6 x 5)
+      B: (5x5) + (5x4)
+      C: (5x5) + (5x9)
+      D: (5 x 9) x (6 x 9)
+    input_correct_responses:
+    - B
+    input_question: "\xBFQu\xE9 expresi\xF3n equivale a 5 x 9?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_elementary_mathematics
+tag: mmlu_es_llama_stem_tasks
+task: mmlu_es_llama_elementary_mathematics
+task_alias: elementary_mathematics

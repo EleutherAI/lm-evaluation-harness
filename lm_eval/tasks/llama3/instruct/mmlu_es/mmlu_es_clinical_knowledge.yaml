@@ -1,0 +1,55 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: ATP.
+      B: ADP.
+      C: fosfocreatina.
+      D: "fosforilaci\xF3n oxidativa."
+    input_correct_responses:
+    - A
+    input_question: "La energ\xEDa para todas las formas de contracci\xF3n muscular\
+      \ la proporciona:"
+  - input_choice_list:
+      A: "Los cat\xE9teres masculinos y femeninos son de diferentes colores."
+      B: "Los cat\xE9teres masculinos son m\xE1s largos que los cat\xE9teres femeninos."
+      C: "Los cat\xE9teres masculinos son m\xE1s grandes que los cat\xE9teres femeninos."
+      D: "Los cat\xE9teres femeninos son m\xE1s largos que los cat\xE9teres masculinos."
+    input_correct_responses:
+    - B
+    input_question: "\xBFCu\xE1l es la diferencia entre un cat\xE9ter masculino y\
+      \ uno femenino?"
+  - input_choice_list:
+      A: "La abducci\xF3n del pulgar est\xE1 inervada por la ra\xEDz espinal T2."
+      B: "La oposici\xF3n del pulgar por el oponente pol\xEDtico est\xE1 inervada\
+        \ por la ra\xEDz espinal T1."
+      C: "La aducci\xF3n de los dedos est\xE1 inervada por el nervio mediano."
+      D: "La abducci\xF3n de los dedos est\xE1 mediada por los inter\xF3seos palmar."
+    input_correct_responses:
+    - B
+    input_question: "En la evaluaci\xF3n de la funci\xF3n de la mano \xBFcu\xE1l de\
+      \ las siguientes afirmaciones es verdadera?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '2'
+      D: '1'
+    input_correct_responses:
+    - C
+    input_question: "\xBFCu\xE1ntos intentos se deben hacer para canular a un paciente\
+      \ antes de pasar el trabajo a un colega superior, seg\xFAn los conocimientos\
+      \ m\xE9dicos de 2020?"
+  - input_choice_list:
+      A: "gluc\xF3geno en glucosa-1-fosfato."
+      B: "gluc\xF3geno o glucosa en fructosa."
+      C: "gluc\xF3geno o glucosa en piruvato o lactato."
+      D: "gluc\xF3geno o glucosa en piruvato o acetil CoA."
+    input_correct_responses:
+    - C
+    input_question: "La gluc\xF3lisis es el nombre que se le da a la v\xEDa que implica\
+      \ la conversi\xF3n de:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_clinical_knowledge
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_clinical_knowledge
+task_alias: clinical_knowledge

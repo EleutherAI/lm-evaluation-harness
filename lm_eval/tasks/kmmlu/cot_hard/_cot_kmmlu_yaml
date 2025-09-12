@@ -1,6 +1,3 @@
-tag:
-    - kmmlu
-    - kmmlu_hard_cot
 dataset_path: HAERAE-HUB/KMMLU-HARD
 output_type: generate_until
 validation_split: dev # not meant to be used, only here to silence warnings

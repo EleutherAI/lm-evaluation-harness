@@ -1,0 +1,5 @@
+include: metabench_gsm8k.yaml
+task: metabench_gsm8k_secondary
+test_split: secondary
+metadata:
+  version: 0.0

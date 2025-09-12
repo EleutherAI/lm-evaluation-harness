@@ -1,0 +1,9 @@
+description: 'Àwọn wọ̀nyí jẹ́ àwọn ìbéèrè ọ̀pọ̀ àṣàyàn (pẹ̀lú àwọn ìdáhùn) nípa ìlera.
+  Rò ní ìṣẹ́sẹ́ kí o sì parí ìdáhùn rẹ pẹ̀lú "Ìdáhùn náà ni (X)" níbi tí X jẹ́ lẹ́tà
+  àṣàyàn tó tọ́.
+
+  '
+include: _yo_lite_template_yaml
+task: mmlu_prox_lite_yo_health
+task_alias: health
+process_docs: !function utils.process_health

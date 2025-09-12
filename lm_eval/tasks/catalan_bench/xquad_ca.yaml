@@ -1,0 +1,24 @@
+task: xquad_ca
+dataset_path: projecte-aina/xquad-ca
+dataset_name: null
+output_type: generate_until
+doc_to_text: "Context: {{context}}\n\nPregunta: {{question}}\n\nResposta:"
+doc_to_target: '{{answers[0]["text"]}}'
+validation_split: null
+test_split: test
+target_delimiter: ' '
+process_results: !function utils.process_results_qa
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

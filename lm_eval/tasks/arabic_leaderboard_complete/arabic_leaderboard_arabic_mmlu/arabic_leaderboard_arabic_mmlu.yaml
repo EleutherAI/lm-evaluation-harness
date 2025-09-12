@@ -1,0 +1,68 @@
+group: arabic_leaderboard_arabic_mmlu
+task:
+  - arabic_leaderboard_arabic_mmlu_abstract_algebra
+  - arabic_leaderboard_arabic_mmlu_anatomy
+  - arabic_leaderboard_arabic_mmlu_astronomy
+  - arabic_leaderboard_arabic_mmlu_business_ethics
+  - arabic_leaderboard_arabic_mmlu_clinical_knowledge
+  - arabic_leaderboard_arabic_mmlu_college_biology
+  - arabic_leaderboard_arabic_mmlu_college_chemistry
+  - arabic_leaderboard_arabic_mmlu_college_computer_science
+  - arabic_leaderboard_arabic_mmlu_college_mathematics
+  - arabic_leaderboard_arabic_mmlu_college_medicine
+  - arabic_leaderboard_arabic_mmlu_college_physics
+  - arabic_leaderboard_arabic_mmlu_computer_security
+  - arabic_leaderboard_arabic_mmlu_conceptual_physics
+  - arabic_leaderboard_arabic_mmlu_econometrics
+  - arabic_leaderboard_arabic_mmlu_electrical_engineering
+  - arabic_leaderboard_arabic_mmlu_elementary_mathematics
+  - arabic_leaderboard_arabic_mmlu_formal_logic
+  - arabic_leaderboard_arabic_mmlu_global_facts
+  - arabic_leaderboard_arabic_mmlu_high_school_biology
+  - arabic_leaderboard_arabic_mmlu_high_school_chemistry
+  - arabic_leaderboard_arabic_mmlu_high_school_computer_science
+  - arabic_leaderboard_arabic_mmlu_high_school_european_history
+  - arabic_leaderboard_arabic_mmlu_high_school_geography
+  - arabic_leaderboard_arabic_mmlu_high_school_government_and_politics
+  - arabic_leaderboard_arabic_mmlu_high_school_macroeconomics
+  - arabic_leaderboard_arabic_mmlu_high_school_mathematics
+  - arabic_leaderboard_arabic_mmlu_high_school_microeconomics
+  - arabic_leaderboard_arabic_mmlu_high_school_physics
+  - arabic_leaderboard_arabic_mmlu_high_school_psychology
+  - arabic_leaderboard_arabic_mmlu_high_school_statistics
+  - arabic_leaderboard_arabic_mmlu_high_school_us_history
+  - arabic_leaderboard_arabic_mmlu_high_school_world_history
+  - arabic_leaderboard_arabic_mmlu_human_aging
+  - arabic_leaderboard_arabic_mmlu_human_sexuality
+  - arabic_leaderboard_arabic_mmlu_international_law
+  - arabic_leaderboard_arabic_mmlu_jurisprudence
+  - arabic_leaderboard_arabic_mmlu_logical_fallacies
+  - arabic_leaderboard_arabic_mmlu_machine_learning
+  - arabic_leaderboard_arabic_mmlu_management
+  - arabic_leaderboard_arabic_mmlu_marketing
+  - arabic_leaderboard_arabic_mmlu_medical_genetics
+  - arabic_leaderboard_arabic_mmlu_miscellaneous
+  - arabic_leaderboard_arabic_mmlu_moral_disputes
+  - arabic_leaderboard_arabic_mmlu_moral_scenarios
+  - arabic_leaderboard_arabic_mmlu_nutrition
+  - arabic_leaderboard_arabic_mmlu_philosophy
+  - arabic_leaderboard_arabic_mmlu_prehistory
+  - arabic_leaderboard_arabic_mmlu_professional_accounting
+  - arabic_leaderboard_arabic_mmlu_professional_law
+  - arabic_leaderboard_arabic_mmlu_professional_medicine
+  - arabic_leaderboard_arabic_mmlu_professional_psychology
+  - arabic_leaderboard_arabic_mmlu_public_relations
+  - arabic_leaderboard_arabic_mmlu_security_studies
+  - arabic_leaderboard_arabic_mmlu_sociology
+  - arabic_leaderboard_arabic_mmlu_us_foreign_policy
+  - arabic_leaderboard_arabic_mmlu_virology
+  - arabic_leaderboard_arabic_mmlu_world_religions
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

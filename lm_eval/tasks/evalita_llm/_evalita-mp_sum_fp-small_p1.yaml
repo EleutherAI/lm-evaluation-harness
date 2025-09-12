@@ -1,0 +1,12 @@
+tag: evalita-mp_sum_fp-small_tasks
+include: _sum_template_fp-small_yaml
+task: evalita-sp_sum_task_fp-small_p1
+task_alias: prompt-1
+#doc_to_text: >
+#  "Crea un sommario del seguente testo. Testo: {{source}}\nSommario: "
+doc_to_text: "Riassumi il seguente articolo di giornale: '{{source}}'\nRiassunto:"
+process_results: !function sum_utils.process_results_sum
+metric_list:
+  - metric: rouge1
+    higher_is_better: true
+    aggregation: mean

@@ -1,0 +1,90 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Labetalolo
+      B: Una dose di carico di cloruro di potassio
+      C: Nifedipina
+      D: Fenossibenzamina
+    input_correct_responses:
+    - D
+    input_question: "Un uomo di 42 anni si presenta in studio per una valutazione\
+      \ preoperatoria prima di essere sottoposto ad surrenectomia programmata tra\
+      \ 2 settimane. Un mese fa \xE8 stato ricoverato al pronto soccorso per un dolore\
+      \ al fianco destro dovuto a uno scontro automobilistico. A quel tempo, la pressione\
+      \ sanguigna era di 160/100 mm Hg e la TC dell&#39;addome mostrava una massa\
+      \ surrenale sinistra incidentale di 10 cm. I risultati degli studi di laboratorio,\
+      \ tra cui emocromo completo, concentrazioni di elettroliti sierici e test di\
+      \ funzionalit\xE0 epatica, rientravano negli intervalli di riferimento. Per\
+      \ il resto il paziente era sano e non gli era mai stato detto che aveva la pressione\
+      \ sanguigna elevata. Non prende farmaci. Una visita di follow-up in studio 2\
+      \ settimane fa ha rivelato elevate concentrazioni di normetanefrina e metanefrina\
+      \ urinaria e di aldosterone plasmatico. Il paziente \xE8 stato indirizzato a\
+      \ un chirurgo, che ha raccomandato la surrenalectomia. Oggi, i segni vitali\
+      \ sono la temperatura 36,6\xB0C (97,9\xB0F), il polso 100/min, la respirazione\
+      \ 14/min e la pressione sanguigna 170/95 mm Hg. L&#39;esame obiettivo non rivela\
+      \ risultati significativi. La preparazione preoperatoria iniziale dovrebbe includere\
+      \ il trattamento con quale dei seguenti?"
+  - input_choice_list:
+      A: Torsione sacrale sinistra contro sinistra
+      B: torsione sacrale sinistra-destra
+      C: flessione sacrale unilaterale destra
+      D: torsione sacrale dx-dx
+    input_correct_responses:
+    - D
+    input_question: "Un uomo di 36 anni si presenta in studio con un&#39;anamnesi\
+      \ di lombalgia da 3 settimane. Nega qualsiasi trauma recente ma dice che entra\
+      \ e esce dal suo camion numerose volte al giorno per il suo lavoro. L&#39;esame\
+      \ del paziente in posizione prona rivela un profondo solco sacrale a sinistra,\
+      \ un angolo laterale postero-inferiore a destra e una giunzione lombosacrale\
+      \ che scatta liberamente in compressione. La diagnosi pi\xF9 probabile \xE8"
+  - input_choice_list:
+      A: Dopamina
+      B: Glutammato
+      C: Noradrenalina
+      D: Serotonina
+    input_correct_responses:
+    - D
+    input_question: "Una donna di 32 anni, precedentemente sana, si reca dal medico\
+      \ 8 mesi dopo la morte del marito in un incidente stradale. Da quel momento\
+      \ ha avuto una diminuzione dell&#39;appetito e difficolt\xE0 ad addormentarsi.\
+      \ Afferma di essere spesso triste e di piangere spesso. Ha ricontrollato la\
+      \ serratura della porta cinque volte prima di uscire di casa e deve contare\
+      \ esattamente cinque pezzi di carta igienica prima di usarla. Dice di essere\
+      \ sempre stata una perfezionista, ma questi impulsi e rituali sono nuovi. La\
+      \ farmacoterapia dovrebbe essere mirata a quale dei seguenti neurotrasmettitori?"
+  - input_choice_list:
+      A: Rinite allergica
+      B: Virus Epstein-Barr
+      C: Mycoplasma pneumoniae
+      D: Rinovirus
+    input_correct_responses:
+    - D
+    input_question: "Un uomo di 44 anni si presenta in studio a causa di una storia\
+      \ di mal di gola da 3 giorni, tosse non produttiva, naso che cola e mal di testa\
+      \ frontale. Dice che il mal di testa peggiora al mattino e l&#39;ibuprofene\
+      \ fornisce un certo sollievo. Non ha avuto fiato corto. L&#39;anamnesi medica\
+      \ \xE8 irrilevante. Non prende farmaci diversi dall&#39;ibuprofene per il dolore.\
+      \ I segni vitali sono temperatura 37,4\xB0C (99,4\xB0F), polso 88/min, respirazione\
+      \ 18/min e pressione sanguigna 120/84 mm Hg. L&#39;esame delle narici evidenzia\
+      \ mucose eritematose. L&#39;esame della gola mostra eritema e iperplasia linfoide\
+      \ follicolare sull&#39;orofaringe posteriore. Non \xE8 presente adenopatia cervicale\
+      \ palpabile. I polmoni sono liberi all&#39;auscultazione. Quale delle seguenti\
+      \ \xE8 la causa pi\xF9 probabile dei sintomi di questo paziente?"
+  - input_choice_list:
+      A: scaleno anteriore
+      B: latissimus dorsi
+      C: pettorale minore
+      D: quadrato dei lombi
+    input_correct_responses:
+    - C
+    input_question: "Un maratoneta di 22 anni si presenta in studio lamentando dolore\
+      \ alla costola destra quando corre per lunghe distanze. L&#39;esame obiettivo\
+      \ rivela reperti cardiaci e polmonari normali e una disfunzione espiratoria\
+      \ alle costole 4-5 a destra. Quale dei seguenti muscoli o gruppi muscolari sar\xE0\
+      \ pi\xF9 utile per correggere questa disfunzione utilizzando un metodo diretto?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_medicine
+tag: mmlu_it_llama_other_tasks
+task: mmlu_it_llama_professional_medicine
+task_alias: professional_medicine

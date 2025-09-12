@@ -75,4 +75,5 @@ fewshot_config:
       공식은 실제 거리의 제곱근에 축척분모를 곱한 값이 측정된 면적이 될 것입니다. 이렇게 보면, 공식이 의미하는 바를 잘 나타내는 것 같습니다.
       따라서, 정답은 (B) 입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_geomatics
+task: kmmlu_cot_hard_geomatics
+tag: kmmlu_cot_hard_applied_science_tasks

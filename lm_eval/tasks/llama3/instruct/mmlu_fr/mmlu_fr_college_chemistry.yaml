@@ -1,0 +1,62 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "L&#39;\xE9tat d&#39;oxydation le plus courant pour les \xE9l\xE9ments lanthanides\
+        \ est +3."
+      B: "Les complexes de lanthanides ont souvent des nombres de coordination \xE9\
+        lev\xE9s (&gt; 6)."
+      C: "Tous les \xE9l\xE9ments lanthanides r\xE9agissent avec l&#39;acide aqueux\
+        \ pour lib\xE9rer de l&#39;hydrog\xE8ne."
+      D: "Les rayons atomiques des \xE9l\xE9ments lanthanides augmentent au cours\
+        \ de la p\xE9riode de La \xE0 Lu."
+    input_correct_responses:
+    - D
+    input_question: "Laquelle des affirmations suivantes concernant les \xE9l\xE9\
+      ments lanthanides n&#39;est PAS vraie\_?"
+  - input_choice_list:
+      A: 1,0 ml
+      B: 10 ml
+      C: 20 ml
+      D: 50 ml
+    input_correct_responses:
+    - C
+    input_question: "Un \xE9chantillon de 0,217 g de HgO (masse molaire = 217 g) r\xE9\
+      agit avec l&#39;exc\xE8s d&#39;ions iodure selon la r\xE9action indiqu\xE9e\
+      \ ci-dessus. Le titrage de la solution r\xE9sultante n\xE9cessite combien de\
+      \ ml de HCl 0,10 M pour atteindre le point d&#39;\xE9quivalence\_?"
+  - input_choice_list:
+      A: '4'
+      B: '3'
+      C: '6'
+      D: '24'
+    input_correct_responses:
+    - A
+    input_question: "Pr\xE9disez le nombre de raies dans le spectre RPE d&#39;une\
+      \ solution de radical m\xE9thyle marqu\xE9 au 13C (13CH3\u2022), en supposant\
+      \ que les raies ne se chevauchent pas."
+  - input_choice_list:
+      A: un acide
+      B: une base
+      C: un catalyseur
+      D: "un r\xE9ducteur"
+    input_correct_responses:
+    - D
+    input_question: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq)\
+      \ + 4 Cr3+(aq) + 10 H2O(l). Dans la r\xE9action ci-dessus, Cl\u2212(aq) se comporte\
+      \ comme"
+  - input_choice_list:
+      A: PbH4 &lt; SnH4 &lt; GeH4 &lt; SiH4 &lt; CH4
+      B: PbH4 &lt; SnH4 &lt; CH4 &lt; GeH4 &lt; SiH4
+      C: CH4 &lt; SiH4 &lt; GeH4 &lt; SnH4 &lt; PbH4
+      D: CH4 &lt; PbH4 &lt; GeH4 &lt; SnH4 &lt; SiH4
+    input_correct_responses:
+    - A
+    input_question: "Lequel des \xE9nonc\xE9s suivants \xE9num\xE8re les hydrures\
+      \ des \xE9l\xE9ments du groupe 14 par ordre de stabilit\xE9 thermique, du plus\
+      \ bas au plus \xE9lev\xE9\_?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_chemistry
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_college_chemistry
+task_alias: college_chemistry

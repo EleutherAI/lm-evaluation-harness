@@ -9,4 +9,4 @@ aggregate_metric_list:
   - metric: acc
     weight_by_size: True
 metadata:
-  version: 0
+  version: 1
