@@ -50,7 +50,7 @@ eval_logger = logging.getLogger(__name__)
 
 def _vllm_mp_worker(
     model_args: dict,
-    sampling_params: "list[SamplingParams]",
+    sampling_params: list["SamplingParams"],
     requests: list[list[int]],
     lora_request: "LoRARequest",
     result_queue: "Queue",
@@ -364,7 +364,7 @@ class VLLM(TemplateLM):
         self,
         requests: List[List[int]] = None,
         generate: bool = False,
-        sampling_params: Union[List[SamplingParams], SamplingParams, None] = None,
+        sampling_params: Union[List["SamplingParams"], "SamplingParams", None] = None,
     ):
         if not generate or sampling_params is None:
             sampling_params = SamplingParams(
@@ -379,9 +379,9 @@ class VLLM(TemplateLM):
             @ray.remote
             def run_inference_one_model(
                 model_args: dict,
-                sampling_params: List[SamplingParams],
+                sampling_params: List["SamplingParams"],
                 requests: List[List[int]],
-                lora_request: LoRARequest,
+                lora_request: "LoRARequest",
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
