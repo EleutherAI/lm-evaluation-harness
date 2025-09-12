@@ -1,10 +1,13 @@
 import logging
 from importlib.util import find_spec
+import os
+import torch
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import get_dtype
 
+from transformers import AutoModelForCausalLM
 eval_logger = logging.getLogger(__name__)
 
 @register_model("habana")
@@ -20,8 +23,15 @@ class HabanaLM(HFLM):
         if "backend" in kwargs:
             # currently only supports causal models
             assert kwargs["backend"] == "causal", (
-                "Currently, only GaudiModelForCausalLM is supported."
+                "Currently, only AutoModelForCausalLM is supported."
             )
+
+        if os.getenv("PT_HPU_LAZY_MODE", "0") == "0":
+            self.lazy_mode = False
+            self.hpu_graphs = False
+        else:
+            self.lazy_mode = True
+            self.hpu_graphs = True
 
         super().__init__(
             backend=kwargs.pop("backend", "causal"),
@@ -33,17 +43,13 @@ class HabanaLM(HFLM):
         pretrained: str,
         revision="main",
         dtype="auto",
-        trust_remote_code=False,
-	# arguments used for splitting a model across GPUs naively.
-        # only used if `parallelize=True`.
-        # (accelerate naive PP (device_map) options)        
-	parallelize=False,
+        trust_remote_code=False,        
+	    parallelize=False,
         gpus=None,
         max_memory_per_gpu=None,
         max_cpu_memory=None,
-        offload_folder="./offload",
-	# PEFT, delta weights and quantization options        
-	peft=None,
+        offload_folder="./offload",        
+	    peft=None,
         delta=None,
         autogptq=False,
         gptqmodel=False,
@@ -54,7 +60,8 @@ class HabanaLM(HFLM):
                 "package `optimum-habana` is not installed. Please install it via `pip install optimum[habana]`"
             )
         else:
-            from optimum.habana import GaudiModelForCausalLM
+            from optimum.habana.transformers.modeling_utils import adapt_transformers_to_gaudi
+            adapt_transformers_to_gaudi()
 
         model_kwargs = kwargs if kwargs else {}
         model_kwargs.update(
@@ -68,10 +75,15 @@ class HabanaLM(HFLM):
             )
         )
 
-        self._model = GaudiModelForCausalLM.from_pretrained(
+        self._model = AutoModelForCausalLM.from_pretrained(
             pretrained,
             revision=revision,
             torch_dtype=get_dtype(dtype),
             trust_remote_code=trust_remote_code,
             **model_kwargs,
-        )
+            )
+        
+        if self.lazy_mode:
+            from habana_frameworks.torch.hpu import wrap_in_hpu_graph
+            self._model = wrap_in_hpu_graph(self._model)
+
