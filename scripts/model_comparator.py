@@ -6,6 +6,13 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import torch
+from torch.cuda import memory_allocated, memory_reserved
+
+try:
+    import torch_musa
+    from torch_musa.core.memory import memory_allocated, memory_reserved
+except ModuleNotFoundError:
+    torch_musa = None
 
 import lm_eval.evaluator
 import lm_eval.models.utils
@@ -18,7 +25,7 @@ eval_logger = logging.getLogger(__name__)
 
 def memory_stats():
     eval_logger.info(
-        f"Memory allocated: {torch.cuda.memory_allocated() / 1024**2}, reserved: {torch.cuda.memory_reserved() // 1024**2}"
+        f"Memory allocated: {memory_allocated() / 1024**2}, reserved: {memory_reserved() // 1024**2}"
     )
 
 

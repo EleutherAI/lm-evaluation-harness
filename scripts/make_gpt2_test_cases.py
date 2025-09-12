@@ -4,6 +4,11 @@ import torch
 import torch.nn.functional as F
 import transformers
 
+try:
+    import torch_musa
+except ModuleNotFoundError:
+    torch_musa = None
+
 
 random.seed(42)
 
