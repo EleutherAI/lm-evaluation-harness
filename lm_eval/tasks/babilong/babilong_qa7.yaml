@@ -1,0 +1,21 @@
+include: _babilong_common_yaml
+task: babilong_qa7
+test_split: qa7
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa7
+description: "I will give you context with the facts about people and objects they carry, hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word - $none$ or $number_of_objects$.\nDo not write anything else after that. Do not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Daniel went to the bedroom. Daniel got the apple there."
+      question: "How many objects is Daniel carrying?"
+      target: "one"
+    - input: "Mary grabbed the apple there. Mary gave the apple to John."
+      question: "How many objects is Mary carrying?"
+      target: "none"
+    - input: "Sandra travelled to the hallway. Sandra picked up the milk there. Sandra took the apple there. Mary travelled to the garden."
+      question: "How many objects is Sandra carrying?"
+      target: "two"

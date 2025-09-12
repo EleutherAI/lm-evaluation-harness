@@ -1,0 +1,18 @@
+include: _babilong_common_yaml
+task: babilong_qa1
+test_split: qa1
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa1
+description: "I will give you context with the facts about positions of different persons hidden in some random text and a question. You need to answer the question based only on the information from the facts. If a person was in different locations, use the latest location to answer the question.\nAlways return your answer in the following format:\nThe most recent location of 'person' is 'location'. Do not write anything else after that.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Charlie went to the hallway. Judith come back to the kitchen. Charlie travelled to balcony."
+      question: "Where is Charlie?"
+      target: "The most recent location of Charlie is balcony."
+    - input: "Alan moved to the garage. Charlie went to the beach. Alan went to the shop. Rouse travelled to balcony."
+      question: "Where is Alan?"
+      target: "The most recent location of Alan is shop."

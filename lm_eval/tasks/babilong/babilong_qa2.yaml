@@ -1,0 +1,18 @@
+include: _babilong_common_yaml
+task: babilong_qa2
+test_split: qa2
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa2
+description: "I will give you context with the facts about locations and actions of different persons hidden in some random text and a question. You need to answer the question based only on the information from the facts. If a person got an item in the first location and travelled to the second location the item is also in the second location. If a person dropped an item in the first location and moved to the second location the item remains in the first location.\nAlways return your answer in the following format:\nThe 'item' is in 'location'. Do not write anything else after that.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Charlie went to the kitchen. Charlie got a bottle. Charlie moved to the balcony."
+      question: "Where is the bottle?"
+      target: "The bottle is in the balcony."
+    - input: "Alan moved to the garage. Alan got a screw driver. Alan moved to the kitchen."
+      question: "Where is the screw driver?"
+      target: "The screw driver is in the kitchen."

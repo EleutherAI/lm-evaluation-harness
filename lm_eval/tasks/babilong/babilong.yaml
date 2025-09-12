@@ -1,0 +1,27 @@
+group: babilong
+task:
+  - babilong_qa1
+  - babilong_qa2
+  - babilong_qa3
+  - babilong_qa4
+  - babilong_qa5
+  - babilong_qa6
+  - babilong_qa7
+  - babilong_qa8
+  - babilong_qa9
+  - babilong_qa10
+  - babilong_qa11
+  - babilong_qa12
+  - babilong_qa13
+  - babilong_qa14
+  - babilong_qa15
+  - babilong_qa16
+  - babilong_qa17
+  - babilong_qa18
+  - babilong_qa19
+  - babilong_qa20
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0.0
