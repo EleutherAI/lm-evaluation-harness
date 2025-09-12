@@ -3,6 +3,6 @@ include: _default_translation_template_yaml
 task: translation_sadid__en-arz
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/translation/per_dataset/sadid__en-arz.json
+    test: ./translation/per_dataset/sadid__en-arz.json
 
 doc_to_text: "Translate the following from English to Egyptian Arabic:\n{{ input }}"

@@ -3,7 +3,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/translation/en_arz.json
+    test: ./translation/en_arz.json
 test_split: test
 
 output_type: generate_until

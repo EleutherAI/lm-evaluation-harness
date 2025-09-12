@@ -3,7 +3,7 @@ dataset_path: csv
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/QADI/test.tsv
+    test: ./LAraBench/QADI/test.tsv
   delimiter: "\t"
 test_split: test
 

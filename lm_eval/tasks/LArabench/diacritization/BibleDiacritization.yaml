@@ -1,6 +1,6 @@
 task: LArabench_diacritization_BibleDiacritization
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/BibleMaghrebiDiacritization/all_combined/test.tsv
+    test: ./LAraBench/BibleMaghrebiDiacritization/all_combined/test.tsv
   delimiter: "\t"
 include: _default_template_yaml

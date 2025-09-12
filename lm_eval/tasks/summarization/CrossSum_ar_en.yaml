@@ -2,7 +2,7 @@ task: summ_CrossSum_ar_en
 include: _default_summarization_template_yaml
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/CrossSum_ar_en.json
+    test: ./summarization/CrossSum_ar_en.json
 test_split: test
 
 doc_to_text: "لخص الكلام النالي واكتب الملخص باللغة الانجليزية:\n{{ prompt }}"

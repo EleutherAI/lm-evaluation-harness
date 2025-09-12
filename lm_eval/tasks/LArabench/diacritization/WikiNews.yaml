@@ -1,6 +1,6 @@
 task: LArabench_diacritization_WikiNews
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/WikiNewsDiacritization/test.tsv
+    test: ./LAraBench/WikiNewsDiacritization/test.tsv
   delimiter: "\t"
 include: _default_template_yaml
