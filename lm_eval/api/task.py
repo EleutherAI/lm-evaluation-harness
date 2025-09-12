@@ -3,6 +3,7 @@ import ast
 import logging
 import random
 import re
+import os
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
@@ -270,16 +271,34 @@ def replace_video_with_images(messages, num_images):
                         idx = round(i * (len(frames) - 1) / (num_images - 1))
                         image = frames[idx]
 
-                    buf = io.BytesIO()
-                    to_pil_image(image["data"]).save(buf, format="PNG")
-                    image_bytes = buf.getvalue()
-                    image_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
-                    ith_image = {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": image_url
+                    # buf = io.BytesIO()
+                    # to_pil_image(image["data"]).save(buf, format="PNG")
+                    # image_bytes = buf.getvalue()
+                    # image_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
+                    # ith_image = {
+                    #     "type": "image_url",
+                    #     "image_url": {
+                    #         "url": image_url
+                    #     }
+                    # }
+
+                    if os.environ.get("USE_API", False):
+                        buf = io.BytesIO()
+                        to_pil_image(image["data"]).save(buf, format="PNG")
+                        image_bytes = buf.getvalue()
+                        image_url = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
+                        ith_image = {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": image_url
+                            }
                         }
-                    }
+                    else:
+                        img = to_pil_image(image["data"])
+                        ith_image = {
+                            "type": "image",
+                            "image": img
+                        }
                     new_content.append(ith_image)
             else:
                 new_content.append(item)

@@ -753,23 +753,58 @@ def content_image_to_content_image_url(content):
     if content["type"] not in ["image", "image_url"]:
         return content
 
+    # new_content = copy.deepcopy(content)
+    # image = new_content[content["type"]]
+
+    # if not isinstance(image, Image.Image):
+    #     return content
+
+    # buf = BytesIO()
+    # image.save(buf, format="PNG")
+    # img_bytes = buf.getvalue()
+
+    # b64 = base64.b64encode(img_bytes).decode("utf-8")
+    # data_uri = f"data:image/png;base64,{b64}"
+
+    # new_content["type"] = "image_url"
+    # new_content["image_url"] = {
+    #     "url": data_uri,
+    # }
+
+    # if content["type"] not in ["image", "image_url"]:
+    #     return content
+
     new_content = copy.deepcopy(content)
-    image = new_content[content["type"]]
 
-    if not isinstance(image, Image.Image):
-        return content
+    if content["type"] == "image_url":
+        buf = BytesIO()
+        new_content["image_url"].save(buf, format="PNG")
+        image_bytes = buf.getvalue()
+        data_uri = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
 
-    buf = BytesIO()
-    image.save(buf, format="PNG")
-    img_bytes = buf.getvalue()
+        new_content["type"] = "image_url"
+        new_content["image_url"] = {
+            "url": data_uri,
+        }
+    else:
+        buf = BytesIO()
+        new_content["image"].save(buf, format="PNG")
+        image_bytes = buf.getvalue()
+        data_uri = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
 
-    b64 = base64.b64encode(img_bytes).decode("utf-8")
-    data_uri = f"data:image/png;base64,{b64}"
+        new_content["type"] = "image_url"
+        new_content["image_url"] = {
+            "url": data_uri,
+        }
+        # b64 = base64.b64encode(new_content["image"]).decode("utf-8")
+        # data_uri = f"data:image/png;base64,{b64}"
 
-    new_content["type"] = "image_url"
-    new_content["image_url"] = {
-        "url": data_uri,
-    }
+        # new_content["type"] = "image_url"
+        # new_content["image_url"] = {
+        #     "url": data_uri,
+        # }
+        # del new_content["image"]
+
     if "image" in new_content:
         del new_content["image"]
 

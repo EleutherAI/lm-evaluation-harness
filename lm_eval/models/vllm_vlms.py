@@ -226,9 +226,10 @@ class VLLM_VLM(VLLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        if requests and len(requests[0].args) < 3:
-            # Fall back to non-multimodal generation.
-            return super().generate_until(requests=requests, disable_tqdm=disable_tqdm)
+        ### HERE ###
+        # if requests and len(requests[0].args) < 3:
+        #     # Fall back to non-multimodal generation.
+        #     return super().generate_until(requests=requests, disable_tqdm=disable_tqdm)
 
         res = []
 

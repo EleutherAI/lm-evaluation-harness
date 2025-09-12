@@ -1,6 +1,8 @@
 import librosa
 import logging
 import os
+import copy
+import json
 from typing import Dict, List, Optional, Tuple, Union
 
 import soundfile as sf
@@ -49,7 +51,11 @@ class HFAUDIOLMQWEN(HFLM):
     An abstracted Hugging Face model class for Audio LM model like Qwen2-Audio.
     """
 
-    AUTO_MODEL_CLASS = transformers.Qwen2AudioForConditionalGeneration
+    if transformers.__version__ < "4.55":
+        # won't work, but won't fail running other models either
+        AUTO_MODEL_CLASS = transformers.AutoModel
+    else:
+        AUTO_MODEL_CLASS = transformers.Qwen2AudioForConditionalGeneration
     MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
 
     def __init__(
@@ -480,8 +486,7 @@ class HFAUDIOLM(HFLM):
         """
         self.chat_applied = True
         for ch_h in chat_history:
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                ch_h["content"] = ch_h["content"].replace(placeholder, "")
+            ch_h["content"] = ch_h["content"].replace(DEFAULT_AUDIO_PLACEHOLDER, "")
 
         return json.dumps(chat_history, ensure_ascii=False)
 
@@ -499,8 +504,7 @@ class HFAUDIOLM(HFLM):
             ]
 
         if not self.chat_applied:
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                strings = _replace_placeholder(placeholder, strings)
+            strings = _replace_placeholder(DEFAULT_AUDIO_PLACEHOLDER, strings)
 
         audios = self.save_audio(audios)
         encoded = self.tok_encode(strings[0])
@@ -631,8 +635,7 @@ class HFAUDIOLMMINICPM(HFLM):
         """
         self.chat_applied = True
         for ch_h in chat_history:
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                ch_h["content"] = ch_h["content"].replace(placeholder, "")
+            ch_h["content"] = ch_h["content"].replace(DEFAULT_AUDIO_PLACEHOLDER, "")
 
         return json.dumps(chat_history, ensure_ascii=False)
 
@@ -650,8 +653,7 @@ class HFAUDIOLMMINICPM(HFLM):
             ]
 
         if not self.chat_applied:
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                strings = _replace_placeholder(placeholder, strings)
+            strings = _replace_placeholder(DEFAULT_AUDIO_PLACEHOLDER, strings)
 
         encoded = self.tok_encode(strings[0])
         question = encoded[0]["content"]
@@ -748,7 +750,6 @@ class HFAUDIOLMULTRAVOX(HFLM):
     """
     Hugging Face model class for Audio LM model like Ultravox.
     """
-
     AUTO_MODEL_CLASS = transformers.AutoModel
     MULTIMODAL = True  # flag to indicate, for now, that this model type can run multimodal requests
 
@@ -835,8 +836,7 @@ class HFAUDIOLMULTRAVOX(HFLM):
         """
         self.chat_applied = True
         for ch_h in chat_history:
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                ch_h["content"] = ch_h["content"].replace(placeholder, "")
+            ch_h["content"] = ch_h["content"].replace(DEFAULT_AUDIO_PLACEHOLDER, "")
 
         return json.dumps(chat_history, ensure_ascii=False)
 
@@ -854,8 +854,7 @@ class HFAUDIOLMULTRAVOX(HFLM):
             ]
 
         if not self.chat_applied:
-            for placeholder in DEFAULT_AUDIO_PLACEHOLDERS:
-                strings = _replace_placeholder(placeholder, strings)
+            strings = _replace_placeholder(DEFAULT_AUDIO_PLACEHOLDER, strings)
 
         encoded = self.tok_encode(strings[0])
         question = encoded[0]["content"]

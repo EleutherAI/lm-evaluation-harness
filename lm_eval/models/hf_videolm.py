@@ -106,14 +106,15 @@ class HFVideoLlava(HFMultimodalLM):
             inputs["input_ids"].shape[1],
             inputs["input_ids"].shape[0],
         )
-        return self.model.generate(
-            **inputs,
-            max_length=max_length,
-            stopping_criteria=stopping_criteria,
-            pad_token_id=self.tokenizer.pad_token_id,
-            use_cache=True,
-            **generation_kwargs,
-        )
+        with torch.cuda.amp.autocast():
+            return self.model.generate(
+                **inputs,
+                max_length=max_length,
+                stopping_criteria=stopping_criteria,
+                pad_token_id=self.tokenizer.pad_token_id,
+                use_cache=True,
+                **generation_kwargs,
+            )
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
