@@ -1,0 +1,28 @@
+tag:
+- longbench_v2
+task: longbench_v2_multi_news
+dataset_path: THUDM/LongBench
+dataset_name: multi_news
+output_type: generate_until
+test_split: test
+doc_to_text: 'Summarize the following news articles.
+
+
+  Articles:
+
+  {{context}}
+
+
+  Summary:'
+doc_to_target: '{{summary}}'
+generation_kwargs:
+  max_gen_toks: 200
+  temperature: 0.1
+  do_sample: false
+process_results: '!function utils.process_results_gen'
+metric_list:
+- metric: score
+  aggregation: mean
+  higher_is_better: true
+metadata:
+  version: '1.0'

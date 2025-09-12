@@ -1,0 +1,22 @@
+group: babilong
+task:
+- babilong_qa1_single_fact
+- babilong_qa2_two_facts
+- babilong_qa3_three_facts
+- babilong_qa4_two_arg_relations
+- babilong_qa5_three_arg_relations
+- babilong_qa6_yes_no
+- babilong_qa7_counting
+- babilong_qa8_lists_sets
+- babilong_qa9_simple_negation
+- babilong_qa10_indefinite_knowledge
+- babilong_qa11_basic_coreference
+- babilong_qa12_conjunction
+- babilong_qa13_compound_coreference
+- babilong_qa14_time_reasoning
+- babilong_qa15_basic_deduction
+- babilong_qa16_basic_induction
+- babilong_qa17_positional_reasoning
+- babilong_qa18_size_reasoning
+- babilong_qa19_path_finding
+- babilong_qa20_agents_motivations
