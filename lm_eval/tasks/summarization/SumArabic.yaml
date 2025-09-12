@@ -2,4 +2,4 @@ task: summ_SumArabic
 include: _default_summarization_template_yaml
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/summarization/SumArabic.json
+    test: ./summarization/SumArabic.json

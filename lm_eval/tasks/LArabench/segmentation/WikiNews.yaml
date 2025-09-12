@@ -1,6 +1,6 @@
 task: LArabench_Segmentation_WikiNews
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/LArabench_evaluation/LArabench_base_files/WikiNewsSegmentation/test_processed.tsv
+    test: ./LAraBench/WikiNewsSegmentation/test_processed.tsv
   delimiter: "\t"
 include: _default_template_yaml

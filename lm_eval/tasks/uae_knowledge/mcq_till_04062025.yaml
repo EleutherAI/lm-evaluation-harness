@@ -3,8 +3,8 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/uae_knowledge/mcq_benchmark_till_04062025.json
-    # test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/uae_knowledge/sample.json
+    test: ./uae_knowledge/mcq_benchmark_till_04062025.json
+    # test: ./uae_knowledge/sample.json
 
 test_split: test
 

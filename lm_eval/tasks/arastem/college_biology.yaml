@@ -1,7 +1,7 @@
 dataset_kwargs:
   data_files:
     test:
-      - /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/AraSTEM/college__biology.json
+      - ./AraSTEM/college__biology.json
 dataset_name: null
 dataset_path: json
 
