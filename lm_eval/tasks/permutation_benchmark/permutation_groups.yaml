@@ -1,0 +1,208 @@
+group: permutation_groups
+task:
+  - tc0_groups
+  - nc1_groups
+aggregate_metric_list:
+  - metric: "5"
+    weight_by_size: false
+  - metric: "10"
+    weight_by_size: false
+  - metric: "15"
+    weight_by_size: false
+  - metric: "20"
+    weight_by_size: false
+  - metric: "25"
+    weight_by_size: false
+  - metric: "30"
+    weight_by_size: false
+  - metric: "35"
+    weight_by_size: false
+  - metric: "40"
+    weight_by_size: false
+  - metric: "45"
+    weight_by_size: false
+  - metric: "50"
+    weight_by_size: false
+  - metric: "55"
+    weight_by_size: false
+  - metric: "60"
+    weight_by_size: false
+  - metric: "65"
+    weight_by_size: false
+  - metric: "70"
+    weight_by_size: false
+  - metric: "75"
+    weight_by_size: false
+  - metric: "80"
+    weight_by_size: false
+  - metric: "85"
+    weight_by_size: false
+  - metric: "90"
+    weight_by_size: false
+  - metric: "95"
+    weight_by_size: false
+  - metric: "100"
+    weight_by_size: false
+  - metric: "105"
+    weight_by_size: false
+  - metric: "110"
+    weight_by_size: false
+  - metric: "115"
+    weight_by_size: false
+  - metric: "120"
+    weight_by_size: false
+  - metric: "125"
+    weight_by_size: false
+  - metric: "130"
+    weight_by_size: false
+  - metric: "135"
+    weight_by_size: false
+  - metric: "140"
+    weight_by_size: false
+  - metric: "145"
+    weight_by_size: false
+  - metric: "150"
+    weight_by_size: false
+  - metric: "155"
+    weight_by_size: false
+  - metric: "160"
+    weight_by_size: false
+  - metric: "165"
+    weight_by_size: false
+  - metric: "170"
+    weight_by_size: false
+  - metric: "175"
+    weight_by_size: false
+  - metric: "180"
+    weight_by_size: false
+  - metric: "185"
+    weight_by_size: false
+  - metric: "190"
+    weight_by_size: false
+  - metric: "195"
+    weight_by_size: false
+  - metric: "200"
+    weight_by_size: false
+  - metric: "205"
+    weight_by_size: false
+  - metric: "210"
+    weight_by_size: false
+  - metric: "215"
+    weight_by_size: false
+  - metric: "220"
+    weight_by_size: false
+  - metric: "225"
+    weight_by_size: false
+  - metric: "230"
+    weight_by_size: false
+  - metric: "235"
+    weight_by_size: false
+  - metric: "240"
+    weight_by_size: false
+  - metric: "245"
+    weight_by_size: false
+  - metric: "250"
+    weight_by_size: false
+  - metric: "255"
+    weight_by_size: false
+  - metric: "260"
+    weight_by_size: false
+  - metric: "265"
+    weight_by_size: false
+  - metric: "270"
+    weight_by_size: false
+  - metric: "275"
+    weight_by_size: false
+  - metric: "280"
+    weight_by_size: false
+  - metric: "285"
+    weight_by_size: false
+  - metric: "290"
+    weight_by_size: false
+  - metric: "295"
+    weight_by_size: false
+  - metric: "300"
+    weight_by_size: false
+  - metric: "305"
+    weight_by_size: false
+  - metric: "310"
+    weight_by_size: false
+  - metric: "315"
+    weight_by_size: false
+  - metric: "320"
+    weight_by_size: false
+  - metric: "325"
+    weight_by_size: false
+  - metric: "330"
+    weight_by_size: false
+  - metric: "335"
+    weight_by_size: false
+  - metric: "340"
+    weight_by_size: false
+  - metric: "345"
+    weight_by_size: false
+  - metric: "350"
+    weight_by_size: false
+  - metric: "355"
+    weight_by_size: false
+  - metric: "360"
+    weight_by_size: false
+  - metric: "365"
+    weight_by_size: false
+  - metric: "370"
+    weight_by_size: false
+  - metric: "375"
+    weight_by_size: false
+  - metric: "380"
+    weight_by_size: false
+  - metric: "385"
+    weight_by_size: false
+  - metric: "390"
+    weight_by_size: false
+  - metric: "395"
+    weight_by_size: false
+  - metric: "400"
+    weight_by_size: false
+  - metric: "405"
+    weight_by_size: false
+  - metric: "410"
+    weight_by_size: false
+  - metric: "415"
+    weight_by_size: false
+  - metric: "420"
+    weight_by_size: false
+  - metric: "425"
+    weight_by_size: false
+  - metric: "430"
+    weight_by_size: false
+  - metric: "435"
+    weight_by_size: false
+  - metric: "440"
+    weight_by_size: false
+  - metric: "445"
+    weight_by_size: false
+  - metric: "450"
+    weight_by_size: false
+  - metric: "455"
+    weight_by_size: false
+  - metric: "460"
+    weight_by_size: false
+  - metric: "465"
+    weight_by_size: false
+  - metric: "470"
+    weight_by_size: false
+  - metric: "475"
+    weight_by_size: false
+  - metric: "480"
+    weight_by_size: false
+  - metric: "485"
+    weight_by_size: false
+  - metric: "490"
+    weight_by_size: false
+  - metric: "495"
+    weight_by_size: false
+  - metric: "500"
+    weight_by_size: false
+metadata:
+  version: 1.0
+  description: Permutation composition benchmark for evaluating state-tracking capabilities
