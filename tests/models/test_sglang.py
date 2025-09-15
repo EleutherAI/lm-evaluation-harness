@@ -121,5 +121,5 @@ class Test_SGlang:
             ), f"Mismatch in results for {task}"
 
         print(
-            "✅ test_evaluator passed: simple_evaluate and evaluate results are identical."
+            " test_evaluator passed: simple_evaluate and evaluate results are identical."
         )
