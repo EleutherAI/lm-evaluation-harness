@@ -16,7 +16,7 @@ test_split: train
 output_type: multiple_choice
 
 # Field mapping
-doc_to_text: "{{prompt}}"
+doc_to_text: "\n    Example 1:\n    Question: ما مدة المسح على الخفين للمقيم؟\n    A) يوم وليلة\n    B) ثلاثة أيام بلياليهن\n    C) يومان وليلتان\n    D) أسبوع كامل\n    Answer: A\n    \n    Example 2:\n    Question: توفي عن أب، وأخوين شقيقين، وابن أخ شقيق، وعمين شقيقين، وأم، وبنتين، و زوجة، فما نصيب الأم؟\n    A) الثلث\n    B) الربع\n    C) السدس\n    D) الثمن\n    E) النصف\n    F) لا شيء\n    Answer: C\n    \n    Now answer the following question:\n\n\nYou are a specialist in Islamic sciences. Your task is to answer multiple-choice questions by selecting the correct option.\n\n"
 doc_to_choice: choices
 doc_to_target: target
 
