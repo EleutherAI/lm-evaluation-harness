@@ -1,6 +1,5 @@
 import copy
 import gc
-import inspect
 import logging
 import os
 from importlib.metadata import version
@@ -33,7 +32,7 @@ from lm_eval.utils import (
 
 try:
     import ray
-    from vllm import LLM, SamplingParams
+    from vllm import LLM, SamplingParams, TokensPrompt
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
     from vllm.utils import get_open_port
@@ -51,7 +50,7 @@ eval_logger = logging.getLogger(__name__)
 
 def _vllm_mp_worker(
     model_args: dict,
-    sampling_params: "SamplingParams",
+    sampling_params: list["SamplingParams"],
     requests: list[list[int]],
     lora_request: "LoRARequest",
     result_queue: "Queue",
@@ -79,7 +78,7 @@ def _vllm_mp_worker(
     try:
         llm = LLM(**model_args)
         res = llm.generate(
-            prompt_token_ids=requests,
+            [TokensPrompt(prompt_token_ids=request) for request in requests],
             sampling_params=sampling_params,
             lora_request=lora_request,
         )
@@ -196,6 +195,12 @@ class VLLM(TemplateLM):
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
+        if "gemma" in pretrained.lower():
+            add_bos_token = True
+            eval_logger.info(
+                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
+            )
+
         from transformers import AutoConfig
 
         self._config = AutoConfig.from_pretrained(
@@ -214,11 +219,6 @@ class VLLM(TemplateLM):
             "enable_thinking", enable_thinking
         )
         self.add_bos_token = add_bos_token
-        if "gemma" in pretrained.lower():
-            self.add_bos_token = True
-            eval_logger.info(
-                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
-            )
 
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
             kwargs_resolve_hf_chat_template = {
@@ -239,13 +239,6 @@ class VLLM(TemplateLM):
                     model_config = engine_args.create_model_config()
 
                     kwargs_resolve_hf_chat_template["model_config"] = model_config
-
-            # https://github.com/vllm-project/vllm/pull/18259
-            if (
-                "trsut_remote_code"
-                in inspect.signature(resolve_hf_chat_template).parameters
-            ):
-                kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
             else:
                 kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
 
@@ -371,17 +364,14 @@ class VLLM(TemplateLM):
         self,
         requests: List[List[int]] = None,
         generate: bool = False,
-        max_tokens: int = None,
-        stop: Optional[List[str]] = None,
-        **kwargs,
+        sampling_params: Union[List["SamplingParams"], "SamplingParams", None] = None,
     ):
-        if generate:
-            kwargs = self.modify_gen_kwargs(kwargs)
-            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
-        else:
+        if not generate or sampling_params is None:
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
+        if not isinstance(sampling_params, List):
+            sampling_params = [sampling_params] * len(requests)
         if self.data_parallel_size > 1 and not self.V1:
             # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
@@ -389,13 +379,13 @@ class VLLM(TemplateLM):
             @ray.remote
             def run_inference_one_model(
                 model_args: dict,
-                sampling_params: SamplingParams,
+                sampling_params: List["SamplingParams"],
                 requests: List[List[int]],
-                lora_request: LoRARequest,
+                lora_request: "LoRARequest",
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
-                    prompt_token_ids=requests,
+                    [TokensPrompt(prompt_token_ids=request) for request in requests],
                     sampling_params=sampling_params,
                     lora_request=lora_request,
                 )
@@ -403,9 +393,12 @@ class VLLM(TemplateLM):
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
             requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
+            sampling_params = [
+                list(sp) for sp in distribute(self.data_parallel_size, sampling_params)
+            ]
             inputs = (
-                (self.model_args, sampling_params, req, self.lora_request)
-                for req in requests
+                (self.model_args, sp, req, self.lora_request)
+                for req, sp in zip(requests, sampling_params)
             )
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
@@ -420,16 +413,18 @@ class VLLM(TemplateLM):
             dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT") or get_open_port()
 
             requests = (list(x) for x in distribute(self.data_parallel_size, requests))
-
+            sampling_params = (
+                list(sp) for sp in distribute(self.data_parallel_size, sampling_params)
+            )
             procs, resq = [], Queue()
             # We use Process as it is non-daemonic
             try:
-                for rank, req in enumerate(requests):
+                for rank, (sp, req) in enumerate(zip(requests, sampling_params)):
                     proc = Process(
                         target=_vllm_mp_worker,
                         args=(
                             self.model_args.copy(),
-                            sampling_params,
+                            sp,
                             req,
                             self.lora_request,
                             resq,
@@ -484,7 +479,7 @@ class VLLM(TemplateLM):
 
         else:
             outputs = self.model.generate(
-                prompt_token_ids=requests,
+                [TokensPrompt(prompt_token_ids=request) for request in requests],
                 sampling_params=sampling_params,
                 use_tqdm=True if self.batch_size == "auto" else False,
                 lora_request=self.lora_request,
@@ -583,10 +578,11 @@ class VLLM(TemplateLM):
             # - any OOMs will happen right away rather than near the end
             return -len(_requests[0][1]), _requests[0][0]
 
-        # we group requests by their generation_kwargs,
-        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
-        # in the same batch.
-        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
+        re_ords = Collator(
+            requests,
+            _collate_gen,
+            group_by=None,
+        )
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
@@ -601,41 +597,44 @@ class VLLM(TemplateLM):
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
-            # we assume all gen kwargs in the batch are the same
-            # this is safe to assume because the `grouper` object ensures it.
-            gen_kwargs = all_gen_kwargs[0]
-            # unpack our keyword arguments.
-            if isinstance(gen_kwargs, dict):
-                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                # add EOS token to stop sequences
-                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
-            else:
-                raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                )
-            if "max_gen_toks" in kwargs.keys():
-                max_gen_toks = kwargs.pop("max_gen_toks")
-            else:
-                max_gen_toks = self.max_gen_toks
-
-            # set the max length in tokens of inputs ("context_enc")
-            # max len for inputs = max length, minus room to generate the max new tokens
-            max_ctx_len = self.max_length - max_gen_toks
-            all_lengths = [len(x) for x in context_encoding]
-            for length in all_lengths:
-                if length > max_ctx_len:
-                    eval_logger.warning(
-                        f"Context length {length} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
+            context_encoding_truncated = []
+            sampling_params = []
+            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs):
+                # unpack our keyword arguments.
+                if isinstance(gen_kwargs, dict):
+                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                    # add EOS token to stop sequences
+                    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+                else:
+                    raise ValueError(
+                        f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
-            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+                if "max_gen_toks" in kwargs.keys():
+                    max_gen_toks = kwargs.pop("max_gen_toks")
+                else:
+                    max_gen_toks = self.max_gen_toks
+
+                # set the max length in tokens of inputs ("context_enc")
+                # max len for inputs = max length, minus room to generate the max new tokens
+                max_ctx_len = self.max_length - max_gen_toks
+                if len(x) > max_ctx_len:
+                    eval_logger.warning(
+                        f"Context length {len(x)} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
+                    )
+                    context_encoding_truncated.append(x[-max_ctx_len:])
+                else:
+                    context_encoding_truncated.append(x)
+                # create sampling params
+                kwargs = self.modify_gen_kwargs(kwargs)
+                sampling_params.append(
+                    SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
+                )
 
             # perform batched generation
             cont = self._model_generate(
-                requests=context_encoding,
+                requests=context_encoding_truncated,
                 generate=True,
-                max_tokens=max_gen_toks,
-                stop=until,
-                **kwargs,
+                sampling_params=sampling_params,
             )
 
             # cache generations
