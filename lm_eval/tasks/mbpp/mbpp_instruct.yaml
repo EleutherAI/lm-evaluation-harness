@@ -9,9 +9,10 @@ doc_to_target: "{% if is_fewshot is defined %}{{code}}\n```{% else %}{{test_list
 gen_prefix: "\n```python\n"
 target_delimiter: ""
 metric_list:
-  - metric: !function utils.pass_at_1
+  - metric: !function utils.pass_at_k
     aggregation: mean
     higher_is_better: true
+    k: [ 1 ]
 filter_list:
   - name: "extract_code"
     filter:
@@ -19,7 +20,7 @@ filter_list:
         filter_fn: !function utils.build_predictions
 generation_kwargs:
   max_gen_toks: 256
-  until: []
+  until: [ ]
   do_sample: false
 num_fewshot: 3
 fewshot_config:

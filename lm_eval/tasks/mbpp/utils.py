@@ -5,42 +5,34 @@ import evaluate as hf_evaluate
 
 
 try:
-    pass_at_k = hf_evaluate.load("code_eval")
-
-    # run simple test to check code execution is enabled before model generation
+    compute_ = hf_evaluate.load("code_eval")
     test_cases = ["assert add(2, 3)==5"]
     candidates = [["def add(a,b): return a*b"]]
-    results = pass_at_k.compute(references=test_cases, predictions=candidates, k=[1])
+    results = compute_.compute(references=test_cases, predictions=candidates, k=[1])
 except Exception as e:
     raise e
 
 
-def pass_at_1(
-    references: Union[str, list[str]], predictions: Union[str, list[list[str]]]
-) -> float:
-    if isinstance(references, str):
-        references = [references]
-    if isinstance(predictions[0], str):
-        predictions = [[p] for p in predictions]
-    return pass_at_k.compute(
+def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] = None):
+    global compute_
+    assert k is not None
+    if isinstance(k, int):
+        k = [k]
+    res = compute_.compute(
         references=references,
         predictions=predictions,
-        k=[1],
-    )[0]["pass@1"]
-
-
-def pass_at_10(
-    references: Union[str, list[str]], predictions: Union[str, list[list[str]]]
-) -> float:
-    global pass_at_k
-    if isinstance(references, str):
-        references = [references]
-    if isinstance(predictions[0], str):
-        predictions = [[p] for p in predictions]
-    res = pass_at_k.compute(
-        references=references, predictions=predictions, k=[10], num_workers=20
+        k=k,
     )
     return res[0]
+
+
+def extract_python_block(text: str) -> str:
+    if not text.startswith("```"):
+        text = "```python\n" + text + "\n```"
+    # capture only fences whose language tag is 'python'
+    pattern = re.compile(r"```python\n([\s\S]*?)\n?```", re.IGNORECASE)
+    m = pattern.search(text)
+    return "from __future__ import annotations\n" + m.group(1) if m else ""
 
 
 def extract_code_blocks(text: str) -> str:

@@ -17,9 +17,10 @@ doc_to_target: "{% if is_fewshot is defined %}{{code}}\n[DONE]{% else %}{{test_l
 target_delimiter: ""
 gen_prefix: "Here is the completed function:\n\n```python\n"
 metric_list:
-  - metric: !function utils.pass_at_10
+  - metric: !function utils.pass_at_k
     aggregation: mean
     higher_is_better: true
+    k: [ 10 ]
 filter_list:
   - name: "create_test"
     filter:
@@ -27,16 +28,16 @@ filter_list:
         filter_fn: !function utils.build_predictions
 generation_kwargs:
   until: [
-                  "\nclass",
-                  "\nassert",
-                  '\n"""',
-                  "\nprint",
-                  "\nif",
-                  "\n```",
-                  "\n#",
-                  "\n<|/",
-                  "<|eot_id|>",
-              ]
+    "\nclass",
+    "\nassert",
+    '\n"""',
+    "\nprint",
+    "\nif",
+    "\n```",
+    "\n#",
+    "\n<|/",
+    "<|eot_id|>",
+  ]
   do_sample: true
   temperature: 0.8
   top_p: 0.95
