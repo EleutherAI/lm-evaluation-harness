@@ -5,18 +5,15 @@ metric_list:
   - metric: !function utils.pass_at_k
     aggregation: mean
     higher_is_better: true
-    k: [10]
+    k: [ 10 ]
 generation_kwargs:
-  until: [
-                  "\nclass",
-                  "\nif",
-                  "\nprint",
-                  "\n#",
-                  "\n```",
-                  "\n```\n\n",
-                  "<|eot_id|>",
-              ]
-  max_gen_toks: 512
+  until:
+    - "\nclass"
+    - "\ndef"
+    - "\n#"
+    - "\nif"
+    - "\nprint"
+  max_gen_toks: 1024
   do_sample: true
-  temperature: 0.2
+  temperature: 0.8
   top_p: 0.95
