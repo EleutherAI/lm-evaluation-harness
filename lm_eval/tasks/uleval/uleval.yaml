@@ -2,7 +2,7 @@ tag:
   - uyghur_language
   - uyghur_llm
 task: uleval
-dataset_path: yasinjan/uleval
+dataset_path: keramjan/uleval
 dataset_name: main
 output_type: multiple_choice
 training_split: train

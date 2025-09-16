@@ -2,7 +2,7 @@ tag:
   - uyghur_language
   - uyghur_llm
 task: ulqa
-dataset_path: yasinjan/ulqa
+dataset_path: keramjan/ulqa
 dataset_name: main
 output_type: generate_until
 training_split: train

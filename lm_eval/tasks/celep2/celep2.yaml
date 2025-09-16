@@ -2,7 +2,7 @@ tag:
   - uyghur_literature
   - uyghur_llm
 task: celep2
-dataset_path: yasinjan/CELEP2
+dataset_path: keramjan/CELEP2
 dataset_name: main
 output_type: generate_until
 training_split: train
