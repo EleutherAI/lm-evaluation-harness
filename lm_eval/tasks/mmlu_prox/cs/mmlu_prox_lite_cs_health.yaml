@@ -1,0 +1,9 @@
+description: 'Zde je otázka s výběrem možností k tématu zdraví (s odpovědí). Přemýšlejte
+  prosím krok za krokem a svou odpověď zakončete "Odpověď je (X)", kde X je písmeno
+  správné možnosti.
+
+  '
+include: _cs_lite_template_yaml
+task: mmlu_prox_lite_cs_health
+task_alias: health
+process_docs: !function utils.process_health
