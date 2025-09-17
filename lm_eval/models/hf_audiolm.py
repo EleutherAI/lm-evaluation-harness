@@ -762,6 +762,7 @@ class HFAUDIOLMULTRAVOX(HFLM):
         # We initialize using HFLM's init. Sub-methods like _create_model and _create_tokenizer
         # modify init behavior.
         super().__init__(pretrained, **kwargs)
+        self.num_audios = 1
 
     def _create_tokenizer(
         self,
@@ -824,7 +825,7 @@ class HFAUDIOLMULTRAVOX(HFLM):
         **kwargs,
     ) -> None:
         self.pipe = transformers.pipeline(
-            model=pretrained, trust_remote_code=True, device=0
+            model=pretrained, trust_remote_code=True, device=0, **kwargs
         )
         self._model = self.pipe.model
 
@@ -835,8 +836,8 @@ class HFAUDIOLMULTRAVOX(HFLM):
         Method to apply a chat template to a list of chat history between user and model.
         """
         self.chat_applied = True
-        for ch_h in chat_history:
-            ch_h["content"] = ch_h["content"].replace(DEFAULT_AUDIO_PLACEHOLDER, "")
+        # for ch_h in chat_history:
+        #     ch_h["content"] = ch_h["content"].replace(DEFAULT_AUDIO_PLACEHOLDER, "")
 
         return json.dumps(chat_history, ensure_ascii=False)
 
@@ -847,24 +848,36 @@ class HFAUDIOLMULTRAVOX(HFLM):
     ) -> List[
         Dict
     ]:  # note that this return signature differs from HFLM tok_batch_encode.
-        def _replace_placeholder(placeholder, strings):
+        def _replace_placeholder(placeholder, replacer, strings):
             return [
-                replace_placeholders(string, placeholder, "", self.max_audios)
+                replace_placeholders(string, placeholder, replacer, self.max_audios)
                 for string in strings
             ]
 
-        if not self.chat_applied:
-            strings = _replace_placeholder(DEFAULT_AUDIO_PLACEHOLDER, strings)
+        strings_new = []
+        for s in strings:
+            new = s[:]
+            if "<audio>" in new:
+                for i in range(1, 11):
+                    if f"<audio_{i}>" in new:
+                        new = new.replace(f"<audio_{i}>", "")
+            elif "<audio_1>" in new:
+                for j in range(2, 11):
+                    if f"<audio_{j}>" in new:
+                        new = new.replace(f"<audio_{j}>", "")
+                new = new.replace("<audio_1>", "<audio>")
+            else:
+                new = "<audio> " + new
+            new = new.replace("<audio>", "<|audio|>")
+            strings_new.extend([new])
+        
+        self.num_audios = strings_new[0].count("<audio>")
 
-        encoded = self.tok_encode(strings[0])
+        encoded = self.tok_encode(strings_new[0])
         question = encoded[0]["content"]
 
         turns = [
-            # {
-            #   "role": "system",
-            #   "content": "You are a friendly and helpful character. You love to answer questions for people."
-            # },
-            {"role": "assistant", "content": question},
+            {"role": "user", "content": question},
         ]
         return turns
 
@@ -902,16 +915,25 @@ class HFAUDIOLMULTRAVOX(HFLM):
         for chunk in chunks:
             contexts, all_gen_kwargs, aux_arguments = zip(*chunk)
 
+            max_new_tokens = all_gen_kwargs[0].pop("max_gen_toks", 64)
+
             target_sr = 16000
             audios = get_audios_from_args(aux_arguments, target_sr)
 
             turns = self.tok_batch_multimodal_encode(contexts)
 
-            result = self.pipe(
-                {"audio": audios[0], "turns": turns, "sampling_rate": target_sr},
-                max_new_tokens=30,
-            )
+            if self.num_audios == 1:
+                result = self.pipe(
+                    {"audio": audios[0], "turns": turns, "sampling_rate": target_sr},
+                    max_new_tokens=max_new_tokens,
+                )
+            else:
+                result = self.pipe(
+                    {"audio": audios, "turns": turns, "sampling_rate": target_sr},
+                    max_new_tokens=max_new_tokens,
+                )
             res.append(result)
+            pbar.update(1)
 
         pbar.close()
         return res
