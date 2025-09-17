@@ -1,7 +1,7 @@
 import copy
 import itertools
 import logging
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Dict
 
 import numpy as np
 import torch
@@ -18,12 +18,13 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
     stop_sequences_criteria,
 )
+from lm_eval.api.task import DEFAULT_VIDEO_PLACEHOLDER
 
 
 eval_logger = logging.getLogger(__name__)
 
 
-@register_model("hf_video_llava")
+@register_model("hf_videolm")
 class HFVideoLlava(HFMultimodalLM):
     MULTIMODAL = True
     AUTO_MODEL_CLASS = AutoModelForVision2Seq
@@ -51,7 +52,6 @@ class HFVideoLlava(HFMultimodalLM):
 
         self.pretrained = pretrained
         self.num_frames = num_frames
-        assert num_frames == 32
         self._config = self._model.config
         self.truncation = truncation
         self.batch_size_per_gpu = int(batch_size)
@@ -106,7 +106,18 @@ class HFVideoLlava(HFMultimodalLM):
             inputs["input_ids"].shape[1],
             inputs["input_ids"].shape[0],
         )
-        with torch.cuda.amp.autocast():
+
+        if "llava" in self.pretrained.lower():
+            with torch.amp.autocast("cuda"):
+                return self.model.generate(
+                    **inputs,
+                    max_length=max_length,
+                    stopping_criteria=stopping_criteria,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    use_cache=True,
+                    **generation_kwargs,
+                )
+        elif "qwen" in self.pretrained.lower():
             return self.model.generate(
                 **inputs,
                 max_length=max_length,
@@ -115,6 +126,71 @@ class HFVideoLlava(HFMultimodalLM):
                 use_cache=True,
                 **generation_kwargs,
             )
+        return self.model.generate(
+            **inputs,
+            max_length=max_length,
+            stopping_criteria=stopping_criteria,
+            pad_token_id=self.tokenizer.pad_token_id,
+            use_cache=True,
+            **generation_kwargs,
+        )
+    
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+    ) -> str:
+        self.chat_applied = True
+        if not self.interleave:
+            for content in chat_history:
+                c = []
+                text = content["content"]
+
+                # Count and remove image placeholders
+                video_count = min(
+                    self.max_images, text.count(DEFAULT_VIDEO_PLACEHOLDER)
+                )
+                text = text.replace(DEFAULT_VIDEO_PLACEHOLDER, "")
+
+                # Add image entries
+                for _ in range(video_count):
+                    c.append({"type": "video", "video": None})
+
+                # Add single text entry at the end
+                c.append({"type": "text", "text": text})
+
+                content["content"] = c
+        else:
+            for content in chat_history:
+                c = []
+                text = content["content"]
+                expected_video_count = min(
+                    self.max_images, text.count(DEFAULT_VIDEO_PLACEHOLDER)
+                )
+                actual_video_count = 0
+
+                text_parts = text.split(DEFAULT_VIDEO_PLACEHOLDER)
+
+                for i, part in enumerate(text_parts):
+                    # TODO: concatenate text parts (esp. if skipping images)?
+                    if part:  # Add non-empty text parts
+                        c.append({"type": "text", "text": part})
+                    if (
+                        (i < len(text_parts) - 1) and i < self.max_images
+                    ):  # Add image placeholder after each split except the last
+                        c.append({"type": "video"})
+                        actual_video_count += 1
+
+                content["content"] = c
+
+                if actual_video_count != expected_video_count:
+                    raise ValueError(
+                        f"Mismatch in image placeholder count. Expected: {expected_video_count}, Actual: {actual_video_count}"
+                    )
+
+        return self.processor.apply_chat_template(
+            chat_history,
+            add_generation_prompt=add_generation_prompt,
+            continue_final_message=not add_generation_prompt,
+        )
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
@@ -189,37 +265,26 @@ class HFVideoLlava(HFMultimodalLM):
             video = [arg["video"][0] for arg in aux_arguments][0]
             if isinstance(video, torchvision.io.video_reader.VideoReader):
                 video = torch.stack(
-                    [frame["data"] for frame in itertools.islice(video, 5)]
+                    [frame["data"] for frame in video]
                 )
             total_frames = len(video)
             indices = np.arange(0, total_frames, total_frames / self.num_frames).astype(
                 int
             )
+            # if total_frames < self.num_frames, there would be same frames
+            indices = np.unique(indices)
             if isinstance(video, torch.Tensor):
-                # torchvision videos
+                # torchvision format
                 clip = video[indices].numpy()
             elif isinstance(video, torchcodec.decoders._video_decoder.VideoDecoder):
+                # torchcodec format
                 clip = video.get_frames_at(indices).data.numpy()
             else:
-                # docord videos
+                # decord format
                 clip = video.get_batch(indices).asnumpy()
+            # contexts_new = [elem.replace("<video>", "") for elem in contexts]
 
-            inputs = self.processor(text=contexts, videos=clip, return_tensors="pt")
-            pixel_values_videos = inputs["pixel_values_videos"]
-
-            if pixel_values_videos.shape[1] != self.num_frames:
-                empty_frames = torch.zeros(
-                    (
-                        1,
-                        self.num_frames - pixel_values_videos.shape[1],
-                        *pixel_values_videos.shape[2:],
-                    ),
-                    dtype=pixel_values_videos.dtype,
-                )
-                pixel_values_videos = torch.cat(
-                    [pixel_values_videos, empty_frames], dim=1
-                )
-                inputs["pixel_values_videos"] = pixel_values_videos
+            inputs = self.processor(text=contexts, videos=clip, padding=True, return_tensors="pt")
 
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
@@ -236,10 +301,12 @@ class HFVideoLlava(HFMultimodalLM):
                     skip_special_tokens=True,
                     clean_up_tokenization_spaces=False,
                 )[0]
-                .split("ASSISTANT:")[-1]
-                .strip()
             )
-
+            if "llava" in self.pretrained.lower():
+                outputs = outputs.split("ASSISTANT:")[-1].strip()
+            elif "qwen" in self.pretrained.lower():
+                outputs = outputs.split("assistant")[-1].strip()
+            
             res.append(outputs)
             pbar.update(1)
 
