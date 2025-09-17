@@ -1,6 +1,7 @@
 include: niah_single_1.yaml
 task: ruler_vt
 custom_dataset: !function vt_utils.get_vt_dataset
+target_delimiter: "\n\n"
 generation_kwargs:
   do_sample: false
   temperature: 0.0

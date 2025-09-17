@@ -23,7 +23,7 @@ import datasets
 import numpy as np
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer, get_limit_factor
 
 
 if TYPE_CHECKING:
@@ -225,6 +225,7 @@ def sys_vartrack_w_noise_random(
 def get_dataset(
     tokenizer: Union["PreTrainedTokenizer", "PreTrainedTokenizerFast"],
     seq=None,
+    num_samples=500,
     **kwargs,
 ) -> list[dict]:
     icl_example = sys_vartrack_w_noise_random(
@@ -235,7 +236,7 @@ def get_dataset(
     )[0]
     write_jsons = sys_vartrack_w_noise_random(
         tokenizer=tokenizer,
-        num_samples=500,
+        num_samples=num_samples,
         max_seq_length=seq,
         icl_example=icl_example,
     )
@@ -244,8 +245,11 @@ def get_dataset(
 
 def get_vt_dataset(**kwargs) -> dict[str, datasets.Dataset]:
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", ""))
+    base_samples = kwargs.pop("num_samples_per_length", 500)  # Base sample count
+    limit_factor = get_limit_factor(kwargs)
+    num_samples = int(base_samples * limit_factor)  # Apply limit per sequence length
     df = (
-        get_dataset(tokenizer=get_tokenizer(pretrained), seq=seq)
+        get_dataset(tokenizer=get_tokenizer(pretrained), seq=seq, num_samples=num_samples)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

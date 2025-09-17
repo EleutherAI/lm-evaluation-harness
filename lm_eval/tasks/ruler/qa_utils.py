@@ -21,7 +21,7 @@ import datasets
 import requests
 from tqdm import tqdm
 
-from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer
+from lm_eval.tasks.ruler.common_utils import DEFAULT_SEQ_LENGTHS, get_tokenizer, get_limit_factor
 
 CONFIG = {
     "tokens_to_generate": 32,
@@ -201,13 +201,13 @@ def generate_samples(
     return write_jsons
 
 
-def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs) -> list[dict]:
+def get_dataset(pretrained, docs, qas, max_seq_length=None, num_samples=500, **kwargs) -> list[dict]:
     tokenizer = get_tokenizer(pretrained)
     write_jsons = generate_samples(
         tokenizer=tokenizer,
         docs=docs,
         qas=qas,
-        num_samples=500,
+        num_samples=num_samples,
         tokens_to_generate=32,
         max_seq_length=max_seq_length,
     )
@@ -216,12 +216,15 @@ def get_dataset(pretrained, docs, qas, max_seq_length=None, **kwargs) -> list[di
 
 def get_qa_dataset(ds, **kwargs) -> dict[str, datasets.Dataset]:
     pretrained = kwargs.get("tokenizer", kwargs.get("pretrained", {}))
+    base_samples = kwargs.pop("num_samples_per_length", 500)  # Base sample count
+    limit_factor = get_limit_factor(kwargs)
+    num_samples = int(base_samples * limit_factor)  # Apply limit per sequence length
     if ds == "squad":
         qas, docs = read_squad()
     else:
         qas, docs = read_hotpotqa()
     df = (
-        get_dataset(pretrained=pretrained, docs=docs, qas=qas, max_seq_length=seq)
+        get_dataset(pretrained=pretrained, docs=docs, qas=qas, max_seq_length=seq, num_samples=num_samples)
         for seq in kwargs.pop("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
     )
 

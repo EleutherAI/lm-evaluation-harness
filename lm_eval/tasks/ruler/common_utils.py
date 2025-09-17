@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 DEFAULT_SEQ_LENGTHS = [
-    4096,
+    4096, 8192, 16384, 32768, 65536,
 ]
 
 
@@ -25,6 +25,22 @@ def get_tokenizer(
     assert pretrained, "No tokenizer or pretrained provided."
     eval_logger.info(f"Using tokenizer {pretrained} for synthetic tasks.")
     return AutoTokenizer.from_pretrained(pretrained, trust_remote_code=True)
+
+# ------------------------------------------------------------------
+# Limiting utilities
+# ------------------------------------------------------------------
+
+
+def get_limit_factor(kwargs: dict) -> float:
+    """Return per-length limiting factor from kwargs metadata.
+    
+    Args:
+        kwargs: Task kwargs containing metadata with limit_factor
+    
+    Returns:
+        float: Limiting factor (1.0 = no limiting, 0.1 = 10% of samples, etc.)
+    """
+    return float(kwargs.pop("limit_factor", 1.0))
 
 
 def postprocess_pred(prediction: list[str]) -> list[str]:
@@ -61,8 +77,9 @@ def string_match_part(preds: list[str], refs: list[list[str]]) -> float:
 
 
 def process_results(doc: dict, results: list[str]) -> dict[str, float]:
-    # hacky: set all other lengths to -1
-    metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
+    # Use max_seq_lengths from metadata if available, fallback to DEFAULT_SEQ_LENGTHS
+    seq_lengths = doc.get("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
+    metrics = {str(length): -1.0 for length in seq_lengths}
     input_len = doc["max_length"]
     pred = postprocess_pred(results)
     score = string_match_all(pred, [doc["outputs"]])
@@ -71,8 +88,9 @@ def process_results(doc: dict, results: list[str]) -> dict[str, float]:
 
 
 def process_results_part(doc: dict, results: list[str]) -> dict[str, float]:
-    # hacky: set all other lengths to -1
-    metrics = {str(length): -1.0 for length in DEFAULT_SEQ_LENGTHS}
+    # Use max_seq_lengths from metadata if available, fallback to DEFAULT_SEQ_LENGTHS
+    seq_lengths = doc.get("max_seq_lengths", DEFAULT_SEQ_LENGTHS)
+    metrics = {str(length): -1.0 for length in seq_lengths}
     input_len = doc["max_length"]
     pred = postprocess_pred(results)
     score = string_match_part(pred, [doc["outputs"]])
