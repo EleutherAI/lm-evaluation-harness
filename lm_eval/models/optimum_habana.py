@@ -19,10 +19,7 @@ class HabanaLM(HFLM):
     HuggingFace transformers + optimum-habana backend, run on Intel Gaudi (HPU)
     """
 
-    def __init__(
-        self,
-        **kwargs,
-    ) -> None:
+    def __init__(self, **kwargs) -> None:
 
         """
         Intel Gaudi (HPU) extra --model_args arguments are:
@@ -35,7 +32,6 @@ class HabanaLM(HFLM):
         bucket_internal: Optional[bool] = True,
         limit_hpu_graphs: Optional[bool] = False,
         clear_hpu_graphs_cache: Optional[bool] = False,
-        show_graphs_count: Optional[bool] = False,
         reuse_cache: Optional[bool] = False,
         reduce_recompile: Optional[bool] = False,
         use_flex_attention: Optional[bool] = False,
@@ -43,12 +39,8 @@ class HabanaLM(HFLM):
         flash_attention_recompute: Optional[bool] = False,
         flash_attention_causal_mask: Optional[bool] = False,
         flash_attention_fast_softmax: Optional[bool] = False,
-        torch_compile: Optional[bool] = True,
         sdp_on_bf16: Optional[bool] = False,
-        regional_compile: Optional[bool] = True,
         cache_size_limit: Optional[int] = None,
-        dynamo_specialize_float: Optional[bool] = True,
-        dynamo_allow_unspec_int_on_nn_module: Optional[bool] = True,
         attn_batch_split: Optional[int] = 1,
 
         Default execution mode is Eager, if you prefer Lazy, add PT_HPU_LAZY_MODE=1 before lm_eval
@@ -67,11 +59,6 @@ class HabanaLM(HFLM):
         self.lazy_mode = os.getenv("PT_HPU_LAZY_MODE", "0") != "0"
 
         super().__init__(backend=kwargs.pop("backend", "causal"), **kwargs)
-
-    def warm_up(self) -> None:
-        for bucket_size in reversed(self.buckets):
-            inps = torch.ones((self._batch_size, bucket_size), dtype=torch.int64)
-            self._model_call(inps)
     
     def find_bucket(self, length: int, key=lambda b, length: b >= length) -> int:
         for b in self.buckets:
@@ -124,21 +111,6 @@ class HabanaLM(HFLM):
         generation_config.reuse_cache = kwargs.pop("reuse_cache", True)
 
         return generation_config, kwargs
-    
-    def get_torch_compiled_model(self):
-        compile_kwargs = {
-            "backend": "hpu_backend",
-            "options": {"force_static_compile": False, "keep_input_mutations": True},
-        }
-        if hasattr(self._model, "transformer"):
-            self._model.transformer = torch.compile(self._model.transformer, **compile_kwargs)
-        elif hasattr(self._model, "gpt_neox"):
-            self._model.gpt_neox = torch.compile(self._model.gpt_neox, **compile_kwargs)
-        elif hasattr(self._model, "model"):
-            self._model.model = torch.compile(self._model.model, **compile_kwargs)
-        else:
-            self._model = torch.compile(self._model, **compile_kwargs)
-        return self._model
 
     def _create_model(self, *args, **kwargs) -> None:
 
@@ -162,13 +134,11 @@ class HabanaLM(HFLM):
                              "flash_attention_recompute": self.options.flash_attention_recompute,
                              "flash_attention_causal_mask": self.options.flash_attention_causal_mask,
                              "flash_attention_fast_softmax": self.options.flash_attention_fast_softmax,
-                             "use_flex_attention": self.options.use_flex_attention})
+                             "use_flex_attention": self.options.use_flex_attention}
 
         if self.lazy_mode:
             from habana_frameworks.torch.hpu import wrap_in_hpu_graph
             self._model = wrap_in_hpu_graph(self._model)
-        else:
-            self._model = self.get_torch_compiled_model()
     
     def _model_generate(self, context, max_length: int, stop: list[str], **generation_kwargs: dict[str, Any]) -> torch.Tensor:
         # temperature = 0.0 if not set
