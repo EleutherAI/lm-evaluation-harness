@@ -16,14 +16,9 @@ eval_logger = logging.getLogger(__name__)
 @register_model("habana")
 class HabanaLM(HFLM):
     """
-    HuggingFace transformers + optimum-habana backend, run on Intel Gaudi (HPU)
-    """
+    HuggingFace transformers + optimum-habana backend, run on Intel Gaudi (HPU).
 
-    def __init__(self, **kwargs) -> None:
-
-        """
-        Intel Gaudi (HPU) extra --model_args arguments are:
-
+    Extra model_args:
         buckets: Optional[int] = [16, 32, 64, 128, 189, 284, 384],
         use_kv_cache: Optional[bool] = False,
         use_hpu_graphs: Optional[bool] = False,
@@ -43,15 +38,17 @@ class HabanaLM(HFLM):
         cache_size_limit: Optional[int] = None,
         attn_batch_split: Optional[int] = 1,
 
-        Default execution mode is Eager, if you prefer Lazy, add PT_HPU_LAZY_MODE=1 before lm_eval
-        """
+    Default execution mode is Eager, if you prefer Lazy, add PT_HPU_LAZY_MODE=1 before lm_eval
+    """
 
+    def __init__(self, **kwargs) -> None:
+        # Validate backend
         if "backend" in kwargs:
             # currently only supports causal models
             assert kwargs["backend"] == "causal", (
                 "Currently, only AutoModelForCausalLM is supported."
             )
-        
+        # Buckets
         self.buckets = kwargs.pop("buckets", [16, 32, 64, 128, 189, 284, 384])
         if isinstance(self.buckets, (int, str)):
             self.buckets = [self.buckets]
@@ -61,15 +58,26 @@ class HabanaLM(HFLM):
         super().__init__(backend=kwargs.pop("backend", "causal"), **kwargs)
     
     def find_bucket(self, length: int, key=lambda b, length: b >= length) -> int:
+        """
+        Find the smallest bucket >= length, or add a new one.
+        """
         for b in self.buckets:
             if key(b, length):
                 return b
         new_bucket = length
         self.buckets.append(new_bucket)
         self.buckets.sort()
+        eval_logger.info(f"Added new bucket: {new_bucket}. Buckets are now: {self.buckets}")
         return new_bucket
 
     def _model_call(self, inps: torch.Tensor) -> torch.Tensor:
+        """
+        Calls the model with input tensor, handling static shape padding for HPU.
+        Args:
+            inps (torch.Tensor): Input tensor of shape (batch, seq_length)
+        Returns:
+            torch.Tensor: Model logits, unpadded if static shapes were used.
+        """
         bs, seq_length = inps.shape
         padding_length = 0
         # Add padding at bucketing length
@@ -78,7 +86,9 @@ class HabanaLM(HFLM):
             if self.options.use_cache and self.options.reuse_cache:
                 self._model.allocate_kv_cache(bs, bucket_length + 1, bucket_length)
             padding_length = bucket_length - seq_length
-            inps = F.pad(inps, (0, padding_length), value=self._model.config.pad_token_id)
+            pad_token_id = getattr(self._model.config, 'pad_token_id', 0)
+            inps = F.pad(inps, (0, padding_length), value=pad_token_id)
+            eval_logger.debug(f"Padded input from {seq_length} to {bucket_length} (pad={padding_length})")
         logits = super()._model_call(inps)    
 
         if self.options.static_shapes and padding_length > 0:
@@ -86,8 +96,9 @@ class HabanaLM(HFLM):
         return logits
 
     def setup_generation_config_gaudi(self,  **kwargs):
-        # Add to the model config Intel Gaudi specific args
-
+        """
+        Add to the model config Intel Gaudi specific args.
+        """
         generation_config = copy.deepcopy(self.config)
         generation_config.use_cache = kwargs.pop("use_kv_cache", True)
         generation_config.static_shapes = True
@@ -109,11 +120,12 @@ class HabanaLM(HFLM):
         generation_config.flash_attention_causal_mask = kwargs.pop("flash_attention_causal_mask", True)
         generation_config.flash_attention_fast_softmax = kwargs.pop("flash_attention_fast_softmax", True)
         generation_config.reuse_cache = kwargs.pop("reuse_cache", True)
-
         return generation_config, kwargs
 
     def _create_model(self, *args, **kwargs) -> None:
-
+        """
+        Create and wrap the model for HPU, calling parent logic and then applying Gaudi specifics.
+        """
         if not find_spec("optimum"):
             raise ModuleNotFoundError(
                 "package `optimum-habana` is not installed. Please install it via `pip install optimum[habana]`"
@@ -121,12 +133,8 @@ class HabanaLM(HFLM):
         else:
             from optimum.habana.transformers.modeling_utils import adapt_transformers_to_gaudi
             adapt_transformers_to_gaudi()
-        
         super()._create_model(*args, **kwargs)
-        
-        # Add Intel Gaudi specific options
         self.options, kwargs = self.setup_generation_config_gaudi(**kwargs)
-        
         self.model_inputs = {"use_cache": self.options.use_cache,
                              "reuse_cache": self.options.reuse_cache,
                              "attn_softmax_bf16": self.options.attn_softmax_bf16,
@@ -139,40 +147,33 @@ class HabanaLM(HFLM):
         if self.lazy_mode:
             from habana_frameworks.torch.hpu import wrap_in_hpu_graph
             self._model = wrap_in_hpu_graph(self._model)
+            eval_logger.info("Model wrapped in HPU graph.")
     
-    def _model_generate(self, context, max_length: int, stop: list[str], **generation_kwargs: dict[str, Any]) -> torch.Tensor:
-        # temperature = 0.0 if not set
-        # if do_sample is false and temp==0.0:
-        # remove temperature, as do_sample=False takes care of this
-        # and we don't want a warning from HF
+    def _model_generate(self, context: torch.Tensor, max_length: int, stop: list[str], **generation_kwargs: Any) -> torch.Tensor:
+        """
+        Generate tokens using the model, handling static shape padding and HPU specifics.
+        """
         generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
         do_sample = generation_kwargs.get("do_sample")
-        # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
         if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
             generation_kwargs["do_sample"] = do_sample = False
-
         if do_sample is False and generation_kwargs.get("temperature") == 0.0:
             generation_kwargs.pop("temperature")
-        # build stopping criteria
         stopping_criteria = stop_sequences_criteria(self.tokenizer, stop, context.shape[1], context.shape[0])
-        # to avoid graph recompilation
         if self.options.static_shapes:
             self.options.bucket_internal = True
             bucket_length = self.find_bucket(context.shape[1])
             padding_length = bucket_length - context.shape[1]
             max_gen_toks = max_length - context.shape[1]
-            if padding_length > 0 and self.hpu_graphs:
-                # Static shapes require right-padding (left-padding due to batch encoding is performed at tok_batch_encode level)
-                # See https://github.com/EleutherAI/lm-evaluation-harness/blob/v0.4.9.1/lm_eval/models/huggingface.py#L869
+            if padding_length > 0 and getattr(self, 'hpu_graphs', False):
                 context = F.pad(context, (0, padding_length), value=self.tokenizer.pad_token_id)
                 generation_kwargs["attention_mask"] = F.pad(
                     generation_kwargs["attention_mask"], (0, padding_length), value=0
                 )
-        # move context & attention_mask to hpu
-        context = context.to("hpu")
-        generation_kwargs["attention_mask"] = generation_kwargs["attention_mask"].to("hpu")
+        context = context.to(self.device)
+        generation_kwargs["attention_mask"] = generation_kwargs["attention_mask"].to(self.device)
         with torch.autocast(
-            device_type="hpu",
+            device_type=str(self.device),
             dtype=self.mixed_precision_dtype,
             enabled=self.mixed_precision_dtype is not None,
         ):
@@ -183,7 +184,7 @@ class HabanaLM(HFLM):
                 stopping_criteria=stopping_criteria,
                 pad_token_id=self.tokenizer.pad_token_id,
                 use_cache=True,
-                hpu_graphs=self.hpu_graphs,
-                lazy_mode=self.use_lazy_mode,
+                hpu_graphs=getattr(self, 'hpu_graphs', False),
+                lazy_mode=getattr(self, 'use_lazy_mode', False),
                 **generation_kwargs,
             )
