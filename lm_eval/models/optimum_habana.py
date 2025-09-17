@@ -20,22 +20,20 @@ class HabanaLM(HFLM):
 
     Extra model_args:
         buckets: Optional[int] = [16, 32, 64, 128, 189, 284, 384],
-        use_kv_cache: Optional[bool] = False,
-        use_hpu_graphs: Optional[bool] = False,
+        use_kv_cache: Optional[bool] = True,
         trim_logits: Optional[bool] = False,
-        attn_softmax_bf16: Optional[bool] = False,
+        attn_softmax_bf16: Optional[bool] = True,
         bucket_internal: Optional[bool] = True,
-        limit_hpu_graphs: Optional[bool] = False,
-        clear_hpu_graphs_cache: Optional[bool] = False,
-        reuse_cache: Optional[bool] = False,
+        limit_hpu_graphs: Optional[bool] = True,
+        clear_hpu_graphs_cache: Optional[bool] = True,
+        reuse_cache: Optional[bool] = True,
         reduce_recompile: Optional[bool] = False,
-        use_flex_attention: Optional[bool] = False,
-        use_flash_attention: Optional[bool] = False,
-        flash_attention_recompute: Optional[bool] = False,
-        flash_attention_causal_mask: Optional[bool] = False,
-        flash_attention_fast_softmax: Optional[bool] = False,
+        use_flex_attention: Optional[bool] = True,
+        use_flash_attention: Optional[bool] = True,
+        flash_attention_recompute: Optional[bool] = True,
+        flash_attention_causal_mask: Optional[bool] = True,
+        flash_attention_fast_softmax: Optional[bool] = True,
         sdp_on_bf16: Optional[bool] = False,
-        cache_size_limit: Optional[int] = None,
         attn_batch_split: Optional[int] = 1,
 
     Default execution mode is Eager, if you prefer Lazy, add PT_HPU_LAZY_MODE=1 before lm_eval
@@ -112,7 +110,7 @@ class HabanaLM(HFLM):
         generation_config.valid_sequence_lengths = None
         generation_config.attn_batch_split = kwargs.pop("attn_batch_split", 1)
         generation_config.limit_hpu_graphs = kwargs.pop("limit_hpu_graphs", True)
-        #ToDo: Those values are not good for all models
+        generation_config.sdp_on_bf16 = kwargs.pop("sdp_on_bf16", False)
         generation_config.clear_hpu_graphs_cache = kwargs.pop("clear_hpu_graphs_cache", True)
         generation_config.use_flex_attention = kwargs.pop("use_flex_attention", True)
         generation_config.use_flash_attention = kwargs.pop("use_flash_attention", True)
