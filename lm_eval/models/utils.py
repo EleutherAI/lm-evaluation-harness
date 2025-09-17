@@ -744,7 +744,7 @@ def handle_stop_sequences(
     return until
 
 
-def content_image_to_content_image_url(content):
+def content_image_to_content_image_url(content, resize=None):
     from io import BytesIO
     
     if isinstance(content, str):
@@ -778,7 +778,10 @@ def content_image_to_content_image_url(content):
 
     if content["type"] == "image_url":
         buf = BytesIO()
-        new_content["image_url"].save(buf, format="PNG")
+        if resize is not None:
+            resize_image(new_content["image_url"], resize[0], resize[1], resize[2], resample_filter=Image.Resampling.BICUBIC).save(buf, format="PNG")
+        else:
+            new_content["image_url"].save(buf, format="PNG")
         image_bytes = buf.getvalue()
         data_uri = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
 
@@ -788,7 +791,10 @@ def content_image_to_content_image_url(content):
         }
     else:
         buf = BytesIO()
-        new_content["image"].save(buf, format="PNG")
+        if resize is not None:
+            resize_image(new_content["image"], resize[0], resize[1], resize[2], resample_filter=Image.Resampling.BICUBIC).save(buf, format="PNG")
+        else:
+            new_content["image"].save(buf, format="PNG")
         image_bytes = buf.getvalue()
         data_uri = "data:image/png;base64," + base64.b64encode(image_bytes).decode("ascii")
 

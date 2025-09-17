@@ -320,7 +320,7 @@ class VLLM_VLM(VLLM):
                     for message in chat_history:
                         new_content = []
                         for content in message["content"]:
-                            new_content.append(content_image_to_content_image_url(content))
+                            new_content.append(content_image_to_content_image_url(content, resize=(self.image_width, self.image_height, self.image_max_side)))
                         message["content"] = new_content
                         new_chat_history.append(message)
                     inputs.append(new_chat_history)
