@@ -1,22 +1,22 @@
 import logging
-from importlib.util import find_spec
 import os
 import copy
 from typing import Any
 import torch
 import torch.nn.functional as F
+from importlib.util import find_spec
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.utils import get_dtype
-
 from transformers import AutoModelForCausalLM
+
 eval_logger = logging.getLogger(__name__)
 
 @register_model("habana")
 class HabanaLM(HFLM):
     """
-    using the HuggingFace transformers + optimum-habana backend, can run on Intel Gaudi (HPU)
+    HuggingFace transformers + optimum-habana backend, run on Intel Gaudi (HPU)
     """
 
     def __init__(
@@ -60,20 +60,14 @@ class HabanaLM(HFLM):
                 "Currently, only AutoModelForCausalLM is supported."
             )
         
-        self.buckets = kwargs.pop("buckets", [16, 32, 64, 128])
+        self.buckets = kwargs.pop("buckets", [16, 32, 64, 128, 189, 284, 384])
         if isinstance(self.buckets, (int, str)):
             self.buckets = [self.buckets]
         self.buckets = [int(b) for b in self.buckets]
+        self.lazy_mode = os.getenv("PT_HPU_LAZY_MODE", "0") != "0"
 
-        if os.getenv("PT_HPU_LAZY_MODE", "0") == "0":
-            self.lazy_mode = False
-        else:
-            self.lazy_mode = True
+        super().__init__(backend=kwargs.pop("backend", "causal"), **kwargs)
 
-        super().__init__(
-            backend=kwargs.pop("backend", "causal"),
-            **kwargs,
-        )
     def warm_up(self) -> None:
         for bucket_size in reversed(self.buckets):
             inps = torch.ones((self._batch_size, bucket_size), dtype=torch.int64)
@@ -91,18 +85,17 @@ class HabanaLM(HFLM):
     def _model_call(self, inps: torch.Tensor) -> torch.Tensor:
         bs, seq_length = inps.shape
         padding_length = 0
+        # Add padding at bucketing length
         if self.options.static_shapes:
             bucket_length = self.find_bucket(seq_length)
             if self.options.use_cache and self.options.reuse_cache:
                 self._model.allocate_kv_cache(bs, bucket_length + 1, bucket_length)
             padding_length = bucket_length - seq_length
             inps = F.pad(inps, (0, padding_length), value=self._model.config.pad_token_id)
-        logits = self._model(inps, **self.model_inputs)["logits"]
+        logits = super()._model_call(inps)    
 
         if self.options.static_shapes and padding_length > 0:
             logits = logits[:, :-padding_length, :]
-        logits = logits.to(torch.float32)
-
         return logits
 
     def setup_generation_config_gaudi(self,  **kwargs):
@@ -133,42 +126,22 @@ class HabanaLM(HFLM):
         return generation_config, kwargs
     
     def get_torch_compiled_model(self):
-        #torch._dynamo.config.cache_size_limit = 64
-
         compile_kwargs = {
             "backend": "hpu_backend",
             "options": {"force_static_compile": False, "keep_input_mutations": True},
         }
-        # for gpt_bigcode, mpt, bloom, gpt2 model_type
         if hasattr(self._model, "transformer"):
             self._model.transformer = torch.compile(self._model.transformer, **compile_kwargs)
-        # for gpt_neox
         elif hasattr(self._model, "gpt_neox"):
             self._model.gpt_neox = torch.compile(self._model.gpt_neox, **compile_kwargs)
-        # for llama, mistral, mixtral, qwen2
         elif hasattr(self._model, "model"):
             self._model.model = torch.compile(self._model.model, **compile_kwargs)
         else:
             self._model = torch.compile(self._model, **compile_kwargs)
         return self._model
 
-    def _create_model(
-        self,
-        pretrained: str,
-        revision="main",
-        dtype="auto",
-        trust_remote_code=False,        
-	    parallelize=False,
-        gpus=None,
-        max_memory_per_gpu=None,
-        max_cpu_memory=None,
-        offload_folder="./offload",        
-	    peft=None,
-        delta=None,
-        autogptq=False,
-        gptqmodel=False,
-        **kwargs,
-    ) -> None:
+    def _create_model(self, *args, **kwargs) -> None:
+
         if not find_spec("optimum"):
             raise ModuleNotFoundError(
                 "package `optimum-habana` is not installed. Please install it via `pip install optimum[habana]`"
@@ -176,56 +149,28 @@ class HabanaLM(HFLM):
         else:
             from optimum.habana.transformers.modeling_utils import adapt_transformers_to_gaudi
             adapt_transformers_to_gaudi()
-
+        
+        super()._create_model(*args, **kwargs)
+        
         # Add Intel Gaudi specific options
         self.options, kwargs = self.setup_generation_config_gaudi(**kwargs)
         
         self.model_inputs = {"use_cache": self.options.use_cache,
-                "reuse_cache": self.options.reuse_cache,
-                "attn_softmax_bf16": self.options.attn_softmax_bf16,
-                "use_flash_attention": self.options.use_flash_attention,
-                "flash_attention_recompute": self.options.flash_attention_recompute,
-                "flash_attention_causal_mask": self.options.flash_attention_causal_mask,
-                "flash_attention_fast_softmax": self.options.flash_attention_fast_softmax}
-        self.model_inputs.update({"use_flex_attention": self.options.use_flex_attention})
+                             "reuse_cache": self.options.reuse_cache,
+                             "attn_softmax_bf16": self.options.attn_softmax_bf16,
+                             "use_flash_attention": self.options.use_flash_attention,
+                             "flash_attention_recompute": self.options.flash_attention_recompute,
+                             "flash_attention_causal_mask": self.options.flash_attention_causal_mask,
+                             "flash_attention_fast_softmax": self.options.flash_attention_fast_softmax,
+                             "use_flex_attention": self.options.use_flex_attention})
 
-        model_kwargs = kwargs if kwargs else {}
-        model_kwargs.update(
-            self._get_accelerate_args(
-                parallelize=parallelize,
-                device_map=kwargs.get("device_map", None),
-                max_memory_per_gpu=max_memory_per_gpu,
-                max_cpu_memory=max_cpu_memory,
-                offload_folder=offload_folder,
-                gpus=gpus,
-            )
-        )
-
-        self._model = AutoModelForCausalLM.from_pretrained(
-            pretrained,
-            revision=revision,
-            torch_dtype=torch.bfloat16,
-            trust_remote_code=trust_remote_code,
-            **model_kwargs,
-            )
-        
         if self.lazy_mode:
             from habana_frameworks.torch.hpu import wrap_in_hpu_graph
             self._model = wrap_in_hpu_graph(self._model)
         else:
             self._model = self.get_torch_compiled_model()
     
-    def _model_generate(
-        self,
-        context,
-        max_length: int,
-        stop: list[str],
-        **generation_kwargs: dict[str, Any],
-    ) -> torch.Tensor:
-        """
-        Patched method
-        source: https://github.com/EleutherAI/lm-evaluation-harness/blob/v0.4.9.1/lm_eval/models/huggingface.py#L951
-        """
+    def _model_generate(self, context, max_length: int, stop: list[str], **generation_kwargs: dict[str, Any]) -> torch.Tensor:
         # temperature = 0.0 if not set
         # if do_sample is false and temp==0.0:
         # remove temperature, as do_sample=False takes care of this
