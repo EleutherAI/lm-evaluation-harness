@@ -1,0 +1,29 @@
+task: islamic_qa_benchmarks_palmX2025_subtask2
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/mostafa.awad/BGM/religion_project/benchmarks/processed_data_for_lm_eval_harness/PalmX2025/palmx_2025_subtask2_islamic_test.json
+test_split: test
+
+output_type: multiple_choice
+
+doc_to_text: |
+  أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D أو E. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D أو E دون أي شرح أو معلومات إضافية.
+  السؤال: {{ question }}
+
+  {{ formated_options }}
+  الجواب:
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0

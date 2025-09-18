@@ -1,0 +1,25 @@
+task: islamic_qa_benchmarks_QASI_subtask1
+
+# Local JSONL via HuggingFace JSON loader
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  # Single file → split is named "test"
+  data_files:
+    test: /home/mostafa.awad/BGM/religion_project/benchmarks/processed_data_for_lm_eval_harness/QASI_SharedTask/subtask1.jsonl
+
+# Use the only split as test
+test_split: test
+
+# Multiple-choice scoring (model outputs a single letter)
+output_type: multiple_choice
+
+# Field mapping
+doc_to_text: "{{prompt}}"
+doc_to_choice: choices
+doc_to_target: target
+
+# Metrics
+metric_list:
+  - metric: acc
+  - metric: acc_norm
