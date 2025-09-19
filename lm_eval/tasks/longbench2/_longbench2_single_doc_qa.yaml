@@ -1,0 +1,16 @@
+group: longbench2_single_doc_qa
+group_alias: "Single-Document QA"
+task:
+  - longbench2_governmental_single_doc
+  - longbench2_legal_single_doc
+  - longbench2_literary_single_doc
+  - longbench2_financial_single_doc
+  - longbench2_event_ordering
+  - longbench2_academic_single_doc
+  - longbench2_detective
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

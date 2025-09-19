@@ -1,0 +1,11 @@
+group: longbench2_structured
+group_alias: "Long Structured Data Understanding"
+task:
+  - longbench2_knowledge_graph_reasoning
+  - longbench2_table_qa
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

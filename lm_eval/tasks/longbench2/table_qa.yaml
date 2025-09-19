@@ -1,0 +1,9 @@
+include: _default_template_yaml
+tag:
+  - longbench2
+  - longbench2_structured
+task: longbench2_table_qa
+filter_list:
+  - name: subdomain_filter
+    filter:
+      - function: "lambda x: x['domain'] == 'Long Structured Data Understanding' and x['sub_domain'] == 'Table QA'"

@@ -1,0 +1,9 @@
+include: _default_template_yaml
+tag:
+  - longbench2
+  - longbench2_single_doc_qa
+task: longbench2_financial_single_doc
+filter_list:
+  - name: subdomain_filter
+    filter:
+      - function: "lambda x: x['domain'] == 'Single-Document QA' and x['sub_domain'] == 'Financial'"

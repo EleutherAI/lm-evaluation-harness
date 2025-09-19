@@ -1,0 +1,9 @@
+include: _default_template_yaml
+tag:
+  - longbench2
+  - longbench2_single_doc_qa
+task: longbench2_event_ordering
+filter_list:
+  - name: subdomain_filter
+    filter:
+      - function: "lambda x: x['domain'] == 'Single-Document QA' and x['sub_domain'] == 'Event ordering'"

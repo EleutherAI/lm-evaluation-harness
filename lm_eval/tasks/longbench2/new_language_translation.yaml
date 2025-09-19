@@ -1,0 +1,9 @@
+include: _default_template_yaml
+tag:
+  - longbench2
+  - longbench2_incontext
+task: longbench2_new_language_translation
+filter_list:
+  - name: subdomain_filter
+    filter:
+      - function: "lambda x: x['sub_domain'] == 'New language translation'"

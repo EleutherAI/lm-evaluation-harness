@@ -1,0 +1,13 @@
+group: longbench2_multi_doc_qa
+group_alias: "Multi-Document QA"
+task:
+  - longbench2_governmental_multi_doc
+  - longbench2_academic_multi_doc
+  - longbench2_financial_multi_doc
+  - longbench2_multi_news
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

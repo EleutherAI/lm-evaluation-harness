@@ -1,0 +1,12 @@
+group: longbench2_incontext
+group_alias: "Long In-context Learning"
+task:
+  - longbench2_user_guide_qa
+  - longbench2_new_language_translation
+  - longbench2_many_shot_learning
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
