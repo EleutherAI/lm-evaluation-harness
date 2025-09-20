@@ -1,0 +1,12 @@
+dataset_path: THUDM/LongBench-v2
+test_split: train
+output_type: multiple_choice
+doc_to_text: "{{question.strip()}}\nA. {{choice_A}}\nB. {{choice_B}}\nC. {{choice_C}}\nD. {{choice_D}}\nAnswer:"
+doc_to_choice: ["A", "B", "C", "D"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

@@ -9,8 +9,7 @@ task:
   - longbench2_academic_single_doc
   - longbench2_detective
 aggregate_metric_list:
-  - metric: exact_match
-    aggregation: mean
-    weight_by_size: true
+  - metric: acc
+    weight_by_size: True
 metadata:
   version: 1.0

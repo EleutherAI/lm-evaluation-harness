@@ -1,0 +1,12 @@
+group: longbench2
+task:
+  - longbench2_dialogue
+  - longbench2_incontext
+  - longbench2_multi_doc_qa
+  - longbench2_single_doc_qa
+  - longbench2_structured
+aggregate_metric_list:
+  - metric: exact_match
+    weight_by_size: True
+metadata:
+  version: 2
