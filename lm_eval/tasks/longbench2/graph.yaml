@@ -2,7 +2,7 @@ include: _default_template_yaml
 tag:
   - longbench2
   - longbench2_structured
-task: longbench2_knowledge_graph_reasoning
+task: longbench2_graph
 filter_list:
   - name: subdomain_filter
     filter:

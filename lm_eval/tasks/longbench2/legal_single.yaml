@@ -1,8 +1,8 @@
-include: _default_template_yaml
+include: _longbench_common_yaml
 tag:
   - longbench2
-  - longbench2_single_doc_qa
-task: longbench2_legal_single_doc
+  - longbench2_single
+task: longbench2_legal_single
 filter_list:
   - name: subdomain_filter
     filter:

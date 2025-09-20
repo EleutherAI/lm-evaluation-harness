@@ -1,9 +1,9 @@
 group: longbench2_incontext
 group_alias: "Long In-context Learning"
 task:
-  - longbench2_user_guide_qa
-  - longbench2_new_language_translation
-  - longbench2_many_shot_learning
+  - longbench2_user_guide
+  - longbench2_translate
+  - longbench2_many_shot
 aggregate_metric_list:
   - metric: acc
     weight_by_size: True

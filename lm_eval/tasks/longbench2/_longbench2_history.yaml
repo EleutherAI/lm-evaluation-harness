@@ -1,4 +1,4 @@
-group: longbench2_dialogue
+group: longbench2_history
 group_alias: "Long-dialogue History Understanding"
 task:
   - longbench2_agent_history

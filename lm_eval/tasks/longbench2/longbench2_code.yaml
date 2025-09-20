@@ -1,8 +1,7 @@
-include: _default_template_yaml
+include: _longbench_common_yaml
 tag:
   - longbench2
-  - longbench2_code
-task: longbench2_code_repo_qa
+task: longbench2_code
 filter_list:
   - name: subdomain_filter
     filter:
