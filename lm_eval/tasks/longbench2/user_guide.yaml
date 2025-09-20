@@ -2,7 +2,7 @@ include: _default_template_yaml
 tag:
   - longbench2
   - longbench2_incontext
-task: longbench2_user_guide_qa
+task: longbench2_user_guide
 filter_list:
   - name: subdomain_filter
     filter:
