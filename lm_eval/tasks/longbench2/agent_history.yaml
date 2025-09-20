@@ -6,4 +6,4 @@ task: longbench2_agent_history
 filter_list:
   - name: subdomain_filter
     filter:
-      - function: "lambda x: x['domain'] == 'Long-dialogue History Understanding' and x['sub_domain'] == 'Dialogue history QA'"
+      - function: "lambda x: x['domain'] == 'Long-dialogue History Understanding' and x['sub_domain'] == 'Agent history QA'"
