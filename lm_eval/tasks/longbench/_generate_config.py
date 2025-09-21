@@ -187,7 +187,7 @@ if __name__ == "__main__":
         raw_doc_to_text = (
             dataset2prompt[df]
             .replace("\n", "\\n")
-            .replace("\"", "\\\"")
+            .replace('"', '\\"')
             .replace("{", "{{")
             .replace("}", "}}")
         )
