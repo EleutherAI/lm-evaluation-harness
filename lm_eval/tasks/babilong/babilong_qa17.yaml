@@ -1,0 +1,19 @@
+include: _babilong_common_yaml
+task: babilong_qa17
+test_split: qa17
+dataset_name: 0k
+description: "I will give you context with the facts about different figures, their location and colors, hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word - $yes$ or $no$. Do not write anything else.\nDo not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "The triangle is above the pink rectangle. The blue square is to the left of the triangle."
+      question: "Is the pink rectangle to the right of the blue square?"
+      target: "yes"
+    - input: "The red sphere is to the left of the yellow square. The red sphere is below the pink rectangle."
+      question: "Is the pink rectangle to the left of the yellow square?"
+      target: "yes"
+    - input: "The red sphere is above the pink rectangle. The red sphere is to the right of the red square."
+      question: "Is the pink rectangle above the red square?"
+      target: "no"
