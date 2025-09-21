@@ -1,0 +1,9 @@
+description: 'Ниже приведен вопрос с множественным выбором о Здравоохранение (с ответами).
+  Пожалуйста, размышляйте шаг за шагом, а затем завершите свой ответ с "Ответ - (X)",
+  где X - это буква правильного варианта.
+
+  '
+include: _ru_lite_template_yaml
+task: mmlu_prox_lite_ru_health
+task_alias: health
+process_docs: !function utils.process_health

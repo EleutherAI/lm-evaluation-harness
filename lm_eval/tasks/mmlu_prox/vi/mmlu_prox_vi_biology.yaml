@@ -1,0 +1,9 @@
+description: 'Dưới đây là câu hỏi trắc nghiệm về Sinh học (kèm đáp án). Vui lòng suy
+  nghĩ từng bước, sau đó kết thúc câu trả lời của bạn bằng "Câu trả lời là (X)", trong
+  đó X là chữ cái của lựa chọn đúng.
+
+  '
+include: _vi_template_yaml
+task: mmlu_prox_vi_biology
+task_alias: biology
+process_docs: !function utils.process_biology
