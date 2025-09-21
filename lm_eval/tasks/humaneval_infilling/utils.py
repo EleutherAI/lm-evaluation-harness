@@ -1,5 +1,6 @@
 import evaluate as hf_evaluate
 
+
 try:
     compute_ = hf_evaluate.load("code_eval")
     test_cases = ["assert add(2, 3)==5"]
@@ -7,6 +8,7 @@ try:
     results = compute_.compute(references=test_cases, predictions=candidates, k=[1])
 except Exception as e:
     raise e
+
 
 def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] = None):
     global compute_
@@ -22,4 +24,7 @@ def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] 
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-    return [[doc["prompt"] + r + doc['suffix'] for r in resp] for resp, doc in zip(resps, docs)]
+    return [
+        [doc["prompt"] + r + doc["suffix"] for r in resp]
+        for resp, doc in zip(resps, docs)
+    ]
