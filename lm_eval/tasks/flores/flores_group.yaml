@@ -1,0 +1,13 @@
+group: flores_en_ar_dialect
+task:
+  - flores_en_to_x_devtest
+  - flores_msa_to_x_devtest
+  - flores_x_to_en_devtest
+  - flores_x_to_msa_devtest
+
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1
