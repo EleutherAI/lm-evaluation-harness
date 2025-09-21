@@ -5,17 +5,17 @@ task: longbench_repobench-p
 dataset_path: THUDM/LongBench
 test_split: test
 dataset_name: repobench-p
-doc_to_text: 'Please complete the code given below. \n{{context}}{{input}}Next line of code:\n'
+doc_to_text: "Please complete the code given below. \n{{context}}{{input}}Next line of code:\n"
 doc_to_target: '{{answers}}'
 process_results: !function metrics.get_code_sim_score
 generation_kwargs:
   max_gen_toks: 64
   temperature: 1
-  do_sample: True
+  do_sample: False
   until: []
 metric_list:
   - metric: "code_sim_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 3.0
+  version: 4.0
