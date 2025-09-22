@@ -5,8 +5,8 @@ dataset_path: keramjan/lambada_uyghur
 dataset_name: main
 output_type: loglikelihood
 training_split: train
-fewshot_split: train
 test_split: train
+validation_split: train
 doc_to_text: "{{until_last}}"
 doc_to_target: "{{last_word}}"
 should_decontaminate: true
