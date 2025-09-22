@@ -8,7 +8,6 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
 from lm_eval.models.utils import handle_stop_sequences
 
-
 eval_logger = logging.getLogger(__name__)
 
 
@@ -95,7 +94,10 @@ class LocalCompletionsAPI(TemplateAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                tmp[choices["index"]] = choices["text"]
+                x = ""
+                if choices["text"] is not None:
+                    x = choices["text"]
+                tmp[choices["index"]] = x
             res = res + tmp
         return res
 
@@ -167,7 +169,10 @@ class LocalChatCompletion(LocalCompletionsAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                tmp[choices["index"]] = choices["message"]["content"]
+                x = ""
+                if choices["message"]["content"] is not None:
+                    x = choices["message"]["content"]
+                tmp[choices["index"]] = x
             res = res + tmp
         return res
 
