@@ -6,8 +6,10 @@ task:
   - flores_x_to_msa_devtest
 
 aggregate_metric_list:
-  - metric: acc
+  - metric: bleu
     aggregation: mean
     weight_by_size: true
+
+
 metadata:
   version: 1
