@@ -2,7 +2,7 @@ tag:
   - lambada_uyghur
 task: lambada_uyghur
 dataset_path: wompzik/lambada
-dataset_name: main
+dataset_name: default
 output_type: loglikelihood
 training_split: train
 test_split: train
