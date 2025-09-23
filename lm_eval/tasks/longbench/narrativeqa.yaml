@@ -5,17 +5,17 @@ task: longbench_narrativeqa
 dataset_path: THUDM/LongBench
 test_split: test
 dataset_name: narrativeqa
-doc_to_text: 'You are given a story, which can be either a novel or a movie script, and a question. Answer the question asconcisely as you can, using a single phrase if possible. Do not provide any explanation.\n\nStory: {{context}}\n\nNow, answer the question based on the story asconcisely as you can, using a single phrase if possible. Do not provide any explanation.\n\nQuestion: {{input}}\n\nAnswer:'
+doc_to_text: "You are given a story, which can be either a novel or a movie script, and a question. Answer the question asconcisely as you can, using a single phrase if possible. Do not provide any explanation.\n\nStory: {{context}}\n\nNow, answer the question based on the story asconcisely as you can, using a single phrase if possible. Do not provide any explanation.\n\nQuestion: {{input}}\n\nAnswer:"
 doc_to_target: '{{answers}}'
 process_results: !function metrics.get_qa_f1_score
 generation_kwargs:
   max_gen_toks: 128
   temperature: 1
-  do_sample: True
+  do_sample: False
   until: []
 metric_list:
   - metric: "qa_f1_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 3.0
+  version: 4.0
