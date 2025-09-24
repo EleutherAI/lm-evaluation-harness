@@ -14,10 +14,23 @@ class Instance:
     arguments: tuple
     idx: int
     metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
-        default_factory=lambda: (None, None, None)
+        default_factory=lambda: (None, None, None),
+        metadata=dict(
+            description="Metadata tuple containing task name, document ID, and number of repeats."
+        ),
     )
-    resps: list = field(default_factory=list)
-    filtered_resps: dict = field(default_factory=dict)
+    resps: list = field(
+        default_factory=list,
+        metadata=dict(
+            description="List of responses from the model for this instance."
+        ),
+    )
+    filtered_resps: dict = field(
+        default_factory=dict,
+        metadata=dict(
+            description="List of filtered responses for this instance, keyed by filter name."
+        ),
+    )
 
     # initialized after init
     task_name: Optional[str] = None
@@ -29,7 +42,7 @@ class Instance:
         self.task_name, self.doc_id, self.repeats = self.metadata
 
     @property
-    def args(self):
+    def args(self) -> tuple:
         """
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """

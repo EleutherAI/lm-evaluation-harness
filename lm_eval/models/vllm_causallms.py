@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import gc
 import logging
@@ -7,7 +9,7 @@ from importlib.util import find_spec
 from multiprocessing import Process, Queue
 from queue import Empty
 from time import sleep
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Literal
 
 import jinja2
 from more_itertools import distribute
@@ -113,30 +115,30 @@ class VLLM(TemplateLM):
         self,
         pretrained: str,
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
-        revision: Optional[str] = None,
-        trust_remote_code: Optional[bool] = False,
-        tokenizer: Optional[str] = None,
+        revision: str | None = None,
+        trust_remote_code: bool | None = False,
+        tokenizer: str | None = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
-        tokenizer_revision: Optional[str] = None,
-        add_bos_token: Optional[bool] = False,
-        prefix_token_id: Optional[int] = None,
+        tokenizer_revision: str | None = None,
+        add_bos_token: bool | None = False,
+        prefix_token_id: int | None = None,
         tensor_parallel_size: int = 1,
-        quantization: Optional[str] = None,
+        quantization: str | None = None,
         max_gen_toks: int = 256,
         swap_space: int = 4,
-        batch_size: Union[str, int] = 1,
-        max_batch_size=None,
-        max_length: int = None,
-        max_model_len: int = None,
+        batch_size: str | int = 1,
+        max_batch_size: int | None = None,
+        max_length: int | None = None,
+        max_model_len: int | None = None,
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
         data_parallel_size: int = 1,
-        lora_local_path: str = None,
+        lora_local_path: str | None = None,
         # VLLM: enable thinking tags in the prompt.
         enable_thinking: bool = True,
-        chat_template_args: Optional[dict] = None,
+        chat_template_args: dict | None = None,
         # End marker for thinking tags - splits to get response after this token (if provided).
-        think_end_token: Optional[str] = None,
+        think_end_token: str | None = None,
         max_lora_rank: int = 16,
         **kwargs,
     ):
@@ -172,7 +174,7 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
-            "enable_lora": True if lora_local_path else False,
+            "enable_lora": bool(lora_local_path),
             "max_lora_rank": int(max_lora_rank),
         }
         self.model_args.update(kwargs)
@@ -300,7 +302,7 @@ class VLLM(TemplateLM):
         return self._max_gen_toks
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
+        self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
     ) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
@@ -337,14 +339,14 @@ class VLLM(TemplateLM):
 
     def tok_encode(
         self,
-        string: Union[str, List[str]],
+        string: str | list[str],
         left_truncate_len: int = None,
         add_special_tokens: bool = False,
         truncation: bool = False,
-    ) -> Union[List[int], List[List[int]]]:
+    ) -> list[int] | list[list[int]]:
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
+        encoding: list[list[int]] | list[int] = self.tokenizer(
             string,
             add_special_tokens=add_special_tokens,
             truncation=truncation,
@@ -362,9 +364,9 @@ class VLLM(TemplateLM):
 
     def _model_generate(
         self,
-        requests: List[List[int]] = None,
+        requests: list[list[int]] = None,
         generate: bool = False,
-        sampling_params: Union[List["SamplingParams"], "SamplingParams", None] = None,
+        sampling_params: list["SamplingParams"] | "SamplingParams" | None = None,
     ):
         if not generate or sampling_params is None:
             sampling_params = SamplingParams(
@@ -379,8 +381,8 @@ class VLLM(TemplateLM):
             @ray.remote
             def run_inference_one_model(
                 model_args: dict,
-                sampling_params: List["SamplingParams"],
-                requests: List[List[int]],
+                sampling_params: list["SamplingParams"],
+                requests: list[list[int]],
                 lora_request: "LoRARequest",
             ):
                 llm = LLM(**model_args)
@@ -454,7 +456,7 @@ class VLLM(TemplateLM):
                         if dead_procs:
                             raise RuntimeError(
                                 f"Worker processes {dead_procs} died unexpectedly"
-                            )
+                            ) from None
                         continue
 
                 results = [rank_res[i] for i in range(len(procs))]
@@ -481,14 +483,14 @@ class VLLM(TemplateLM):
             outputs = self.model.generate(
                 [TokensPrompt(prompt_token_ids=request) for request in requests],
                 sampling_params=sampling_params,
-                use_tqdm=True if self.batch_size == "auto" else False,
+                use_tqdm=self.batch_size == "auto",
                 lora_request=self.lora_request,
             )
             return outputs
 
     def loglikelihood_rolling(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[float]:
         adaptive_batch_size = None
         if self.batch_size == "auto":
             adaptive_batch_size = len(requests)
@@ -503,7 +505,7 @@ class VLLM(TemplateLM):
                 disable=(disable_tqdm or (self.rank != 0)),
             )
         ):
-            rolling_token_windows: List[Tuple[List[int], List[int]]] = list(
+            rolling_token_windows: list[tuple[list[int], list[int]]] = list(
                 map(
                     make_disjoint_window,
                     get_rolling_token_windows(
@@ -556,13 +558,13 @@ class VLLM(TemplateLM):
         return loglikelihoods
 
     def generate_until(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[str]:
         res = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding: List[List[int]] = self.tok_encode(
+        context_encoding: list[list[int]] = self.tok_encode(
             context, add_special_tokens=self.add_bos_token
         )
         requests = [
@@ -638,7 +640,7 @@ class VLLM(TemplateLM):
             )
 
             # cache generations
-            for output, context in zip(cont, context):
+            for output, context_ in zip(cont, context):
                 generated_text: str = output.outputs[0].text
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
@@ -646,7 +648,7 @@ class VLLM(TemplateLM):
                 )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
+                    "generate_until", (context_, gen_kwargs), generated_text
                 )
                 pbar.update(1)
 
@@ -656,9 +658,9 @@ class VLLM(TemplateLM):
 
     def _loglikelihood_tokens(
         self,
-        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         res = []
 
         def _collate(x):
@@ -717,7 +719,7 @@ class VLLM(TemplateLM):
         return re_ord.get_original(res)
 
     @staticmethod
-    def _parse_logprobs(tokens: List, outputs, ctxlen: int) -> Tuple[float, bool]:
+    def _parse_logprobs(tokens: list, outputs, ctxlen: int) -> tuple[float, bool]:
         """Process logprobs and tokens.
 
         :param tokens: list

@@ -1,17 +1,24 @@
+from __future__ import annotations
+
 import logging
-from typing import Callable, Dict, Union
+from typing import TYPE_CHECKING, Any, Callable
 
-import evaluate as hf_evaluate
 
-from lm_eval.api.model import LM
-
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
 
 eval_logger = logging.getLogger(__name__)
 
 MODEL_REGISTRY = {}
+DEFAULTS = {
+    "model": {"max_length": 2048},
+    "tasks": {"generate_until": {"max_gen_toks": 256}},
+}
 
 
 def register_model(*names):
+    from lm_eval.api.model import LM
+
     # either pass a list or a single alias.
     # function receives them as a tuple of strings
 
@@ -31,13 +38,14 @@ def register_model(*names):
     return decorate
 
 
-def get_model(model_name):
+def get_model(model_name: str) -> type[LM]:
     try:
         return MODEL_REGISTRY[model_name]
-    except KeyError:
-        raise ValueError(
-            f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}"
-        )
+    except KeyError as err:
+        available_models = ", ".join(MODEL_REGISTRY.keys())
+        raise KeyError(
+            f"Model '{model_name}' not found. Available models: {available_models}"
+        ) from err
 
 
 TASK_REGISTRY = {}
@@ -46,7 +54,7 @@ ALL_TASKS = set()
 func2task_index = {}
 
 
-def register_task(name):
+def register_task(name: str):
     def decorate(fn):
         assert name not in TASK_REGISTRY, (
             f"task named '{name}' conflicts with existing registered task!"
@@ -76,7 +84,7 @@ def register_group(name):
 OUTPUT_TYPE_REGISTRY = {}
 METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
-AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
+AGGREGATION_REGISTRY: dict[str, Callable[[], dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
 FILTER_REGISTRY = {}
 
@@ -120,7 +128,7 @@ def register_metric(**args):
     return decorate
 
 
-def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
+def get_metric(name: str, hf_evaluate_metric=False) -> Callable[..., Any] | None:
     if not hf_evaluate_metric:
         if name in METRIC_REGISTRY:
             return METRIC_REGISTRY[name]
@@ -130,6 +138,8 @@ def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
             )
 
     try:
+        import evaluate as hf_evaluate
+
         metric_object = hf_evaluate.load(name)
         return metric_object.compute
     except Exception:
@@ -150,30 +160,34 @@ def register_aggregation(name: str):
     return decorate
 
 
-def get_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
+def get_aggregation(name: str) -> Callable[..., Any] | None:
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
+def get_metric_aggregation(name: str) -> Callable[[], dict[str, Callable[..., Any]]]:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
-        eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
+        eval_logger.warning(
+            f"{name} metric is not assigned a default aggregation!. Using default aggregation mean"
+        )
+        return AGGREGATION_REGISTRY["mean"]
 
 
-def is_higher_better(metric_name) -> bool:
+def is_higher_better(metric_name: str) -> bool:
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
         eval_logger.warning(
-            f"higher_is_better not specified for metric '{metric_name}'!"
+            f"higher_is_better not specified for metric '{metric_name}'!. Will default to True."
         )
+        return True
 
 
-def register_filter(name):
+def register_filter(name: str):
     def decorate(cls):
         if name in FILTER_REGISTRY:
             eval_logger.info(
@@ -185,7 +199,7 @@ def register_filter(name):
     return decorate
 
 
-def get_filter(filter_name: Union[str, Callable]) -> Callable:
+def get_filter(filter_name: str | Callable) -> Callable:
     try:
         return FILTER_REGISTRY[filter_name]
     except KeyError as e:

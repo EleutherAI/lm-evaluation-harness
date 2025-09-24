@@ -1,6 +1,3 @@
-from lm_eval.utils import weighted_f1_score
-
-
 def doc_to_text(doc):
     output = """Please provide the POS tags for each word in the input sentence. The input will be a list of words in
     the sentence. The output format should be a list of tuples, where each tuple consists of a word from the input text
