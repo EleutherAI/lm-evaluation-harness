@@ -1,9 +1,6 @@
 include: _longbench_common_yaml
 tag:
   - longbench2
-  - longbench2_dialogue
+  - longbench2_history
 task: longbench2_agent_history
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['domain'] == 'Long-dialogue History Understanding' and x['sub_domain'] == 'Agent history QA'"
+process_docs: !function utils.process_docs_agent_history
