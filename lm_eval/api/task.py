@@ -1415,7 +1415,7 @@ class ConfigurableTask(Task):
                     for k, v in result_score.items():
                         result_dict[k] = v
                 else:
-                    result_dict[metric] = result_score
+                    result_dict[metric.name] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
