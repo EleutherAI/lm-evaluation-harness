@@ -1,6 +1,6 @@
 [build-system]
-build-backend = "setuptools.build_meta"
 requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
@@ -42,11 +42,27 @@ dev = [
   "sentencepiece"
 ]
 
+[tool.setuptools.packages.find]
+include = ["lm_eval*"]
+
+# required to include yaml files in pip installation
+[tool.setuptools.package-data]
+lm_eval = ["**/*.yaml", "tasks/**/*"]
+
+[project.scripts]
+lm-eval = "lm_eval.__main__:cli_evaluate"
+lm_eval = "lm_eval.__main__:cli_evaluate"
+
+[project.urls]
+Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
+Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
+
 [project.optional-dependencies]
 acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
 audiolm_qwen = ["librosa", "soundfile"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+discrim_eval = ["statsmodels==0.14.4"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
 hf_transfer = ["hf_transfer"]
@@ -68,7 +84,8 @@ sentencepiece = ["sentencepiece>=0.1.98"]
 sparsify = ["sparsify"]
 tasks = [
   "lm_eval[acpbench]",
-  "lm_eval[ifeval]",
+  "lm_eval[discrim_eval]",
+    "lm_eval[ifeval]",
   "lm_eval[japanese_leaderboard]",
   "lm_eval[longbench]",
   "lm_eval[libra]",
@@ -83,13 +100,6 @@ vllm = ["vllm>=0.4.2"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 
-[project.scripts]
-lm-eval = "lm_eval.__main__:cli_evaluate"
-lm_eval = "lm_eval.__main__:cli_evaluate"
-
-[project.urls]
-Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
-Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [tool.pymarkdown]
 plugins.md013.enabled = false # line-length

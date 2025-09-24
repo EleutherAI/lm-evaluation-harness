@@ -1,0 +1,21 @@
+include: _babilong_common_yaml
+task: babilong_qa10
+test_split: qa10
+custom_dataset: !function common_utils.load_dataset
+dataset_kwargs:
+  qa_split: qa10
+description: "I will give you context with the facts about people and their locations hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nIf a person was in different locations, use the latest location the person was in to answer the question.\nYour answer should contain only one word - $yes$ or $no$ or $maybe$. Do not write anything else. Do not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Bill is in the kitchen. Julie is either in the school or the cinema."
+      question: "Is Bill in the bedroom?"
+      target: "no"
+    - input: "Fred is in the bedroom. Mary is either in the school or the cinema."
+      question: "Is Mary in the school?"
+      target: "maybe"
+    - input: "Fred is either in the kitchen or the park. Bill moved to the cinema."
+      question: "Is Bill in the cinema?"
+      target: "yes"

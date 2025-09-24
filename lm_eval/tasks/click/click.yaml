@@ -1,0 +1,13 @@
+group: click
+task:
+  - click_lang
+  - click_cul
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

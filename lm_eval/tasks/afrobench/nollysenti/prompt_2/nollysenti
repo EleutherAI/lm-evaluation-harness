@@ -2,7 +2,6 @@ tag:
     - afrobench_sentiment_tasks
     - nollysenti_prompt_2
 dataset_path: Davlan/nollysenti
-dataset_kwargs: {trust_remote_code: True}
 output_type: multiple_choice
 validation_split: validation
 test_split: test
