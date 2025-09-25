@@ -1,6 +1,6 @@
 task: LArabench_Segmentation_QCRI
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/QCRIDialectalArabicSegmentation/all_combined/test_processed.tsv
+    test: ./LAraBench/QCRIDialectalArabicSegmentation/all_combined/test_processed.tsv
   delimiter: "\t"
 include: _default_template_yaml

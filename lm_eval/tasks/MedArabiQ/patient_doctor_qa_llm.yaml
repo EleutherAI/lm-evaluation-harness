@@ -1,6 +1,6 @@
 task: MedArabiQ_patient_doctor_qa_llm
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/MedArabiQ/patient_doctor_qa_llm.json
+    test: ./MedArabiQ/patient_doctor_qa_llm.json
 
 include: _default_gen_qa_template_yaml

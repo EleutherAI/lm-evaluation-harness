@@ -1,9 +1,9 @@
-task: dream_interpretation_ar
+task: cuisine_hard_subset_ar_options
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: ./dream_interpretation/ar_mcq.json
+    test: ./cuisine/hard_subset_v2_ar_options.json
 test_split: test
 
 output_type: multiple_choice

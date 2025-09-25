@@ -1,9 +1,9 @@
-task: mcq.islamic_qa
+task: islamic_qa
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/religious_qa/mcq_v3.json
+    test: ./religious_qa/mcq_v3.json
 test_split: test
 
 output_type: multiple_choice

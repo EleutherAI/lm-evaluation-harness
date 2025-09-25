@@ -1,7 +1,7 @@
 task: LArabench_POS_XGLUE
 dataset_kwargs:
   data_files:
-    test: /mnt/data/users/anwarvic/ONEDRIVE/Data/jais/llm_harness/benchmarks/LAraBench/XGLUEPOS/test_processed.tsv
+    test: ./LAraBench/XGLUEPOS/test_processed.tsv
   delimiter: "\t"
 
 doc_to_text: |
