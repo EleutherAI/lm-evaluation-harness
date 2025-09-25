@@ -1,0 +1,7 @@
+"dataset_name": "natural_science"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_stem_tasks"
+- "egyptianmmlu_ar_mmlu_tasks"
+"task": "egyptianmmlu_natural_science"
+"task_alias": "natural science"

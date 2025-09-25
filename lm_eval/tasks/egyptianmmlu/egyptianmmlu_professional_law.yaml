@@ -1,0 +1,7 @@
+"dataset_name": "professional_law"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_humanities_tasks"
+- "egyptianmmlu_mmlu_tasks"
+"task": "egyptianmmlu_professional_law"
+"task_alias": "professional law"

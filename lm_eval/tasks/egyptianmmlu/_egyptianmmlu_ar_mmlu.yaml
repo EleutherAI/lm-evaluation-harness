@@ -1,0 +1,9 @@
+group: egyptianmmlu_ar_mmlu
+group_alias: ArabicMMLU
+task:
+  - egyptianmmlu_ar_mmlu_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0

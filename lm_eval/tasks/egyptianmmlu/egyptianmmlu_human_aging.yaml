@@ -1,0 +1,7 @@
+"dataset_name": "human_aging"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_other_tasks"
+- "egyptianmmlu_mmlu_tasks"
+"task": "egyptianmmlu_human_aging"
+"task_alias": "human aging"

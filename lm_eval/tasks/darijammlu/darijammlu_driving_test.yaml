@@ -1,0 +1,7 @@
+"dataset_name": "driving_test"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_other_tasks"
+- "darijammlu_ar_mmlu_tasks"
+"task": "darijammlu_driving_test"
+"task_alias": "driving test"

@@ -1,0 +1,7 @@
+"dataset_name": "social_science"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_social_sciences_tasks"
+- "egyptianmmlu_ar_mmlu_tasks"
+"task": "egyptianmmlu_social_science"
+"task_alias": "social science"

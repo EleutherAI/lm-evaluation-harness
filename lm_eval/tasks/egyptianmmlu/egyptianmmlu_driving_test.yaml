@@ -1,0 +1,7 @@
+"dataset_name": "driving_test"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_other_tasks"
+- "egyptianmmlu_ar_mmlu_tasks"
+"task": "egyptianmmlu_driving_test"
+"task_alias": "driving test"

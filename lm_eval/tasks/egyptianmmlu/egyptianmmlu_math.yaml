@@ -1,0 +1,7 @@
+"dataset_name": "math"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_stem_tasks"
+- "egyptianmmlu_ar_mmlu_tasks"
+"task": "egyptianmmlu_math"
+"task_alias": "math"
