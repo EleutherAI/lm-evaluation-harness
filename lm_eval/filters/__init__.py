@@ -1,15 +1,15 @@
+from __future__ import annotations
 from functools import partial
-from typing import Optional, Union
 
 from lm_eval.api.filter import FilterEnsemble
-from lm_eval.api.registry import get_filter
+from lm_eval.api.registry import filter_registry, get_filter
 
 from . import custom, extraction, selection, transformation
 
 
 def build_filter_ensemble(
     filter_name: str,
-    components: list[tuple[str, Optional[dict[str, Union[str, int, float]]]]],
+    components: list[tuple[str, dict[str, str | int | float] | None]],
 ) -> FilterEnsemble:
     """
     Create a filtering pipeline.
@@ -21,3 +21,12 @@ def build_filter_ensemble(
             partial(get_filter(func), **(kwargs or {})) for func, kwargs in components
         ],
     )
+
+
+__all__ = [
+    "custom",
+    "extraction",
+    "selection",
+    "transformation",
+    "build_filter_ensemble",
+]

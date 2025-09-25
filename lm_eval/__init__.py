@@ -1,3 +1,7 @@
+from .api import metrics, model, registry  # initializes the registries
+from .filters import *
+
+
 __version__ = "0.4.9.1"
 
 
