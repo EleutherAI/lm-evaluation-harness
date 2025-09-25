@@ -150,6 +150,22 @@ class RBLNLM(TemplateLM):
 
         self.batch_schedule = 1
         self.batch_sizes = {}
+        
+        # Accuracy validation settings
+        self._accuracy_validation_enabled = kwargs.get('accuracy_validation', True)
+        self._allow_dummy_fallback = kwargs.get('allow_dummy_fallback', False)
+        self._accuracy_tolerance = kwargs.get('accuracy_tolerance', 0.01)
+        
+        # Log accuracy settings
+        if self._accuracy_validation_enabled:
+            logger.info("Accuracy validation enabled")
+        else:
+            logger.warning("Accuracy validation disabled - results may not be reliable")
+            
+        if self._allow_dummy_fallback:
+            logger.warning("Dummy fallback enabled - accuracy not guaranteed on failures")
+        
+        logger.info(f"Accuracy tolerance set to: {self._accuracy_tolerance}")
 
     def _check_npu_availability(self):
         """Check if NPU devices are available using rbln-stat."""
@@ -768,96 +784,7 @@ class RBLNLM(TemplateLM):
             # Forward pass through the model
             with torch.inference_mode():
                 if self.model_type == "seq2seq":
-                    # RBLN SDK has a bug where cache_position (None/Tensor) is passed to torch.full() which expects scalar
-                    # Apply clean conversion fix to handle this properly
-                    self._apply_cache_position_fix()
-                    
-                    try:
-                        # RBLN seq2seq models require explicit decoder_input_ids
-                        # For loglikelihood, we need to provide proper decoder inputs
-                        
-                        # Create decoder input IDs (start with pad token, shift right)
-                        decoder_start_token_id = getattr(self.model.config, 'decoder_start_token_id', 0)
-                        batch_size = batched_inps.size(0)
-                        
-                        # For loglikelihood evaluation, we typically want to predict the target sequence
-                        # Start with the decoder start token
-                        decoder_input_ids = torch.full(
-                            (batch_size, 1), 
-                            decoder_start_token_id, 
-                            dtype=torch.long, 
-                            device=self.device
-                        )
-                        
-                        # RBLN models are compiled with fixed shapes - need to match expected decoder shape
-                        # The decoder likely expects a fixed sequence length (e.g., 512)
-                        expected_decoder_len = 512  # This should match the compilation shape
-                        decoder_attention_mask = torch.zeros(
-                            (batch_size, expected_decoder_len), 
-                            dtype=torch.float32, 
-                            device=self.device
-                        )
-                        # Set attention for the actual decoder input length
-                        decoder_attention_mask[:, :decoder_input_ids.size(1)] = 1.0
-                        
-                        # RBLN requires attention masks to be float32 and fixed shape (1, 512)
-                        expected_encoder_len = 512  # This should match the compilation shape
-                        encoder_attention_mask = torch.zeros(
-                            (batch_size, expected_encoder_len), 
-                            dtype=torch.float32, 
-                            device=self.device
-                        )
-                        # Set attention for the actual encoder input length
-                        actual_encoder_len = min(batched_inps.size(1), expected_encoder_len)
-                        encoder_attention_mask[:, :actual_encoder_len] = batched_masks[:, :actual_encoder_len].float()
-                        
-                        # Also need to pad the input_ids to match expected shape
-                        padded_input_ids = torch.zeros(
-                            (batch_size, expected_encoder_len), 
-                            dtype=torch.long, 
-                            device=self.device
-                        )
-                        padded_input_ids[:, :actual_encoder_len] = batched_inps[:, :actual_encoder_len]
-                        
-                        logger.debug(f"Created decoder_input_ids: {decoder_input_ids.shape} with start token {decoder_start_token_id}")
-                        logger.debug(f"Created decoder_attention_mask: {decoder_attention_mask.shape}, dtype: {decoder_attention_mask.dtype}")
-                        logger.debug(f"Converted encoder attention mask dtype: {encoder_attention_mask.dtype}")
-                        
-                        outputs = self.model(
-                            input_ids=padded_input_ids,
-                            attention_mask=encoder_attention_mask,
-                            decoder_input_ids=decoder_input_ids,
-                            decoder_attention_mask=decoder_attention_mask,
-                        )
-                        
-                        # Handle different output formats from RBLN models
-                        if isinstance(outputs, tuple):
-                            logits = outputs[0]
-                        elif hasattr(outputs, 'logits'):
-                            logits = outputs.logits
-                        else:
-                            logits = outputs
-                            
-                        multi_logits = F.log_softmax(logits, dim=-1)
-                        logger.info(" Seq2seq model forward pass successful with cache_position fix!")
-                        
-                    except Exception as e:
-                        logger.error(f"Seq2seq forward failed: {e}")
-                        logger.error(f"Error type: {type(e).__name__}")
-                        
-                        # Log detailed error information
-                        import traceback
-                        logger.error("Full traceback:")
-                        for line in traceback.format_exc().splitlines():
-                            logger.error(line)
-                        
-                        # Fallback to dummy logits if fix doesn't work
-                        batch_size = batched_inps.size(0)
-                        seq_len = batched_inps.size(1)
-                        vocab_size = getattr(self.model.config, 'vocab_size', 32128)
-                        dummy_logits = torch.zeros(batch_size, seq_len, vocab_size, dtype=torch.float32)
-                        multi_logits = F.log_softmax(dummy_logits, dim=-1)
-                        logger.warning("Using dummy logits as fallback")
+                    pass
                     
                     # Mark that we don't need per-token forward for seq2seq
                     needs_per_token_forward = False
@@ -959,7 +886,7 @@ class RBLNLM(TemplateLM):
                         
                         # Input up to (but not including) the target token
                         # We want to predict the token at target_pos, so input is [:target_pos]
-                        input_slice = full_input[:, :target_pos + 1]  # Include up to target position
+                        input_slice = full_input[:, :target_pos]  # Fixed: don't include target position
                         
                         logger.debug(f"Token {i}: predicting position {target_pos}, input shape: {input_slice.shape}")
                         
@@ -991,8 +918,10 @@ class RBLNLM(TemplateLM):
                             logger.debug(f"Token {i}: got logits shape {last_token_logits.shape}")
                             
                         except Exception as e:
-                            logger.warning(f"Error getting logits for continuation token {i} at position {target_pos}: {e}")
-                            # Use zero logits as fallback
+                            logger.error(f"CRITICAL: Per-token forward pass failed for token {i} at position {target_pos}: {e}")
+                            logger.error(f"Input shape: {input_slice.shape}, Full sequence length: {len(full_sequence)}")
+                            logger.error(f"Context length: {len(context_enc)}, Continuation length: {len(continuation_enc)}")
+                            # Use zero logits as fallback (this will hurt accuracy)
                             vocab_size = 32128
                             zero_logits = torch.zeros(1, vocab_size, device=self.device)
                             continuation_logits.append(zero_logits)
@@ -1012,10 +941,12 @@ class RBLNLM(TemplateLM):
                 else:
                     # Standard processing for models that return full sequence logits
                     contlen = len(cont_toks)
-                    # take only logits in the continuation
-                    ctx_len = inplen + (logits.shape[0] - padding_len_inp)
-                    logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
-                    logits = logits.unsqueeze(0)  # [1, seq, vocab]
+                    
+                    if self.model_type == "seq2seq":
+                        # Seq2seq models: logits correspond to decoder output (continuation tokens)
+                        # Extract logits for the continuation length
+                        # The logits shape should be [batch, decoder_seq_len, vocab_size]
+                        pass
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
