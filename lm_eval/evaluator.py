@@ -30,6 +30,7 @@ from lm_eval.evaluator_utils import (
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager
+from lm_eval.tasks.manager import get_task_dict
 from lm_eval.utils import (
     get_logger,
     handle_non_serializable,

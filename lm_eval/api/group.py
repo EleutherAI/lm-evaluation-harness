@@ -106,10 +106,5 @@ class GroupConfig:
             except (TypeError, OSError):
                 return str(value)
 
-    @property
-    def version(self) -> str:
-        """Returns the version of the group configuration."""
-        return self.metadata.get("version", "1.0")
-
     def __repr__(self):
         return f"GroupConfig(group={self.group},group_alias={self.group_alias})"
