@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import math
 import os
@@ -198,13 +200,43 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def exact_match_hf_evaluate(
-    predictions,
-    references,
-    regexes_to_ignore=None,
-    ignore_case=False,
-    ignore_punctuation=False,
-    ignore_numbers=False,
+    predictions: list[str],
+    references: list[str],
+    regexes_to_ignore: list[str] | None = None,
+    ignore_case: bool = False,
+    ignore_punctuation: bool = False,
+    ignore_numbers: bool = False,
+    multiple_targets: bool = False,
 ):
+    """
+    Compute exact match scores between predictions and references.
+
+    This function computes the exact match score by comparing predictions
+    and references. It supports optional preprocessing steps such as ignoring
+    case, punctuation, numbers, and specific regex patterns.
+
+    Note:
+        predictions and references can have different lengths.
+        numpy broadcasting rule applies
+
+    Args:
+        predictions (list[str]): The predicted strings to evaluate.
+        references (list[str]): The reference strings to compare against.
+        regexes_to_ignore (list[str], optional): A list of regex patterns to remove
+            from both predictions and references before comparison. Defaults to None.
+        ignore_case (bool, optional): If True, ignores case differences during comparison.
+            Defaults to False.
+        ignore_punctuation (bool, optional): If True, removes punctuation from strings
+            before comparison. Defaults to False.
+        ignore_numbers (bool, optional): If True, removes numeric characters from strings
+            before comparison. Defaults to False.
+        multiple_targets (bool, optional): If True, returns 1.0 if any prediction matches any
+            reference, otherwise 0.0. Defaults to False.
+
+    Returns:
+        dict: A dictionary containing the exact match score:
+            - "exact_match" (float): The mean exact match score or 1.0/0.0 if `multi_target` is True.
+    """
     if regexes_to_ignore is not None:
         for s in regexes_to_ignore:
             predictions = np.array([re.sub(s, "", x) for x in predictions])
@@ -229,7 +261,11 @@ def exact_match_hf_evaluate(
 
     score_list = predictions == references
 
-    return {"exact_match": np.mean(score_list)}
+    return {
+        "exact_match": np.mean(score_list)
+        if not multiple_targets
+        else float(np.any(score_list))
+    }
 
 
 ###
@@ -241,8 +277,8 @@ def exact_match_hf_evaluate(
     output_type="generate_until",
     aggregation="mean",
 )
-def exact_match_fn(**kwargs):
-    return exact_match_hf_evaluate(**kwargs)
+def exact_match_fn(references: list[str], predictions: list[str], **kwargs):
+    return exact_match_hf_evaluate(predictions, references, **kwargs)
 
 
 @register_metric(

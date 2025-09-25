@@ -8,8 +8,8 @@ Homepage: [google-research-datasets/natural-questions@master/nq_open](https://gi
 
 Paper: [aclanthology.org/P19-1612](https://aclanthology.org/P19-1612/)
 
-Derived from the Natural Questions dataset, introduced in https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/1f7b46b5378d757553d3e92ead36bda2e4254244.pdf .
-
+Derived from the Natural Questions dataset, introduced
+in https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/1f7b46b5378d757553d3e92ead36bda2e4254244.pdf .
 
 ### Citation
 
@@ -24,3 +24,7 @@ journal	= {Transactions of the Association of Computational Linguistics}}
 ### Tasks
 
 * `nq_open`
+
+### Changelog
+
+* 2025-07-21: Added `multiple_targets` to `exact_match`. Scores should not change.
