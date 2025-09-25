@@ -1,0 +1,10 @@
+process_docs: !function utils.en_eg
+include:
+  - translation_common_yaml
+  - short_translation_common_yaml
+task: en_eg_short_translation
+task_alias: en_eg
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.mbert
+    higher_is_better: true

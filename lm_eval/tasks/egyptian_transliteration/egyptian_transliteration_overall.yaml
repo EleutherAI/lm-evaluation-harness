@@ -1,0 +1,7 @@
+include: egyptian_transliteration_common_yaml
+task: egyptian_transliteration_overall
+task_alias: overall
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.mbert
+    higher_is_better: true

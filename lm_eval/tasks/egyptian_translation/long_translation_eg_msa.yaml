@@ -1,0 +1,10 @@
+process_docs: !function utils.eg_msa
+include:
+  - translation_common_yaml
+  - long_translation_common_yaml
+task: eg_msa_long_translation
+"task_alias": eg_msa
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.arabert
+    higher_is_better: true

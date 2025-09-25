@@ -1,0 +1,8 @@
+"include": "summarization_common_yaml"
+"tag":
+- "darija_summarization_task"
+"task": "summarization"
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.darijabert
+    higher_is_better: true

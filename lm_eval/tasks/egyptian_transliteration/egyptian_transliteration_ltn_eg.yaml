@@ -1,0 +1,8 @@
+process_docs: !function utils.ltn_eg
+include: egyptian_transliteration_common_yaml
+task: egyptian_transliteration_ltn_eg
+task_alias: ltn_eg
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.mbert
+    higher_is_better: true

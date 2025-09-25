@@ -1,0 +1,8 @@
+include:
+  - translation_common_yaml
+  - short_translation_common_yaml
+task: short_translation_overall
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.mbert
+    higher_is_better: true
