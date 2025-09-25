@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import json
 import logging
@@ -5,7 +7,7 @@ import os
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import numpy as np
 import torch
@@ -29,11 +31,11 @@ from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
+    get_logger,
     handle_non_serializable,
     hash_dict_images,
     hash_string,
     positional_deprecated,
-    setup_logging,
     simple_parse_args_string,
     wrap_text,
 )
@@ -49,7 +51,7 @@ eval_logger = logging.getLogger(__name__)
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: Optional[Union[str, dict]] = None,
+    model_args: Optional[Union[str, dict[str, Any]]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[Union[int, str]] = None,
@@ -147,7 +149,7 @@ def simple_evaluate(
         Dictionary of results
     """
     if verbosity is not None:
-        setup_logging(verbosity=verbosity)
+        get_logger(verbosity)
     start_date = time.time()
 
     if limit is not None and samples is not None:
@@ -287,7 +289,7 @@ def simple_evaluate(
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
-    def _adjust_config(task_dict):
+    def _adjust_config(task_dict: dict[str, "Task"]) -> dict[str, "Task"]:
         adjusted_task_dict = {}
         for task_name, task_obj in task_dict.items():
             if isinstance(task_obj, dict):
@@ -370,8 +372,6 @@ def simple_evaluate(
         verbosity=verbosity,
         confirm_run_unsafe_code=confirm_run_unsafe_code,
     )
-    if verbosity is not None:
-        setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
         if isinstance(model, str):
@@ -420,7 +420,7 @@ def simple_evaluate(
 def evaluate(
     lm: "LM",
     task_dict,
-    limit: Optional[int] = None,
+    limit: int | float | None = None,
     samples: Optional[dict] = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
@@ -475,7 +475,9 @@ def evaluate(
             "Either 'limit' or 'samples' must be None, but both are not None."
         )
     if samples is not None:
-        eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
+        eval_logger.info(
+            f"Evaluating examples for tasks {[x for x in list(samples.keys()) if x in task_dict.keys()]}"
+        )
     if apply_chat_template:
         eval_logger.warning(
             "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
@@ -775,13 +777,3 @@ def evaluate(
 
     else:
         return None
-
-
-def request_caching_arg_to_dict(cache_requests: str) -> dict:
-    request_caching_args = {
-        "cache_requests": cache_requests in {"true", "refresh"},
-        "rewrite_requests_cache": cache_requests == "refresh",
-        "delete_requests_cache": cache_requests == "delete",
-    }
-
-    return request_caching_args

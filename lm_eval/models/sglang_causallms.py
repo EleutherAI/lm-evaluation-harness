@@ -216,7 +216,7 @@ class SGLangLM(TemplateLM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
+        re_ords = Collator(requests, _collate_gen, group_by=None)
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
@@ -232,36 +232,41 @@ class SGLangLM(TemplateLM):
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
 
-            # we assume all gen kwargs in the batch are the same
-            # this is safe to assume because the `grouper` object ensures it.
-            gen_kwargs = all_gen_kwargs[0]
-            # unpack our keyword arguments.
-            if isinstance(gen_kwargs, dict):
-                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                # add EOS token to stop sequences
-                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
-            else:
-                raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+            context_encoding_truncated = []
+            sampling_params = []
+            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs):
+                # unpack our keyword arguments.
+                if isinstance(gen_kwargs, dict):
+                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                    # add EOS token to stop sequences
+                    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+                else:
+                    raise ValueError(
+                        f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+                    )
+                if "max_gen_toks" in kwargs.keys():
+                    max_gen_toks = kwargs.pop("max_gen_toks")
+                else:
+                    max_gen_toks = self.max_gen_toks
+
+                # set the max length in tokens of inputs ("context_enc")
+                # max len for inputs = max length, minus room to generate the max new tokens
+                max_ctx_len = self.max_length - max_gen_toks
+                if len(x) > max_ctx_len:
+                    context_encoding_truncated.append(x[-max_ctx_len:])
+                else:
+                    context_encoding_truncated.append(x)
+                # create sampling params
+                kwargs = self.modify_gen_kwargs(kwargs)
+                sampling_params.append(
+                    kwargs | {"max_tokens": max_gen_toks, "stop": until}
                 )
-            if "max_gen_toks" in kwargs.keys():
-                max_gen_toks = kwargs.pop("max_gen_toks")
-            else:
-                max_gen_toks = self.max_gen_toks
-
-            # set the max length in tokens of inputs ("context_enc")
-            # max len for inputs = max length, minus room to generate the max new tokens
-            max_ctx_len = self.max_length - max_gen_toks
-            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
-
             # perform batched generation
             # cont is a list of dic. See here https://github.com/sgl-project/sglang/blob/0a6f18f068e4095fc228e798454e8496c9749214/python/sglang/srt/entrypoints/engine.py#L111 .
             cont = self._model_generate(
-                requests=context_encoding,
+                requests=context_encoding_truncated,
                 generate=True,
-                max_tokens=max_gen_toks,
-                stop=until,
-                **kwargs,
+                sampling_params=sampling_params,
             )
 
             # cache generations
@@ -284,28 +289,22 @@ class SGLangLM(TemplateLM):
         self,
         requests: List[List[int]] = None,
         generate: bool = False,
-        max_tokens: int = None,
-        stop: Optional[List[str]] = None,
+        sampling_params: Union[List[Dict], Dict, None] = None,
         return_logprob: bool = False,
         top_logprobs_num: int = 1,
         logprob_start_len: int = -1,
-        **kwargs,
     ):
         # check sglang sampling parameters: https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/sampling/sampling_params.py#L21  and https://docs.sglang.ai/references/sampling_params.html.
-        if generate:
-            kwargs = self.modify_gen_kwargs(kwargs)
-            sampling_params = {
-                "max_new_tokens": max_tokens,
-                "stop": stop,
-            }
-            sampling_params.update(kwargs)
-        else:
-            sampling_params = {
-                "temperature": 0,
-                "max_new_tokens": 1,
-            }
-            sampling_params.update(kwargs)
-
+        if not generate:
+            sampling_params = sampling_params if sampling_params else {}
+            sampling_params.update(
+                {
+                    "temperature": 0,
+                    "max_new_tokens": 1,
+                }
+            )
+        if not isinstance(sampling_params, List):
+            sampling_params = [sampling_params] * len(requests)
         # Refer to:  https://docs.sglang.ai/backend/offline_engine_api.html
         outputs = self.model.generate(
             input_ids=requests,

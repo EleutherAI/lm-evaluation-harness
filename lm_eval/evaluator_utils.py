@@ -11,6 +11,7 @@ from lm_eval.api.metrics import (
     pooled_sample_stderr,
     stderr_for_metric,
 )
+from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.utils import positional_deprecated
 
 
@@ -56,7 +57,7 @@ class TaskOutput:
         group_alias=None,
         is_group=None,
     ):
-        self.task = task
+        self.task: Union[Task, ConfigurableTask] = task
         self.task_config = task_config
         self.task_name = task_name
         self.group_name = group_name

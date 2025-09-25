@@ -1,15 +1,13 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from inspect import getsource
 from typing import Callable, Optional, Union
-
-from datasets.features.pdf import field
 
 
 @dataclass
 class AggMetricConfig(dict):
     metric: Optional[str] = None
     aggregation: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
+    weight_by_size: bool = False
     # list of filter names which should be incorporated into the aggregated metric.
     filter_list: Optional[Union[str, list]] = "none"
 
@@ -31,6 +29,7 @@ class GroupConfig:
     aggregate_metric_list: Optional[
         Union[list[AggMetricConfig], AggMetricConfig, dict]
     ] = None
+    version: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -68,6 +67,11 @@ class GroupConfig:
                 AggMetricConfig(**item) if isinstance(item, dict) else item
                 for item in self.aggregate_metric_list
             ]
+        self.version = (
+            self.version or self.metadata.get("version", "1.0")
+            if self.metadata
+            else "1.0"
+        )
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         """dumps the current config as a dictionary object, as a printable format.

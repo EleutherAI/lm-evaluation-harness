@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import warnings
-from functools import lru_cache
+from functools import cache
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, cast
 
 from tqdm import tqdm
@@ -69,7 +69,7 @@ def _verify_credentials(creds: dict) -> None:
         raise ValueError(error_msg)
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_watsonx_credentials() -> Dict[str, str]:
     """
     Retrieves Watsonx API credentials from environmental variables.

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import fnmatch
 import functools
@@ -10,8 +12,10 @@ import os
 import re
 from collections.abc import Generator
 from dataclasses import asdict, is_dataclass
+from functools import lru_cache, partial, wraps
 from itertools import islice
-from typing import Any, Callable, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 from jinja2 import BaseLoader, Environment, StrictUndefined
@@ -23,8 +27,6 @@ HIGHER_IS_BETTER_SYMBOLS = {
     True: "↑",
     False: "↓",
 }
-
-
 def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
     """
     Wraps the given string to the specified width.
@@ -42,8 +44,76 @@ def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
     )
 
 
-def setup_logging(verbosity=logging.INFO):
-    # Configure the root logger
+
+def get_logger(level: Optional[str] = None) -> logging.Logger:
+    """
+    Get a logger with a stream handler that captures all lm_eval logs.
+
+    Args:
+        level (Optional[str]): The logging level.
+    Example:
+        >>> logger = get_logger("INFO")
+        >>> logger.info("Log this")
+        INFO:lm_eval:Log this!
+
+    Returns:
+        logging.Logger: The logger.
+    """
+    logger = logging.getLogger("lm_eval")
+    if not logger.hasHandlers():
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.INFO)
+    if level is not None:
+        level = getattr(logging, level.upper())
+        logger.setLevel(level)
+    return logger
+
+
+def setup_logging(verbosity=logging.INFO, suppress_third_party=True):
+    """
+    Configure logging for the lm_eval CLI application.
+
+    WARNING: This function is intended for CLI use only. Library users should
+    use get_logger() instead to avoid interfering with their application's
+    logging configuration.
+
+    Args:
+        verbosity: Log level (int) or string name. Can be overridden by LOGLEVEL env var.
+        suppress_third_party: Whether to suppress verbose third-party library logs.
+
+    Returns:
+        logging.Logger: The configured lm_eval logger instance.
+    """
+    # Validate verbosity parameter
+    if isinstance(verbosity, str):
+        level_map = {
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL,
+        }
+        verbosity = level_map.get(verbosity.upper(), logging.INFO)
+    elif not isinstance(verbosity, int):
+        verbosity = logging.INFO
+
+    # Get log level from environment or use default
+    if log_level_env := os.environ.get("LOGLEVEL", None):
+        level_map = {
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL,
+        }
+        log_level = level_map.get(log_level_env.upper(), verbosity)
+    else:
+        log_level = verbosity
+
+    # Get the lm_eval logger directly
+    logger = logging.getLogger("lm_eval")
+
+    # Configure custom formatter
     class CustomFormatter(logging.Formatter):
         def format(self, record):
             record.name = record.name.removeprefix("lm_eval.")
@@ -54,32 +124,27 @@ def setup_logging(verbosity=logging.INFO):
         datefmt="%Y-%m-%d:%H:%M:%S",
     )
 
-    log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
-
-    level_map = {
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
-
-    log_level = level_map.get(str(log_level).upper(), logging.INFO)
-
-    if not logging.root.handlers:
+    # Check if handler already exists to prevent duplicates
+    has_stream_handler = any(
+        isinstance(h, logging.StreamHandler) for h in logger.handlers
+    )
+    if not has_stream_handler:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        # For CLI use, we disable propagation to avoid duplicate messages
+        logger.propagate = False
 
-        root_logger = logging.getLogger()
-        root_logger.addHandler(handler)
-        root_logger.setLevel(log_level)
+    # Set the logger level
+    logger.setLevel(log_level)
 
-        if log_level == logging.DEBUG:
-            third_party_loggers = ["urllib3", "filelock", "fsspec"]
-            for logger_name in third_party_loggers:
-                logging.getLogger(logger_name).setLevel(logging.INFO)
-    else:
-        logging.getLogger().setLevel(log_level)
+    # Optionally suppress verbose third-party library logs
+    if suppress_third_party and log_level == logging.DEBUG:
+        third_party_loggers = ["urllib3", "filelock", "fsspec"]
+        for logger_name in third_party_loggers:
+            logging.getLogger(logger_name).setLevel(logging.INFO)
+
+    return logger
 
 
 def hash_string(string: str) -> str:
@@ -106,7 +171,7 @@ def escaped_split(text, sep_char, maxsplit=-1):
         return text
     maxsplit = max(0, maxsplit)
 
-    return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
+    return re.split(r"(?<!\\)" + sep_char, text, maxsplit=maxsplit)
 
 
 def handle_arg_string(arg):
@@ -123,7 +188,7 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
+    if isinstance(o, np.integer):
         return int(o)
     elif isinstance(o, set):
         return list(o)
@@ -143,7 +208,7 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string: Optional[str]) -> dict:
+def simple_parse_args_string(args_string: str | None) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
@@ -178,7 +243,7 @@ def group(arr, fn):
 
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
-def pattern_match(patterns, source_list):
+def pattern_match(patterns: list[str], source_list: list[str]) -> list[str]:
     if isinstance(patterns, str):
         patterns = [patterns]
 
@@ -195,7 +260,7 @@ def softmax(x) -> np.ndarray:
     return e_x / e_x.sum()
 
 
-def general_detokenize(string) -> str:
+def general_detokenize(string: str) -> str:
     string = string.replace(" n't", "n't")
     string = string.replace(" )", ")")
     string = string.replace("( ", "(")
@@ -223,7 +288,7 @@ def sanitize_model_name(model_name: str) -> str:
     """
     Given the model name, returns a sanitized version of it.
     """
-    return re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", model_name)
+    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
 
 
 def sanitize_task_name(task_name: str) -> str:
@@ -233,21 +298,21 @@ def sanitize_task_name(task_name: str) -> str:
     return re.sub(r"\W", "_", task_name)
 
 
-def get_latest_filename(filenames: List[str]) -> str:
+def get_latest_filename(filenames: list[str]) -> str:
     """
     Given a list of filenames, returns the filename with the latest datetime.
     """
     return max(filenames, key=lambda f: get_file_datetime(f))
 
 
-def get_results_filenames(filenames: List[str]) -> List[str]:
+def get_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to aggregated results.
     """
     return [f for f in filenames if "/results_" in f and ".json" in f]
 
 
-def get_sample_results_filenames(filenames: List[str]) -> List[str]:
+def get_sample_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to sample results.
     """
@@ -255,8 +320,8 @@ def get_sample_results_filenames(filenames: List[str]) -> List[str]:
 
 
 def get_rolling_token_windows(
-    token_list: List[int], prefix_token: int, max_seq_len: int, context_len: int
-) -> Generator[Tuple[List[int], List[int]], None, None]:
+    token_list: list[int], prefix_token: int, max_seq_len: int, context_len: int
+) -> Generator[tuple[list[int], list[int]], None, None]:
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
       condition on some context
@@ -298,8 +363,8 @@ def get_rolling_token_windows(
 
 
 def make_disjoint_window(
-    pair: Tuple[List[int], List[int]],
-) -> Tuple[List[int], List[int]]:
+    pair: tuple[list[int], list[int]],
+) -> tuple[list[int], list[int]]:
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
@@ -318,7 +383,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 
 class Reorderer:
-    def __init__(self, arr: List[Any], fn: Callable) -> None:
+    def __init__(self, arr: list[Any], fn: Callable) -> None:
         """Reorder an array according to some function
 
         Args:
@@ -403,7 +468,8 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         dic = result_dict[column][k]
         version = result_dict["versions"].get(k, "    N/A")
         n = str(result_dict.get("n-shot", " ").get(k, " "))
-        higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
+        # TODO: fix this
+        # higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         if "alias" in dic:
             k = dic.pop("alias")
@@ -416,13 +482,15 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             if m.endswith("_stderr"):
                 continue
 
-            hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
+            # hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
+            # TODO: fix
+            hib = "↑"
 
-            v = "%.4f" % v if isinstance(v, float) else v
+            v = f"{v:.4f}" if isinstance(v, float) else v
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                se = "   N/A" if se == "N/A" else "%.4f" % se
+                se = "   N/A" if se == "N/A" else f"{se:.4f}"
                 values.append([k, version, f, n, m, hib, v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
@@ -443,7 +511,8 @@ def positional_deprecated(fn):
     wrapped function, `fn`.
     """
 
-    @functools.wraps(fn)
+    wraps(fn)
+
     def _wrapper(*args, **kwargs):
         if len(args) != 1 if inspect.ismethod(fn) else 0:
             print(
@@ -456,7 +525,13 @@ def positional_deprecated(fn):
     return _wrapper
 
 
-def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
+def create_iterator(
+    raw_iterator: collections.Iterator,
+    *,
+    rank: int = 0,
+    world_size: int = 1,
+    limit: int | None = None,
+) -> islice:
     """
     Method for creating a (potentially) sliced and limited
     iterator from a raw document iterator. Used for splitting data

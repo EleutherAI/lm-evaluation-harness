@@ -124,14 +124,22 @@ class HFLM(TemplateLM):
             assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
 
-            gpus = torch.cuda.device_count()
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
-            if "npu" in accelerator.device.type:
+            # Detect device count based on accelerator device type
+            device_type = accelerator.device.type
+            if "cuda" in device_type:
+                gpus = torch.cuda.device_count()
+            elif "npu" in device_type:
                 gpus = torch.npu.device_count()
+            elif "xpu" in device_type:
+                gpus = torch.xpu.device_count()
+            else:
+                # Fallback to CUDA count for compatibility
+                gpus = torch.cuda.device_count()
 
             # using one process with no model parallelism
             if not (parallelize or accelerator.num_processes > 1):
@@ -141,6 +149,7 @@ class HFLM(TemplateLM):
                     + [f"cuda:{i}" for i in range(gpus)]
                     + ["mps", "mps:0"]
                     + [f"npu:{i}" for i in range(gpus)]
+                    + [f"xpu:{i}" for i in range(gpus)]
                 )
                 if device and device in device_list:
                     self._device = torch.device(device)
@@ -673,17 +682,25 @@ class HFLM(TemplateLM):
             )
 
         if peft:
-            from peft import PeftModel
-            from peft import __version__ as PEFT_VERSION
+            from peft import PeftModel, __version__ as PEFT_VERSION
 
             if model_kwargs.get("load_in_4bit") and vparse(PEFT_VERSION) < vparse(
                 "0.4.0"
             ):
                 raise AssertionError("load_in_4bit requires peft >= 0.4.0")
-            if self._model.config.vocab_size != len(self.tokenizer):
+
+            # Compatible with Gemma3 (multimodal) and old models
+            if hasattr(self._model.config, "text_config") and hasattr(
+                self._model.config.text_config, "vocab_size"
+            ):
+                vocab_size = self._model.config.text_config.vocab_size
+            else:
+                vocab_size = self._model.config.vocab_size
+
+            if vocab_size != len(self.tokenizer):
                 # resize model for LoRAs with added tokens
                 eval_logger.info(
-                    f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
+                    f"Model config indicates vocab_size='{vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
                 )
                 self._model.resize_token_embeddings(len(self.tokenizer))
             self._model = PeftModel.from_pretrained(
