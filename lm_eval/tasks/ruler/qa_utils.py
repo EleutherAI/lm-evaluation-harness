@@ -45,7 +45,58 @@ def download_json(url) -> dict:
 def read_squad(
     url="https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json",
 ) -> tuple[list[dict], list[str]]:
-    data = download_json(url)
+    """
+    Read SQuAD dataset with fallback to HuggingFace datasets for CI environments.
+    
+    First attempts to download from the original SQuAD URL. If that fails (e.g., due to
+    network restrictions in CI), falls back to loading from HuggingFace datasets.
+    """
+    try:
+        # Try original URL first
+        data = download_json(url)
+        print(f"Successfully loaded SQuAD from original URL: {url}")
+    except Exception as e:
+        print(f"Failed to download SQuAD from original URL ({e}), falling back to HuggingFace datasets")
+        
+        try:
+            # Fallback to HuggingFace datasets
+            dataset = datasets.load_dataset("squad_v2", split="validation")
+            
+            # Convert HuggingFace dataset to expected format
+            # HF format: {'context': str, 'answers': {'text': [...], 'answer_start': [...]}}
+            # Original format: nested structure with data.data.paragraphs.qas
+            data = {"data": []}
+            contexts_seen = {}
+            
+            for item in dataset:
+                # Only process items that have answers (not impossible questions)
+                if item["answers"]["text"]:  # Skip impossible questions
+                    context = item["context"]
+                    
+                    # Group by context to match original structure
+                    if context not in contexts_seen:
+                        contexts_seen[context] = {
+                            "title": item["title"],
+                            "paragraphs": [{"context": context, "qas": []}]
+                        }
+                        data["data"].append(contexts_seen[context])
+                    
+                    # Add QA to the appropriate context
+                    qa_entry = {
+                        "question": item["question"],
+                        "answers": [{"text": text} for text in item["answers"]["text"]],
+                        "is_impossible": False,
+                        "id": item["id"]
+                    }
+                    contexts_seen[context]["paragraphs"][0]["qas"].append(qa_entry)
+            
+            print(f"Successfully loaded {len(dataset)} samples from HuggingFace datasets, converted to {len(data['data'])} context groups")
+            
+        except Exception as hf_error:
+            raise Exception(f"Both original URL and HuggingFace fallback failed. "
+                          f"Original error: {e}. HuggingFace error: {hf_error}")
+    
+    # Process data into expected format (same logic as before)
     total_docs = [p["context"] for d in data["data"] for p in d["paragraphs"]]
     total_docs = sorted(list(set(total_docs)))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
@@ -76,7 +127,50 @@ def read_squad(
 def read_hotpotqa(
     url="http://curtis.ml.cmu.edu/datasets/hotpot/hotpot_dev_distractor_v1.json",
 ) -> tuple[list[dict], list[str]]:
-    data = download_json(url)
+    """
+    Read HotpotQA dataset with fallback to HuggingFace datasets for CI environments.
+    
+    First attempts to download from the original CMU URL. If that fails (e.g., due to
+    network restrictions in CI), falls back to loading from HuggingFace datasets.
+    """
+    try:
+        # Try original URL first
+        data = download_json(url)
+        print(f"Successfully loaded HotpotQA from original URL: {url}")
+    except Exception as e:
+        print(f"Failed to download HotpotQA from original URL ({e}), falling back to HuggingFace datasets")
+        
+        try:
+            # Fallback to HuggingFace datasets
+            dataset = datasets.load_dataset("hotpot_qa", "distractor", split="validation")
+            
+            # Convert HuggingFace dataset to expected format
+            data = []
+            for item in dataset:
+                # HuggingFace format: context = {'title': [...], 'sentences': [[...], [...]]}
+                # Original format: context = [[title, sentences], [title, sentences], ...]
+                context_converted = []
+                titles = item["context"]["title"]
+                sentences = item["context"]["sentences"]
+                
+                for title, sentence_list in zip(titles, sentences):
+                    context_converted.append([title, sentence_list])
+                
+                data.append({
+                    "id": item["id"],
+                    "question": item["question"],
+                    "answer": item["answer"],
+                    "supporting_facts": item["supporting_facts"],
+                    "context": context_converted
+                })
+            
+            print(f"Successfully loaded {len(data)} samples from HuggingFace datasets")
+            
+        except Exception as hf_error:
+            raise Exception(f"Both original URL and HuggingFace fallback failed. "
+                          f"Original error: {e}. HuggingFace error: {hf_error}")
+    
+    # Process data into expected format (same logic as before)
     total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
     total_docs = sorted(list(set(total_docs)))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}

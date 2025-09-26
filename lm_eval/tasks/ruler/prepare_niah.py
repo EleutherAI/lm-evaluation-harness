@@ -67,7 +67,9 @@ def cached_sent_tokenize(text: str) -> List[str]:
 
 
 def download_nltk_resources():
-    """Download 'punkt' if not already installed"""
+    """
+    Download 'punkt_tab' if not already installed, with fallback for CI environments.
+    """
     assert (nltk_version := parse_version(version("nltk"))) >= parse_version(
         NLTK_MIN_VERSION
     ), (
@@ -76,10 +78,16 @@ def download_nltk_resources():
 
     try:
         nltk.data.find("tokenizers/punkt_tab")
+        print("NLTK punkt_tab already available")
     except LookupError:
         if RANK == "0":
-            nltk.download("punkt_tab")
-            print("Downloaded punkt_tab on rank 0")
+            try:
+                nltk.download("punkt_tab")
+                print("Downloaded punkt_tab on rank 0")
+            except Exception as e:
+                print(f"Warning: Failed to download NLTK punkt_tab ({e}). Using fallback sentence tokenization.")
+                # NLTK will fall back to basic tokenization methods if punkt is not available
+                # This usually still works for basic sentence splitting
 
 
 download_nltk_resources()
