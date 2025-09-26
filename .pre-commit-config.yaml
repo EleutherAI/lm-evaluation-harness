@@ -2,18 +2,18 @@
 exclude: ^tests/testdata/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
-      - id: check-byte-order-marker
+      - id: fix-byte-order-marker
       - id: check-case-conflict
       - id: check-json
       - id: check-merge-conflict
-        args: [--assume-in-merge]
+        args: [ --assume-in-merge ]
       - id: check-symlinks
       - id: check-yaml
-        args: ["--unsafe"]
+        args: [ "--unsafe" ]
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
@@ -21,21 +21,18 @@ repos:
         always_run: false
       - id: requirements-txt-fixer
       - id: trailing-whitespace
-        args: [--markdown-linebreak-ext=md]
+        args: [ --markdown-linebreak-ext=md ]
       - id: fix-byte-order-marker
         exclude: docs/CNAME
-      - id: fix-encoding-pragma
-        args: [--remove]
       - id: mixed-line-ending
-        args: [--fix=lf]
+        args: [ --fix=lf ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.2
+    rev: v0.13.2
     hooks:
       # Run the linter.
-      - id: ruff
-        args:
-          - --fix
-          # Run the formatter.
+      - id: ruff-check
+        args: [ --fix ]
+      # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
@@ -47,10 +44,10 @@ repos:
               .*\.json|ignore.txt|lm_eval/tasks/.*|.*yaml|.*\.ipynb
           )$
 
-        args: [--check-filenames, --check-hidden, --ignore-words=ignore.txt]
+        args: [ --check-filenames, --check-hidden, --ignore-words=ignore.txt ]
   - repo: https://github.com/jackdewinter/pymarkdown
-    rev: v0.9.30
+    rev: v0.9.32
     hooks:
       - id: pymarkdown
         exclude: ^(lm_eval/tasks/.*|docs/footguns\.md)$
-        args: [fix, -r]
+        args: [ fix, -r ]
