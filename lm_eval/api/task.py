@@ -5,7 +5,7 @@ import ast
 import logging
 import random
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Literal, overload
@@ -376,7 +376,6 @@ class Task(abc.ABC):
             The number of times each instance in a dataset is inferred on. Defaults to 1,
             can be increased for techniques like majority voting.
         """
-        pass
 
     @abc.abstractmethod
     def process_results(self, doc: dict, results: list) -> dict[str, Any]:
@@ -1249,7 +1248,7 @@ class ConfigurableTask(Task):
         ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
             multimodal_arg = {
                 **multimodal_arg,
-                **{"visual": self.doc_to_image(doc)},
+                "visual": self.doc_to_image(doc),
             }
 
         if (
@@ -1257,7 +1256,7 @@ class ConfigurableTask(Task):
         ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
             multimodal_arg = {
                 **multimodal_arg,
-                **{"audio": self.doc_to_audio(doc)},
+                "audio": self.doc_to_audio(doc),
             }
 
         if bool(multimodal_arg):
@@ -1543,6 +1542,8 @@ class MultipleChoiceTask(Task):
         }
 
     def aggregation(self) -> dict:
+        from lm_eval.api.metrics import mean
+
         return {
             "acc": mean,
             "acc_norm": mean,
@@ -1609,6 +1610,8 @@ class PerplexityTask(Task):
         }
 
     def aggregation(self) -> dict:
+        from lm_eval.api.metrics import bits_per_byte, weighted_perplexity
+
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,

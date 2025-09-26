@@ -64,10 +64,10 @@ def test_python_task_inclusion(
         verbosity="INFO", include_path=str(custom_task_files_dir)
     )
     # check if python tasks enters the global task_index
-    assert custom_task_name in task_manager.task_index
+    assert custom_task_name in task_manager._index
     # check if subtask is present
-    assert custom_task_name in task_manager.all_subtasks
+    assert custom_task_name in task_manager._index
     # check if tag is present
-    assert custom_task_tag in task_manager.all_tags
+    assert custom_task_tag in task_manager._index
     # check if it can be loaded by tag (custom_task_tag)
     assert custom_task_name in task_manager.load_task_or_group(custom_task_tag)

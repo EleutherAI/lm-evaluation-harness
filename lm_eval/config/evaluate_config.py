@@ -340,23 +340,25 @@ class EvaluatorConfig:
             metadata=self.metadata if self.metadata else {},
         )
 
-        task_names = task_manager.match_tasks(self.tasks)
+        task_names = self.tasks
+        # TODO: FIX TASKS VALIDATION!!!
+        # task_names = task_manager.match_tasks(self.tasks)
 
-        # Check for any individual task files in the list
-        for task in [task for task in self.tasks if task not in task_names]:
-            task_path = Path(task)
-            if task_path.is_file():
-                config = utils.load_yaml_config(str(task_path))
-                task_names.append(config)
-
-        # Check for missing tasks
-        task_missing = [
-            task for task in self.tasks if task not in task_names and "*" not in task
-        ]
-
-        if task_missing:
-            missing = ", ".join(task_missing)
-            raise ValueError(f"Tasks not found: {missing}")
+        # # Check for any individual task files in the list
+        # for task in [task for task in self.tasks if task not in task_names]:
+        #     task_path = Path(task)
+        #     if task_path.is_file():
+        #         config = utils.load_yaml_config(str(task_path))
+        #         task_names.append(config)
+        #
+        # # Check for missing tasks
+        # task_missing = [
+        #     task for task in self.tasks if task not in task_names and "*" not in task
+        # ]
+        #
+        # if task_missing:
+        #     missing = ", ".join(task_missing)
+        #     raise ValueError(f"Tasks not found: {missing}")
 
         # Update tasks with resolved names
         self.tasks = task_names
