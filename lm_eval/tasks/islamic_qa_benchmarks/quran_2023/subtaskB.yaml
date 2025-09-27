@@ -1,7 +1,7 @@
 task: islamic_qa_benchmarks_quran_2023_subtaskB
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/religion_project/benchmarks/processed_data_for_lm_eval_harness/quran_2023_test.json
+    test: ./islamic_qa_benchmarks/Quran_QA_2023/quran_2023_test.json
 dataset_path: json
 dataset_name: null
 test_split: test

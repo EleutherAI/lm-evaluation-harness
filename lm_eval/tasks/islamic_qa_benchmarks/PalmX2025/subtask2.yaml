@@ -3,7 +3,7 @@ dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: /home/mostafa.awad/BGM/religion_project/benchmarks/processed_data_for_lm_eval_harness/PalmX2025/palmx_2025_subtask2_islamic_test.json
+    test: ./islamic_qa_benchmarks/PalmX2025/palmx_2025_subtask2_islamic_test.json
 test_split: test
 
 output_type: multiple_choice
