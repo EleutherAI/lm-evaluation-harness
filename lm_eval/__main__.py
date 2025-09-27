@@ -437,6 +437,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         if vparse(datasets.__version__) < vparse("4.0.0"):
             datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+        else:
+            eval_logger.warning(
+                "trust_remote_code and datasets scripts are no longer supported on datasets>=4.0.0. Skipping. If your task still requires this, please downgrade to datasets==3.6.0 or earlier."
+            )
 
         if isinstance(args.model_args, dict):
             args.model_args["trust_remote_code"] = True
