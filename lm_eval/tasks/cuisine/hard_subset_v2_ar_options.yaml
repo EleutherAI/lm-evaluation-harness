@@ -1,9 +1,9 @@
-task: cuisine_hard_subset
+task: cuisine_hard_subset_v2_ar_options
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: ./cuisine/hard_subset_v3.json
+    test: ./cuisine/hard_subset_v2_ar_options.json
 test_split: test
 
 output_type: multiple_choice

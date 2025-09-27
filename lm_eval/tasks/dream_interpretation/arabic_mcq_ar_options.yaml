@@ -1,15 +1,15 @@
-task: cuisine_hard_subset_ar_options
+task: dream_interpretation_ar_ar_options
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: ./cuisine/hard_subset_v2_ar_options.json
+    test: ./dream_interpretation/ar_mcq_ar_options.json
 test_split: test
 
 output_type: multiple_choice
 
 doc_to_text: |
-  أجب عن السؤال باستخدام الخيار المناسب من بين A أو B أو C أو D أو E. الرجاء الرد بالحرف الصحيح فقط: A أو B أو C أو D أو E دون أي شرح أو معلومات إضافية.
+  أجب عن السؤال باستخدام الخيار المناسب من بين أ أو ب أو ج أو د أو ه. الرجاء الرد بالحرف الصحيح فقط: أ أو ب أو ج أو د أو ه دون أي شرح أو معلومات إضافية. 
   {{ question }}
   الاختيارات:
   {% for option in options %}
