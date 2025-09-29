@@ -1,10 +1,10 @@
-from rich.traceback import install
+# from rich.traceback import install
 
 from lm_eval._cli.harness import HarnessCLI
 from lm_eval.utils import setup_logging
 
 
-install(show_locals=True)
+# install(show_locals=True)
 
 
 def cli_evaluate() -> None:
