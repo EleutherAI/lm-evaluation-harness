@@ -1,0 +1,7 @@
+"dataset_name": "tha_Thai-ltz_Latn"
+"doc_to_target": "{{sentence_ltz_Latn}}"
+"doc_to_text": "{{sentence_tha_Thai}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tha_Thai-ltz_Latn"
+"test_split": "dev"

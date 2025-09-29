@@ -1,0 +1,7 @@
+"dataset_name": "eng_Latn-tur_Latn"
+"doc_to_target": "{{sentence_tur_Latn}}"
+"doc_to_text": "{{sentence_eng_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_eng_Latn-tur_Latn"
+"test_split": "dev"
