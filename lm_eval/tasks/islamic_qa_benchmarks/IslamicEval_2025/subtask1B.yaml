@@ -1,9 +1,9 @@
-task: islamic_qa_benchmarks_IslamicEval2025_subtask1B
+task: islamic_qa_IslamicEval2015_1B
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
   data_files:
-    test: ./islamic_qa_benchmarks/IslamicEval 2025/islamiceval_subtask1_B_dev.json
+    test: ./islamic_qa_benchmarks/IslamicEval_2025/subtask_1B_dev.json
 test_split: test
 
 output_type: multiple_choice

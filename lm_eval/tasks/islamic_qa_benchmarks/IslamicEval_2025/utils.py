@@ -1,3 +1,4 @@
+# for subtask 1A
 # from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 # import re
 
@@ -13,11 +14,11 @@
 #     predicted_labels, true_labels = zip(*items)
 #     return {"Accuracy": accuracy_score(true_labels, predicted_labels)}
 
-def evaluate(items):
-    return {"acc": 0}
+# def evaluate(items):
+#     return {"acc": 0}
 
 
-
+# for subtask 1B
 options = ['CorrectAyah', 'WrongAyah', 'CorrectHadith', 'WrongHadith']
 def doc_to_choice(doc):
     return options
