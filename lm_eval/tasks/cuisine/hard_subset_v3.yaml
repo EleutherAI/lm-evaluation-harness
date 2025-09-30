@@ -1,4 +1,4 @@
-task: cuisine_hard_subset_v3
+task: cuisine_hard_subset
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
