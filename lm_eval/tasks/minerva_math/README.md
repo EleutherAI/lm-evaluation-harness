@@ -51,6 +51,7 @@ Eprint = {arXiv:2206.14858},
 - `minerva_math_num_theory`
 - `minerva_math_prealgebra`
 - `minerva_math_precalc`
+- `minerva_math500`
 
 ### Checklist
 
