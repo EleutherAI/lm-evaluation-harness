@@ -1,0 +1,3 @@
+tag:
+    - flores_msa_to_x_devtest
+include: ../_default_template_yaml

@@ -1,6 +1,3 @@
-tag:
-    - flores_x_to_msa_devtest
-
 dataset_kwargs:
   data_files:
     test: ./flores/flores_devtest.csv
