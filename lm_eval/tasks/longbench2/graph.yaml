@@ -3,7 +3,4 @@ tag:
   - longbench2
   - longbench2_structured
 task: longbench2_graph
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['domain'] == 'Long Structured Data Understanding' and x['sub_domain'] == 'Knowledge graph reasoning'"
+dataset_name: graph_reasoning

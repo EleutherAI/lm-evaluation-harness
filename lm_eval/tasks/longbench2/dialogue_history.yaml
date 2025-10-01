@@ -3,4 +3,4 @@ tag:
   - longbench2
   - longbench2_history
 task: longbench2_dialogue_history
-process_docs: !function utils.process_docs_dialogue_history
+dataset_name: dialogue_history_qa

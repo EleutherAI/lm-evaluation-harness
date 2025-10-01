@@ -3,7 +3,4 @@ tag:
   - longbench2
   - longbench2_incontext
 task: longbench2_user_guide
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['sub_domain'] == 'User guide QA'"
+dataset_name: user_guide_qa

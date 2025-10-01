@@ -3,7 +3,4 @@ tag:
   - longbench2
   - longbench2_multi
 task: longbench2_fin_multi
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['domain'] == 'Multi-Document QA' and x['sub_domain'] == 'Financial'"
+dataset_name: financial_multi

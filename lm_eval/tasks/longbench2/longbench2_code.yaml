@@ -2,7 +2,4 @@ include: _longbench_common_yaml
 tag:
   - longbench2
 task: longbench2_code
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['domain'] == 'Code Repository Understanding' and x['sub_domain'] == 'Code repo QA'"
+dataset_name: code_repo_qa

@@ -3,7 +3,4 @@ tag:
   - longbench2
   - longbench2_incontext
 task: longbench2_translate
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['sub_domain'] == 'New language translation'"
+dataset_name: new_language_translation

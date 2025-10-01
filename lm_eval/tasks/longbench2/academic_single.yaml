@@ -3,6 +3,7 @@ tag:
   - longbench2
   - longbench2_single
 task: longbench2_academic_single
+dataset_name: academic_single
 filter_list:
   - name: subdomain_filter
     filter:

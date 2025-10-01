@@ -3,7 +3,4 @@ tag:
   - longbench2
   - longbench2_single
 task: longbench2_legal_single
-filter_list:
-  - name: subdomain_filter
-    filter:
-      - function: "lambda x: x['domain'] == 'Single-Document QA' and x['sub_domain'] == 'Legal'"
+dataset_name: legal_single
