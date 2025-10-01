@@ -1,0 +1,19 @@
+include: _babilong_common_yaml
+task: babilong_qa19
+test_split: qa19
+dataset_name: 0k
+description: "I will give you context with the facts about different places and their locations, hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nYour answer should contain only two letters, separated by a comma - ordinal directions. You can choose the letters from $n$, $s$, $e$ and $w$. Do not write anything else after that.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "The office is east of the hallway. The kitchen is north of the office. The garden is west of the bedroom. The office is west of the garden. The bathroom is north of the garden."
+      question: "How do you go from the kitchen to the garden?"
+      target: "s,e"
+    - input: "The bedroom is west of the hallway. The office is east of the garden. The garden is north of the kitchen. The kitchen is north of the bathroom. The hallway is west of the garden."
+      question: "How do you go from the kitchen to the hallway?"
+      target: "n,w"
+    - input: "The bedroom is south of the hallway. The bathroom is east of the office. The kitchen is west of the garden. The garden is south of the office. The office is south of the bedroom."
+      question: "How do you go from the garden to the bedroom?"
+      target: "n,n"

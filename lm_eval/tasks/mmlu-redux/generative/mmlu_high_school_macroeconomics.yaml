@@ -1,0 +1,7 @@
+"dataset_name": "high_school_macroeconomics"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school macroeconomics.\n\n"
+"tag": "mmlu_social_sciences_generative"
+"include": "_default_template_yaml"
+"task": "mmlu_high_school_macroeconomics_generative"
+"task_alias": "high_school_macroeconomics"
