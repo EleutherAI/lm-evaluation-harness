@@ -1,13 +1,11 @@
+import logging
 import re
 import signal
 from typing import Dict, List, Optional
 
-import antlr4
 import datasets
 
-import numpy as np
 
-import logging
 eval_logger = logging.getLogger(__name__)
 
 try:
@@ -19,13 +17,14 @@ except ModuleNotFoundError:
 please install sympy via pip install lm-eval[math] or pip install -e .[math]",
     )
 
+
 # taken from
 # https://github.com/wellecks/lm-evaluation-harness/blob/master/lm_eval/tasks/minerva_math.py
 def doc_to_text(doc: dict) -> str:
     return "Problem:" + "\n" + doc["problem"] + "\n\n" + "Solution:"
 
-def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc: dict) -> dict:
         out_doc = {
             "problem": doc["problem"],
@@ -40,7 +39,10 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
     return dataset.map(_process_doc)
 
-def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
+
+def process_variations(
+    dataset: datasets.Dataset,
+) -> datasets.Dataset:
     # Always filter for variation=1, as that's all that exists in the variations split
     def filter_doc(doc: dict) -> bool:
         return int(doc.get("variation")) == 1
@@ -48,17 +50,16 @@ def process_variations(dataset: datasets.Dataset, ) -> datasets.Dataset:
     filtered_dataset = dataset.filter(filter_doc)
 
     # Further processing if needed
-    def _process_doc(doc: dict) -> dict:  
-
+    def _process_doc(doc: dict) -> dict:
         try:
             out_doc = {
                 "problem": doc["problem"],
                 "solution": doc["solution"],
                 "answer": normalize_final_answer(
                     remove_boxed(last_boxed_only_string(doc["solution"]))
-                )
+                ),
             }
-        except:
+        except Exception:
             print(doc["problem"])
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
@@ -76,7 +77,7 @@ def list_fewshot_samples() -> list[dict]:
             "few_shot": "1",
         },
         {
-            "problem": "Given any positive integer $n$ find the value of \\n\\[ \\sum_{r=0}^{\\lfloor (n-1)/2 \\rfloor} \\left\\{\\frac{n - 2r}{n}\\binom{n}{r}\\right\\}^2, \\]\\n where $\\lfloor x \\rfloor$ means the greatest integer not exceeding $x$, and $\\binom{n}{r}$ is the binomial coefficient \"$n$ choose $r$,\" with the convention $\\binom{0}{0} = 1$. Return your final answer in binomial coefficient form with all other multiplicants reduced to the lowest form.",
+            "problem": 'Given any positive integer $n$ find the value of \\n\\[ \\sum_{r=0}^{\\lfloor (n-1)/2 \\rfloor} \\left\\{\\frac{n - 2r}{n}\\binom{n}{r}\\right\\}^2, \\]\\n where $\\lfloor x \\rfloor$ means the greatest integer not exceeding $x$, and $\\binom{n}{r}$ is the binomial coefficient "$n$ choose $r$," with the convention $\\binom{0}{0} = 1$. Return your final answer in binomial coefficient form with all other multiplicants reduced to the lowest form.',
             "solution": "Let's think step by step. Substituting $s=n-r$ in the given summation reveals that twice this sum is equal to:\n\\[\n\\sum_{r=0}^n \\left(\\frac{n-2r}{n} \\binom{n}{r}\\right)^2 = \\sum \\left(1 - 2\\frac{r}{n}\\right)^2 \\binom{n}{r}^2 = \\sum \\binom{n}{r}^2 - 4\\sum \\frac{r}{n} \\binom{n}{r}^2 + 4\\sum \\left(\\frac{r}{n}\\right)^2 \\binom{n}{r}^2.\n\\]\n\\[\n= \\binom{2n}{n} - 4 \\sum_{r=1}^n \\binom{n-1}{r-1} \\binom{n}{r} + 4 \\sum_{r=1}^n \\binom{n-1}{r-1}^2.\n\\]\n\\[\n= \\binom{2n}{n} - 4\\binom{2n-1}{n-1} + 4\\binom{2n-2}{n-1}.\n\\]\n\\[\n= \\frac{2n(2n-1)}{n^2} - \\frac{4(n-1)}{n}\\binom{2n-2}{n-1} = \\boxed{\\frac{1}{n}\\binom{2n-2}{n-1}}.\\n\\]",
             "few_shot": "1",
         },
@@ -89,16 +90,16 @@ def list_fewshot_samples() -> list[dict]:
             "problem": "Evaluate \n\\[\n\\lim_{n \\to \\infty} \\int_0^1 \\int_0^1 \\cdots \\int_0^1 \\cos^2 \\left(\\frac{\\pi}{2n}(x_1 + x_2 + \\cdots + x_n)\\right) dx_1 dx_2 \\cdots dx_n.\n\\]",
             "solution": "Let's think step by step. The change of variables $x_k \\to 1 - x_k$ yields\n\\[\n\\int_0^1 \\int_0^1 \\cdots \\int_0^1 \\cos^2 \\left(\\frac{\\pi}{2n}(x_1 + x_2 + \\cdots + x_n)\\right) dx_1 dx_2 \\cdots dx_n \\\\\n= \\int_0^1 \\int_0^1 \\cdots \\int_0^1 \\sin^2 \\left(\\frac{\\pi}{2n}(x_1 + x_2 + \\cdots + x_n)\\right) dx_1 dx_2 \\cdots dx_n.\n\\]\nEach of these expressions, being equal to half their sum, must equal $\\frac{1}{2}$. The limit is also $\\boxed{\\frac{1}{2}}$.",
             "few_shot": "1",
-        }
-
+        },
     ]
+
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidates = results[0]
-    
+
     try:
         answer = ground_truth_boxed_answer(candidates)
-    except:
+    except Exception:
         answer = get_generated_answer(candidates)
 
     if is_equiv(answer, doc["answer"]):
@@ -112,14 +113,17 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     return results
 
+
 def ground_truth_boxed_answer(solution: str) -> str:
     return normalize_final_answer(remove_boxed(last_boxed_only_string(solution)))
+
 
 def get_generated_answer(result: str) -> str:
     unnormalized_answer = get_unnormalized_answer(result)
     answer = normalize_final_answer(unnormalized_answer)
 
     return answer
+
 
 def last_boxed_only_string(string: str) -> Optional[str]:
     idx = string.rfind("\\boxed")
@@ -234,7 +238,7 @@ def get_unnormalized_answer(text: str) -> str:
     # )
     match = re.search(
         r"(?:Final Answer: The final answer is|The answer is:)\s*(.*?)(?=I hope it is correct\.)",
-        text
+        text,
     )
     if match:
         return match.group(1).strip()

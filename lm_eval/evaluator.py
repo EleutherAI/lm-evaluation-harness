@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 import torch
-import pandas as pd
 
 import lm_eval.api.metrics
 import lm_eval.api.registry
@@ -618,7 +617,7 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
-                                
+
                 if log_samples:
                     target = task.doc_to_target(doc)
                     example = {

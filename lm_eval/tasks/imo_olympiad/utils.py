@@ -1,13 +1,12 @@
+import logging
 import re
 import signal
 from typing import Dict, List, Optional
 
-import antlr4
 import datasets
 
-from lm_eval.utils import eval_logger
 
-import numpy as np
+eval_logger = logging.getLogger(__name__)
 
 try:
     import sympy
@@ -18,33 +17,34 @@ except ModuleNotFoundError:
 please install sympy via pip install lm-eval[math] or pip install -e .[math]",
     )
 
+
 # taken from
 # https://github.com/wellecks/lm-evaluation-harness/blob/master/lm_eval/tasks/minerva_math.py
 def doc_to_text(doc: dict) -> str:
     return "Problem:" + "\n" + doc["problem"] + "\n\n" + "Solution:"
 
-def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc: dict) -> dict:
-        try: 
+        try:
             answer = normalize_final_answer(
-                    remove_boxed(last_boxed_only_string(doc["solution"]))
-                )
-        except:
+                remove_boxed(last_boxed_only_string(doc["solution"]))
+            )
+        except Exception:
             print(doc)
-            answer = doc['final_answer'][0]
+            answer = doc["final_answer"][0]
 
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
-            "answer": answer
-
+            "answer": answer,
         }
         if getattr(doc, "few_shot", None) is not None:
             out_doc["few_shot"] = True
         return out_doc
 
     return dataset.map(_process_doc)
+
 
 def list_fewshot_samples() -> list[dict]:
     return [
@@ -67,11 +67,11 @@ def list_fewshot_samples() -> list[dict]:
             "problem": "If the system of equations\n\n\\begin{align*}\n6x-4y&=a,\\\n6y-9x &=b.\n\\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,\nfind $\\frac{a}{b},$ assuming $b$ is nonzero.",
             "solution": "If we multiply the first equation by $-\\frac{3}{2}$, we obtain\n\n$$6y-9x=-\\frac{3}{2}a.$$Since we also know that $6y-9x=b$, we have\n\n$$-\\frac{3}{2}a=b\\Rightarrow\\frac{a}{b}=-\\frac{2}{3}.$$\nFinal Answer: The final answer is $\\boxed{-\\frac{2}{3}}$. I hope it is correct.",
             "few_shot": "1",
-        }
+        },
     ]
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
+def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     # completion_output = results[0].outputs[0]
     # candidates = completion_output.text
 
@@ -79,7 +79,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     try:
         answer = ground_truth_boxed_answer(candidates)
-    except:
+    except Exception:
         answer = get_generated_answer(candidates)
 
     if is_equiv(answer, doc["answer"]):
@@ -93,14 +93,17 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
 
     return results
 
+
 def ground_truth_boxed_answer(solution: str) -> str:
     return normalize_final_answer(remove_boxed(last_boxed_only_string(solution)))
+
 
 def get_generated_answer(result: str) -> str:
     unnormalized_answer = get_unnormalized_answer(result)
     answer = normalize_final_answer(unnormalized_answer)
 
     return answer
+
 
 def last_boxed_only_string(string: str) -> Optional[str]:
     idx = string.rfind("\\boxed")
@@ -166,7 +169,7 @@ def is_equiv(x1: str, x2: str) -> bool:
     """
     x1 and x2 are normalized latex string
     """
-    
+
     try:
         with timeout(seconds=5):
             try:
@@ -194,7 +197,7 @@ def is_equiv(x1: str, x2: str) -> bool:
             except ValueError:
                 eval_logger.debug(
                     f"Had some trouble simplifying when comparing {x1} and {x2}"
-                )    
+                )
     except TimeoutError:
         eval_logger.debug(f"Timed out comparing {x1} and {x2}")
         return False
@@ -216,7 +219,7 @@ def get_unnormalized_answer(text: str) -> str:
     # )
     match = re.search(
         r"(?:Final Answer: The final answer is|The answer is:)\s*(.*?)(?=I hope it is correct\.)",
-        text
+        text,
     )
     if match:
         return match.group(1).strip()
