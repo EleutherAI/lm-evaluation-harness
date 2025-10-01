@@ -3,5 +3,5 @@ metadata:
     description: Translation task for ArzEn-ST_Translations_1.0 Benchmark  
     version: 0
 task:
-- ArzEn-ST_Translations_1.0__arz-en
-- ArzEn-ST_Translations_1.0__en-arz
+- translation_ArzEn-ST_Translations_1.0__arz-en
+- translation_ArzEn-ST_Translations_1.0__en-arz
