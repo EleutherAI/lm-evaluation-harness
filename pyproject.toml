@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "lm_eval"
 version = "0.4.9.1"
 authors = [
-    {name="EleutherAI", email="contact@eleuther.ai"}
+    { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
 description = "A framework for evaluating language models"
 readme = "README.md"
@@ -21,7 +21,7 @@ license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
     "evaluate",
-    "datasets>=2.16.0,<4.0",
+    "datasets>=2.16.0",
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
@@ -68,8 +68,8 @@ ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 ipex = ["optimum"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
-longbench=["jieba", "fuzzywuzzy", "rouge"]
-libra=["pymorphy2"]
+longbench = ["jieba", "fuzzywuzzy", "rouge"]
+libra = ["pymorphy2"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
@@ -115,10 +115,10 @@ lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"__init__.py" = ["F401","F402","F403"]
+"__init__.py" = ["F401", "F402", "F403"]
 "utils.py" = ["F401"]
 
 [dependency-groups]
 dev = [
-  "api","dev","sentencepiece"
+    "api", "dev", "sentencepiece"
 ]
