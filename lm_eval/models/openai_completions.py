@@ -8,6 +8,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
 from lm_eval.models.utils import handle_stop_sequences
 
+
 eval_logger = logging.getLogger(__name__)
 
 
@@ -97,6 +98,12 @@ class LocalCompletionsAPI(TemplateAPI):
                 x = ""
                 if choices["text"] is not None:
                     x = choices["text"]
+                else:
+                    eval_logger.warning(
+                        f"Received empty response for choice {choices['index']}. "
+                        "This can happen when using reasoning models if the model spends all the token limit on reasoning. "
+                        "Consider increasing the number of allowed tokens."
+                    )
                 tmp[choices["index"]] = x
             res = res + tmp
         return res
@@ -172,6 +179,12 @@ class LocalChatCompletion(LocalCompletionsAPI):
                 x = ""
                 if choices["message"]["content"] is not None:
                     x = choices["message"]["content"]
+                else:
+                    eval_logger.warning(
+                        f"Received empty response for choice {choices['index']}. "
+                        "This can happen when using reasoning models if the model spends all the token limit on reasoning. "
+                        "Consider increasing the number of allowed tokens."
+                    )
                 tmp[choices["index"]] = x
             res = res + tmp
         return res
