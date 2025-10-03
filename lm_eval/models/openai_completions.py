@@ -95,16 +95,15 @@ class LocalCompletionsAPI(TemplateAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                x = ""
-                if choices["text"] is not None:
-                    x = choices["text"]
-                else:
+                x = choices["text"]
+                content = x if x is not None else ""
+                if not content:
                     eval_logger.warning(
                         f"Received empty response for choice {choices['index']}. "
-                        "This can happen when using reasoning models if the model spends all the token limit on reasoning. "
+                        "This can happen when using reasoning models if the model spends the entire token budget on reasoning. "
                         "Consider increasing the number of allowed tokens."
                     )
-                tmp[choices["index"]] = x
+                tmp[choices["index"]] = content
             res = res + tmp
         return res
 
@@ -176,16 +175,15 @@ class LocalChatCompletion(LocalCompletionsAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                x = ""
-                if choices["message"]["content"] is not None:
-                    x = choices["message"]["content"]
-                else:
+                x = choices["message"]["content"]
+                content = x if x is not None else ""
+                if not content:
                     eval_logger.warning(
                         f"Received empty response for choice {choices['index']}. "
-                        "This can happen when using reasoning models if the model spends all the token limit on reasoning. "
+                        "This can happen when using reasoning models if the model spends the entire token budget on reasoning. "
                         "Consider increasing the number of allowed tokens."
                     )
-                tmp[choices["index"]] = x
+                tmp[choices["index"]] = content
             res = res + tmp
         return res
 
