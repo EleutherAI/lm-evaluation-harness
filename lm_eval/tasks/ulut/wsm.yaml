@@ -13,6 +13,11 @@ doc_to_text: "تۆۋەندىكى سۆزنىڭ مەنىداش سۆزىنى تال
 doc_to_target: 3
 doc_to_choice: "{{[distractor1, distractor2, distractor3, synonym]}}"
 metric_list:
-  - metric: acc    
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
 metadata:
   version: 1.0.0
