@@ -140,58 +140,24 @@ class LocalCompletionsAPI(TemplateAPI):
 
 @register_model("local-chat-completions")
 class LocalChatCompletion(LocalCompletionsAPI):
+    """
+    Minimal chat-completions wrapper.
+    - Only accepts messages as list[dict].
+    - No tokenization or template logic.
+    - Use with --apply_chat_template or ensure upstream formats messages correctly.
+    """
     def __init__(
         self,
         base_url=None,
-        tokenizer_backend="auto",
-        tokenized_requests=None,
         verify_certificate=True,
         ca_cert_path=None,
         auth_token=None,
         **kwargs,
     ):
-        if tokenizer_backend == "auto":
-            if base_url:
-                from lm_eval.utils import check_remote_tokenizer_support
-
-                if check_remote_tokenizer_support(
-                    base_url,
-                    verify_certificate=verify_certificate,
-                    ca_cert_path=ca_cert_path,
-                    auth_token=auth_token,
-                ):
-                    eval_logger.info(
-                        "Auto-detected remote tokenizer support. Chat template will be applied automatically."
-                    )
-                    tokenizer_backend = "remote"
-                    if tokenized_requests is None:
-                        tokenized_requests = True
-                else:
-                    eval_logger.warning(
-                        "Remote tokenizer not supported. Chat template must be applied manually with --apply_chat_template."
-                    )
-                    tokenizer_backend = None
-                    if tokenized_requests is None:
-                        tokenized_requests = False
-            else:
-                eval_logger.warning(
-                    "No base_url provided. Chat template must be applied manually with --apply_chat_template."
-                )
-                tokenizer_backend = None
-                if tokenized_requests is None:
-                    tokenized_requests = False
-        else:
-            if tokenized_requests is None:
-                tokenized_requests = tokenizer_backend is not None
-        if tokenizer_backend is None:
-            eval_logger.warning(
-                "chat-completions endpoint requires the `--apply_chat_template` flag."
-            )
-
         super().__init__(
             base_url=base_url,
-            tokenizer_backend=tokenizer_backend,
-            tokenized_requests=tokenized_requests,
+            tokenizer_backend=None,         
+            tokenized_requests=None,     
             verify_certificate=verify_certificate,
             ca_cert_path=ca_cert_path,
             auth_token=auth_token,
@@ -203,26 +169,6 @@ class LocalChatCompletion(LocalCompletionsAPI):
             )
             self._batch_size = 1
 
-    def create_message(
-        self,
-        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
-        generate=False,
-    ) -> Union[List[dict], str]:
-        """Override to handle chat template application for remote tokenizer"""
-        if self.tokenized_requests and self.tokenizer_backend == "remote":
-            # For remote tokenizer, apply chat template
-            if isinstance(messages[0], str):
-                chat_history = [{"role": "user", "content": messages[0]}]
-            else:
-                # Handle other message types by calling parent first
-                processed = super().create_message(messages, generate)
-                if isinstance(processed, str):
-                    chat_history = [{"role": "user", "content": processed}]
-                else:
-                    return processed
-            return self.apply_chat_template(chat_history, add_generation_prompt=True)
-        return super().create_message(messages, generate)
-
     def _create_payload(
         self,
         messages: List[Dict],
@@ -232,9 +178,11 @@ class LocalChatCompletion(LocalCompletionsAPI):
         eos=None,
         **kwargs,
     ) -> dict:
-        assert type(messages) is not str, (
-            "chat-completions require the --apply_chat_template flag."
+        assert isinstance(messages, list) and all(isinstance(m, dict) for m in messages), (
+            "LocalChatCompletion expects messages as list[dict]. "
+            "If you see this error, ensure --apply_chat_template is set or upstream code formats messages correctly."
         )
+        gen_kwargs = gen_kwargs or {}
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")
