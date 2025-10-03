@@ -2,7 +2,7 @@ tag:
   - ulut
   - uyghur_language
   - uyghur_llm
-task: ulqa
+task: wum
 dataset_path: keramjan/ulut
 dataset_name: wum
 output_type: multiple_choice

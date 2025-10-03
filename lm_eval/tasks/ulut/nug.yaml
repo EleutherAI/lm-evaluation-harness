@@ -2,7 +2,7 @@ tag:
   - ulut
   - uyghur_language
   - uyghur_llm
-task: ulqa
+task: nug
 dataset_path: keramjan/ulut
 dataset_name: nug
 output_type: generate_until
