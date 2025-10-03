@@ -1,0 +1,32 @@
+task: islamic_qa_IslamicEval2015_1B
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: ./islamic_qa_benchmarks/IslamicEval_2025/subtask_1B_dev.json
+test_split: test
+
+output_type: multiple_choice
+
+doc_to_text: |
+  Classify the following text into one of these four categories:
+
+  - CorrectAyah: exact Qur'an verse, written correctly  
+  - WrongAyah: Qur'an verse but incorrect/incomplete  
+  - CorrectHadith: authentic Hadith, written correctly  
+  - WrongHadith: Hadith but incorrect/incomplete  
+
+  Text: "{{ full_span }}"
+
+  Output only one category name.
+  The chosen category is: 
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
