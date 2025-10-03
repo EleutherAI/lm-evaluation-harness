@@ -9,7 +9,7 @@ output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: train
-doc_to_text: "سۇئال: {{question}}\nجاۋاپ:"
+doc_to_text: "تۆۋەندىكى سۆزنىڭ قارىمۇ-قارشى مەنىلىك سۆزىنى يېزىڭ: {{question}}\nجاۋاپ:"
 doc_to_target: "{{answer}}"
 should_decontaminate: true
 doc_to_decontamination_query: question

@@ -9,7 +9,7 @@ output_type: multiple_choice
 training_split: train
 fewshot_split: train
 test_split: train
-doc_to_text: "سۇئال: {{question}}\nجاۋاپ:"
+doc_to_text: "تۆۋەندىكى جۈملىدە خاتا ئىشلىتىلگەن سۆزنىڭ بار-يوقلىقىغا ھۆكۈم قىلىڭ: {{statement}}\nجاۋاپ:"
 doc_to_target: check
 doc_to_choice: ["true", "false"]
 should_decontaminate: true
