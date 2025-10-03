@@ -1,0 +1,20 @@
+tag:
+  - ulut
+  - uyghur_language
+  - uyghur_llm
+task: ulqa
+dataset_path: keramjan/ulut
+dataset_name: wum
+output_type: multiple_choice
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "سۇئال: {{question}}\nجاۋاپ:"
+doc_to_target: "{{ ['A','B','C'].index(answer) }}"
+doc_to_choice: "{{[A, B, C]}}"
+should_decontaminate: true
+doc_to_decontamination_query: statement
+metric_list:
+  - metric: acc    
+metadata:
+  version: 1.0.0

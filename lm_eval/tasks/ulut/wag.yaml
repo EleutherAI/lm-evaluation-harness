@@ -1,0 +1,19 @@
+tag:
+  - ulut
+  - uyghur_language
+  - uyghur_llm
+task: ulqa
+dataset_path: keramjan/ulut
+dataset_name: wag
+output_type: generate_until
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "سۇئال: {{question}}\nجاۋاپ:"
+doc_to_target: "{{answer}}"
+should_decontaminate: true
+doc_to_decontamination_query: question
+metric_list:
+  - metric: acc    
+metadata:
+  version: 1.0.0
