@@ -29,7 +29,7 @@ def get_new_tasks_else_default():
     return task_classes if task_classes else TASKS
 
 
-def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
+def task_class(task_names=None, task_manager=None) -> list[ConfigurableTask]:
     """
     Convert a list of task names to a list of ConfigurableTask instances
     """
@@ -93,7 +93,7 @@ class BaseTasks:
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
         target_delimiter: str = task.config.target_delimiter
-        if not task.multiple_input:
+        if not task.multiple_inputs:
             for x in _array:
                 assert isinstance(x, str)
                 assert (
@@ -148,7 +148,7 @@ class BaseTasks:
         # ctx is "" for multiple input tasks
         requests = [
             task.construct_requests(
-                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
+                doc=doc, ctx=[""] if task.multiple_inputs else task.doc_to_text(doc)
             )
             for doc in arr
         ]

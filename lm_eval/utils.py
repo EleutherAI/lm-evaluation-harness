@@ -11,7 +11,7 @@ import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any, Callable, Generator, List, Optional, Tuple, Union, overload
 
 import numpy as np
 import yaml
@@ -545,7 +545,20 @@ env = Environment(
 env.filters["regex_replace"] = regex_replace
 
 
-def apply_template(template: str, doc: dict) -> str:
+@overload
+def apply_template(template: str, doc: dict[str, Any]) -> str: ...
+
+
+@overload
+def apply_template(template: list[str], doc: dict[str, Any]) -> list[str]: ...
+
+
+def apply_template(template: Union[str, list[str]], doc: dict) -> Union[str, list[str]]:
+    if isinstance(template, list):
+        return [
+            apply_template(x, doc) if (x.startswith("{{") and x.endswith("}}")) else x
+            for x in template
+        ]
     rtemplate = env.from_string(template)
     return rtemplate.render(**doc)
 
@@ -623,3 +636,7 @@ def hash_dict_images(data_dict):
         if importlib.util.find_spec("PIL")
         else data_dict
     )
+
+
+def validate_index(index: int, length: int) -> int:
+    return index if index < length else -100

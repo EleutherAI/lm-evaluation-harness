@@ -1,7 +1,7 @@
 tag:
   - super-glue-lm-eval-v1
 task: record
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: record
 output_type: multiple_choice
 training_split: train
@@ -11,6 +11,7 @@ doc_to_target: !function util.doc_to_target
 doc_to_choice: !function util.doc_to_choice
 process_docs: !function util.process_docs
 process_results: !function util.process_results
+target_delimiter: ""
 metric_list:
   - metric: f1
     aggregation: mean
