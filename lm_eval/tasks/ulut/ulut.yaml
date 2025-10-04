@@ -6,9 +6,8 @@ task:
   - wub
   - wum
 aggregate_metric_list:
-  - aggregation: mean
-    metric: exact_match
+  - metric: acc
+    aggregation: mean
     weight_by_size: true
-    filter_list: custom-extract
 metadata:
   version: 1.0
