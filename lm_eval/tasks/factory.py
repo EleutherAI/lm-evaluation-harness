@@ -32,9 +32,9 @@ class TaskFactory:
         registry: Mapping[str, Entry],
     ):
         """
-        • entry.kind == TASK / PY_TASK  ➜ returns instantiated task object
-        • entry.kind == GROUP          ➜ returns (GroupConfig, mapping-of-subtasks)
-        • entry.kind == TAG            ➜ returns mapping-of-tasks (tag expansion)
+        • entry.kind == TASK / PY_TASK ➜ returns instantiated task object
+        • entry.kind == GROUP ➜ returns (GroupConfig, mapping-of-subtasks)
+        • entry.kind == TAG ➜ returns mapping-of-tasks (tag expansion)
         """
         if entry.kind is Kind.TAG:
             return self._build_tag(entry, overrides, registry)
@@ -121,4 +121,4 @@ class TaskFactory:
 
 def _ctor_accepts_config(cls) -> bool:
     init = getattr(cls, "__init__", None)
-    return init and "config" in inspect.signature(init).parameters
+    return bool(init and "config" in inspect.signature(init).parameters)

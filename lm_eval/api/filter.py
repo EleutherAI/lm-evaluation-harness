@@ -53,6 +53,6 @@ class FilterEnsemble:
             resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
-        # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
+        # has a key ` self.name `: each FilterEnsemble applied in a given run should use a different name.
         for inst, resp in zip(instances, resps):
             inst.filtered_resps[self.name] = resp

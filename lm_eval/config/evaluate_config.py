@@ -4,7 +4,7 @@ import textwrap
 from argparse import Namespace
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import yaml
 
@@ -214,7 +214,7 @@ class EvaluatorConfig:
         # Parse string arguments that should be dictionaries
         config = cls._parse_dict_args(config)
 
-        # Create instance and validate
+        # Create an instance and validate
         instance = cls(**config)
         if used_config:
             print(textwrap.dedent(f"""{instance}"""))
@@ -238,7 +238,7 @@ class EvaluatorConfig:
         return instance
 
     @staticmethod
-    def _parse_dict_args(config: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_dict_args(config: dict[str, Any]) -> dict[str, Any]:
         """Parse string arguments that should be dictionaries."""
         for key in config:
             if key in DICT_KEYS and isinstance(config[key], str):
@@ -246,7 +246,7 @@ class EvaluatorConfig:
         return config
 
     @staticmethod
-    def load_yaml_config(config_path: Union[str, Path]) -> Dict[str, Any]:
+    def load_yaml_config(config_path: Union[str, Path]) -> dict[str, Any]:
         """Load and validate YAML config file."""
         config_file = (
             Path(config_path) if not isinstance(config_path, Path) else config_path
@@ -257,9 +257,9 @@ class EvaluatorConfig:
         try:
             yaml_data = yaml.safe_load(config_file.read_text())
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in {config_path}: {e}")
+            raise ValueError(f"Invalid YAML in {config_path}: {e}") from e
         except (OSError, UnicodeDecodeError) as e:
-            raise ValueError(f"Could not read config file {config_path}: {e}")
+            raise ValueError(f"Could not read config file {config_path}: {e}") from e
 
         if not isinstance(yaml_data, dict):
             raise ValueError(
@@ -307,7 +307,7 @@ class EvaluatorConfig:
             raise ValueError("Need to specify task to evaluate.")
 
     def _process_arguments(self) -> None:
-        """Process samples argument - load from file if needed."""
+        """Process samples argument - load from a file if needed."""
         if self.samples:
             if isinstance(self.samples, dict):
                 self.samples = self.samples
@@ -328,7 +328,6 @@ class EvaluatorConfig:
 
     def process_tasks(self, metadata: Optional[dict] = None) -> "TaskManager":
         """Process and validate tasks, return resolved task names."""
-        from lm_eval import utils
         from lm_eval.tasks import TaskManager
 
         # if metadata manually passed use that:
@@ -365,7 +364,7 @@ class EvaluatorConfig:
         return task_manager
 
     def _set_trust_remote_code(self) -> None:
-        """Apply trust_remote_code setting if enabled."""
+        """Apply the trust_remote_code setting if enabled."""
         if self.trust_remote_code:
             # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
             # because it's already been determined based on the prior env var before launching our

@@ -21,7 +21,7 @@ def serialize_callable(
         return value
     else:
         try:
-            return getsource(value)
+            return getsource(value)  # type: ignore
         except (TypeError, OSError):
             return str(value)
 
