@@ -213,7 +213,7 @@ def exact_match_hf_evaluate(
     ignore_case: bool = False,
     ignore_punctuation: bool = False,
     ignore_numbers: bool = False,
-    multi_target: bool = False,
+    multiple_targets: bool = False,
 ):
     """
     Compute exact match scores between predictions and references.
@@ -245,8 +245,8 @@ def exact_match_hf_evaluate(
             - "exact_match" (float): The mean exact match score or 1.0/0.0 if `multi_target` is True.
     """
     predictions, references = list(predictions), list(references)
-    assert len(predictions) == len(references) if not multi_target else True, (
-        "predictions and references must have the same length unless `multi_target` is True"
+    assert len(predictions) == len(references) if not multiple_targets else True, (
+        "predictions and references must have the same length unless `multiple_targets` is True"
     )
 
     if regexes_to_ignore is not None:
@@ -275,7 +275,7 @@ def exact_match_hf_evaluate(
 
     return {
         "exact_match": np.mean(score_list)
-        if not multi_target
+        if not multiple_targets
         else float(np.any(score_list))
     }
 

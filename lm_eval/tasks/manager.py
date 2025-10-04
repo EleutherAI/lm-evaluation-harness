@@ -61,8 +61,8 @@ class TaskManager:
 
     def load_spec(self, spec: str | dict[str, Any]):
         """Spec can be:
-        • str  task / group / tag name (registered)
-        • dict inline overrides   {'task': 'hellaswag', 'num_fewshot': 5}
+        • str task / group / tag name (registered)
+        • dict inline overrides {'task': 'hellaswag', 'num_fewshot': 5}
         """
         if isinstance(spec, str):
             entry = self._entry(spec)

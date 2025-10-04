@@ -220,8 +220,8 @@ class Registry(Generic[T]):
             >>> model_registry.register("lazy-name", lazy="mymodule:MyModel")
 
         Raises:
-            ValueError: If alias already registered with different target
-            TypeError: If object doesn't inherit from base_cls (when specified)
+            ValueError: If alias is already registered with a different target
+            TypeError: If an object doesn't inherit from base_cls (when specified)
         """
 
         def _store(alias: str, target: T | Placeholder) -> None:
@@ -229,21 +229,27 @@ class Registry(Generic[T]):
             # collision handling ------------------------------------------
             if current is not None and current != target:
                 # allow placeholder → real object upgrade
-                if isinstance(current, str) and isinstance(target, type):
-                    # mod, _, cls = current.partition(":")
-                    if current == f"{target.__module__}:{target.__name__}":
-                        self._objs[alias] = target
-                        return
+                # mod, _, cls = current.partition(":")
+                if (
+                    isinstance(current, str)
+                    and isinstance(target, type)
+                    and current == f"{target.__module__}:{target.__name__}"
+                ):
+                    self._objs[alias] = target
+                    return
                 raise ValueError(
                     f"{self._name!r} alias '{alias}' already registered ("
                     f"existing={current}, new={target})"
                 )
             # type check for concrete classes ----------------------------------------------
-            if self._base_cls is not None and isinstance(target, type):
-                if not issubclass(target, self._base_cls):  # type: ignore[arg-type]
-                    raise TypeError(
-                        f"{target} must inherit from {self._base_cls} to be a {self._name}"
-                    )
+            if (
+                self._base_cls is not None
+                and isinstance(target, type)
+                and not issubclass(target, self._base_cls)
+            ):
+                raise TypeError(
+                    f"{target} must inherit from {self._base_cls} to be a {self._name}"
+                )
             self._objs[alias] = target
 
         def decorator(obj: T) -> T:  # type: ignore[valid-type]
@@ -409,9 +415,7 @@ class MetricSpec:
 from lm_eval.api.model import LM  # noqa: E402
 
 
-model_registry: Registry[type[LM]] = cast(
-    Registry[type[LM]], Registry("model", base_cls=LM)
-)
+model_registry = cast(Registry[type[LM]], Registry("model", base_cls=LM))
 task_registry: Registry[Callable[..., Any]] = Registry("task")
 metric_registry: Registry[MetricSpec] = Registry("metric")
 metric_agg_registry: Registry[Callable[[Iterable[Any]], float]] = Registry(
@@ -457,7 +461,7 @@ def register_metric(**kw):
     then registers it in the metric registry.
 
     Args:
-        **kw: Keyword arguments including:
+        **kw: Keyword arguments including
             - metric: Name to register the metric under (required)
             - aggregation: Name of aggregation function in metric_agg_registry
             - higher_is_better: Whether higher scores are better (default: True)
@@ -512,7 +516,7 @@ def get_metric(name, hf_evaluate_metric=False):
         The metric's compute function
 
     Raises:
-        KeyError: If metric not found in registry or HF evaluate
+        KeyError: If a metric is not found in registry or HF evaluate
     """
     try:
         spec = metric_registry.get(name)
@@ -529,7 +533,7 @@ def get_metric(name, hf_evaluate_metric=False):
 
             return hf.load(name).compute  # type: ignore[attr-defined]
         except Exception:
-            raise KeyError(f"Metric '{name}' not found anywhere")
+            raise KeyError(f"Metric '{name}' not found anywhere") from None
 
 
 register_metric_aggregation = metric_agg_registry.register

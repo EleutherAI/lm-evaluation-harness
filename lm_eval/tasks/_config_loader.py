@@ -60,10 +60,10 @@ def _load_module_with_cache(module_path: Path) -> Any:
             module_parts = relative_path.replace(".py", "").replace("/", ".")
             module_name = f"lm_eval.tasks.{module_parts}"
         else:
-            # Fallback to full path if pattern not found
+            # Fallback to a full path if a pattern not found
             module_name = str(module_path.with_suffix(""))
     else:
-        # External module - use full path without extension
+        # External module - use a full path without extension
         module_name = str(module_path.with_suffix(""))
 
     # Check if we need to reload the module
@@ -84,7 +84,7 @@ def _load_module_with_cache(module_path: Path) -> Any:
         raise ImportError(f"Cannot load module from {module_path}") from None
     module = importlib.util.module_from_spec(spec)
     # Store mtime for future checks
-    module.__mtime__ = module_path.stat().st_mtime_ns
+    module.__mtime__ = module_path.stat().st_mtime_ns  # type: ignore
     spec.loader.exec_module(module)  # type: ignore[arg-type]
     sys.modules[module_name] = module
     return module

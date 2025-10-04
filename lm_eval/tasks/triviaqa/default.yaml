@@ -6,6 +6,7 @@ training_split: train
 validation_split: validation
 doc_to_text: "Question: {{question}}?\nAnswer:"
 doc_to_target: "{{answer.aliases}}"
+multiple_targets: true
 should_decontaminate: true
 doc_to_decontamination_query: question
 generation_kwargs:
@@ -27,6 +28,6 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
-    multi_target: true
+    multiple_targets: true
 metadata:
   version: 3.0

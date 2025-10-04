@@ -29,7 +29,7 @@ def get_new_tasks_else_default():
     return task_classes if task_classes else TASKS
 
 
-def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
+def task_class(task_names=None, task_manager=None) -> list[ConfigurableTask]:
     """
     Convert a list of task names to a list of ConfigurableTask instances
     """
@@ -98,7 +98,7 @@ class TestBaseTasks:
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
         target_delimiter: str = task.config.target_delimiter
-        if not task.multiple_input:
+        if not task.multiple_inputs:
             for x in _array:
                 assert isinstance(x, str)
                 assert (
@@ -133,10 +133,7 @@ class TestBaseTasks:
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
             # TODO<baber>: label can be string or int; add better test conditions
-            assert all(
-                (isinstance(label, int) or isinstance(label, str))
-                for label in _array_target
-            )
+            assert all(isinstance(label, (int, str)) for label in _array_target)
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
@@ -153,7 +150,7 @@ class TestBaseTasks:
         # ctx is "" for multiple input tasks
         requests = [
             task.construct_requests(
-                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
+                doc=doc, ctx=[""] if task.multiple_inputs else task.doc_to_text(doc)
             )
             for doc in arr
         ]
@@ -187,7 +184,7 @@ class TestUnitxtTasks(TestBaseTasks):
     """
 
     def test_check_training_docs(self, task_class: ConfigurableTask):
-        if task_class.has_training_docs():
+        if task_class.has_training_docs:
             assert task_class.dataset["train"] is not None
 
     def test_check_validation_docs(self, task_class):

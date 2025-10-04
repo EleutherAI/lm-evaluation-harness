@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal, Optional, Tuple
+from typing import Any, Literal, Optional
 
 
 OutputType = Literal[
@@ -10,10 +10,10 @@ OutputType = Literal[
 @dataclass
 class Instance:
     request_type: OutputType
-    doc: dict
+    doc: dict[str, Any]
     arguments: tuple
     idx: int
-    metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
+    metadata: tuple[Optional[str], Optional[int], Optional[int]] = field(
         default_factory=lambda: (None, None, None),
         metadata=dict(
             description="Metadata tuple containing task name, document ID, and number of repeats."

@@ -12,10 +12,9 @@ import os
 import re
 from collections.abc import Generator
 from dataclasses import asdict, is_dataclass
-from functools import lru_cache, partial, wraps
+from functools import wraps
 from itertools import islice
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 import numpy as np
 from jinja2 import BaseLoader, Environment, StrictUndefined
@@ -27,7 +26,9 @@ HIGHER_IS_BETTER_SYMBOLS = {
     True: "↑",
     False: "↓",
 }
-def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+
+
+def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:
     """
     Wraps the given string to the specified width.
     """
@@ -44,8 +45,7 @@ def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
     )
 
 
-
-def get_logger(level: Optional[str] = None) -> logging.Logger:
+def get_logger(level: str | None = None) -> logging.Logger:
     """
     Get a logger with a stream handler that captures all lm_eval logs.
 
@@ -626,3 +626,7 @@ def apply_template(template: str, doc: dict) -> str:
         apply_template._env.filters["regex_replace"] = regex_replace
 
     return _compile_tpl(template).render(**doc)
+
+
+def validate_index(index: int, length: int) -> int:
+    return index if index < length else -100
