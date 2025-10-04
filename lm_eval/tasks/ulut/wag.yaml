@@ -14,6 +14,7 @@ doc_to_target: "{{antonym}}"
 should_decontaminate: true
 doc_to_decontamination_query:
 metric_list:
+  - metric: acc
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
