@@ -14,10 +14,11 @@ doc_to_target: "{{answer}}"
 should_decontaminate: true
 doc_to_decontamination_query:
 metric_list:
-  - metric: exact_match
+  - metric: acc
     aggregation: mean
     higher_is_better: true
-    ignore_case: true
-    ignore_punctuation: false
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
 metadata:
   version: 1.0.0
