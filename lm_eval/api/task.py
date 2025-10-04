@@ -1264,7 +1264,12 @@ class ConfigurableTask(Task):
         assert isinstance(q, str), "Context is not a string!"
         msgs = [Message("user", q)]
         if include_answer:
-            prefix = gen_prefix + " " if gen_prefix else ""
+            if gen_prefix and not gen_prefix[-1].isspace():
+                prefix = gen_prefix + " "
+            elif gen_prefix:
+                prefix = gen_prefix
+            else:
+                prefix = ""
             answer_txt = prefix + (a if not isinstance(a, list) else a[0])
             msgs.append(Message("assistant", answer_txt))
         else:
