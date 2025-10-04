@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import logging
 import os
 from functools import cached_property
 from operator import itemgetter
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.api_models import TemplateAPI
@@ -26,9 +28,9 @@ class LocalCompletionsAPI(TemplateAPI):
 
     def _create_payload(
         self,
-        messages: Union[List[List[int]], List[dict], List[str], str],
+        messages: list[list[int]] | list[dict] | list[str] | str,
         generate=False,
-        gen_kwargs: Optional[dict] = None,
+        gen_kwargs: dict | None = None,
         seed: int = 1234,
         eos=None,
         **kwargs,
@@ -50,24 +52,23 @@ class LocalCompletionsAPI(TemplateAPI):
                 "seed": seed,
                 **gen_kwargs,
             }
-        else:
-            return {
-                "model": self.model,
-                "prompt": messages,
-                "temperature": 0,
-                "max_tokens": 1,
-                "logprobs": 1,
-                "seed": seed,
-                "echo": True,
-            }
+        return {
+            "model": self.model,
+            "prompt": messages,
+            "temperature": 0,
+            "max_tokens": 1,
+            "logprobs": 1,
+            "seed": seed,
+            "echo": True,
+        }
 
     @staticmethod
     def parse_logprobs(
-        outputs: Union[Dict, List[Dict]],
-        tokens: List[List[int]] = None,
-        ctxlens: List[int] = None,
+        outputs: dict | list[dict],
+        tokens: list[list[int]] = None,
+        ctxlens: list[int] = None,
         **kwargs,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -88,7 +89,7 @@ class LocalCompletionsAPI(TemplateAPI):
         return res
 
     @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -130,9 +131,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
 
     def _create_payload(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         generate=False,
-        gen_kwargs: dict = None,
+        gen_kwargs: dict | None = None,
         seed=1234,
         eos=None,
         **kwargs,
@@ -160,7 +161,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
         }
 
     @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -173,11 +174,11 @@ class LocalChatCompletion(LocalCompletionsAPI):
 
     def tok_encode(
         self,
-        string: Union[str, Any],
+        string: str | Any,
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> Union[List[str], List[int], Any]:
+    ) -> list[str] | list[int] | Any:
         return string
 
     def loglikelihood(self, requests, **kwargs):
@@ -219,7 +220,7 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         )
         return super().loglikelihood(requests, **kwargs)
 
-    def chat_template(self, chat_template: Union[bool, str] = False) -> Optional[str]:
+    def chat_template(self, chat_template: bool | str = False) -> str | None:
         return ""
 
 
@@ -261,7 +262,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
 
     def _create_payload(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         generate=False,
         gen_kwargs: dict = None,
         seed=1234,
@@ -289,7 +290,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "seed": seed,
             **gen_kwargs,
         }
-        if "o1" in self.model:
+        if "o1" in self.model or "5" in self.model:
             output.pop("stop")
             output["temperature"] = 1
         elif "o3" in self.model:

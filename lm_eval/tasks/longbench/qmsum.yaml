@@ -5,17 +5,17 @@ task: longbench_qmsum
 dataset_path: THUDM/LongBench
 test_split: test
 dataset_name: qmsum
-doc_to_text: 'You are given a meeting transcript and a query containing a question or instruction. Answer the query in one or more sentences.\n\nTranscript:\n{{context}}\n\nNow, answer the query based on the above meeting transcript in one or more sentences.\n\nQuery: {{input}}\nAnswer:'
+doc_to_text: "You are given a meeting transcript and a query containing a question or instruction. Answer the query in one or more sentences.\n\nTranscript:\n{{context}}\n\nNow, answer the query based on the above meeting transcript in one or more sentences.\n\nQuery: {{input}}\nAnswer:"
 doc_to_target: '{{answers}}'
 process_results: !function metrics.get_rouge_score
 generation_kwargs:
   max_gen_toks: 512
   temperature: 1
-  do_sample: True
+  do_sample: False
   until: []
 metric_list:
   - metric: "rouge_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 3.0
+  version: 4.0

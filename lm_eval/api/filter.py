@@ -1,11 +1,12 @@
-from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 from lm_eval.api.instance import Instance
 
 
-class Filter(ABC):
+@runtime_checkable
+class Filter(Protocol):
     """
     Filter classes operate on a per-task level.
     They take all model outputs (`instance.resps` for all `task.instances`)
@@ -19,7 +20,6 @@ class Filter(ABC):
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    @abstractmethod
     def apply(
         self, resps: Iterable[list[str]], docs: Iterable[dict]
     ) -> Iterable[list[str]]:
@@ -42,7 +42,7 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: list[Callable[[], Filter]]
+    filters: list[type[Filter]]
 
     def apply(self, instances: list[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
@@ -53,6 +53,6 @@ class FilterEnsemble:
             resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
-        # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
+        # has a key ` self.name `: each FilterEnsemble applied in a given run should use a different name.
         for inst, resp in zip(instances, resps):
             inst.filtered_resps[self.name] = resp

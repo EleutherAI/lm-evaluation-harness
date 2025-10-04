@@ -1,14 +1,13 @@
-import abc
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from inspect import getsource
-from typing import Any, Callable, List, Optional, Union
+from typing import Callable, Optional, Union
 
 
 @dataclass
 class AggMetricConfig(dict):
     metric: Optional[str] = None
     aggregation: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
+    weight_by_size: bool = False
     # list of filter names which should be incorporated into the aggregated metric.
     filter_list: Optional[Union[str, list]] = "none"
 
@@ -23,13 +22,14 @@ class AggMetricConfig(dict):
 
 
 @dataclass
-class GroupConfig(dict):
+class GroupConfig:
     group: Optional[str] = None
     group_alias: Optional[str] = None
-    task: Optional[Union[str, list]] = None
+    task: Union[str, list] = field(default_factory=list)
     aggregate_metric_list: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
+        Union[list[AggMetricConfig], AggMetricConfig, dict]
     ] = None
+    version: Optional[str] = None
     metadata: Optional[dict] = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
@@ -40,6 +40,24 @@ class GroupConfig(dict):
     def __setitem__(self, item, value):
         return setattr(self, item, value)
 
+    def __contains__(self, item):
+        """Support 'in' operator for dict-like behavior."""
+        return hasattr(self, item)
+
+    def get(self, key, default=None):
+        """Dict-like get method."""
+        return getattr(self, key, default)
+
+    def __hash__(self):
+        """Make GroupConfig hashable based on group name."""
+        return hash(self.group)
+
+    def __eq__(self, other):
+        """Equality comparison based on group name."""
+        if not isinstance(other, GroupConfig):
+            return False
+        return self.group == other.group
+
     def __post_init__(self):
         if self.aggregate_metric_list is not None:
             if isinstance(self.aggregate_metric_list, dict):
@@ -49,6 +67,11 @@ class GroupConfig(dict):
                 AggMetricConfig(**item) if isinstance(item, dict) else item
                 for item in self.aggregate_metric_list
             ]
+        self.version = (
+            self.version or self.metadata.get("version", "1.0")
+            if self.metadata
+            else "1.0"
+        )
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         """dumps the current config as a dictionary object, as a printable format.
@@ -83,33 +106,5 @@ class GroupConfig(dict):
             except (TypeError, OSError):
                 return str(value)
 
-
-class ConfigurableGroup(abc.ABC):
-    def __init__(
-        self,
-        config: Optional[dict] = None,
-    ) -> None:
-        self._config = GroupConfig(**config)
-
-    @property
-    def group(self):
-        return self._config.group
-
-    @property
-    def group_alias(self):
-        return self._config.group_alias
-
-    @property
-    def version(self):
-        return self._config.version
-
-    @property
-    def config(self):
-        return self._config.to_dict()
-
-    @property
-    def group_name(self) -> Any:
-        return self._config.group
-
     def __repr__(self):
-        return f"ConfigurableGroup(group={self.group},group_alias={self.group_alias})"
+        return f"GroupConfig(group={self.group},group_alias={self.group_alias})"

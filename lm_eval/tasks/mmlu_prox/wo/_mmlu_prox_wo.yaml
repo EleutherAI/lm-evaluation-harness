@@ -1,0 +1,23 @@
+group: mmlu_prox_wo
+task:
+- mmlu_prox_wo_biology
+- mmlu_prox_wo_business
+- mmlu_prox_wo_chemistry
+- mmlu_prox_wo_computer_science
+- mmlu_prox_wo_economics
+- mmlu_prox_wo_engineering
+- mmlu_prox_wo_health
+- mmlu_prox_wo_history
+- mmlu_prox_wo_law
+- mmlu_prox_wo_math
+- mmlu_prox_wo_other
+- mmlu_prox_wo_philosophy
+- mmlu_prox_wo_physics
+- mmlu_prox_wo_psychology
+aggregate_metric_list:
+- aggregation: mean
+  metric: exact_match
+  weight_by_size: true
+  filter_list: custom-extract
+metadata:
+  version: 0.0

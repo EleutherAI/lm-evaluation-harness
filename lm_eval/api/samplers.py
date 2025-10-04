@@ -96,7 +96,7 @@ SAMPLER_REGISTRY: dict[str, type[ContextSampler]] = {
 def get_sampler(name: str):
     try:
         return SAMPLER_REGISTRY[name]
-    except KeyError:
-        raise ValueError(
+    except KeyError as e:
+        raise KeyError(
             f"Attempted to use contextsampler '{name}', but no sampling strategy for this name found! Supported model names: {', '.join(SAMPLER_REGISTRY.keys())}"
-        )
+        ) from e

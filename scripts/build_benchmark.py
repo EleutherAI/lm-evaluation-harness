@@ -7,7 +7,7 @@ from promptsource.templates import DatasetTemplates
 from tqdm import tqdm
 
 
-# from lm_eval.api.registry import ALL_TASKS
+# from lm_eval.api.registryv2 import ALL_TASKS
 eval_logger = logging.getLogger(__name__)
 
 

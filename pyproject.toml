@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "lm_eval"
 version = "0.4.9.1"
 authors = [
-    {name="EleutherAI", email="contact@eleuther.ai"}
+    { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
 description = "A framework for evaluating language models"
 readme = "README.md"
@@ -20,29 +20,20 @@ requires-python = ">=3.9"
 license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
-    "evaluate",
     "datasets>=2.16.0,<4.0",
     "evaluate>=0.4.0",
-    "jsonlines",
-    "numexpr",
     "peft>=0.2.0",
-    "pybind11>=2.6.2",
     "pytablewriter",
     "rouge-score>=0.0.4",
     "sacrebleu>=1.5.0",
     "scikit-learn>=0.24.1",
     "sqlitedict",
     "torch>=1.8",
-    "tqdm-multiprocess",
     "transformers>=4.1",
-    "zstandard",
     "dill",
     "word2number",
-    "more_itertools",
+    "more_itertools"
 ]
-
-[tool.setuptools.packages.find]
-include = ["lm_eval*"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
@@ -68,8 +59,8 @@ ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 ipex = ["optimum"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
-longbench=["jieba", "fuzzywuzzy", "rouge"]
-libra=["pymorphy2"]
+longbench = ["jieba", "fuzzywuzzy", "rouge"]
+libra = ["pymorphy2"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
@@ -80,13 +71,10 @@ ruler = ["nltk", "wonderwords", "scipy"]
 sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 sparsify = ["sparsify"]
-testing = ["pytest", "pytest-cov", "pytest-xdist"]
-unitxt = ["unitxt==1.22.0"]
-vllm = ["vllm>=0.4.2"]
-wandb = ["wandb>=0.16.3", "pandas", "numpy"]
-zeno = ["pandas", "zeno-client"]
+discrim_eval = ["statsmodels==0.14.4"]
 tasks = [
     "lm_eval[acpbench]",
+    "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
@@ -94,8 +82,13 @@ tasks = [
     "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
-    "lm_eval[ruler]",
+    "lm_eval[ruler]"
 ]
+testing = ["pytest", "pytest-cov", "pytest-xdist"]
+unitxt = ["unitxt==1.22.0"]
+vllm = ["vllm>=0.4.2"]
+wandb = ["wandb>=0.16.3", "pandas", "numpy"]
+zeno = ["pandas", "zeno-client"]
 
 [tool.pymarkdown]
 plugins.md013.enabled = false # line-length
@@ -105,18 +98,19 @@ plugins.md028.enabled = false # no-blanks-blockquote
 plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
-[tool.ruff.lint]
-extend-select = ["I", "W605"]
-
-[tool.ruff.lint.isort]
-lines-after-imports = 2
-known-first-party = ["lm_eval"]
+[tool.ruff]
+target-version = "py39"
+lint.extend-select = ["I", "UP", "E", "C419", "F", "B", "SIM", "RUF034", "W605", "FURB"]
+lint.fixable = ["I001", "F401", "UP"]
+lint.ignore = ["E402", "E731", "E501", "E111", "E114", "E117", "E741"]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"__init__.py" = ["F401","F402","F403"]
-"utils.py" = ["F401"]
+"__init__.py" = ["F401", "F402", "F403", "F405"]
 
-[dependency-groups]
-dev = [
-  "api","dev","sentencepiece"
-]
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["lm_eval"]
+lines-after-imports = 2
+
+[tool.setuptools.packages.find]
+include = ["lm_eval*"]
