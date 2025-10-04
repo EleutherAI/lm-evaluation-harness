@@ -5,7 +5,7 @@ training_split: train
 validation_split: validation
 description: "Answer these questions:\n\n"
 doc_to_text: "Q: {{question}}?\nA:"
-doc_to_target: "{{answer}}"
+doc_to_target: answer
 fewshot_delimiter: "\n"
 generation_kwargs:
   until:
@@ -27,7 +27,7 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
     regexes_to_ignore:
-    - "\\b(?:The |the |An |A |The |a |an )"
-    multi_target: true
+      - "\\b(?:The |the |An |A |The |a |an )"
+    multiple_targets: true
 metadata:
   version: 4.0
