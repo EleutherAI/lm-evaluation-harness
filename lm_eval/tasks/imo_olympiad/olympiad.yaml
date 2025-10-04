@@ -1,7 +1,3 @@
-group: olympiad
-task:
-  - olympiad_MM_maths
-  - olympiad_TO_maths
 dataset_path: json
 process_docs: !function utils.process_docs
 dataset_name: axiom

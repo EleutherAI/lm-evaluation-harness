@@ -11,7 +11,7 @@ The **Putnam-AXIOM benchmark** is a new evaluation suite designed to measure mat
 * **Putnam-AXIOM Original**: 522 problems sourced from historical William Lowell Putnam Mathematical Competitions, curated to test advanced problem-solving abilities.
 * **Putnam-AXIOM Variation**: 100 functionally equivalent problems generated through programmatic transformations (e.g., modifying variables, constants, and surface features) to preserve difficulty while mitigating contamination from publicly available datasets.
 
-Homepage: https://huggingface.co/datasets/Putnam-AXIOM/putnam-axiom-dataset-ICML-2025-5272
+Homepage: https://huggingface.co/datasets/Putnam-AXIOM/putnam-axiom-dataset-ICML-2025-522
 
 ### Citation
 
