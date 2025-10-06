@@ -5,7 +5,7 @@ task: chartqa
 doc_to_image:
   - image
 doc_to_text: |
-  <image>{{query}}
+  {{query}}
   Analyze the image and question carefully, using step-by-step reasoning.
   First, describe any image provided in detail. Then, present your reasoning. And finally your final answer in this format:
   Final Answer: <answer>
@@ -35,4 +35,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 0.0
+  version: 0.1
