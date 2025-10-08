@@ -1,4 +1,4 @@
-group: flores_en_ar_dialect
+group: trans_flores200_plus
 task:
   - flores_en_to_x_devtest
   - flores_msa_to_x_devtest

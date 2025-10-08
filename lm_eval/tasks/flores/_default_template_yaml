@@ -1,6 +1,6 @@
 dataset_kwargs:
   data_files:
-    test: ./flores/devtest.csv
+    test: flores/devtest.csv
 dataset_path: csv
 dataset_name: null
 test_split: test
