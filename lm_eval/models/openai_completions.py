@@ -295,3 +295,15 @@ class OpenAIChatCompletion(LocalChatCompletion):
         elif "o3" in self.model:
             output.pop("temperature")
         return output
+
+    @staticmethod
+    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+        res = []
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        for out in outputs:
+            tmp = [None] * len(out["choices"])
+            for choices in out["choices"]:
+                tmp[choices["index"]] = choices["message"]["content"]
+            res = res + tmp
+        return res
