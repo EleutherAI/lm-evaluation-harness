@@ -1,6 +1,6 @@
 task: dialect_id_madar_arq
 dataset_kwargs:
   data_files:
-    test: ./dialect_id/per_dialect/MADAR_arq.json
+    test: dialect_id/MADAR_arq.json
 
 include: _default_template_yaml

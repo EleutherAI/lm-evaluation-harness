@@ -1,6 +1,6 @@
 task: dialect_id_qadi_apd
 dataset_kwargs:
   data_files:
-    test: ./dialect_id/per_dialect/QADI_apd.json
+    test: dialect_id/QADI_apd.json
 
 include: _default_template_yaml
