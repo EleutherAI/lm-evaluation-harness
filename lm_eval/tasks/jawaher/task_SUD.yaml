@@ -1,0 +1,3 @@
+include: _default_jawaher_template_yaml
+task: jawaher_sud
+dataset_name: SUD

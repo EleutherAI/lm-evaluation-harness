@@ -1,0 +1,3 @@
+include: _default_jawaher_template_yaml
+task: jawaher_oma
+dataset_name: OMA
