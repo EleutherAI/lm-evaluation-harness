@@ -59,7 +59,7 @@ from __future__ import annotations
 import importlib
 import inspect
 import threading
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from types import MappingProxyType
@@ -404,7 +404,7 @@ class MetricSpec:
     """
 
     compute: Callable[[Any, Any], Any]
-    aggregate: Callable[[Iterable[Any]], float]
+    aggregate: Callable[[Sequence[float]], float]
     higher_is_better: bool = True
     output_type: str | None = None
     requires: list[str] | None = None
@@ -418,9 +418,7 @@ from lm_eval.api.model import LM  # noqa: E402
 model_registry = cast(Registry[type[LM]], Registry("model", base_cls=LM))
 task_registry: Registry[Callable[..., Any]] = Registry("task")
 metric_registry: Registry[MetricSpec] = Registry("metric")
-metric_agg_registry: Registry[Callable[[Iterable[Any]], float]] = Registry(
-    "metric aggregation"
-)
+metric_agg_registry: Registry[Callable[..., float]] = Registry("metric aggregation")
 higher_is_better_registry: Registry[bool] = Registry("higher‑is‑better flag")
 filter_registry: Registry[type[Filter]] = Registry("filter")
 

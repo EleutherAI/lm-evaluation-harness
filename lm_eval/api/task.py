@@ -675,9 +675,8 @@ class ConfigurableTask(Task):
             self.config.fewshot_cfg.num_fewshot() > 0
             and self.fewshot_docs() is not None
         ):
-            self.fewshot_rnd = random.Random()
             self.sampler = self.config.fewshot_cfg.init_sampler(
-                list(self.fewshot_docs()), rnd=self.fewshot_rnd
+                list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
             )
         self.task_docs = self.eval_docs
 

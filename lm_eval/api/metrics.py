@@ -29,7 +29,7 @@ def bypass_agg(arr):
 def nanmean(arr: list[float]) -> float:
     if len(arr) == 0 or all(np.isnan(arr)):
         return np.nan
-    return np.nanmean(arr)
+    return float(np.nanmean(arr))
 
 
 @register_aggregation("mean")

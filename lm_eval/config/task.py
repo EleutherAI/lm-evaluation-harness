@@ -114,15 +114,14 @@ class FewshotConfig:
         if rnd is None:
             raise ValueError(
                 "A `random.Random` generator argument must be provided to `rnd` of FewShotSampler!"
-            )
+            ) from None
         return self.get_sampler(
             docs,
-            task,
             rnd=rnd,
             fewshot_indices=fewshot_indices
             if fewshot_indices
             else self.fewshot_indices,
-        )
+        )  # type: ignore
 
 
 @dataclass
@@ -170,7 +169,8 @@ class TaskConfig:
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
-    multiple_input: bool = False
+    multiple_inputs: bool = False
+    multiple_targets: bool = False
     metadata: dict = field(
         default_factory=dict
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
