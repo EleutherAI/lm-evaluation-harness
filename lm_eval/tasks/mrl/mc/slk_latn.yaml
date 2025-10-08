@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_slk_latn
+dataset_name: slk_latn

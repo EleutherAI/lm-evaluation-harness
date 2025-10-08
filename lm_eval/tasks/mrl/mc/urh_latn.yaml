@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_urh_latn
+dataset_name: urh_latn

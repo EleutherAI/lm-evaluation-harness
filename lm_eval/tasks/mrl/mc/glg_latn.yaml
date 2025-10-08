@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_glg_latn
+dataset_name: glg_latn

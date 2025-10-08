@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_ben_latn
+dataset_name: ben_latn

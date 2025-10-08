@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_hye_armn
+dataset_name: hye_armn

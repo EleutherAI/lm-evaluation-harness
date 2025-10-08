@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_est_latn
+dataset_name: est_latn

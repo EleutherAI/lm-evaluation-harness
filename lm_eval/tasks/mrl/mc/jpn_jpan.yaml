@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_jpn_jpan
+dataset_name: jpn_jpan

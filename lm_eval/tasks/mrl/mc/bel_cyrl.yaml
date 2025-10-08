@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_bel_cyrl
+dataset_name: bel_cyrl

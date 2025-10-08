@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_zsm_latn
+dataset_name: zsm_latn

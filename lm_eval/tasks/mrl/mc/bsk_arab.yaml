@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_bsk_arab
+dataset_name: bsk_arab

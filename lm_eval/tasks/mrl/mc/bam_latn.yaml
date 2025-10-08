@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_bam_latn
+dataset_name: bam_latn

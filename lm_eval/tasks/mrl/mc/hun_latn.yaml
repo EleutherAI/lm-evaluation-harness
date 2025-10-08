@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_hun_latn
+dataset_name: hun_latn

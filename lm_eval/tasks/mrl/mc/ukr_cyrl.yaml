@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_ukr_cyrl
+dataset_name: ukr_cyrl
