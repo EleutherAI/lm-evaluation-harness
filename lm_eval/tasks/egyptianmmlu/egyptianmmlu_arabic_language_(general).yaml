@@ -1,0 +1,7 @@
+"dataset_name": "arabic_language_(general)"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_language_tasks"
+- "egyptianmmlu_ar_mmlu_tasks"
+"task": "egyptianmmlu_arabic_language_(general)"
+"task_alias": "arabic language (general)"

@@ -1,0 +1,7 @@
+"dataset_name": "professional_psychology"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_social_sciences_tasks"
+- "egyptianmmlu_mmlu_tasks"
+"task": "egyptianmmlu_professional_psychology"
+"task_alias": "professional psychology"

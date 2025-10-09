@@ -1,0 +1,26 @@
+dataset_path: boda/jawaher
+test_split: test
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "<end_of_turn>"
+    - "<eos>"
+    - "</s>"
+    - "<|end_of_text|>"
+    - "<|eot_id|>"
+    - "<|endoftext|>"
+
+doc_to_target: "{{ Ar_Explanation }}"
+doc_to_text: !function utils.doc_to_text
+
+
+metric_list:
+  - metric: !function utils.bert_score
+    aggregation: !function utils.agg_bert_score
+    higher_is_better: true
+#   - metric: !function utils.bert_score
+#     aggregation: mean
+#     higher_is_better: true
+
+metadata:
+  version: 1.0

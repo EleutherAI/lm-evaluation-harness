@@ -1,0 +1,7 @@
+"dataset_name": "philosophy_ar"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_humanities_tasks"
+- "egyptianmmlu_ar_mmlu_tasks"
+"task": "egyptianmmlu_philosophy_ar"
+"task_alias": "philosophy ar"

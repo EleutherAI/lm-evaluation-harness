@@ -1,0 +1,12 @@
+"process_docs": !function utils.dr_fr
+include:
+  - translation_common_yaml
+  - flores_common_yaml
+"tag":
+- "darija_translation_tasks_flores"
+"task": "trasnlation_dr_fr_flores"
+"task_alias": "dr_fr_flores"
+metric_list:
+  - metric: !function utils.bert
+    aggregation: !function utils.camembert
+    higher_is_better: true

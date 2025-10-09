@@ -1,0 +1,25 @@
+group: jawaher
+task:
+  - jawaher_alg
+  - jawaher_sau
+  - jawaher_mor
+  - jawaher_oma
+  - jawaher_egy
+  - jawaher_bah
+  - jawaher_jor
+  - jawaher_lib
+  - jawaher_mau
+  - jawaher_qat
+  - jawaher_irq
+  - jawaher_pal
+  - jawaher_leb
+  - jawaher_tun
+  - jawaher_msa
+  - jawaher_uae 
+  - jawaher_sud
+  - jawaher_syr
+  - jawaher_kuw
+  - jawaher_yem
+# aggregate_metric_list:
+#   - metric: acc
+#     weight_by_size: True

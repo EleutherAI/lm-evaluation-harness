@@ -1,0 +1,7 @@
+"dataset_name": "moral_disputes"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_humanities_tasks"
+- "egyptianmmlu_mmlu_tasks"
+"task": "egyptianmmlu_moral_disputes"
+"task_alias": "moral disputes"

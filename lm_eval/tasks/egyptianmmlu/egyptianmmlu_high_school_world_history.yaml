@@ -1,0 +1,7 @@
+"dataset_name": "high_school_world_history"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_humanities_tasks"
+- "egyptianmmlu_mmlu_tasks"
+"task": "egyptianmmlu_high_school_world_history"
+"task_alias": "high school world history"

@@ -1,0 +1,7 @@
+"dataset_name": "jurisprudence"
+"include": "_default_egyptianmmlu_template_yaml"
+"tag":
+- "egyptianmmlu_humanities_tasks"
+- "egyptianmmlu_mmlu_tasks"
+"task": "egyptianmmlu_jurisprudence"
+"task_alias": "jurisprudence"
