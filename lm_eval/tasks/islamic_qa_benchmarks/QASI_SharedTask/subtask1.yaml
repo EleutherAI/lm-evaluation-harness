@@ -1,0 +1,5 @@
+task: islamic_qa_QASI_1
+dataset_kwargs:
+  data_files:
+    test: ./islamic_qa_benchmarks/QASI_SharedTask/Task1_MCQ_Test_gold_labels.csv
+include: _default_mcq_template_yaml

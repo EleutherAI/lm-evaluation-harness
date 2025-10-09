@@ -1,0 +1,16 @@
+dataset_path: csv
+dataset_name: null
+test_split: test
+
+# Multiple-choice scoring (model outputs a single letter)
+output_type: multiple_choice
+
+# Field mapping
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+
+# Metrics
+metric_list:
+  - metric: acc
+  - metric: acc_norm
