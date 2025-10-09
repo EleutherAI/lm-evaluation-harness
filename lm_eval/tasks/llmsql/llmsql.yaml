@@ -30,6 +30,3 @@ metric_list:
   - metric: !function metric.process_results
     aggregation: mean
     higher_is_better: true
-
-
-
