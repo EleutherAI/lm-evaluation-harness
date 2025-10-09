@@ -1,0 +1,3 @@
+include: '_template'
+task: acq_arab
+dataset_name: acq_arab

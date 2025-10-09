@@ -1,0 +1,3 @@
+include: '_template'
+task: ben_latn
+dataset_name: ben_latn

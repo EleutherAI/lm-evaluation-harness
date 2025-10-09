@@ -1,0 +1,3 @@
+include: '_template'
+task: kaz_cyrl
+dataset_name: kaz_cyrl

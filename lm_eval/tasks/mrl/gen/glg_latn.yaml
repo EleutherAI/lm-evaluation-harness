@@ -1,0 +1,3 @@
+include: '_template'
+task: glg_latn
+dataset_name: glg_latn

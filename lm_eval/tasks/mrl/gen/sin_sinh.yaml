@@ -1,0 +1,3 @@
+include: '_template'
+task: sin_sinh
+dataset_name: sin_sinh

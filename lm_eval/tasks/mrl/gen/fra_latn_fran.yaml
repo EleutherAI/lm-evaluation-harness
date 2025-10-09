@@ -1,0 +1,3 @@
+include: '_template'
+task: fra_latn_fran
+dataset_name: fra_latn_fran

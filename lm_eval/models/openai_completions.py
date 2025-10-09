@@ -123,15 +123,7 @@ class LocalCompletionsAPI(TemplateAPI):
 
     @staticmethod
     def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
-        res = []
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        for out in outputs:
-            tmp = [None] * len(out["choices"])
-            for choices in out["choices"]:
-                tmp[choices["index"]] = choices["text"]
-            res = res + tmp
-        return res
+        return [""] * len(outputs)
 
     @property
     def api_key(self):
@@ -300,6 +292,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
             raise ValueError(
                 "API key not found. Please set the `OPENAI_API_KEY` environment variable."
             )
+            return None
         return key
 
     def loglikelihood(self, requests, **kwargs):

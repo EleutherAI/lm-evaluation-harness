@@ -1,0 +1,3 @@
+include: '_template'
+task: ron_latn
+dataset_name: ron_latn

@@ -1,0 +1,3 @@
+include: '_template'
+task: urd_latn
+dataset_name: urd_latn

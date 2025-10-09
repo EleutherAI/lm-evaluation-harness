@@ -1,0 +1,3 @@
+include: '_template'
+task: heb_hebr
+dataset_name: heb_hebr

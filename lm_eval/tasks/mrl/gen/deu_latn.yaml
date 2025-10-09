@@ -1,0 +1,3 @@
+include: '_template'
+task: deu_latn
+dataset_name: deu_latn

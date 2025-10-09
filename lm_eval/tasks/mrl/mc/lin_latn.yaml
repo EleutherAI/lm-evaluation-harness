@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_lin_latn
+dataset_name: lin_latn

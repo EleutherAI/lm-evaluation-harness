@@ -1,0 +1,3 @@
+include: '_template'
+task: kin_latn
+dataset_name: kin_latn

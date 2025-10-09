@@ -1,0 +1,3 @@
+include: '_template'
+task: zul_latn
+dataset_name: zul_latn

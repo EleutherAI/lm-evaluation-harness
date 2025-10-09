@@ -1,0 +1,3 @@
+include: '_template'
+task: cmn_hans
+dataset_name: cmn_hans

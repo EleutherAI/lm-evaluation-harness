@@ -1,0 +1,3 @@
+include: '_template'
+task: pes_arab
+dataset_name: pes_arab

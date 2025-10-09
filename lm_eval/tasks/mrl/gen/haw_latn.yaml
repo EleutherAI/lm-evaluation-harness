@@ -1,0 +1,3 @@
+include: '_template'
+task: haw_latn
+dataset_name: haw_latn

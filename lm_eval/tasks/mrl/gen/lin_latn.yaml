@@ -1,0 +1,3 @@
+include: '_template'
+task: lin_latn
+dataset_name: lin_latn

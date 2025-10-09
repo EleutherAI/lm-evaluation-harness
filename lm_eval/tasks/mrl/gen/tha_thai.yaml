@@ -1,0 +1,3 @@
+include: '_template'
+task: tha_thai
+dataset_name: tha_thai

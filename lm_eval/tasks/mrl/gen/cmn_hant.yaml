@@ -1,0 +1,3 @@
+include: '_template'
+task: cmn_hant
+dataset_name: cmn_hant

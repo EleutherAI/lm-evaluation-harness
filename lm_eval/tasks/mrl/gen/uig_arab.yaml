@@ -1,0 +1,3 @@
+include: '_template'
+task: uig_arab
+dataset_name: uig_arab

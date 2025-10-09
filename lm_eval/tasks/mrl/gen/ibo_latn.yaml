@@ -1,0 +1,3 @@
+include: '_template'
+task: ibo_latn
+dataset_name: ibo_latn

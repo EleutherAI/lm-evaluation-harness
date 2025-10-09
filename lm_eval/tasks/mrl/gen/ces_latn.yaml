@@ -1,0 +1,3 @@
+include: '_template'
+task: ces_latn
+dataset_name: ces_latn

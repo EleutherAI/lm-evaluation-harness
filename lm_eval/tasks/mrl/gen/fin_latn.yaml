@@ -1,0 +1,3 @@
+include: '_template'
+task: fin_latn
+dataset_name: fin_latn

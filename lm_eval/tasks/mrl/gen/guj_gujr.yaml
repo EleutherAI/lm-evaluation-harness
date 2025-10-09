@@ -1,0 +1,3 @@
+include: '_template'
+task: guj_gujr
+dataset_name: guj_gujr

@@ -1,0 +1,3 @@
+include: '_template'
+task: tur_latn
+dataset_name: tur_latn

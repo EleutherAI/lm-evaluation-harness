@@ -1,0 +1,3 @@
+include: '_template_mc'
+task: mrl_swh_latn
+dataset_name: swh_latn

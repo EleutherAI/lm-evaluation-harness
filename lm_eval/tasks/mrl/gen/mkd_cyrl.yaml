@@ -1,0 +1,3 @@
+include: '_template'
+task: mkd_cyrl
+dataset_name: mkd_cyrl

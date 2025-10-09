@@ -1,102 +1,237 @@
 group: global_piqa
 task:
-  - mrl_acq_arab
-  - mrl_aeb_arab
-  - mrl_afb_arab
-  - mrl_als_latn
-  - mrl_amh_ethi
-  - mrl_apc_arab_jord
-  - mrl_apc_arab_leba
-  - mrl_apc_arab_pale
-  - mrl_apc_arab_syri
-  - mrl_arb_arab
-  - mrl_arq_arab
-  - mrl_ars_arab
-  - mrl_ary_arab
-  - mrl_arz_arab
-  - mrl_azj_latn
-  - mrl_bam_latn
-  - mrl_bel_cyrl
-  - mrl_ben_latn
-  - mrl_bho_deva
-  - mrl_bsk_arab
-  - mrl_bul_cyrl
-  - mrl_cat_latn
-  - mrl_ces_latn
-  - mrl_ckb_arab
-  - mrl_ckm_latn
-  - mrl_cmn_hans
-  - mrl_cmn_hant
-  - mrl_dhd_deva
-  - mrl_ell_grek
-  - mrl_eng_latn
-  - mrl_est_latn
-  - mrl_fao_latn
-  - mrl_fin_latn
-  - mrl_fra_latn_cana
-  - mrl_fra_latn_fran
-  - mrl_glg_latn
-  - mrl_guj_gujr
-  - mrl_hau_latn
-  - mrl_haw_latn
-  - mrl_heb_hebr
-  - mrl_hrv_latn
-  - mrl_hun_latn
-  - mrl_hye_armn
-  - mrl_ibo_latn
-  - mrl_idu_latn
-  - mrl_ind_latn
-  - mrl_isl_latn
-  - mrl_iso_latn
-  - mrl_ita_latn
-  - mrl_jav_latn
-  - mrl_jpn_jpan
-  - mrl_kat_geor
-  - mrl_kaz_cyrl
-  - mrl_kir_cyrl
-  - mrl_kor_hang
-  - mrl_lit_latn
-  - mrl_mar_deva
-  - mrl_mkd_cyrl
-  - mrl_mni_beng
-  - mrl_nag_latn
-  - mrl_nld_latn
-  - mrl_nno_latn
-  - mrl_nob_latn
-  - mrl_npi_deva
-  - mrl_pcm_latn
-  - mrl_pes_arab
-  - mrl_pol_latn
-  - mrl_por_latn_braz
-  - mrl_por_latn_port
-  - mrl_ron_latn
-  - mrl_rwr_deva
-  - mrl_sin_sinh
-  - mrl_slk_latn
-  - mrl_slk_latn_sari
-  - mrl_slv_latn
-  - mrl_slv_latn_cerk
-  - mrl_snd_arab
-  - mrl_snd_deva
-  - mrl_spa_latn_peru
-  - mrl_srp_cyrl
-  - mrl_srp_latn
-  - mrl_swe_latn
-  - mrl_tam_taml
-  - mrl_tgl_latn
-  - mrl_tha_thai
-  - mrl_tur_latn
-  - mrl_uig_arab
-  - mrl_ukr_cyrl
-  - mrl_urd_arab
-  - mrl_urd_latn
-  - mrl_urh_latn
-  - mrl_uzn_latn
-  - mrl_vie_latn
-  - mrl_yor_latn
-  - mrl_yue_hant
-  - mrl_zsm_latn
-  - mrl_zul_latn
+  - task: mrl_acm_arab
+    task_alias: acm_arab
+  - task: mrl_acq_arab
+    task_alias: acq_arab
+  - task: mrl_aeb_arab
+    task_alias: aeb_arab
+  - task: mrl_afb_arab
+    task_alias: afb_arab
+  - task: mrl_als_latn
+    task_alias: als_latn
+  - task: mrl_amh_ethi
+    task_alias: amh_ethi
+  - task: mrl_apc_arab_jord
+    task_alias: apc_arab_jord
+  - task: mrl_apc_arab_leba
+    task_alias: apc_arab_leba
+  - task: mrl_apc_arab_pale
+    task_alias: apc_arab_pale
+  - task: mrl_apc_arab_syri
+    task_alias: apc_arab_syri
+  - task: mrl_arb_arab
+    task_alias: arb_arab
+  - task: mrl_arq_arab
+    task_alias: arq_arab
+  - task: mrl_ars_arab
+    task_alias: ars_arab
+  - task: mrl_ary_arab
+    task_alias: ary_arab
+  - task: mrl_arz_arab
+    task_alias: arz_arab
+  - task: mrl_asm_beng
+    task_alias: asm_beng
+  - task: mrl_azj_latn
+    task_alias: azj_latn
+  - task: mrl_bam_latn
+    task_alias: bam_latn
+  - task: mrl_bel_cyrl
+    task_alias: bel_cyrl
+  - task: mrl_ben_beng
+    task_alias: ben_beng
+  - task: mrl_ben_latn
+    task_alias: ben_latn
+  - task: mrl_bho_deva
+    task_alias: bho_deva
+  - task: mrl_bos_latn
+    task_alias: bos_latn
+  - task: mrl_bsk_arab
+    task_alias: bsk_arab
+  - task: mrl_bul_cyrl
+    task_alias: bul_cyrl
+  - task: mrl_cat_latn
+    task_alias: cat_latn
+  - task: mrl_ces_latn
+    task_alias: ces_latn
+  - task: mrl_ckb_arab
+    task_alias: ckb_arab
+  - task: mrl_ckm_latn
+    task_alias: ckm_latn
+  - task: mrl_cmn_hans
+    task_alias: cmn_hans
+  - task: mrl_cmn_hant
+    task_alias: cmn_hant
+  - task: mrl_deu_latn
+    task_alias: deu_latn
+  - task: mrl_dhd_deva
+    task_alias: dhd_deva
+  - task: mrl_ekp_latn
+    task_alias: ekp_latn
+  - task: mrl_ell_grek
+    task_alias: ell_grek
+  - task: mrl_eng_latn
+    task_alias: eng_latn
+  - task: mrl_est_latn
+    task_alias: est_latn
+  - task: mrl_fao_latn
+    task_alias: fao_latn
+  - task: mrl_fin_latn
+    task_alias: fin_latn
+  - task: mrl_fra_latn_cana
+    task_alias: fra_latn_cana
+  - task: mrl_fra_latn_fran
+    task_alias: fra_latn_fran
+  - task: mrl_glg_latn
+    task_alias: glg_latn
+  - task: mrl_guj_gujr
+    task_alias: guj_gujr
+  - task: mrl_hau_latn
+    task_alias: hau_latn
+  - task: mrl_haw_latn
+    task_alias: haw_latn
+  - task: mrl_heb_hebr
+    task_alias: heb_hebr
+  - task: mrl_hin_deva
+    task_alias: hin_deva
+  - task: mrl_hrv_latn
+    task_alias: hrv_latn
+  - task: mrl_hun_latn
+    task_alias: hun_latn
+  - task: mrl_hye_armn
+    task_alias: hye_armn
+  - task: mrl_ibo_latn
+    task_alias: ibo_latn
+  - task: mrl_idu_latn
+    task_alias: idu_latn
+  - task: mrl_ind_latn
+    task_alias: ind_latn
+  - task: mrl_isl_latn
+    task_alias: isl_latn
+  - task: mrl_iso_latn
+    task_alias: iso_latn
+  - task: mrl_ita_latn
+    task_alias: ita_latn
+  - task: mrl_jav_latn
+    task_alias: jav_latn
+  - task: mrl_jpn_jpan
+    task_alias: jpn_jpan
+  - task: mrl_kan_knda
+    task_alias: kan_knda
+  - task: mrl_kat_geor
+    task_alias: kat_geor
+  - task: mrl_kaz_cyrl
+    task_alias: kaz_cyrl
+  - task: mrl_kin_latn
+    task_alias: kin_latn
+  - task: mrl_kir_cyrl
+    task_alias: kir_cyrl
+  - task: mrl_kor_hang
+    task_alias: kor_hang
+  - task: mrl_lin_latn
+    task_alias: lin_latn
+  - task: mrl_lit_latn
+    task_alias: lit_latn
+  - task: mrl_luo_latn
+    task_alias: luo_latn
+  - task: mrl_mal_mlym
+    task_alias: mal_mlym
+  - task: mrl_mar_deva
+    task_alias: mar_deva
+  - task: mrl_mkd_cyrl
+    task_alias: mkd_cyrl
+  - task: mrl_mni_beng
+    task_alias: mni_beng
+  - task: mrl_mni_mtei
+    task_alias: mni_mtei
+  - task: mrl_nag_latn
+    task_alias: nag_latn
+  - task: mrl_nld_latn
+    task_alias: nld_latn
+  - task: mrl_nno_latn
+    task_alias: nno_latn
+  - task: mrl_nob_latn
+    task_alias: nob_latn
+  - task: mrl_npi_deva
+    task_alias: npi_deva
+  - task: mrl_pan_guru
+    task_alias: pan_guru
+  - task: mrl_pcm_latn
+    task_alias: pcm_latn
+  - task: mrl_pes_arab
+    task_alias: pes_arab
+  - task: mrl_pol_latn
+    task_alias: pol_latn
+  - task: mrl_por_latn_braz
+    task_alias: por_latn_braz
+  - task: mrl_por_latn_port
+    task_alias: por_latn_port
+  - task: mrl_ron_latn
+    task_alias: ron_latn
+  - task: mrl_rus_cyrl
+    task_alias: rus_cyrl
+  - task: mrl_rwr_deva
+    task_alias: rwr_deva
+  - task: mrl_sin_sinh
+    task_alias: sin_sinh
+  - task: mrl_slk_latn
+    task_alias: slk_latn
+  - task: mrl_slk_latn_sari
+    task_alias: slk_latn_sari
+  - task: mrl_slv_latn
+    task_alias: slv_latn
+  - task: mrl_slv_latn_cerk
+    task_alias: slv_latn_cerk
+  - task: mrl_snd_arab
+    task_alias: snd_arab
+  - task: mrl_snd_deva
+    task_alias: snd_deva
+  - task: mrl_spa_latn_mexi
+    task_alias: spa_latn_mexi
+  - task: mrl_spa_latn_peru
+    task_alias: spa_latn_peru
+  - task: mrl_spa_latn_spai
+    task_alias: spa_latn_spai
+  - task: mrl_srp_cyrl
+    task_alias: srp_cyrl
+  - task: mrl_srp_latn
+    task_alias: srp_latn
+  - task: mrl_swe_latn
+    task_alias: swe_latn
+  - task: mrl_swh_latn
+    task_alias: swh_latn
+  - task: mrl_tam_taml
+    task_alias: tam_taml
+  - task: mrl_tel_telu
+    task_alias: tel_telu
+  - task: mrl_tgl_latn
+    task_alias: tgl_latn
+  - task: mrl_tha_thai
+    task_alias: tha_thai
+  - task: mrl_tur_latn
+    task_alias: tur_latn
+  - task: mrl_uig_arab
+    task_alias: uig_arab
+  - task: mrl_ukr_cyrl
+    task_alias: ukr_cyrl
+  - task: mrl_urd_arab
+    task_alias: urd_arab
+  - task: mrl_urd_latn
+    task_alias: urd_latn
+  - task: mrl_urh_latn
+    task_alias: urh_latn
+  - task: mrl_uzn_latn
+    task_alias: uzn_latn
+  - task: mrl_vie_latn
+    task_alias: vie_latn
+  - task: mrl_yor_latn
+    task_alias: yor_latn
+  - task: mrl_yue_hant
+    task_alias: yue_hant
+  - task: mrl_zsm_latn
+    task_alias: zsm_latn
+  - task: mrl_zul_latn
+    task_alias: zul_latn
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

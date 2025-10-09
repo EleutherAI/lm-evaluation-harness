@@ -1,0 +1,3 @@
+include: '_template'
+task: ckm_latn
+dataset_name: ckm_latn

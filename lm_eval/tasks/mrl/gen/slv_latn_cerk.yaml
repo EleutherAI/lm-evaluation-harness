@@ -1,0 +1,3 @@
+include: '_template'
+task: slv_latn_cerk
+dataset_name: slv_latn_cerk

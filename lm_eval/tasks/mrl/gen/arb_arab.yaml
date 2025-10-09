@@ -1,0 +1,3 @@
+include: '_template'
+task: arb_arab
+dataset_name: arb_arab

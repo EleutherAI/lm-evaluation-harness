@@ -1,0 +1,3 @@
+include: '_template'
+task: rus_cyrl
+dataset_name: rus_cyrl
