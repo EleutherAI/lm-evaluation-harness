@@ -746,7 +746,7 @@ def handle_stop_sequences(
 
 def content_image_to_content_image_url(content, resize=None):
     from io import BytesIO
-    
+
     if isinstance(content, str):
         return content
 
@@ -823,7 +823,7 @@ def resize_image(
     height: Optional[int] = None,
     max_dimension: Optional[int] = None,
     keep_aspect_ratio: bool = True,
-    resample_filter: Union[int, str] = "Image.BICUBIC",
+    resample_filter: Union[int, str] = Image.Resampling.BICUBIC,
     min_width: int = 1,
     min_height: int = 1,
 ) -> "Image.Image":
