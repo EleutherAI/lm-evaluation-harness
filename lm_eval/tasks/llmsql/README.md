@@ -41,3 +41,8 @@ the goal of this evaluation is **not** to compare SQL string similarity, but rat
 The resulting metric, **Execution Accuracy**, reflects the proportion of predictions whose executed results exactly match the reference outputs.
 
 A helper SQLite database (`sqlite_tables.db`) required for execution-based evaluation will be automatically downloaded to the working directory at the start of the evaluation process.
+
+## Dataset
+
+The `LLMSQL` dataset can be found on Hugging Face:  
+[https://huggingface.co/datasets/llmsql-bench/llmsql-benchmark-lm-evaluation-harness](https://huggingface.co/datasets/llmsql-bench/llmsql-benchmark-lm-evaluation-harness)
