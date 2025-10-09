@@ -1,0 +1,35 @@
+dataset_path: llmsql-bench/llmsql-benchmark-lm-evaluation-harness
+dataset_name: null
+dataset_kwargs: null
+
+training_split: null
+validation_split: null
+test_split: full
+
+task: llmsql
+
+metadata:
+  version: 1
+
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples
+
+
+doc_to_text: !function utils.build_prompt
+
+doc_to_target: "{{sql}}"
+
+
+generation_kwargs:
+  until: null
+  do_sample: false
+  max_gen_toks: 256
+
+metric_list:
+  - metric: !function metric.process_results
+    aggregation: mean
+    higher_is_better: true
+
+
+
