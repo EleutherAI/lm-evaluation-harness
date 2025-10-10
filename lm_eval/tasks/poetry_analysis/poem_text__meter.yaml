@@ -1,7 +1,7 @@
 dataset_kwargs:
   data_files:
     test:
-    - ./poetry_60verses/ar_poem_text__meter.json
+    - /lustre/scratch/users/abdelrahman.sadallah/ONEDRIVE/poetry_60verses/ar_poem_text__meter.json
 dataset_name: null
 dataset_path: json
 include: _default_poetry_analysis_template_yaml
