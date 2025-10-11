@@ -1,5 +1,5 @@
 task: islamic_qa_QASI_2
 dataset_kwargs:
   data_files:
-    test: ./islamic_qa_benchmarks/QASI_SharedTask/Task2_MCQs_Dev.csv
+    test: islamic_qa_benchmarks/QASI_SharedTask/Task2_MCQs_Dev.csv
 include: _default_mcq_template_yaml
