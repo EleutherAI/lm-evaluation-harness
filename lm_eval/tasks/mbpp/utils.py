@@ -13,17 +13,26 @@ except Exception as e:
     raise e
 
 
-def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int] = None):
+def pass_at_10(
+    references: list[str], predictions: list[list[str]], k: list[int] = None
+):
     global compute_
     assert k is not None
     if isinstance(k, int):
         k = [k]
+    if isinstance(references, str):
+        references = [references]
+    if isinstance(predictions[0], str):
+        predictions = [[p] for p in predictions]
+    print(f"{references=}")
+    print(f"{predictions=}")
+    print(f"{k=}")
     res = compute_.compute(
         references=references,
         predictions=predictions,
         k=k,
     )
-    return res[0]
+    return res[0][f"pass@{str(k[0])}"]
 
 
 def extract_python_block(text: str) -> str:
@@ -51,8 +60,20 @@ def extract_code_blocks(text: str) -> str:
         return ignore_annotations + matches[0]
 
 
+def doc_to_text(doc: dict) -> str:
+    text = (
+        doc["text"]
+        + "\n"
+        + doc["code"].split(":")[0]
+        + ":"
+        + "\n"
+        + "Here is the completed function:\n\n```python\n"
+    )
+    return text
+
+
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
-    return [[extract_code_blocks(r) for r in resp] for resp in resps]
+    return [[extract_python_block(r) for r in resp] for resp in resps]
 
 
 def list_fewshot_samples():
