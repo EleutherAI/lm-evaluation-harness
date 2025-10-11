@@ -24,9 +24,6 @@ def pass_at_10(
         references = [references]
     if isinstance(predictions[0], str):
         predictions = [[p] for p in predictions]
-    print(f"{references=}")
-    print(f"{predictions=}")
-    print(f"{k=}")
     res = compute_.compute(
         references=references,
         predictions=predictions,
