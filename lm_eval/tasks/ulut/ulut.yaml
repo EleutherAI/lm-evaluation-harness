@@ -1,4 +1,7 @@
 group: ulut
+tag:
+  - uyghur_language
+  - uyghur_llm
 task:
   - nug
   - wag
