@@ -1129,11 +1129,14 @@ class ConfigurableTask(Task):
         if system_prompt:
             messages.append(Message("system", system_prompt))
 
-        for fs_doc in self.sampler.sample(
-            n=num_fewshot,
-            doc=doc if self.config.fewshot_split == self.config.test_split else None,
-        ):
-            messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
+        if num_fewshot > 0:
+            for fs_doc in self.sampler.sample(
+                n=num_fewshot,
+                doc=doc
+                if self.config.fewshot_split == self.config.test_split
+                else None,
+            ):
+                messages += self._doc_to_qa_pair(fs_doc, gen_prefix)
 
         if self.multiple_inputs:
             # if multiple inputs, then doc_to_text: list[str]

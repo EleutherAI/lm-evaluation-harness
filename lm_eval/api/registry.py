@@ -59,8 +59,7 @@ from __future__ import annotations
 import importlib
 import inspect
 import threading
-from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from collections.abc import Iterable
 from functools import lru_cache
 from types import MappingProxyType
 from typing import Any, Callable, Generic, TypeVar, Union, cast
@@ -388,27 +387,12 @@ class Registry(Generic[T]):
         _materialise_placeholder.cache_clear()
 
 
-# Structured object for metrics ------------------
+# Import MetricConfig as the standard metric representation
+from lm_eval.config.metric import MetricConfig  # noqa: E402
 
 
-@dataclass(frozen=True)
-class MetricSpec:
-    """Specification for a metric including computation and aggregation functions.
-
-    Attributes:
-        compute: Function to compute metric on individual items
-        aggregate: Function to aggregate multiple metric values into a single score
-        higher_is_better: Whether higher values indicate better performance
-        output_type: Optional type hint for the output (e.g., "generate_until" for perplexity)
-        requires: Optional list of other metrics this one depends on
-    """
-
-    compute: Callable[[Any, Any], Any]
-    aggregate: Callable[[Sequence[float]], float]
-    higher_is_better: bool = True
-    output_type: str | None = None
-    requires: list[str] | None = None
-
+# For backward compatibility, alias MetricConfig as MetricSpec
+MetricSpec = MetricConfig
 
 # Canonical registries aliases ---------------------
 
@@ -417,7 +401,7 @@ from lm_eval.api.model import LM  # noqa: E402
 
 model_registry = cast(Registry[type[LM]], Registry("model", base_cls=LM))
 task_registry: Registry[Callable[..., Any]] = Registry("task")
-metric_registry: Registry[MetricSpec] = Registry("metric")
+metric_registry: Registry[MetricConfig] = Registry("metric")
 metric_agg_registry: Registry[Callable[..., float]] = Registry("metric aggregation")
 higher_is_better_registry: Registry[bool] = Registry("higher‑is‑better flag")
 filter_registry: Registry[type[Filter]] = Registry("filter")
@@ -455,7 +439,7 @@ def _no_aggregation_fn(values: Iterable[Any]) -> float:
 def register_metric(**kw):
     """Decorator for registering metric functions.
 
-    Creates a MetricSpec from the decorated function and keyword arguments,
+    Creates a MetricConfig from the decorated function and keyword arguments,
     then registers it in the metric registry.
 
     Args:
@@ -465,6 +449,8 @@ def register_metric(**kw):
             - higher_is_better: Whether higher scores are better (default: True)
             - output_type: Optional output type hint
             - requires: Optional list of required metrics
+            - hf_evaluate: Whether this is an HF evaluate metric
+            - is_elementwise: Whether the metric is elementwise
 
     Returns:
         Decorator function that registers the metric
@@ -481,9 +467,10 @@ def register_metric(**kw):
     name = kw["metric"]
 
     def deco(fn):
-        spec = MetricSpec(
-            compute=fn,
-            aggregate=(
+        config = MetricConfig(
+            name=name,
+            fn=fn,
+            aggregation_fn=(
                 metric_agg_registry.get(kw["aggregation"])
                 if "aggregation" in kw
                 else _no_aggregation_fn
@@ -491,10 +478,12 @@ def register_metric(**kw):
             higher_is_better=kw.get("higher_is_better", True),
             output_type=kw.get("output_type"),
             requires=kw.get("requires"),
+            hf_evaluate=kw.get("hf_evaluate", False),
+            is_elementwise=kw.get("is_elementwise", True),
         )
-        metric_registry.register(name, lazy=spec)
+        metric_registry.register(name, lazy=config)
         _metric_meta[name] = kw
-        higher_is_better_registry.register(name, lazy=spec.higher_is_better)
+        higher_is_better_registry.register(name, lazy=config.higher_is_better)
         return fn
 
     return deco
@@ -517,8 +506,9 @@ def get_metric(name, hf_evaluate_metric=False):
         KeyError: If a metric is not found in registry or HF evaluate
     """
     try:
-        spec = metric_registry.get(name)
-        return spec.compute  # type: ignore[attr-defined]
+        config = metric_registry.get(name)
+        # Use fn (or compute for backward compatibility)
+        return config.fn or config.compute  # type: ignore[attr-defined]
     except KeyError:
         if not hf_evaluate_metric:
             import logging
@@ -543,8 +533,15 @@ is_higher_better = higher_is_better_registry.get
 # Legacy compatibility
 register_aggregation = metric_agg_registry.register
 get_aggregation = metric_agg_registry.get
-DEFAULT_METRIC_REGISTRY = metric_registry
 AGGREGATION_REGISTRY = metric_agg_registry
+
+# Default metric registry for output types
+DEFAULT_METRIC_REGISTRY = {
+    "loglikelihood": ["perplexity", "acc"],
+    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
+    "multiple_choice": ["acc", "acc_norm"],
+    "generate_until": ["exact_match"],
+}
 
 
 def freeze_all():
