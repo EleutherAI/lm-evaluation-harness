@@ -1,7 +1,7 @@
 tag:
   - uyghur_language
   - uyghur_llm
-task: ulqa
+task: _ulqa
 dataset_path: keramjan/ulqa
 dataset_name: main
 output_type: generate_until
