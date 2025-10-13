@@ -5,7 +5,7 @@ tag:
 task:
   - ulut
   - lambada_uyghur
-  - _ulqa
+  - ulqa_
   - uleval
   - celep1
   - celep2
