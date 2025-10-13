@@ -1,8 +1,6 @@
-# SciQ
+# ulqa
 
-### Paper
-
-Title: `Uyghur language question and answers`
+### Descriptions
 
 The ULQA datasets contains crowdsourced Uyghur language and Uyghur literature exam and exercise questions. The questions are in multiple-choice, boolean and generative formats. The tasks covers different skill levels: basic (ULUT or lambada_uyghur), intermidiate (ULQA or uleval), high (CELEP1 or CELEP2).  
 
