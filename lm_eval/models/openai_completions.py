@@ -16,12 +16,46 @@ eval_logger = logging.getLogger(__name__)
 class LocalCompletionsAPI(TemplateAPI):
     def __init__(
         self,
-        base_url: str = None,
-        tokenizer_backend: str = "huggingface",
+        base_url=None,
+        tokenizer_backend="auto",
+        verify_certificate=True,
+        ca_cert_path=None,
+        auth_token=None,
         **kwargs,
     ):
+        # Auto-detect tokenizer backend
+        if tokenizer_backend == "auto":
+            if base_url:
+                from lm_eval.utils import check_remote_tokenizer_support
+
+                if check_remote_tokenizer_support(
+                    base_url,
+                    verify_certificate=verify_certificate,
+                    ca_cert_path=ca_cert_path,
+                    auth_token=auth_token,
+                ):
+                    eval_logger.info(
+                        "Auto-detected remote tokenizer support. Using remote tokenizer backend."
+                    )
+                    tokenizer_backend = "remote"
+                else:
+                    eval_logger.info(
+                        "Remote tokenizer not supported. Using huggingface tokenizer backend."
+                    )
+                    tokenizer_backend = "huggingface"
+            else:
+                eval_logger.warning(
+                    "No base_url provided. Using huggingface tokenizer backend."
+                )
+                tokenizer_backend = "huggingface"
+
         super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            verify_certificate=verify_certificate,
+            ca_cert_path=ca_cert_path,
+            auth_token=auth_token,
+            **kwargs,
         )
 
     def _create_payload(
@@ -106,20 +140,28 @@ class LocalCompletionsAPI(TemplateAPI):
 
 @register_model("local-chat-completions")
 class LocalChatCompletion(LocalCompletionsAPI):
+    """
+    Minimal chat-completions wrapper.
+    - Only accepts messages as list[dict].
+    - No tokenization or template logic.
+    - Use with --apply_chat_template or ensure upstream formats messages correctly.
+    """
+
     def __init__(
         self,
-        base_url: str = None,
-        tokenizer_backend: str = None,
-        tokenized_requests: bool = False,
+        base_url=None,
+        verify_certificate=True,
+        ca_cert_path=None,
+        auth_token=None,
         **kwargs,
     ):
-        eval_logger.warning(
-            "chat-completions endpoint requires the `--apply_chat_template` flag."
-        )
         super().__init__(
             base_url=base_url,
-            tokenizer_backend=tokenizer_backend,
-            tokenized_requests=tokenized_requests,
+            tokenizer_backend=None,
+            tokenized_requests=None,
+            verify_certificate=verify_certificate,
+            ca_cert_path=ca_cert_path,
+            auth_token=auth_token,
             **kwargs,
         )
         if self._batch_size > 1:
@@ -137,9 +179,13 @@ class LocalChatCompletion(LocalCompletionsAPI):
         eos=None,
         **kwargs,
     ) -> dict:
-        assert type(messages) is not str, (
-            "chat-completions require the --apply_chat_template flag."
+        assert isinstance(messages, list) and all(
+            isinstance(m, dict) for m in messages
+        ), (
+            "LocalChatCompletion expects messages as list[dict]. "
+            "If you see this error, ensure --apply_chat_template is set or upstream code formats messages correctly."
         )
+        gen_kwargs = gen_kwargs or {}
         gen_kwargs.pop("do_sample", False)
         if "max_tokens" in gen_kwargs:
             max_tokens = gen_kwargs.pop("max_tokens")

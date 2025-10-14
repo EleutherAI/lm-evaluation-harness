@@ -1,0 +1,13 @@
+group: longbench2
+task:
+  - longbench2_history
+  - longbench2_incontext
+  - longbench2_multi
+  - longbench2_single
+  - longbench2_structured
+  - longbench2_code
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 0.0

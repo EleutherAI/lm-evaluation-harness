@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2
+  - longbench2_single
+task: longbench2_legal_single
+dataset_name: legal_single
