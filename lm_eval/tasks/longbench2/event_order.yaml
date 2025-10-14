@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2
+  - longbench2_single
+task: longbench2_event_order
+dataset_name: event_ordering
