@@ -5,7 +5,7 @@ from operator import itemgetter
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import JsonChatStr, TemplateAPI
+from lm_eval.models.api_models import TemplateAPI
 from lm_eval.models.utils import handle_stop_sequences
 
 
@@ -146,6 +146,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
     - No tokenization or template logic.
     - Use with --apply_chat_template or ensure upstream formats messages correctly.
     """
+
     def __init__(
         self,
         base_url=None,
@@ -156,8 +157,8 @@ class LocalChatCompletion(LocalCompletionsAPI):
     ):
         super().__init__(
             base_url=base_url,
-            tokenizer_backend=None,         
-            tokenized_requests=None,     
+            tokenizer_backend=None,
+            tokenized_requests=None,
             verify_certificate=verify_certificate,
             ca_cert_path=ca_cert_path,
             auth_token=auth_token,
@@ -178,7 +179,9 @@ class LocalChatCompletion(LocalCompletionsAPI):
         eos=None,
         **kwargs,
     ) -> dict:
-        assert isinstance(messages, list) and all(isinstance(m, dict) for m in messages), (
+        assert isinstance(messages, list) and all(
+            isinstance(m, dict) for m in messages
+        ), (
             "LocalChatCompletion expects messages as list[dict]. "
             "If you see this error, ensure --apply_chat_template is set or upstream code formats messages correctly."
         )
