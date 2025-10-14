@@ -23,8 +23,6 @@ metric_list:
       - "\\$"
       - "(?s).*#### "
       - "\\.$"
-  - metric: bleu
-  - metric: chrf
 generation_kwargs:
   until: ["سۇئال:"]
   do_sample: false
