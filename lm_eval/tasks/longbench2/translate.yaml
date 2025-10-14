@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2
+  - longbench2_incontext
+task: longbench2_translate
+dataset_name: new_language_translation

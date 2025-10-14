@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2
+  - longbench2_structured
+task: longbench2_table
+dataset_name: table_qa
