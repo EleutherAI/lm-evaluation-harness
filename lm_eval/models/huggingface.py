@@ -864,17 +864,12 @@ class HFLM(TemplateLM):
         """ """
         # default for None - empty dict, use predefined tokenizer param
         # used for all models except for CausalLM or predefined value
-        special_tokens_kwargs = {}
-
-        # by default for CausalLM - false or self.add_bos_token is set
-        if add_special_tokens is None:
-            if self.backend == "causal":
-                special_tokens_kwargs = {
-                    "add_special_tokens": False or self.add_bos_token
-                }
-        # otherwise the method explicitly defines the value
-        else:
-            special_tokens_kwargs = {"add_special_tokens": add_special_tokens}
+        special_tokens_kwargs = (
+            {"add_special_tokens": False or self.add_bos_token}
+            if self.backend == "causal"
+            # otherwise the method explicitly defines the value
+            else {"add_special_tokens": add_special_tokens}
+        )
 
         encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
 

@@ -378,11 +378,14 @@ class TemplateLM(LM):
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
+                continuation_enc = self.tok_encode(continuation)
                 # BOS or EOS as context
                 context_enc, continuation_enc = (
-                    [self.prefix_token_id],
-                    self.tok_encode(continuation),
+                    ([self.prefix_token_id], continuation_enc)
+                    if self.prefix_token_id != continuation_enc[0]
+                    else (continuation_enc[:1], continuation_enc[1:])
                 )
+                # BOS or EOS as context
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
 
