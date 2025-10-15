@@ -258,15 +258,7 @@ class HFLM(TemplateLM):
             else {}
         )
 
-        self.add_bos_token = add_bos_token
-        if self.add_bos_token is None:
-            if getattr(self.tokenizer, "add_bos_token", False):
-                self.add_bos_token = True
-                eval_logger.info(
-                    f"Tokenizer has 'add_bos_token' attribute set -- using BOS token based on tokenizer configuration for model type '{self.config.model_type}'. To control explicitly, set `add_bos_token=True|False`"
-                )
-            else:
-                self.add_bos_token = False
+        self.add_bos_token = add_bos_token if add_bos_token is not None else None
 
         self._max_length = max_length
         self.pretrained = pretrained
@@ -748,7 +740,7 @@ class HFLM(TemplateLM):
         trust_remote_code: bool | None = False,
         use_fast_tokenizer: bool | None = True,
         gguf_file: str | None = None,
-        add_bos_token: bool | None = False,
+        add_bos_token: bool | None = None,
         subfolder: str | None = "",
     ) -> None:
         """Helper method during initialization.
@@ -767,8 +759,8 @@ class HFLM(TemplateLM):
         else:
             kwargs["use_fast"] = use_fast_tokenizer
 
-        if add_bos_token:
-            kwargs["add_bos_token"] = True
+        if add_bos_token is not None:
+            kwargs["add_bos_token"] = add_bos_token
 
         if subfolder:
             kwargs["subfolder"] = subfolder
@@ -868,16 +860,12 @@ class HFLM(TemplateLM):
     ) -> list[int]:
         # default for None - empty dict, use predefined tokenizer param
         # used for all models except for CausalLM or predefined value
-        special_tokens_kwargs: dict = (
-            {
-                "add_special_tokens": self.add_bos_token
-                if add_special_tokens is None
-                else add_special_tokens
-            }
-            if self.backend == "causal"
-            # otherwise the method explicitly defines the value
-            else {"add_special_tokens": add_special_tokens}
-            if isinstance(add_special_tokens, bool)
+
+        special_tokens_kwargs = (
+            {"add_special_tokens": add_special_tokens}
+            if (isinstance(add_special_tokens, bool))
+            else {"add_special_tokens": self.add_bos_token}
+            if self.add_bos_token is not None
             else {}
         )
 
@@ -906,8 +894,10 @@ class HFLM(TemplateLM):
                 strings[0], getattr(self.tokenizer, "bos_token", None)
             ):
                 add_special_tokens = {"add_special_tokens": False}
+            elif self.add_bos_token is not None:
+                add_special_tokens = {"add_special_tokens": self.add_bos_token}
             else:
-                add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+                add_special_tokens = {"add_special_tokens": True}
 
         encoding = self.tokenizer(
             strings,
