@@ -324,6 +324,7 @@ class TemplateLM(LM):
     """
 
     tokenizer = None
+    backend = "causal"
 
     @property
     @abc.abstractmethod
@@ -378,24 +379,22 @@ class TemplateLM(LM):
             handle empty context (see loglikelihood method).
         """
         assert context, "Context cannot be empty!"
-        import transformers
 
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
 
-        model_class = getattr(self, "AUTO_MODEL_CLASS", None)
-
-        if model_class == transformers.AutoModelForSeq2SeqLM:
-            context_enc = self.tok_encode(context)
-            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
-        else:
+        if self.backend == "causal":
             whole_enc = self.tok_encode(context + continuation)
             context_enc = self.tok_encode(context)
 
             context_enc_len = len(context_enc)
             continuation_enc = whole_enc[context_enc_len:]
+        else:
+            # for SEQ2SEQ case we need to encode separately
+            context_enc = self.tok_encode(context)
+            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
 
         return context_enc, continuation_enc
 
@@ -433,7 +432,7 @@ class TemplateLM(LM):
                 continuation_enc = self.tok_encode(
                     continuation, add_special_tokens=False
                 )
-                # BOS or EOS as context
+                # BOS or EOS as context: handle when context is empty -> (context + continuation) -> (BOS + continuation
                 context_enc, continuation_enc = (
                     ([self.prefix_token_id], continuation_enc)
                     if self.prefix_token_id != continuation_enc[0]

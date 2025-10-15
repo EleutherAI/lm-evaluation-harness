@@ -258,7 +258,7 @@ class HFLM(TemplateLM):
             else {}
         )
 
-        self.add_bos_token = add_bos_token if add_bos_token is not None else None
+        self.add_bos_token = add_bos_token
 
         self._max_length = max_length
         self.pretrained = pretrained
