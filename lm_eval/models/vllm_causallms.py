@@ -21,6 +21,7 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
+    bos_already_added,
     configure_pad_token,
     handle_stop_sequences,
     postprocess_generated_text,
@@ -349,10 +350,11 @@ class VLLM(TemplateLM):
             else {}
         )
         # handle chat template
-        if self.tokenizer.bos_token and (
-            string[0] if isinstance(string, list) else string
-        ).startswith(self.tokenizer.bos_token):
+        if bos_already_added(
+            string[0] if isinstance(string, list) else string, self.tokenizer.bos_token
+        ):
             add_special_kwargs = {"add_special_tokens": False}
+
         encoding: list[list[int]] | list[int] = self.tokenizer(
             string,
             truncation=truncation,
