@@ -4,6 +4,7 @@ import copy
 import gc
 import logging
 import os
+from collections.abc import Sequence
 from importlib.metadata import version
 from importlib.util import find_spec
 from multiprocessing import Process, Queue
@@ -351,7 +352,8 @@ class VLLM(TemplateLM):
         )
         # handle chat template
         if bos_already_added(
-            string[0] if isinstance(string, list) else string, self.tokenizer.bos_token
+            string[0] if isinstance(string, Sequence) else string,
+            self.tokenizer.bos_token,
         ):
             add_special_kwargs = {"add_special_tokens": False}
 
