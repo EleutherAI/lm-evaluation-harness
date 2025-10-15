@@ -884,4 +884,4 @@ def postprocess_generated_text(
 
 
 def bos_already_added(sequence: str, bos_string: Optional[str]):
-    return sequence[0] == bos_string
+    return sequence.startswith(bos_string) if bos_string is not None else False

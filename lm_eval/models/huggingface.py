@@ -897,7 +897,7 @@ class HFLM(TemplateLM):
             elif self.add_bos_token is not None:
                 add_special_tokens = {"add_special_tokens": self.add_bos_token}
             else:
-                add_special_tokens = {"add_special_tokens": True}
+                add_special_tokens = {}
 
         encoding = self.tokenizer(
             strings,
