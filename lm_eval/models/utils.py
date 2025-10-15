@@ -881,3 +881,7 @@ def postprocess_generated_text(
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
+
+
+def bos_already_added(sequence: str, bos_string: Optional[str]):
+    return sequence[0] == bos_string

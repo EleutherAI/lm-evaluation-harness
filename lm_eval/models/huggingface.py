@@ -32,6 +32,7 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
+    bos_already_added,
     clear_torch_cache,
     configure_pad_token,
     get_dtype,
@@ -901,7 +902,12 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.backend == "causal":
-            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+            if bos_already_added(
+                strings[0], getattr(self.tokenizer, "bos_token", None)
+            ):
+                add_special_tokens = {"add_special_tokens": False}
+            else:
+                add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.tokenizer(
             strings,
