@@ -150,7 +150,7 @@ class Grouper:
 
 def pad_and_concat(
     max_length: int,
-    tensors: List[torch.Tensor],
+    tensors: list[torch.Tensor],
     padding_side: Literal["right", "left"] = "right",
 ):
     """
@@ -881,3 +881,7 @@ def postprocess_generated_text(
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
+
+
+def bos_already_added(sequence: str, bos_string: Optional[str]):
+    return sequence.startswith(bos_string) if bos_string is not None else False
