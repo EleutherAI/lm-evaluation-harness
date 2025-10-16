@@ -337,7 +337,12 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "seed": seed,
             **gen_kwargs,
         }
-        if "o1" in self.model or "5" in self.model or "o3" in self.model or "o4" in self.model:
+        if (
+            "o1" in self.model
+            or "5" in self.model
+            or "o3" in self.model
+            or "o4" in self.model
+        ):
             output.pop("stop")
             output["temperature"] = 1
         return output
