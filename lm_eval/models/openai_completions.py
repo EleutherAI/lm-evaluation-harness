@@ -129,7 +129,15 @@ class LocalCompletionsAPI(TemplateAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                tmp[choices["index"]] = choices["text"]
+                x = choices["text"]
+                content = x if x is not None else ""
+                if not content:
+                    eval_logger.warning(
+                        f"Received empty response for choice {choices['index']}. "
+                        "This can happen when using reasoning models if the model spends the entire token budget on reasoning. "
+                        "Consider increasing the number of allowed tokens."
+                    )
+                tmp[choices["index"]] = content
             res = res + tmp
         return res
 
@@ -215,7 +223,15 @@ class LocalChatCompletion(LocalCompletionsAPI):
         for out in outputs:
             tmp = [None] * len(out["choices"])
             for choices in out["choices"]:
-                tmp[choices["index"]] = choices["message"]["content"]
+                x = choices["message"]["content"]
+                content = x if x is not None else ""
+                if not content:
+                    eval_logger.warning(
+                        f"Received empty response for choice {choices['index']}. "
+                        "This can happen when using reasoning models if the model spends the entire token budget on reasoning. "
+                        "Consider increasing the number of allowed tokens."
+                    )
+                tmp[choices["index"]] = content
             res = res + tmp
         return res
 
