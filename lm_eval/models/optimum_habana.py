@@ -8,7 +8,6 @@ from importlib.util import find_spec
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-from lm_eval.models.utils import get_dtype
 from transformers import AutoModelForCausalLM
 
 eval_logger = logging.getLogger(__name__)
@@ -35,6 +34,7 @@ class HabanaLM(HFLM):
         flash_attention_fast_softmax: Optional[bool] = True,
         sdp_on_bf16: Optional[bool] = False,
         attn_batch_split: Optional[int] = 1,
+        ignore_eos: Optional[bool] = False
 
     Default execution mode is Eager, if you prefer Lazy, add PT_HPU_LAZY_MODE=1 before lm_eval
     """
@@ -118,6 +118,7 @@ class HabanaLM(HFLM):
         generation_config.flash_attention_causal_mask = kwargs.pop("flash_attention_causal_mask", True)
         generation_config.flash_attention_fast_softmax = kwargs.pop("flash_attention_fast_softmax", True)
         generation_config.reuse_cache = kwargs.pop("reuse_cache", True)
+        generation_config.ignore_eos = kwargs.pop("ignore_eos", False)
         return generation_config, kwargs
 
     def _create_model(self, *args, **kwargs) -> None:
@@ -157,13 +158,12 @@ class HabanaLM(HFLM):
             generation_kwargs["do_sample"] = do_sample = False
         if do_sample is False and generation_kwargs.get("temperature") == 0.0:
             generation_kwargs.pop("temperature")
-        stopping_criteria = stop_sequences_criteria(self.tokenizer, stop, context.shape[1], context.shape[0])
         if self.options.static_shapes:
             self.options.bucket_internal = True
             bucket_length = self.find_bucket(context.shape[1])
             padding_length = bucket_length - context.shape[1]
             max_gen_toks = max_length - context.shape[1]
-            if padding_length > 0 and getattr(self, 'hpu_graphs', False):
+            if padding_length > 0 and getattr(self, 'lazy_mode', False):
                 context = F.pad(context, (0, padding_length), value=self.tokenizer.pad_token_id)
                 generation_kwargs["attention_mask"] = F.pad(
                     generation_kwargs["attention_mask"], (0, padding_length), value=0
@@ -178,11 +178,9 @@ class HabanaLM(HFLM):
             return self.model.generate(
                 input_ids=context,
                 max_new_tokens=max_gen_toks,
-                generation_config=self.options,
-                stopping_criteria=stopping_criteria,
                 pad_token_id=self.tokenizer.pad_token_id,
                 use_cache=True,
-                hpu_graphs=getattr(self, 'hpu_graphs', False),
-                lazy_mode=getattr(self, 'use_lazy_mode', False),
+                hpu_graphs=getattr(self, 'lazy_mode', False), #To Simplify
+                lazy_mode=getattr(self, 'lazy_mode', False),
                 **generation_kwargs,
             )
