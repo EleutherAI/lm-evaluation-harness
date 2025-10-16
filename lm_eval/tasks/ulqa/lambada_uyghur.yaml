@@ -1,0 +1,22 @@
+tag:
+  - uyghur_llm
+task: lambada_uyghur
+dataset_path: keramjan/lambada_uyghur
+dataset_name: default
+output_type: loglikelihood
+training_split: train
+test_split: train
+validation_split: train
+doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
+doc_to_target: "{{' '+text.split(' ')[-1]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: false
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
