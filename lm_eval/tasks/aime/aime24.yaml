@@ -10,10 +10,18 @@ test_split: train
 doc_to_text: "Question: {{Problem}}\nAnswer:"
 doc_to_target: "{{Answer}}"
 process_results: !function utils.process_results
+filter_list:
+  - name: "identity"
+    filter:
+      - function: identity
 metric_list:
-  - metric: exact_match
-    aggregation: mean
+  - metric: pass@1
+    aggregation: pass@1
     higher_is_better: true
+  - metric: pass@k
+    aggregation: pass@k
+    higher_is_better: true
+  - metric: maj@k
 generation_kwargs:
   until:
     - "Question:"
