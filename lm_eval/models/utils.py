@@ -881,3 +881,60 @@ def postprocess_generated_text(
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
+
+
+def maybe_truncate(
+    tokens: list[int],
+    max_gen_toks: int,
+    max_len: int,
+    min_gen_toks: int = 1,
+) -> tuple[list[int], int]:
+    """
+    Adjusts the max generation length to fit max_model_len up to a min, else left truncates the prompt.
+
+    Strategy:
+        1. No truncation needed: If prompt + max_gen_toks <= max_model_len.
+
+        2. Reduce generation length: If the prompt fits but max_gen_toks is too large,
+           reduce max_gen_toks >= min_gen_toks.
+
+        3. Truncate prompt (left): If the prompt itself is too long, left-truncate it
+           to reserve space for min_gen_toks generation tokens.
+
+    Args:
+        tokens (list[int]): The input prompt token IDs to potentially truncate.
+        max_gen_toks (int): The desired maximum number of tokens to generate.
+        max_len (int): The model's maximum context window size (prompt + generation).
+        min_gen_toks (int, optional): The minimum number of generation tokens required.
+
+    Returns:
+        tuple[list[int], int]: A tuple containing:
+            - list[int]: The (possibly truncated) prompt tokens.
+            - int: The adjusted maximum generation token count.
+
+    Raises:
+        ValueError: when max_model_len <= min_gen_toks.
+    """
+    ctx_len = len(tokens)
+
+    # Case 1: Everything fits comfortably
+    if ctx_len + max_gen_toks <= max_len:
+        return tokens, max_gen_toks
+
+    # Case 2: Prompt fits, but need to reduce max_tokens
+    if (max_gen_toks := max_len - ctx_len) >= min_gen_toks:
+        return tokens, max_gen_toks
+
+    # Case 3: Need to truncate prompt to fit min_tokens
+    # Reserve space for min_tokens, use rest for prompt
+    if (max_ctx_len := max_len - min_gen_toks) <= 0:
+        raise ValueError(
+            f"Model context window ({max_len}) is too small to fit "
+            f"prompt len {ctx_len} + minimum generation length ({min_gen_toks})"
+        )
+
+    return tokens[-max_ctx_len:], min_gen_toks
+
+
+def left_truncate(tokens: list[int], max_length: int):
+    return tokens[-max_length:]
