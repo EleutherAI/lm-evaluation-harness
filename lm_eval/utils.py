@@ -10,14 +10,18 @@ import json
 import logging
 import os
 import re
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from dataclasses import asdict, is_dataclass
 from functools import wraps
 from itertools import islice
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar
 
 import numpy as np
 from jinja2 import BaseLoader, Environment, StrictUndefined
+
+
+K = TypeVar("K")
+V = TypeVar("V")
 
 
 SPACING = " " * 47
@@ -630,3 +634,67 @@ def apply_template(template: str, doc: dict) -> str:
 
 def validate_index(index: int, length: int) -> int:
     return index if index < length else -100
+
+
+@functools.lru_cache(maxsize=10)
+def get_parameter_info(func: Callable, param_name: str) -> tuple[bool, Any | None]:
+    """
+    Check if a callable has a specific parameter and get its default value.
+
+    Args:
+        func: The callable to inspect
+        param_name: Name of the parameter to look for
+
+    Returns:
+        Tuple of (has_parameter, default_value)
+        - has_parameter: True if the parameter exists
+        - default_value: The default value if it exists, None otherwise
+    """
+    import inspect
+
+    if not callable(func):
+        return False, None
+
+    try:
+        sig = inspect.signature(func)
+        if param_name in sig.parameters:
+            param = sig.parameters[param_name]
+            if param.default != inspect.Parameter.empty:
+                return True, param.default
+            else:
+                return True, None
+        return False, None
+    except (ValueError, TypeError):
+        # Some built-in functions don't have accessible signatures
+        return False, None
+
+
+def get_parameter_default(func: Callable, param_name: str, fallback: Any = None) -> Any:
+    """
+    Get the default value of a parameter, with a fallback if not found.
+
+    Args:
+        func: The callable to inspect
+        param_name: Name of the parameter
+        fallback: Value to return if parameter doesn't exist or has no default
+
+    Returns:
+        The parameter's default value or the fallback
+    """
+    has_param, default = get_parameter_info(func, param_name)
+    if has_param and default is not None:
+        return default
+    return fallback
+
+
+def merge_dict_values(*args: Mapping[K, V]) -> dict[K, list[V]]:
+    """
+    Merges dictionaries recursively.
+    """
+    from collections import defaultdict
+
+    out = defaultdict(list)
+    for d in args:
+        for k, v in d.items():
+            out[k].append(v)
+    return out

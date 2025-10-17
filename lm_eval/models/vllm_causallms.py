@@ -52,10 +52,10 @@ eval_logger = logging.getLogger(__name__)
 
 def _vllm_mp_worker(
     model_args: dict,
-    sampling_params: list["SamplingParams"],
+    sampling_params: list[SamplingParams],
     requests: list[list[int]],
-    lora_request: "LoRARequest",
-    result_queue: "Queue",
+    lora_request: LoRARequest,
+    result_queue: Queue,
     dp_size: int,
     local_dp_rank: int,
     dp_master_port: int,
@@ -136,7 +136,7 @@ class VLLM(TemplateLM):
         lora_local_path: str | None = None,
         # VLLM: enable thinking tags in the prompt.
         enable_thinking: bool = True,
-        chat_template_args: Optional[dict] = None,
+        chat_template_args: dict | None = None,
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: str | None = None,
         max_lora_rank: int = 16,
@@ -366,13 +366,13 @@ class VLLM(TemplateLM):
         self,
         requests: list[list[int]] = None,
         generate: bool = False,
-        sampling_params: Union[List["SamplingParams"], "SamplingParams", None] = None,
+        sampling_params: list[SamplingParams] | SamplingParams | None = None,
     ):
         if not generate or sampling_params is None:
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
-        if not isinstance(sampling_params, List):
+        if not isinstance(sampling_params, list):
             sampling_params = [sampling_params] * len(requests)
         if self.data_parallel_size > 1 and not self.V1:
             # vLLM hangs if resources are set in ray.remote
@@ -381,9 +381,9 @@ class VLLM(TemplateLM):
             @ray.remote
             def run_inference_one_model(
                 model_args: dict,
-                sampling_params: list["SamplingParams"],
+                sampling_params: list[SamplingParams],
                 requests: list[list[int]],
-                lora_request: "LoRARequest",
+                lora_request: LoRARequest,
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
@@ -611,11 +611,7 @@ class VLLM(TemplateLM):
                     raise ValueError(
                         f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
-                if "max_gen_toks" in kwargs.keys():
-                    max_gen_toks = kwargs.pop("max_gen_toks")
-                else:
-                    max_gen_toks = self.max_gen_toks
-
+                max_gen_toks = kwargs.pop("max_gen_toks", self.max_gen_toks)
                 # set the max length in tokens of inputs ("context_enc")
                 # max len for inputs = max length, minus room to generate the max new tokens
                 max_ctx_len = self.max_length - max_gen_toks

@@ -25,15 +25,15 @@ T = TypeVar("T", bound="LM")
 
 
 class LM(abc.ABC):
-    def __init__(self) -> None:
+    def __init__(self, *args, rank=0, world_size=1, **kwargs) -> None:
         """Defines the interface that should be implemented by all LM subclasses.
         LMs are assumed to take text (strings) as input and yield strings or logprobabilities as output
         (inputs/outputs should be tokenization-agnostic.)
 
         """
         # set rank and world size to a single process, by default.
-        self._rank = 0
-        self._world_size = 1
+        self._rank = rank
+        self._world_size = world_size
         self.cache_hook: CacheHook = CacheHook(None)
 
     @abc.abstractmethod

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 
 OutputType = Literal[
@@ -13,11 +13,11 @@ class Instance:
     doc: dict[str, Any]
     arguments: tuple
     idx: int
-    metadata: tuple[Optional[str], Optional[int], Optional[int]] = field(
-        default_factory=lambda: (None, None, None),
-        metadata=dict(
-            description="Metadata tuple containing task name, document ID, and number of repeats."
-        ),
+    task_name: str
+    doc_id: int
+    metadata: dict[str, Any] = field(
+        default_factory=dict,
+        metadata=dict(description="Extra metata can be added here"),
     )
     resps: list = field(
         default_factory=list,
@@ -25,17 +25,15 @@ class Instance:
             description="List of responses from the model for this instance."
         ),
     )
+    raw_resps: list[str] = field(default_factory=list)
+    tokens: list[int] = field(default_factory=list)
     filtered_resps: dict = field(
         default_factory=dict,
         metadata=dict(
             description="List of filtered responses for this instance, keyed by filter name."
         ),
     )
-
-    # initialized after init
-    task_name: Optional[str] = None
-    doc_id: Optional[int] = None
-    repeats: Optional[int] = None
+    repeats: int = 1
 
     def __post_init__(self) -> None:
         # unpack metadata field

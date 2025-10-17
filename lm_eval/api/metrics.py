@@ -148,6 +148,19 @@ def brier_score(
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
 
+@register_aggregation("pass@k")
+def pass_at_k(n: int, c: int, k: int = 1):
+    """
+    from Chen et al. 2021: https://arxiv.org/abs/2107.03374
+    :param n: total number of samples
+    :param c: number of correct samples
+    :param k: k in pass@k
+    """
+    if n - c < k:
+        return 1.0
+    return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))
+
+
 @register_metric(
     metric="brier_score",
     higher_is_better=False,

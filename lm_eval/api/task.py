@@ -29,7 +29,7 @@ from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.metric import MetricConfig
 from lm_eval.config.task import DataSet, TaskConfig
 from lm_eval.filters import build_filter_ensemble
-from lm_eval.utils import validate_index
+from lm_eval.utils import get_parameter_info, merge_dict_values, validate_index
 
 
 ALL_OUTPUT_TYPES = [
@@ -1280,9 +1280,19 @@ class ConfigurableTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc: dict, results: list) -> dict[str, Any]:
+    def process_results(
+        self, doc: dict, results: list, handle_repeats=True
+    ) -> dict[str, Any]:
         if callable(self.config.process_results):
-            return self.config.process_results(doc, results)
+            if get_parameter_info(self.config.process_results, "handle_repeats") == (
+                True,
+                True,
+            ):
+                return self.config.process_results(doc, results, handle_repeats=True)
+            else:
+                return merge_dict_values(
+                    [self.config.process_results(doc, x)] for x in results
+                )
         result_dict = {}
         use_metric = list(m.metric_name for m in self.config._metric_list)
         if self.OUTPUT_TYPE == "loglikelihood":

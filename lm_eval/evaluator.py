@@ -7,7 +7,7 @@ import os
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
@@ -52,28 +52,28 @@ eval_logger = logging.getLogger(__name__)
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: Optional[Union[str, dict[str, Any]]] = None,
-    tasks: Optional[List[Union[str, dict, object]]] = None,
-    num_fewshot: Optional[int] = None,
-    batch_size: Optional[Union[int, str]] = None,
-    max_batch_size: Optional[int] = None,
-    device: Optional[str] = None,
-    use_cache: Optional[str] = None,
+    model_args: str | dict[str, Any] | None = None,
+    tasks: list[str | dict | object] | None = None,
+    num_fewshot: int | None = None,
+    batch_size: int | str | None = None,
+    max_batch_size: int | None = None,
+    device: str | None = None,
+    use_cache: str | None = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
-    limit: Optional[Union[int, float]] = None,
-    samples: Optional[dict] = None,
+    limit: int | float | None = None,
+    samples: dict | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     write_out: bool = False,
     log_samples: bool = True,
-    evaluation_tracker: Optional[EvaluationTracker] = None,
-    system_instruction: Optional[str] = None,
-    apply_chat_template: Union[bool, str] = False,
+    evaluation_tracker: EvaluationTracker | None = None,
+    system_instruction: str | None = None,
+    apply_chat_template: bool | str = False,
     fewshot_as_multiturn: bool = False,
-    gen_kwargs: Union[str, dict, None] = None,
-    task_manager: Optional[TaskManager] = None,
+    gen_kwargs: str | dict | None = None,
+    task_manager: TaskManager | None = None,
     verbosity=None,
     predict_only: bool = False,
     random_seed: int = 0,
@@ -81,7 +81,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
-    metadata: Optional[dict] = None,
+    metadata: dict | None = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -290,7 +290,7 @@ def simple_evaluate(
 
     # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
     # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
-    def _adjust_config(task_dict: dict[str, "Task"]) -> dict[str, "Task"]:
+    def _adjust_config(task_dict: dict[str, Task]) -> dict[str, Task]:
         adjusted_task_dict = {}
         for task_name, task_obj in task_dict.items():
             if isinstance(task_obj, dict):
@@ -388,7 +388,7 @@ def simple_evaluate(
             "model_args": model_args,
         }
         # add more detailed model info if available
-        if isinstance(lm, lm_eval.models.huggingface.HFLM):
+        if hasattr(lm, "get_model_info"):
             results["config"].update(lm.get_model_info())
         # add info about execution
         results["config"].update(
@@ -419,17 +419,17 @@ def simple_evaluate(
 
 @positional_deprecated
 def evaluate(
-    lm: "LM",
+    lm: LM,
     task_dict,
     limit: int | float | None = None,
-    samples: Optional[dict] = None,
+    samples: dict | None = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
-    bootstrap_iters: Optional[int] = 100000,
+    bootstrap_iters: int | None = 100000,
     write_out: bool = False,
     log_samples: bool = True,
-    system_instruction: Optional[str] = None,
-    apply_chat_template: Union[bool, str] = False,
+    system_instruction: str | None = None,
+    apply_chat_template: bool | str = False,
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
@@ -477,7 +477,7 @@ def evaluate(
         )
     if samples is not None:
         eval_logger.info(
-            f"Evaluating examples for tasks {[x for x in list(samples.keys()) if x in task_dict.keys()]}"
+            f"Evaluating examples for tasks {[x for x in list(samples.keys()) if x in task_dict]}"
         )
     if apply_chat_template:
         eval_logger.warning(
@@ -491,12 +491,11 @@ def evaluate(
 
     # get lists of group hierarchy and each type of request
     eval_tasks = get_task_list(task_dict)
-    if not log_samples:
-        if not all(
-            "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
-            for task_output in eval_tasks
-        ):
-            raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
+    if not log_samples and not all(
+        "bypass" not in getattr(task_output.task, "_metric_fn_list", {})
+        for task_output in eval_tasks
+    ):
+        raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
     # validation checks:
     # 1.are we running multimodal task <-> non-multimodal model class, or vice-versa.
@@ -511,11 +510,10 @@ def evaluate(
             raise ValueError(
                 f"Attempted to run task: {task_output.task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
             )
-    if len(incompatible_tasks) > 0:
-        if not getattr(lm, "MULTIMODAL", False):
-            raise ValueError(
-                f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
-            )
+    if len(incompatible_tasks) > 0 and not getattr(lm, "MULTIMODAL", False):
+        raise ValueError(
+            f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
+        )
     # end validation check
 
     # Cache the limit arg.
@@ -538,7 +536,7 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=bool(apply_chat_template),
             fewshot_as_multiturn=fewshot_as_multiturn,
-            chat_template=getattr(lm, "apply_chat_template")
+            chat_template=getattr(lm, "apply_chat_template", None)
             if apply_chat_template
             else None,
             tokenizer_name=getattr(lm, "tokenizer_name", "")
@@ -613,7 +611,7 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps.keys():
+        for filter_key in task.instances[0].filtered_resps:
             indices = (
                 samples.get(task_output.task_name, None)
                 if samples is not None
@@ -626,10 +624,7 @@ def evaluate(
                 samples=indices,
             )
             for doc_id, doc in doc_iterator:
-                if indices:
-                    doc_id_true = indices[doc_id]
-                else:
-                    doc_id_true = doc_id
+                doc_id_true = indices[doc_id] if indices else doc_id
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
@@ -727,7 +722,7 @@ def evaluate(
             ):  # subtask list will list "task_name": [] for solo tasks
                 for task in task_list:
                     for m, h in higher_is_better[task].items():
-                        if m not in _higher_is_better.keys():
+                        if m not in _higher_is_better:
                             _higher_is_better[m] = h
 
                         if (
