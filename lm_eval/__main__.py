@@ -99,6 +99,14 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Number of examples in few-shot context",
     )
     parser.add_argument(
+        "--repeats",
+        "-r",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Number of repeats",
+    )
+    parser.add_argument(
         "--batch_size",
         "-b",
         type=str,
@@ -461,6 +469,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         model_args=args.model_args,
         tasks=task_names,
         num_fewshot=args.num_fewshot,
+        repeats=args.repeats,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,
         device=args.device,

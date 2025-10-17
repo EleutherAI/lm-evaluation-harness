@@ -1,35 +1,58 @@
 import re
-from typing import Dict, List
-
+from typing import Dict, List, Tuple
+from collections import Counter
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
-    retval = 0
-    response = results[0]
+    responses = results[0]
+    retvals = []
+    answers = []
+    for response in responses:
 
-    # Try to extract answer from $...$ format first
-    indices = [pos for pos, char in enumerate(response) if char == "$"]
-    if len(indices) <= 1:
-        answer = response
-    else:
-        answer = response[indices[0] + 1 : indices[-1]]
+        # Try to extract answer from $...$ format first
+        indices = [pos for pos, char in enumerate(response) if char == "$"]
+        if len(indices) <= 1:
+            answer = response
+        else:
+            answer = response[indices[0] + 1 : indices[-1]]
 
-    # Extract from \\boxed{} if present
-    boxed_answer = last_boxed_only_string(response)
-    if boxed_answer is not None:
-        try:
-            boxed_content = remove_boxed(boxed_answer)
-            if boxed_content is not None:
-                answer = boxed_content
-        except (AssertionError, IndexError):
-            pass
+        # Extract from \\boxed{} if present
+        boxed_answer = last_boxed_only_string(response)
+        if boxed_answer is not None:
+            try:
+                boxed_content = remove_boxed(boxed_answer)
+                if boxed_content is not None:
+                    answer = boxed_content
+            except (AssertionError, IndexError):
+                pass
 
-    # Check if answer matches target
-    answer_key = next(k for k in doc.keys() if k.lower() == "answer")
-    target = str(doc[answer_key])
-    if is_equiv(answer, target):
-        retval = 1
+        # Check if answer matches target
+        answer_key = next(k for k in doc.keys() if k.lower() == "answer")
+        target = str(doc[answer_key])
+        retval = 0
+        if is_equiv(answer, target):
+            retval = 1
+        answers.append(answer)
+        retvals.append(retval)
 
-    return {"exact_match": retval}
+    mode, model_index = majority_voting(answers)
+    mode_val = is_equiv(mode, target)
+
+    return {"pass@1": retvals, "pass@k": retvals, "maj@k": mode_val}
+
+def majority_voting(lst: List[str]) -> Tuple[str, int]:
+    """
+    Return the most frequent item in the list and its index.
+    Args:
+        lst (List[Any]): List of items.
+    Returns:
+        Tuple[Any, int]: Most frequent item and its index (any valid occurrence).
+    """
+
+    frequency = Counter(lst)
+    most_freq_item, _ = frequency.most_common(1)[0]
+    index = lst.index(most_freq_item)
+
+    return most_freq_item, index
 
 
 # string normalization from https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py
