@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import logging
 import os
-from collections.abc import Iterator, Sequence
+from collections.abc import Sequence
 from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -38,8 +38,13 @@ from lm_eval.models.utils import (
     handle_stop_sequences,
     pad_and_concat,
     postprocess_generated_text,
+    set_sampling_hf,
     stop_sequences_criteria,
 )
+
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase
 
 
 if TYPE_CHECKING:
@@ -250,7 +255,9 @@ class HFLM(TemplateLM):
         self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
-        self.tokenizer = configure_pad_token(self.tokenizer, model_config=self.config)
+        self.tokenizer: PreTrainedTokenizerBase | PreTrainedTokenizer = (
+            configure_pad_token(self.tokenizer, model_config=self.config)
+        )
         self.chat_template_args = (
             chat_template_args or {} | dict(enable_thinking=enable_thinking)
             if enable_thinking is not None
@@ -920,7 +927,7 @@ class HFLM(TemplateLM):
 
         return encoding["input_ids"], encoding["attention_mask"]
 
-    def tok_decode(self, tokens: Iterator[list[str]], skip_special_tokens: bool = True):
+    def tok_decode(self, tokens: int | list[int], skip_special_tokens: bool = True):
         return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
     def _model_call(
@@ -972,19 +979,7 @@ class HFLM(TemplateLM):
         stop: list[str],
         **generation_kwargs: dict[str, Any],
     ) -> torch.Tensor:
-        # temperature = 0.0 if not set
-        # if do_sample is false and temp==0.0:
-        # remove temperature, as do_sample=False takes care of this
-        # and we don't want a warning from HF
-        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
-        do_sample = generation_kwargs.get("do_sample")
-
-        # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
-        if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
-            generation_kwargs["do_sample"] = do_sample = False
-
-        if do_sample is False and generation_kwargs.get("temperature") == 0.0:
-            generation_kwargs.pop("temperature")
+        generation_kwargs = set_sampling_hf(generation_kwargs)
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
@@ -1361,7 +1356,6 @@ class HFLM(TemplateLM):
                     pbar.update(1)
 
         pbar.close()
-
         return re_ord.get_original(res)
 
     def generate_until(

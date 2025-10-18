@@ -4,24 +4,19 @@ import gc
 import itertools
 import logging
 import time
+from collections.abc import Callable, Iterable, Iterator
 from functools import wraps
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     Literal,
     Optional,
-    Tuple,
-    Type,
-    Union,
 )
 
-import torch
-import transformers
+
+if TYPE_CHECKING:
+    import torch
+    import transformers
 
 
 eval_logger = logging.getLogger(__name__)
@@ -82,12 +77,11 @@ class MultiChoice:
                 eval_logger.info("Available tasks to choose:")
                 for choice in self.choices:
                     eval_logger.info(f"  - {choice}")
-                raise ValueError("'{}' is not in task list".format(value))
+                raise ValueError(f"'{value}' is not in task list")
         return True
 
     def __iter__(self) -> Iterator:
-        for choice in self.choices:
-            yield choice
+        yield from self.choices
 
 
 class Grouper:
@@ -120,7 +114,7 @@ class Grouper:
         if self._grouped:
             return self._grouped
         grouped = {}
-        for key in self.arr.keys():
+        for key in self.arr:
             # drop the index from each element of self.arr
             grouped[key] = [y[1] for y in self.arr[key]]
         self._grouped = grouped
@@ -136,7 +130,7 @@ class Grouper:
 
         assert grouped_dict.keys() == self.arr.keys()
 
-        for key in grouped_dict.keys():
+        for key in grouped_dict:
             for (ind, _), v in zip(self.arr[key], grouped_dict[key]):
                 res[ind] = v
                 cov[ind] = True
@@ -150,7 +144,7 @@ class Grouper:
 
 def pad_and_concat(
     max_length: int,
-    tensors: List[torch.Tensor],
+    tensors: list[torch.Tensor],
     padding_side: Literal["right", "left"] = "right",
 ):
     """
@@ -204,7 +198,7 @@ def clear_torch_cache() -> None:
     torch.cuda.empty_cache()
 
 
-def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
+def get_dtype(dtype: str | torch.dtype) -> torch.dtype:
     """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
     if isinstance(dtype, str) and dtype != "auto":
         # Convert `str` args torch dtype: `float16` -> `torch.float16`
@@ -256,7 +250,7 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
 def stop_sequences_criteria(
     tokenizer: transformers.PreTrainedTokenizer,
-    stop_sequences: List[str],
+    stop_sequences: list[str],
     initial_decoder_input_length: int,
     batch_size: int,
 ) -> transformers.StoppingCriteriaList:
@@ -313,11 +307,11 @@ def undistribute(iterable):
 
 
 def retry_on_specific_exceptions(
-    on_exceptions: List[Type[Exception]],
-    max_retries: Optional[int] = None,
+    on_exceptions: list[type[Exception]],
+    max_retries: int | None = None,
     backoff_time: float = 3.0,
     backoff_multiplier: float = 1.5,
-    on_exception_callback: Optional[Callable[[Exception, float], Any]] = None,
+    on_exception_callback: Callable[[Exception, float], Any] | None = None,
 ):
     """Retry on an LLM Provider's rate limit error with exponential backoff
     For example, to use for OpenAI, do the following:
@@ -367,18 +361,18 @@ class Collator:
 
     def __init__(
         self,
-        arr: List,
+        arr: list,
         sort_fn: Callable = lambda x: x,
         group_fn: Callable = lambda x: x[1],
-        group_by: Union[Literal["gen_kwargs", "contexts"], None] = None,
+        group_by: Literal["gen_kwargs", "contexts"] | None = None,
     ) -> None:
         self._group_by = group_by
         # 0 indices are enumerated indices. Apply functions to original arr.
         self._sort_fn = lambda x: sort_fn(x[1])
         self._group_fn = lambda x: group_fn(x[1])
-        self._reorder_indices: List = []
+        self._reorder_indices: list = []
         self._size = len(arr)
-        self._arr_with_indices: Union[Dict, Tuple[Tuple[int, Any], ...]] = tuple(
+        self._arr_with_indices: dict | tuple[tuple[int, Any], ...] = tuple(
             enumerate(arr)
         )  # [indices, (arr)]
         if self._group_by == "contexts":
@@ -398,7 +392,7 @@ class Collator:
             self._arr_with_indices, fn=self._group_fn, group_by="contexts"
         )
 
-    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
+    def get_batched(self, n: int = 1, batch_fn: Callable | None = None) -> Iterator:
         """
         Generates and yields batches from the reordered array. The method of grouping and batching
         depends on the parameter `group_by`.
@@ -421,7 +415,7 @@ class Collator:
         """
         if self._group_by == "gen_kwargs":
             for (
-                key,
+                _,
                 values,
             ) in self._arr_with_indices.items():  # type: ignore
                 values = self._reorder(values)
@@ -445,11 +439,11 @@ class Collator:
 
     def get_cache(
         self,
-        req_str: Tuple[str, str] = None,
-        cxt_toks: List[int] = None,
-        cont_toks: List[int] = None,
+        req_str: tuple[str, str] = None,
+        cxt_toks: list[int] = None,
+        cont_toks: list[int] = None,
         logits: torch.Tensor = None,
-    ) -> Iterator[Tuple[Tuple[str, str], List[int], torch.Tensor]]:
+    ) -> Iterator[tuple[tuple[str, str], list[int], torch.Tensor]]:
         """
         Retrieves cached single-token continuations and their associated arguments, updating indices as necessary.
 
@@ -486,8 +480,8 @@ class Collator:
             - logits (torch.Tensor [1, seq_length, vocab_size]): The original logits (repeated cache hit times)
         """
         if self._group_by == "contexts":
-            cache_hit: List[
-                Tuple[int, Tuple[Tuple[str, str], List[int], List[int]]]
+            cache_hit: list[
+                tuple[int, tuple[tuple[str, str], list[int], list[int]]]
             ] = self._arr_with_indices.pop(tuple(cxt_toks + cont_toks[:-1]))
             if (cache_size := len(cache_hit)) == 1:
                 self._reorder_indices.extend(x[0] for x in cache_hit)
@@ -500,12 +494,11 @@ class Collator:
                     *[(x[0], x[1][0], x[-1][-1]) for x in cache_hit]
                 )
                 self._reorder_indices.extend(indices)
-                for c_key, cont_tok, logit in zip(req_str, cont_toks, multilogits):
-                    yield c_key, cont_tok, logit
+                yield from zip(req_str, cont_toks, multilogits)
         else:
             yield req_str, cont_toks, logits
 
-    def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> Iterator:
+    def _reorder(self, arr: list | tuple[tuple[int, Any], ...]) -> Iterator:
         """
         Reorders the elements in the array based on the sorting function.
 
@@ -516,12 +509,12 @@ class Collator:
             Iterator
         """
         arr = sorted(arr, key=self._sort_fn)
-        if not self._group_by == "contexts":
+        if self._group_by != "contexts":
             # If grouped by contexts then indices will be set in get_cache()
             self._reorder_indices.extend([x[0] for x in arr])
         yield from [x[1] for x in arr]
 
-    def get_original(self, newarr: List) -> List:
+    def get_original(self, newarr: list) -> list:
         """
         Restores the original order of elements from the reordered list.
 
@@ -707,7 +700,7 @@ def replace_placeholders(
     return "".join(result)
 
 
-def flatten_image_list(images: List[List]):
+def flatten_image_list(images: list[list]):
     """
     Takes in a list of lists of images, and returns a single list of all images in order.
     Used for some multimodal models like Llava-1.5 which expects this flattened-list format for its image processor.
@@ -718,9 +711,7 @@ def flatten_image_list(images: List[List]):
     return [image for image_list in images for image in image_list]
 
 
-def handle_stop_sequences(
-    until: Union[str, List[str], None], eos: Optional[str]
-) -> List[str]:
+def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> list[str]:
     """Ensures that the `until` parameter is a list of stop sequences and includes the EOS token."""
     if isinstance(until, str):
         until = [until]
@@ -738,11 +729,11 @@ def handle_stop_sequences(
 
 def resize_image(
     image: "Image.Image",
-    width: Optional[int] = None,
-    height: Optional[int] = None,
-    max_dimension: Optional[int] = None,
+    width: int | None = None,
+    height: int | None = None,
+    max_dimension: int | None = None,
     keep_aspect_ratio: bool = True,
-    resample_filter: Union[int, str] = "Image.BICUBIC",
+    resample_filter: int | str = "Image.BICUBIC",
     min_width: int = 1,
     min_height: int = 1,
 ) -> "Image.Image":
@@ -837,7 +828,7 @@ def resize_image(
 
 
 def truncate_tokens(
-    tokens: List[int],
+    tokens: list[int],
     max_length: int,
     tokenizer: "PreTrainedTokenizerBase",
     strategy: str = "left",
@@ -855,7 +846,7 @@ def truncate_tokens(
 
 
 def postprocess_generated_text(
-    generation: str, stop: Union[list[str], str, None], think_end_token: Optional[str]
+    generation: str, stop: list[str] | str | None, think_end_token: str | None
 ) -> str:
     """
     Post-processes the generated text by stripping stop sequences and optional thinking markers.
@@ -881,3 +872,23 @@ def postprocess_generated_text(
         generation = generation.split(think_end_token)[-1].lstrip()
 
     return generation
+
+
+def set_sampling_hf(gen_kwargs: dict[str, Any]):
+    """
+    Sets the sampling parameters for the generation function.
+    """
+    # temperature = 0.0 if not set
+    # if do_sample is false and temp==0.0:
+    # remove temperature, as do_sample=False takes care of this,
+    # and we don't want a warning from HF
+    temperature = gen_kwargs.setdefault("temperature", 0.0)
+    do_sample = gen_kwargs.get("do_sample")
+
+    if temperature == 0.0:
+        if do_sample is None:
+            gen_kwargs["do_sample"] = do_sample = False
+        if do_sample is False:
+            gen_kwargs.pop("temperature", None)
+
+    return gen_kwargs
