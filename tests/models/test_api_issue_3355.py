@@ -2,11 +2,13 @@
 Test for issue #3355: AssertionError when parse_generations returns None values
 https://github.com/EleutherAI/lm-evaluation-harness/issues/3355
 """
-import pytest
-from unittest.mock import patch, MagicMock
 
-from lm_eval.models.openai_completions import LocalChatCompletion, LocalCompletionsAPI
+from unittest.mock import patch
+
+import pytest
+
 from lm_eval.api.instance import Instance
+from lm_eval.models.openai_completions import LocalChatCompletion, LocalCompletionsAPI
 
 
 def test_generate_until_with_none_values_from_parse_generations():
@@ -74,7 +76,7 @@ def test_generate_until_with_none_values_from_parse_generations():
             # but the original code skips None values with "if generated_text is not None"
             # resulting in 2 items instead of 3, causing Collator.get_original() to fail
             with pytest.raises(AssertionError):
-                results = api.generate_until(requests, disable_tqdm=True)
+                api.generate_until(requests, disable_tqdm=True)
 
 
 def test_loglikelihood_with_none_values_from_parse_logprobs():
@@ -85,7 +87,7 @@ def test_loglikelihood_with_none_values_from_parse_logprobs():
     api = LocalCompletionsAPI(
         base_url="http://test-url.com",
         tokenizer_backend="huggingface",
-        model="EleutherAI/pythia-1b"
+        model="EleutherAI/pythia-1b",
     )
 
     # Create mock requests for loglikelihood
@@ -123,7 +125,7 @@ def test_loglikelihood_with_none_values_from_parse_logprobs():
             # This should raise AssertionError with the original code
             # because the code skips None values when appending to res
             with pytest.raises(AssertionError):
-                results = api.loglikelihood(requests, disable_tqdm=True)
+                api.loglikelihood(requests, disable_tqdm=True)
 
 
 def test_generate_until_sequential_batch_with_none():
@@ -173,4 +175,4 @@ def test_generate_until_sequential_batch_with_none():
     with patch.object(api, "model_call", side_effect=mock_model_call):
         # This should raise AssertionError with the original code
         with pytest.raises(AssertionError):
-            results = api.generate_until(requests, disable_tqdm=True)
+            api.generate_until(requests, disable_tqdm=True)
