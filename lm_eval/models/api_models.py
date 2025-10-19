@@ -659,23 +659,26 @@ class TemplateAPI(TemplateLM):
                     ),
                     cache_keys,
                 ):
-                    if answer_ is not None:
-                        res.append(answer_)
-                        # cache requests that aren't from a loglikelihood_rolling request
-                        if cache_key is not None:
-                            self.cache_hook.add_partial(
-                                "loglikelihood", cache_key, answer_
-                            )
-                        pbar.update(1)
+                    # Always append to res to maintain the correct number of items
+                    # Use a default value for failed loglikelihood computations
+                    res.append(
+                        answer_ if answer_ is not None else (-float("inf"), False)
+                    )
+                    # cache requests that aren't from a loglikelihood_rolling request
+                    if answer_ is not None and cache_key is not None:
+                        self.cache_hook.add_partial("loglikelihood", cache_key, answer_)
+                    pbar.update(1)
         else:
             inputs, ctxlens, cache_keys = self.batch_loglikelihood_requests(chunked)
-            res = itertools.chain.from_iterable(
+            results = itertools.chain.from_iterable(
                 asyncio.run(
                     self.get_batched_requests(
                         inputs, cache_keys, generate=False, ctxlens=ctxlens
                     )
                 )
             )
+            # Convert None values to default tuple to maintain consistency
+            res = [r if r is not None else (-float("inf"), False) for r in results]
 
         return re_ord.get_original(res)
 
@@ -769,17 +772,18 @@ class TemplateAPI(TemplateLM):
                     ),
                     contexts,
                 ):
-                    if generated_text is not None:
-                        res.append(generated_text)
+                    # Always append to res to maintain the correct number of items
+                    # even if generation failed (generated_text is None)
+                    res.append(generated_text if generated_text is not None else "")
 
-                        # partial caching
-                        if context is not None:
-                            self.cache_hook.add_partial(
-                                "generate_until",
-                                (context, all_gen_kwargs[0]),
-                                generated_text,
-                            )
-                            pbar.update(1)
+                    # partial caching only for successful generations
+                    if generated_text is not None and context is not None:
+                        self.cache_hook.add_partial(
+                            "generate_until",
+                            (context, all_gen_kwargs[0]),
+                            generated_text,
+                        )
+                    pbar.update(1)
         else:
             for chunk in chunked:
                 contexts, all_gen_kwargs, encodings_list = zip(*chunk)
@@ -809,7 +813,8 @@ class TemplateAPI(TemplateLM):
                         )
                     )
                 )
-                res.extend(results)
+                # Convert None values to empty strings to maintain consistency
+                res.extend(r if r is not None else "" for r in results)
 
         return re_ord.get_original(res)
 
