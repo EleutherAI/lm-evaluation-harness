@@ -1,16 +1,18 @@
+import copy
 import logging
 import os
-import copy
+from importlib.util import find_spec
 from typing import Any
+
 import torch
 import torch.nn.functional as F
-from importlib.util import find_spec
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-from transformers import AutoModelForCausalLM
+
 
 eval_logger = logging.getLogger(__name__)
+
 
 @register_model("habana")
 class HabanaLM(HFLM):
@@ -54,7 +56,7 @@ class HabanaLM(HFLM):
         self.lazy_mode = os.getenv("PT_HPU_LAZY_MODE", "0") != "0"
 
         super().__init__(backend=kwargs.pop("backend", "causal"), **kwargs)
-    
+
     def find_bucket(self, length: int, key=lambda b, length: b >= length) -> int:
         """
         Find the smallest bucket >= length, or add a new one.
@@ -65,7 +67,9 @@ class HabanaLM(HFLM):
         new_bucket = length
         self.buckets.append(new_bucket)
         self.buckets.sort()
-        eval_logger.info(f"Added new bucket: {new_bucket}. Buckets are now: {self.buckets}")
+        eval_logger.info(
+            f"Added new bucket: {new_bucket}. Buckets are now: {self.buckets}"
+        )
         return new_bucket
 
     def _model_call(self, inps: torch.Tensor) -> torch.Tensor:
@@ -84,16 +88,18 @@ class HabanaLM(HFLM):
             if self.options.use_cache and self.options.reuse_cache:
                 self._model.allocate_kv_cache(bs, bucket_length + 1, bucket_length)
             padding_length = bucket_length - seq_length
-            pad_token_id = getattr(self._model.config, 'pad_token_id', 0)
+            pad_token_id = getattr(self._model.config, "pad_token_id", 0)
             inps = F.pad(inps, (0, padding_length), value=pad_token_id)
-            eval_logger.debug(f"Padded input from {seq_length} to {bucket_length} (pad={padding_length})")
-        logits = super()._model_call(inps)    
+            eval_logger.debug(
+                f"Padded input from {seq_length} to {bucket_length} (pad={padding_length})"
+            )
+        logits = super()._model_call(inps)
 
         if self.options.static_shapes and padding_length > 0:
             logits = logits[:, :-padding_length, :]
         return logits
 
-    def setup_generation_config_gaudi(self,  **kwargs):
+    def setup_generation_config_gaudi(self, **kwargs):
         """
         Add to the model config Intel Gaudi specific args.
         """
@@ -111,12 +117,20 @@ class HabanaLM(HFLM):
         generation_config.attn_batch_split = kwargs.pop("attn_batch_split", 1)
         generation_config.limit_hpu_graphs = kwargs.pop("limit_hpu_graphs", True)
         generation_config.sdp_on_bf16 = kwargs.pop("sdp_on_bf16", False)
-        generation_config.clear_hpu_graphs_cache = kwargs.pop("clear_hpu_graphs_cache", True)
+        generation_config.clear_hpu_graphs_cache = kwargs.pop(
+            "clear_hpu_graphs_cache", True
+        )
         generation_config.use_flex_attention = kwargs.pop("use_flex_attention", True)
         generation_config.use_flash_attention = kwargs.pop("use_flash_attention", True)
-        generation_config.flash_attention_recompute = kwargs.pop("flash_attention_recompute", True)
-        generation_config.flash_attention_causal_mask = kwargs.pop("flash_attention_causal_mask", True)
-        generation_config.flash_attention_fast_softmax = kwargs.pop("flash_attention_fast_softmax", True)
+        generation_config.flash_attention_recompute = kwargs.pop(
+            "flash_attention_recompute", True
+        )
+        generation_config.flash_attention_causal_mask = kwargs.pop(
+            "flash_attention_causal_mask", True
+        )
+        generation_config.flash_attention_fast_softmax = kwargs.pop(
+            "flash_attention_fast_softmax", True
+        )
         generation_config.reuse_cache = kwargs.pop("reuse_cache", True)
         generation_config.ignore_eos = kwargs.pop("ignore_eos", False)
         return generation_config, kwargs
@@ -127,28 +141,40 @@ class HabanaLM(HFLM):
         """
         if not find_spec("optimum"):
             raise ModuleNotFoundError(
-                "package `optimum-habana` is not installed. Please install it via `pip install optimum[habana]`"
+                "package `optimum-habana` is not installed. Please install it via `pip install --upgrade-strategy eager optimum[habana]`"
             )
         else:
-            from optimum.habana.transformers.modeling_utils import adapt_transformers_to_gaudi
+            from optimum.habana.transformers.modeling_utils import (
+                adapt_transformers_to_gaudi,
+            )
+
             adapt_transformers_to_gaudi()
         super()._create_model(*args, **kwargs)
         self.options, kwargs = self.setup_generation_config_gaudi(**kwargs)
-        self.model_inputs = {"use_cache": self.options.use_cache,
-                             "reuse_cache": self.options.reuse_cache,
-                             "attn_softmax_bf16": self.options.attn_softmax_bf16,
-                             "use_flash_attention": self.options.use_flash_attention,
-                             "flash_attention_recompute": self.options.flash_attention_recompute,
-                             "flash_attention_causal_mask": self.options.flash_attention_causal_mask,
-                             "flash_attention_fast_softmax": self.options.flash_attention_fast_softmax,
-                             "use_flex_attention": self.options.use_flex_attention}
+        self.model_inputs = {
+            "use_cache": self.options.use_cache,
+            "reuse_cache": self.options.reuse_cache,
+            "attn_softmax_bf16": self.options.attn_softmax_bf16,
+            "use_flash_attention": self.options.use_flash_attention,
+            "flash_attention_recompute": self.options.flash_attention_recompute,
+            "flash_attention_causal_mask": self.options.flash_attention_causal_mask,
+            "flash_attention_fast_softmax": self.options.flash_attention_fast_softmax,
+            "use_flex_attention": self.options.use_flex_attention,
+        }
 
         if self.lazy_mode:
             from habana_frameworks.torch.hpu import wrap_in_hpu_graph
+
             self._model = wrap_in_hpu_graph(self._model)
             eval_logger.info("Model wrapped in HPU graph.")
-    
-    def _model_generate(self, context: torch.Tensor, max_length: int, stop: list[str], **generation_kwargs: Any) -> torch.Tensor:
+
+    def _model_generate(
+        self,
+        context: torch.Tensor,
+        max_length: int,
+        stop: list[str],
+        **generation_kwargs: Any,
+    ) -> torch.Tensor:
         """
         Generate tokens using the model, handling static shape padding and HPU specifics.
         """
@@ -163,13 +189,17 @@ class HabanaLM(HFLM):
             bucket_length = self.find_bucket(context.shape[1])
             padding_length = bucket_length - context.shape[1]
             max_gen_toks = max_length - context.shape[1]
-            if padding_length > 0 and getattr(self, 'lazy_mode', False):
-                context = F.pad(context, (0, padding_length), value=self.tokenizer.pad_token_id)
+            if padding_length > 0 and getattr(self, "lazy_mode", False):
+                context = F.pad(
+                    context, (0, padding_length), value=self.tokenizer.pad_token_id
+                )
                 generation_kwargs["attention_mask"] = F.pad(
                     generation_kwargs["attention_mask"], (0, padding_length), value=0
                 )
         context = context.to(self.device)
-        generation_kwargs["attention_mask"] = generation_kwargs["attention_mask"].to(self.device)
+        generation_kwargs["attention_mask"] = generation_kwargs["attention_mask"].to(
+            self.device
+        )
         with torch.autocast(
             device_type=str(self.device),
             dtype=self.mixed_precision_dtype,
@@ -180,7 +210,7 @@ class HabanaLM(HFLM):
                 max_new_tokens=max_gen_toks,
                 pad_token_id=self.tokenizer.pad_token_id,
                 use_cache=True,
-                hpu_graphs=getattr(self, 'lazy_mode', False), #To Simplify
-                lazy_mode=getattr(self, 'lazy_mode', False),
+                hpu_graphs=getattr(self, "lazy_mode", False),  # To Simplify
+                lazy_mode=getattr(self, "lazy_mode", False),
                 **generation_kwargs,
             )
