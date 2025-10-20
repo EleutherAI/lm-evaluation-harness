@@ -773,8 +773,7 @@ class TemplateAPI(TemplateLM):
                     # even if generation failed (generated_text is None)
                     if generated_text is None:
                         eval_logger.warning(
-                            "API returned null content. Check reasoning_content field or generation limits. "
-                            f"Context: {context[:50] if context else 'N/A'}..."
+                            "API returned null content. Check reasoning_content field or generation limits..."
                         )
                         res.append("")
                     else:
