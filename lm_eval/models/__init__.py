@@ -13,6 +13,7 @@ from . import (
     neuron_optimum,
     openai_completions,
     optimum_ipex,
+    optimum_habana,
     optimum_lm,
     sglang_causallms,
     sglang_generate_API,

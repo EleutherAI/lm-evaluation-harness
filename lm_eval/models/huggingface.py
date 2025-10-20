@@ -137,11 +137,13 @@ class HFLM(TemplateLM):
                 gpus = torch.npu.device_count()
             elif "xpu" in device_type:
                 gpus = torch.xpu.device_count()
+            elif "hpu" in device_type:
+                gpus = torch.hpu.device_count()
             else:
                 # Fallback to CUDA count for compatibility
                 gpus = torch.cuda.device_count()
 
-            # using one process with no model parallelism
+	        # using one process with no model parallelism
             if not (parallelize or accelerator.num_processes > 1):
                 # use user-passed device
                 device_list = set(
@@ -150,6 +152,7 @@ class HFLM(TemplateLM):
                     + ["mps", "mps:0"]
                     + [f"npu:{i}" for i in range(gpus)]
                     + [f"xpu:{i}" for i in range(gpus)]
+		                + [f"hpu:{i}" for i in range(gpus)]
                 )
                 if device and device in device_list:
                     self._device = torch.device(device)
