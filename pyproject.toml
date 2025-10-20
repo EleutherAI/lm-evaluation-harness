@@ -102,7 +102,7 @@ plugins.md034.enabled = false # no-bare-urls
 target-version = "py39"
 lint.extend-select = ["I", "UP", "E", "C419", "F", "B", "SIM", "RUF034", "W605", "FURB"]
 lint.fixable = ["I001", "F401", "UP"]
-lint.ignore = ["E402", "E731", "E501", "E111", "E114", "E117", "E741"]
+lint.ignore = ["E402", "E731", "E501", "E111", "E114", "E117", "E741", "E701"]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401", "F402", "F403", "F405"]
