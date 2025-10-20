@@ -659,26 +659,23 @@ class TemplateAPI(TemplateLM):
                     ),
                     cache_keys,
                 ):
-                    # Always append to res to maintain the correct number of items
-                    # Use a default value for failed loglikelihood computations
-                    res.append(
-                        answer_ if answer_ is not None else (-float("inf"), False)
-                    )
-                    # cache requests that aren't from a loglikelihood_rolling request
-                    if answer_ is not None and cache_key is not None:
-                        self.cache_hook.add_partial("loglikelihood", cache_key, answer_)
-                    pbar.update(1)
+                    if answer_ is not None:
+                        res.append(answer_)
+                        # cache requests that aren't from a loglikelihood_rolling request
+                        if cache_key is not None:
+                            self.cache_hook.add_partial(
+                                "loglikelihood", cache_key, answer_
+                            )
+                        pbar.update(1)
         else:
             inputs, ctxlens, cache_keys = self.batch_loglikelihood_requests(chunked)
-            results = itertools.chain.from_iterable(
+            res = itertools.chain.from_iterable(
                 asyncio.run(
                     self.get_batched_requests(
                         inputs, cache_keys, generate=False, ctxlens=ctxlens
                     )
                 )
             )
-            # Convert None values to default tuple to maintain consistency
-            res = [r if r is not None else (-float("inf"), False) for r in results]
 
         return re_ord.get_original(res)
 
