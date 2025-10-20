@@ -5,14 +5,15 @@ from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from lm_eval.api.task import Task
+from lm_eval.api.task_old import ConfigurableTask
 from lm_eval.tasks.factory import TaskFactory
 from lm_eval.tasks.index import Entry, Kind, TaskIndex
 from lm_eval.utils import setup_logging
 
 
 if TYPE_CHECKING:
-    from lm_eval.api.task import Task
+    Task = ConfigurableTask
+    # from lm_eval.api.task import Task
 
 
 class TaskManager:

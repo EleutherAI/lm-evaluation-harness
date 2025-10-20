@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import ast
+import functools
 from functools import wraps
 from inspect import getsource
 from typing import Any, Callable, TypeVar
+
+from frozendict import frozendict
+
+from lm_eval import utils
 
 
 T = TypeVar("T")
@@ -36,6 +42,11 @@ def maybe_serialize(
     )
 
 
+def create_choices(choices: list[str], choice_delimiter: str = "\n") -> list[str]:
+    """Creates a question format from a list of choices."""
+    return [f"{chr(65 + i)}" for i, _ in enumerate(choices)]
+
+
 def create_mc_choices(choices: list[str], choice_delimiter: str = "\n") -> str:
     """Creates a multiple-choice question format from a list of choices."""
     formatted_choices = [f"{chr(65 + i)}. {choice}" for i, choice in enumerate(choices)]
@@ -54,3 +65,53 @@ def doc_to_closure(fn: Callable[..., T]) -> Callable[..., T]:
         return fn(*args, **kwargs)
 
     return closure
+
+
+from frozendict import frozendict
+
+
+def freezeargs(func):
+    """Convert a mutable dictionary into immutable.
+    Useful to be compatible with cache
+    """
+
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        args = (frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
+        kwargs = {
+            k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()
+        }
+        return func(*args, **kwargs)
+
+    return wrapped
+
+
+def process_field(
+    doc: dict[str, str],
+    field_spec: Any,
+    digits: bool = False,
+    lists: bool = False,
+    allow_ast: bool = False,
+    default: Any | None = None,
+):
+    """Processes a field from a document."""
+    # fmt: off
+    match field_spec:
+        case None: return default
+        case int(): return field_spec
+        case func if callable(field_spec): return func(doc)
+        case str() if field_spec in doc: return doc[field_spec]
+    # fmt: on
+
+    target_string = utils.apply_template(field_spec, doc)
+    if lists:
+        # TODO: fix sequence
+        if isinstance(target_string, list) and any(
+            x in ["{", "}", "(", ")", "[", "]"] for x in target_string
+        ):
+            return [utils.apply_template(x, doc) for x in target_string]
+        return ast.literal_eval(target_string)
+    elif digits:
+        return int(target_string) if target_string.isdigit() else target_string
+
+    return target_string or default

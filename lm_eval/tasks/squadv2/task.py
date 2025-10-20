@@ -21,7 +21,7 @@ import datasets
 from packaging import version
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task_old import ConfigurableTask
 
 
 _CITATION = """

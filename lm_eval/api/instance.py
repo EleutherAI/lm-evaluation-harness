@@ -1,10 +1,20 @@
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 
 
 OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
+
+
+class LLArgs(NamedTuple):
+    ctx: str
+    cont: str | None
+
+
+class GenArgs(NamedTuple):
+    prompt: str | list[dict[str, str]]
+    gen_kwargs: dict[str, Any]
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,12 +57,12 @@ class Instance:
 
 
 class MCInstance(Instance):
-    arguments: tuple[str, str]
+    arguments: LLArgs
     target: int
     request_type = "loglikelihood"
 
 
 class GenInstance(Instance):
-    arguments: tuple[str, dict[str, Any]] | tuple[list[dict[str, str]], dict[str, Any]]
+    arguments: GenArgs
     target: str
     request_type = "generate_until"

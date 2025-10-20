@@ -476,10 +476,9 @@ def register_metric(**kw):
                 else _no_aggregation_fn
             ),
             higher_is_better=kw.get("higher_is_better", True),
-            output_type=kw.get("output_type"),
+            output_type=kw.get("output_type", "generate_until"),
             requires=kw.get("requires"),
             hf_evaluate=kw.get("hf_evaluate", False),
-            is_elementwise=kw.get("is_elementwise", True),
         )
         metric_registry.register(name, lazy=config)
         _metric_meta[name] = kw

@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
@@ -42,11 +42,11 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: list[type[Filter]]
+    filters: list[Callable[..., Filter]]
 
     def apply(self, instances: list[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
-        resps, docs = list(resps), list(docs)
+        # resps, docs = list(resps), list(docs)
 
         for f in self.filters:
             # apply filters in sequence

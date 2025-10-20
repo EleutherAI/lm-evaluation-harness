@@ -10,7 +10,7 @@ from transformers import AutoTokenizer
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 
 
 _CITATION = """
@@ -112,7 +112,7 @@ def _num_cpu_cores():
         return len(os.sched_getaffinity(0))
 
 
-class _SCROLLSTask(ConfigurableTask):
+class _SCROLLSTask(Task):
     VERSION = 2
     DATASET_PATH = "tau/scrolls"
     DATASET_NAME = None

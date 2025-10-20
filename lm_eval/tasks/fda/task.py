@@ -4,10 +4,10 @@ from typing import List
 import numpy as np
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 
 
-class FDA(ConfigurableTask):
+class FDA(Task):
     VERSION = 0
     DATASET_PATH = "hazyresearch/based-fda"
     DATASET_NAME = "default"
@@ -93,7 +93,7 @@ class FDA(ConfigurableTask):
         }
 
 
-def contains_score(prediction: str, labels: List[str]):
+def contains_score(prediction: str, labels: list[str]):
     return max(
         int(bool(re.search(re.compile(re.escape(label), re.IGNORECASE), prediction)))
         for label in labels

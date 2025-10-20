@@ -576,11 +576,11 @@ def evaluate(
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
-            cloned_reqs.extend([req] * req.repeats)
+            cloned_reqs.extend([req])
 
         if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
             for _ in range(padding_requests[reqtype]):
-                cloned_reqs.extend([req] * req.repeats)
+                cloned_reqs.extend(req)
 
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
@@ -598,18 +598,20 @@ def evaluate(
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
-        task.apply_filters()
+        instances = task.apply_filters().instances
+        instances_by_doc_id = task.sort_instances(instances)
+        # results = task._compute_metrics(instances_by_doc_id)
 
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
         # Pre-process task.instances to group by doc_id
-        instances_by_doc_id = defaultdict(list)
-        for instance in task.instances:
-            instances_by_doc_id[instance.doc_id].append(instance)
-        # Sort instances within each group
-        for instances in instances_by_doc_id.values():
-            instances.sort(key=lambda x: x.idx)
+        # instances_by_doc_id = defaultdict(list)
+        # for instance in task.instances:
+        #     instances_by_doc_id[instance.doc_id].append(instance)
+        # # Sort instances within each group
+        # for instances in instances_by_doc_id.values():
+        #     instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
             indices = (

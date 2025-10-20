@@ -3,25 +3,39 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable
 
 import datasets
 
 from lm_eval.api.filter import FilterEnsemble
-from lm_eval.api.instance import OutputType
+from lm_eval.api.instance import Instance, OutputType
 from lm_eval.config.metric import MetricConfig
+from lm_eval.config.template import Template, init_template
 from lm_eval.config.utils import maybe_serialize
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from typing import Any
+
+    import datasets
+
     from lm_eval.api.samplers import ContextSampler
-    from lm_eval.api.task import Task
-    from lm_eval.config.template import TemplateConfig
+
+    # from lm_eval.api.task import Task
+
+    DataSet = datasets.Dataset | Iterable[dict[str, Any]]
+    DSplits = dict[str, DataSet]
 
 eval_logger = logging.getLogger(__name__)
 
-DataSet = Union[datasets.Dataset, Iterable[dict[str, Any]]]
-DSplits = dict[str, DataSet]
+
+ALL_OUTPUT_TYPES = [
+    "loglikelihood",
+    "multiple_choice",
+    "loglikelihood_rolling",
+    "generate_until",
+]
 
 
 @dataclass
@@ -40,6 +54,31 @@ class FilterConfig:
     name: str
     ensemble: FilterEnsemble
     metric_list: list[MetricConfig]
+
+    def _compute_metrics(self, instances: dict[str, list[Instance]]) -> dict[str, Any]:
+        """Compute metrics for a single filter pipeline."""
+        res = {}
+        for metric in self.metric_list:
+            for _, instance in instances.items():
+                res[metric.name] = metric.fn(
+                    (
+                        instance[0].doc,
+                        [instance.filtered_resps[self.name] for instance in instance],
+                    ),
+                )
+                # res[f"{self.name}_{metric.name}"] = metric.fn(
+                #     instance=instances[0],
+                #     filtered_resps={
+                #         instance.name: instance.filtered_resps[self.name]
+                #         for instance in instances
+                #     },
+                #     **metric.kwargs,
+                # )
+            #
+            # [res[metric.name] = metric.fn(
+            #     instance[0].doc, [instance.filtered_resps[self.name] for instance in instance]
+            # ) for instance in instances.values()]
+        return res
 
 
 @dataclass
@@ -108,7 +147,7 @@ class FewshotConfig:
             return self.sampler
 
     def init_sampler(
-        self, docs: list[dict], task: Task, rnd=None, fewshot_indices=None
+        self, docs: list[dict] = None, rnd=None, fewshot_indices=None
     ) -> ContextSampler:
         """Initialize the sampler with the given documents and task."""
         if rnd is None:
@@ -124,7 +163,7 @@ class FewshotConfig:
         )  # type: ignore
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TaskConfig:
     # task naming/registry
     task: str | None = None
@@ -133,7 +172,7 @@ class TaskConfig:
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Callable[..., DataSet] | None = None
+    custom_dataset: Callable[..., DSplits] | None = None
     dataset_path: str | None = None
     dataset_name: str | None = None
     dataset_kwargs: dict | None = field(default_factory=dict)
@@ -141,6 +180,7 @@ class TaskConfig:
     validation_split: str | None = None
     test_split: str | None = None
     fewshot_split: str | None = None
+    template: Template | None = None
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Callable[[DataSet], DataSet] | None = None
@@ -183,6 +223,13 @@ class TaskConfig:
 
     def __post_init__(self) -> None:
         ### ---setup generation kwargs--- ###
+        if self.output_type is not None:
+            if self.output_type not in ALL_OUTPUT_TYPES:
+                raise ValueError(
+                    f"Got invalid output_type '{self.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
+                )
+            self.OUTPUT_TYPE = self.output_type
+
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -224,6 +271,11 @@ class TaskConfig:
             process_docs=_fewshot_cfg.get("process_docs", None),
             fewshot_indices=_fewshot_cfg.get("fewshot_indices", None),
         )
+        self.template = init_template(self.template)
+        if self.template:
+            self.doc_to_text = self.template.question or self.doc_to_text
+            self.doc_to_target = self.template.target or self.doc_to_target
+            self.doc_to_choice = self.template.choices or self.doc_to_choice
 
     def _get_metric(self, metric_list: list[dict] | None = None) -> list[MetricConfig]:
         from lm_eval.api.registry import (
@@ -366,70 +418,6 @@ class TaskConfig:
         """Create a TaskConfig instance from a YAML-like dictionary."""
         fn = {k: v for k, v in data.items() if callable(v)}
         return cls(**data, _fn=fn)
-
-    @classmethod
-    def from_template(cls, template: TemplateConfig, **kwargs) -> TaskConfig:
-        """Create a TaskConfig instance from a template.
-
-        Args:
-            template: TemplateConfig instance (MCQTemplateConfig or ClozeTemplateConfig)
-            **kwargs: Additional arguments to override template defaults
-
-        Returns:
-            TaskConfig instance configured from the template
-        """
-        from lm_eval.config.template import (
-            ClozeTemplateConfig,
-            MCQTemplateConfig,
-        )
-
-        # Extract base configuration from template
-        config_dict = {
-            "task": template.task,
-            "doc_to_text": template.doc_to_text,
-            "doc_to_choice": template.doc_to_choice,
-            "doc_to_target": template.doc_to_target,
-            "description": template.description,
-            "target_delimiter": template.target_delimiter,
-            "fewshot_delimiter": template.fewshot_delimiter,
-            "metric_list": template.metric_list,
-        }
-
-        # Add common template attributes if they exist
-        if hasattr(template, "answer_suffix"):
-            config_dict["target_delimiter"] = (
-                template.answer_suffix + template.target_delimiter
-            )
-
-        # Handle template-specific configurations
-        if isinstance(template, MCQTemplateConfig):
-            # For MCQ templates, set up multiple choice specific config
-            config_dict["output_type"] = "multiple_choice"
-
-            # MCQ templates typically use accuracy metrics
-            if template.metric_list is None:
-                config_dict["metric_list"] = [{"metric": "acc"}]
-
-        elif isinstance(template, ClozeTemplateConfig):
-            # For Cloze templates, set up generation config
-            config_dict["output_type"] = "generate_until"
-
-            # Cloze templates typically use accuracy and normalized accuracy
-            if template.metric_list is None:
-                config_dict["metric_list"] = [{"metric": "acc"}, {"metric": "acc_norm"}]
-        else:
-            # Generic template - try to infer output type
-            if hasattr(template, "template"):
-                if template.template == "mcq":
-                    config_dict["output_type"] = "multiple_choice"
-                elif template.template == "cloze":
-                    config_dict["output_type"] = "generate_until"
-
-        # Override with any user-provided kwargs
-        config_dict.update(kwargs)
-
-        # Create and return TaskConfig instance
-        return cls(**config_dict)
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         def _ser(x):

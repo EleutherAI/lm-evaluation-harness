@@ -51,7 +51,7 @@ class ContextSampler:
             else self.remove_doc(doc, self.rnd.sample(self.docs, n + 1))
         )
 
-    def set_rnd(self, rnd: int) -> None:
+    def set_rnd(self, rnd: int | None) -> None:
         self.rnd = Random(rnd)
 
     @staticmethod

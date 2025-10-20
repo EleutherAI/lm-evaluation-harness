@@ -3,7 +3,7 @@ import logging
 import math
 import pathlib
 import sys
-from typing import List, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
@@ -11,9 +11,11 @@ from lm_eval.api.metrics import (
     pooled_sample_stderr,
     stderr_for_metric,
 )
-from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.utils import positional_deprecated
 
+
+if TYPE_CHECKING:
+    from lm_eval.api.task import Task
 
 eval_logger = logging.getLogger(__name__)
 
@@ -57,7 +59,7 @@ class TaskOutput:
         group_alias=None,
         is_group=None,
     ):
-        self.task: Union[Task, ConfigurableTask] = task
+        self.task: Task = task
         self.task_config = task_config
         self.task_name = task_name
         self.group_name = group_name
@@ -138,7 +140,7 @@ class TaskOutput:
         )
 
 
-def get_task_list(task_dict: dict) -> List[TaskOutput]:
+def get_task_list(task_dict: dict) -> list[TaskOutput]:
     outputs = []
     for task_name, task_obj in task_dict.items():
         if isinstance(task_obj, dict):
@@ -153,7 +155,6 @@ def get_task_list(task_dict: dict) -> List[TaskOutput]:
 
 def get_subtask_list(task_dict, task_root=None, depth=0):
     from lm_eval.api.group import GroupConfig
-    from lm_eval.api.task import Task
 
     subtask_list = {}
     for group_obj, task_obj in task_dict.items():
@@ -177,6 +178,9 @@ def get_subtask_list(task_dict, task_root=None, depth=0):
 
             subtask_list = {**subtask_list, **_subtask_list}
         else:
+            # Import task_v3.Task for isinstance check
+            from lm_eval.api.task import Task
+
             if isinstance(task_obj, GroupConfig):
                 # group_or_task_name = task_obj.group
                 group_or_task_name = task_obj.group
@@ -212,7 +216,7 @@ def print_writeout(task) -> None:
             eval_logger.info(f"Request: {str(inst)}")
 
 
-def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
+def get_sample_size(task, limit: int | None) -> int | None:
     if limit is not None:
         limit = (
             int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
@@ -225,7 +229,7 @@ def prepare_print_tasks(
     results: dict,
     task_depth=0,
     group_depth=0,
-) -> Tuple[dict, dict]:
+) -> tuple[dict, dict]:
     from lm_eval.api.task import Task
 
     """
@@ -270,6 +274,9 @@ def prepare_print_tasks(
             from_configurable_group = True
             task_or_group_obj = _sort_task_dict(task_or_group_obj)
         elif isinstance(task_or_group_name, str):
+            # Import task_v3.Task for isinstance check
+            from lm_eval.api.task import Task
+
             name = task_or_group_name
             if isinstance(task_or_group_obj, Task):
                 # string_name = task_or_group_obj.task_name
@@ -316,8 +323,8 @@ def prepare_print_tasks(
 
 
 def consolidate_results(
-    eval_tasks: List[TaskOutput],
-) -> Tuple[dict, dict, dict, dict, dict, dict]:
+    eval_tasks: list[TaskOutput],
+) -> tuple[dict, dict, dict, dict, dict, dict]:
     """
     @param eval_tasks: list(TaskOutput).
     @return: A tuple containing the consolidated results, samples, configs, versions, and num_fewshot.
@@ -384,7 +391,7 @@ def consolidate_group_results(
     task_root=None,
     show_group_table=False,
     task_aggregation_list=None,
-) -> Tuple[dict, dict, bool, Union[None,]]:
+) -> tuple[dict, dict, bool, None]:
     """
     (Recursively) calculates groups' aggregated metrics and updates the results and versions dictionaries with this info.
 
@@ -401,7 +408,6 @@ def consolidate_group_results(
     In the top-level invocation of this function, task_aggregation_list is ignored.
     """
     from lm_eval.api.group import GroupConfig
-    from lm_eval.api.task import Task
 
     if task_root is None:
         task_root = {}
@@ -416,6 +422,9 @@ def consolidate_group_results(
             group_or_task = group_or_task.group
         else:
             group_config = None
+
+        # Import task_v3.Task for isinstance check
+        from lm_eval.api.task import Task
 
         if isinstance(group_or_task_info, Task):
             if task_root:
@@ -540,7 +549,7 @@ def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
 
 
 @positional_deprecated
-def run_task_tests(task_list: List[str]):
+def run_task_tests(task_list: list[str]):
     """
     Find the package root and run the tests for the given tasks
     """

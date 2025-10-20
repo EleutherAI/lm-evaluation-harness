@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task_old import ConfigurableTask
 
 
 class SWDE(ConfigurableTask):

@@ -1,14 +1,13 @@
 import re
 from copy import deepcopy
-from typing import List
 
 import numpy as np
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 
 
-class SQUADCompletion(ConfigurableTask):
+class SQUADCompletion(Task):
     VERSION = 0
     DATASET_PATH = "hazyresearch/based-squad"
     DATASET_NAME = "default"
@@ -28,10 +27,10 @@ class SQUADCompletion(ConfigurableTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc, **kwargs):
         return doc["text"]
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc, **kwargs):
         return doc["value"]
 
     def construct_requests(
@@ -96,7 +95,7 @@ class SQUADCompletion(ConfigurableTask):
         }
 
 
-def contains_score(prediction: str, labels: List[str]):
+def contains_score(prediction: str, labels: list[str]):
     return max(
         int(bool(re.search(re.compile(re.escape(label), re.IGNORECASE), prediction)))
         for label in labels

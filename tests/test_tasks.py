@@ -5,7 +5,7 @@ import datasets
 import pytest
 
 import lm_eval.tasks as tasks
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import get_task_list
 
 from .utils import new_tasks
@@ -29,9 +29,9 @@ def get_new_tasks_else_default():
     return task_classes if task_classes else TASKS
 
 
-def task_class(task_names=None, task_manager=None) -> list[ConfigurableTask]:
+def task_class(task_names=None, task_manager=None) -> list[Task]:
     """
-    Convert a list of task names to a list of ConfigurableTask instances
+    Convert a list of task names to a list of Task instances
     """
     if task_manager is None:
         task_manager = tasks.TaskManager()
@@ -56,14 +56,14 @@ class TestBaseTasks:
     Base class for testing tasks
     """
 
-    def test_download(self, task_class: ConfigurableTask):
+    def test_download(self, task_class: Task):
         task_class.download()
         assert task_class.dataset is not None
 
-    def test_has_training_docs(self, task_class: ConfigurableTask):
+    def test_has_training_docs(self, task_class: Task):
         assert task_class.has_training_docs() in [True, False]
 
-    def test_check_training_docs(self, task_class: ConfigurableTask):
+    def test_check_training_docs(self, task_class: Task):
         if task_class.has_training_docs():
             assert task_class._config["training_split"] is not None
 
@@ -183,7 +183,7 @@ class TestUnitxtTasks(TestBaseTasks):
       https://www.unitxt.ai/en/latest/docs/lm_eval.html
     """
 
-    def test_check_training_docs(self, task_class: ConfigurableTask):
+    def test_check_training_docs(self, task_class: Task):
         if task_class.has_training_docs:
             assert task_class.dataset["train"] is not None
 

@@ -6,7 +6,9 @@ from copy import deepcopy
 from typing import Any
 
 from lm_eval.api.group import GroupConfig
-from lm_eval.api.task import ConfigurableTask, Task  # noqa: F401  (typing)
+
+# from lm_eval.api.task import ConfigurableTask, Task  # noqa: F401  (typing)
+from lm_eval.api.task import Task
 from lm_eval.tasks._config_loader import load_yaml as load_cfg
 from lm_eval.tasks.index import Entry, Kind
 
@@ -17,7 +19,10 @@ load_cfg_cached = load_cfg  # type: ignore[no-redef]
 class TaskFactory:
     """
     Turns a *Entry* (plus optional overrides) into a
-    *Task* | *ConfigurableTask* | *GroupConfig* hierarchy.
+    *Task* (from task_v3) | *ConfigurableTask* | *GroupConfig* hierarchy.
+
+    For YAML tasks, uses the task_v3.Task builder pattern to automatically
+    select the appropriate Task subclass based on output_type.
     """
 
     def __init__(self, *, meta: dict[str, Any] | None = None):
@@ -50,12 +55,11 @@ class TaskFactory:
         if "class" in cfg:  # PY_TASK route
             cls = cfg["class"]
             obj = cls(config=cfg) if _ctor_accepts_config(cls) else cls()
-            if isinstance(obj, ConfigurableTask):
+            if hasattr(obj, "config") and hasattr(obj.config, "task"):
                 obj.config.task = entry.name
             return obj
 
-        # YAML task
-        return ConfigurableTask(config=cfg)  # type: ignore[arg-type]
+        return Task.from_config(cfg)  # type: ignore[arg-type]
 
     def _build_group(
         self,
@@ -108,7 +112,9 @@ class TaskFactory:
         if entry.yaml_path:
             cfg = deepcopy(load_cfg_cached(entry.yaml_path, resolve_func=True))
         else:
-            cfg = {"metadata": {"config": "unknown"}}  # python task without YAML
+            cfg: dict[str, Any] = {
+                "metadata": {"config": "unknown"}
+            }  # python task without YAML
 
         if overrides:
             cfg = {**cfg, **overrides}

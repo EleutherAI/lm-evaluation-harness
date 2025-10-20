@@ -15,14 +15,14 @@ class MetricConfig:
     """
 
     name: str
-    fn: Callable | None = None  # Made optional for registry compatibility
+    fn: Callable = lambda x: x
     kwargs: Mapping[str, Any] = field(default_factory=dict)
-    aggregation_fn: Callable | None = None
+    aggregation_fn: Callable = lambda x: x
+    is_bypass: bool = False
     higher_is_better: bool = True
     hf_evaluate: bool = False
-    is_elementwise: bool = True
-    output_type: str | None = None  # Added from MetricSpec
-    requires: list[str] | None = None  # Added from MetricSpec
+    output_type: str = "generate_until"
+    requires: list[str] | None = None
 
     # Backward compatibility aliases
     @property

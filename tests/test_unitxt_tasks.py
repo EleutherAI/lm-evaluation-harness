@@ -3,7 +3,7 @@ from itertools import islice
 import pytest
 
 from lm_eval import tasks as tasks
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task_old import ConfigurableTask
 from tests.test_tasks import BaseTasks, task_class
 
 
