@@ -771,7 +771,14 @@ class TemplateAPI(TemplateLM):
                 ):
                     # Always append to res to maintain the correct number of items
                     # even if generation failed (generated_text is None)
-                    res.append(generated_text if generated_text is not None else "")
+                    if generated_text is None:
+                        eval_logger.warning(
+                            "API returned null content. Check reasoning_content field or generation limits. "
+                            f"Context: {context[:50] if context else 'N/A'}..."
+                        )
+                        res.append("")
+                    else:
+                        res.append(generated_text)
 
                     # partial caching only for successful generations
                     if generated_text is not None and context is not None:
@@ -811,7 +818,14 @@ class TemplateAPI(TemplateLM):
                     )
                 )
                 # Convert None values to empty strings to maintain consistency
-                res.extend(r if r is not None else "" for r in results)
+                for r in results:
+                    if r is None:
+                        eval_logger.warning(
+                            "API returned null content. Check reasoning_content field or generation limits."
+                        )
+                        res.append("")
+                    else:
+                        res.append(r)
 
         return re_ord.get_original(res)
 
