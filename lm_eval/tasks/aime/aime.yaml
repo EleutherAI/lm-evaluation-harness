@@ -9,6 +9,7 @@ fewshot_split: train
 test_split: train
 doc_to_text: "Question: {{Question}}\nAnswer:"
 doc_to_target: "{{Answer}}"
+process_results: !function utils.process_results
 metric_list:
   - metric: exact_match
     aggregation: mean
