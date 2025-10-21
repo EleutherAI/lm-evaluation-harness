@@ -1,0 +1,7 @@
+group: longbench_e_synthetic
+group_alias: "Synthetic Tasks (LongBench-E)"
+task:
+  - longbench_passage_count_e
+  - longbench_passage_retrieval_en_e
+metadata:
+  version: 0.0

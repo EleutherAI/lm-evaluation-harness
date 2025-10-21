@@ -1,0 +1,7 @@
+group: longbench_e_summarization
+group_alias: "Summarization (LongBench-E)"
+task:
+  - longbench_gov_report_e
+  - longbench_multi_news_e
+metadata:
+  version: 0.0

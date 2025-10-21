@@ -1,0 +1,7 @@
+group: longbench_e_code
+group_alias: "Code Completion (LongBench-E)"
+task:
+  - longbench_lcc_e
+  - longbench_repobench-p_e
+metadata:
+  version: 0.0

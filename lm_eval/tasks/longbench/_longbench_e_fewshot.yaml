@@ -1,0 +1,8 @@
+group: longbench_e_fewshot
+group_alias: "Few-shot Learning (LongBench-E)"
+task:
+  - longbench_trec_e
+  - longbench_triviaqa_e
+  - longbench_samsum_e
+metadata:
+  version: 0.0

@@ -1,0 +1,7 @@
+group: longbench_e_multi
+group_alias: "Multi-Document QA (LongBench-E)"
+task:
+  - longbench_hotpotqa_e
+  - longbench_2wikimqa_e
+metadata:
+  version: 0.0
