@@ -71,7 +71,7 @@ japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
-math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
+math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]", "pylatexenc"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 neuronx = ["optimum[neuronx]"]
 optimum = ["optimum[openvino]"]
