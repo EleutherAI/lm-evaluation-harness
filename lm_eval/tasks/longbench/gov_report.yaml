@@ -8,15 +8,15 @@ test_split: test
 dataset_name: gov_report
 doc_to_text: "You are given a report by a government agency. Write a one-page summary of the report.\n\nReport:\n{{context}}\n\nNow, write a one-page summary of the report.\n\nSummary:"
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_rouge_score
+process_results: !function metrics.get_score_rouge
 generation_kwargs:
   max_gen_toks: 512
   temperature: 1
   do_sample: False
   until: []
 metric_list:
-  - metric: "rouge_score"
+  - metric: "score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

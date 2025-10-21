@@ -2,10 +2,11 @@ group: longbench_summarization
 group_alias: "Summarization"
 task:
   - longbench_gov_report
-  - longbench_gov_report_e
   - longbench_qmsum
   - longbench_multi_news
-  - longbench_multi_news_e
   - longbench_vcsum
+aggregate_metric_list:
+  - metric: score
+    weight_by_size: False
 metadata:
   version: 0.0

@@ -3,5 +3,8 @@ group_alias: "Single-Document QA (LongBench-E)"
 task:
   - longbench_qasper_e
   - longbench_multifieldqa_en_e
+aggregate_metric_list:
+  - metric: score
+    weight_by_size: False
 metadata:
   version: 0.0

@@ -2,11 +2,11 @@ group: longbench_fewshot
 group_alias: "Few-shot Learning"
 task:
   - longbench_trec
-  - longbench_trec_e
   - longbench_triviaqa
-  - longbench_triviaqa_e
   - longbench_samsum
-  - longbench_samsum_e
   - longbench_lsht
+aggregate_metric_list:
+  - metric: score
+    weight_by_size: False
 metadata:
   version: 0.0

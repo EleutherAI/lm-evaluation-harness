@@ -274,3 +274,53 @@ def get_qa_f1_zh_score(doc: dict, results: list[str], **kwargs):
         score = qa_f1_zh_score(prediction, ground_truth)
         output = max(score, output)
     return {"qa_f1_zh_score": output}
+
+
+# Unified scoring wrappers for group aggregation
+# Each wrapper calls the original get_* function and returns with "score" key
+# This enables all tasks to output the same metric name for group-level aggregation
+
+
+def get_score_qa_f1(doc: dict, results: list[str], **kwargs):
+    result = get_qa_f1_score(doc, results, **kwargs)
+    return {"score": result["qa_f1_score"]}
+
+
+def get_score_qa_f1_zh(doc: dict, results: list[str], **kwargs):
+    result = get_qa_f1_zh_score(doc, results, **kwargs)
+    return {"score": result["qa_f1_zh_score"]}
+
+
+def get_score_rouge(doc: dict, results: list[str], **kwargs):
+    result = get_rouge_score(doc, results, **kwargs)
+    return {"score": result["rouge_score"]}
+
+
+def get_score_rouge_zh(doc: dict, results: list[str], **kwargs):
+    result = get_rouge_zh_score(doc, results, **kwargs)
+    return {"score": result["rouge_zh_score"]}
+
+
+def get_score_classification(doc: dict, results: list[str], **kwargs):
+    result = get_classification_score(doc, results, **kwargs)
+    return {"score": result["classification_score"]}
+
+
+def get_score_count(doc: dict, results: list[str], **kwargs):
+    result = get_count_score(doc, results, **kwargs)
+    return {"score": result["count_score"]}
+
+
+def get_score_retrieval(doc: dict, results: list[str], **kwargs):
+    result = get_retrieval_score(doc, results, **kwargs)
+    return {"score": result["retrieval_score"]}
+
+
+def get_score_retrieval_zh(doc: dict, results: list[str], **kwargs):
+    result = get_retrieval_zh_score(doc, results, **kwargs)
+    return {"score": result["retrieval_zh_score"]}
+
+
+def get_score_code_sim(doc: dict, results: list[str], **kwargs):
+    result = get_code_sim_score(doc, results, **kwargs)
+    return {"score": result["code_sim_score"]}

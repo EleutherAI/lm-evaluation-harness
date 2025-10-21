@@ -8,15 +8,15 @@ test_split: test
 dataset_name: lsht
 doc_to_text: "请判断给定新闻的类别，下面是一些例子。\n\n{{context}}\n{{input}}"
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_classification_score
+process_results: !function metrics.get_score_classification
 generation_kwargs:
   max_gen_toks: 64
   temperature: 1
   do_sample: False
   until: ["\n"]
 metric_list:
-  - metric: "classification_score"
+  - metric: "score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0
