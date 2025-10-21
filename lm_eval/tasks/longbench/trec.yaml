@@ -1,5 +1,6 @@
 
 tag:
+  - longbench_fewshot_tasks
   - longbench
 task: longbench_trec
 dataset_path: THUDM/LongBench

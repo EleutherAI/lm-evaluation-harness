@@ -1,5 +1,6 @@
 
 tag:
+  - longbench_multi_tasks
   - longbench_e
 task: longbench_hotpotqa_e
 dataset_path: THUDM/LongBench

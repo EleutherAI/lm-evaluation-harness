@@ -1,0 +1,11 @@
+group: longbench_single
+group_alias: "Single-Document QA"
+task:
+  - longbench_narrativeqa
+  - longbench_qasper
+  - longbench_qasper_e
+  - longbench_multifieldqa_en
+  - longbench_multifieldqa_en_e
+  - longbench_multifieldqa_zh
+metadata:
+  version: 0.0

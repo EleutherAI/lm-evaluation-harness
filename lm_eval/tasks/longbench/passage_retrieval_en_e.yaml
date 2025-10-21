@@ -1,5 +1,6 @@
 
 tag:
+  - longbench_synthetic_tasks
   - longbench_e
 task: longbench_passage_retrieval_en_e
 dataset_path: THUDM/LongBench

@@ -1,5 +1,6 @@
 
 tag:
+  - longbench_summarization_tasks
   - longbench
 task: longbench_gov_report
 dataset_path: THUDM/LongBench

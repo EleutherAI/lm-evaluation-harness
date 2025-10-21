@@ -42,7 +42,12 @@ The original implementation suggest not to use `chat_template` for these tasks (
 
 #### Groups
 
-[//]: # (* `group_name`: `Short description`)
+* `longbench_single`: Single-Document QA tasks requiring comprehension of individual documents
+* `longbench_multi`: Multi-Document QA tasks requiring information synthesis across multiple documents
+* `longbench_summarization`: Summarization tasks for long documents and conversations
+* `longbench_fewshot`: Few-shot learning tasks with in-context examples
+* `longbench_synthetic`: Synthetic tasks including passage retrieval and counting
+* `longbench_code`: Code completion tasks for long code contexts
 
 #### Tags
 

@@ -1,5 +1,6 @@
 
 tag:
+  - longbench_single_tasks
   - longbench_e
 task: longbench_qasper_e
 dataset_path: THUDM/LongBench

@@ -1,5 +1,6 @@
 
 tag:
+  - longbench_code_tasks
   - longbench_e
 task: longbench_lcc_e
 dataset_path: THUDM/LongBench
