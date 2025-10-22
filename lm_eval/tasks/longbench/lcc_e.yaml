@@ -2,7 +2,7 @@
 tag:
   - longbench_e
 task: longbench_lcc_e
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: lcc_e
 doc_to_text: "Please complete the code given below. \n{{context}}Next line of code:\n"

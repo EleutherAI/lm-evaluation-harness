@@ -2,7 +2,7 @@
 tag:
   - longbench_e
 task: longbench_gov_report_e
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: gov_report_e
 doc_to_text: "You are given a report by a government agency. Write a one-page summary of the report.\n\nReport:\n{{context}}\n\nNow, write a one-page summary of the report.\n\nSummary:"

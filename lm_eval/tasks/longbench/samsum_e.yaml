@@ -2,7 +2,7 @@
 tag:
   - longbench_e
 task: longbench_samsum_e
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: samsum_e
 doc_to_text: "Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n\n{{input}}"
