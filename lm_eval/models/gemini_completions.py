@@ -239,7 +239,7 @@ class GeminiChatCompletion(GeminiCompletionsAPI):
                 )
         else:
             config = genai.types.GenerateContentConfig(**generation_config)
-
+        # print("Generation config:", config)
         response = self.client.models.generate_content(
                 model=self.model,
                 contents=contents,
@@ -250,10 +250,14 @@ class GeminiChatCompletion(GeminiCompletionsAPI):
     @staticmethod
     def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
         res = []
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        for out in outputs:
-            res.append(out.candidates[0].content.parts[0].text)
+        try:
+            if not isinstance(outputs, list):
+                outputs = [outputs]
+            for out in outputs:
+                res.append(out.candidates[0].content.parts[0].text)
+        except Exception as e:
+            print(f"Error parsing generations: {e}")
+            res.append("")
         return res
 
     def tok_encode(
