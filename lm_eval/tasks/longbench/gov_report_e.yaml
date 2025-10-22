@@ -18,5 +18,8 @@ metric_list:
   - metric: "score"
     aggregation: mean
     higher_is_better: True
+  - metric: "rouge_score"
+    aggregation: mean
+    higher_is_better: True
 metadata:
   version: 5.0

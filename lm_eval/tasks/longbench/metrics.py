@@ -283,44 +283,53 @@ def get_qa_f1_zh_score(doc: dict, results: list[str], **kwargs):
 
 def get_score_qa_f1(doc: dict, results: list[str], **kwargs):
     result = get_qa_f1_score(doc, results, **kwargs)
-    return {"score": result["qa_f1_score"]}
+    qa_f1 = result["qa_f1_score"]
+    return {"score": qa_f1, "qa_f1_score": qa_f1}
 
 
 def get_score_qa_f1_zh(doc: dict, results: list[str], **kwargs):
     result = get_qa_f1_zh_score(doc, results, **kwargs)
-    return {"score": result["qa_f1_zh_score"]}
+    qa_f1_zh = result["qa_f1_zh_score"]
+    return {"score": qa_f1_zh, "qa_f1_zh_score": qa_f1_zh}
 
 
 def get_score_rouge(doc: dict, results: list[str], **kwargs):
     result = get_rouge_score(doc, results, **kwargs)
-    return {"score": result["rouge_score"]}
+    rouge = result["rouge_score"]
+    return {"score": rouge, "rouge_score": rouge}
 
 
 def get_score_rouge_zh(doc: dict, results: list[str], **kwargs):
     result = get_rouge_zh_score(doc, results, **kwargs)
-    return {"score": result["rouge_zh_score"]}
+    rouge_zh = result["rouge_zh_score"]
+    return {"score": rouge_zh, "rouge_zh_score": rouge_zh}
 
 
 def get_score_classification(doc: dict, results: list[str], **kwargs):
     result = get_classification_score(doc, results, **kwargs)
-    return {"score": result["classification_score"]}
+    classification = result["classification_score"]
+    return {"score": classification, "classification_score": classification}
 
 
 def get_score_count(doc: dict, results: list[str], **kwargs):
     result = get_count_score(doc, results, **kwargs)
-    return {"score": result["count_score"]}
+    count = result["count_score"]
+    return {"score": count, "count_score": count}
 
 
 def get_score_retrieval(doc: dict, results: list[str], **kwargs):
     result = get_retrieval_score(doc, results, **kwargs)
-    return {"score": result["retrieval_score"]}
+    retrieval = result["retrieval_score"]
+    return {"score": retrieval, "retrieval_score": retrieval}
 
 
 def get_score_retrieval_zh(doc: dict, results: list[str], **kwargs):
     result = get_retrieval_zh_score(doc, results, **kwargs)
-    return {"score": result["retrieval_zh_score"]}
+    retrieval_zh = result["retrieval_zh_score"]
+    return {"score": retrieval_zh, "retrieval_zh_score": retrieval_zh}
 
 
 def get_score_code_sim(doc: dict, results: list[str], **kwargs):
     result = get_code_sim_score(doc, results, **kwargs)
-    return {"score": result["code_sim_score"]}
+    code_sim = result["code_sim_score"]
+    return {"score": code_sim, "code_sim_score": code_sim}
