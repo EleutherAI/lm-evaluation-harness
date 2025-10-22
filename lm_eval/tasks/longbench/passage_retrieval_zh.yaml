@@ -1,7 +1,7 @@
 
 tag:
   - longbench_synthetic_tasks
-  - longbench
+  - longbench_tasks
 task: longbench_passage_retrieval_zh
 dataset_path: THUDM/LongBench
 test_split: test

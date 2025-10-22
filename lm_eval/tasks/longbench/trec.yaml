@@ -1,7 +1,7 @@
 
 tag:
   - longbench_fewshot_tasks
-  - longbench
+  - longbench_tasks
 task: longbench_trec
 dataset_path: THUDM/LongBench
 test_split: test

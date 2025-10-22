@@ -1,7 +1,7 @@
 
 tag:
-  - longbench_synthetic_tasks
-  - longbench_e
+  - longbench_synthetic_tasks_e
+  - longbench_tasks_e
 task: longbench_passage_count_e
 dataset_path: THUDM/LongBench
 test_split: test

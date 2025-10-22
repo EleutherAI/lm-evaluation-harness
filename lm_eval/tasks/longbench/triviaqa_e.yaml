@@ -1,7 +1,7 @@
 
 tag:
-  - longbench_fewshot_tasks
-  - longbench_e
+  - longbench_fewshot_tasks_e
+  - longbench_tasks_e
 task: longbench_triviaqa_e
 dataset_path: THUDM/LongBench
 test_split: test

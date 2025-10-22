@@ -1,6 +1,6 @@
 
 tag:
-  - longbench
+  - longbench_tasks
   - longbench_single_tasks
 task: longbench_narrativeqa
 dataset_path: THUDM/LongBench

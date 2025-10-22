@@ -1,5 +1,5 @@
-group: longbench_e_single
-group_alias: "Single-Document QA (LongBench-E)"
+group: longbench_single_e
+group_alias: "Single-Document QA (-E)"
 task:
   - longbench_qasper_e
   - longbench_multifieldqa_en_e

@@ -1,5 +1,5 @@
-group: longbench_e_code
-group_alias: "Code Completion (LongBench-E)"
+group: longbench_code_e
+group_alias: "Code Completion (-E)"
 task:
   - longbench_lcc_e
   - longbench_repobench-p_e

@@ -1,7 +1,7 @@
 
 tag:
-  - longbench_single_tasks
-  - longbench_e
+  - longbench_single_tasks_e
+  - longbench_tasks_e
 task: longbench_multifieldqa_en_e
 dataset_path: THUDM/LongBench
 test_split: test
