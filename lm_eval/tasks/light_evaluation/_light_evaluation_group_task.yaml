@@ -1,0 +1,38 @@
+group: light_evaluation
+metadata:
+    description: group task of all tasks
+    version: 0
+  
+task:
+- "arastem"
+- "arab_culture"
+- "islamic_qa"
+- "islamic_finance"
+- "dream_interpretation_ar"
+- "arabic_cuisine_mcq"
+- "uae_knowledge"
+- "aradice_culture"
+- "arabicmmlu"
+- "3lm_native_qa"
+- "3lm_synthetic_qa"
+- "MedArabiQ_mcq"
+- "trans_wmt24pp"
+- "trans_Tarjama-25"
+- "trans_MADAR"
+- "trans_SADID"
+- "trans_ATHAR"
+- "trans_ArzEn-ST_Translations_1.0"
+- "trans_Arab-Acquis"
+- "trans_flores200_plus"
+- "summ_CrossSum"
+- "summ_SumArabic"
+- "summ_XLSum"
+- "summ_goud-sum"
+- "dialect_id_MADAR"
+- "dialect_id_QADI"
+- "poem_text__genre"
+- "poem_text__meter"
+- "poem_text__poem_title"
+- "poem_text__poet_era"
+- "poem_text__poet_name"
+- "poet_name__poet_era"
