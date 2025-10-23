@@ -173,7 +173,7 @@ class GeminiCompletionsAPI(LocalChatCompletion):
         if not isinstance(stop, (list, tuple)):
             stop = [stop]
         if len(stop) > 4:
-            eval_logger.info(
+            eval_logger.debug(
                 "Gemini API supports up to 4 stop sequences. Truncating the list."
             )
             stop = stop[:4]
@@ -187,7 +187,7 @@ class GeminiCompletionsAPI(LocalChatCompletion):
                 ". If you want to use candidateCount>1, please modify the parse_generations method accordingly."
             )
         if gen_kwargs.pop("do_sample", None) is not None:
-            eval_logger.info(
+            eval_logger.debug(
                 "Gemini API does not support a 'do_sample' parameter for generation. Ignored."
             )
         
@@ -195,7 +195,7 @@ class GeminiCompletionsAPI(LocalChatCompletion):
         thinking_budget = gen_kwargs.pop("thinking_budget", None) or gen_kwargs.pop("thinkingBudget", None)
         if thinking_budget is not None:
             if '2.5-flash' in self.model_name:
-                eval_logger.info(
+                eval_logger.debug(
                     f"Using thinkingBudget={thinking_budget} in Gemini generationConfig."
                 )
             elif '2.5-pro' in self.model_name:
@@ -208,7 +208,7 @@ class GeminiCompletionsAPI(LocalChatCompletion):
                     "For more info check: https://ai.google.dev/gemini-api/docs/thinking"
                 )
             else:
-                eval_logger.info(
+                eval_logger.debug(
                     "thinkingBudget parameter is only applicable to Gemini 2.5 Flash Models. Ignored. " +
                     "you can find the full list of supported models here: https://ai.google.dev/gemini-api/docs/thinking"
                 )
