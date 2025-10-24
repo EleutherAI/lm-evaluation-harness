@@ -1,4 +1,4 @@
-group: light_evaluation
+group: benchmarks-light
 metadata:
     description: group task of all tasks
     version: 0
@@ -30,9 +30,9 @@ task:
 - "summ_goud-sum"
 - "dialect_id_MADAR"
 - "dialect_id_QADI"
-- "poem_text__genre"
-- "poem_text__meter"
-- "poem_text__poem_title"
-- "poem_text__poet_era"
-- "poem_text__poet_name"
-- "poet_name__poet_era"
+# - "poem_text__genre"
+# - "poem_text__meter"
+# - "poem_text__poem_title"
+# - "poem_text__poet_era"
+# - "poem_text__poet_name"
+# - "poet_name__poet_era"
