@@ -51,7 +51,7 @@ class MMLUTemplate:
     format: str = "mmlu"
     question: str | None = None
     choices: list[str] | None = None
-    target: str | None = None
+    target: str | int | None = None
     prefix: str = "Question: "
     question_choice_delimiter: str = "\n"
     suffix: str = "\nAnswer:"
@@ -98,7 +98,7 @@ class ClozeTemplate:
     format: str = "cloze"
     question: str | None = None
     choices: list[str] | None = None
-    target: str | None = None
+    target: str | int | None = None
     prefix: str = "Question: "
     question_choice_delimiter: str = "\n"
     suffix: str = "\nAnswer:"
@@ -121,7 +121,7 @@ class GenerateTemplate:
     format: str = "generate_until"
     question: str | None = None
     choices: list[str] | None = None
-    target: str | None = None
+    target: str | int | None = None
     prefix: str = "Question: "
     question_choice_delimiter: str = "\n"
     suffix: str = "\nAnswer:"

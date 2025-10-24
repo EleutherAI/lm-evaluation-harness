@@ -58,14 +58,16 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import logging
 import threading
-from collections.abc import Iterable
 from functools import lru_cache
 from types import MappingProxyType
 from typing import Any, Callable, Generic, TypeVar, Union, cast
 
 from lm_eval.api.filter import Filter
 
+
+eval_logger = logging.getLogger(__name__)
 
 try:
     import importlib.metadata as md  # Python ≥3.10
@@ -399,11 +401,11 @@ MetricSpec = MetricConfig
 from lm_eval.api.model import LM  # noqa: E402
 
 
-model_registry = cast(Registry[type[LM]], Registry("model", base_cls=LM))
+model_registry = cast(Registry[type[LM]], cast(object, Registry("model", base_cls=LM)))
 task_registry: Registry[Callable[..., Any]] = Registry("task")
 metric_registry: Registry[MetricConfig] = Registry("metric")
-metric_agg_registry: Registry[Callable[..., float]] = Registry("metric aggregation")
-higher_is_better_registry: Registry[bool] = Registry("higher‑is‑better flag")
+metric_agg_registry: Registry[Callable[..., float]] = Registry("metric_aggregation")
+higher_is_better_registry: Registry[bool] = Registry("higher_is_better")
 filter_registry: Registry[type[Filter]] = Registry("filter")
 
 # Public helper aliases ------------------------------------------------------
@@ -418,22 +420,6 @@ register_filter = filter_registry.register
 get_filter = filter_registry.get
 
 # Metric helpers need thin wrappers to build MetricSpec ----------------------
-
-
-def _no_aggregation_fn(values: Iterable[Any]) -> float:
-    """Default aggregation that raises NotImplementedError.
-
-    Args:
-        values: Metric values to aggregate (unused)
-
-    Raises:
-        NotImplementedError: Always - this is a placeholder for metrics
-                           that haven't specified an aggregation function
-    """
-    raise NotImplementedError(
-        "No aggregation function specified for this metric. "
-        "Please specify 'aggregation' parameter in @register_metric."
-    )
 
 
 def register_metric(**kw):
@@ -467,14 +453,22 @@ def register_metric(**kw):
     name = kw["metric"]
 
     def deco(fn):
+        # Determine aggregation function
+        if "aggregation" in kw:
+            aggregation_fn = metric_agg_registry.get(kw["aggregation"])
+        else:
+            # Try to get default aggregation for this metric name
+            try:
+                aggregation_fn = metric_agg_registry.get(name)
+            except KeyError:
+                # Fall back to "mean" as the most common default aggregation
+                # This matches the behavior of most metrics (acc, acc_norm, exact_match, etc.)
+                aggregation_fn = metric_agg_registry.get("mean")
+
         config = MetricConfig(
             name=name,
             fn=fn,
-            aggregation_fn=(
-                metric_agg_registry.get(kw["aggregation"])
-                if "aggregation" in kw
-                else _no_aggregation_fn
-            ),
+            aggregation_fn=aggregation_fn,
             higher_is_better=kw.get("higher_is_better", True),
             output_type=kw.get("output_type", "generate_until"),
             requires=kw.get("requires"),
@@ -510,11 +504,7 @@ def get_metric(name, hf_evaluate_metric=False):
         return config.fn or config.compute  # type: ignore[attr-defined]
     except KeyError:
         if not hf_evaluate_metric:
-            import logging
-
-            logging.getLogger(__name__).warning(
-                f"Metric '{name}' not in registry; trying HF evaluate…"
-            )
+            eval_logger.warning(f"Metric '{name}' not in registry; trying HF evaluate…")
         try:
             import evaluate as hf
 

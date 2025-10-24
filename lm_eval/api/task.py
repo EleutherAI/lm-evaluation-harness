@@ -30,12 +30,9 @@ ALL_OUTPUT_TYPES = [
 ]
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
     import datasets
 
-    DataSet = datasets.Dataset | Iterable[dict[str, Any]]
-    DSplits = dict[str, DataSet]
+    from lm_eval.types import TaskDataSet
 
 
 eval_logger = logging.getLogger(__name__)
@@ -247,7 +244,7 @@ class Task(ABC):
 
     def fewshot_context(
         self,
-        doc: dict[str, str],
+        doc: dict[str, Any],
         num_fewshot: int,
         system_instruction: str | None = None,
         apply_chat_template: bool = False,
@@ -348,11 +345,11 @@ class Task(ABC):
 
     @abstractmethod
     def construct_requests(
-        self, doc: dict[str, Any], ctx: str | list[str] | dict[str, Any], **kwargs
+        self, doc: dict[str, Any], ctx: str | list[str] | list[dict[str, Any]], **kwargs
     ) -> list[Instance] | Instance | None: ...
 
     @abstractmethod
-    def process_results(self, doc: dict, results: list) -> dict[str, Any]: ...
+    def process_results(self, doc: dict[str, Any], results: list) -> dict[str, Any]: ...
 
     @property
     def dataset(self):
@@ -389,11 +386,13 @@ class Task(ABC):
             assert self.config.dataset_path is not None, (
                 "dataset_path must be set in TaskConfig"
             )
-            self._dataset = datasets.load_dataset(
+            df = datasets.load_dataset(
                 path=self.config.dataset_path,
                 name=self.config.dataset_name,
                 **self.config.dataset_kwargs,
             )
+        assert isinstance(df, dict)
+        self._dataset = df
 
     def fewshot_docs(self):
         docs = self.config.fewshot_cfg.get_docs(self.dataset)
@@ -441,39 +440,54 @@ class Task(ABC):
             return self.dataset[subset]
 
     def doc_to_text(
-        self, doc: dict, *, doc_to_text: int | str | Callable[..., str] | None = None
+        self,
+        doc: dict[str, Any],
+        *,
+        doc_to_text: Callable[[dict[str, Any]], str] | str | None = None,
     ) -> str | int:
-        return process_field(doc, doc_to_text or self.config.doc_to_text)
+        return process_field(doc, doc_to_text or self.config.doc_to_text, default="")
 
     def doc_to_choice(
         self,
-        doc: dict,
+        doc: dict[str, Any],
         *,
-        doc_to_choice: str | list | dict | Callable[..., list[str]] | None = None,
+        doc_to_choice: Callable[[dict[str, Any]], list[str]]
+        | str
+        | dict
+        | list
+        | None = None,
     ) -> list[str]:
         return process_field(
-            doc, doc_to_choice or self.config.doc_to_choice, lists=True
+            doc, doc_to_choice or self.config.doc_to_choice, lists=True, default=[]
         )
 
     def doc_to_target(
-        self, doc: dict, *, doc_to_target=None
+        self,
+        doc: dict[str, Any],
+        *,
+        doc_to_target: Callable[[dict[str, Any]], str | int] | str | None = None,
     ) -> int | str | Sequence[int]:
         return process_field(
             doc,
             doc_to_target or self.config.doc_to_target,
             digits=self.config.doc_to_choice is not None,
+            default="",
         )
 
     def doc_to_audio(
-        self, doc: dict, doc_to_audio: int | str | Callable[..., str] | None = None
-    ):
+        self,
+        doc: dict[str, Any],
+        doc_to_audio: Callable[[dict[str, Any]], Any] | str | None = None,
+    ) -> Any:
         return process_field(
             doc, doc_to_audio or self.config.doc_to_audio, digits=False, lists=True
         )
 
     def doc_to_image(
-        self, doc: dict, doc_to_image: int | str | Callable[..., str] | None = None
-    ):
+        self,
+        doc: dict[str, Any],
+        doc_to_image: Callable[[dict[str, Any]], Any] | str | None = None,
+    ) -> Any:
         return process_field(
             doc, doc_to_image or self.config.doc_to_image, digits=False, lists=True
         )
@@ -486,7 +500,7 @@ class Task(ABC):
         return self._instances
 
     @staticmethod
-    def resolve_field(doc: dict[str, str], field: str | None = None):
+    def resolve_field(doc: dict[str, Any], field: str | None = None):
         if field is not None:
             return doc[field] if field in doc else utils.apply_template(field, doc)
 
@@ -553,7 +567,7 @@ class Task(ABC):
         """Return the task name."""
         return getattr(self.config, "task", None)
 
-    def training_docs(self) -> DataSet | None:
+    def training_docs(self) -> TaskDataSet | None:
         return self.get_docs("training_split")
 
 
@@ -561,7 +575,7 @@ class GenerateTask(Task):
     OUTPUT_TYPE = "generate_until"
 
     def construct_requests(
-        self, doc: dict[str, str], ctx: str | list[str] | list[dict[str, Any]], **kwargs
+        self, doc: dict[str, Any], ctx: str | list[str] | list[dict[str, Any]], **kwargs
     ):
         assert self.OUTPUT_TYPE == "generate_until"
         arguments = (ctx, deepcopy(self.config.generation_kwargs))
@@ -586,7 +600,7 @@ class GenerateTask(Task):
             **instance_kwargs,
         )
 
-    def process_results(self, doc: dict, results: list) -> dict[str, Any]:
+    def process_results(self, doc: dict[str, Any], results: list) -> dict[str, Any]:
         result_dict = {}
         gold = self.doc_to_target(doc)
         result = results[0]
@@ -614,7 +628,7 @@ class MultipleChoiceTask(Task):
 
     def construct_requests(
         self,
-        doc: dict[str, str],
+        doc: dict[str, Any],
         ctx: str | list[str] | dict[str, Any],
         apply_chat_template: bool = False,
         **kwargs,
@@ -689,7 +703,7 @@ class MultipleChoiceTask(Task):
 
         return request_list
 
-    def process_results(self, doc: dict, results: list) -> dict[str, Any]:
+    def process_results(self, doc: dict[str, Any], results: list) -> dict[str, Any]:
         """
         Process results for multiple choice tasks.
 
@@ -775,7 +789,7 @@ class PerplexityTask(Task):
 
     def construct_requests(
         self,
-        doc: dict[str, str],
+        doc: dict[str, Any],
         ctx: str | list[str] | dict[str, Any],
         **kwargs,
     ) -> Instance:
@@ -812,7 +826,7 @@ class PerplexityTask(Task):
             **instance_kwargs,
         )
 
-    def process_results(self, doc: dict, results: list) -> dict[str, Any]:
+    def process_results(self, doc: dict[str, Any], results: list) -> dict[str, Any]:
         (loglikelihood, *_) = results
         assert isinstance(_target := self.doc_to_target(doc), str), (
             "Require target to be a string for loglikelihood_rolling"

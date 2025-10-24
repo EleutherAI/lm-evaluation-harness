@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
-
-import datasets
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import Instance, OutputType
@@ -15,17 +12,8 @@ from lm_eval.config.utils import maybe_serialize
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-    from typing import Any
-
-    import datasets
-
     from lm_eval.api.samplers import ContextSampler
-
-    # from lm_eval.api.task import Task
-
-    DataSet = datasets.Dataset | Iterable[dict[str, Any]]
-    DSplits = dict[str, DataSet]
+    from lm_eval.types import DatasetSplits, TaskDataSet
 
 eval_logger = logging.getLogger(__name__)
 
@@ -88,8 +76,8 @@ class FewshotConfig:
     num_fewshot: Callable[[], int]
     split: str | None = None
     sampler: str | Callable = "default"
-    samples: Callable[[], DataSet] | DataSet | None = None
-    process_docs: Callable[[DataSet], DataSet] | None = None
+    samples: Callable[[], TaskDataSet] | TaskDataSet | None = None
+    process_docs: Callable[[TaskDataSet], TaskDataSet] | None = None
     fewshot_indices: list[int] | None = None
     rnd: int = field(init=False, default=False)
 
@@ -111,7 +99,7 @@ class FewshotConfig:
         """Check if any fewshot source is configured."""
         return self.split is not None or self.samples is not None
 
-    def _get_raw_docs(self, dataset: DSplits) -> DataSet | None:
+    def _get_raw_docs(self, dataset: DatasetSplits) -> TaskDataSet | None:
         """Get raw documents from configured source."""
         if self.split is not None:
             return dataset[self.split]
@@ -127,7 +115,7 @@ class FewshotConfig:
                     "samples must be either a list of dicts or a callable returning a list"
                 )
 
-    def get_docs(self, dataset) -> DataSet | None:
+    def get_docs(self, dataset) -> TaskDataSet | None:
         """Get processed documents from configured source."""
         raw_docs = self._get_raw_docs(dataset)
         if raw_docs is None:
@@ -147,7 +135,7 @@ class FewshotConfig:
             return self.sampler
 
     def init_sampler(
-        self, docs: list[dict] = None, rnd=None, fewshot_indices=None
+        self, docs: list[dict] | None = None, rnd=None, fewshot_indices=None
     ) -> ContextSampler:
         """Initialize the sampler with the given documents and task."""
         if rnd is None:
@@ -172,7 +160,7 @@ class TaskConfig:
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Callable[..., DSplits] | None = None
+    custom_dataset: Callable[..., DatasetSplits] | None = None
     dataset_path: str | None = None
     dataset_name: str | None = None
     dataset_kwargs: dict | None = field(default_factory=dict)
@@ -183,13 +171,15 @@ class TaskConfig:
     template: Template | None = None
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    process_docs: Callable[[DataSet], DataSet] | None = None
-    doc_to_text: Callable[[dict[str, Any]], Any] | str | None = None
-    doc_to_target: Callable[[dict[str, Any]], Any] | str | None = None
+    process_docs: Callable[[TaskDataSet], TaskDataSet] | None = None
+    doc_to_text: Callable[[dict[str, Any]], str] | str | None = None
+    doc_to_target: Callable[[dict[str, Any]], str | int] | str | int | None = None
     doc_to_image: Callable[[dict[str, Any]], Any] | str | None = None
     doc_to_audio: Callable[[dict[str, Any]], Any] | str | None = None
     unsafe_code: bool = False
-    doc_to_choice: Callable[[dict[str, Any]], Any] | str | dict | list | None = None
+    doc_to_choice: Callable[[dict[str, Any]], list[str]] | str | dict | list | None = (
+        None
+    )
     process_results: (
         Callable[[dict[str, Any], list[Any]], dict[str, Any]] | str | None
     ) = None

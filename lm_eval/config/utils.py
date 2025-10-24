@@ -88,12 +88,12 @@ def freezeargs(func):
 
 def process_field(
     doc: dict[str, str],
-    field_spec: Any,
+    field_spec: Any | None,
+    *,
     digits: bool = False,
     lists: bool = False,
-    allow_ast: bool = False,
     default: Any | None = None,
-):
+) -> Any:
     """Processes a field from a document."""
     # fmt: off
     match field_spec:
