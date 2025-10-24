@@ -619,6 +619,9 @@ class HFLM(TemplateLM):
                 if compute_dtype := model_kwargs.get("bnb_4bit_compute_dtype"):
                     model_kwargs["bnb_4bit_compute_dtype"] = get_dtype(compute_dtype)
 
+            if "tp_plan" in model_kwargs:
+                del model_kwargs["device_map"]
+
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,

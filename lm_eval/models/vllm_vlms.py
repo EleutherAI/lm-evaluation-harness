@@ -14,7 +14,6 @@ from lm_eval.models.utils import (
     replace_placeholders,
     resize_image,
     undistribute,
-    content_image_to_content_image_url,
 )
 from lm_eval.models.vllm_causallms import VLLM
 
@@ -240,7 +239,9 @@ class VLLM_VLM(VLLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            if "phi-3.5" in self.model_args["model"].lower():
+            if x[0] and not isinstance(x[0][0], str):
+                toks = []
+            elif "phi-3.5" in self.model_args["model"].lower():
                 toks = []
             else:
                 toks = self.tok_encode(copy.deepcopy(x[0]))
@@ -314,16 +315,12 @@ class VLLM_VLM(VLLM):
                     left_truncate_len=max_ctx_len,
                 )
             else:
-                inputs = []
+                inputs = contexts
                 for chat_history in contexts:
-                    new_chat_history = []
                     for message in chat_history:
-                        new_content = []
                         for content in message["content"]:
-                            new_content.append(content_image_to_content_image_url(content, resize=(self.image_width, self.image_height, self.image_max_side)))
-                        message["content"] = new_content
-                        new_chat_history.append(message)
-                    inputs.append(new_chat_history)
+                            if content["type"] not in ["text", "image_url", "audio_url"]:
+                                raise ValueError(f"Currently no support for '{content['type']}' media type")
 
             cont = self._multimodal_model_generate(
                 inputs, stop=until, generate=True, max_tokens=max_gen_toks, pass_multimodal_args_to_chat_history=pass_multimodal_args_to_chat_history, **kwargs

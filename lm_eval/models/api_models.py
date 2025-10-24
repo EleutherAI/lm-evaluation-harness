@@ -38,7 +38,7 @@ from io import BytesIO
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
-from lm_eval.models.utils import Collator, chunks, configure_pad_token, content_image_to_content_image_url
+from lm_eval.models.utils import Collator, chunks, configure_pad_token
 
 
 if TYPE_CHECKING:
@@ -420,7 +420,18 @@ class TemplateAPI(TemplateLM):
         for el in result:
             for message in el["messages"]:
                 for i, content in enumerate(message["content"]):
-                    message["content"][i] = content_image_to_content_image_url(content)
+                    if content["type"] not in {"text", "image_url", "audio_url"}:
+                        raise ValueError(
+                            f"Unsupported content type '{content['type']}'. "
+                            "Expected one of: 'text', 'image_url', 'audio_url'."
+                        )
+
+                    if not isinstance(content[content["type"]], dict):
+                        actual = type(content[content["type"]]).__name__
+                        raise ValueError(
+                            f"Invalid payload for type '{content['type']}': "
+                            f"expected a dict, got {actual}."
+                        )
 
         if is_list:
             return result

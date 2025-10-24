@@ -547,6 +547,8 @@ def evaluate(
             )
     # end validation check
 
+    USE_TP = bool(os.environ.get("HARNESS_TENSOR_PARALLEL", False))
+
     # Cache the limit arg.
     limit_arg = limit
     limits = []
@@ -560,8 +562,8 @@ def evaluate(
             samples=samples.get(task_output.task_name, None)
             if samples is not None
             else samples,
-            rank=lm.rank,
-            world_size=lm.world_size,
+            rank=0 if USE_TP else lm.rank,
+            world_size=1 if USE_TP else lm.world_size,
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
             system_instruction=system_instruction,
@@ -591,7 +593,7 @@ def evaluate(
             reqtype = instance.request_type
             # split requests into two groups: with and without context
             requests[task_type_id][reqtype].append(instance)
-        if lm.world_size > 1:
+        if not USE_TP and lm.world_size > 1:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
             gathered_item = (
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
@@ -619,7 +621,7 @@ def evaluate(
             for req in reqs:
                 cloned_reqs.extend([req] * req.repeats)
 
-            if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
+            if not USE_TP and (lm.world_size > 1) and (padding_requests[reqtype] > 0):
                 for _ in range(padding_requests[reqtype]):
                     cloned_reqs.extend([req] * req.repeats)
 
@@ -653,11 +655,15 @@ def evaluate(
                     # also discard storage after the current set ends
                     storage = req.update_storage(storage, req)
 
-            if lm.world_size > 1:
+            if not USE_TP and lm.world_size > 1:
                 lm.accelerator.wait_for_everyone()
 
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
+
+    if RANK > 0 and USE_TP:
+        return
+
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output, limit in zip(eval_tasks, limits):
@@ -682,9 +688,9 @@ def evaluate(
                 else None
             )
             doc_iterator = task.doc_iterator(
-                rank=RANK,
+                rank=0 if USE_TP else RANK,
                 limit=limit,
-                world_size=WORLD_SIZE,
+                world_size=1 if USE_TP else WORLD_SIZE,
                 samples=indices,
             )
             for doc_id, doc in doc_iterator:
@@ -725,7 +731,7 @@ def evaluate(
                 for metric, value in metrics.items():
                     task_output.sample_metrics[(metric, filter_key)].append(value)
 
-    if WORLD_SIZE > 1:
+    if not USE_TP and WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
         for task_output in eval_tasks:
