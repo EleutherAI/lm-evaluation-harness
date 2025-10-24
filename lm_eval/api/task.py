@@ -16,7 +16,12 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
+from lm_eval.api.utils import (
+    Message,
+    check_gold_index_error,
+    maybe_delimit,
+    multiturn_to_singleturn,
+)
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
 from lm_eval.config.utils import process_field
@@ -716,65 +721,82 @@ class MultipleChoiceTask(Task):
         """
         import numpy as np
 
-        gold = self.doc_to_target(doc)
+        # Extract loglikelihoods and is_greedy flags
+        lls, is_greedy = zip(*results)
 
-        # Handle mutual information metrics
-        num_choices = len(self.doc_to_choice(doc))
-        use_mutual_info = "acc_mutual_info" in [
-            m.metric_name for m in self.config._metric_list
-        ]
+        # Retrieve choices in List[str] form, to compute choice lengths, etc.
+        choices = self.doc_to_choice(doc)
+        completion_len = np.array([float(len(i)) for i in choices])
 
-        if use_mutual_info:
-            # Results are [conditional_lls..., unconditional_lls...]
-            # Split them
-            lls = [res[0] for res in results[:num_choices]]
-            uncond_lls = [res[0] for res in results[num_choices:]]
-            # Calculate mutual information: log(P(choice|ctx)) - log(P(choice))
-            lls = [ll - uncond_ll for ll, uncond_ll in zip(lls, uncond_lls)]
-        else:
-            # Just extract loglikelihoods
-            lls = [res[0] for res in results[:num_choices]]
+        # Get list of metric names we need to compute
+        use_metric = [m.metric_name for m in self.config._metric_list]
 
-        # Find the choice with highest loglikelihood
+        # Handle mutual information if needed
+        lls_unconditional = None
+        if (
+            2 * len(choices) == len(lls)
+            and "acc_mutual_info" in use_metric
+        ):
+            # Then we are doing mutual info.
+            # This stores the "dryrun" / unconditional answer loglikelihoods
+            # as we extend the args list with unconditional ("", continuation) pairs
+            lls_unconditional = lls[len(choices) :]
+            if len(lls_unconditional) != len(choices):
+                raise ValueError
+            # And this stores our "regular" conditional loglikelihoods
+            lls = lls[: len(choices)]
+
+        # Compute predictions
         pred = np.argmax(lls)
+        pred_norm = np.argmax(lls / completion_len)
 
-        # Compute metrics
-        result_dict = {}
-        for metric in self.config._metric_list:
-            if metric.metric_name == "acc" or metric.metric_name == "acc_mutual_info":
-                # Accuracy: did we pick the correct choice?
-                result_dict[metric.metric_name] = int(pred == gold)
-            elif metric.metric_name == "acc_norm":
-                # Normalized accuracy (using length-normalized loglikelihoods)
-                # Get the lengths from is_greedy flag (second element)
-                # Actually, we need choice lengths - use the choices themselves
-                choices = self.doc_to_choice(doc)
-                # Length-normalize the loglikelihoods
-                choice_lens = [len(choice) for choice in choices]
-                lls_norm = [ll / max(length, 1) for ll, length in zip(lls, choice_lens)]
-                pred_norm = np.argmax(lls_norm)
-                result_dict[metric.metric_name] = int(pred_norm == gold)
-            else:
-                # For any custom metrics, try to compute them
-                try:
-                    result_score = metric.fn(
-                        references=[gold],
-                        predictions=[pred],
-                        **metric.kwargs,
-                    )
-                    if isinstance(result_score, dict):
-                        for k, v in result_score.items():
-                            result_dict[k] = v
-                    else:
-                        result_dict[metric.metric_name] = result_score
-                except (TypeError, KeyError):
-                    # Fallback: try the old interface
-                    try:
-                        result_dict[metric.metric_name] = metric.fn([gold, pred])
-                    except Exception:
-                        eval_logger.warning(
-                            f"Could not compute metric {metric.metric_name} for multiple choice"
-                        )
+        # Get gold label and validate
+        gold = self.doc_to_target(doc)
+        # Convert Sequence[int] to list[int] if needed for type compatibility
+        if isinstance(gold, Sequence) and not isinstance(gold, (str, list)):
+            gold = list(gold)
+        gold, gold_index_error = check_gold_index_error(choices, gold)
+
+        if gold_index_error:
+            eval_logger.warning(
+                f"Label index was not in within range of available choices,"
+                f"Sample:\n\n{doc}\n\n"
+            )
+
+        # Compute accuracy metrics
+        acc = 1.0 if pred == gold else 0.0
+        acc_norm = 1.0 if pred_norm == gold else 0.0
+        exact_match = int(is_greedy[gold]) if (isinstance(gold, int) and gold != -100) else 0
+
+        # Compute normalized probabilities for brier score
+        prob_norm = utils.softmax(lls)
+
+        # Build result dictionary with only the metrics we need
+        result_dict = {
+            **({"acc": acc} if "acc" in use_metric else {}),
+            **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+            **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
+            **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+            **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+            **(
+                {"brier_score": (gold, prob_norm)}
+                if "brier_score" in use_metric
+                else {}
+            ),
+        }
+
+        # Handle mutual information accuracy
+        if "acc_mutual_info" in use_metric:
+            if lls_unconditional is None:
+                raise ValueError(
+                    "acc_mutual_info requires unconditional loglikelihoods, "
+                    "but they were not computed. This is a configuration error."
+                )
+            lls_mutual_info = [
+                ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
+            ]
+            acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
+            result_dict["acc_mutual_info"] = acc_mutual_info
 
         return result_dict
 
