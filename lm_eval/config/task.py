@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import Instance, OutputType
+from lm_eval.api.registry import metric_registry
 from lm_eval.config.metric import MetricConfig
 from lm_eval.config.template import Template, init_template
 from lm_eval.config.utils import maybe_serialize
@@ -269,12 +270,7 @@ class TaskConfig:
 
     def _get_metric(self, metric_list: list[dict] | None = None) -> list[MetricConfig]:
         from lm_eval.api.registry import (
-            AGGREGATION_REGISTRY,
             DEFAULT_METRIC_REGISTRY,
-            get_aggregation,
-            get_metric,
-            get_metric_aggregation,
-            is_higher_better,
         )
 
         # if metric_list defined inside a filter, use that; otherwise use the task's metric_list
@@ -287,76 +283,13 @@ class TaskConfig:
                 f"No metrics defined in config, using default metrics for {self.output_type}={_metric_list}"
             )
             metrics.extend(
-                MetricConfig(
-                    name=metric_name,
-                    fn=get_metric(metric_name),
-                    aggregation_fn=get_metric_aggregation(metric_name),
-                    higher_is_better=is_higher_better(metric_name) or True,
-                )
-                for metric_name in _metric_list
+                metric_registry.get(metric_name) for metric_name in _metric_list
             )
         else:
             # ---------- 2. Process user-defined metrics from config ----------
             for metric_config in metric_list:
-                metric_name = metric_config["metric"]
-                _metric_fn_kwargs = {
-                    key: metric_config[key]
-                    for key in metric_config
-                    if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
-                }
-                _hf_evaluate_metric: bool = metric_config.get("hf_evaluate", False)
-                _metric_fn = None
-                _aggregation = None
-
-                if self.process_results is not None:
-                    # User will compute metrics inside `process_results()`
-                    _metric_name = None
-                    _metric_fn_kwargs = {}
-                elif callable(metric_name):
-                    # User passed a function object
-                    _metric_name = metric_name.__name__
-                    _metric_fn = metric_name.__call__
-                else:
-                    # Normal: look up by name
-                    _metric_name = metric_name
-                    _metric_fn = get_metric(metric_name, _hf_evaluate_metric)
-
-                # ---------- 3. Decide how to aggregate examples ----------
-                if "aggregation" in metric_config:
-                    if isinstance(_agg_name := metric_config["aggregation"], str):
-                        _aggregation = get_aggregation(_agg_name)
-                    elif callable(_agg_name):  # noqa: E721
-                        _aggregation = metric_config["aggregation"]
-                else:
-                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    _aggregation = get_metric_aggregation(metric_name)
-                    eval_logger.warning(
-                        f"[Task: {self.task}] metric {metric_name} is defined, but aggregation is not. "
-                        f"using default "
-                        f"aggregation={INV_AGG_REGISTRY[_aggregation]}"
-                    )
-
-                # ---------- 4. Determine “higher-is-better” semantics ----------
-                if "higher_is_better" in metric_config:
-                    _higher_is_better = metric_config["higher_is_better"]
-                else:
-                    eval_logger.warning(
-                        f"[Task: {self.task}] metric {metric_name} is defined, but higher_is_better is not. "
-                        f"using default "
-                        f"higher_is_better={is_higher_better(metric_name)}"
-                    )
-                    _higher_is_better = is_higher_better(metric_name)
-
                 metrics.append(
-                    MetricConfig(
-                        name=_metric_name,
-                        fn=_metric_fn,
-                        kwargs=_metric_fn_kwargs,
-                        aggregation_fn=_aggregation,
-                        higher_is_better=_higher_is_better,
-                        hf_evaluate=_hf_evaluate_metric,
-                    )
+                    MetricConfig.from_yaml_field(metric_config, task=self.task or "")
                 )
         for m in metrics:
             if m not in self._metric_list:

@@ -55,7 +55,7 @@ class ContextSampler:
         self.rnd = Random(rnd)
 
     @staticmethod
-    def remove_doc(doc: _T, _iter: Iterable[_T]) -> list[_T]:
+    def remove_doc(doc: _T, _iter: Iterable[_T]) -> Sequence[_T]:
         return [x for x in _iter if x != doc]
 
 

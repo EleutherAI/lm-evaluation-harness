@@ -57,22 +57,24 @@ metric_fn = get_metric("accuracy")
 from __future__ import annotations
 
 import importlib
+import importlib.metadata as md
 import inspect
 import logging
 import threading
 from functools import lru_cache
 from types import MappingProxyType
-from typing import Any, Callable, Generic, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, Union, cast
 
 from lm_eval.api.filter import Filter
 
 
 eval_logger = logging.getLogger(__name__)
 
-try:
-    import importlib.metadata as md  # Python ≥3.10
-except ImportError:  # pragma: no cover – fallback for 3.8/3.9
-    import importlib_metadata as md  # type: ignore
+
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
+    from lm_eval.config.metric import MetricConfig
+
 
 LEGACY_EXPORTS = [
     "DEFAULT_METRIC_REGISTRY",
@@ -284,7 +286,7 @@ class Registry(Generic[T]):
         """
         return cast(T, _materialise_placeholder(ph))
 
-    def get(self, alias: str) -> T:
+    def get(self, alias: str, default=None) -> T:
         """Retrieve an object by alias, materializing if needed.
 
         Thread-safe lazy loading: if the alias points to a placeholder,
@@ -304,6 +306,8 @@ class Registry(Generic[T]):
         try:
             target = self._objs[alias]
         except KeyError as exc:
+            if default is not None:
+                return default
             raise KeyError(
                 f"Unknown {self._name} '{alias}'. Available: {', '.join(self._objs)}"
             ) from exc
@@ -325,7 +329,7 @@ class Registry(Generic[T]):
         if self._base_cls is not None and not issubclass(target, self._base_cls):  # type: ignore[arg-type]
             raise TypeError(
                 f"{target} does not inherit from {self._base_cls} (alias '{alias}')"
-            )
+            ) from None
         return target
 
     def __getitem__(self, alias: str) -> T:
@@ -390,18 +394,16 @@ class Registry(Generic[T]):
 
 
 # Import MetricConfig as the standard metric representation
-from lm_eval.config.metric import MetricConfig  # noqa: E402
-
-
-# For backward compatibility, alias MetricConfig as MetricSpec
-MetricSpec = MetricConfig
+# from lm_eval.config.metric import MetricConfig  # noqa: E402
+#
+#
+# # For backward compatibility, alias MetricConfig as MetricSpec
+# MetricSpec = MetricConfig
 
 # Canonical registries aliases ---------------------
 
-from lm_eval.api.model import LM  # noqa: E402
 
-
-model_registry = cast(Registry[type[LM]], cast(object, Registry("model", base_cls=LM)))
+model_registry = cast(Registry[type["LM"]], cast(object, Registry("model")))
 task_registry: Registry[Callable[..., Any]] = Registry("task")
 metric_registry: Registry[MetricConfig] = Registry("metric")
 metric_agg_registry: Registry[Callable[..., float]] = Registry("metric_aggregation")
@@ -450,6 +452,7 @@ def register_metric(**kw):
         ... def compute_accuracy(items):
         ...     return sum(item["correct"] for item in items) / len(items)
     """
+    from lm_eval.config.metric import MetricConfig
     name = kw["metric"]
 
     def deco(fn):
