@@ -17,62 +17,91 @@ eval_logger = logging.getLogger(__name__)
 class ContextSampler:
     def __init__(
         self,
-        docs: Sequence[dict[str, Any]] | None = None,
+        df: Sequence[dict[str, Any]] | None = None,
         *,
         rnd: int | None = None,
         fewshot_indices: list[int] | None = None,
         **kwargs,
     ) -> None:
         self.rnd = Random(rnd)
-        self.docs = docs or []
+        self.df = df or []
         self.fewshot_indices = fewshot_indices
-
-        if self.fewshot_indices and self.docs:
-            self.docs = [self.docs[i] for i in self.fewshot_indices]
+        self._loaded = False  # to iterate over fewshot_indices when needed
 
     def sample(
-        self, n: int, doc: dict[str, Any] | None = None, **kwargs
+        self,
+        n: int,
+        eval_doc: dict[str, Any] | None = None,
+        df: Sequence[dict[str, Any]] | None = None,
+        **kwargs,
     ) -> Sequence[dict]:
         """
         Sample n documents from the pool.
 
         Args:
             n: Number of documents to sample
-            doc: Optional document to exclude from sampling
+            eval_doc: Optional document to exclude from sampling
+            df: Optional list of documents to sample from
 
         Returns:
             List of sampled documents
         """
         if n <= 0:
             return []
+
+        if df:
+            self.df = df
+
+        assert self.df, "Error: no documents available for sampling."
         return (
-            self.rnd.sample(self.docs, n)
-            if not doc
-            else self.remove_doc(doc, self.rnd.sample(self.docs, n + 1))
+            self.rnd.sample(self.fewshot_docs(), n)
+            if not eval_doc
+            else self.rm_eval_doc(
+                eval_doc, self.rnd.sample(self.fewshot_docs(), n + 1), n
+            )
         )
 
-    def set_rnd(self, rnd: int | None) -> None:
+    def set_rnd(self, rnd: int | None):
         self.rnd = Random(rnd)
+        return self
+
+    def replace_df(self, df: Sequence[dict[str, Any]]):
+        self.df = df
+        self._loaded = False
+        return self
+
+    def fewshot_docs(self):
+        """Return cached fewshot docs if available"""
+        if self._loaded:
+            return self.df
+        if self.fewshot_indices and self.df and not self._loaded:
+            self.df = [self.df[i] for i in self.fewshot_indices]
+        self._loaded = True
+        return list(self.df)
 
     @staticmethod
-    def remove_doc(doc: _T, _iter: Iterable[_T]) -> Sequence[_T]:
-        return [x for x in _iter if x != doc]
+    def rm_eval_doc(doc: _T, _iter: Iterable[_T], n=None) -> Sequence[_T]:
+        return (
+            [x for x in _iter if x != doc]
+            if n is None
+            else [x for x in _iter if x != doc][:n]
+        )
 
 
 class FirstNSampler(ContextSampler):
-    def sample(self, n: int, doc=None, **kwargs):
+    def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         """
         Draw the first `n` samples in order from the specified split.
         Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
         """
-        assert n <= len(self.docs), (
-            f"Error: number of fewshot samples requested exceeds the {len(self.docs)} that are available."
+        assert n <= len(self.df), (
+            f"Error: number of fewshot samples requested exceeds the {len(self.df)} that are available."
         )
-        return self.docs[:n]
+        return self.df[:n]
 
 
 class BalancedSampler(ContextSampler):
-    def sample(self, n: int, doc=None, **kwargs):
+    def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples.
         TODO: what order should they be in? maybe random?
@@ -82,7 +111,7 @@ class BalancedSampler(ContextSampler):
 
 
 class ManualSampler(ContextSampler):
-    def sample(self, n: int, doc=None, **kwargs):
+    def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         """ """
         raise NotImplementedError
 

@@ -102,6 +102,7 @@ class Task(ABC):
 
         self.multiple_inputs = False
         self._dataset = None  # Lazy-loaded dataset
+        self._fewshot_docs = None  # Cached fewshot docs
 
     def build_all_requests(
         self,
@@ -274,9 +275,9 @@ class Task(ABC):
             messages.append(Message("system", system_prompt, tgt_delim))
 
         if num_fewshot > 0:
-            for fs_doc in self.sampler.sample(
+            for fs_doc in self.sampler.replace_df(self.fewshot_docs()).sample(
                 n=num_fewshot,
-                doc=doc
+                eval_doc=doc
                 if self.config.fewshot_split == self.config.test_split
                 else None,
             ):
@@ -400,10 +401,15 @@ class Task(ABC):
         self._dataset = df
 
     def fewshot_docs(self):
+        # Return cached fewshot docs if available
+        if self._fewshot_docs:
+            return self._fewshot_docs
+
         docs = self.config.fewshot_cfg.get_docs(self.dataset)
 
         if docs is not None:
-            return docs
+            self._fewshot_docs = list(docs) if docs is not None else []
+            return self._fewshot_docs
 
         _num_fewshot = self.config.num_fewshot
         if isinstance(_num_fewshot, int) and _num_fewshot > 0:
@@ -415,15 +421,21 @@ class Task(ABC):
 
             # Try splits in priority order
             for split_attr in ["training_split", "validation_split"]:
-                if getattr(self.config, split_attr) is not None:
-                    return self.get_docs(split_attr)
+                if (result := self.get_docs(split_attr)) is not None:
+                    self._fewshot_docs = list(result)
+                    return self._fewshot_docs
 
             # Fallback to test split
             eval_logger.warning(
                 f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
                 ", using test_docs as fewshot_docs but this is not recommended."
             )
-            return self.get_docs("test_split")
+            if (result := self.get_docs("test_split")) is not None:
+                self._fewshot_docs = list(result)
+                return self._fewshot_docs
+
+        self._fewshot_docs = []
+        return self._fewshot_docs
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
@@ -733,10 +745,7 @@ class MultipleChoiceTask(Task):
 
         # Handle mutual information if needed
         lls_unconditional = None
-        if (
-            2 * len(choices) == len(lls)
-            and "acc_mutual_info" in use_metric
-        ):
+        if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
             # Then we are doing mutual info.
             # This stores the "dryrun" / unconditional answer loglikelihoods
             # as we extend the args list with unconditional ("", continuation) pairs
@@ -766,7 +775,9 @@ class MultipleChoiceTask(Task):
         # Compute accuracy metrics
         acc = 1.0 if pred == gold else 0.0
         acc_norm = 1.0 if pred_norm == gold else 0.0
-        exact_match = int(is_greedy[gold]) if (isinstance(gold, int) and gold != -100) else 0
+        exact_match = (
+            int(is_greedy[gold]) if (isinstance(gold, int) and gold != -100) else 0
+        )
 
         # Compute normalized probabilities for brier score
         prob_norm = utils.softmax(lls)
