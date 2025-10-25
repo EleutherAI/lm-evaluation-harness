@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import math
-import os
 import random
 import re
 import string
@@ -12,6 +11,7 @@ from typing import Generic, TypeVar
 import numpy as np
 
 from lm_eval.api.registry import register_aggregation, register_metric
+from lm_eval.defaults import DISABLE_MULTIPROC
 
 
 T = TypeVar("T")
@@ -448,10 +448,11 @@ def acc_all(items):
 def acc_all_stderr(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
+    preds = list(zip(*items, strict=True))[0]
+    docs = list(zip(*items, strict=True))[1]
 
-    for doc, pred in zip(docs, preds):
+    for doc, pred in zip(docs, preds, strict=True):
+        paragraph_id = doc["idx"]["paragraph"]
         question_id = doc["idx"]["question"]
         if question_id not in question_scoring_dict:
             question_scoring_dict[question_id] = []
@@ -473,7 +474,7 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 
 
 def weighted_mean(items: list[tuple[float, float]]) -> float:
-    a, b = zip(*items)
+    a, b = zip(*items, strict=True)
     return sum(a) / sum(b)
 
 
@@ -563,7 +564,7 @@ def bootstrap_stderr(
 
     Executes in parallel unless the env-var `DISABLE_MULTIPROC` is set;
     """
-    if not os.getenv("DISABLE_MULTIPROC"):
+    if not DISABLE_MULTIPROC:
         import multiprocessing as mp
 
         # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
@@ -631,16 +632,18 @@ def stderr_for_metric(
 def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
-    #
-
-    assert len(stderrs) == len(sizes)
 
     # formula source: https://en.wikipedia.org/wiki/Pooled_variance
     # and: https://stats.stackexchange.com/a/4841331
     # this empirically seems to match running `stderr_for_metric` on all instances
     # from the subtasks concatenated with each other.
     pooled_sample_var = (
-        sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])
+        sum(
+            [
+                (size - 1) * stderr**2 * size
+                for size, stderr in zip(sizes, stderrs, strict=True)
+            ]
+        )
     ) / (sum(sizes) - len(sizes))
 
     return np.sqrt(pooled_sample_var / sum(sizes))
@@ -664,7 +667,7 @@ def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None)
     curr_size = sizes[0]
     curr_score = metrics[0]
 
-    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:]):
+    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:], strict=True):
         curr_score = ((curr_score * curr_size) + (score * size)) / (
             curr_size + size
         )  # NOTE: this assumes our aggregation fn is "mean"
@@ -689,4 +692,6 @@ def aggregate_subtask_metrics(
 
     assert len(metrics) == len(sizes)
 
-    return sum(metric * size for metric, size in zip(metrics, sizes)) / sum(sizes)
+    return sum(
+        metric * size for metric, size in zip(metrics, sizes, strict=True)
+    ) / sum(sizes)

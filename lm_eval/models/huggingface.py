@@ -30,6 +30,7 @@ from transformers.models.auto.modeling_auto import (
 from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
+from lm_eval.defaults import DEFAULT_GEN_MAX_LENGTH, DEFAULT_MAX_LENGTH
 from lm_eval.models.utils import (
     Collator,
     clear_torch_cache,
@@ -65,7 +66,7 @@ class HFLM(TemplateLM):
     """
 
     AUTO_MODEL_CLASS = None
-    _DEFAULT_MAX_LENGTH = 2048
+    _DEFAULT_MAX_LENGTH = DEFAULT_MAX_LENGTH
 
     def __init__(
         self,
@@ -480,7 +481,7 @@ class HFLM(TemplateLM):
 
     @property
     def max_gen_toks(self) -> int:
-        return 256
+        return DEFAULT_GEN_MAX_LENGTH
 
     @property
     def batch_size(self):
@@ -1504,7 +1505,7 @@ class HFLM(TemplateLM):
         return res
 
     def apply_chat_template(
-        self, chat_history: list[dict[str, str]], add_generation_prompt: bool = True
+        self, chat_history: list[dict[str, str]], *, add_generation_prompt: bool = True
     ) -> str:
         """Method to apply a chat template to a list of chat history between user and model."""
         try:

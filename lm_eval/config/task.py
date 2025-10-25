@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from typing import TYPE_CHECKING, Any, Callable
 
 from lm_eval.api.filter import FilterEnsemble
@@ -193,15 +191,16 @@ class TaskConfig:
     num_fewshot: int | None = None
     generation_kwargs: dict[str, Any] | None = None
     # scoring options
+    filter_list: list[dict] | None = None
     metric_list: list | None = None
     output_type: OutputType = "generate_until"
     repeats: int = 1
-    filter_list: list[dict] | None = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
     multiple_inputs: bool = False
     multiple_targets: bool = False
+    unconditional_context: str = ""
     metadata: dict = field(
         default_factory=dict
     )  # by default, not used in the code. allows for users to pass arbitrary info to tasks
@@ -209,52 +208,20 @@ class TaskConfig:
     _metric_list: list[MetricConfig] = field(default_factory=list)
     _filter_list: list[FilterConfig] = field(default_factory=list)
     # ds_cfg: DatasetConfig = field(init=False)
-    fewshot_cfg: FewshotConfig = field(init=False)
+    _fewshot_cfg: FewshotConfig = field(init=False)
     _fn: dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        ### ---setup generation kwargs--- ###
-        if self.output_type is not None:
-            if self.output_type not in ALL_OUTPUT_TYPES:
-                raise ValueError(
-                    f"Got invalid output_type '{self.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
-                )
-            self.OUTPUT_TYPE = self.output_type
+        if self.output_type is not None and self.output_type not in ALL_OUTPUT_TYPES:
+            raise ValueError(
+                f"Got invalid output_type '{self.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
+            )
 
-        if self.generation_kwargs is not None:
-            if self.output_type != "generate_until":
-                eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
-                )
+        self._verify_gen_kwargs()
 
-            if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
-
-            if "until" not in self.generation_kwargs:
-                eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
-                )
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
-        else:
-            if self.output_type == "generate_until":
-                # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = {
-                    "until": (
-                        None
-                        if self.fewshot_delimiter is None
-                        else [self.fewshot_delimiter]
-                    ),
-                    "do_sample": False,
-                    "temperature": 0,
-                }
-                eval_logger.warning(
-                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
-                )
         # ---setup fewshot config--- #
         _fewshot_cfg = self.fewshot_config if self.fewshot_config is not None else {}
-        self.fewshot_cfg = FewshotConfig(
+        self._fewshot_cfg = FewshotConfig(
             num_fewshot=lambda: self.num_fewshot or _fewshot_cfg.get("num_fewshot", 0),
             split=self.fewshot_split,
             sampler=_fewshot_cfg.get("sampler", "default"),
@@ -296,7 +263,6 @@ class TaskConfig:
                 self._metric_list.append(m)
         return metrics
 
-    @property
     def get_filters(self) -> list[FilterConfig]:
         from lm_eval.filters import build_filter_ensemble
 
@@ -336,11 +302,54 @@ class TaskConfig:
             ]
             return x
 
+    def _verify_gen_kwargs(self) -> None:
+        if self.generation_kwargs is not None:
+            if self.output_type != "generate_until":
+                eval_logger.warning(
+                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
+                )
+
+            if "temperature" in self.generation_kwargs:
+                self.generation_kwargs["temperature"] = float(
+                    self.generation_kwargs["temperature"]
+                )
+
+            if "until" not in self.generation_kwargs:
+                eval_logger.warning(
+                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
+                )
+                self.generation_kwargs["until"] = [self.fewshot_delimiter]
+
+            else:
+                if isinstance(self.generation_kwargs["until"], str):
+                    self.generation_kwargs["until"] = [self.generation_kwargs["until"]]
+        else:
+            if self.output_type == "generate_until":
+                # ensure that we greedily generate in absence of explicit arguments otherwise
+                self.generation_kwargs = {
+                    "until": (
+                        None
+                        if self.fewshot_delimiter is None
+                        else [self.fewshot_delimiter]
+                    ),
+                    "do_sample": False,
+                    "temperature": 0,
+                }
+                eval_logger.warning(
+                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
+                )
+
     @classmethod
-    def from_yaml(cls, data: dict[str, Any]) -> TaskConfig:
+    def from_yaml(cls, data: dict[str, Any]):
         """Create a TaskConfig instance from a YAML-like dictionary."""
         fn = {k: v for k, v in data.items() if callable(v)}
         return cls(**data, _fn=fn)
+
+    @classmethod
+    def from_arbitrary_dict(cls, data: dict[str, Any]):
+        """Create a TaskConfig instance from a dictionary."""
+        _fields = {f.name for f in fields(cls)}
+        return cls(**{k: v for k, v in data.items() if k in _fields})
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         def _ser(x):

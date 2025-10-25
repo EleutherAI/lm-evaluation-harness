@@ -99,7 +99,6 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff]
-target-version = "py39"
 lint.extend-select = ["I", "UP", "E", "C419", "F", "B", "SIM", "RUF034", "W605", "FURB"]
 lint.fixable = ["I001", "F401", "UP"]
 lint.ignore = ["E402", "E731", "E501", "E111", "E114", "E117", "E741", "E701"]

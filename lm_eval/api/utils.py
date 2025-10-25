@@ -1,7 +1,40 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeGuard
+
+from lm_eval.defaults import DATA_VALIDATION
+
+
+def is_str_list(choices: list[str] | list[int]) -> TypeGuard[list[str]]:
+    return isinstance(choices[0], str) if choices else False
+
+
+def is_int_list(choices: list[str] | list[int]) -> TypeGuard[list[int]]:
+    return isinstance(choices[0], int) if choices else False
+
+
+def extract_target_index(
+    choices: list[str],
+    target: str | int | list[int] | list[str],
+    _raise: bool = DATA_VALIDATION,
+) -> int:
+    match target:
+        case str() if target in choices:
+            return choices.index(target)
+        case int() if 0 <= target < len(choices):
+            return target
+        case list():
+            if is_int_list(target):
+                for i in target:
+                    if 0 <= i < len(choices):
+                        return i
+            elif is_str_list(target):
+                for i in target:
+                    if i in choices:
+                        return choices.index(i)
+    _raise = DATA_VALIDATION
+    if _raise:
+        raise ValueError(f"Invalid choice: {target}; choices: {choices}")
+    return -1
 
 
 def check_gold_index_error(
@@ -71,3 +104,11 @@ def multiturn_to_singleturn(messages: list[Message]) -> list[dict[str, Any]]:
         res = [Message("user", "".join(m.to_text() for m in messages), "").to_dict()]
 
     return [system.to_dict()] + res if system else res
+
+
+def format_turn(content: str, role: str, type: str | None = None) -> dict[str, str]:
+    return (
+        {"role": role, "content": content}
+        if not type
+        else {"type": type, "role": role, "content": content}
+    )

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 import re
 from abc import ABC, abstractmethod
@@ -11,7 +9,6 @@ from typing import (
     Any,
 )
 
-import datasets
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -19,6 +16,7 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.utils import (
     Message,
     check_gold_index_error,
+    format_turn,
     maybe_delimit,
     multiturn_to_singleturn,
 )
@@ -27,30 +25,27 @@ from lm_eval.config.task import TaskConfig
 from lm_eval.config.utils import process_field
 
 
-ALL_OUTPUT_TYPES = [
-    "loglikelihood",
-    "multiple_choice",
-    "loglikelihood_rolling",
-    "generate_until",
-]
-
 if TYPE_CHECKING:
-    import datasets
-
-    from lm_eval.types import TaskDataSet
-
+    from lm_eval.types import ChatFormat, ChatTemplateProtocol, TaskDataSet
 
 eval_logger = logging.getLogger(__name__)
 
 
-def format_turn(content: str, role: str):
-    return {"role": role, "content": content}
-
-
 class Task(ABC):
+    """A task represents an entire benchmark, including its dataset, problems,
+    answers, and evaluation methods. See BoolQ for a simple example implementation
+
+    A `doc` can be any python object that represents one instance of evaluation.
+    This is usually a dictionary e.g.
+        {"question": ..., "answer": ...}
+    """
+
     VERSION: str = "Yaml"
-    OUTPUT_TYPE: str = "generate_until"
-    _registry: dict[str, type[Task]] = {}
+    OUTPUT_TYPE: str | None = None
+    DATASET_PATH: str | None = None
+    DATASET_NAME: str | None = None
+    CONFIG: dict[str, Any] = {}
+    _registry = {}
 
     def __init_subclass__(cls, **kwargs):
         """Automatically register Task subclasses by their OUTPUT_TYPE."""
@@ -59,7 +54,7 @@ class Task(ABC):
             Task._registry[cls.OUTPUT_TYPE] = cls
 
     @classmethod
-    def from_config(cls, config: TaskConfig | dict[str, Any]) -> Task:
+    def from_config(cls, config: TaskConfig | dict[str, Any]):
         """
         Factory method to create the appropriate Task subclass based on output_type.
 
@@ -87,22 +82,29 @@ class Task(ABC):
 
     def __init__(self, config: TaskConfig | dict[str, Any]):
         self.config: TaskConfig = (
-            config if isinstance(config, TaskConfig) else TaskConfig(**config)
+            TaskConfig.from_arbitrary_dict(self.CONFIG)
+            if self.CONFIG
+            else (config if isinstance(config, TaskConfig) else TaskConfig(**config))
         )
+        self.OUTPUT_TYPE = self.OUTPUT_TYPE or self.config.output_type
+        assert self.OUTPUT_TYPE, "output_type must be set in TaskConfig or subclass"
+        self.DATASET_NAME = self.DATASET_NAME or self.config.dataset_name
+        self.DATASET_PATH = self.DATASET_PATH or self.config.dataset_path
 
         self.task = self.config.task
-        self.OUTPUT_TYPE = self.config.output_type
 
         self.template = self.config.template
-        self.sampler = self.config.fewshot_cfg.init_sampler(
-            rnd=self.config.fewshot_cfg.rnd
+        self.sampler = self.config._fewshot_cfg.init_sampler(
+            rnd=self.config._fewshot_cfg.rnd
         )
-        self._filters = self.config.get_filters
-        self._instances = None
+        self._filters = self.config.get_filters()
 
         self.multiple_inputs = False
-        self._dataset = None  # Lazy-loaded dataset
-        self._fewshot_docs = None  # Cached fewshot docs
+        # datasets are lazily loaded
+        self._dataset = None
+        self._fewshot_docs = None
+        # created in build_all_requests
+        self._instances = None
 
     def build_all_requests(
         self,
@@ -255,7 +257,7 @@ class Task(ABC):
         system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Callable[..., str] | None = None,
+        chat_template: ChatTemplateProtocol | None = None,
         gen_prefix: str | None = None,
     ) -> str | list[str] | list[dict[str, Any]]:
         messages = []
@@ -351,7 +353,7 @@ class Task(ABC):
 
     @abstractmethod
     def construct_requests(
-        self, doc: dict[str, Any], ctx: str | list[str] | list[dict[str, Any]], **kwargs
+        self, doc: dict[str, Any], ctx: ChatFormat | list[str], **kwargs
     ) -> list[Instance] | Instance | None: ...
 
     @abstractmethod
@@ -374,27 +376,33 @@ class Task(ABC):
             raise ValueError("Task dataset must have valid or test docs!")
 
     def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
+        import datasets
         from packaging.version import parse as vparse
+
+        if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
+            dataset_kwargs.pop("trust_remote_code", None)
+
+        _dataset_path = self.DATASET_PATH
+        _dataset_name = self.DATASET_NAME
 
         self.config.dataset_kwargs, self.config.metadata = (
             self.config.dataset_kwargs or {},
             self.config.metadata or {},
         )
-        if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
-            dataset_kwargs.pop("trust_remote_code", None)
-        if isinstance(df := self.config.custom_dataset, Callable):
+
+        if callable(df := self.config.custom_dataset):
             eval_logger.warning(
                 f"{self.config.task}: Custom kwargs can be passed to `--metadata` in console (as json string) or to the TaskManager."
                 + "\nFor example --metadata='{\"max_seq_lengths\":[4096, 8192]}'. For details see task Readme."
             )
             self._dataset = df(**(self.config.dataset_kwargs | self.config.metadata))
         else:
-            assert self.config.dataset_path is not None, (
-                "dataset_path must be set in TaskConfig"
+            assert _dataset_path is not None, (
+                "dataset_path must be set in TaskConfig or class attribute"
             )
             df = datasets.load_dataset(
-                path=self.config.dataset_path,
-                name=self.config.dataset_name,
+                path=_dataset_path,
+                name=_dataset_name,
                 **self.config.dataset_kwargs,
             )
         assert isinstance(df, dict)
@@ -405,7 +413,7 @@ class Task(ABC):
         if self._fewshot_docs:
             return self._fewshot_docs
 
-        docs = self.config.fewshot_cfg.get_docs(self.dataset)
+        docs = self.config._fewshot_cfg.get_docs(self.dataset)
 
         if docs is not None:
             self._fewshot_docs = list(docs) if docs is not None else []
@@ -450,9 +458,9 @@ class Task(ABC):
             return self
 
     def get_docs(self, subset: str):
+        assert self.dataset is not None, "dataset not set!"
         if subset := getattr(self.config, subset):
             if self.config.process_docs is not None:
-                assert self.dataset is not None, "dataset not set!"
                 return self.config.process_docs(self.dataset[subset])
             return self.dataset[subset]
 
@@ -468,11 +476,7 @@ class Task(ABC):
         self,
         doc: dict[str, Any],
         *,
-        doc_to_choice: Callable[[dict[str, Any]], list[str]]
-        | str
-        | dict
-        | list
-        | None = None,
+        doc_to_choice: Callable[[dict[str, Any]], list[str]] | str | list | None = None,
     ) -> list[str]:
         return process_field(
             doc, doc_to_choice or self.config.doc_to_choice, lists=True, default=[]
@@ -602,7 +606,7 @@ class GenerateTask(Task):
         instance_kwargs = {
             k: v
             for k, v in kwargs.items()
-            if k not in ("chat_template", "metadata", "apply_chat_template")
+            if k not in ("chat_template", "apply_chat_template")
         }
 
         return Instance(
@@ -646,7 +650,7 @@ class MultipleChoiceTask(Task):
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | dict[str, Any],
+        ctx: str | list[str] | list[dict[str, Any]],
         apply_chat_template: bool = False,
         **kwargs,
     ):
@@ -661,18 +665,35 @@ class MultipleChoiceTask(Task):
         #     arguments = [(_ctx, f"{target_delimiter}{choices[0]}") for _ctx in ctx]
         # else:
         # Otherwise they are placed in the continuation
-        arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
+        if isinstance(ctx, list) and isinstance(ctx[0], str):
+            if isinstance(ctx[0], str):
+                # If there are multiple inputs, assume only one choice
+                arguments = [(_ctx, f"{target_delimiter}{choices[0]}") for _ctx in ctx]
+            elif isinstance(ctx[0], dict):
+                # If there are multiple inputs, assume only one choice
+                arguments = [
+                    (ctx + [format_turn(cont, "assistant")]) for cont in choices
+                ]
+            if "acc_mutual_info" in [m.metric_name for m in self.config._metric_list]:
+                raise ValueError(
+                    "acc_mutual_info not supported for multiple inputs, or for custom tokenizers."
+                )
+        else:
+            arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
-        if "acc_mutual_info" in [m.metric_name for m in self.config._metric_list]:
-            # if we are calculating multiple choice accuracy
-            # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
+            if "acc_mutual_info" in [m.metric_name for m in self.config._metric_list]:
+                # if we are calculating multiple choice accuracy
+                # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
-            # here mutual info refers to calculating
-            # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
-            # in other words normalizing by subtracting the unconditional logprob of each choice.
-            aux_arguments = [("", f"{target_delimiter}{choice}") for choice in choices]
+                # here mutual info refers to calculating
+                # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
+                # in other words normalizing by subtracting the unconditional logprob of each choice.
+                aux_arguments = [
+                    (self.config.unconditional_context, f"{target_delimiter}{choice}")
+                    for choice in choices
+                ]
 
-            arguments.extend(aux_arguments)
+                arguments.extend(aux_arguments)
 
         multimodal_arg = {}
         if (
@@ -823,7 +844,7 @@ class PerplexityTask(Task):
     def construct_requests(
         self,
         doc: dict[str, Any],
-        ctx: str | list[str] | dict[str, Any],
+        ctx: str | list[str] | list[dict[str, Any]],
         **kwargs,
     ) -> Instance:
         """

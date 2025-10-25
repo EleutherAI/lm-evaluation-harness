@@ -121,8 +121,11 @@ class LM(abc.ABC):
         pass
 
     def apply_chat_template(
-        self, chat_history: list[dict], add_generation_prompt=True
-    ) -> str:
+        self,
+        chat_history: list[dict[str, Any]],
+        *,
+        add_generation_prompt=True,
+    ) -> str | list[dict[str, Any]]:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
 
@@ -200,9 +203,7 @@ class LM(abc.ABC):
         Should return the name of the tokenizer or chat template used.
         Used only to properly fingerprint caches when requests are being cached with `--cache_requests`, otherwise not used.
         """
-        raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'tokenizer_name' property."
-        )
+        return ""
 
     def chat_template(self, chat_template: bool | str = False) -> str | None:
         """Returns the chat template structure for user/assistant messages if a template is provided.

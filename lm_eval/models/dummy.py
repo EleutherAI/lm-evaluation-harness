@@ -1,4 +1,5 @@
 import random
+from typing import Any
 
 from tqdm import tqdm
 
@@ -39,3 +40,8 @@ class DummyLM(LM):
             res.append(-random.random())
 
         return res
+
+    def apply_chat_template(
+        self, chat_history: list[dict], *, add_generation_prompt=True
+    ) -> str | list[dict[str, Any]]:
+        return chat_history

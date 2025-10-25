@@ -10,6 +10,19 @@ GenerateResult = list[str]
 LLResult = tuple[float, bool | None]
 TaskDataSet = datasets.Dataset | Iterable[dict[str, Any]]
 DatasetSplits = dict[str, TaskDataSet]
+ChatFormat = str | list[dict[str, Any]]
+
+
+class ChatTemplateProtocol(Protocol):
+    """Protocol for applying chat templates."""
+
+    def __call__(
+        self,
+        chat_history: list[dict[str, Any]],
+        *,
+        add_generation_prompt: bool,
+        **kwargs,
+    ) -> ChatFormat: ...
 
 
 class MetricProtocol(Protocol):

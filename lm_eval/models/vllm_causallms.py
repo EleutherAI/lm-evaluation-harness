@@ -19,6 +19,7 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
+from lm_eval.defaults import DEFAULT_GEN_MAX_LENGTH, DEFAULT_MAX_LENGTH
 from lm_eval.models.utils import (
     Collator,
     configure_pad_token,
@@ -109,7 +110,7 @@ def _vllm_mp_worker(
 
 @register_model("vllm")
 class VLLM(TemplateLM):
-    _DEFAULT_MAX_LENGTH = 2048
+    _DEFAULT_MAX_LENGTH = DEFAULT_MAX_LENGTH
 
     def __init__(
         self,
@@ -124,7 +125,7 @@ class VLLM(TemplateLM):
         prefix_token_id: int | None = None,
         tensor_parallel_size: int = 1,
         quantization: str | None = None,
-        max_gen_toks: int = 256,
+        max_gen_toks: int = DEFAULT_GEN_MAX_LENGTH,
         swap_space: int = 4,
         batch_size: str | int = 1,
         max_batch_size: int | None = None,
@@ -309,7 +310,7 @@ class VLLM(TemplateLM):
         """
         try:
             chat_templated = self.tokenizer.apply_chat_template(
-                chat_history,
+                chat_history,  # type: ignore
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
                 continue_final_message=not add_generation_prompt,
@@ -322,7 +323,7 @@ class VLLM(TemplateLM):
                 "Failed to apply chat template. removing the system role in chat history."
             )
             chat_templated = self.tokenizer.apply_chat_template(
-                [msg for msg in chat_history if msg["role"] != "system"],
+                [msg for msg in chat_history if msg["role"] != "system"],  # type: ignore
                 tokenize=False,
                 add_generation_prompt=add_generation_prompt,
                 continue_final_message=not add_generation_prompt,
@@ -331,7 +332,7 @@ class VLLM(TemplateLM):
                 **self.chat_template_args,
             )
 
-        return chat_templated
+        return chat_templated  # type: ignore
 
     @property
     def tokenizer_name(self) -> str:

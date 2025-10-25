@@ -52,7 +52,9 @@ class Instance:
         Returns (string,) where `string` is the string to calculate loglikelihood over
         """
         return (
-            self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
+            self.arguments
+            if isinstance(self.arguments, tuple)
+            else (self.arguments, None)
         )
 
 
