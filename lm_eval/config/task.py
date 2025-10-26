@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import Instance, OutputType
-from lm_eval.api.registry import metric_registry
+from lm_eval.api.registry import metric_agg_registry, metric_registry
 from lm_eval.config.metric import MetricConfig
 from lm_eval.config.template import Template, init_template
 from lm_eval.config.utils import maybe_serialize
+from lm_eval.types import DatasetSplits, TaskDataSet
 
 
 if TYPE_CHECKING:
     from lm_eval.api.samplers import ContextSampler
-    from lm_eval.types import DatasetSplits, TaskDataSet
 
 eval_logger = logging.getLogger(__name__)
 
@@ -31,19 +31,24 @@ class RepeatConfig:
     """Encapsulates information about a single repeat."""
 
     repeats: int = 1
-    reducer: str | Callable[..., float] | None = "pass@N"
+    metric_name: str = ""
+    reducer: str | Callable[..., float] | None = "pass@k"
     kwargs: dict | None = field(default_factory=dict)
 
     def __post_init__(self):
         if self.repeats < 1:
             self.reducer = None
         if isinstance(self.reducer, str):
-            self.reducer = metric_registry.get(self.reducer)
+            self.metric_name = self.reducer
+            self.reducer = metric_agg_registry.get(self.reducer)
+        elif callable(self.reducer):
+            self.reducer = self.reducer
+            self.metric_name = self.reducer.__name__
 
     @classmethod
     def from_cfg(cls, cfg: dict | str | int):
         if not isinstance(cfg, dict):
-            return cls(repeats=int(cfg), reducer=None)
+            return cls(repeats=int(cfg), reducer="mean", metric_name="mean")
         return cls(**cfg)
 
 
@@ -148,7 +153,7 @@ class FewshotConfig:
 
     def init_sampler(
         self, docs: list[dict] | None = None, rnd=None, fewshot_indices=None
-    ) -> ContextSampler:
+    ) -> "ContextSampler":
         """Initialize the sampler with the given documents and task."""
         if rnd is None:
             raise ValueError(
@@ -222,7 +227,9 @@ class TaskConfig:
     _filter_list: list[FilterConfig] = field(default_factory=list)
     # ds_cfg: DatasetConfig = field(init=False)
     _fewshot_cfg: FewshotConfig = field(init=False)
-    repeat_cfg: RepeatConfig = RepeatConfig.from_cfg(1)
+    repeat_cfg: RepeatConfig = field(
+        default_factory=lambda: RepeatConfig.from_cfg(1), init=False
+    )
     _fn: dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -248,6 +255,16 @@ class TaskConfig:
             self.doc_to_text = self.template.question or self.doc_to_text
             self.doc_to_target = self.template.target or self.doc_to_target
             self.doc_to_choice = self.template.choices or self.doc_to_choice
+
+        if isinstance(self.repeats, str) and self.repeats.isdigit():
+            self.repeats = int(self.repeats)
+        # if isinstance(self.repeats, int):
+        #     self.repeats = {"repeats": self.repeats}
+        # assert isinstance(self.repeats, dict | RepeatConfig), (
+        #     "repeats must be int or dict"
+        # )
+
+        self.repeat_cfg = RepeatConfig.from_cfg(self.repeats)
 
     def _get_metric(self, metric_list: list[dict] | None = None) -> list[MetricConfig]:
         from lm_eval.api.registry import (

@@ -61,9 +61,10 @@ import importlib.metadata as md
 import inspect
 import logging
 import threading
+from collections.abc import Callable
 from functools import lru_cache
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union, cast
 
 from lm_eval.api.filter import Filter
 
@@ -453,6 +454,7 @@ def register_metric(**kw):
         ...     return sum(item["correct"] for item in items) / len(items)
     """
     from lm_eval.config.metric import MetricConfig
+
     name = kw["metric"]
 
     def deco(fn):
@@ -474,7 +476,7 @@ def register_metric(**kw):
             aggregation_fn=aggregation_fn,
             higher_is_better=kw.get("higher_is_better", True),
             output_type=kw.get("output_type", "generate_until"),
-            requires=kw.get("requires"),
+            # requires=kw.get("requires"),
             hf_evaluate=kw.get("hf_evaluate", False),
         )
         metric_registry.register(name, lazy=config)

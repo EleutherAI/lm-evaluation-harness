@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import itertools
-import json
 import logging
 import os
 import random
@@ -33,9 +32,7 @@ from lm_eval.tasks import TaskManager
 from lm_eval.tasks.manager import get_task_dict
 from lm_eval.utils import (
     get_logger,
-    handle_non_serializable,
     hash_dict_images,
-    hash_string,
     positional_deprecated,
     simple_parse_args_string,
     wrap_text,
@@ -599,66 +596,57 @@ def evaluate(
     for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         instances = task.apply_filters().instances
-        instances_by_doc_id = task.sort_instances(instances)
-        # results = task._compute_metrics(instances_by_doc_id)
+        # instances_by_doc_id = task.sort_instances(instances)
+        results = task.process_instances(instances)
+        print("hello")
+        # task_output.sample_metrics = results
 
-        ### Collect values of metrics on all datapoints ###
-        # # unpack results and sort back in order and return control to Task
-        # TODO: make it possible to use a different metric per filter
-        # Pre-process task.instances to group by doc_id
-        # instances_by_doc_id = defaultdict(list)
-        # for instance in task.instances:
-        #     instances_by_doc_id[instance.doc_id].append(instance)
-        # # Sort instances within each group
-        # for instances in instances_by_doc_id.values():
-        #     instances.sort(key=lambda x: x.idx)
-        # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps:
-            indices = (
-                samples.get(task_output.task_name, None)
-                if samples is not None
-                else None
-            )
-            doc_iterator = task.doc_iterator(
-                rank=RANK,
-                limit=limit,
-                world_size=WORLD_SIZE,
-                samples=indices,
-            )
-            for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
-                requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
-                )
-                if log_samples:
-                    target = task.doc_to_target(doc)
-                    example = {
-                        "doc_id": doc_id_true,
-                        "doc": doc,
-                        "target": target,
-                        "arguments": [req.args for req in requests],
-                        "resps": [req.resps for req in requests],
-                        "filtered_resps": [
-                            req.filtered_resps[filter_key] for req in requests
-                        ],
-                        "filter": filter_key,
-                        "metrics": list(metrics.keys()),
-                        "doc_hash": hash_string(
-                            json.dumps(
-                                requests[0].doc,
-                                indent=2,
-                                default=handle_non_serializable,
-                                ensure_ascii=False,
-                            )
-                        ),
-                        "prompt_hash": hash_string(requests[0].arguments[0]),
-                        "target_hash": hash_string(str(target)),
-                    }
-                    example.update(metrics)
-                    task_output.logged_samples.append(example)
-                for metric, value in metrics.items():
-                    task_output.sample_metrics[(metric, filter_key)].append(value)
+        # for filter_key in task.instances[0].filtered_resps:
+        #     indices = (
+        #         samples.get(task_output.task_name, None)
+        #         if samples is not None
+        #         else None
+        #     )
+        #     doc_iterator = task.doc_iterator(
+        #         rank=RANK,
+        #         limit=limit,
+        #         world_size=WORLD_SIZE,
+        #         samples=indices,
+        #     )
+        #     for doc_id, doc in doc_iterator:
+        #         doc_id_true = indices[doc_id] if indices else doc_id
+        #         requests = instances_by_doc_id[doc_id]
+        #         metrics = task.process_results(
+        #             doc, [req.filtered_resps[filter_key] for req in requests]
+        #         )
+        #         if log_samples:
+        #             target = task.doc_to_target(doc)
+        #             example = {
+        #                 "doc_id": doc_id_true,
+        #                 "doc": doc,
+        #                 "target": target,
+        #                 "arguments": [req.args for req in requests],
+        #                 "resps": [req.resps for req in requests],
+        #                 "filtered_resps": [
+        #                     req.filtered_resps[filter_key] for req in requests
+        #                 ],
+        #                 "filter": filter_key,
+        #                 "metrics": list(metrics.keys()),
+        #                 "doc_hash": hash_string(
+        #                     json.dumps(
+        #                         requests[0].doc,
+        #                         indent=2,
+        #                         default=handle_non_serializable,
+        #                         ensure_ascii=False,
+        #                     )
+        #                 ),
+        #                 "prompt_hash": hash_string(requests[0].arguments[0]),
+        #                 "target_hash": hash_string(str(target)),
+        #             }
+        #             example.update(metrics)
+        #             task_output.logged_samples.append(example)
+        #         for metric, value in metrics.items():
+        #             task_output.sample_metrics[(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
