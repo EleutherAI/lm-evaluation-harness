@@ -12,6 +12,7 @@ import numpy as np
 
 from lm_eval.api.registry import register_aggregation, register_metric
 from lm_eval.defaults import DISABLE_MULTIPROC
+from lm_eval.types import MCResult
 
 
 T = TypeVar("T")
@@ -149,7 +150,7 @@ def brier_score(
 
 
 @register_aggregation("pass@k")
-def pass_at_k(n: int, c: int, k: int = 1):
+def pass_at_k(n: int, c: int, k: int = 1) -> float:
     """
     from Chen et al. 2021: https://arxiv.org/abs/2107.03374
     :param n: total number of samples
@@ -158,7 +159,7 @@ def pass_at_k(n: int, c: int, k: int = 1):
     """
     if n - c < k:
         return 1.0
-    return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))
+    return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))  # type: ignore
 
 
 @register_metric(
@@ -177,8 +178,8 @@ def brier_score_fn(items):  # This is a passthrough function
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_fn(items):  # This is a passthrough function
-    return items
+def acc_fn(result: MCResult):
+    return 1.0 if np.argmax(result.lls) == result.target else 0.0
 
 
 @register_metric(
@@ -187,8 +188,41 @@ def acc_fn(items):  # This is a passthrough function
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_norm_fn(items):  # This is a passthrough function
-    return items
+def acc_norm_fn(result: MCResult):
+    return (
+        1.0
+        if np.argmax(np.array(result.lls) / np.array(result.char_lens)) == result.target
+        else 0.0
+    )
+
+
+@register_metric(
+    metric="acc_norm_bytes",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def acc_norm_bytes_fn(result: MCResult):  # This is a passthrough function
+    return (
+        1.0
+        if np.argmax(np.array(result.lls) / np.array(result.byte_lens)) == result.target
+        else 0.0
+    )
+
+
+@register_metric(
+    metric="acc_norm_tokens",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def acc_norm_tokens(result: MCResult):  # This is a passthrough function
+    return (
+        1.0
+        if np.argmax(np.array(result.lls) / np.array(result.token_lens))
+        == result.target
+        else 0.0
+    )
 
 
 @register_metric(
@@ -197,8 +231,8 @@ def acc_norm_fn(items):  # This is a passthrough function
     output_type="multiple_choice",
     aggregation="mean",
 )
-def acc_mutual_info_fn(items):  # This is a passthrough function
-    return items
+def acc_mutual_info_fn(result: MCResult):
+    return 1.0 if np.argmax(result.lls_mutual_info) == result.target else 0.0
 
 
 ### the code used in the `exact_match_hf_evaluate` function is ported from

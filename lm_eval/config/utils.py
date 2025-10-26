@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import ast
 import functools
+from collections.abc import Callable
 from functools import wraps
 from inspect import getsource
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from frozendict import frozendict
 
@@ -115,3 +116,15 @@ def process_field(
         return int(target_string) if target_string.isdigit() else target_string
 
     return target_string or default
+
+
+def merge_dicts(dict_list: list[dict[str, str]]) -> dict[str, Any]:
+    """Merges a list of dictionaries into a single dictionary."""
+    from collections import defaultdict
+
+    result = defaultdict(list)
+    for d in dict_list:
+        for key, value in d.items():
+            result[key].append(value)
+
+    return result

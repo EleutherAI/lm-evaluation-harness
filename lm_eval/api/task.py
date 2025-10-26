@@ -22,7 +22,7 @@ from lm_eval.api.utils import (
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
-from lm_eval.config.utils import process_field
+from lm_eval.config.utils import merge_dicts, process_field
 
 
 if TYPE_CHECKING:
@@ -621,25 +621,35 @@ class GenerateTask(Task):
             **instance_kwargs,
         )
 
-    def process_results(self, doc: dict[str, Any], results: list) -> dict[str, Any]:
+    def process_results(
+        self, doc: dict[str, Any], results: list[str]
+    ) -> dict[str, Any]:
         result_dict = {}
         gold = self.doc_to_target(doc)
-        result = results[0]
-        for metric in self.config._metric_list:
-            try:
-                result_score = metric.fn(
-                    references=[gold] if not isinstance(gold, list) else gold,
-                    predictions=[result],
-                    **metric.kwargs,
-                )
-            except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                result_score = metric.fn([gold, result])
-            if isinstance(result_score, dict):
-                # This allows for multiple metrics to be returned from the same function
-                for k, v in result_score.items():
-                    result_dict[k] = v
-            else:
-                result_dict[metric.name] = result_score
+        _res: list[dict] = []
+        for result in results:
+            for metric in self.config._metric_list:
+                if metric.fn is not None:
+                    try:
+                        result_score = metric.fn(
+                            references=[gold] if not isinstance(gold, list) else gold,
+                            predictions=[result],
+                            **metric.kwargs,
+                        )
+                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        result_score = metric.fn([gold, result])
+                    if isinstance(result_score, dict):
+                        # This allows for multiple metrics to be returned from the same function
+                        _res.append(result_score)
+                        # for k, v in result_score.items():
+                        #     result_dict[k] = v
+                    else:
+                        _res.append({metric.name: result_score})
+
+                        # result_dict[metric.name] = result_score
+        result_dict = merge_dicts(_res)
+        if self.config.repeat_cfg.repeats > 1:
+            repeat_score = self.config.repeat_cfg.reducer(result_dict)
 
         return result_dict
 

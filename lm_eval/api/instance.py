@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Any, Literal, NamedTuple
+from typing import Any, Literal, TypedDict
+
+from lm_eval.types import GenArgs, LLArgs, LLRollingArgs, MultiModalArgs
 
 
 OutputType = Literal[
@@ -7,26 +9,29 @@ OutputType = Literal[
 ]
 
 
-class LLArgs(NamedTuple):
-    ctx: str
-    cont: str | None
-
-
-class GenArgs(NamedTuple):
-    prompt: str | list[dict[str, str]]
-    gen_kwargs: dict[str, Any]
+class TokenLen(TypedDict, total=False):
+    ctx: int
+    cont: int
+    total: int
 
 
 @dataclass(frozen=True, slots=True)
 class Instance:
+    """Base class for evaluation instances.
+
+    Use MCInstance for multiple choice/loglikelihood tasks,
+    or GenInstance for generation tasks.
+    """
+
     doc: dict[str, Any]
-    arguments: tuple[Any, Any] | Any
+    arguments: LLArgs | GenArgs | LLRollingArgs
     idx: int
     task_name: str
     doc_id: int
-    target: Any
+    target: int | str
     request_type: OutputType
-    resps: list = field(
+    multimodal_args: MultiModalArgs = field(default_factory=dict)  # type: ignore
+    resps: list[str] | list[tuple[float, bool]] | list[tuple[float, None]] = field(
         default_factory=list,
         metadata=dict(
             description="List of responses from the model for this instance."
@@ -40,31 +45,55 @@ class Instance:
             description="List of filtered responses for this instance, keyed by filter name."
         ),
     )
-    token_len: dict[str, int] = field(default_factory=dict)
+    token_len: TokenLen = field(
+        default_factory=lambda: TokenLen(ctx=0, cont=0),
+        metadata=dict(description="tokens lengths can be added here after inference"),
+    )
     metadata: dict[str, Any] = field(
         default_factory=dict,
         metadata=dict(description="Extra metadata can be added here"),
     )
 
     @property
-    def args(self):
+    def args(self) -> LLArgs | GenArgs | LLRollingArgs:
         """
-        Returns (string,) where `string` is the string to calculate loglikelihood over
+        Returns (context, continuation) for loglikelihood instances,
+        or (prompt, None) for generation instances.
         """
-        return (
-            self.arguments
-            if isinstance(self.arguments, tuple)
-            else (self.arguments, None)
-        )
+        return self.arguments
+
+    @property
+    def choice(self):
+        return self.arguments[1]
 
 
+@dataclass(frozen=True, slots=True)
 class MCInstance(Instance):
+    """Multiple choice / loglikelihood instance with integer target."""
+
     arguments: LLArgs
     target: int
-    request_type = "loglikelihood"
+    request_type: Literal["loglikelihood"] = field(default="loglikelihood")
+    resps: list[tuple[float, bool]] = field(default_factory=list)
 
 
+@dataclass(frozen=True, slots=True)
 class GenInstance(Instance):
+    """Generation instance with a string target."""
+
     arguments: GenArgs
     target: str
-    request_type = "generate_until"
+    request_type: Literal["generate_until"] = field(
+        default="generate_until",
+    )
+    resps: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
+class LLRollingInstance(Instance):
+    """Loglikelihood rolling instance with a string target."""
+
+    arguments: LLRollingArgs
+    target: str
+    request_type: OutputType = field(default="loglikelihood_rolling")
+    resps: list[tuple[float, Any]] = field(default_factory=list)

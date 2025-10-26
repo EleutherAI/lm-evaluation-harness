@@ -31,7 +31,7 @@ class MetricConfig:
     higher_is_better: bool = True
     hf_evaluate: bool = False
     output_type: str = "generate_until"
-    requires: list[str] | None = None
+    repeat_reduction: list[str] | None = None
 
     @classmethod
     def from_yaml_field(cls, cfg: Mapping[str, Any], task: str = ""):
@@ -84,7 +84,7 @@ class MetricConfig:
             higher_is_better=_higher_is_better,
             hf_evaluate=hf_evaluate,
             output_type=cfg.get("output_type", "generate_until"),
-            requires=cfg.get("requires", None),
+            repeat_reduction=cfg.get("requires", None),
         )
 
     # Backward compatibility aliases

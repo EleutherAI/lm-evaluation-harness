@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, fields
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.instance import Instance, OutputType
@@ -30,8 +31,20 @@ class RepeatConfig:
     """Encapsulates information about a single repeat."""
 
     repeats: int = 1
-    metric_fn: str | Callable = "pass@N"
+    reducer: str | Callable[..., float] | None = "pass@N"
     kwargs: dict | None = field(default_factory=dict)
+
+    def __post_init__(self):
+        if self.repeats < 1:
+            self.reducer = None
+        if isinstance(self.reducer, str):
+            self.reducer = metric_registry.get(self.reducer)
+
+    @classmethod
+    def from_cfg(cls, cfg: dict | str | int):
+        if not isinstance(cfg, dict):
+            return cls(repeats=int(cfg), reducer=None)
+        return cls(**cfg)
 
 
 @dataclass
@@ -209,6 +222,7 @@ class TaskConfig:
     _filter_list: list[FilterConfig] = field(default_factory=list)
     # ds_cfg: DatasetConfig = field(init=False)
     _fewshot_cfg: FewshotConfig = field(init=False)
+    repeat_cfg: RepeatConfig = RepeatConfig.from_cfg(1)
     _fn: dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
