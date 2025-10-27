@@ -1,5 +1,5 @@
 group: longbench_multi_e
-group_alias: "Multi-Document QA (-E)"
+group_alias: "Multi-Document QA (LongBench-E)"
 task:
   - longbench_hotpotqa_e
   - longbench_2wikimqa_e

@@ -1,5 +1,5 @@
 group: longbench_summarization_e
-group_alias: "Summarization (-E)"
+group_alias: "Summarization (LongBench-E)"
 task:
   - longbench_gov_report_e
   - longbench_multi_news_e

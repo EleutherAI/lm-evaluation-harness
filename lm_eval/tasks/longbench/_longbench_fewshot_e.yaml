@@ -1,5 +1,5 @@
 group: longbench_fewshot_e
-group_alias: "Few-shot Learning (-E)"
+group_alias: "Few-shot Learning (LongBench-E)"
 task:
   - longbench_trec_e
   - longbench_triviaqa_e
