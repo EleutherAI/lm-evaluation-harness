@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_cmn_hans
-dataset_name: cmn_hans

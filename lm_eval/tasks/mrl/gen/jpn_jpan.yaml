@@ -1,3 +1,0 @@
-include: '_template'
-task: jpn_jpan
-dataset_name: jpn_jpan

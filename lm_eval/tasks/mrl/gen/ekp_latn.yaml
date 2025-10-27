@@ -1,3 +1,0 @@
-include: '_template'
-task: ekp_latn
-dataset_name: ekp_latn

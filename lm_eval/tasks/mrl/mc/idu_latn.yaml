@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_idu_latn
-dataset_name: idu_latn

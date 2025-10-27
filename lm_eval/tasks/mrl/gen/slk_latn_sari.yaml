@@ -1,3 +1,0 @@
-include: '_template'
-task: slk_latn_sari
-dataset_name: slk_latn_sari

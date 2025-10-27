@@ -1,3 +1,0 @@
-include: '_template'
-task: tam_taml
-dataset_name: tam_taml

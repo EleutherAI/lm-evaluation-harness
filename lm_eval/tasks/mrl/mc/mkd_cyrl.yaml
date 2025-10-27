@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_mkd_cyrl
-dataset_name: mkd_cyrl

@@ -1,3 +1,0 @@
-include: '_template'
-task: est_latn
-dataset_name: est_latn

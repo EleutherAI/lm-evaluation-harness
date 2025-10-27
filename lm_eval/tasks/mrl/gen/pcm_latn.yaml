@@ -1,3 +1,0 @@
-include: '_template'
-task: pcm_latn
-dataset_name: pcm_latn

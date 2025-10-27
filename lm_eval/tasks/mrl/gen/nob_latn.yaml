@@ -1,3 +1,0 @@
-include: '_template'
-task: nob_latn
-dataset_name: nob_latn

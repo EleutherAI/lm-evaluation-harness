@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_uzn_latn
-dataset_name: uzn_latn

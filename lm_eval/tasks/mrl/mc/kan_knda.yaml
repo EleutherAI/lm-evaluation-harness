@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_kan_knda
-dataset_name: kan_knda

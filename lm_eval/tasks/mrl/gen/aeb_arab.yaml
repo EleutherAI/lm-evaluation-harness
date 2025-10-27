@@ -1,3 +1,0 @@
-include: '_template'
-task: aeb_arab
-dataset_name: aeb_arab

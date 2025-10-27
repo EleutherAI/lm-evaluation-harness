@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_kor_hang
-dataset_name: kor_hang

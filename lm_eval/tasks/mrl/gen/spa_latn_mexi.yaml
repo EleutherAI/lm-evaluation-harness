@@ -1,3 +1,0 @@
-include: '_template'
-task: spa_latn_mexi
-dataset_name: spa_latn_mexi

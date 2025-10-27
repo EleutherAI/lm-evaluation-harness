@@ -1,0 +1,3 @@
+dataset_name: tel_telu
+include: _template
+task: global_piqa_prompted_tel_telu

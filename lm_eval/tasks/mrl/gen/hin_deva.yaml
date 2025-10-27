@@ -1,3 +1,0 @@
-include: '_template'
-task: hin_deva
-dataset_name: hin_deva

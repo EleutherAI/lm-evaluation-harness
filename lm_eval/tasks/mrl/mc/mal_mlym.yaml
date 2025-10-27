@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_mal_mlym
-dataset_name: mal_mlym

@@ -1,3 +1,0 @@
-include: '_template'
-task: bul_cyrl
-dataset_name: bul_cyrl

@@ -1,3 +1,0 @@
-include: '_template'
-task: als_latn
-dataset_name: als_latn

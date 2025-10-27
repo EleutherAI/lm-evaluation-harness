@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_vie_latn
-dataset_name: vie_latn

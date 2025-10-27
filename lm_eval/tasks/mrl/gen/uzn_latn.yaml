@@ -1,3 +1,0 @@
-include: '_template'
-task: uzn_latn
-dataset_name: uzn_latn

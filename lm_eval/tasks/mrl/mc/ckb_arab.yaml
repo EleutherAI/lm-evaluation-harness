@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_ckb_arab
-dataset_name: ckb_arab

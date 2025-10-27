@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_ekp_latn
-dataset_name: ekp_latn

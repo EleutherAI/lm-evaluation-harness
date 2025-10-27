@@ -1,3 +1,0 @@
-include: '_template'
-task: urh_latn
-dataset_name: urh_latn

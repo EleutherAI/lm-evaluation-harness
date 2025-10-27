@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_srp_latn
-dataset_name: srp_latn

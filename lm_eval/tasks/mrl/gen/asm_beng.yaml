@@ -1,3 +1,0 @@
-include: '_template'
-task: asm_beng
-dataset_name: asm_beng

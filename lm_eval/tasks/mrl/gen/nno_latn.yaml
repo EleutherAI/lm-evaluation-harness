@@ -1,3 +1,0 @@
-include: '_template'
-task: nno_latn
-dataset_name: nno_latn

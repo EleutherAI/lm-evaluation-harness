@@ -1,3 +1,0 @@
-include: '_template'
-task: ckb_arab
-dataset_name: ckb_arab

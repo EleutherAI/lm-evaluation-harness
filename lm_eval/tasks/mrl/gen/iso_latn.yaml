@@ -1,3 +1,0 @@
-include: '_template'
-task: iso_latn
-dataset_name: iso_latn

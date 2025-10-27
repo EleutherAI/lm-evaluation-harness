@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_asm_beng
-dataset_name: asm_beng

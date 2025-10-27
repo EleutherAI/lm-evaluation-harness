@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_arz_arab
-dataset_name: arz_arab

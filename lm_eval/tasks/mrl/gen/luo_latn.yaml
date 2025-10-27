@@ -1,3 +1,0 @@
-include: '_template'
-task: luo_latn
-dataset_name: luo_latn

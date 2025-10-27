@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_npi_deva
-dataset_name: npi_deva

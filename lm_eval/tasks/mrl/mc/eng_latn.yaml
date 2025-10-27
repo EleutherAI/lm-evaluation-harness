@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_eng_latn
-dataset_name: eng_latn

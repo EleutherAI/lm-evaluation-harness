@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_kaz_cyrl
-dataset_name: kaz_cyrl

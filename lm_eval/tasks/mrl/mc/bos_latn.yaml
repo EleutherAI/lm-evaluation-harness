@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_bos_latn
-dataset_name: bos_latn

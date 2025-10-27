@@ -1,3 +1,0 @@
-include: '_template'
-task: apc_arab_leba
-dataset_name: apc_arab_leba

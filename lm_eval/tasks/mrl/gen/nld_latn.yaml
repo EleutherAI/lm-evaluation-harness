@@ -1,3 +1,0 @@
-include: '_template'
-task: nld_latn
-dataset_name: nld_latn

@@ -1,3 +1,0 @@
-include: '_template'
-task: swe_latn
-dataset_name: swe_latn

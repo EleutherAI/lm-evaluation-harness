@@ -1,3 +1,0 @@
-include: '_template'
-task: kir_cyrl
-dataset_name: kir_cyrl

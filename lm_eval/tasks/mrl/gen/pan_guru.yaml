@@ -1,3 +1,0 @@
-include: '_template'
-task: pan_guru
-dataset_name: pan_guru

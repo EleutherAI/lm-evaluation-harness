@@ -1,3 +1,0 @@
-include: '_template'
-task: bsk_arab
-dataset_name: bsk_arab

@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_mar_deva
-dataset_name: mar_deva

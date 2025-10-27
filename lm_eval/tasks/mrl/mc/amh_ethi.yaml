@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_amh_ethi
-dataset_name: amh_ethi

@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_yor_latn
-dataset_name: yor_latn

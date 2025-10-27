@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_kin_latn
-dataset_name: kin_latn

@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_slv_latn_cerk
-dataset_name: slv_latn_cerk

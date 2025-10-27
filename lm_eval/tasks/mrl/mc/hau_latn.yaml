@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_hau_latn
-dataset_name: hau_latn

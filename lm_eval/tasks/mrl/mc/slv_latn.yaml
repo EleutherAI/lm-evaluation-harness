@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_slv_latn
-dataset_name: slv_latn

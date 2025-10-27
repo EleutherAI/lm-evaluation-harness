@@ -1,3 +1,0 @@
-include: '_template'
-task: arz_arab
-dataset_name: arz_arab

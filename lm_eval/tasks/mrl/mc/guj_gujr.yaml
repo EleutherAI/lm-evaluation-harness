@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_guj_gujr
-dataset_name: guj_gujr

@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_dhd_deva
-dataset_name: dhd_deva

@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_pes_arab
-dataset_name: pes_arab

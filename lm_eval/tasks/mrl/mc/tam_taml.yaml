@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_tam_taml
-dataset_name: tam_taml

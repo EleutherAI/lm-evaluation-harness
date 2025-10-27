@@ -1,0 +1,3 @@
+dataset_name: mar_deva
+include: _template
+task: global_piqa_prompted_mar_deva

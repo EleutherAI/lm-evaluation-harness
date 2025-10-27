@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_haw_latn
-dataset_name: haw_latn

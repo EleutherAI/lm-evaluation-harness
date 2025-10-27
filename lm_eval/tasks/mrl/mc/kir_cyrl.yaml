@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_kir_cyrl
-dataset_name: kir_cyrl

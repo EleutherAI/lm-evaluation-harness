@@ -1,3 +1,0 @@
-include: '_template'
-task: bos_latn
-dataset_name: bos_latn

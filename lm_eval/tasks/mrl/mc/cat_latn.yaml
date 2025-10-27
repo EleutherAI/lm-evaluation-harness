@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_cat_latn
-dataset_name: cat_latn

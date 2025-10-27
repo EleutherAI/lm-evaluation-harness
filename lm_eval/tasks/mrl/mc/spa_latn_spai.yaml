@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_spa_latn_spai
-dataset_name: spa_latn_spai

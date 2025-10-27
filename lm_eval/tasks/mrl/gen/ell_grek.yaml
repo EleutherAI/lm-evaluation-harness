@@ -1,3 +1,0 @@
-include: '_template'
-task: ell_grek
-dataset_name: ell_grek

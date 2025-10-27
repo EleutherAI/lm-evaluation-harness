@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_afb_arab
-dataset_name: afb_arab

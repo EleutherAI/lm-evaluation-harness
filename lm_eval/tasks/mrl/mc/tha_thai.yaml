@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_tha_thai
-dataset_name: tha_thai

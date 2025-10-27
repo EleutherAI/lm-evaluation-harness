@@ -1,3 +1,0 @@
-include: '_template'
-task: hrv_latn
-dataset_name: hrv_latn

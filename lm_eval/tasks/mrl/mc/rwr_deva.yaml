@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_rwr_deva
-dataset_name: rwr_deva

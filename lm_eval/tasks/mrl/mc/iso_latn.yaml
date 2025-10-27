@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_iso_latn
-dataset_name: iso_latn

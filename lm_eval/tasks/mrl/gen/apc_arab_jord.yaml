@@ -1,3 +1,0 @@
-include: '_template'
-task: apc_arab_jord
-dataset_name: apc_arab_jord

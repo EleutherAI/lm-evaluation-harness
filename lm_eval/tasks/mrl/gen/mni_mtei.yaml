@@ -1,3 +1,0 @@
-include: '_template'
-task: mni_mtei
-dataset_name: mni_mtei

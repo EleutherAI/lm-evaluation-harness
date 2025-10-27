@@ -1,3 +1,0 @@
-include: '_template_mc'
-task: mrl_isl_latn
-dataset_name: isl_latn
