@@ -102,7 +102,7 @@ class TaskOutput:
             group_alias=group_alias,
         )
 
-    def calculate_aggregate_metric(self, bootstrap_iters=100000) -> None:
+    def calculate_aggregate_metric(self, bootstrap_iters=100000, doc_iterator=None) -> None:
         for (metric, filter_key), items in self.sample_metrics.items():
             try:
                 agg_fn = self.task.aggregation()[metric]
@@ -111,7 +111,13 @@ class TaskOutput:
                 # TODO: Handle this better and allow other aggregate functions other than mean.
                 agg_fn = mean
             metric_key = f"{metric},{filter_key}"
-            self.agg_metrics[metric_key] = agg_fn(items)
+
+            group_ids = [doc["meta"]["group_id"] for doc_id, doc in doc_iterator]
+            if agg_fn.__name__ == "all_in_group":
+                self.agg_metrics[metric_key] = agg_fn(items, group_ids)
+            else:
+                self.agg_metrics[metric_key] = agg_fn(items)
+
             self.sample_len = len(items)  # TODO: same sample size for each metric?
             if isinstance(bootstrap_iters, int):
                 stderr_fn = stderr_for_metric(

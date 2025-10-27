@@ -5,6 +5,7 @@ import random
 import re
 import string
 from collections.abc import Iterable
+from collections import defaultdict
 from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
@@ -137,6 +138,19 @@ def brier_score(items):  # This is a passthrough function
     gold = list(gold)
     gold_one_hot = np.eye(num_class)[gold]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+@register_aggregation("all_in_group")
+def all_in_group(items, group_ids):
+    groups = defaultdict(list)
+    for val, gid in zip(items, group_ids):
+        groups[gid].append(1 if val else 0)
+
+    group_scores = [(1.0 if vals and all(int(v) == 1 for v in vals) else 0.0)
+                    for vals in groups.values()]
+
+    result = (sum(group_scores) / len(group_scores))
+    return result
 
 
 @register_metric(
@@ -279,9 +293,13 @@ def judge_score_fn(predictions, references, questions):
 
     global JUDGE_TOKENIZER
 
+    host = os.getenv("HARNESS_JUDGE_SCORE_HOST", "0.0.0.0")
+    port = os.getenv("HARNESS_JUDGE_SCORE_PORT", "8000")
+
+    url = f"http://{host}:{port}/classify"
+
     def classify(text):
-        r = requests.post(f"http://0.0.0.0:8000/classify",
-                            json={"input": text}).json()
+        r = requests.post(url, json={"input": text}).json()
         return r["data"][0]["probs"]
 
     def get_query(question, gold, answer, tokenizer):
@@ -305,7 +323,8 @@ def judge_score_fn(predictions, references, questions):
     total = 0
     for pred, ref, question in zip(predictions, references, questions):
         total += get_answer(question, ref, pred, JUDGE_TOKENIZER)
-    return total / len(predictions)
+    result = total / len(predictions)
+    return result
 
 
 @register_metric(

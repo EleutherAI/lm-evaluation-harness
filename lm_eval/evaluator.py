@@ -766,7 +766,20 @@ def evaluate(
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for task_output in eval_tasks:
-            task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
+            task = task_output.task
+            indices = (
+                samples.get(task_output.task_name, None)
+                if samples is not None
+                else None
+            )
+            doc_iterator = [x for x in task.doc_iterator(
+                rank=0 if USE_TP else RANK,
+                limit=limit,
+                world_size=1 if USE_TP else WORLD_SIZE,
+                samples=indices,
+            )]
+            task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters, doc_iterator=doc_iterator)
+
         (
             results,
             samples,
