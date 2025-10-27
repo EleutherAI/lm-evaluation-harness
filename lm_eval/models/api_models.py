@@ -425,8 +425,13 @@ class TemplateAPI(TemplateLM):
                             f"Unsupported content type '{content['type']}'. "
                             "Expected one of: 'text', 'image_url', 'audio_url'."
                         )
-
-                    if not isinstance(content[content["type"]], dict):
+                    if content["type"] == "text" and not isinstance(content["text"], str):
+                        actual = type(content[content["type"]]).__name__
+                        raise ValueError(
+                            f"Invalid payload for type '{content['type']}': "
+                            f"expected a dict, got {actual}."
+                        )
+                    if content["type"] != "text" and not isinstance(content[content["type"]], dict):
                         actual = type(content[content["type"]]).__name__
                         raise ValueError(
                             f"Invalid payload for type '{content['type']}': "
