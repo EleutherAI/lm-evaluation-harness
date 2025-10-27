@@ -596,10 +596,12 @@ def evaluate(
     for task_output, limit in zip(eval_tasks, limits):
         task = task_output.task
         instances = task.apply_filters().instances
-        # instances_by_doc_id = task.sort_instances(instances)
         results = task.process_instances(instances)
-        print("hello")
-        # task_output.sample_metrics = results
+        # instances_by_doc_id = task.sort_instances(instances)
+        # results = task.process_instances(instances)
+        ## TODO: Aggregations after gather
+        # aggregations = task.compute_aggregations(results)
+        task_output.sample_metrics = results
 
         # for filter_key in task.instances[0].filtered_resps:
         #     indices = (

@@ -6,18 +6,43 @@ import random
 import re
 import string
 from collections.abc import Callable, Iterable, Sequence
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, cast
 
 import numpy as np
 
+from lm_eval import utils
 from lm_eval.api.registry import register_aggregation, register_metric
 from lm_eval.defaults import DISABLE_MULTIPROC
 from lm_eval.types import MCResult
 
 
 T = TypeVar("T")
+InputT = TypeVar("InputT")
+IntermediateT = TypeVar("IntermediateT")
+# OutputT = TypeVar("OutputT")
+
 
 eval_logger = logging.getLogger(__name__)
+
+
+# Base Protocol for Metrics with __call__/Aggregate Pattern
+class MetricProtocol(Generic[InputT, IntermediateT]):
+    """Protocol for metrics with custom compute and aggregation stages.
+
+    This pattern is useful for metrics that:
+    1. Transform individual results (__call__ stage)
+    2. Aggregate transformed results into a final score (aggregate stage)
+
+    Use __init__ to set up any state variables or kwargs
+    """
+
+    def __call__(self, input: InputT) -> IntermediateT:
+        """Transform single result into intermediate representation."""
+        raise NotImplementedError
+
+    def aggregate(self, items: Iterable[IntermediateT]) -> float:
+        """Aggregate intermediate results into final score."""
+        raise NotImplementedError
 
 
 # Register Aggregations First
@@ -137,39 +162,65 @@ def ter(items: Iterable[tuple[str, str]]):
     return sacrebleu.corpus_ter(preds, refs).score
 
 
-@register_aggregation("brier_score")
-def brier_score(
-    items: Iterable[tuple[str, float]],
-):  # This is a passthrough function
-    gold, predictions = list(zip(*items))
-    bs, num_class = np.array(predictions).shape
-
-    gold = list(gold)
-    gold_one_hot = np.eye(num_class)[gold]
-    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
-
-
 @register_aggregation("pass@k")
-def pass_at_k(n: int, c: int, k: int = 1) -> float:
+def pass_at_k(items: Sequence[int], k: int = 1) -> float:
     """
     from Chen et al. 2021: https://arxiv.org/abs/2107.03374
-    :param n: total number of samples
-    :param c: number of correct samples
+    n: total number of samples
+    c: number of correct samples
+    :param items: list of 0/1 predictions
     :param k: k in pass@k
     """
+    n = len(items)
+    c = len([x for x in items if x == 1])
     if n - c < k:
         return 1.0
     return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))  # type: ignore
+
+
+# Class-based Metrics --------------------------------------------------------
 
 
 @register_metric(
     metric="brier_score",
     higher_is_better=False,
     output_type=["multiple_choice"],
-    aggregation="brier_score",
 )
-def brier_score_fn(items):  # This is a passthrough function
-    return items
+class BrierScore:
+    """Brier score for multiple choice tasks.
+
+    Computes the mean squared error between predicted probabilities
+    (from softmax of log-likelihoods) and one-hot encoded targets.
+
+    Lower scores are better (perfect score = 0.0).
+    """
+
+    def __call__(self, result: MCResult):
+        """Extract target and compute softmax probabilities from log-likelihoods.
+
+        Args:
+            result: MCResult containing target index and log-likelihoods
+
+        Returns:
+            Tuple of (target_index, probability_distribution)
+        """
+        return cast(int, result.target), utils.softmax(result.lls)
+
+    def aggregate(self, items) -> float:
+        """Compute mean Brier score across all items.
+
+        Args:
+            items: Iterable of (target, probabilities) tuples
+
+        Returns:
+            Mean Brier score (mean squared error)
+        """
+        gold, predictions = list(zip(*items, strict=True))
+        bs, num_class = np.array(predictions).shape
+
+        gold = list(gold)
+        gold_one_hot = np.eye(num_class)[gold]
+        return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
 
 @register_metric(
@@ -344,40 +395,84 @@ def exact_match_fn(references: list[str], predictions: list[str], **kwargs):
     metric="perplexity",
     higher_is_better=False,
     output_type="loglikelihood",
-    aggregation="perplexity",
 )
-def perplexity_fn(items):  # This is a passthrough function
-    return items
+class Perplexity:
+    """Perplexity metric for language modeling.
+
+    Computes exp(-mean(log_likelihoods)) to measure how well
+    a probability model predicts a sample.
+
+    Lower is better (perfect score = 1.0).
+    """
+
+    def __call__(self, items: float) -> float:
+        """Pass through log likelihood values."""
+        return items
+
+    def aggregate(self, items: list[float]) -> float:
+        """Compute perplexity from mean negative log likelihood."""
+        return math.exp(-mean(items))
 
 
 @register_metric(
     metric="word_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
-    aggregation="weighted_perplexity",
 )
-def word_perplexity_fn(items: T) -> T:  # This is a passthrough function
-    return items
+class WordPerplexity:
+    """Word-level perplexity for language modeling.
+
+    Similar to Perplexity but uses weighted averaging for rolling contexts.
+    """
+
+    def __call__(self, items: tuple[float, float]) -> tuple[float, float]:
+        """Pass through (log_likelihood, weight) tuples."""
+        return items
+
+    def aggregate(self, items: list[tuple[float, float]]) -> float:
+        """Compute word perplexity using weighted mean."""
+        return math.exp(-weighted_mean(items))
 
 
 @register_metric(
     metric="byte_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
-    aggregation="weighted_perplexity",
 )
-def byte_perplexity_fn(items: T) -> T:  # This is a passthrough function
-    return items
+class BytePerplexity:
+    """Byte-level perplexity for language modeling.
+
+    Similar to WordPerplexity but measured at the byte level.
+    """
+
+    def __call__(self, items: tuple[float, float]) -> tuple[float, float]:
+        """Pass through (log_likelihood, weight) tuples."""
+        return items
+
+    def aggregate(self, items: list[tuple[float, float]]) -> float:
+        """Compute byte perplexity using weighted mean."""
+        return math.exp(-weighted_mean(items))
 
 
 @register_metric(
     metric="bits_per_byte",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
-    aggregation="bits_per_byte",
 )
-def bits_per_byte_fn(items: T) -> T:  # This is a passthrough function
-    return items
+class BitsPerByte:
+    """Bits per byte metric for compression and language modeling.
+
+    Measures the average number of bits needed to encode each byte.
+    Lower is better.
+    """
+
+    def __call__(self, items: tuple[float, float]) -> tuple[float, float]:
+        """Pass through (log_likelihood, weight) tuples."""
+        return items
+
+    def aggregate(self, items: list[tuple[float, float]]) -> float:
+        """Compute bits per byte from weighted mean."""
+        return -weighted_mean(items) / math.log(2)
 
 
 def pop_stddev(arr):
@@ -408,50 +503,141 @@ def bypass(items):
     metric="mcc",
     higher_is_better=True,
     output_type="multiple_choice",
-    aggregation="matthews_corrcoef",
 )
-def mcc_fn(items):  # This is a passthrough function
-    return items
+class MatthewsCorrelationCoef:
+    """Matthews Correlation Coefficient for classification tasks.
+
+    MCC is a balanced measure that can be used even if classes are
+    of very different sizes. Returns a value between -1 and +1.
+    """
+
+    def __call__(
+        self, items: tuple[int | str, int | str]
+    ) -> tuple[int | str, int | str]:
+        """Pass through (gold, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[int | str, int | str]]) -> float:
+        """Compute Matthews Correlation Coefficient from all predictions."""
+        from sklearn.metrics import matthews_corrcoef
+
+        unzipped_list = list(zip(*items, strict=True))
+        golds = unzipped_list[0]
+        preds = unzipped_list[1]
+        return matthews_corrcoef(golds, preds)
 
 
 @register_metric(
     metric="f1",
     higher_is_better=True,
     output_type="multiple_choice",
-    aggregation="f1",
 )
-def f1_fn(items):  # This is a passthrough function
-    return items
+class F1Score:
+    """F1 score for classification tasks.
+
+    Harmonic mean of precision and recall.
+    Higher is better (perfect score = 1.0).
+    """
+
+    def __call__(
+        self, items: tuple[int | str, int | str]
+    ) -> tuple[int | str, int | str]:
+        """Pass through (gold, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[int | str, int | str]]) -> float:
+        """Compute F1 score from all predictions."""
+        from sklearn.metrics import f1_score
+
+        unzipped_list = list(zip(*items, strict=True))
+        golds = unzipped_list[0]
+        preds = unzipped_list[1]
+        fscore = f1_score(golds, preds)
+        return np.max(fscore)
 
 
 @register_metric(
     metric="bleu",
     higher_is_better=True,
     output_type="generate_until",
-    aggregation="bleu",
 )
-def bleu_fn(items):  # This is a passthrough function
-    return items
+class BLEU:
+    """BLEU score for machine translation evaluation.
+
+    Bilingual Evaluation Understudy Score - measures n-gram overlap
+    between generated and reference translations.
+
+    Higher is better (0-100 scale).
+    """
+
+    def __call__(self, items: tuple[str, str]) -> tuple[str, str]:
+        """Pass through (reference, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+        """Compute corpus-level BLEU score."""
+        import sacrebleu
+
+        refs = list(zip(*items))[0]
+        preds = list(zip(*items))[1]
+        refs, preds = _sacreformat(refs, preds)
+        return sacrebleu.corpus_bleu(preds, refs).score
 
 
 @register_metric(
     metric="chrf",
     higher_is_better=True,
     output_type="generate_until",
-    aggregation="chrf",
 )
-def chrf_fn(items):  # This is a passthrough function
-    return items
+class ChrF:
+    """ChrF++ score for machine translation evaluation.
+
+    Character n-gram F-score enhanced with word n-grams.
+    More robust to morphological variations than BLEU.
+
+    Higher is better.
+    """
+
+    def __call__(self, items: tuple[str, str]) -> tuple[str, str]:
+        """Pass through (reference, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+        """Compute corpus-level ChrF score."""
+        import sacrebleu
+
+        refs = list(zip(*items))[0]
+        preds = list(zip(*items))[1]
+        refs, preds = _sacreformat(refs, preds)
+        return sacrebleu.corpus_chrf(preds, refs).score
 
 
 @register_metric(
     metric="ter",
-    higher_is_better=True,
+    higher_is_better=False,
     output_type="generate_until",
-    aggregation="ter",
 )
-def ter_fn(items):  # This is a passthrough function
-    return items
+class TER:
+    """Translation Error Rate for machine translation.
+
+    Measures the number of edits required to change a system output
+    into a reference translation.
+
+    Lower is better (0 = perfect match).
+    """
+
+    def __call__(self, items: tuple[str, str]) -> tuple[str, str]:
+        """Pass through (reference, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+        """Compute corpus-level TER score."""
+        import sacrebleu
+
+        refs = list(zip(*items))[0]
+        preds = list(zip(*items))[1]
+        refs, preds = _sacreformat(refs, preds)
+        return sacrebleu.corpus_ter(preds, refs).score
 
 
 @register_metric(

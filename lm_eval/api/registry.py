@@ -105,7 +105,6 @@ LEGACY_EXPORTS = [
 __all__ = [
     # canonical
     "Registry",
-    "MetricSpec",
     "model_registry",
     "task_registry",
     "metric_registry",
@@ -426,17 +425,22 @@ get_filter = filter_registry.get
 
 
 def register_metric(**kw):
-    """Decorator for registering metric functions.
+    """Decorator for registering metric functions or classes.
 
-    Creates a MetricConfig from the decorated function and keyword arguments,
+    Creates a MetricConfig from the decorated function/class and keyword arguments,
     then registers it in the metric registry.
+
+    Supports two patterns:
+    1. Function-based: Traditional function + separate aggregation
+    2. Class-based: Class with __call__() and aggregate() methods
 
     Args:
         **kw: Keyword arguments including
             - metric: Name to register the metric under (required)
-            - aggregation: Name of aggregation function in metric_agg_registry
+            - aggregation: Name of aggregation function in metric_agg_registry (function-based only)
             - higher_is_better: Whether higher scores are better (default: True)
             - output_type: Optional output type hint
+            - kwargs: Dict of parameters to pass to class __init__ (class-based only)
             - requires: Optional list of required metrics
             - hf_evaluate: Whether this is an HF evaluate metric
             - is_elementwise: Whether the metric is elementwise
@@ -444,7 +448,8 @@ def register_metric(**kw):
     Returns:
         Decorator function that registers the metric
 
-    Example:
+    Examples:
+        Function-based:
         >>> @register_metric(
         ...     metric="my_accuracy",
         ...     aggregation="mean",
@@ -452,27 +457,80 @@ def register_metric(**kw):
         ... )
         ... def compute_accuracy(items):
         ...     return sum(item["correct"] for item in items) / len(items)
+
+        Class-based (without kwargs):
+        >>> @register_metric(
+        ...     metric="brier_score",
+        ...     higher_is_better=False
+        ... )
+        ... class BrierScore:
+        ...     def __call__(self, result):
+        ...         return result.target, softmax(result.lls)
+        ...     def aggregate(self, items):
+        ...         return np.mean(items)
+
+        Class-based (with kwargs):
+        >>> @register_metric(
+        ...     metric="exact_match",
+        ...     higher_is_better=True,
+        ...     kwargs={"ignore_case": False, "ignore_punctuation": False}
+        ... )
+        ... class ExactMatch:
+        ...     def __init__(self, ignore_case=False, ignore_punctuation=False):
+        ...         self.ignore_case = ignore_case
+        ...         self.ignore_punctuation = ignore_punctuation
+        ...     def __call__(self, predictions, references):
+        ...         # Use self.ignore_case, self.ignore_punctuation
+        ...         return 1 if predictions == references else 0
+        ...     def aggregate(self, items):
+        ...         return sum(items) / len(items)
     """
     from lm_eval.config.metric import MetricConfig
 
     name = kw["metric"]
 
-    def deco(fn):
-        # Determine aggregation function
-        if "aggregation" in kw:
-            aggregation_fn = metric_agg_registry.get(kw["aggregation"])
-        else:
-            # Try to get default aggregation for this metric name
+    def deco(fn_or_class):
+        # Check if this is a class with __call__/aggregate methods (class-based pattern)
+        if inspect.isclass(fn_or_class) and hasattr(fn_or_class, "aggregate"):
+            # Class-based metric: instantiate with kwargs and use as callable
+            init_kwargs = kw.get("kwargs", {})
+
+            # Try to instantiate with kwargs
             try:
-                aggregation_fn = metric_agg_registry.get(name)
-            except KeyError:
-                # Fall back to "mean" as the most common default aggregation
-                # This matches the behavior of most metrics (acc, acc_norm, exact_match, etc.)
-                aggregation_fn = metric_agg_registry.get("mean")
+                instance = fn_or_class(**init_kwargs)
+            except TypeError as e:
+                # Fallback: create without kwargs if __init__ doesn't accept them
+                if init_kwargs:
+                    eval_logger.warning(
+                        f"Metric class {fn_or_class.__name__} does not accept "
+                        f"kwargs {init_kwargs}: {e}. Creating without kwargs."
+                    )
+                instance = fn_or_class()
+
+            if not callable(instance):
+                raise TypeError(
+                    f"Metric class {fn_or_class.__name__} must define __call__ method"
+                )
+            metric_fn = instance  # Instance is directly callable via __call__
+            aggregation_fn = instance.aggregate
+        else:
+            metric_fn = fn_or_class
+
+            # Determine aggregation function
+            if "aggregation" in kw:
+                aggregation_fn = metric_agg_registry.get(kw["aggregation"])
+            else:
+                # Try to get default aggregation for this metric name
+                try:
+                    aggregation_fn = metric_agg_registry.get(name)
+                except KeyError:
+                    # Fall back to "mean" as the most common default aggregation
+                    aggregation_fn = metric_agg_registry.get("mean")
 
         config = MetricConfig(
             name=name,
-            fn=fn,
+            fn=metric_fn,
+            kwargs=kw.get("kwargs", {}),
             aggregation_fn=aggregation_fn,
             higher_is_better=kw.get("higher_is_better", True),
             output_type=kw.get("output_type", "generate_until"),
@@ -482,7 +540,7 @@ def register_metric(**kw):
         metric_registry.register(name, lazy=config)
         _metric_meta[name] = kw
         higher_is_better_registry.register(name, lazy=config.higher_is_better)
-        return fn
+        return fn_or_class  # Return the original class or function
 
     return deco
 

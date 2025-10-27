@@ -16,15 +16,14 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.utils import (
     Message,
-    check_gold_index_error,
     format_turn,
     maybe_delimit,
     multiturn_to_singleturn,
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
-from lm_eval.config.utils import merge_dicts, process_field
-from lm_eval.types import Results
+from lm_eval.config.utils import process_field
+from lm_eval.types import GenResult, MCResult, Results
 
 
 if TYPE_CHECKING:
@@ -32,7 +31,6 @@ if TYPE_CHECKING:
         ChatFormat,
         ChatTemplateProtocol,
         GenResult,
-        MCResult,
         TaskDataSet,
     )
 
@@ -115,7 +113,8 @@ class Task(ABC):
         self._instances = None
 
         ## outputs
-        self._sample_scores: list = []
+        # samples are saves as (metric, filer) tuples
+        self._sample_scores: dict[tuple[str, str], Any] = defaultdict(list)
         self._aggregate_scores: dict[str, float] = defaultdict(float)
 
     def build_all_requests(
@@ -368,13 +367,10 @@ class Task(ABC):
         self, doc: dict[str, Any], ctx: "ChatFormat | list[str]", **kwargs
     ) -> list[Instance] | Instance | None: ...
 
-    @abstractmethod
     def process_results(
         self,
         doc: dict[str, Any],
         results: list,
-        instances: list[Instance] | None = None,
-        filter: str | None = None,
     ) -> dict[str, Any] | None:
         """
         Process the results and return a dictionary where keys are the names of the metrics and values are the results of each metric.
@@ -588,8 +584,12 @@ class Task(ABC):
         self.config.process_results = lambda *args: {"bypass": 0}
 
     @staticmethod
-    def sort_instances(instances: list[Instance]) -> dict[str, list[Instance]]:
+    def sort_instances(
+        instances: list[Instance] | None = None,
+    ) -> dict[str, list[Instance]]:
         """Sorts instances by doc_id and then by idx"""
+        if not instances:
+            return {}
         from collections import defaultdict
 
         instances_by_doc_id = defaultdict(list)
@@ -616,40 +616,27 @@ class Task(ABC):
         _instances = self.sort_instances(instances or self._instances)
         if not _instances:
             return {}
+        results = defaultdict(list)
+        if callable(self.config.process_results):
+            for filter in self._filters:
+                for requests in _instances.values():
+                    _request = Results.create(requests, filter.name)
+                    metrics = self.process_results(
+                        _request.doc,
+                        [_request.results[filter.name]],
+                    )
+                    if metrics is not None:
+                        for metric, value in metrics.items():
+                            results[(metric, filter.name)].append(value)
+        else:
+            results = self._process_instances(list(_instances.values()))
 
-        results = [Results.create(inst) for inst in _instances.values()]
-        valid_metrics = [
-            (filter, metric)
-            for filter in self._filters
-            for metric in filter.metric_list
-            if metric is not None and metric.fn is not None
-        ]
-        for _res in results:
-            for filter, metric in valid_metrics:
-                metric_result = metric.fn(**_res.to_metric_inputs())
-                _res.scores[(metric.name, filter.name)] = metric_result
-
-        # for filter in self._filters:
-        #     for _metric in filter.metric_list:
-        #         if _metric is not None and _metric.fn is not None:
-        #             metric_result = _metric.fn(result_obj.to_metric_inputs())
-        #             result_obj.scores[(_metric.name, filter.name)] = metric_result
-        #
-        # results = []
-        # for filter in self._filters:
-        #     for _metric in filter.metric_list:
-        #         if _metric is not None and _metric.fn is not None:
-        #             for inst in _instances.values():
-        #                 result_obj = Results.create(inst)
-        #                 metric_result = _metric.fn(result_obj.to_metric_inputs())
-        #                 result_obj.scores[(_metric.name, filter.name)] = metric_result
-        #                 results.append(result_obj)
         self._sample_scores = results
         return results
 
     @abstractmethod
-    def _process_doc_instances(
-        self, instances: list[Instance], filter_name: str
+    def _process_instances(
+        self, instances: list[list[Instance]], filter_name: str | None = None
     ) -> dict[str, Any]:
         """Process instances for a single document.
 
@@ -668,19 +655,51 @@ class Task(ABC):
             f"{self.__class__.__name__} must implement _process_doc_instances"
         )
 
-    def compute_metrics(self, instances: list[Instance] | None = None) -> dict:
-        """Deprecated alias for process_instances.
+    def compute_aggregations(
+        self,
+        scores: dict[tuple[str, str], list[GenResult] | list[MCResult]],
+        bootstrap_iters=100,
+    ):
+        from lm_eval.api.metrics import mean, stderr_for_metric
 
-        This method is kept for backward compatibility. New code should use
-        process_instances() instead.
+        agg_metrics = {}
+        for (metric, filter_key), items in scores.items():
+            items = self.reduce(items, metric)
+            try:
+                agg_fn = self.aggregation()[metric]
+            except KeyError:
+                # This is when process results output an arbitrary metric
+                # TODO: Handle this better and allow other aggregate functions other than mean.
+                agg_fn = mean
+            metric_key = f"{metric},{filter_key}"
+            agg_metrics[metric_key] = agg_fn(items)
+            self.sample_len = len(items)  # TODO: same sample size for each metric?
+            if isinstance(bootstrap_iters, int):
+                stderr_fn = stderr_for_metric(
+                    metric=agg_fn,
+                    bootstrap_iters=min(bootstrap_iters, 100)
+                    if metric in ["bleu", "chrf", "ter"]
+                    else bootstrap_iters,
+                )
+                agg_metrics[f"{metric}_stderr,{filter_key}"] = (
+                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
+            else:
+                raise ValueError(
+                    f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."
+                )
+        return agg_metrics
 
-        Args:
-            instances: List of instances to process
-
-        Returns:
-            Dictionary mapping (metric_name, filter_name) -> list of scores
-        """
-        return self.process_instances(instances)
+    def reduce(
+        self, items: Sequence[float] | Sequence[list[float]], metric: str
+    ) -> list[float]:
+        """Reduce a list of numbers to a single number."""
+        if isinstance(items[0], float | int):
+            return items
+        if self.config.repeats > 1:
+            return [self.config.repeat_cfg.reducer(x) for x in items]
+        else:
+            return [x[0] for x in items]
 
     def aggregation(self) -> dict:
         """Return aggregation functions for each metric."""
@@ -728,26 +747,31 @@ class GenerateTask(Task):
             **instance_kwargs,
         )
 
-    def _process_doc_instances(
-        self, instances: list[Instance], filter_name: str
-    ) -> dict[str, Any]:
+    def _process_instances(
+        self, instances: list[list[Instance]], filter_name: str | None = None
+    ):
         """Process generation instances for a single doc."""
-        # Check for custom process_results
-        if callable(self.config.process_results):
-            # Extract data for backward compatibility
-            doc = instances[0].doc
-            results = [inst.filtered_resps[filter_name] for inst in instances]
-            return self.config.process_results(doc, results)
-
-        # Standard path using GenResult
         from lm_eval.types import GenResult
 
-        gen_result = GenResult.from_instances(instances, filter_name)
-        gen_result.repeats = self.config.repeat_cfg.repeats
+        filters = (
+            self._filters
+            if filter_name is None
+            else [f for f in self._filters if f.name == filter_name]
+        )
+        result = defaultdict(list)
+        for _filter in filters:
+            for instance in instances:
+                gen_result = GenResult.from_instances(instance, _filter.name)  # type: ignore
+                gen_result.repeats = self.config.repeat_cfg.repeats
+                gen_result.scores = self._compute_sample_metrics(gen_result)
+                for metric_name in gen_result.scores:
+                    result[(metric_name, _filter.name)].append(
+                        gen_result.scores[metric_name]
+                    )
+        self._sample_scores = result
+        return result
 
-        return self._compute_generation_metrics(gen_result)
-
-    def _compute_generation_metrics(self, gen_result: "GenResult") -> dict[str, Any]:
+    def _compute_sample_metrics(self, gen_result: "GenResult") -> dict[str, Any]:
         """Compute metrics from GenResult with repeat reduction."""
         result_dict = {}
         gold = gen_result.target
@@ -769,90 +793,36 @@ class GenerateTask(Task):
                         score = metric.fn([gold, generation])
 
                     if isinstance(score, dict):
-                        # Multiple metrics from same function
+                        # Multiple metrics from the same function
                         for k, v in score.items():
                             per_generation_scores[k].append(v)
                     else:
                         per_generation_scores[metric.name].append(score)
 
-        # Step 2: Handle repeat reduction
-        if gen_result.is_repeated and self.config.repeat_cfg.repeats > 1:
-            reduced_scores = {}
-            for metric_name, scores in per_generation_scores.items():
-                # Add raw scores
-                result_dict[metric_name] = scores
-
-                # Apply reduction if we have the right number of scores
-                if len(scores) == self.config.repeat_cfg.repeats:
-                    reduced_value = self.config.repeat_cfg.reducer(scores)
-
-                    # Add reduced metric with special name
-                    reduced_name = f"{metric_name}_{self.config.repeat_cfg.metric_name}"
-                    result_dict[reduced_name] = reduced_value
-                else:
-                    eval_logger.warning(
-                        f"Repeat metric {metric_name} has {len(scores)} scores, "
-                        f"expected {self.config.repeat_cfg.repeats}. Skipping reduction."
-                    )
-        else:
-            # No repeats - flatten single scores
-            for k, v in per_generation_scores.items():
-                result_dict[k] = v[0] if len(v) == 1 else v
-
-        return result_dict
-
-    def process_results(
-        self,
-        doc: dict[str, Any],
-        results: list[str],
-        instances: list[Instance] | None = None,
-    ) -> dict[str, Any]:
-        """Legacy compatibility method for processing results.
-
-        This method is kept for backward compatibility. When instances are
-        available, it delegates to the new _process_doc_instances method.
-        """
-        if callable(self.config.process_results):
-            return self.config.process_results(doc, results)
-
-        # Use new flow if instances are provided
-        if instances:
-            return self._process_doc_instances(instances, "default")
-
-        # Fallback to legacy implementation
-        # This shouldn't normally be reached in the new flow
-        result_dict = {}
-        gold = self.doc_to_target(doc)
-        _res: list[dict] = []
-        for result in results:
-            for metric in self.config._metric_list:
-                if metric.fn is not None:
-                    try:
-                        result_score = metric.fn(
-                            references=[gold] if not isinstance(gold, list) else gold,
-                            predictions=[result],
-                            **metric.kwargs,
-                        )
-                    except TypeError:
-                        result_score = metric.fn([gold, result])
-                    if isinstance(result_score, dict):
-                        _res.append(result_score)
-                    else:
-                        _res.append({metric.name: result_score})
-        result_dict = merge_dicts(_res)
-        if self.config.repeat_cfg.repeats > 1:
-            for k, v in result_dict.items():
-                _res = {}
-                if len(v) != self.config.repeat_cfg.repeats:
-                    eval_logger.warning(
-                        f"Repeat metric {k} is not compatible with {self.config.repeat_cfg.repeats} repeats. Passing through to aggregation, with repeat reduction"
-                    )
-                else:
-                    _res[f"{k}_{self.config.repeat_cfg.metric_name}"] = (
-                        self.config.repeat_cfg.reducer(v)
-                    )
-
-        return result_dict | _res
+        # # Step 2: Handle repeat reduction
+        # if gen_result.is_repeated and self.config.repeat_cfg.repeats > 1:
+        #     reduced_scores = {}
+        #     for metric_name, scores in per_generation_scores.items():
+        #         # Add raw scores
+        #         result_dict[metric_name] = scores
+        #
+        #         # Apply reduction if we have the right number of scores
+        #         if len(scores) == self.config.repeat_cfg.repeats:
+        #             reduced_value = self.config.repeat_cfg.reducer(scores)
+        #
+        #             # Add reduced metric with special name
+        #             reduced_name = f"{metric_name}_{self.config.repeat_cfg.metric_name}"
+        #             result_dict[reduced_name] = reduced_value
+        #         else:
+        #             eval_logger.warning(
+        #                 f"Repeat metric {metric_name} has {len(scores)} scores, "
+        #                 f"expected {self.config.repeat_cfg.repeats}. Skipping reduction."
+        #             )
+        # else:
+        #     # No repeats - flatten single scores
+        #     for k, v in per_generation_scores.items():
+        #         result_dict[k] = v
+        return per_generation_scores
 
 
 class MultipleChoiceTask(Task):
@@ -952,185 +922,24 @@ class MultipleChoiceTask(Task):
 
         return request_list
 
-    def _process_doc_instances(
-        self, instances: list[Instance], filter_name: str
-    ) -> dict[str, Any]:
-        """Process multiple choice instances for a single doc."""
-        # Check for custom process_results
-        if callable(self.config.process_results):
-            # Extract data for backward compatibility
-            doc = instances[0].doc
-            results = [inst.filtered_resps[filter_name] for inst in instances]
-            return self.config.process_results(doc, results)
-
-        # Standard path using MCResult
-        from lm_eval.types import MCResult
-
-        use_metric = [m.metric_name for m in self.config._metric_list]
-        acc_mutual_info = "acc_mutual_info" in use_metric
-
-        mc_result = MCResult.from_instances(instances, acc_mutual_info=acc_mutual_info)
-        return self._compute_mc_metrics(mc_result)
-
-    def _compute_mc_metrics(self, mc_result: "MCResult", metric_name) -> dict[str, Any]:
-        """Compute metrics from MCResult."""
-        import numpy as np
-
-        # Get list of metric names we need to compute
-        use_metric = [m.metric_name for m in self.config._metric_list]
-
-        # Compute predictions
-        pred = np.argmax(mc_result.lls)
-        pred_norm = np.argmax(mc_result.lls / mc_result.char_lens)
-
-        gold = mc_result.target
-
-        # Compute accuracy metrics
-        acc = 1.0 if pred == gold else 0.0
-        acc_norm = 1.0 if pred_norm == gold else 0.0
-        exact_match = (
-            int(mc_result.is_greedy[gold])
-            if (isinstance(gold, int) and gold != -100)
-            else 0
-        )
-
-        # Compute normalized probabilities for brier score
-        prob_norm = utils.softmax(mc_result.lls)
-
-        # Build result dictionary with only the metrics we need
-        result_dict = {
-            **({"acc": acc} if "acc" in use_metric else {}),
-            **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-            **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
-            **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-            **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-            **(
-                {"brier_score": (gold, prob_norm)}
-                if "brier_score" in use_metric
-                else {}
-            ),
-        }
-
-        # Handle mutual information accuracy
-        if "acc_mutual_info" in use_metric:
-            if not mc_result.lls_mutual_info:
-                raise ValueError(
-                    "acc_mutual_info requires unconditional loglikelihoods, "
-                    "but they were not computed. This is a configuration error."
-                )
-            acc_mutual_info = (
-                1.0 if np.argmax(mc_result.lls_mutual_info) == gold else 0.0
-            )
-            result_dict["acc_mutual_info"] = acc_mutual_info
-
-        return result_dict
-
-    def process_results(
-        self,
-        doc: dict[str, Any],
-        results: list,
-        instances: list[Instance] | None = None,
-        filter: str | None = None,
-    ) -> dict[str, Any]:
-        """Legacy compatibility method for processing results.
-
-        This method is kept for backward compatibility. When instances are
-        available, it delegates to the new _process_doc_instances method.
-
-        Args:
-            doc: The document/example being evaluated
-            results: List of (loglikelihood, is_greedy) tuples for each choice
-            instances: List of instances for this doc (new flow)
-            filter: Filter name to use
-
-        Returns:
-            Dictionary of metric_name -> score
-        """
-        # Check for custom process_results first
-        if callable(self.config.process_results):
-            return self.config.process_results(doc, results)
-
-        # Use new flow if instances are provided
-        if instances:
-            return self._process_doc_instances(
-                instances, filter if filter else "default"
-            )
-
-        # Fallback to legacy implementation
-        # This shouldn't normally be reached in the new flow
-
-        # Extract loglikelihoods and is_greedy flags
-        lls, is_greedy = zip(*results)
-
-        # Retrieve choices in List[str] form, to compute choice lengths, etc.
-        choices = self.doc_to_choice(doc)
-        completion_len = np.array([float(len(i)) for i in choices])
-
-        # Get list of metric names we need to compute
-        use_metric = [m.metric_name for m in self.config._metric_list]
-
-        # Handle mutual information if needed
-        lls_unconditional = None
-        if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
-            lls_unconditional = lls[len(choices) :]
-            if len(lls_unconditional) != len(choices):
-                raise ValueError
-            lls = lls[: len(choices)]
-
-        # Compute predictions
-        pred = np.argmax(lls)
-        pred_norm = np.argmax(lls / completion_len)
-
-        # Get gold label and validate
-        gold = self.doc_to_target(doc)
-        if isinstance(gold, Sequence) and not isinstance(gold, (str, list)):
-            gold = list(gold)
-        gold, gold_index_error = check_gold_index_error(choices, gold)
-
-        if gold_index_error:
-            eval_logger.warning(
-                f"Label index was not in within range of available choices,"
-                f"Sample:\n\n{doc}\n\n"
-            )
-
-        # Compute accuracy metrics
-        acc = 1.0 if pred == gold else 0.0
-        acc_norm = 1.0 if pred_norm == gold else 0.0
-        exact_match = (
-            int(is_greedy[gold]) if (isinstance(gold, int) and gold != -100) else 0
-        )
-
-        # Compute normalized probabilities for brier score
-        prob_norm = utils.softmax(lls)
-
-        # Build result dictionary with only the metrics we need
-        result_dict = {
-            **({"acc": acc} if "acc" in use_metric else {}),
-            **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-            **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
-            **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-            **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-            **(
-                {"brier_score": (gold, prob_norm)}
-                if "brier_score" in use_metric
-                else {}
-            ),
-        }
-
-        # Handle mutual information accuracy
-        if "acc_mutual_info" in use_metric:
-            if lls_unconditional is None:
-                raise ValueError(
-                    "acc_mutual_info requires unconditional loglikelihoods, "
-                    "but they were not computed. This is a configuration error."
-                )
-            lls_mutual_info = [
-                ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
-            ]
-            acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
-            result_dict["acc_mutual_info"] = acc_mutual_info
-
-        return result_dict
+    def _process_instances(self, instances: list[list[Instance]]):
+        results = [Results.create(inst) for inst in instances]
+        valid_metrics = [
+            (filter, metric)
+            for filter in self._filters
+            for metric in filter.metric_list
+            if metric is not None and metric.fn is not None
+        ]
+        for _res in results:
+            for filter, metric in valid_metrics:
+                if metric.fn is not None:
+                    metric_result = metric.fn(_res.to_metric_inputs())
+                    _res.scores[(metric.name, filter.name)] = metric_result
+        # TODO: create better abstraction for this
+        for _res in results:
+            for k, v in _res.scores.items():
+                self._sample_scores[k].append(v)
+        return self._sample_scores
 
 
 # Register "multiple_choice" as an alias for MultipleChoiceTask

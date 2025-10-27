@@ -1,5 +1,6 @@
 # ruff: noqa: F401
 from abc import abstractmethod
+from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from typing import (
@@ -88,23 +89,26 @@ class Results(Protocol[InstanceT]):
     results: Any
     target: Any
     scores: Any
+    instances: Sequence[InstanceT]
 
     @classmethod
     def from_instances(
-        cls: type[ResultsSelf], results: Sequence[InstanceT]
+        cls: type[ResultsSelf],
+        results: Sequence[InstanceT],
+        filter_name: str = "default",
     ) -> ResultsSelf: ...
 
     @abstractmethod
     def to_metric_inputs(self) -> Any: ...
 
     @staticmethod
-    def create(instance: Sequence[InstanceT]):
+    def create(instance: Sequence[InstanceT], filter_name: str | None = None):
         output_type = instance[0].request_type
         match output_type:
             case "loglikelihood":
                 return MCResult.from_instances(instance)
             case _:
-                return GenResult.from_instances(instance)
+                return GenResult.from_instances(instance, filter_name=filter_name)
 
 
 @dataclass
@@ -114,6 +118,7 @@ class MCResult(Results):
     lls: Sequence[float]
     is_greedy: Sequence[bool]
     target: int
+    instances: Sequence["MCInstance"]
     choices: Sequence[str] = field(default_factory=list)
     char_lens: Sequence[int] = field(default_factory=list)
     byte_lens: Sequence[int] = field(default_factory=list)
@@ -123,6 +128,8 @@ class MCResult(Results):
 
     @classmethod
     def from_instances(cls, results: Sequence["MCInstance"], acc_mutual_info=False):
+        from itertools import chain
+
         import numpy as np
 
         ## TODO: ADD Choice/Target Verification
@@ -134,7 +141,7 @@ class MCResult(Results):
             *((inst.resps, inst.args[1], inst.target) for inst in instance), strict=True
         )
 
-        lls, is_greedy = zip(*[item[0] for item in resps], strict=True)
+        lls, is_greedy = zip(*chain.from_iterable(resps), strict=True)
         # Handle mutual information if needed
         lls_mutual_info = []
         if acc_mutual_info:
@@ -177,6 +184,7 @@ class MCResult(Results):
             byte_lens=bytes_len,  # type: ignore
             token_lens=token_len,  # type: ignore
             lls_mutual_info=lls_mutual_info,
+            instances=instance,
         )
 
     def to_metric_inputs(self):
@@ -195,7 +203,7 @@ class GenResult:
     instances: Sequence["GenInstance"]  # Source instances
     repeats: int = 1  # Number of repeats/samples per doc
     filter_name: str = "default"  # Active filter
-    scores: dict[Any, float] = field(default_factory=dict)
+    scores: dict[Any, list[float]] = field(default_factory=lambda: defaultdict(list))
 
     @property
     def is_repeated(self) -> bool:
@@ -204,7 +212,7 @@ class GenResult:
 
     @classmethod
     def from_instances(
-        cls, instances: Sequence["GenInstance"], filter_name: str = "default"
+        cls, instances: Sequence["GenInstance"], filter_name: str | None = None
     ) -> "GenResult":
         """Create GenResult from instances for the same doc_id.
 
@@ -218,12 +226,15 @@ class GenResult:
 
         # All instances should have the same doc and target
         doc = instances[0].doc
-        target = instances[0].target
+        target = [x.target for x in instances]
+        # Targets should generally be the same for all instances in a sample
+        if all(x.target == target[0] for x in instances):
+            target = target[0]
 
         # Extract generations from filtered responses
         generations = []
         for inst in instances:
-            if filter_name in inst.filtered_resps:
+            if filter_name and filter_name in inst.filtered_resps:
                 resp = inst.filtered_resps[filter_name]
                 # Handle both single and multiple responses
                 if isinstance(resp, list):
@@ -231,11 +242,11 @@ class GenResult:
                 else:
                     generations.append(resp)
             else:
-                # Fallback to raw response if filter not found
-                if isinstance(inst.resps, list):
-                    generations.extend(inst.resps)
-                else:
-                    generations.append(inst.resps)
+                # # Fallback to raw response if filter not found
+                # if isinstance(inst.resps, list):
+                #     generations.extend(inst.resps)
+                # else:
+                generations.append(inst.filtered_resps)
 
         return cls(
             results=generations,
