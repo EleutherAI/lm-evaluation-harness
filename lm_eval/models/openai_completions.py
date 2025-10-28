@@ -218,7 +218,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
                 for choices in out["choices"]:
                     tmp[choices["index"]] = choices["message"]["content"]
             except Exception as e:
-                # account for cases that generation is blocked by content filter, 
+                # account for cases that generation is blocked by content filter,
                 # which is common for Azure OpenAI Service,
                 # not sure if need to account for multiple choices
                 eval_logger.warning(f"Could not parse generations: {e}")
@@ -354,6 +354,7 @@ class OpenAIChatCompletion(LocalChatCompletion):
             output["temperature"] = 1
         return output
 
+
 @register_model("azure-openai-chat-completions")
 class AzureOpenaiChatCompletionsLM(OpenAIChatCompletion):
     def __init__(
@@ -375,7 +376,9 @@ class AzureOpenaiChatCompletionsLM(OpenAIChatCompletion):
         self.model = model
         self.base_url = f"{base_url}/openai/deployments/{model}/chat/completions?api-version={api_version}"
         self.truncate = truncate
-        self.client = openai.AzureOpenAI(azure_endpoint=base_url, api_version=api_version, api_key=self.api_key)
+        self.client = openai.AzureOpenAI(
+            azure_endpoint=base_url, api_version=api_version, api_key=self.api_key
+        )
 
     @cached_property
     def api_key(self):
