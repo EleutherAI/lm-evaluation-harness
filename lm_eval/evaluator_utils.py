@@ -112,8 +112,8 @@ class TaskOutput:
                 agg_fn = mean
             metric_key = f"{metric},{filter_key}"
 
-            group_ids = [doc["meta"]["group_id"] for doc_id, doc in doc_iterator]
             if agg_fn.__name__ == "all_in_group":
+                group_ids = [doc["meta"]["group_id"] for doc_id, doc in doc_iterator]
                 self.agg_metrics[metric_key] = agg_fn(items, group_ids)
             else:
                 self.agg_metrics[metric_key] = agg_fn(items)
