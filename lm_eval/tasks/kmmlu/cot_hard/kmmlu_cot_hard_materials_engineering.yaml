@@ -84,4 +84,5 @@ fewshot_config:
       구별하는 데 사용될 수 있습니다. 냉간가공은 재결성 온도 이하에서 이루어지며, 열간가공은 재결성 온도 이상에서 이루어집니다.  , 냉간가공과
       열간가공을 구별하는 기준은 재결성 온도라고 할 수 있습니다. 따라서, 정답은 (C) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_materials_engineering
+task: kmmlu_cot_hard_materials_engineering
+tag: kmmlu_cot_hard_stem_tasks

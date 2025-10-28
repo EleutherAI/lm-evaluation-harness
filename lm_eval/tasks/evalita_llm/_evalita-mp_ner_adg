@@ -1,0 +1,7 @@
+group: evalita-mp_ner_tasks_adg
+group_alias: evalita NER adg
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: True
+metadata:
+  version: 1

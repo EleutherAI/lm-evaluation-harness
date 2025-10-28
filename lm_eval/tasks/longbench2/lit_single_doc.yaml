@@ -1,0 +1,6 @@
+include: _longbench_common_yaml
+tag:
+  - longbench2_tasks
+  - longbench2_single_tasks
+task: longbench2_lit_single
+dataset_name: literary

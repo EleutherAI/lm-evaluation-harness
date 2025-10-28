@@ -80,4 +80,5 @@ fewshot_config:
       없어야 합니다. 이러한 조건을 충족하는 미생물은 절대호산성 미생물입니다. 절대호산성 미생물은 극도로 산성 환경에서만 생존할 수 있으며,
       중성 또는 알칼리성 환경에서는 성장할 수 없습니다. 따라서, 정답은 (A) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_biology
+task: kmmlu_cot_hard_biology
+tag: kmmlu_cot_hard_stem_tasks

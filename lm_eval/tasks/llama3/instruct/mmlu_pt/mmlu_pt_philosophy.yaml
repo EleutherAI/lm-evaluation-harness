@@ -1,0 +1,53 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "uma teoria \xE9tica sobre como devemos nos comportar."
+      B: "uma generaliza\xE7\xE3o sobre a maneira como as pessoas tendem a se comportar."
+      C: "uma afirma\xE7\xE3o sobre a natureza humana e as maneiras como as pessoas\
+        \ s\xE3o capazes de se comportar."
+      D: nenhuma das acima.
+    input_correct_responses:
+    - C
+    input_question: "O ego\xEDsmo psicol\xF3gico \xE9:"
+  - input_choice_list:
+      A: prazer.
+      B: felicidade.
+      C: bom.
+      D: virtude.
+    input_correct_responses:
+    - C
+    input_question: "De acordo com o \u201Cutilitarismo ideal\u201D de Moore, a a\xE7\
+      \xE3o correta \xE9 aquela que provoca a maior quantidade de:"
+  - input_choice_list:
+      A: escolhas livres
+      B: ditames da alma
+      C: "leis naturais necess\xE1rias"
+      D: vontade indeterminada
+    input_correct_responses:
+    - C
+    input_question: Segundo d&#39;Holbach, as pessoas sempre agem de acordo com _____.
+  - input_choice_list:
+      A: otimista
+      B: satisfeito
+      C: nominalmente religioso
+      D: pessimista
+    input_correct_responses:
+    - D
+    input_question: "Antes da convers\xE3o crist\xE3 de Tolstoi, qual era a sua perspectiva\
+      \ sobre o sentido da vida?"
+  - input_choice_list:
+      A: "metaf\xEDsica"
+      B: epistemologia
+      C: "f\xEDsica qu\xE2ntica"
+      D: axiologia
+    input_correct_responses:
+    - A
+    input_question: "O estudo da realidade no sentido mais amplo, uma investiga\xE7\
+      \xE3o sobre a natureza elementar do universo e das coisas nele contidas, \xE9\
+      \ conhecido como _____."
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_philosophy
+tag: mmlu_pt_llama_humanities_tasks
+task: mmlu_pt_llama_philosophy
+task_alias: philosophy

@@ -1,0 +1,5 @@
+tag: norsumm_nno
+dataset_name: nn
+task: norsumm_nno_p1
+include: ../_norsumm_yaml
+doc_to_text: "Oppsummer følgande artikkel med nokre få setningar: {{article}}\nOppsummering:"

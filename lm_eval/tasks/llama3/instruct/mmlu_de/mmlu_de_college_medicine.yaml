@@ -1,0 +1,57 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "\xFCber Proteintransporter namens GLUT4."
+      B: nur in Anwesenheit von Insulin.
+      C: "\xFCber Hexokinase."
+      D: "\xFCber Monocarbyls\xE4ure-Transporter."
+    input_correct_responses:
+    - A
+    input_question: 'Glukose wird in die Muskelzelle transportiert:'
+  - input_choice_list:
+      A: Muskelglykogen wird enzymatisch zu Glucose-1-phosphat abgebaut
+      B: "Leistungsstarke Ausdauerl\xE4ufer haben einen hohen Anteil an Typ-I-Fasern\
+        \ in ihrer Beinmuskulatur"
+      C: "Leberglykogen ist wichtig f\xFCr die Aufrechterhaltung der Blutglukosekonzentration"
+      D: "Insulin f\xF6rdert die Glukoseaufnahme durch alle Gewebe im K\xF6rper"
+    input_correct_responses:
+    - D
+    input_question: Welche der folgenden Aussagen ist nicht wahr?
+  - input_choice_list:
+      A: "Alle Nachkommen auf der m\xFCtterlichen Seite werden die St\xF6rung haben."
+      B: "Frauen sind in dieser Familie etwa doppelt so stark betroffen wie M\xE4\
+        nner."
+      C: "Alle T\xF6chter eines betroffenen Mannes werden betroffen sein."
+      D: "Es wird eine gleichm\xE4\xDFige Verteilung von M\xE4nnern und Frauen geben,\
+        \ die betroffen sind."
+    input_correct_responses:
+    - C
+    input_question: "Bei einem Gentest eines Neugeborenen wird eine seltene genetische\
+      \ St\xF6rung gefunden, die X-chromosomal-rezessiv vererbt wird. Welche der folgenden\
+      \ Aussagen trifft wahrscheinlich auf den Stammbaum dieser St\xF6rung zu?"
+  - input_choice_list:
+      A: Steigende Temperatur, steigende Mole an Gas
+      B: "Temperatur erh\xF6hen, Volumen erh\xF6hen"
+      C: Abnehmendes Volumen, abnehmende Temperatur
+      D: Abnehmende Gasmole, zunehmendes Volumen
+    input_correct_responses:
+    - A
+    input_question: "Ein Gymnasiallehrer f\xFCr Naturwissenschaften f\xFCllt eine\
+      \ 1-Liter-Flasche mit reinem Stickstoff und versiegelt den Deckel. Der Druck\
+      \ betr\xE4gt 1,70 atm und die Raumtemperatur 25\xB0C. Welche zwei Variablen\
+      \ werden beide den Druck des Systems erh\xF6hen, wenn alle anderen Variablen\
+      \ konstant gehalten werden?"
+  - input_choice_list:
+      A: "Muskelschw\xE4che."
+      B: "Zunahme an K\xF6rpermasse."
+      C: "Muskelkr\xE4mpfe."
+      D: Verlust von Elektrolyten.
+    input_correct_responses:
+    - B
+    input_question: 'Eine erwartete Nebenwirkung einer Kreatinsupplementierung ist:'
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_college_medicine
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_college_medicine
+task_alias: college_medicine

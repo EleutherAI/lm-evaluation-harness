@@ -1,0 +1,14 @@
+task: escola
+dataset_path: nbel/EsCoLA
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_text: "{{Sentence}}\nPregunta: ¿Tiene sentido esta frase?\nRespuesta:"
+doc_to_target: Label
+doc_to_choice: ["no", "sí"]
+metric_list:
+  - metric: mcc
+  - metric: acc
+metadata:
+  version: 1.0

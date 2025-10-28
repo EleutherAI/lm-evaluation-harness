@@ -1,7 +1,7 @@
-group: storycloze
+tag: storycloze
 task: storycloze_2018
 dataset_path: story_cloze
-dataset_name: 2018
+dataset_name: "2018"
 output_type: multiple_choice
 validation_split: validation
 test_split: test

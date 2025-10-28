@@ -1,0 +1,21 @@
+task: piqa_eu
+dataset_path: HiTZ/PIQA-eu
+dataset_name: null
+output_type: multiple_choice
+training_split: null
+validation_split: validation
+test_split: null
+doc_to_text: "Galdera: {{goal}}\nErantzuna:"
+doc_to_target: label
+doc_to_choice: "{{[sol1, sol2]}}"
+should_decontaminate: true
+doc_to_decontamination_query: goal
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

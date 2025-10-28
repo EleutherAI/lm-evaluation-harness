@@ -46,6 +46,6 @@ fewshot_config:
     target: 'Let''s think step by step. The least common multiple of 2, 3 and 5 is
       30, so during a 7 minute dance, all the three lights will come on at the same
       time $2*7+1=15$ times. The answer is (B).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_mathematics

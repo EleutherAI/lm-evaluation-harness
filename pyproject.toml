@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.3"
+version = "0.4.9.1"
 authors = [
-    {name="EleutherAI", email="contact@eleuther.ai"}
+    { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
 description = "A framework for evaluating language models"
 readme = "README.md"
@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.26.0",
@@ -57,53 +57,68 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
-anthropic = ["anthropic"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
-deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
+acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
+api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
+audiolm_qwen = ["librosa", "soundfile"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
+gptqmodel = ["gptqmodel>=1.0.9"]
 hf_transfer = ["hf_transfer"]
-ifeval = ["langdetect", "immutabledict"]
-neuronx = ["optimum[neuronx]"]
-mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
-math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
+ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
+ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
+ipex = ["optimum"]
+japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
+longbench = ["jieba", "fuzzywuzzy", "rouge"]
+libra = ["pymorphy2"]
+mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
+math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
-openai = ["openai==1.3.9", "tiktoken"]
+neuronx = ["optimum[neuronx]"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
+ruler = ["nltk", "wonderwords", "scipy"]
+sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
-sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
+sparsify = ["sparsify"]
+discrim_eval = ["statsmodels==0.14.4"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
+unitxt = ["unitxt==1.22.0"]
 vllm = ["vllm>=0.4.2"]
-zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
-unitxt = ["unitxt"]
-all = [
-    "lm_eval[anthropic]",
-    "lm_eval[dev]",
-    "lm_eval[deepsparse]",
-    "lm_eval[gptq]",
-    "lm_eval[hf_transfer]",
+zeno = ["pandas", "zeno-client"]
+tasks = [
+    "lm_eval[acpbench]",
+    "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
+    "lm_eval[japanese_leaderboard]",
+    "lm_eval[longbench]",
+    "lm_eval[libra]",
     "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
-    "lm_eval[openai]",
-    "lm_eval[promptsource]",
-    "lm_eval[sentencepiece]",
-    "lm_eval[sparseml]",
-    "lm_eval[testing]",
-    "lm_eval[vllm]",
-    "lm_eval[zeno]",
-    "lm_eval[wandb]",
-    "lm_eval[unitxt]"
+    "lm_eval[ruler]",
 ]
 
+[tool.pymarkdown]
+plugins.md013.enabled = false # line-length
+plugins.md024.allow_different_nesting = true # no-duplicate-headers
+plugins.md025.enabled = false # single-header
+plugins.md028.enabled = false # no-blanks-blockquote
+plugins.md029.allow_extended_start_values = true # ol-prefix
+plugins.md034.enabled = false # no-bare-urls
+
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["I", "W605"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"__init__.py" = ["F401","F402","F403"]
+"__init__.py" = ["F401", "F402", "F403"]
+"utils.py" = ["F401"]
+
+[dependency-groups]
+dev = [
+    "api", "dev", "sentencepiece"
+]

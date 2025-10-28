@@ -1,16 +1,24 @@
 from . import (
     anthropic_llms,
+    api_models,
     dummy,
     gguf,
+    hf_audiolm,
+    hf_steered,
+    hf_vlms,
     huggingface,
+    ibm_watsonx_ai,
     mamba_lm,
     nemo_lm,
-    neuralmagic,
     neuron_optimum,
     openai_completions,
+    optimum_ipex,
     optimum_lm,
+    sglang_causallms,
+    sglang_generate_API,
     textsynth,
     vllm_causallms,
+    vllm_vlms,
 )
 
 

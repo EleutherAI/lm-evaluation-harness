@@ -1,0 +1,4 @@
+task: mmmu_val_accounting
+include: _template_yaml
+task_alias: Accounting
+dataset_name: Accounting

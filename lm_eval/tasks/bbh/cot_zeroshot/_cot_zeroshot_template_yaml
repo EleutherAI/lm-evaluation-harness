@@ -1,5 +1,4 @@
-group: bbh_cot_zeroshot
-dataset_path: lukaemon/bbh
+dataset_path: SaylorTwift/bbh
 output_type: generate_until
 test_split: test
 doc_to_target: "{{target}}"
@@ -24,4 +23,4 @@ generation_kwargs:
   temperature: 0.0
 num_fewshot: 0
 metadata:
-  version: 2.0
+  version: 3.0

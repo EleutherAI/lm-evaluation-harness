@@ -1,4 +1,3 @@
-group: xstorycloze
 task: xstorycloze_ar
 dataset_path: juletxara/xstory_cloze
 dataset_name: ar

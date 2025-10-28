@@ -1,6 +1,6 @@
 "dataset_name": "college_mathematics"
 "description": "The following are multiple choice questions (with answers) about college\
   \ mathematics.\n\n"
-"group": "mmlu_flan_cot_zeroshot_stem"
+"tag": "mmlu_flan_cot_zeroshot_stem"
 "include": "_mmlu_flan_cot_zeroshot_template_yaml"
 "task": "mmlu_flan_cot_zeroshot_college_mathematics"

@@ -2,7 +2,6 @@ import re
 import string
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
 
 
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
@@ -117,6 +116,8 @@ def _align_bags(predicted, gold):
     Takes gold and predicted answer sets and first finds the optimal 1-1 alignment
     between them and gets maximum metric values over all the answers.
     """
+    from scipy.optimize import linear_sum_assignment
+
     scores = np.zeros([len(gold), len(predicted)])
     for gold_index, gold_item in enumerate(gold):
         for pred_index, pred_item in enumerate(predicted):

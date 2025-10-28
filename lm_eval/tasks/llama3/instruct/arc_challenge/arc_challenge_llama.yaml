@@ -1,0 +1,30 @@
+task: arc_challenge_llama
+dataset_name: ARC-Challenge
+dataset_path: allenai/ai2_arc
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\nQuestion: {{ question }}\nA. {{ choices.text[0] }}\nB. {{ choices.text[1] }}\nC. {{ choices.text[2] }}\nD. {{ choices.text[3] }}\nYour response should end with \"The best answer is [the_answer_letter]\" where the [the_answer_letter] is one of A, B, C or D."
+doc_to_target: "{{answerKey}}"
+gen_prefix: "The best answer is"
+num_fewshot: 0
+output_type: generate_until
+generation_kwargs:
+  do_sample: false
+  max_gen_toks: 100
+  until: []
+filter_list:
+  - name: strict_match
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - "\\$"
+      - "\\.$"
+metadata:
+  version: 1.0

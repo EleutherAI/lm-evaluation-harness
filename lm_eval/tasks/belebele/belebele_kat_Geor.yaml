@@ -1,4 +1,5 @@
-"fewshot_split": "kat_Geor"
-"include": "_default_template_yaml"
-"task": "belebele_kat_Geor"
-"test_split": "kat_Geor"
+dataset_name: kat_Geor
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_kat_Geor
+test_split: test

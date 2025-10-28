@@ -1,0 +1,25 @@
+task: mediqa_qa2019_perplexity
+dataset_path: bigbio/mediqa_qa
+description: >
+  Instructions: The following text is a question asked by a patient. Answer how a doctor would, while trying to be as informative and helpful as possible.
+
+output_type: loglikelihood_rolling
+training_split: train_live_qa_med
+validation_split: validation
+test_split: test
+doc_to_text: ""
+doc_to_target: !function utils_perplexity.doc_to_target
+process_results: !function utils_perplexity.process_results
+should_decontaminate: true
+doc_to_decontamination_query: !function utils_perplexity.doc_to_target
+metric_list:
+  - metric: perplexity
+    higher_is_better: false
+  - metric: word_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1.0

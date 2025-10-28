@@ -1,4 +1,5 @@
-"fewshot_split": "hat_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_hat_Latn"
-"test_split": "hat_Latn"
+dataset_name: hat_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_hat_Latn
+test_split: test

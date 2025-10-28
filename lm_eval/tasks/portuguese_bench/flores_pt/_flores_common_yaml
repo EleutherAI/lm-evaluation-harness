@@ -1,0 +1,25 @@
+dataset_path: facebook/flores
+dataset_name: all
+output_type: generate_until
+#! The test split of flores is not publicly available! (See paper section 6.1)
+#! We are using `dev` and `devtest` splits, but they're mapped to train/validation/test in `data/flores/flores.py`.
+training_split: dev
+validation_split: dev
+test_split: devtest
+fewshot_split: dev
+target_delimiter: ''
+generation_kwargs:
+  until:
+    - "\n"
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: ter
+    aggregation: ter
+    higher_is_better: false
+  - metric: chrf
+    aggregation: chrf
+    higher_is_better: true
+metadata:
+  version: 1.0

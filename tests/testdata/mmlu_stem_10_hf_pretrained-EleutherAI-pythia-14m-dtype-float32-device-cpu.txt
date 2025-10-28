@@ -1,0 +1,22 @@
+|             Tasks             |Version|Filter|n-shot|Metric|   |Value |   |Stderr|
+|-------------------------------|------:|------|-----:|------|---|-----:|---|------|
+|stem                           |      2|none  |      |acc   |↑  |0.2474|±  |   N/A|
+| - abstract_algebra            |      1|none  |     0|acc   |↑  |0.2000|±  |   N/A|
+| - anatomy                     |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - astronomy                   |      1|none  |     0|acc   |↑  |0.1000|±  |   N/A|
+| - college_biology             |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - college_chemistry           |      1|none  |     0|acc   |↑  |0.1000|±  |   N/A|
+| - college_computer_science    |      1|none  |     0|acc   |↑  |0.2000|±  |   N/A|
+| - college_mathematics         |      1|none  |     0|acc   |↑  |0.2000|±  |   N/A|
+| - college_physics             |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - computer_security           |      1|none  |     0|acc   |↑  |0.5000|±  |   N/A|
+| - conceptual_physics          |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - electrical_engineering      |      1|none  |     0|acc   |↑  |0.4000|±  |   N/A|
+| - elementary_mathematics      |      1|none  |     0|acc   |↑  |0.0000|±  |   N/A|
+| - high_school_biology         |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - high_school_chemistry       |      1|none  |     0|acc   |↑  |0.4000|±  |   N/A|
+| - high_school_computer_science|      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - high_school_mathematics     |      1|none  |     0|acc   |↑  |0.2000|±  |   N/A|
+| - high_school_physics         |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|
+| - high_school_statistics      |      1|none  |     0|acc   |↑  |0.0000|±  |   N/A|
+| - machine_learning            |      1|none  |     0|acc   |↑  |0.3000|±  |   N/A|

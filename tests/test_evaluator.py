@@ -90,7 +90,7 @@ def test_evaluator(
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",
         ),
         (
-            ["mmlu_abstract_algebra", "mmlu_global_facts", "mmlu_public_relations"],
+            ["mmlu_stem"],
             10,
             "hf",
             "pretrained=EleutherAI/pythia-14m,dtype=float32,device=cpu",

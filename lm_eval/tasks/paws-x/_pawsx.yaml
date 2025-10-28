@@ -1,0 +1,15 @@
+group: pawsx
+task:
+  - paws_en
+  - paws_de
+  - paws_es
+  - paws_fr
+  - paws_ja
+  - paws_ko
+  - paws_zh
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

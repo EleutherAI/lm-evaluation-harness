@@ -1,5 +1,5 @@
 dataset_path: Idavidrein/gpqa
-group: gpqa
+tag: gpqa
 output_type: multiple_choice
 process_docs: !function utils.process_docs
 training_split: train
@@ -18,4 +18,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  version: 1.0
+  version: 2.0

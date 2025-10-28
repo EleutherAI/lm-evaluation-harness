@@ -1,4 +1,4 @@
-group:
+tag:
   - qa4mre
 task: qa4mre_2011
 dataset_path: qa4mre

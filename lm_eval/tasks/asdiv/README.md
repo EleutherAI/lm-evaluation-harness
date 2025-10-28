@@ -32,7 +32,7 @@ Homepage: https://github.com/chaochun/nlu-asdiv-dataset
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 
@@ -41,6 +41,11 @@ Homepage: https://github.com/chaochun/nlu-asdiv-dataset
 #### Tasks
 
 * `asdiv`
+* `asdiv_cot_llama`: ASDIV with prompt formatting modified to conform to the evaluation settings described by Meta here: https://huggingface.co/datasets/meta-llama/Meta-Llama-3.1-8B-Instruct-evals/viewer/Meta-Llama-3.1-8B-Instruct-evals__gsm8k__details?row=0
+    - Note that the CoT prompt from (https://arxiv.org/pdf/2201.11903) is used exactly as in GSM8k-CoT
+    - This file is setup to run identically to the task `gsm8k_cot_llama` but for asdiv.
+    - Use this task with --fewshot_as_multiturn and --apply_chat_template to run correctly with Llama Instruct models.
+
 
 ### Checklist
 

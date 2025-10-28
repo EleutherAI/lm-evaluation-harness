@@ -1,0 +1,31 @@
+dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
+output_type: generate_until
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+doc_to_text: "Given the following question and four candidate answers (A, B, C and D), choose the best answer.\nQuestion: {{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nYour response should end with \"The best answer is [the_answer_letter]\" where the [the_answer_letter] is one of A, B, C or D."
+gen_prefix: "The best answer is"
+doc_to_target: "{{['A.','B.','C.','D.'][answer]}}"
+num_fewshot: 5
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - "\\$"
+      - "\\.$"
+generation_kwargs:
+  do_sample: false
+  until:
+    - "."
+  max_gen_toks: 10
+filter_list:
+  - name: strict_match
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+metadata:
+  version: 1.0

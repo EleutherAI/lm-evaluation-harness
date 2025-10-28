@@ -1,4 +1,5 @@
-"fewshot_split": "tgk_Cyrl"
-"include": "_default_template_yaml"
-"task": "belebele_tgk_Cyrl"
-"test_split": "tgk_Cyrl"
+dataset_name: tgk_Cyrl
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_tgk_Cyrl
+test_split: test

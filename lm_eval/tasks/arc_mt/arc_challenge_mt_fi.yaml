@@ -1,4 +1,4 @@
-group:
+tag:
   - arc_challenge_mt
 task: arc_challenge_mt_fi
 dataset_path: LumiOpen/arc_challenge_mt

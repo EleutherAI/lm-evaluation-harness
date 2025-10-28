@@ -1,0 +1,50 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Startposition und Endposition
+      B: "Ausgangsumgebung und ver\xE4nderte Umgebung"
+      C: Organisationsstruktur und Konditionierung
+      D: "Initiierende Struktur und \xDCberlegungen"
+    input_correct_responses:
+    - D
+    input_question: Was sind die zwei Hauptdimensionen der Ohio Studies in Leadership?
+  - input_choice_list:
+      A: Friedrich Herzberg
+      B: DC McClelland
+      C: Abraham Maslow
+      D: Douglas McGregor
+    input_correct_responses:
+    - A
+    input_question: Hygienefaktoren werden mit welchem Schreiber in Verbindung gebracht?
+  - input_choice_list:
+      A: Symbole
+      B: Rituale und Routinen
+      C: Machtstrukturen
+      D: Kontroll systeme
+    input_correct_responses:
+    - A
+    input_question: Welches Element des kulturellen Netzes bildet Insignien?
+  - input_choice_list:
+      A: Moral
+      B: Innovation
+      C: Wachstumsressource
+      D: Anpassung
+    input_correct_responses:
+    - A
+    input_question: "Welches Merkmal ist kein Schl\xFCsselmerkmal des Managementmodells\
+      \ der \u201Eoffenen Systeme\u201C?"
+  - input_choice_list:
+      A: Hierarchisch
+      B: "B\xFCrokratisch"
+      C: Wohnung
+      D: Funktionell
+    input_correct_responses:
+    - C
+    input_question: "Wie lassen sich Organisationsstrukturen beschreiben, die von\
+      \ demokratischen und inklusiven F\xFChrungsstilen gepr\xE4gt sind?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_management
+tag: mmlu_de_llama_other_tasks
+task: mmlu_de_llama_management
+task_alias: management

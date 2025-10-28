@@ -1,4 +1,5 @@
-"fewshot_split": "arz_Arab"
-"include": "_default_template_yaml"
-"task": "belebele_arz_Arab"
-"test_split": "arz_Arab"
+dataset_name: arz_Arab
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_arz_Arab
+test_split: test

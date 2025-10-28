@@ -1,7 +1,5 @@
 dataset_name: disambiguation_qa
-description: 'Clarify the meaning of sentences with ambiguous pronouns.
-
-        '
+description: 'Clarify the meaning of sentences with ambiguous pronouns.'
 doc_to_choice: ["(A)", "(B)", "(C)"]
 fewshot_config:
   sampler: first_n

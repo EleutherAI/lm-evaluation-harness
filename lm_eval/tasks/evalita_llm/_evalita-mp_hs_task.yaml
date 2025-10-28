@@ -1,0 +1,10 @@
+group: evalita-mp_hs
+group_alias: hate-speech-detection
+task:
+  - evalita-mp_hs_tasks
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: True
+
+metadata:
+  version: 1

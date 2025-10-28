@@ -1,0 +1,5 @@
+include: _polish_few_shot_og_template_yaml
+description: Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami) na
+  temat STEM.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_polish_few_shot_og_stem

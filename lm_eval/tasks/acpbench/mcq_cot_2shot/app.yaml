@@ -1,0 +1,12 @@
+task: acp_app_mcq
+dataset_name: acp_app_mcq
+include: _mcq_cot_2shot_yaml
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: 'This is a ferry domain, where the task is to transport cars from their start to their goal locations, using a ferry. Each location is accessible by ferry from each other location. The cars can be debarked or boarded, and the ferry can carry only one car at a time.  There are 2 locations and 2 cars, numbered consecutively.  Currently, the ferry is at l1 location and it is empty. The cars are at locations as follows: c1 and c0 are at l0.'
+    question: 'Which of the following actions will be applicable in this state? A. unload the car c1 from the ferry to location l1.  B. load the car c0 at location l1 on to the ferry.  C. load the car c0 at location l0 on to the ferry.  D. sail from location l1 to location l0.'
+    answer: "Let's think step by step.   Step 1: In order to apply the action \"sail from location l1 to location l0\", the following fact(s) must hold in this state:  The ferry is at l1 location Step 2: These facts hold in the mentioned state, so the action \"sail from location l1 to location l0\" is applicable. **Final Answer**: D."
+  - context: 'There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations.  There are 2 trucks and 1 airplane, as well as 4 packages. There are 4 locations across 2 cities.  The locations are in cities as follows: l1-1 and l1-0 are in c1; l0-0 and l0-1 are in c0.  Currently, a0 and t0 are at l0-0, t1 is at l1-1, p2 is at l1-0, p1 and p3 are in t1, p0 is in t0.'
+    question: 'Which of the following actions will be applicable in this state? A. load object p1 into airplane a0 at location l1-0.  B. unload the object p2 from the airplane a0 at location l1-0.  C. navigate the truck t1 from location l1-1 in city c1 to location l1-1 in the same city.  D. operate the airplane a0 from airport l1-0 to airport l0-0.'
+    answer: "Let's think step by step.   Step 1: In order to apply the action \"navigate the truck t1 from location l1-1 in city c1 to location l1-1 in the same city\", the following fact(s) must hold in this state:  t1 is at l1-1 Step 2: These facts hold in the mentioned state, so the action \"navigate the truck t1 from location l1-1 in city c1 to location l1-1 in the same city\" is applicable. **Final Answer**: C."

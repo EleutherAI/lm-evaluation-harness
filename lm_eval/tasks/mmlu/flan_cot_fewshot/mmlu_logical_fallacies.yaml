@@ -56,6 +56,6 @@ fewshot_config:
       fallacies for help. The argument against the person fallacy occurs when someone
       irrelevantly attacks the character of an opposing arguer, instead of addressing
       that opponent''s arguments. The answer is (C).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_logical_fallacies

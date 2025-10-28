@@ -65,6 +65,6 @@ fewshot_config:
       because it explains that the surface is red due to the rusted materials on the
       surface and the red color comes from the rust. So the correct option is (A).
       The answer is (A).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_astronomy

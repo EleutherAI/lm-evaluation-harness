@@ -1,7 +1,5 @@
 dataset_name: formal_fallacies
-description: 'Distinguish deductively valid arguments from formal fallacies.
-
-        '
+description: 'Distinguish deductively valid arguments from formal fallacies.'
 doc_to_choice: ["valid", "invalid"]
 fewshot_config:
   sampler: first_n

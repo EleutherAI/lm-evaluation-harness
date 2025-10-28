@@ -1,0 +1,51 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: "Posi\xE7\xE3o inicial e posi\xE7\xE3o final"
+      B: Ambiente inicial e ambiente alterado
+      C: Estrutura organizacional e condicionamento
+      D: "Estrutura inicial e considera\xE7\xF5es"
+    input_correct_responses:
+    - D
+    input_question: "Quais s\xE3o as duas dimens\xF5es principais dos Estudos de Ohio\
+      \ sobre lideran\xE7a?"
+  - input_choice_list:
+      A: Frederico Hertzberg
+      B: DC McClelland
+      C: Abraham Maslow
+      D: Douglas McGregor
+    input_correct_responses:
+    - A
+    input_question: "Fatores de higiene est\xE3o associados a qual escritor?"
+  - input_choice_list:
+      A: "S\xEDmbolos"
+      B: Rituais e rotinas
+      C: Estruturas de poder
+      D: Sistemas de controle
+    input_correct_responses:
+    - A
+    input_question: Qual elemento da teia cultural forma os trajes?
+  - input_choice_list:
+      A: Moral
+      B: "Inova\xE7\xE3o"
+      C: Recurso de crescimento
+      D: "Adapta\xE7\xE3o"
+    input_correct_responses:
+    - A
+    input_question: "Que caracter\xEDstica n\xE3o \xE9 fundamental no modelo de gest\xE3\
+      o de \u201Csistemas abertos\u201D?"
+  - input_choice_list:
+      A: "Hier\xE1rquico"
+      B: "Burocr\xE1tico"
+      C: Plano
+      D: Funcional
+    input_correct_responses:
+    - C
+    input_question: "Como podem ser descritas as estruturas organizacionais caracterizadas\
+      \ por estilos de gest\xE3o democr\xE1ticos e inclusivos?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_management
+tag: mmlu_pt_llama_other_tasks
+task: mmlu_pt_llama_management
+task_alias: management

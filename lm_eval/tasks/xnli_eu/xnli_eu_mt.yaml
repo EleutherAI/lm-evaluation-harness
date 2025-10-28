@@ -1,4 +1,4 @@
 include: xnli_eu.yaml
-group: xnli_eu_mt_native
+tag: xnli_eu_mt_native
 task: xnli_eu_mt
 dataset_name: eu_mt

@@ -1,4 +1,4 @@
-group: qasper
+tag: qasper
 task: qasper_freeform
 dataset_path: allenai/qasper
 output_type: generate_until

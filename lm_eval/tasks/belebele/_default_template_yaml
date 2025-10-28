@@ -1,11 +1,10 @@
-group: belebele
 dataset_path: facebook/belebele
 fewshot_config:
   sampler: first_n
 output_type: multiple_choice
 should_decontaminate: true
 doc_to_decontamination_query: "{{question}}"
-doc_to_text: "P: {{flores_passage}}\nQ: {{question.strip()}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\nAnswer："
+doc_to_text: "P: {{flores_passage}}\nQ: {{question.strip()}}\nA: {{mc_answer1}}\nB: {{mc_answer2}}\nC: {{mc_answer3}}\nD: {{mc_answer4}}\nAnswer:"
 doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: "{{['1', '2', '3', '4'].index(correct_answer_num)}}"
 metric_list:

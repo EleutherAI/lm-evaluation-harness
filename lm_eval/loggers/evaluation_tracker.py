@@ -1,4 +1,6 @@
 import json
+import logging
+import os
 import re
 import time
 from collections import defaultdict
@@ -14,9 +16,9 @@ from huggingface_hub import (
     HfApi,
     hf_hub_url,
 )
+from huggingface_hub.utils import build_hf_headers, get_session, hf_raise_for_status
 
 from lm_eval.utils import (
-    eval_logger,
     get_file_datetime,
     get_file_task_name,
     get_results_filenames,
@@ -27,6 +29,9 @@ from lm_eval.utils import (
     sanitize_model_name,
     sanitize_task_name,
 )
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 @dataclass(init=False)
@@ -112,12 +117,15 @@ class EvaluationTracker:
         output_path: str = None,
         hub_results_org: str = "",
         hub_repo_name: str = "",
+        details_repo_name: str = "",
+        results_repo_name: str = "",
         push_results_to_hub: bool = False,
         push_samples_to_hub: bool = False,
         public_repo: bool = False,
         token: str = "",
         leaderboard_url: str = "",
         point_of_contact: str = "",
+        gated: bool = False,
     ) -> None:
         """
         Creates all the necessary loggers for evaluation tracking.
@@ -126,12 +134,15 @@ class EvaluationTracker:
             output_path (str): Path to save the results. If not provided, the results won't be saved.
             hub_results_org (str): The Hugging Face organization to push the results to. If not provided, the results will be pushed to the owner of the Hugging Face token.
             hub_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will be pushed to `lm-eval-results`.
+            details_repo_name (str): The name of the Hugging Face repository to push the details to. If not provided, the results will be pushed to `lm-eval-results`.
+            result_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will not be pushed and will be found in the details_hub_repo.
             push_results_to_hub (bool): Whether to push the results to the Hugging Face hub.
             push_samples_to_hub (bool): Whether to push the samples to the Hugging Face hub.
             public_repo (bool): Whether to push the results to a public or private repository.
             token (str): Token to use when pushing to the Hugging Face hub. This token should have write access to `hub_results_org`.
             leaderboard_url (str): URL to the leaderboard on the Hugging Face hub on the dataset card.
             point_of_contact (str): Contact information on the Hugging Face hub dataset card.
+            gated (bool): Whether to gate the repository.
         """
         self.general_config_tracker = GeneralConfigTracker()
 
@@ -142,6 +153,7 @@ class EvaluationTracker:
         self.leaderboard_url = leaderboard_url
         self.point_of_contact = point_of_contact
         self.api = HfApi(token=token) if token else None
+        self.gated_repo = gated
 
         if not self.api and (push_results_to_hub or push_samples_to_hub):
             raise ValueError(
@@ -159,9 +171,24 @@ class EvaluationTracker:
                 f"hub_results_org was not specified. Results will be pushed to '{hub_results_org}'."
             )
 
-        hub_repo_name = hub_repo_name if hub_repo_name else "lm-eval-results"
-        self.hub_results_repo = f"{hub_results_org}/{hub_repo_name}"
-        self.hub_results_repo_private = f"{hub_results_org}/{hub_repo_name}-private"
+        if hub_repo_name == "":
+            details_repo_name = (
+                details_repo_name if details_repo_name != "" else "lm-eval-results"
+            )
+            results_repo_name = (
+                results_repo_name if results_repo_name != "" else details_repo_name
+            )
+        else:
+            details_repo_name = hub_repo_name
+            results_repo_name = hub_repo_name
+            eval_logger.warning(
+                "hub_repo_name was specified. Both details and results will be pushed to the same repository. Using hub_repo_name is no longer recommended, details_repo_name and results_repo_name should be used instead."
+            )
+
+        self.details_repo = f"{hub_results_org}/{details_repo_name}"
+        self.details_repo_private = f"{hub_results_org}/{details_repo_name}-private"
+        self.results_repo = f"{hub_results_org}/{results_repo_name}"
+        self.results_repo_private = f"{hub_results_org}/{results_repo_name}-private"
 
     def save_results_aggregated(
         self,
@@ -202,18 +229,28 @@ class EvaluationTracker:
                 )
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
-                path = path.joinpath(self.general_config_tracker.model_name_sanitized)
-                path.mkdir(parents=True, exist_ok=True)
-
                 self.date_id = datetime.now().isoformat().replace(":", "-")
-                file_results_aggregated = path.joinpath(f"results_{self.date_id}.json")
+                if path.suffix == ".json":
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    file_results_aggregated = path.with_name(
+                        f"{path.stem}_{self.date_id}.json"
+                    )
+                else:
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
+                    path.mkdir(parents=True, exist_ok=True)
+                    file_results_aggregated = path.joinpath(
+                        f"results_{self.date_id}.json"
+                    )
+
                 file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
                 if self.api and self.push_results_to_hub:
                     repo_id = (
-                        self.hub_results_repo
+                        self.results_repo
                         if self.public_repo
-                        else self.hub_results_repo_private
+                        else self.results_repo_private
                     )
                     self.api.create_repo(
                         repo_id=repo_id,
@@ -221,10 +258,13 @@ class EvaluationTracker:
                         private=not self.public_repo,
                         exist_ok=True,
                     )
-                    self.api.upload_folder(
+                    self.api.upload_file(
                         repo_id=repo_id,
-                        folder_path=str(path),
-                        path_in_repo=self.general_config_tracker.model_name_sanitized,
+                        path_or_fileobj=str(file_results_aggregated),
+                        path_in_repo=os.path.join(
+                            self.general_config_tracker.model_name,
+                            file_results_aggregated.name,
+                        ),
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
                     )
@@ -258,7 +298,12 @@ class EvaluationTracker:
                 eval_logger.info(f"Saving per-sample results for: {task_name}")
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
-                path = path.joinpath(self.general_config_tracker.model_name_sanitized)
+                if path.suffix == ".json":
+                    path = path.parent
+                else:
+                    path = path.joinpath(
+                        self.general_config_tracker.model_name_sanitized
+                    )
                 path.mkdir(parents=True, exist_ok=True)
 
                 file_results_samples = path.joinpath(
@@ -278,6 +323,7 @@ class EvaluationTracker:
                     sample["resps"] = sanitize_list(sample["resps"])
                     sample["filtered_resps"] = sanitize_list(sample["filtered_resps"])
                     sample["arguments"] = arguments
+                    sample["target"] = str(sample["target"])
 
                     sample_dump = (
                         json.dumps(
@@ -288,14 +334,14 @@ class EvaluationTracker:
                         + "\n"
                     )
 
-                    with open(file_results_samples, "a") as f:
+                    with open(file_results_samples, "a", encoding="utf-8") as f:
                         f.write(sample_dump)
 
                 if self.api and self.push_samples_to_hub:
                     repo_id = (
-                        self.hub_results_repo
+                        self.details_repo
                         if self.public_repo
-                        else self.hub_results_repo_private
+                        else self.details_repo_private
                     )
                     self.api.create_repo(
                         repo_id=repo_id,
@@ -303,6 +349,18 @@ class EvaluationTracker:
                         private=not self.public_repo,
                         exist_ok=True,
                     )
+                    try:
+                        if self.gated_repo:
+                            headers = build_hf_headers()
+                            r = get_session().put(
+                                url=f"https://huggingface.co/api/datasets/{repo_id}/settings",
+                                headers=headers,
+                                json={"gated": "auto"},
+                            )
+                            hf_raise_for_status(r)
+                    except Exception as e:
+                        eval_logger.warning("Could not gate the repository")
+                        eval_logger.info(repr(e))
                     self.api.upload_folder(
                         repo_id=repo_id,
                         folder_path=str(path),
@@ -327,9 +385,7 @@ class EvaluationTracker:
         """
 
         eval_logger.info("Recreating metadata card")
-        repo_id = (
-            self.hub_results_repo if self.public_repo else self.hub_results_repo_private
-        )
+        repo_id = self.details_repo if self.public_repo else self.details_repo_private
 
         files_in_repo = self.api.list_repo_files(repo_id=repo_id, repo_type="dataset")
         results_files = get_results_filenames(files_in_repo)
@@ -360,7 +416,10 @@ class EvaluationTracker:
                 results_datetime,
             )
             latest_task_results_datetime[samples_key] = latest_datetime
-            latest_task_results_datetime[results_key] = latest_datetime
+            latest_task_results_datetime[results_key] = max(
+                latest_task_results_datetime[results_key],
+                latest_datetime,
+            )
 
         # Create metadata card
         card_metadata = MetadataConfigs()
@@ -377,14 +436,15 @@ class EvaluationTracker:
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
             )
-            # Ensure that all results files are listed in the metadata card
-            current_results = card_metadata.get(config_name, {"data_files": []})
-            current_results["data_files"].append(
-                {"split": eval_date_sanitized, "path": [str(results_filename)]}
-            )
-            card_metadata[config_name] = current_results
-            # If the results file is the newest, update the "latest" field in the metadata card
+
             if eval_date_sanitized == sanitized_last_eval_date_results:
+                # Ensure that all results files are listed in the metadata card
+                current_results = card_metadata.get(config_name, {"data_files": []})
+                current_results["data_files"].append(
+                    {"split": eval_date_sanitized, "path": [str(results_filename)]}
+                )
+                card_metadata[config_name] = current_results
+                # If the results file is the newest, update the "latest" field in the metadata card
                 card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [str(results_filename)]}
                 )
@@ -403,64 +463,19 @@ class EvaluationTracker:
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
             )
-            # Ensure that all sample results files are listed in the metadata card
-            current_details_for_task = card_metadata.get(
-                config_name, {"data_files": []}
-            )
-            current_details_for_task["data_files"].append(
-                {"split": eval_date_sanitized, "path": [str(results_filename)]}
-            )
-            card_metadata[config_name] = current_details_for_task
-            # If the samples results file is the newest, update the "latest" field in the metadata card
             if eval_date_sanitized == sanitized_last_eval_date_results:
+                # Ensure that all sample results files are listed in the metadata card
+                current_details_for_task = card_metadata.get(
+                    config_name, {"data_files": []}
+                )
+                current_details_for_task["data_files"].append(
+                    {"split": eval_date_sanitized, "path": [str(results_filename)]}
+                )
+                card_metadata[config_name] = current_details_for_task
+                # If the samples results file is the newest, update the "latest" field in the metadata card
                 card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [str(results_filename)]}
                 )
-
-            # Special case for MMLU with a single split covering it all
-            # We add another config with all MMLU splits results together for easy inspection
-            SPECIAL_TASKS = ["mmlu", "gpqa", "minerva_math"]
-            for special_task in SPECIAL_TASKS:
-                if special_task in config_name:
-                    special_task = f"{model_name}__{special_task}"
-                    former_entry = card_metadata.get(special_task, {"data_files": []})
-
-                    former_split = [
-                        (i, entry)
-                        for i, entry in enumerate(former_entry["data_files"])
-                        if entry.get("split", None) == eval_date_sanitized
-                    ]
-
-                    if len(former_split) == 0:
-                        former_entry["data_files"].append(
-                            {
-                                "split": eval_date_sanitized,
-                                "path": [str(results_filename)],
-                            }
-                        )
-                    else:
-                        split_index, _ = former_split[0]
-                        former_entry["data_files"][split_index]["path"].append(
-                            str(results_filename)
-                        )
-
-                    if eval_date_sanitized == sanitized_last_eval_date_results:
-                        latest_split = [
-                            (i, entry)
-                            for i, entry in enumerate(former_entry["data_files"])
-                            if entry.get("split", None) == "latest"
-                        ]
-                        if len(latest_split) == 0:
-                            former_entry["data_files"].append(
-                                {"split": "latest", "path": [str(results_filename)]}
-                            )
-                        else:
-                            latest_index, _ = latest_split[0]
-                            former_entry["data_files"][latest_index]["path"].append(
-                                str(results_filename)
-                            )
-
-                    card_metadata[special_task] = former_entry
 
         # Get latest results and extract info to update metadata card examples
         latest_datetime = max(latest_task_results_datetime.values())
@@ -489,7 +504,7 @@ class EvaluationTracker:
         else:
             dataset_summary += f"{self.general_config_tracker.model_name}\n"
         dataset_summary += (
-            f"The dataset is composed of {len(card_metadata)-1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
+            f"The dataset is composed of {len(card_metadata) - 1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
             f"The dataset has been created from {len(results_files)} run(s). Each run can be found as a specific split in each "
             'configuration, the split being named using the timestamp of the run.The "train" split is always pointing to the latest results.\n\n'
             'An additional configuration "results" store all the aggregated results of the run.\n\n'
@@ -502,7 +517,7 @@ class EvaluationTracker:
             )
         dataset_summary += (
             "## Latest results\n\n"
-            f'These are the [latest results from run {latest_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
+            f"These are the [latest results from run {latest_datetime}]({last_results_file_path.replace('/resolve/', '/blob/')}) "
             "(note that there might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
             'You find each in the results and the "latest" split for each eval):\n\n'
             f"```python\n{results_string}\n```"

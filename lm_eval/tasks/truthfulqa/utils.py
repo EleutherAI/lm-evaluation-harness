@@ -4,17 +4,24 @@ import sacrebleu
 from rouge_score import rouge_scorer, scoring
 
 
+ROUGE_SCORER = None
+
+
 def process_results_mc2(doc, results):
-    lls, is_greedy = zip(*results)
+    ll, _ = zip(*results)
+    ll = np.array(ll)
 
-    # Split on the first `0` as everything before it is true (`1`).
-    split_idx = list(doc["mc2_targets"]["labels"]).index(0)
+    # Convert log-likelihoods to probabilities.
+    probs = np.exp(ll)
+
+    # Normalize probabilities.
+    probs_norm = probs / np.sum(probs)
+
+    labels = np.array(doc["mc2_targets"]["labels"])
     # Compute the normalized probability mass for the correct answer.
-    ll_true, ll_false = lls[:split_idx], lls[split_idx:]
-    p_true, p_false = np.exp(np.array(ll_true)), np.exp(np.array(ll_false))
-    p_true = p_true / (sum(p_true) + sum(p_false))
+    pm_true = np.sum(probs_norm[labels == 1])
 
-    return {"acc": sum(p_true)}
+    return {"acc": pm_true}
 
 
 def process_docs_gen(dataset: datasets.Dataset) -> datasets.Dataset:
@@ -149,8 +156,14 @@ def rouge(refs, preds):
     :param preds:
         A `list` of predicted `strs`.
     """
+
     rouge_types = ["rouge1", "rouge2", "rougeLsum"]
-    scorer = rouge_scorer.RougeScorer(rouge_types)
+
+    global ROUGE_SCORER
+    if ROUGE_SCORER is None:
+        # init RougeScorer once (https://github.com/EleutherAI/lm-evaluation-harness/issues/1692)--rouge_types are constant
+        ROUGE_SCORER = rouge_scorer.RougeScorer(rouge_types)
+    scorer = ROUGE_SCORER
     # Add newlines between sentences to correctly compute `rougeLsum`.
 
     def _prepare_summary(summary):

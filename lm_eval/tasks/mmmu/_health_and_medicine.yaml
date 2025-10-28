@@ -1,0 +1,14 @@
+group: mmmu_val_health_and_medicine
+group_alias: Health and Medicine
+task:
+  - mmmu_val_basic_medical_science
+  - mmmu_val_clinical_medicine
+  - mmmu_val_diagnostics_and_laboratory_medicine
+  - mmmu_val_pharmacy
+  - mmmu_val_public_health
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

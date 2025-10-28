@@ -1,3 +1,4 @@
 dataset_name: environmental_science
 include: _hard_kmmlu_yaml
 task: kmmlu_hard_environmental_science
+tag: kmmlu_hard_applied_science_tasks

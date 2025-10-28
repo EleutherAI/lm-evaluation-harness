@@ -45,6 +45,6 @@ fewshot_config:
     target: 'Let''s think step by step. We refer to Wikipedia articles on human sexuality
       for help. Morning sickness usually begins by nine weeks after conception, corresponding
       to the first trimester. The answer is (A).'
-group: mmlu_flan_cot_fewshot_social_sciences
+tag: mmlu_flan_cot_fewshot_social_sciences
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_human_sexuality

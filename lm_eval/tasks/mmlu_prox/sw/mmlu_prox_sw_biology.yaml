@@ -1,0 +1,9 @@
+description: 'Yafuatayo ni maswali ya chaguo-nyingi (yenye majibu) kuhusu biolojia.
+  Fikiria hatua kwa hatua kisha malizia jibu lako kwa "Jibu ni (X)" ambapo X ni herufi
+  ya chaguo sahihi.
+
+  '
+include: _sw_template_yaml
+task: mmlu_prox_sw_biology
+task_alias: biology
+process_docs: !function utils.process_biology

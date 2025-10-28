@@ -1,6 +1,3 @@
-import sklearn.metrics
-
-
 def mean_3class_f1(predictions, references):  # This is a passthrough function
     string_label = ["entailment", "contradiction", "neutral"]
     predictions = (
@@ -23,6 +20,8 @@ def agg_mean_3class_f1(items):
     }
 
     def _fn(predictions, references):
+        import sklearn.metrics
+
         metric_fn = getattr(sklearn.metrics, metric_str)
         metric_val = metric_fn(references, predictions, **metric_fn_kwargs)
         return metric_val

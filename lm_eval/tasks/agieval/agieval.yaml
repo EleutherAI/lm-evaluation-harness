@@ -1,0 +1,29 @@
+group: agieval
+task:
+  - agieval_gaokao_biology
+  - agieval_gaokao_chemistry
+  - agieval_gaokao_chinese
+  - agieval_gaokao_geography
+  - agieval_gaokao_history
+  - agieval_gaokao_mathcloze
+  - agieval_gaokao_mathqa
+  - agieval_gaokao_physics
+  - agieval_jec_qa_ca
+  - agieval_jec_qa_kd
+  - agieval_logiqa_zh
+  - agieval_aqua_rat
+  - agieval_gaokao_english
+  - agieval_logiqa_en
+  - agieval_lsat_ar
+  - agieval_lsat_lr
+  - agieval_lsat_rc
+  - agieval_math
+  - agieval_sat_en_without_passage
+  - agieval_sat_en
+  - agieval_sat_math
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0

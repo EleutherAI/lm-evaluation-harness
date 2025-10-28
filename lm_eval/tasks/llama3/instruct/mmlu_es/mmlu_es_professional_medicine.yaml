@@ -1,0 +1,95 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Labetalol
+      B: Una dosis de carga de cloruro de potasio.
+      C: nifedipina
+      D: Fenoxibenzamina
+    input_correct_responses:
+    - D
+    input_question: "Un hombre de 42 a\xF1os acude al consultorio para una evaluaci\xF3\
+      n preoperatoria antes de someterse a una adrenalectom\xEDa programada para dentro\
+      \ de 2 semanas. Hace un mes, recibi\xF3 atenci\xF3n en urgencias por un dolor\
+      \ en el flanco derecho tras una colisi\xF3n automovil\xEDstica. En ese momento,\
+      \ la presi\xF3n arterial era de 160/100 mm Hg y la tomograf\xEDa computarizada\
+      \ del abdomen mostr\xF3 una masa suprarrenal izquierda incidental de 10 cm.\
+      \ Los resultados de los estudios de laboratorio, incluido el hemograma completo,\
+      \ las concentraciones s\xE9ricas de electrolitos y las pruebas de funci\xF3\
+      n hep\xE1tica, estuvieron dentro de los rangos de referencia. Por lo dem\xE1\
+      s, el paciente estaba sano y nunca le hab\xEDan dicho que ten\xEDa la presi\xF3\
+      n arterial elevada. No toma medicamentos. Una visita de seguimiento en el consultorio\
+      \ hace 2 semanas revel\xF3 concentraciones elevadas de normetanefrina y metanefrina\
+      \ en orina y aldosterona plasm\xE1tica. El paciente fue remitido a un cirujano,\
+      \ quien recomend\xF3 la adrenalectom\xEDa. Hoy en d\xEDa, los signos vitales\
+      \ son temperatura de 36,6 \xB0C (97,9 \xB0F), pulso de 100/min, respiraci\xF3\
+      n de 14/min y presi\xF3n arterial de 170/95 mm Hg. La exploraci\xF3n f\xEDsica\
+      \ no revela hallazgos significativos. \xBFLa preparaci\xF3n preoperatoria inicial\
+      \ debe incluir tratamiento con cu\xE1l de los siguientes?"
+  - input_choice_list:
+      A: "torsi\xF3n sacra de izquierda a izquierda"
+      B: "torsi\xF3n sacra de izquierda a derecha"
+      C: "Flexi\xF3n sacra unilateral derecha"
+      D: "torsi\xF3n sacra de derecha a derecha"
+    input_correct_responses:
+    - D
+    input_question: "Un hombre de 36 a\xF1os acude a la consulta con antecedentes\
+      \ de 3 semanas de dolor lumbar. Niega haber sufrido ning\xFAn trauma reciente,\
+      \ pero dice que sube y baja de su camioneta varias veces al d\xEDa para realizar\
+      \ su trabajo. La exploraci\xF3n del paciente en dec\xFAbito prono revela un\
+      \ surco sacro profundo a la izquierda, un \xE1ngulo lateral posteroinferior\
+      \ a la derecha y una uni\xF3n lumbosacra que salta libremente al comprimirse.\
+      \ El diagn\xF3stico m\xE1s probable es"
+  - input_choice_list:
+      A: dopamina
+      B: Glutamato
+      C: noradrenalina
+      D: serotonina
+    input_correct_responses:
+    - D
+    input_question: "Una mujer de 32 a\xF1os, que antes estaba sana, acude al m\xE9\
+      dico 8 meses despu\xE9s de que su marido muriera en un accidente automovil\xED\
+      stico. Desde entonces, ha tenido menos apetito y dificultad para conciliar el\
+      \ sue\xF1o. Afirma que suele estar triste y llora con frecuencia. Ha estado\
+      \ revisando la cerradura de la puerta cinco veces antes de salir de casa y tiene\
+      \ que contar exactamente cinco trozos de papel higi\xE9nico antes de usarlo.\
+      \ Ella dice que siempre ha sido perfeccionista pero que estos impulsos y rituales\
+      \ son nuevos. \xBFA cu\xE1l de los siguientes neurotransmisores se debe dirigir\
+      \ la farmacoterapia?"
+  - input_choice_list:
+      A: "Rinitis al\xE9rgica"
+      B: Virus de Epstein Barr
+      C: "micoplasma neumon\xEDa"
+      D: Rinovirus
+    input_correct_responses:
+    - D
+    input_question: "Un hombre de 44 a\xF1os acude a consulta por dolor de garganta,\
+      \ tos no productiva, secreci\xF3n nasal y cefalea frontal de 3 d\xEDas de evoluci\xF3\
+      n. Dice que el dolor de cabeza empeora por la ma\xF1ana y que el ibuprofeno\
+      \ proporciona cierto alivio. No ha tenido dificultad para respirar. El historial\
+      \ m\xE9dico no tiene nada de especial. No toma m\xE1s medicamentos que el ibuprofeno\
+      \ para el dolor. Los signos vitales son temperatura de 37,4 \xB0C (99,4 \xB0\
+      F), pulso de 88/min, respiraci\xF3n de 18/min y presi\xF3n arterial de 120/84\
+      \ mm Hg. El examen de las fosas nasales muestra membranas mucosas eritematosas.\
+      \ El examen de la garganta muestra eritema e hiperplasia linfoide folicular\
+      \ en la orofaringe posterior. No hay adenopat\xEDa cervical palpable. Los pulmones\
+      \ est\xE1n limpios a la auscultaci\xF3n. \xBFCu\xE1l de las siguientes es la\
+      \ causa m\xE1s probable de los s\xEDntomas de este paciente?"
+  - input_choice_list:
+      A: escaleno anterior
+      B: dorsal ancho
+      C: pectoral menor
+      D: cuadrado lumbar
+    input_correct_responses:
+    - C
+    input_question: "Un corredor de marat\xF3n de 22 a\xF1os acude a la consulta con\
+      \ dolor en las costillas del lado derecho cuando corre largas distancias. El\
+      \ examen f\xEDsico revela hallazgos card\xEDacos y pulmonares normales y una\
+      \ disfunci\xF3n de la exhalaci\xF3n en las costillas 4-5 de la derecha. \xBF\
+      Cu\xE1l de los siguientes m\xFAsculos o grupos de m\xFAsculos ser\xE1 m\xE1\
+      s \xFAtil para corregir esta disfunci\xF3n utilizando un m\xE9todo directo?"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_professional_medicine
+tag: mmlu_es_llama_other_tasks
+task: mmlu_es_llama_professional_medicine
+task_alias: professional_medicine

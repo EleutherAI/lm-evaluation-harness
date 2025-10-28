@@ -16,8 +16,8 @@ Homepage: https://eqbench.com/
 NOTE: There are some key differences between the lm-evaluation-harness version and the implementation described in the EQ-Bench paper (These have been OK'd by the author):
 
 - The lm-eval version uses the EQ-Bench v2 test set (171 questions) and score calculation. It does not incorporate the revision part of the prompt, as per v2.1 (https://github.com/EQ-bench/EQ-Bench)
-- No retries in lm-eval version (EQ-Bench pipeline retries with successively higher temps if it encounters unparseable answers)
-- In the original implementation, unparseable answers are excluded from the final score, and 83% of answers have to be parseable or a fail is returned. The lm-eval version instead assigns 0 to unparsable answers and has no fail criteria. So for lower performing models, there may be differences with the EQ-Bench leaderboard.
+- No retries in lm-eval version (EQ-Bench pipeline retries with successively higher temps if it encounters unparsable answers)
+- In the original implementation, unparsable answers are excluded from the final score, and 83% of answers have to be parseable or a fail is returned. The lm-eval version instead assigns 0 to unparsable answers and has no fail criteria. So for lower performing models, there may be differences with the EQ-Bench leaderboard.
 
 
 ### Citation

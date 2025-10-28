@@ -43,11 +43,15 @@ Homepage: `https://github.com/hitz-zentroa/latxa`
 }
 ```
 
-### Groups and Tasks
+### Groups, Tags, and Tasks
 
 #### Groups
 
-* `basque-glue`: First version of the implementation
+None.
+
+#### Tags
+
+* `basque-glue`: First version of the implementation. Calls all subtasks, but does not average.
 
 #### Tasks
 

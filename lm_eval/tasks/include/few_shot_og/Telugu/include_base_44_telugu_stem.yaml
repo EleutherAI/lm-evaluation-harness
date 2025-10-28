@@ -1,0 +1,4 @@
+include: _telugu_few_shot_og_template_yaml
+description: STEM గురించిన బహుళ-ఎంపిక ప్రశ్నలు (సమాధానాలతో) క్రిందివి.
+process_docs: !function 'utils.process_stem'
+task: include_base_44_telugu_few_shot_og_stem

@@ -79,6 +79,6 @@ fewshot_config:
       its value is greater than 100, regardless of the elements in the list. Choice
       D is incorrect because its step 3 does not increment the value of position,
       so it will repeat forever. The answer is (B).'
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_computer_science

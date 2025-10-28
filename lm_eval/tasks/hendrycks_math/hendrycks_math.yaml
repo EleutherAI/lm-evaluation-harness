@@ -7,3 +7,9 @@ task:
   - hendrycks_math_num_theory
   - hendrycks_math_prealgebra
   - hendrycks_math_precalc
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

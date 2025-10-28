@@ -1,0 +1,7 @@
+"dataset_name": "question_and_answer_human_aging"
+"description": "The following are multiple choice questions (with answers) about human\
+  \ aging.\n\n"
+"tag": "mmlusr_question_and_answer_other_tasks"
+"include": "_mmlusr_qna_yml"
+"task": "mmlusr_question_and_answer_human_aging"
+"task_alias": "human aging"

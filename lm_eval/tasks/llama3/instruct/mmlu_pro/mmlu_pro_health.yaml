@@ -1,0 +1,4 @@
+include: "_default_template_yaml"
+task: "mmlu_pro_llama_health"
+task_alias: "health"
+process_docs: !function utils.process_health

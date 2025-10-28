@@ -1,0 +1,26 @@
+group: aclue
+task:
+  - aclue_ancient_chinese_culture
+  - aclue_ancient_literature
+  - aclue_ancient_medical
+  - aclue_ancient_phonetics
+  - aclue_basic_ancient_chinese
+  - aclue_couplet_prediction
+  - aclue_homographic_character_resolution
+  - aclue_named_entity_recognition
+  - aclue_poetry_appreciate
+  - aclue_poetry_context_prediction
+  - aclue_poetry_quality_assessment
+  - aclue_poetry_sentiment_analysis
+  - aclue_polysemy_resolution
+  - aclue_reading_comprehension
+  - aclue_sentence_segmentation
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+  - metric: acc_norm
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

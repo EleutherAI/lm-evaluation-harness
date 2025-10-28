@@ -1,0 +1,12 @@
+task: acp_prog_bool
+dataset_name: acp_prog_bool
+include: _boolq_cot_2shot_yaml
+fewshot_config:
+  sampler: first_n
+  samples:
+  - context: 'This is a ferry domain, where the task is to transport cars from their start to their goal locations, using a ferry. Each location is accessible by ferry from each other location. The cars can be debarked or boarded, and the ferry can carry only one car at a time.  There are 2 locations and 2 cars, numbered consecutively.  Currently, the ferry is at l0, with the car c0 on board. The cars are at locations as follows: c1 is at l0.'
+    question: 'Will the fact \"Car c0 is at location l0\" hold after performing the action \"travel by sea from location l0 to location l1\" in the current state?'
+    answer: "Let's think step by step. Step 1: The following fact(s) do not hold in the current state: Car c0 is at location l0. Step 2: The action adds the following fact(s): The ferry is at l1 location Step 3: Fact(s) \"Car c0 is at location l0\" are not added. **Final Answer**: No."
+  - context: 'A robot is in a grid and can only move to places that are connected to its current position.  The grid size is 5x5, and the locations are of the form fi-jf (e.g., f3-2f or f0-1f). The grid cells are connected to their neighbors (e.g., f1-2f is connected to the four neighbors f0-2f, f2-2f, f1-1f, and f1-3f). Some positions on the grid are locked and can be opened with a key of a matching shape. The robot has an arm that can pick up a key when the key is in same location as the robot and the arm is empty.   There are 4 keys in 1 different shapes: Key key0-1 is of shape shape0, Key key0-3 is of shape shape0, Key key0-2 is of shape shape0, Key key0-0 is of shape shape0.   Currently, the robot is at position f4-2f and its arm is empty. All the positions are open except the following: f0-1f has shape0 shaped lock, f4-0f has shape0 shaped lock, f4-4f has shape0 shaped lock, f0-3f has shape0 shaped lock. Key key0-3 is at position f2-1f. Key key0-0 is at position f2-2f. Key key0-1 is at position f4-3f. Key key0-2 is at position f4-2f.'
+    question: 'Will the fact \"Robot is holding key0-2\" hold after performing the action \"retrieve the key key0-2 from its current position f4-2f\" in the current state?'
+    answer: "Let's think step by step. Step 1: The following fact(s) do not hold in the current state: Robot is holding key0-2. Step 2: The action adds the following fact(s): Robot is holding key0-2 Step 3: Fact(s) \"Robot is holding key0-2\" are added. **Final Answer**: Yes."

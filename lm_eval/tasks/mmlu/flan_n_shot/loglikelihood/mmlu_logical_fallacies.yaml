@@ -1,6 +1,6 @@
 "dataset_name": "logical_fallacies"
 "description": "The following are multiple choice questions (with answers) about logical\
   \ fallacies.\n\n"
-"group": "mmlu_flan_n_shot_loglikelihood_humanities"
+"tag": "mmlu_flan_n_shot_loglikelihood_humanities"
 "include": "_mmlu_flan_loglikelihood_template_yaml"
 "task": "mmlu_flan_n_shot_loglikelihood_logical_fallacies"

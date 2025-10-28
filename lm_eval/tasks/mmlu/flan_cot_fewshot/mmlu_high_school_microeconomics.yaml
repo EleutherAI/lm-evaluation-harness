@@ -51,6 +51,6 @@ fewshot_config:
       for help. An increase in the construction of new houses means an increase demand
       of in-house painting, thus increases the demand for housepainters. The answer
       is (C).'
-group: mmlu_flan_cot_fewshot_social_sciences
+tag: mmlu_flan_cot_fewshot_social_sciences
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_high_school_microeconomics

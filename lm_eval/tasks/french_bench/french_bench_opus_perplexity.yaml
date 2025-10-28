@@ -1,4 +1,4 @@
-group:
+tag:
   - french_bench_perplexity
 task: french_bench_opus_perplexity
 dataset_path: manu/opus100-en-fr

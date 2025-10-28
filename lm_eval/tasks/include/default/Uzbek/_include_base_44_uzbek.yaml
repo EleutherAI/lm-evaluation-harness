@@ -1,0 +1,11 @@
+group: include_base_44_uzbek
+task:
+- include_base_44_uzbek_arts_humanities
+- include_base_44_uzbek_medical_license
+- include_base_44_uzbek_social_science
+- include_base_44_uzbek_stem
+aggregate_metric_list:
+- metric: acc
+  weight_by_size: true
+metadata:
+  version: 0.0

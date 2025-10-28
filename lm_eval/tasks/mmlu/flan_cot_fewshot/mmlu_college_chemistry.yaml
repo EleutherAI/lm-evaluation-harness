@@ -44,6 +44,6 @@ fewshot_config:
       \ into 2 lines. This will be further split into 4 lines by the interaction with\
       \ three equivalent 1H nuclei. The total number of lines is therefore $2 \\cdot\
       \ 4 = 8$. The answer is (E).\n\n"
-group: mmlu_flan_cot_fewshot_stem
+tag: mmlu_flan_cot_fewshot_stem
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_college_chemistry

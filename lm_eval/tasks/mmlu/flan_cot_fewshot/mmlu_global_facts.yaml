@@ -44,6 +44,6 @@ fewshot_config:
       for help. As of 2019, most people tend to be optimistic about their own future
       but pessimistic about the future of their nation or the world. The answer is
       (B).'
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_global_facts

@@ -40,6 +40,6 @@ fewshot_config:
     target: 'Let''s think step by step. We refer to Wikipedia articles on virology
       for help. Paroviruses are highly impactful because they do not have nucleic
       acid. The answer is (A).'
-group: mmlu_flan_cot_fewshot_other
+tag: mmlu_flan_cot_fewshot_other
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_virology

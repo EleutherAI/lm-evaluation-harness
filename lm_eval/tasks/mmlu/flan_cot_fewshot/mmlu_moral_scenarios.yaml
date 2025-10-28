@@ -57,6 +57,6 @@ fewshot_config:
     target: 'Let''s think step by step. We refer to Wikipedia articles on moral scenarios
       for help. Loving someone is not wrong. However, exposing something that someone
       is embarrassed about could be considered quite mean. The answer is (C).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_moral_scenarios

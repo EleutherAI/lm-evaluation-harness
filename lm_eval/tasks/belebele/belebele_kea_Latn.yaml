@@ -1,4 +1,5 @@
-"fewshot_split": "kea_Latn"
-"include": "_default_template_yaml"
-"task": "belebele_kea_Latn"
-"test_split": "kea_Latn"
+dataset_name: kea_Latn
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_kea_Latn
+test_split: test

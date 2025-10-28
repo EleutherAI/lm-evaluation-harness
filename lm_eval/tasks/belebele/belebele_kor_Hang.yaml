@@ -1,4 +1,5 @@
-"fewshot_split": "kor_Hang"
-"include": "_default_template_yaml"
-"task": "belebele_kor_Hang"
-"test_split": "kor_Hang"
+dataset_name: kor_Hang
+fewshot_split: test
+include: _default_template_yaml
+task: belebele_kor_Hang
+test_split: test

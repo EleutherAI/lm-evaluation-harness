@@ -1,0 +1,4 @@
+include: _hebrew_few_shot_og_template_yaml
+description: להלן שאלות ברירות רבות (עם תשובות) על Arts & Humanities.
+process_docs: !function 'utils.process_arts_humanities'
+task: include_base_44_hebrew_few_shot_og_arts_humanities

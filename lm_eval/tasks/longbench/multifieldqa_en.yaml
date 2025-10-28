@@ -1,0 +1,21 @@
+
+tag:
+  - longbench
+task: longbench_multifieldqa_en
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: multifieldqa_en
+doc_to_text: "Read the following text and answer briefly.\n\n{{context}}\n\nNow, answer the following question based on the above text, only give me the answer and do not output any other words.\n\nQuestion: {{input}}\nAnswer:"
+doc_to_target: '{{answers}}'
+process_results: !function metrics.get_qa_f1_score
+generation_kwargs:
+  max_gen_toks: 64
+  temperature: 1
+  do_sample: False
+  until: []
+metric_list:
+  - metric: "qa_f1_score"
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 4.0

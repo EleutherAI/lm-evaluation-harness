@@ -1,0 +1,72 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: 2,0/15
+      B: 1,0/7
+      C: 3.0/16
+      D: 1,0/5
+    input_correct_responses:
+    - B
+    input_question: "Um dado de 6 faces \xE9 lan\xE7ado 15 vezes e os resultados s\xE3\
+      o: o lado 1 aparece 0 vezes; lado 2: 1 vez; lado 3: 2 vezes; lado 4: 3 vezes;\
+      \ lado 5: 4 vezes; lado 6: 5 vezes. Com base nesses resultados, qual \xE9 a\
+      \ probabilidade de o lado 3 aparecer ao usar a suaviza\xE7\xE3o Add-1?"
+  - input_choice_list:
+      A: "corte aleat\xF3rio e invers\xE3o horizontal"
+      B: "corte aleat\xF3rio e invers\xE3o vertical"
+      C: "posteriza\xE7\xE3o"
+      D: hesitante
+    input_correct_responses:
+    - A
+    input_question: "Qual aumento de dados de imagem \xE9 mais comum para imagens\
+      \ naturais?"
+  - input_choice_list:
+      A: "Meu m\xE9todo atinge um erro de treinamento menor que todos os m\xE9todos\
+        \ anteriores!"
+      B: "Meu m\xE9todo atinge um erro de teste menor que todos os m\xE9todos anteriores!\
+        \ (Nota de rodap\xE9: Quando o par\xE2metro de regulariza\xE7\xE3o \u03BB\
+        \ \xE9 escolhido de modo a minimizar o erro de teste.)"
+      C: "Meu m\xE9todo atinge um erro de teste menor que todos os m\xE9todos anteriores!\
+        \ (Nota de rodap\xE9: Quando o par\xE2metro de regulariza\xE7\xE3o \u03BB\
+        \ \xE9 escolhido de modo a minimizar o erro de valida\xE7\xE3o cruzada.)"
+      D: "Meu m\xE9todo atinge um erro de valida\xE7\xE3o cruzada inferior a todos\
+        \ os m\xE9todos anteriores! (Nota de rodap\xE9: Quando o par\xE2metro de regulariza\xE7\
+        \xE3o \u03BB \xE9 escolhido de modo a minimizar o erro de valida\xE7\xE3o\
+        \ cruzada.)"
+    input_correct_responses:
+    - C
+    input_question: "Voc\xEA est\xE1 revisando artigos para a Confer\xEAncia de Aprendizado\
+      \ de M\xE1quina mais sofisticada do mundo e v\xEA submiss\xF5es com as seguintes\
+      \ afirma\xE7\xF5es. Quais voc\xEA consideraria aceitar?"
+  - input_choice_list:
+      A: cerca de 10 exemplos
+      B: cerca de 100 exemplos
+      C: entre 100 e 500 exemplos
+      D: mais de 1000 exemplos
+    input_correct_responses:
+    - D
+    input_question: Para obter uma estimativa de perda 0/1 inferior a 1 por cento
+      da perda 0/1 verdadeira (com probabilidade de 95%), de acordo com a desigualdade
+      de Hoeffding, o conjunto de testes IID deve ter quantos exemplos?
+  - input_choice_list:
+      A: "\xC9 muito caro computacionalmente."
+      B: "Provavelmente resultaria em uma \xE1rvore de decis\xE3o com pontua\xE7\xE3\
+        o ruim no conjunto de treinamento e no conjunto de teste."
+      C: "Provavelmente resultaria em uma \xE1rvore de decis\xE3o com boa pontua\xE7\
+        \xE3o no conjunto de treinamento, mas ruim em um conjunto de teste."
+      D: "Provavelmente resultaria em uma \xE1rvore de decis\xE3o com boa pontua\xE7\
+        \xE3o em um conjunto de teste, mas ruim em um conjunto de treinamento."
+    input_correct_responses:
+    - C
+    input_question: "Tradicionalmente, quando temos um atributo de entrada com valor\
+      \ real durante o aprendizado da \xE1rvore de decis\xE3o, consideramos uma divis\xE3\
+      o bin\xE1ria dependendo se o atributo est\xE1 acima ou abaixo de algum limite.\
+      \ Pat sugere que, em vez disso, dever\xEDamos apenas ter uma divis\xE3o multidirecional\
+      \ com uma ramifica\xE7\xE3o para cada um dos valores distintos do atributo.\
+      \ Na lista abaixo, escolha o maior problema com a sugest\xE3o de Pat:"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_machine_learning
+tag: mmlu_pt_llama_stem_tasks
+task: mmlu_pt_llama_machine_learning
+task_alias: machine_learning

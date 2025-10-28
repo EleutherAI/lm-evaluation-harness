@@ -85,4 +85,5 @@ fewshot_config:
       이들은 모두 환경에 해롭습니다.   물은 염소 가스의 재해 방지용으로서의 흡수제나 재해제로서 적합하지 않습니다. 따라서, 정답은 (D)
       입니다.
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_gas_technology_and_engineering
+task: kmmlu_cot_hard_gas_technology_and_engineering
+tag: kmmlu_cot_hard_applied_science_tasks

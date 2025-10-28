@@ -1,0 +1,21 @@
+
+tag:
+  - longbench
+task: longbench_passage_retrieval_zh
+dataset_path: THUDM/LongBench
+test_split: test
+dataset_name: passage_retrieval_zh
+doc_to_text: "以下是若干段落文字，以及其中一个段落的摘要。请确定给定的摘要出自哪一段。\n\n{{context}}\n\n下面是一个摘要\n\n{{input}}\n\n请输入摘要所属段落的编号。答案格式必须是\"段落1\"，\"段落2\"等格式\n\n答案是："
+doc_to_target: '{{answers}}'
+process_results: !function metrics.get_retrieval_zh_score
+generation_kwargs:
+  max_gen_toks: 32
+  temperature: 1
+  do_sample: False
+  until: []
+metric_list:
+  - metric: "retrieval_zh_score"
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 4.0

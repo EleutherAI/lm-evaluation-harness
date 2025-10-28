@@ -91,4 +91,5 @@ fewshot_config:
       있으며, 상담원이 고객의 반론에 대한 자연스러운 대응력을 갖추면 고객의 불만이나 반대를 효과적으로 처리할 수 있습니다. 따라서, 정답은
       (A) 입니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_marketing
+task: kmmlu_cot_hard_marketing
+tag: kmmlu_cot_hard_other_tasks

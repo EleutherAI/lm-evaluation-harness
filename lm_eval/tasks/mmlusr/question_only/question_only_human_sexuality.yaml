@@ -1,0 +1,7 @@
+"dataset_name": "question_only_human_sexuality"
+"description": "The following are multiple choice questions (with answers) about human\
+  \ sexuality.\n\n"
+"tag": "mmlusr_question_only_social_sciences_tasks"
+"include": "_mmlusr_q_yml"
+"task": "mmlusr_question_only_human_sexuality"
+"task_alias": "human sexuality"

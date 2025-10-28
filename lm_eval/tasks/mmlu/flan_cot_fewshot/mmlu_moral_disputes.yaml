@@ -59,6 +59,6 @@ fewshot_config:
       as it treats individuals as incapable of communal relations. It is unclear that
       capital punishment is to the benefit of, or a deterrent of harm to the community.
       The answer is (A).'
-group: mmlu_flan_cot_fewshot_humanities
+tag: mmlu_flan_cot_fewshot_humanities
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_moral_disputes

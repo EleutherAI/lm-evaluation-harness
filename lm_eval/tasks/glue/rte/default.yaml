@@ -1,6 +1,6 @@
-group: glue
+tag: glue
 task: rte
-dataset_path: glue
+dataset_path: nyu-mll/glue
 dataset_name: rte
 output_type: multiple_choice
 training_split: train

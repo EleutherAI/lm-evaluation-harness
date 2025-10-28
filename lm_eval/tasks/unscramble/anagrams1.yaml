@@ -1,4 +1,4 @@
-group:
+tag:
   - unscramble
 task: anagrams1
 dataset_path: EleutherAI/unscramble
@@ -18,5 +18,3 @@ metric_list:
     ignore_punctuation: false
 metadata:
   version: 2.0
-dataset_kwargs:
-  trust_remote_code: true

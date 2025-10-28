@@ -57,6 +57,6 @@ fewshot_config:
       for help. Based on the circumstances, you should tell your client about the
       pros and cons of each program, but it would be inappropriate to receive the
       bonus, so you should not claim the $50 bonus. The answer is (D).'
-group: mmlu_flan_cot_fewshot_social_sciences
+tag: mmlu_flan_cot_fewshot_social_sciences
 include: _mmlu_flan_cot_fewshot_template_yaml
 task: mmlu_flan_cot_fewshot_professional_psychology

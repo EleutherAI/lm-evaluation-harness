@@ -1,0 +1,27 @@
+task: ja_leaderboard_jnli
+
+dataset_path: Rakuten/JGLUE
+dataset_name: JNLI
+training_split: train
+validation_split: validation
+test_split: null
+
+fewshot_split: train
+num_fewshot: 3
+
+description: "以下は、タスクを説明する指示と、文脈のある入力の組み合わせです。要求を適切に満たす応答を書きなさい。\n\n"
+
+doc_to_text: "### 指示：\n与えられた前提と仮説の関係を回答してください。\n\n出力は以下から選択してください：\n含意\n矛盾\n中立\n\n### 入力：\n前提：{{ sentence1 }}\n仮説：{{ sentence2 }}\n\n### 応答："
+doc_to_target: label
+doc_to_choice: ["含意", "矛盾", "中立"]
+target_delimiter: "\n"
+
+output_type: multiple_choice
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
