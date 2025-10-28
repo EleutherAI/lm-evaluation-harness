@@ -420,7 +420,7 @@ class TemplateAPI(TemplateLM):
         for el in result:
             for message in el["messages"]:
                 for i, content in enumerate(message["content"]):
-                    if content["type"] not in {"text", "image_url", "audio_url"}:
+                    if content["type"] not in {"text", "image_url", "audio_url", "video_url"}:
                         raise ValueError(
                             f"Unsupported content type '{content['type']}'. "
                             "Expected one of: 'text', 'image_url', 'audio_url'."
