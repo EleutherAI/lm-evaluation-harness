@@ -863,7 +863,7 @@ class HFLM(TemplateLM):
 
         special_tokens_kwargs = (
             {"add_special_tokens": add_special_tokens}
-            if (isinstance(add_special_tokens, bool))
+            if add_special_tokens is not None
             else {"add_special_tokens": self.add_bos_token}
             if self.add_bos_token is not None
             else {}
