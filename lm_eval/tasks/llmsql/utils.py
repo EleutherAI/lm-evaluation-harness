@@ -56,17 +56,7 @@ def list_fewshot_samples() -> list[dict]:
 
 
 def build_prompt(doc) -> str:
-    return f"""You are an expert SQLite SQL query generator.
-Your task: Given a question and a table schema, output ONLY a valid SQL SELECT query.
-⚠️ STRICT RULES:
- - Output ONLY SQL (no explanations, no markdown, no ``` fences)
- - Use table name "Table"
- - Allowed functions: ['MAX', 'MIN', 'COUNT', 'SUM', 'AVG']
- - Allowed condition operators: ['=', '>', '<', '!=']
- - Allowed SQL keywords: ['SELECT', 'WHERE', 'AND']
- - Always use "" with all column names and table name, even one word: "Price", "General column", "Something #"
-
-### NOW ANSWER:
+    return f"""### NOW ANSWER:
 Question: {doc["question"]}
 Columns: {doc["headers"]}
 Types: {doc["types"]}
