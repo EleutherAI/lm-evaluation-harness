@@ -1,0 +1,13 @@
+group: afridocmt
+task:
+  - afridocmt_en_to_am
+  - afridocmt_en_to_ha
+  - afridocmt_en_to_sw
+  - afridocmt_en_to_yo
+  - afridocmt_en_to_zu
+aggregate_metric_list:
+  - metric: bleu
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

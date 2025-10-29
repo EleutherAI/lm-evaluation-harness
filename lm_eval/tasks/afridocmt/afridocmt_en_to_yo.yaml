@@ -1,0 +1,30 @@
+task: afridocmt_en_to_yo
+dataset_path: masakhane/AfriDocMT
+dataset_name: doc_health
+test_split: test
+output_type: generate_until
+doc_to_text: "Translate the following English text to Yoruba:\n{{en}}\nTranslation:"
+doc_to_target: "{{yo}}"
+target_delimiter: ""
+generation_kwargs:
+  do_sample: false
+  max_gen_toks: 512
+  until:
+    - "\n\n"
+    - "</s>"
+    - "<|im_end|>"
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+metric_list:
+  - metric: !function utils.metric_bleu
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.metric_chrf
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: "English to Yoruba translation task for AfriDocMT"
