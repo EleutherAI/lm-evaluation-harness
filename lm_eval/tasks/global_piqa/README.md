@@ -20,7 +20,8 @@ BibTeX-formatted citation goes here
 
 #### Groups
 
-* `group_name`: `Short description`
+* `group_name`: `global_piqa_completions` Generation task using chat format
+* `group_name`: `global_piqa_prompted` Cloze-style completion format
 
 #### Tags
 
