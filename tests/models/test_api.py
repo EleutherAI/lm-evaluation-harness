@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from lm_eval.api.instance import Instance
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 
 
@@ -159,6 +160,29 @@ def test_model_tokenized_call_usage(
         assert "json" in kwargs
         assert kwargs["json"] == expected_payload
         assert result == {"result": "success"}
+
+
+def test_generate_until_with_null_message_content(api):
+    with patch("requests.post") as mock_post:
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "choices": [
+                {
+                    "index": 0,
+                    "text": None,
+                }
+            ]
+        }
+        mock_response.ok = True
+        mock_post.return_value = mock_response
+        request = Instance(
+            request_type="generate_until",
+            doc={},
+            arguments=("Test prompt", {"max_gen_toks": 10}),
+            idx=0,
+        )
+
+        _ = api.generate_until([request])
 
 
 class DummyAsyncContextManager:
