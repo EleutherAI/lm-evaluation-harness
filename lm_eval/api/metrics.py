@@ -295,6 +295,10 @@ def judge_score_fn(predictions, references, questions):
 
     host = os.getenv("HARNESS_JUDGE_SCORE_HOST", "0.0.0.0")
     port = os.getenv("HARNESS_JUDGE_SCORE_PORT", "8000")
+    tokenizer_path = os.getenv(
+        "HARNESS_JUDGE_TOKENIZER_PATH",
+        "/home/jovyan/artem/mera_judge/src/first_iteration/rumodernbert",
+    )
 
     url = f"http://{host}:{port}/classify"
 
@@ -316,9 +320,7 @@ def judge_score_fn(predictions, references, questions):
         return get_ans(result)
 
     if JUDGE_TOKENIZER is None:
-        JUDGE_TOKENIZER = AutoTokenizer.from_pretrained(
-            "/home/jovyan/artem/mera_judge/src/first_iteration/rumodernbert"
-        )
+        JUDGE_TOKENIZER = AutoTokenizer.from_pretrained(tokenizer_path)
 
     total = 0
     for pred, ref, question in zip(predictions, references, questions):
