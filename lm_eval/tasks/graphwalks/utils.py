@@ -19,9 +19,7 @@ def load_dataset(**kwargs):
         raise ValueError("data_file must be specified in dataset_kwargs")
 
     dataset = datasets.load_dataset(
-        "openai/graphwalks",
-        data_files=data_file,
-        split="train"
+        "openai/graphwalks", data_files=data_file, split="train"
     )
     return {"train": dataset}
 
@@ -54,7 +52,11 @@ def extract_answer_list(response: str) -> Tuple[List[str], bool]:
         if not bracket_content.strip():
             return [], False
         # Split by comma and clean up whitespace and quotes
-        result_list = [item.strip().strip("'\"") for item in bracket_content.split(",") if item.strip()]
+        result_list = [
+            item.strip().strip("'\"")
+            for item in bracket_content.split(",")
+            if item.strip()
+        ]
         return result_list, False
     else:
         return [], True
@@ -84,7 +86,11 @@ def extract_answer_list_flexible(response: str) -> Tuple[List[str], bool]:
             if not bracket_content.strip():
                 return [], False
             # Split by comma and clean up whitespace and quotes
-            result_list = [item.strip().strip("'\"") for item in bracket_content.split(",") if item.strip()]
+            result_list = [
+                item.strip().strip("'\"")
+                for item in bracket_content.split(",")
+                if item.strip()
+            ]
             return result_list, False
 
     # No "Final Answer:" found anywhere
@@ -120,8 +126,14 @@ def process_results(doc, results):
     n_golden = len(truth_set)
 
     recall_strict = n_overlap_strict / n_golden if n_golden > 0 else 0.0
-    precision_strict = n_overlap_strict / n_sampled_strict if n_sampled_strict > 0 else 0.0
-    f1_strict = 2 * (recall_strict * precision_strict) / (recall_strict + precision_strict) if (recall_strict + precision_strict) > 0 else 0.0
+    precision_strict = (
+        n_overlap_strict / n_sampled_strict if n_sampled_strict > 0 else 0.0
+    )
+    f1_strict = (
+        2 * (recall_strict * precision_strict) / (recall_strict + precision_strict)
+        if (recall_strict + precision_strict) > 0
+        else 0.0
+    )
 
     # Parse the response using flexible extraction
     predicted_nodes_flexible, _ = extract_answer_list_flexible(response)
@@ -132,8 +144,16 @@ def process_results(doc, results):
     n_sampled_flexible = len(sampled_set_flexible)
 
     recall_flexible = n_overlap_flexible / n_golden if n_golden > 0 else 0.0
-    precision_flexible = n_overlap_flexible / n_sampled_flexible if n_sampled_flexible > 0 else 0.0
-    f1_flexible = 2 * (recall_flexible * precision_flexible) / (recall_flexible + precision_flexible) if (recall_flexible + precision_flexible) > 0 else 0.0
+    precision_flexible = (
+        n_overlap_flexible / n_sampled_flexible if n_sampled_flexible > 0 else 0.0
+    )
+    f1_flexible = (
+        2
+        * (recall_flexible * precision_flexible)
+        / (recall_flexible + precision_flexible)
+        if (recall_flexible + precision_flexible) > 0
+        else 0.0
+    )
 
     return {
         "f1": f1_strict,
