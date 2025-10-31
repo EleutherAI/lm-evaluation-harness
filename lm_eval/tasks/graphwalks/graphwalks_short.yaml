@@ -7,6 +7,7 @@ test_split: train
 doc_to_text: "{{prompt}}"
 doc_to_target: "{{answer_nodes}}"
 process_results: !function utils.process_results
+target_delimiter: ""
 generation_kwargs:
   until:
     - "</s>"
