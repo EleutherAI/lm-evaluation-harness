@@ -5,6 +5,21 @@ In Graphwalks, the model is given a graph represented by its edge list and asked
 
 HuggingFace: https://huggingface.co/datasets/openai/graphwalks
 
+### Groups and Tasks
+
+#### Groups
+
+* `graphwalks`: Run both `graphwalks_short` and `graphwalks_long`
+
+#### Tasks
+
+* `graphwalks_short`: Up to 128k context length
+* `graphwalks_long`: Between 256k-1M context length
+
+> [!NOTE]
+> Please note that `max_gen_toks` is set to `16384`, but non-reasoning models do not need this many tokens.
+
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
