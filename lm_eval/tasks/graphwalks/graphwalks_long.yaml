@@ -12,7 +12,7 @@ generation_kwargs:
     - "</s>"
     - "<|im_end|>"
     - "<|endoftext|>"
-  max_gen_toks: 1024
+  max_gen_toks: 16384
 metric_list:
   - metric: f1
     aggregation: mean
