@@ -5,6 +5,20 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Type, TypeVar, Union
 
+# Imports for image caching
+import io
+import base64
+from PIL.Image import Image
+
+# Imports for audio caching
+import torch
+from datasets.features._torchcodec import AudioDecoder
+
+# Imports for video caching
+from torchcodec.decoders._video_decoder import VideoDecoder
+import decord
+import torchvision.io as tvio
+
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -211,9 +225,46 @@ class LM(abc.ABC):
         self.cache_hook = cache_hook
 
 
+class MultiModalEncoder(json.JSONEncoder):
+    '''Custom JSON serialization of multi modal objects.'''
+    def default(self, obj):
+        buffered = io.BytesIO()
+        obj_str = ""
+        if isinstance(obj, Image):
+            # Convert image to base64 string for caching
+            obj.save(buffered, format="PNG")
+        if isinstance(obj, AudioDecoder):
+            # Convert audio to base64 string for caching
+            torch.save(obj.get_all_samples().data, buffered)
+        if isinstance(obj, VideoDecoder):
+            # Convert video to base64 string for caching
+            # Use only first, middle and last frame from video for caching to reduce computation overhead
+            torch.save(obj.get_frames_at([0, int(len(obj) * 0.5), len(obj) - 1]), buffered)
+        if isinstance(obj, decord.VideoReader):
+            # Convert video to base64 string for caching
+            # Use only first, middle and last frame from video for caching to reduce computation overhead
+            torch.save(obj.get_batch([0, int(len(obj) * 0.5), len(obj) - 1]), buffered)
+        if isinstance(obj, tvio.VideoReader):
+            # Convert video to base64 string for caching
+            # Use only first 3 frames from video for caching to reduce computation overhead
+            frames_to_cache = 3
+            frames = []
+            for frame in obj:
+                frames.append(frame["data"])
+                if len(frames) == frames_to_cache:
+                    break
+            frames = torch.stack(frames)
+            torch.save(frames, buffered)
+        obj_str = base64.b64encode(buffered.getvalue()).decode()
+        if obj_str:
+            return f"obj_base64:{obj_str}"
+        return super().default(obj)
+
+
 ### SQLite-based caching of LM responses
-def hash_args(attr: str, args: Iterable[Any]) -> str:
-    dat = json.dumps([attr] + list(args))
+def hash_args(attr, args):
+    """Compute a hash for the given args."""
+    dat = json.dumps([attr] + list(args), cls=MultiModalEncoder)
     return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
