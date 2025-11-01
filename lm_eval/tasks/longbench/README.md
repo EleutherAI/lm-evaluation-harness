@@ -101,4 +101,7 @@ If other tasks on this dataset are already supported:
 
 ### Changelog
 v2.: fix doc_to_target; add vcsum
+
 v3: properly use all answers for metric calculation; trim whitespace from resps; fix stop sequences not parsing correctly.
+
+v4: fixed special characters in prompts; use greedy decoding by default.

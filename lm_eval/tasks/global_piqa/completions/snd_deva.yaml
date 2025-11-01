@@ -1,0 +1,3 @@
+dataset_name: snd_deva
+include: _template
+task: global_piqa_completions_snd_deva

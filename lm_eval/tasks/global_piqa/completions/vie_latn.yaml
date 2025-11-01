@@ -1,0 +1,3 @@
+dataset_name: vie_latn
+include: _template
+task: global_piqa_completions_vie_latn

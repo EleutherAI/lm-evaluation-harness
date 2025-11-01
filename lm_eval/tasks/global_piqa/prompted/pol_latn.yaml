@@ -1,0 +1,3 @@
+dataset_name: pol_latn
+include: _template
+task: global_piqa_prompted_pol_latn
