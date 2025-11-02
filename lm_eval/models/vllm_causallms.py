@@ -4,7 +4,6 @@ import copy
 import gc
 import logging
 import os
-from collections.abc import Sequence
 from importlib.metadata import version
 from importlib.util import find_spec
 from multiprocessing import Process, Queue
@@ -22,9 +21,10 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
-    bos_already_added,
+    _add_special_kwargs,
     configure_pad_token,
     handle_stop_sequences,
+    has_bos_prefix,
     postprocess_generated_text,
     undistribute,
 )
@@ -122,7 +122,7 @@ class VLLM(TemplateLM):
         tokenizer: Optional[str] = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
-        add_bos_token: Optional[bool] = False,
+        add_bos_token: Optional[bool] = None,
         prefix_token_id: Optional[int] = None,
         tensor_parallel_size: int = 1,
         quantization: Optional[str] = None,
@@ -341,37 +341,61 @@ class VLLM(TemplateLM):
     def tok_encode(
         self,
         string: Union[str, List[str]],
-        left_truncate_len: int | None = None,
-        add_special_tokens: bool | None = None,
-        truncation: bool = False,
+        add_special_tokens=None,
+        **kwargs,
     ) -> Union[List[int], List[List[int]]]:
-        add_special_kwargs = (
-            {"add_special_tokens": add_special_tokens or self.add_bos_token}
-            if (add_special_tokens is not None or self.add_bos_token is not None)
-            else {}
+        if not string:
+            return []
+        _string = [string] if isinstance(string, str) else string
+        _bos_token = self.tokenizer.decode(self.prefix_token_id)
+
+        special_tokens_kwargs = {
+            **kwargs,
+            **_add_special_kwargs(add_special_tokens, self.add_bos_token),
+        }
+
+        # this is to handle chat templates, which usually add bos token.
+        # this handles a mixed case where some messages have bos token and some don't,
+        # which should not (ever) be the case but to be exhaustive.
+        has_prefix_flags = [has_bos_prefix(s, _bos_token) for s in _string]
+        idx_has = [i for i, f in enumerate(has_prefix_flags) if f]
+        idx_not = [i for i, f in enumerate(has_prefix_flags) if not f]
+
+        strs_has = [_string[i] for i in idx_has]
+        strs_not = [_string[i] for i in idx_not]
+
+        enc_has = []
+        # If the text already has BOS, do not add special tokens (to avoid double BOS).
+        if strs_has:
+            kwargs_off = {**special_tokens_kwargs, "add_special_tokens": False}
+            enc_has = (
+                self.tokenizer(
+                    strs_has,
+                    return_attention_mask=False,
+                    **kwargs_off,
+                ).input_ids
+                if strs_has
+                else []
+            )
+
+        enc_not = (
+            self.tokenizer(
+                strs_not,
+                return_attention_mask=False,
+                **special_tokens_kwargs,
+            ).input_ids
+            if strs_not
+            else []
         )
-        # handle chat template
-        if bos_already_added(
-            string[0] if isinstance(string, Sequence) else string,
-            self.tokenizer.bos_token,
-        ):
-            add_special_kwargs = {"add_special_tokens": False}
+        out: list[list[int]] = [None] * len(_string)  # type: ignore
+        for j, i in enumerate(idx_has):
+            out[i] = enc_has[j]
+        for j, i in enumerate(idx_not):
+            out[i] = enc_not[j]
 
-        encoding: list[list[int]] | list[int] = self.tokenizer(
-            string,
-            truncation=truncation,
-            return_attention_mask=False,
-            **add_special_kwargs,
-        ).input_ids
+        # we do not truncate here, as vllm can handle each request separately
 
-        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
-        if left_truncate_len:
-            if not isinstance(string, str):
-                encoding = [enc[-left_truncate_len:] for enc in encoding]
-            else:
-                encoding = encoding[-left_truncate_len:]
-
-        return encoding
+        return out[0] if isinstance(string, str) else out
 
     def _model_generate(
         self,

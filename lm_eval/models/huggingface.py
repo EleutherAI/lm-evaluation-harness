@@ -32,11 +32,12 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
-    bos_already_added,
+    _add_special_kwargs,
     clear_torch_cache,
     configure_pad_token,
     get_dtype,
     handle_stop_sequences,
+    has_bos_prefix,
     pad_and_concat,
     postprocess_generated_text,
     stop_sequences_criteria,
@@ -860,13 +861,8 @@ class HFLM(TemplateLM):
     ) -> list[int]:
         # default for None - empty dict, use predefined tokenizer param
         # used for all models except for CausalLM or predefined value
-
-        special_tokens_kwargs = (
-            {"add_special_tokens": add_special_tokens}
-            if add_special_tokens is not None
-            else {"add_special_tokens": self.add_bos_token}
-            if self.add_bos_token is not None
-            else {}
+        special_tokens_kwargs = _add_special_kwargs(
+            add_special_tokens, self.add_bos_token
         )
 
         encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
@@ -890,9 +886,7 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.backend == "causal":
-            if bos_already_added(
-                strings[0], getattr(self.tokenizer, "bos_token", None)
-            ):
+            if has_bos_prefix(strings[0], getattr(self.tokenizer, "bos_token", None)):
                 add_special_tokens = {"add_special_tokens": False}
             elif self.add_bos_token is not None:
                 add_special_tokens = {"add_special_tokens": self.add_bos_token}

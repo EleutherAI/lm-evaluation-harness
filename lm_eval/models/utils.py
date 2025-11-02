@@ -883,5 +883,18 @@ def postprocess_generated_text(
     return generation
 
 
-def bos_already_added(sequence: str, bos_string: Optional[str]):
-    return sequence.startswith(bos_string) if bos_string is not None else False
+def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None):
+    if bos_str is None:
+        return False
+    elif isinstance(bos_str, str):
+        return sequence.startswith(bos_str)
+    else:
+        return any(sequence.startswith(x) for x in bos_str)
+
+
+def _add_special_kwargs(add_special_tokens: bool | None, add_bos: bool | None = None):
+    if add_special_tokens is not None:
+        return {"add_special_tokens": add_special_tokens}
+    if add_bos is not None:
+        return {"add_special_tokens": add_bos}
+    return {}
