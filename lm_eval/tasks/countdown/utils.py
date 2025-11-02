@@ -2,7 +2,9 @@ import re
 import random
 import ast
 import operator
+import logging
 
+logger = logging.getLogger(__name__)
 
 def doc_to_text(doc):
     """Format the prompt for countdown task.
@@ -20,138 +22,64 @@ def doc_to_text(doc):
     # Format numbers as comma-separated string
     numbers_str = ', '.join(str(n) for n in numbers)
     
-    return f"Given the numbers {numbers_str}, how can you use each number exactly once with basic arithmetic operations (+, -, *, /) to reach the target {target}?\n\nAnswer:"
+    return f"""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
+User: Using the numbers {numbers_str}, create an equation that equals {target}. You can use basic arithmetic operations (+, -, *, /) and each number can only be used once. Show your work in <think> </think> tags. And return the final answer in <answer> </answer> tags, for example <answer> (1 + 2) / 3 </answer>.
+Assistant: Let me solve this step by step.
+<think>"""
 
 
 def extract_solution(solution_str):
-    """Extract the equation from the solution string.
-    
-    This function tries multiple strategies to extract an arithmetic equation:
-    1. Look for <answer>...</answer> tags
-    2. Extract from assistant responses
-    3. Find equation patterns in lines
-    4. Extract from the whole string as fallback
-    """
-    if not solution_str or not solution_str.strip():
-        return None
-    
-    # Try to find answer in <answer> tags first
+    """Extract the equation from the solution string."""
+    # Remove everything before the first "Assistant:"
+    # logger.info(f"Solution string: {solution_str}")
+    # if "Assistant:" in solution_str:
+    #     solution_str = solution_str.split("Assistant:", 1)[1]
+    # elif "<|im_start|>assistant" in solution_str:
+    #     solution_str = solution_str.split("<|im_start|>assistant", 1)[1]
+    # solution_str = solution_str.split('\n')[-1]
+
     answer_pattern = r'<answer>(.*?)</answer>'
-    matches = list(re.finditer(answer_pattern, solution_str, re.DOTALL | re.IGNORECASE))
+    match = re.finditer(answer_pattern, solution_str)
+    matches = list(match)
     if matches:
-        content = matches[-1].group(1).strip()
-        # Clean up the extracted content
-        # Remove any trailing "= target" or similar
-        content = re.sub(r'\s*=\s*\d+\s*$', '', content)
-        if content and re.search(r'[\+\-\*/]', content) and re.search(r'\d', content):
-            return content
-    
-    # Remove everything before the first "Assistant:" if present
-    working_str = solution_str
-    if "Assistant:" in working_str:
-        working_str = working_str.split("Assistant:", 1)[1]
-    elif "<|im_start|>assistant" in working_str.lower():
-        working_str = working_str.split("<|im_start|>assistant", 1)[1]
-    
-    # Try to extract equation-like pattern from lines (check from last line backwards)
-    lines = working_str.split('\n')
-    for line in reversed(lines):
-        line = line.strip()
-        if not line:
-            continue
-        
-        # Remove common prefixes
-        line = re.sub(r'^(Answer|Equation|Solution|Result):\s*', '', line, flags=re.IGNORECASE)
-        
-        # Clean up: remove trailing "= number" patterns (the result)
-        line_clean = re.sub(r'\s*=\s*\d+\.?\d*\s*$', '', line)
-        
-        # Look for equation patterns: numbers, operators, parentheses
-        # Must have at least one operator and one number
-        if re.search(r'[\+\-\*/]', line_clean) and re.search(r'\d', line_clean):
-            # Extract continuous equation-like sequences
-            equation_match = re.search(r'([\d+\-*/().\s]+)', line_clean)
-            if equation_match:
-                potential_eq = equation_match.group(1).strip()
-                # Verify it's a valid-looking equation
-                if (re.search(r'[\+\-\*/]', potential_eq) and 
-                    re.search(r'\d', potential_eq) and
-                    len(potential_eq) >= 3):
-                    return potential_eq
-    
-    # If no structured format found, try to extract from the whole string
-    # Look for the longest sequence that matches equation pattern
-    equation_match = re.search(r'([\d+\-*/().\s]{5,})', working_str)
-    if equation_match:
-        potential_eq = equation_match.group(1).strip()
-        # Clean it up
-        potential_eq = re.sub(r'\s*=\s*\d+\.?\d*\s*$', '', potential_eq)
-        if (re.search(r'[\+\-\*/]', potential_eq) and 
-            re.search(r'\d', potential_eq) and
-            len(potential_eq) >= 3):
-            return potential_eq
-    
-    return None
+        final_answer = matches[-1].group(1).strip()
+    else:
+        final_answer = None
+    return final_answer
 
 
 def validate_equation(equation_str, available_numbers):
-    """Validate that equation only uses available numbers and each number once.
-    
-    Note: This checks that the numbers used in the equation match the available numbers,
-    but allows for flexibility in case not all numbers need to be used (partial solutions).
-    """
+    """Validate that equation only uses available numbers and each number once."""
     try:
         # Extract all numbers from the equation
         numbers_in_eq = [int(n) for n in re.findall(r'\d+', equation_str)]
         
-        # Check if all numbers in equation are available and used at most once
-        available_sorted = sorted(available_numbers)
-        numbers_sorted = sorted(numbers_in_eq)
+        # Check if all numbers in equation are available
+        available_numbers = sorted(available_numbers)
+        numbers_in_eq = sorted(numbers_in_eq)
         
-        # Each number in the equation must be from available numbers
-        # and each should be used exactly once
-        return numbers_sorted == available_sorted
-    except Exception:
+        # Each number should be used exactly once
+        return numbers_in_eq == available_numbers
+    except:
         return False
 
 
 def evaluate_equation(equation_str):
-    """Safely evaluate the arithmetic equation using eval() with precautions.
-    
-    Args:
-        equation_str: String containing arithmetic expression
-        
-    Returns:
-        Numeric result of the equation, or None if evaluation fails
-    """
+    """Safely evaluate the arithmetic equation using eval() with precautions."""
     try:
         # Define a regex pattern that only allows numbers, operators, parentheses, and whitespace
         allowed_pattern = r'^[\d+\-*/().\s]+$'
         if not re.match(allowed_pattern, equation_str):
-            return None
-
-        # Check for division by zero patterns (simple check)
-        # More thorough checking happens during evaluation
-        if '/0' in equation_str.replace(' ', ''):
-            return None
+            raise ValueError("Invalid characters in equation.")
 
         # Evaluate the equation with restricted globals and locals
         result = eval(equation_str, {"__builtins__": None}, {})
-        
-        # Check if result is a valid number
-        if not isinstance(result, (int, float)):
-            return None
-            
-        # Check for inf or nan
-        if isinstance(result, float) and (result != result or result == float('inf') or result == float('-inf')):
-            return None
-            
         return result
-    except Exception:
+    except Exception as e:
         return None
 
 
-def compute_score(solution_str, ground_truth, method='strict', format_score=0, score=1.):
+def compute_score(solution_str, ground_truth, method='strict', format_score=0.1, score=1.):
     """The scoring function for countdown task.
     
     Args:
@@ -217,6 +145,7 @@ def process_results(doc, results):
         Dictionary with metric scores
     """
     # Get the first (or only) result
+    logger.info(f"Results: {results}")
     solution_str = results[0] if results else ""
     
     # Prepare ground truth - handle both 'numbers' and 'nums' field names
