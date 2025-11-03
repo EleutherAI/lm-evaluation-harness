@@ -114,7 +114,7 @@ class TemplateAPI(TemplateLM):
         # however the requests can be sent as a string if the API doesn't support token inputs.
         # use tokenized_requests=False
         tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", "None", "none"]
+            Literal["tiktoken", "huggingface", "remote", "None", "none"]
         ] = "huggingface",
         truncate: bool = False,
         # number of concurrent requests. More useful if not batching
@@ -132,6 +132,8 @@ class TemplateAPI(TemplateLM):
         revision: Optional[str] = "main",
         use_fast_tokenizer: bool = True,
         verify_certificate: bool = True,
+        ca_cert_path: Optional[str] = None,
+        auth_token: Optional[str] = None,
         eos_string: str = None,
         # timeout in seconds
         timeout: int = 300,
@@ -182,6 +184,8 @@ class TemplateAPI(TemplateLM):
         self.tokenized_requests = tokenized_requests
         self.max_retries = int(max_retries)
         self.verify_certificate = verify_certificate
+        self.ca_cert_path = ca_cert_path
+        self.auth_token = auth_token
         self._eos_string = eos_string
         self.timeout = int(timeout)
         self.max_images = int(max_images)
@@ -218,6 +222,21 @@ class TemplateAPI(TemplateLM):
                             f"Passed `base_url={self.base_url}` but using (OpenAI) Tiktoken tokenizer backend. "
                             "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."
                         )
+                elif self.tokenizer_backend == "remote":
+                    from lm_eval.utils import RemoteTokenizer
+
+                    if not self.base_url:
+                        raise ValueError(
+                            "base_url is required for remote tokenizer backend"
+                        )
+                    self.tokenizer = RemoteTokenizer(
+                        self.base_url,
+                        self.timeout,
+                        self.verify_certificate,
+                        self.ca_cert_path,
+                        self.auth_token,
+                    )
+                    eval_logger.info(f"Using remote tokenizer from {self.base_url}")
             else:
                 import transformers
 
@@ -310,7 +329,7 @@ class TemplateAPI(TemplateLM):
 
     def apply_chat_template(
         self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
-    ) -> Union[str, JsonChatStr]:
+    ) -> Union[str, JsonChatStr, List[Dict]]:
         """Applies a chat template to a list of chat history between user and model."""
         if self.tokenizer_backend == "huggingface" and self.tokenized_requests:
             return self.tokenizer.apply_chat_template(
@@ -319,6 +338,8 @@ class TemplateAPI(TemplateLM):
                 add_generation_prompt=add_generation_prompt,
                 continue_final_message=not add_generation_prompt,
             )
+        elif self.tokenizer_backend == "remote" and self.tokenized_requests:
+            return chat_history
         else:
             # bit of a hack. We'll load back before sending to the API
             return JsonChatStr(
@@ -337,6 +358,8 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eos_token_id
             elif self.tokenizer_backend == "tiktoken":
                 return self.tokenizer.eot_token
+            elif self.tokenizer_backend == "remote":
+                return self.tokenizer.eos_token_id
 
     @cached_property
     def eos_string(self) -> Optional[str]:
@@ -347,6 +370,8 @@ class TemplateAPI(TemplateLM):
                 return self.tokenizer.eos_token
             elif self.tokenizer_backend == "tiktoken":
                 return self.tokenizer.decode([self.tokenizer.eot_token])
+            elif self.tokenizer_backend == "remote":
+                return self.tokenizer.eos_token
         else:
             eval_logger.warning(
                 "Cannot determine EOS string to pass to stop sequence. Manually set by passing `eos_string` to model_args."
@@ -364,6 +389,8 @@ class TemplateAPI(TemplateLM):
                 if self.tokenizer.bos_token_id is not None:
                     return self.tokenizer.bos_token_id
                 return self.tokenizer.eos_token_id
+            elif self.tokenizer_backend == "remote":
+                return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
             else:
                 return self.tokenizer.eot_token
 
@@ -396,7 +423,19 @@ class TemplateAPI(TemplateLM):
                     encoding = encoding[-left_truncate_len:]
 
             return encoding
+        elif self.tokenizer_backend == "remote":
+            if isinstance(string, str):
+                encoding = self.tokenizer.encode(string)
+            else:
+                encoding = [self.tokenizer.encode(s) for s in string]
 
+            if left_truncate_len:
+                if isinstance(string, str):
+                    encoding = encoding[-left_truncate_len:]
+                else:
+                    encoding = [enc[-left_truncate_len:] for enc in encoding]
+
+            return encoding
         else:
             try:
                 encoding = self.tokenizer.encode(string)
@@ -409,6 +448,8 @@ class TemplateAPI(TemplateLM):
             return self.tokenizer.batch_decode(tokens)
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
+        elif self.tokenizer_backend == "remote":
+            return self.tokenizer.batch_decode(tokens)
 
     def model_call(
         self,

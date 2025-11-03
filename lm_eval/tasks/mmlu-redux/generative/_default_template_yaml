@@ -1,0 +1,32 @@
+dataset_path: "edinburgh-dawg/mmlu-redux-2.0"
+test_split: test
+dataset_kwargs:
+  trust_remote_code: true
+
+output_type: generate_until
+
+doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nPlease respond with the correct letter (A, B, C or D) without any additional comments, only the correct letter:"
+doc_to_target: "{{['A','B','C','D'][answer]}}"
+target_delimiter: ":"
+generation_kwargs:
+  until:
+    - "</s>"
+
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+
+# IMPORTANT: rename your filter to "default" so older harness automatically applies it.
+filter_list:
+  - name: default
+    filter:
+      # This captures the first single capital letter A/B/C/D
+      - function: regex
+        regex_pattern: "([ABCD])"
+      - function: take_first
+
+metadata:
+  version: 3.0

@@ -12,6 +12,8 @@ from lm_eval.api.metrics import (
 )
 from lm_eval.models.utils import Collator
 from lm_eval.utils import (
+    RemoteTokenizer,
+    check_remote_tokenizer_support,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -396,3 +398,146 @@ def test_aggregate_stderrs(samples):
         mean_stderr(list(itertools.chain.from_iterable(samples))),
         atol=1.0e-3,
     )
+
+
+def test_remote_tokenizer_custom_cert_and_token(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {
+                "name_or_path": "mock",
+                "chat_template": "{{ messages[0].content }}",
+            }
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+    assert tokenizer.cert_config == "dummy.crt"
+    assert tokenizer.headers["Authorization"] == "Bearer dummy-token"
+    assert tokenizer.tokenizer_info["name_or_path"] == "mock"
+
+
+def test_remote_tokenizer_no_cert(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"name_or_path": "mock"}
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path=None,
+        auth_token="dummy-token",
+    )
+    assert tokenizer.cert_config is True
+    assert tokenizer.headers["Authorization"] == "Bearer dummy-token"
+    assert tokenizer.tokenizer_info["name_or_path"] == "mock"
+
+
+def test_remote_tokenizer_http_url(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"name_or_path": "mock"}
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="http://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+    assert tokenizer.base_url.startswith("http://")
+    assert tokenizer.tokenizer_info["name_or_path"] == "mock"
+
+
+def test_check_remote_tokenizer_support(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return self._json
+
+        def raise_for_status(self):
+            pass
+
+        def __init__(self, url, json=None):
+            if "tokenizer_info" in url:
+                self._json = {
+                    "name_or_path": "mock",
+                    "eos_token": "</s>",
+                    "bos_token": "<s>",
+                    "pad_token": "<pad>",
+                    "chat_template": "{{ messages[0].content }}",
+                }
+            elif "tokenize" in url:
+                self._json = {"tokens": [1, 2, 3]}
+            else:
+                self._json = {}
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+
+    def dummy_request(self, method, url, **kwargs):
+        return DummyResponse(url, json=kwargs.get("json"))
+
+    monkeypatch.setattr("requests.Session.request", dummy_request)
+    assert check_remote_tokenizer_support(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+
+
+def test_apply_chat_template(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {
+                "name_or_path": "mock",
+                "chat_template": "{{ messages[0].content }}",
+            }
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+    chat_history = [{"role": "user", "content": "Hello"}]
+    rendered = tokenizer.apply_chat_template(chat_history)
+    assert rendered == "Hello"

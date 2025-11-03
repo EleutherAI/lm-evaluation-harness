@@ -149,7 +149,7 @@ task: {{ task }}
 dataset_path: {{ dataset_path }}
 test_split: {{ test_split }}
 dataset_name: {{ dataset_name }}
-doc_to_text: '{{ doc_to_text }}'
+doc_to_text: "{{ doc_to_text }}"
 doc_to_target: '{{ doc_to_target }}'
 process_results: {{ process_results }}
 generation_kwargs:
@@ -180,13 +180,14 @@ if __name__ == "__main__":
         generation_kwargs = {
             "max_gen_toks": dataset2maxlen[df],
             "temperature": 1,
-            "do_sample": True,
+            "do_sample": False,
             # We'll handle the until value directly in the template
         }
 
         raw_doc_to_text = (
             dataset2prompt[df]
             .replace("\n", "\\n")
+            .replace('"', '\\"')
             .replace("{", "{{")
             .replace("}", "}}")
         )
@@ -210,7 +211,7 @@ if __name__ == "__main__":
             "generation_kwargs": generation_kwargs,
             "has_newline": has_newline,  # Add the flag to the template context
             "metric_list": metric_list,
-            "metadata": {"version": "3.0"},
+            "metadata": {"version": "4.0"},
         }
 
         # Render template
