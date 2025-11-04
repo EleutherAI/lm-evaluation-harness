@@ -2,9 +2,6 @@ import re
 import random
 import ast
 import operator
-import logging
-
-logger = logging.getLogger(__name__)
 
 def doc_to_text(doc):
     """Format the prompt for countdown task.
@@ -30,14 +27,7 @@ Assistant: Let me solve this step by step.
 
 def extract_solution(solution_str):
     """Extract the equation from the solution string."""
-    # Remove everything before the first "Assistant:"
-    # logger.info(f"Solution string: {solution_str}")
-    # if "Assistant:" in solution_str:
-    #     solution_str = solution_str.split("Assistant:", 1)[1]
-    # elif "<|im_start|>assistant" in solution_str:
-    #     solution_str = solution_str.split("<|im_start|>assistant", 1)[1]
-    # solution_str = solution_str.split('\n')[-1]
-
+    
     answer_pattern = r'<answer>(.*?)</answer>'
     match = re.finditer(answer_pattern, solution_str)
     matches = list(match)
@@ -144,8 +134,6 @@ def process_results(doc, results):
     Returns:
         Dictionary with metric scores
     """
-    # Get the first (or only) result
-    logger.info(f"Results: {results}")
     solution_str = results[0] if results else ""
     
     # Prepare ground truth - handle both 'numbers' and 'nums' field names
