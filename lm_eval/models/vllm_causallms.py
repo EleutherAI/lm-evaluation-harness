@@ -622,9 +622,6 @@ class VLLM(TemplateLM):
             # set the max length in tokens of inputs ("context_enc")
             # max len for inputs = max length, minus room to generate the max new tokens
             max_ctx_len = self.max_length - max_gen_toks
-            all_lengths = [len(x) for x in context_encoding]
-            for length in all_lengths:
-                if length > max_ctx_len:
             context_encoding_truncated = []
             sampling_params = []
             for x, gen_kwargs in zip(context_encoding, all_gen_kwargs):

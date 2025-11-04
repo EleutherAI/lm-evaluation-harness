@@ -624,9 +624,13 @@ def evaluate(
         # iterate over different filters used
         available_filters = list(task.instances[0].filtered_resps.keys())
         # Only log samples for a single preferred filter to avoid duplicate per-doc entries
-        preferred_filter_for_logging = (
-            "flexible-extract" if "flexible-extract" in available_filters else available_filters[0]
-        )
+        # Prefer flexible-extract for GSM8K-style numeric answers; fallback to strict-match, else first.
+        if "flexible-extract" in available_filters:
+            preferred_filter_for_logging = "flexible-extract"
+        elif "strict-match" in available_filters:
+            preferred_filter_for_logging = "strict-match"
+        else:
+            preferred_filter_for_logging = available_filters[0]
         for filter_key in available_filters:
             indices = (
                 samples.get(task_output.task_name, None)
