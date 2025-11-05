@@ -1,0 +1,10 @@
+include: _default_template_yaml
+task: kenpos_dho
+dataset_name: dho
+metadata:
+  version: 1.0
+  language: dho
+  full_name: Dholuo
+  language_family: Nilotic
+  approx_words: 50000
+  description: Part-of-Speech tagging for Dholuo language (~50,000 words)

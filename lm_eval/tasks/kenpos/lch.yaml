@@ -1,0 +1,10 @@
+include: _default_template_yaml
+task: kenpos_lch
+dataset_name: lch
+metadata:
+  version: 1.0
+  language: lch
+  full_name: Lumarachi
+  language_family: Bantu (Luhya)
+  approx_words: 27900
+  description: Part-of-Speech tagging for Luhya-Lumarachi dialect (~27,900 words)

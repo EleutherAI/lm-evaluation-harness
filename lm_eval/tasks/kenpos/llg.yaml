@@ -1,0 +1,10 @@
+include: _default_template_yaml
+task: kenpos_llg
+dataset_name: llg
+metadata:
+  version: 1.0
+  language: llg
+  full_name: Lulogooli
+  language_family: Bantu (Luhya)
+  approx_words: 34300
+  description: Part-of-Speech tagging for Luhya-Lulogooli dialect (~34,300 words)

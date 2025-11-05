@@ -1,0 +1,10 @@
+include: _default_template_yaml
+task: kenpos_lbk
+dataset_name: lbk
+metadata:
+  version: 1.0
+  language: lbk
+  full_name: Lubukusu
+  language_family: Bantu (Luhya)
+  approx_words: 30900
+  description: Part-of-Speech tagging for Luhya-Lubukusu dialect (~30,900 words)

@@ -1,0 +1,39 @@
+# KenPOS Base Template Configuration
+output_type: generate_until
+
+# Dataset configuration - only 'train' split exists
+dataset_path: Kencorpus/KenPOS
+training_split: null
+validation_split: train
+test_split: train
+
+# Document processing functions from utils.py
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
+
+# Decontamination settings
+should_decontaminate: true
+doc_to_decontamination_query: !function utils.doc_to_decontamination_query
+
+# Generation parameters for generate_until function
+generation_kwargs:
+  until:
+    - "\n"
+    - "."
+    - ","
+  max_gen_toks: 10
+  do_sample: false
+  temperature: 0.0
+
+# Metrics
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+
+# Metadata
+metadata:
+  version: 1.0
+  description: "Part-of-Speech tagging for Kenyan languages using generate_until"
+  reference: "https://arxiv.org/abs/2208.12081"
