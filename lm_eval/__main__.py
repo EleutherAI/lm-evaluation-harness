@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import hashlib
 from functools import partial
 from pathlib import Path
 from typing import Union
@@ -489,6 +490,29 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
+
+            
+            for task_name, config in results["configs"].items():
+                # Use a hash of the model_args to shorten the filename
+                model_args_hash = hashlib.md5(args.model_args.encode('utf-8')).hexdigest()
+                output_name = "{}_{}".format(model_args_hash, task_name)
+
+                # Set the full path
+                if args.output_path:
+                    filename = os.path.join(args.output_path, f"{output_name}.jsonl")
+                else:
+                    filename = f"{output_name}.jsonl"
+
+                # Dump the samples into the file
+                samples_dumped = json.dumps(
+                    samples[task_name],
+                    indent=2,
+                    default=handle_non_serializable,
+                    ensure_ascii=False,
+                )
+                with open(filename, "w", encoding="utf-8") as f:
+                    f.write(samples_dumped)
+
         dumped = json.dumps(
             results, indent=2, default=handle_non_serializable, ensure_ascii=False
         )
@@ -532,9 +556,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             print(make_table(results, "groups"))
 
         if args.wandb_args:
-            # Tear down wandb run once all the logging is done.
+            
             wandb_logger.run.finish()
-
 
 if __name__ == "__main__":
     cli_evaluate()
