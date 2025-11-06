@@ -4,7 +4,6 @@ from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
 
-
 class Filter(ABC):
     """
     Filter classes operate on a per-task level.
@@ -41,10 +40,44 @@ class FilterEnsemble:
 
     name: str
     filters: List[Callable[[], Filter]]
+    think_tokens: Union[str, dict]
+
+    def think_filter(self, resps):
+        if self.think_tokens: 
+            start_token = self.think_tokens.get("think_start_token")
+            end_token = self.think_tokens.get("think_end_token")
+            if end_token:
+                processed_resps_list = []
+                for instance_resps in resps:
+                    new_instance_resps = []
+                    for resp_str in instance_resps: 
+                        if not isinstance(resp_str, str):
+                            new_instance_resps.append(resp_str)
+                            continue
+                        new_resp = resp_str 
+                        end_pos = resp_str.rfind(end_token)
+                        if end_pos != -1:
+                            new_resp = resp_str[end_pos + len(end_token) :]
+                        elif start_token:
+                            start_pos = resp_str.find(start_token)
+                            if start_pos != -1:
+                                new_resp = resp_str[:start_pos]
+                        new_instance_resps.append(new_resp)
+                    processed_resps_list.append(new_instance_resps)
+                
+                # 用处理后的 "列表的列表" 覆盖 resps
+                resps = processed_resps_list
+                return resps
+            else:
+                return resps
+        else:
+            return resps
 
     def apply(self, instances: List[Instance]) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
         resps, docs = list(resps), list(docs)
+
+        resps = self.think_filter(resps)
 
         for f in self.filters:
             # apply filters in sequence
