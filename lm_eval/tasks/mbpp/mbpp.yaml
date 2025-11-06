@@ -11,6 +11,11 @@ metric_list:
   - metric: !function utils.pass_at_1
     aggregation: mean
     higher_is_better: true
+filter_list:
+  - name: "extract_code"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions
 generation_kwargs:
   until:
     - "[DONE]"
