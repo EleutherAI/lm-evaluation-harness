@@ -23,8 +23,6 @@ def pass_at_1(
     if isinstance(predictions[0], str):
         predictions = [[p] for p in predictions]
 
-    print(references)
-    print(predictions)
     return pass_at_k.compute(
         references=references,
         predictions=predictions,
