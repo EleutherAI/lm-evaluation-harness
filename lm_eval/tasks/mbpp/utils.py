@@ -22,6 +22,9 @@ def pass_at_1(
         references = [references]
     if isinstance(predictions[0], str):
         predictions = [[p] for p in predictions]
+
+    print(references)
+    print(predictions)
     return pass_at_k.compute(
         references=references,
         predictions=predictions,
@@ -30,18 +33,38 @@ def pass_at_1(
 
 
 def extract_code_blocks(text: str) -> str:
-    # Pattern to match ```...``` blocks
-    pattern = r"```(?:\w+)?\n?(.*?)\n?```"
-    # (+ ```) as we add the opening "```python" to the gen_prefix
-    matches = re.findall(pattern, r"```" + text, re.DOTALL)
-    # if no matches, try to match ```...``` blocks (after removing the language)
-    if not matches:
-        text_without_lang = re.sub(r"```python", "```", text)
-        matches = re.findall(pattern, text_without_lang, re.DOTALL)
-    if not matches:
-        return ""
-    else:
-        return matches[0]
+    text = text.strip()
+
+    # 1. If starts with ```python → take everything until the next ```
+    if text.startswith("```python"):
+        end = text.find("```", len("```python"))
+        if end != -1:
+            return text[len("```python"):end].strip()
+        return text[len("```python"):].strip()
+
+    # 2. If starts with ``` but not python → take until next ```
+    if text.startswith("```"):
+        end = text.find("```", 3)
+        if end != -1:
+            return text[3:end].strip()
+        return text[3:].strip()
+
+    # 3. If doesn’t start with ```
+    text = text.replace("```python", "```")
+    count_backticks = text.count("```")
+
+    # 4. If count is odd → take everything until the last ```
+    if count_backticks % 2 == 1 and count_backticks > 0:
+        last = text.rfind("```")
+        return text[:last].strip()
+
+    # 5. If count is even and >= 2 → take first complete block between ```
+    if count_backticks >= 2:
+        first = text.find("```")
+        second = text.find("```", first + 3)
+        return text[first + 3:second].strip()
+
+    return text
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
