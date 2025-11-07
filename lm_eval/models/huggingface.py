@@ -1588,8 +1588,8 @@ class HFLM_Accelerate(HFLM):
 
     def __init__(
         self,
-        pretrained: PreTrainedModel,
-        tokenizer: PreTrainedTokenizerBase,
+        pretrained: transformers.PreTrainedModel,
+        tokenizer: transformers.PreTrainedTokenizer,
         accelerator: Accelerator,
         backend: Literal["default", "causal", "seq2seq"] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
@@ -1616,8 +1616,8 @@ class HFLM_Accelerate(HFLM):
         enable_thinking: bool | None = None,
         chat_template_args: dict[str, Any] | None = None,
     ) -> None:
-        TemplateLM.__init__(self) # Do not instantiate parent (HFLM), only instantiate grandparent (TemplateLM)
-        # optionally: take in an already-initialized transformers.PreTrainedModel
+        # Do not instantiate parent (HFLM), only instantiate grandparent (TemplateLM)
+        TemplateLM.__init__(self)
         self._model = pretrained
         self._config = self._model.config
 
@@ -1628,7 +1628,7 @@ class HFLM_Accelerate(HFLM):
         # load tokenizer so we know tokenizer vocabulary size before loading model and PEFT
         self._create_tokenizer(
             pretrained,
-            tokenizer,  
+            tokenizer,
             revision=revision,
             subfolder=subfolder,
             trust_remote_code=trust_remote_code,
@@ -1682,4 +1682,4 @@ class HFLM_Accelerate(HFLM):
         self._world_size = self.accelerator.num_processes
 
         self.custom_prefix_token_id = prefix_token_id
-        self.model.tie_weights()  
+        self.model.tie_weights()
