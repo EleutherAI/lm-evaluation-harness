@@ -342,6 +342,8 @@ class TemplateLM(LM):
     ) -> list[int]:
         """
         Tokenize a string using the model's tokenizer and return a list of token IDs.
+        NOTE: This method is expected to handle strings which already contain the BOS token (when add_special_tokens=None).
+        Otherwise, will use add_special_tokens if specified.
         """
         pass
 

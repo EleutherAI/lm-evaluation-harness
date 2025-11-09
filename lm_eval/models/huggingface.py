@@ -864,7 +864,11 @@ class HFLM(TemplateLM):
         special_tokens_kwargs = _add_special_kwargs(
             add_special_tokens, self.add_bos_token
         )
-
+        # set add_special_tokens=False if the string already starts with BOS token.
+        if add_special_tokens is None and has_bos_prefix(
+            string, self.tokenizer.decode(self.prefix_token_id)
+        ):
+            special_tokens_kwargs["add_special_tokens"] = False
         encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
