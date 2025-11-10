@@ -134,7 +134,7 @@ class HFVideoLlava(HFMultimodalLM):
             use_cache=True,
             **generation_kwargs,
         )
-    
+
     def apply_chat_template(
         self, chat_history: List[Dict[str, str]], add_generation_prompt: bool = True
     ) -> str:
@@ -306,8 +306,10 @@ class HFVideoLlava(HFMultimodalLM):
                 outputs = outputs.split("ASSISTANT:")[-1].strip()
             elif "qwen" in self.pretrained.lower():
                 outputs = outputs.split("assistant")[-1].strip()
-            
+
             res.append(outputs)
             pbar.update(1)
 
+        res = re_ords.get_original(res)
+        pbar.close()
         return res
