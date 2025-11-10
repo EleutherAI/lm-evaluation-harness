@@ -677,7 +677,7 @@ class VLLM(TemplateLM):
                 pbar.update(1)
 
         pbar.close()
-        
+
         # reorder all group of results back to original unsorted form
         self.raw_generations = re_ords.get_original(raw_generations_buffer)
         return re_ords.get_original(res)

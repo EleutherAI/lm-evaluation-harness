@@ -1508,7 +1508,9 @@ class HFLM(TemplateLM):
                 )
                 res.append(s)
 
-                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), raw_s)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), raw_s
+                )
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
