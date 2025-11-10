@@ -2,7 +2,7 @@
 tag:
   - longbench_e
 task: longbench_multi_news_e
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: multi_news_e
 doc_to_text: "You are given several news passages. Write a one-page summary of all news. \n\nNews:\n{{context}}\n\nNow, write a one-page summary of all the news.\n\nSummary:"

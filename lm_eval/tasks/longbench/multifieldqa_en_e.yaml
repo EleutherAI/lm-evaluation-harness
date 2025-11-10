@@ -2,10 +2,10 @@
 tag:
   - longbench_e
 task: longbench_multifieldqa_en_e
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: multifieldqa_en_e
-doc_to_text: "Read the following text and answer briefly.\n\n{{context}}\n\nNow, answer the following question based on the above text, only give me the answer and do not output any other words.\n\nQuestion: {{input}}\nAnswer:"
+doc_to_text: "Read the following text and answer briefly.\n\n{{context}}\n\nNow, answer the following question based on the above text, only give me the answer and do not output any other words.\n\nQuestion: {{question}}\nAnswer:"
 doc_to_target: '{{answers}}'
 process_results: !function metrics.get_qa_f1_score
 generation_kwargs:
