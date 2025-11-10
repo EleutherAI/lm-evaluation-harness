@@ -37,8 +37,8 @@ def extract_code_blocks(text: str) -> str:
     if text.startswith("```python"):
         end = text.find("```", len("```python"))
         if end != -1:
-            return text[len("```python"):end].strip()
-        return text[len("```python"):].strip()
+            return text[len("```python") : end].strip()
+        return text[len("```python") :].strip()
 
     # 2. If starts with ``` but not python → take until next ```
     if text.startswith("```"):
@@ -60,7 +60,7 @@ def extract_code_blocks(text: str) -> str:
     if count_backticks >= 2:
         first = text.find("```")
         second = text.find("```", first + 3)
-        return text[first + 3:second].strip()
+        return text[first + 3 : second].strip()
 
     return text
 
