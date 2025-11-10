@@ -324,10 +324,11 @@ class TemplateLM(LM):
     """
 
     tokenizer = None
+    backend = "causal"
 
     @property
     @abc.abstractmethod
-    def eot_token_id(self):
+    def eot_token_id(self) -> int:
         pass
 
     @property
@@ -336,9 +337,13 @@ class TemplateLM(LM):
         return self.eot_token_id
 
     @abc.abstractmethod
-    def tok_encode(self, string: str, **kwargs) -> list[int]:
+    def tok_encode(
+        self, string: str, add_special_tokens: Optional[bool] = None, **kwargs
+    ) -> list[int]:
         """
         Tokenize a string using the model's tokenizer and return a list of token IDs.
+        NOTE: This method is expected to handle strings which already contain the BOS token (when add_special_tokens=None).
+        Otherwise, will use add_special_tokens if specified.
         """
         pass
 
@@ -351,38 +356,93 @@ class TemplateLM(LM):
     def _encode_pair(
         self, context: str, continuation: str
     ) -> tuple[list[int], list[int]]:
-        import transformers
+        """
+        Encode a context-continuation pair into separate token ID lists.
+
+        This method handles the tokenization of context and continuation strings while
+        preserving proper boundary handling. Trailing spaces in the context are moved
+        to the beginning of the continuation to ensure correct tokenization at the
+        word boundary.
+
+        For Seq2Seq models (encoder-decoder), context and continuation are encoded
+        separately. For other model types (decoder-only), the full sequence is encoded
+        together to ensure proper tokenization, then split at the context boundary.
+
+        :param context: str
+            The context string. Can be empty (will be handled by the caller).
+        :param continuation: str
+            The continuation string to be scored.
+
+        :return: tuple[list[int], list[int]]
+            A tuple of (context_enc, continuation_enc) where:
+            - context_enc: Token IDs for the context
+            - continuation_enc: Token IDs for the continuation
+
+        Note:
+            This method does NOT handle empty context. The caller should
+            handle empty context (see loglikelihood method).
+        """
+        assert context, "Context cannot be empty!"
 
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
 
-        model_class = getattr(self, "AUTO_MODEL_CLASS", None)
-
-        if model_class == transformers.AutoModelForSeq2SeqLM:
-            context_enc = self.tok_encode(context)
-            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
-        else:
+        if self.backend == "causal":
             whole_enc = self.tok_encode(context + continuation)
             context_enc = self.tok_encode(context)
 
             context_enc_len = len(context_enc)
             continuation_enc = whole_enc[context_enc_len:]
+        else:
+            # for SEQ2SEQ case we need to encode separately
+            context_enc = self.tok_encode(context)
+            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
 
         return context_enc, continuation_enc
 
     def loglikelihood(
         self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[tuple[float, bool]]:
+        """
+        Compute log-likelihood of generating continuations from contexts.
+
+        This is the concrete implementation for TemplateLM and its subclasses.
+        It tokenizes context-continuation pairs and delegates scoring to
+        _loglikelihood_tokens.
+
+        **IMPORTANT**: This method is expected to handle empty context strings.
+        When context is empty (""), it uses the model's prefix_token_id (typically
+        BOS or EOS token) as context. If the continuation already starts with the
+        prefix token, it reuses that token as context instead of duplicating it.
+
+        :param requests: list[Instance]
+            List of Instance objects with property `args` returning (context, continuation) tuples.
+        :param disable_tqdm: bool
+            Whether to disable the progress bar in _loglikelihood_tokens.
+
+        :return: list[tuple[float, bool]]
+            List of (log_prob, is_greedy) tuples for each request.
+
+        Implementation details:
+            - Empty context: Uses prefix_token_id (BOS/EOS) as context
+            - Non-empty context: Uses _encode_pair for proper tokenization
+            - Avoids token duplication when continuation starts with prefix_token_id
+        """
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
-                # BOS or EOS as context
-                context_enc, continuation_enc = (
-                    [self.prefix_token_id],
-                    self.tok_encode(continuation),
+                continuation_enc = self.tok_encode(
+                    continuation, add_special_tokens=False
                 )
+                # BOS or EOS as context: handle when context is empty -> (context + continuation) -> (BOS + continuation
+                context_enc, continuation_enc = (
+                    ([self.prefix_token_id], continuation_enc)
+                    if self.prefix_token_id != continuation_enc[0]
+                    else (continuation_enc[:1], continuation_enc[1:])
+                )
+                # BOS or EOS as context
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
 
