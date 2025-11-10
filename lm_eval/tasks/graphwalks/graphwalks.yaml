@@ -1,7 +1,7 @@
 group: graphwalks
 task:
-  - graphwalks_short
-  - graphwalks_long
+  - graphwalks_128k
+  - graphwalks_1M
 aggregate_metric_list:
   - metric: f1
     weight_by_size: true

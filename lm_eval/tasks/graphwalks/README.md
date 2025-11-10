@@ -9,12 +9,12 @@ HuggingFace: https://huggingface.co/datasets/openai/graphwalks
 
 #### Groups
 
-* `graphwalks`: Run both `graphwalks_short` and `graphwalks_long`
+* `graphwalks`: Run both `graphwalks_128k` and `graphwalks_1M`
 
 #### Tasks
 
-* `graphwalks_short`: Up to 128k context length
-* `graphwalks_long`: Between 256k-1M context length
+* `graphwalks_128k`: Up to 128k context length
+* `graphwalks_1M`: Between 256k-1M context length
 
 > [!NOTE]
 > Please note that `max_gen_toks` is set to `16384`, but non-reasoning models do not need this many tokens.
