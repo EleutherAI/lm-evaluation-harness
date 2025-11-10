@@ -211,7 +211,7 @@ if __name__ == "__main__":
             "generation_kwargs": generation_kwargs,
             "has_newline": has_newline,  # Add the flag to the template context
             "metric_list": metric_list,
-            "metadata": {"version": "4.0"},
+            "metadata": {"version": "5.0"},
         }
 
         # Render template
