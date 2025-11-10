@@ -2,11 +2,12 @@
 tag:
   - longbench
 task: longbench_trec
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: trec
-doc_to_text: "Please determine the type of the question below. Here are some examples of questions.\n\n{{context}}\n{{input}}"
+doc_to_text: "Please determine the type of the question below. Here are some examples of questions.\n\n{{context}}\n{{question}}"
 doc_to_target: '{{answers}}'
+target_delimiter: ""
 process_results: !function metrics.get_classification_score
 generation_kwargs:
   max_gen_toks: 64

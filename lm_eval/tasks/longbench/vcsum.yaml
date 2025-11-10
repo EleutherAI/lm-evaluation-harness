@@ -2,7 +2,7 @@
 tag:
   - longbench
 task: longbench_vcsum
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: vcsum
 doc_to_text: "下面有一段会议记录，请你阅读后，写一段总结，总结会议的内容。\n会议记录：\n{{context}}\n\n会议总结："

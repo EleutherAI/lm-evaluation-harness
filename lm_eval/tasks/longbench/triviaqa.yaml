@@ -2,10 +2,11 @@
 tag:
   - longbench
 task: longbench_triviaqa
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: triviaqa
-doc_to_text: "Answer the question based on the given passage. Only give me the answer and do not output any other words. The following are some examples.\n\n{{context}}\n\n{{input}}"
+doc_to_text: "Answer the question based on the given passage. Only give me the answer and do not output any other words. The following are some examples.\n\n{{context}}\n{{question}}"
+target_delimiter: ""
 doc_to_target: '{{answers}}'
 process_results: !function metrics.get_qa_f1_score
 generation_kwargs:

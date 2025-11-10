@@ -2,10 +2,10 @@
 tag:
   - longbench
 task: longbench_multifieldqa_zh
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: multifieldqa_zh
-doc_to_text: "阅读以下文字并用中文简短回答：\n\n{{context}}\n\n现在请基于上面的文章回答下面的问题，只告诉我答案，不要输出任何其他字词。\n\n问题：{{input}}\n回答："
+doc_to_text: "阅读以下文字并用中文简短回答：\n\n{{context}}\n\n现在请基于上面的文章回答下面的问题，只告诉我答案，不要输出任何其他字词。\n\n问题：{{question}}\n回答："
 doc_to_target: '{{answers}}'
 process_results: !function metrics.get_qa_f1_zh_score
 generation_kwargs:

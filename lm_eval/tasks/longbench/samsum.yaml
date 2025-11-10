@@ -2,11 +2,12 @@
 tag:
   - longbench
 task: longbench_samsum
-dataset_path: THUDM/LongBench
+dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: samsum
-doc_to_text: "Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n\n{{input}}"
+doc_to_text: "Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n{{question}}"
 doc_to_target: '{{answers}}'
+target_delimiter: ""
 process_results: !function metrics.get_rouge_score
 generation_kwargs:
   max_gen_toks: 128
