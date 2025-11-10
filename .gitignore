@@ -45,3 +45,5 @@ examples/wandb/
 
 # PyInstaller
 *.spec
+
+*.o*
