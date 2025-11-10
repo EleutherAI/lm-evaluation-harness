@@ -4,7 +4,7 @@ This document contains all changes made by hhh2210 (hzy2210@gmail.com) to the lm
 
 ## Summary
 
-hhh2210 made 2 commits that focused on improving the handling of raw generations in model classes and adding support for Chain-of-Thought (COT) trace response handling.
+hhh2210 made 4 commits that focused on improving the handling of raw generations in model classes, adding support for Chain-of-Thought (COT) trace response handling, and fixing code formatting issues for CI/CD compliance.
 
 ## Commits
 
@@ -101,9 +101,46 @@ These changes collectively improve the evaluation framework by:
 
 4. **Consistent Implementation**: Both HFLM and VLLM models now handle raw generations in a consistent manner.
 
+### 4. style: Fix pre-commit hooks for CI/CD compliance
+**Commit Hash:** 0a5015b5  
+**Date:** Mon Nov 10 2025
+
+**Description:**
+- Fixed code formatting issues to pass all pre-commit hooks in CI/CD pipeline.
+- Ensured compliance with `end-of-file-fixer`, `ruff-format`, and `trailing-whitespace` hooks.
+
+This ensures that the PR passes linter checks in the CI/CD pipeline without automatic modifications.
+
+**Files Modified:**
+- `hhh2210_changes.md` (1 addition, 1 deletion)
+- `lm_eval/models/huggingface.py` (4 additions, 2 deletions)  
+- `lm_eval/models/vllm_causallms.py` (1 addition, 1 deletion)
+
+**Key Changes:**
+
+#### hhh2210_changes.md (line 109)
+- Added missing newline at end of file to satisfy `end-of-file-fixer` hook
+
+#### lm_eval/models/huggingface.py (line 1511)
+- Reformatted `self.cache_hook.add_partial` call to multi-line format to comply with `ruff-format` requirements for long parameter lists
+
+#### lm_eval/models/vllm_causallms.py (line 679)
+- Removed trailing whitespace from empty line to satisfy `trailing-whitespace` hook
+
+**Verification:**
+- Installed pre-commit locally via `pip install pre-commit`
+- Ran `SKIP=no-commit-to-branch pre-commit run --show-diff-on-failure --color=always --all-files`
+- All hooks passed successfully ✅
+
+**Rationale:**
+- Ensures consistent code style across the project
+- Prevents CI/CD pipeline failures due to linting issues
+- Maintains compatibility with project's pre-commit configuration
+
 ## Code Quality Improvements
 
 - Proper separation of concerns between raw text generation and post-processing
 - Better error handling with warning messages for mismatched response lengths  
 - Cleaner code structure with dedicated buffers for temporary data
 - Enhanced maintainability through consistent patterns across model implementations
+- Full compliance with pre-commit hooks for automated code quality checks
