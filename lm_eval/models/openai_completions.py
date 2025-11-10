@@ -213,9 +213,16 @@ class LocalChatCompletion(LocalCompletionsAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
-            tmp = [None] * len(out["choices"])
-            for choices in out["choices"]:
-                tmp[choices["index"]] = choices["message"]["content"]
+            try:
+                tmp = [None] * len(out["choices"])
+                for choices in out["choices"]:
+                    tmp[choices["index"]] = choices["message"]["content"]
+            except Exception as e:
+                # account for cases that generation is blocked by content filter,
+                # which is common for Azure OpenAI Service,
+                # not sure if need to account for multiple choices
+                eval_logger.warning(f"Could not parse generations: {e}")
+                tmp = [""]
             res = res + tmp
         return res
 
@@ -346,3 +353,38 @@ class OpenAIChatCompletion(LocalChatCompletion):
             output.pop("stop")
             output["temperature"] = 1
         return output
+
+
+@register_model("azure-openai-chat-completions")
+class AzureOpenaiChatCompletionsLM(OpenAIChatCompletion):
+    def __init__(
+        self,
+        model: str = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+        base_url: str = os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_version: str = os.getenv("AZURE_OPENAI_API_VERSION", "2025-03-01-preview"),
+        truncate: bool = False,
+        **kwargs,
+    ) -> None:
+        super().__init__()
+        try:
+            import openai  # noqa: E401
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            )
+        self.model = model
+        self.base_url = f"{base_url}/openai/deployments/{model}/chat/completions?api-version={api_version}"
+        self.truncate = truncate
+        self.client = openai.AzureOpenAI(
+            azure_endpoint=base_url, api_version=api_version, api_key=self.api_key
+        )
+
+    @cached_property
+    def api_key(self):
+        key = os.environ.get("AZURE_OPENAI_API_KEY", None)
+        if key is None:
+            raise ValueError(
+                "API key not found. Please set the `AZURE_OPENAI_API_KEY` environment variable."
+            )
+        return key

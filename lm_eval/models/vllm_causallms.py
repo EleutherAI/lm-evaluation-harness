@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import gc
 import logging
@@ -19,8 +21,10 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
+    _add_special_kwargs,
     configure_pad_token,
     handle_stop_sequences,
+    has_bos_prefix,
     postprocess_generated_text,
     undistribute,
 )
@@ -118,7 +122,7 @@ class VLLM(TemplateLM):
         tokenizer: Optional[str] = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
-        add_bos_token: Optional[bool] = False,
+        add_bos_token: Optional[bool] = None,
         prefix_token_id: Optional[int] = None,
         tensor_parallel_size: int = 1,
         quantization: Optional[str] = None,
@@ -195,11 +199,7 @@ class VLLM(TemplateLM):
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
-        if "gemma" in pretrained.lower():
-            add_bos_token = True
-            eval_logger.info(
-                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
-            )
+        self.add_bos_token = add_bos_token
 
         from transformers import AutoConfig
 
@@ -211,14 +211,17 @@ class VLLM(TemplateLM):
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
             revision=tokenizer_revision,
-            add_bos_token=add_bos_token,
+            **(
+                {"add_bos_token": self.add_bos_token}
+                if self.add_bos_token is not None
+                else {}
+            ),
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
         self.chat_template_args = chat_template_args or {}
         self.enable_thinking = self.chat_template_args.pop(
             "enable_thinking", enable_thinking
         )
-        self.add_bos_token = add_bos_token
 
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
             kwargs_resolve_hf_chat_template = {
@@ -338,27 +341,61 @@ class VLLM(TemplateLM):
     def tok_encode(
         self,
         string: Union[str, List[str]],
-        left_truncate_len: int = None,
-        add_special_tokens: bool = False,
-        truncation: bool = False,
+        add_special_tokens=None,
+        **kwargs,
     ) -> Union[List[int], List[List[int]]]:
-        if not add_special_tokens:
-            add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
-            string,
-            add_special_tokens=add_special_tokens,
-            truncation=truncation,
-            return_attention_mask=False,
-        ).input_ids
+        if not string:
+            return []
+        _string = [string] if isinstance(string, str) else string
+        _bos_token = self.tokenizer.decode(self.prefix_token_id)
 
-        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
-        if left_truncate_len:
-            if not isinstance(string, str):
-                encoding = [enc[-left_truncate_len:] for enc in encoding]
-            else:
-                encoding = encoding[-left_truncate_len:]
+        special_tokens_kwargs = {
+            **kwargs,
+            **_add_special_kwargs(add_special_tokens, self.add_bos_token),
+        }
 
-        return encoding
+        # this is to handle chat templates, which usually add bos token.
+        # this handles a mixed case where some messages have bos token and some don't,
+        # which should not (ever) be the case but to be exhaustive.
+        has_prefix_flags = [has_bos_prefix(s, _bos_token) for s in _string]
+        idx_has = [i for i, f in enumerate(has_prefix_flags) if f]
+        idx_not = [i for i, f in enumerate(has_prefix_flags) if not f]
+
+        strs_has = [_string[i] for i in idx_has]
+        strs_not = [_string[i] for i in idx_not]
+
+        enc_has = []
+        # If the text already has BOS, do not add special tokens (to avoid double BOS).
+        if strs_has:
+            kwargs_off = {**special_tokens_kwargs, "add_special_tokens": False}
+            enc_has = (
+                self.tokenizer(
+                    strs_has,
+                    return_attention_mask=False,
+                    **kwargs_off,
+                ).input_ids
+                if strs_has
+                else []
+            )
+
+        enc_not = (
+            self.tokenizer(
+                strs_not,
+                return_attention_mask=False,
+                **special_tokens_kwargs,
+            ).input_ids
+            if strs_not
+            else []
+        )
+        out: list[list[int]] = [None] * len(_string)  # type: ignore
+        for j, i in enumerate(idx_has):
+            out[i] = enc_has[j]
+        for j, i in enumerate(idx_not):
+            out[i] = enc_not[j]
+
+        # we do not truncate here, as vllm can handle each request separately
+
+        return out[0] if isinstance(string, str) else out
 
     def _model_generate(
         self,
@@ -370,7 +407,7 @@ class VLLM(TemplateLM):
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
-        if not isinstance(sampling_params, List):
+        if not isinstance(sampling_params, list):
             sampling_params = [sampling_params] * len(requests)
         if self.data_parallel_size > 1 and not self.V1:
             # vLLM hangs if resources are set in ray.remote
@@ -562,10 +599,8 @@ class VLLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding: List[List[int]] = self.tok_encode(
-            context, add_special_tokens=self.add_bos_token
-        )
-        requests = [
+        context_encoding = self.tok_encode(context)
+        reqs = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
 
@@ -579,7 +614,7 @@ class VLLM(TemplateLM):
             return -len(_requests[0][1]), _requests[0][0]
 
         re_ords = Collator(
-            requests,
+            reqs,
             _collate_gen,
             group_by=None,
         )
@@ -588,7 +623,7 @@ class VLLM(TemplateLM):
         )
 
         pbar = tqdm(
-            total=len(requests),
+            total=len(reqs),
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )

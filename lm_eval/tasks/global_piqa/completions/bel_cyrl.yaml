@@ -1,0 +1,3 @@
+dataset_name: bel_cyrl
+include: _template
+task: global_piqa_completions_bel_cyrl
