@@ -169,9 +169,11 @@ class LM(abc.ABC):
         - Instance of the LM class.
         """
 
-        additional_config = additional_config or {} | {
-            k: v for k, v in additional_config.items() if v is not None
-        }
+        additional_config = (
+            {}
+            if additional_config is None
+            else {k: v for k, v in additional_config.items() if v is not None}
+        )
 
         return cls(**arg_dict, **additional_config)
 
