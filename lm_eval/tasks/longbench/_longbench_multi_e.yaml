@@ -1,0 +1,10 @@
+group: longbench_multi_e
+group_alias: "Multi-Document QA (LongBench-E)"
+task:
+  - longbench_hotpotqa_e
+  - longbench_2wikimqa_e
+aggregate_metric_list:
+  - metric: score
+    weight_by_size: False
+metadata:
+  version: 0.0

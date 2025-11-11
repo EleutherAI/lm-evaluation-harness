@@ -1,21 +1,25 @@
 
 tag:
-  - longbench
+  - longbench_synthetic_tasks
+  - longbench_tasks
 task: longbench_passage_count
 dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: passage_count
 doc_to_text: "There are some paragraphs below sourced from Wikipedia. Some of them may be duplicates. Please carefully read these paragraphs and determine how many unique paragraphs there are after removing duplicates. In other words, how many non-repeating paragraphs are there in total?\n\n{{context}}\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number, such as 1, 2, 3, and so on.\n\nThe final answer is:"
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_count_score
+process_results: !function metrics.get_count_with_score
 generation_kwargs:
   max_gen_toks: 32
   temperature: 1
   do_sample: False
   until: []
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "count_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

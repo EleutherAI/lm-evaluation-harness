@@ -1,6 +1,7 @@
 
 tag:
-  - longbench
+  - longbench_fewshot_tasks
+  - longbench_tasks
 task: longbench_trec
 dataset_path: Xnhyacinth/LongBench
 test_split: test
@@ -8,15 +9,18 @@ dataset_name: trec
 doc_to_text: "Please determine the type of the question below. Here are some examples of questions.\n\n{{context}}\n{{question}}"
 doc_to_target: '{{answers}}'
 target_delimiter: ""
-process_results: !function metrics.get_classification_score
+process_results: !function metrics.get_classification_with_score
 generation_kwargs:
   max_gen_toks: 64
   temperature: 1
   do_sample: False
   until: ["\n"]
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "classification_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

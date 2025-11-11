@@ -1,21 +1,25 @@
 
 tag:
-  - longbench
+  - longbench_single_tasks
+  - longbench_tasks
 task: longbench_qasper
 dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: qasper
 doc_to_text: "You are given a scientific article and a question. Answer the question as concisely as you can, using a single phrase or sentence if possible. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nArticle: {{context}}\n\n Answer the question based on the above article as concisely as you can, using a single phrase or sentence if possible. If the question cannot be answered based on the information in the article, write \"unanswerable\". If the question is a yes/no question, answer \"yes\", \"no\", or \"unanswerable\". Do not provide any explanation.\n\nQuestion: {{question}}\n\nAnswer:"
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_qa_f1_score
+process_results: !function metrics.get_qa_f1_with_score
 generation_kwargs:
   max_gen_toks: 128
   temperature: 1
   do_sample: False
   until: []
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "qa_f1_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

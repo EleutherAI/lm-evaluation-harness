@@ -1,21 +1,25 @@
 
 tag:
-  - longbench
+  - longbench_synthetic_tasks
+  - longbench_tasks
 task: longbench_passage_retrieval_en
 dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: passage_retrieval_en
 doc_to_text: "Here are 30 paragraphs from Wikipedia, along with an abstract. Please determine which paragraph the abstract is from.\n\n{{context}}\n\nThe following is an abstract.\n\n{{question}}\n\nPlease enter the number of the paragraph that the abstract is from. The answer format must be like \"Paragraph 1\", \"Paragraph 2\", etc.\n\nThe answer is:"
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_retrieval_score
+process_results: !function metrics.get_retrieval_with_score
 generation_kwargs:
   max_gen_toks: 32
   temperature: 1
   do_sample: False
   until: []
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "retrieval_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

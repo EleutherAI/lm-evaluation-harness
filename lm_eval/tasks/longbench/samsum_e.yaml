@@ -1,6 +1,7 @@
 
 tag:
-  - longbench_e
+  - longbench_fewshot_tasks_e
+  - longbench_tasks_e
 task: longbench_samsum_e
 dataset_path: Xnhyacinth/LongBench
 test_split: test
@@ -8,15 +9,18 @@ dataset_name: samsum_e
 doc_to_text: "Summarize the dialogue into a few short sentences. The following are some examples.\n\n{{context}}\n{{question}}"
 doc_to_target: '{{answers}}'
 target_delimiter: ""
-process_results: !function metrics.get_rouge_score
+process_results: !function metrics.get_rouge_with_score
 generation_kwargs:
   max_gen_toks: 128
   temperature: 1
   do_sample: False
   until: ["\n"]
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "rouge_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

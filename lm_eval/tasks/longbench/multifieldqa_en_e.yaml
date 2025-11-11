@@ -1,21 +1,25 @@
 
 tag:
-  - longbench_e
+  - longbench_single_tasks_e
+  - longbench_tasks_e
 task: longbench_multifieldqa_en_e
 dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: multifieldqa_en_e
 doc_to_text: "Read the following text and answer briefly.\n\n{{context}}\n\nNow, answer the following question based on the above text, only give me the answer and do not output any other words.\n\nQuestion: {{question}}\nAnswer:"
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_qa_f1_score
+process_results: !function metrics.get_qa_f1_with_score
 generation_kwargs:
   max_gen_toks: 64
   temperature: 1
   do_sample: False
   until: []
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "qa_f1_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0

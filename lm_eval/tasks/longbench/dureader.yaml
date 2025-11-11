@@ -1,21 +1,25 @@
 
 tag:
-  - longbench
+  - longbench_multi_tasks
+  - longbench_tasks
 task: longbench_dureader
 dataset_path: Xnhyacinth/LongBench
 test_split: test
 dataset_name: dureader
 doc_to_text: "请基于给定的文章回答下述问题。\n\n文章：{{context}}\n\n请基于上述文章回答下面的问题。\n\n问题：{{question}}\n回答："
 doc_to_target: '{{answers}}'
-process_results: !function metrics.get_rouge_zh_score
+process_results: !function metrics.get_rouge_zh_with_score
 generation_kwargs:
   max_gen_toks: 128
   temperature: 1
   do_sample: False
   until: []
 metric_list:
+  - metric: "score"
+    aggregation: mean
+    higher_is_better: True
   - metric: "rouge_zh_score"
     aggregation: mean
     higher_is_better: True
 metadata:
-  version: 4.0
+  version: 5.0
