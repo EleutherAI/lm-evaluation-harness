@@ -3,5 +3,5 @@
   \ school biology.\n\n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_high_school_biology_generative"
+"task": "mmlu_redux_high_school_biology_generative"
 "task_alias": "high_school_biology"

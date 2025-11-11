@@ -3,5 +3,5 @@
   \n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_anatomy_generative"
+"task": "mmlu_redux_anatomy_generative"
 "task_alias": "anatomy"

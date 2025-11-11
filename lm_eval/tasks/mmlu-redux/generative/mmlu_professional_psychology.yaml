@@ -3,5 +3,5 @@
   \ psychology.\n\n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_professional_psychology_generative"
+"task": "mmlu_redux_professional_psychology_generative"
 "task_alias": "professional_psychology"

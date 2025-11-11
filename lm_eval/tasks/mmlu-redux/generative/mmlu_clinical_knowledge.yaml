@@ -3,5 +3,5 @@
   \ knowledge.\n\n"
 "tag": "mmlu_other_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_clinical_knowledge_generative"
+"task": "mmlu_redux_clinical_knowledge_generative"
 "task_alias": "clinical_knowledge"

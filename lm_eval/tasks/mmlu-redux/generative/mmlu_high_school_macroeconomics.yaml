@@ -3,5 +3,5 @@
   \ school macroeconomics.\n\n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_high_school_macroeconomics_generative"
+"task": "mmlu_redux_high_school_macroeconomics_generative"
 "task_alias": "high_school_macroeconomics"

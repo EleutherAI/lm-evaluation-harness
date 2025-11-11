@@ -3,5 +3,5 @@
   \ law.\n\n"
 "tag": "mmlu_humanities_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_international_law_generative"
+"task": "mmlu_redux_international_law_generative"
 "task_alias": "international_law"

@@ -3,5 +3,5 @@
   \ relations.\n\n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_public_relations_generative"
+"task": "mmlu_redux_public_relations_generative"
 "task_alias": "public_relations"

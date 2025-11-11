@@ -3,5 +3,5 @@
   \ security.\n\n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_computer_security_generative"
+"task": "mmlu_redux_computer_security_generative"
 "task_alias": "computer_security"

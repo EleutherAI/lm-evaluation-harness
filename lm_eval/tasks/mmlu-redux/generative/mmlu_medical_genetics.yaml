@@ -3,5 +3,5 @@
   \ genetics.\n\n"
 "tag": "mmlu_other_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_medical_genetics_generative"
+"task": "mmlu_redux_medical_genetics_generative"
 "task_alias": "medical_genetics"

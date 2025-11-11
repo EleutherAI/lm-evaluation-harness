@@ -3,5 +3,5 @@
   \ physics.\n\n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_college_physics_generative"
+"task": "mmlu_redux_college_physics_generative"
 "task_alias": "college_physics"
