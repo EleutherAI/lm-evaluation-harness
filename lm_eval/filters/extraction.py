@@ -38,6 +38,8 @@ class RegexFilter(Filter):
         def filter_set(inst):
             filtered = []
             for resp in inst:
+                if not isinstance(resp, str):
+                    resp = ""
                 match = self.regex.findall(resp)
                 if match:
                     match = match[self.group_select]
@@ -159,6 +161,8 @@ class MultiChoiceRegexFilter(RegexFilter):
         # independently (and keep them a list.)
 
         def find_match(regex, resp, convert_dict={}):
+            if not isinstance(resp, str):
+                resp = ""
             match = regex.findall(resp)
             if match:
                 match = match[self.group_select]
