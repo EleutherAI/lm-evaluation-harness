@@ -9,11 +9,13 @@ from . import (
     huggingface,
     ibm_watsonx_ai,
     mamba_lm,
-    mistral_completions,
+    mistral_completions, #! Added by Anwar
+    gemini_completions, #! Added by Anwar
     nemo_lm,
     neuralmagic,
     neuron_optimum,
     openai_completions,
+    gemini_completions,
     optimum_ipex,
     optimum_lm,
     sglang_causallms,
