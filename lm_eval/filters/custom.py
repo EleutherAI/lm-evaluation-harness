@@ -15,3 +15,11 @@ class CustomFilter(Filter):
 
     def apply(self, resps, docs):
         return self.filter_fn(resps, docs)
+
+@register_filter("identity")
+class IdentityFilter(Filter):
+    def __init__(self) -> None:
+        pass
+
+    def apply(self, resps, docs):
+        return resps
