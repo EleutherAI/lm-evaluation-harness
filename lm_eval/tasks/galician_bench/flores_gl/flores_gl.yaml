@@ -1,21 +1,21 @@
 group: flores_gl
 task:
-  - flores_es-gl
-  - flores_gl-es
-  - flores_en-gl
-  - flores_gl-en
-  - flores_eu-gl
-  - flores_gl-eu
-  - flores_pt-gl
-  - flores_gl-pt
-  - flores_it-gl
-  - flores_gl-it
-  - flores_fr-gl
-  - flores_gl-fr
-  - flores_ca-gl
-  - flores_gl-ca
-  - flores_gl-de
-  - flores_de-gl
+  - galician_bench_flores_es-gl
+  - galician_bench_flores_gl-es
+  - galician_bench_flores_en-gl
+  - galician_bench_flores_gl-en
+  - galician_bench_flores_eu-gl
+  - galician_bench_flores_gl-eu
+  - galician_bench_flores_pt-gl
+  - galician_bench_flores_gl-pt
+  - galician_bench_flores_it-gl
+  - galician_bench_flores_gl-it
+  - galician_bench_flores_fr-gl
+  - galician_bench_flores_gl-fr
+  - galician_bench_flores_ca-gl
+  - galician_bench_flores_gl-ca
+  - galician_bench_flores_gl-de
+  - galician_bench_flores_de-gl
 aggregate_metric_list:
   - metric: bleu
     aggregation: mean

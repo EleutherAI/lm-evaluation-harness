@@ -490,6 +490,8 @@ class TaskManager:
         tasks_and_groups = collections.defaultdict()
         for root, dirs, file_list in os.walk(task_dir):
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
+            dirs.sort()  # Sort directories for deterministic traversal order
+            file_list.sort()  # Sort files for consistent processing order
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
@@ -528,6 +530,13 @@ class TaskManager:
                     elif self._config_is_task(config):
                         # This is a task config
                         task = config["task"]
+                        if task in tasks_and_groups:
+                            eval_logger.warning(
+                                f"Duplicate task name '{task}' found. "
+                                f"Already registered from: {tasks_and_groups[task]['yaml_path']}. "
+                                f"Skipping duplicate from: {yaml_path}"
+                            )
+                            continue
                         tasks_and_groups[task] = {
                             "type": "task",
                             "yaml_path": yaml_path,

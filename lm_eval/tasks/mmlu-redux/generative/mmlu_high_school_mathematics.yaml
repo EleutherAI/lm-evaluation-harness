@@ -1,7 +1,7 @@
 "dataset_name": "high_school_mathematics"
 "description": "The following are multiple choice questions (with answers) about high\
   \ school mathematics.\n\n"
-"tag": "mmlu_stem_generative"
+"tag": "mmlu_redux_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_high_school_mathematics_generative"
+"task": "mmlu_redux_high_school_mathematics_generative"
 "task_alias": "high_school_mathematics"

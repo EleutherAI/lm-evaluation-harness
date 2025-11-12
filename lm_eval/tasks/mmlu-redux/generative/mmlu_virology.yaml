@@ -1,7 +1,7 @@
 "dataset_name": "virology"
 "description": "The following are multiple choice questions (with answers) about virology.\n\
   \n"
-"tag": "mmlu_other_generative"
+"tag": "mmlu_redux_other_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_virology_generative"
+"task": "mmlu_redux_virology_generative"
 "task_alias": "virology"
