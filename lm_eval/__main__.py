@@ -290,6 +290,12 @@ def setup_parser() -> argparse.ArgumentParser:
         default=None,
         help="""JSON string metadata to pass to task configs, for example '{"max_seq_lengths":[4096,8192]}'. Will be merged with model_args. Can also be set in task config.""",
     )
+    parser.add_argument(
+        "--think_tokens",
+        type=try_parse_json,
+        default=None,
+        help="""JSON string defining the start and end tokens for 'thinking' steps, e.g., '{"think_start_token":"<think>","think_end_token":"</think>"}'"""
+    )
     return parser
 
 
@@ -357,6 +363,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         if isinstance(args.metadata, dict)
         else simple_parse_args_string(args.metadata)
     )
+
+    if args.think_tokens is not None:
+        metadata["think_tokens"] = args.think_tokens
 
     task_manager = TaskManager(include_path=args.include_path, metadata=metadata)
 

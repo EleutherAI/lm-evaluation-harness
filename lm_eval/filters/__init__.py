@@ -8,7 +8,7 @@ from . import custom, extraction, selection, transformation
 
 
 def build_filter_ensemble(
-    filter_name: str, components: List[List[str]]
+    filter_name: str, components: List[List[str]], think_tokens: dict
 ) -> FilterEnsemble:
     """
     Create a filtering pipeline.
@@ -22,4 +22,4 @@ def build_filter_ensemble(
         # add the filter as a pipeline step
         filters.append(f)
 
-    return FilterEnsemble(name=filter_name, filters=filters)
+    return FilterEnsemble(name=filter_name, filters=filters, think_tokens=think_tokens)
