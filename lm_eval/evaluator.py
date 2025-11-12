@@ -584,9 +584,21 @@ def evaluate(
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
+        raw_resps = []
+        if reqtype == "generate_until" and hasattr(lm, "raw_generations"):
+            raw_resps = lm.raw_generations
+            if len(raw_resps) != len(resps):
+                eval_logger.warning(
+                    f"Length of raw generations ({len(raw_resps)}) does not match length of processed responses ({len(resps)})."
+                )
+
         # put responses from model into a list of length K for each request.
-        for x, req in zip(resps, cloned_reqs):
+        for i, (x, req) in enumerate(zip(resps, cloned_reqs)):
             req.resps.append(x)
+            if raw_resps and i < len(raw_resps):
+                if not hasattr(req, "raw_resps"):
+                    req.raw_resps = []
+                req.raw_resps.append(raw_resps[i])
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
@@ -610,7 +622,16 @@ def evaluate(
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps.keys():
+        available_filters = list(task.instances[0].filtered_resps.keys())
+        # Only log samples for a single preferred filter to avoid duplicate per-doc entries
+        # Prefer flexible-extract for GSM8K-style numeric answers; fallback to strict-match, else first.
+        if "flexible-extract" in available_filters:
+            preferred_filter_for_logging = "flexible-extract"
+        elif "strict-match" in available_filters:
+            preferred_filter_for_logging = "strict-match"
+        else:
+            preferred_filter_for_logging = available_filters[0]
+        for filter_key in available_filters:
             indices = (
                 samples.get(task_output.task_name, None)
                 if samples is not None
@@ -631,14 +652,17 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
-                if log_samples:
+                if log_samples and filter_key == preferred_filter_for_logging:
                     target = task.doc_to_target(doc)
                     example = {
                         "doc_id": doc_id_true,
                         "doc": doc,
                         "target": target,
                         "arguments": [req.args for req in requests],
-                        "resps": [req.resps for req in requests],
+                        "resps": [
+                            req.raw_resps if hasattr(req, "raw_resps") else req.resps
+                            for req in requests
+                        ],
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
