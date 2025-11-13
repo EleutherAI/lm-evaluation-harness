@@ -8,6 +8,7 @@ doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
 doc_to_target: "{{' '+text.split(' ')[-1]}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{text}}"
+dataset_kwargs: {trust_remote_code: True}
 metric_list:
   - metric: perplexity
     aggregation: perplexity
