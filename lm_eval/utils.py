@@ -576,7 +576,7 @@ def convert_pil_to_hash(value):
 
     img_bytes = BytesIO()
     value.save(img_bytes, format="PNG")
-    return hashlib.sha256(str(img_bytes).encode()).hexdigest()
+    return hashlib.sha256(img_bytes.getvalue()).hexdigest()
 
 
 def convert_bytes_to_hash(value):
