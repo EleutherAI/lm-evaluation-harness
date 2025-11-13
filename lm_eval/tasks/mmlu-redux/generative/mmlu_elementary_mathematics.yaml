@@ -3,5 +3,5 @@
   \ mathematics.\n\n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_elementary_mathematics_generative"
+"task": "mmlu_redux_elementary_mathematics_generative"
 "task_alias": "elementary_mathematics"

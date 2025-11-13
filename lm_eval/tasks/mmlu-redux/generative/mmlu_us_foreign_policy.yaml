@@ -3,5 +3,5 @@
   \ foreign policy.\n\n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_us_foreign_policy_generative"
+"task": "mmlu_redux_us_foreign_policy_generative"
 "task_alias": "us_foreign_policy"

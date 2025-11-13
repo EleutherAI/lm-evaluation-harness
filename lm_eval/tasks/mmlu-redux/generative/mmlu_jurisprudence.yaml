@@ -3,5 +3,5 @@
   \n"
 "tag": "mmlu_humanities_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_jurisprudence_generative"
+"task": "mmlu_redux_jurisprudence_generative"
 "task_alias": "jurisprudence"

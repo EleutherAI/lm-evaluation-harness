@@ -3,5 +3,5 @@
   \ facts.\n\n"
 "tag": "mmlu_other_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_global_facts_generative"
+"task": "mmlu_redux_global_facts_generative"
 "task_alias": "global_facts"

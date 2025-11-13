@@ -3,5 +3,5 @@
   \ algebra.\n\n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_abstract_algebra_generative"
+"task": "mmlu_redux_abstract_algebra_generative"
 "task_alias": "abstract_algebra"

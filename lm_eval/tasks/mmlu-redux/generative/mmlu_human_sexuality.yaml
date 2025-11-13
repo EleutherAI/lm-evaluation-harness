@@ -3,5 +3,5 @@
   \ sexuality.\n\n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_human_sexuality_generative"
+"task": "mmlu_redux_human_sexuality_generative"
 "task_alias": "human_sexuality"

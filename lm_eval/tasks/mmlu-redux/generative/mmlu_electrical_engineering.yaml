@@ -3,5 +3,5 @@
   \ engineering.\n\n"
 "tag": "mmlu_stem_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_electrical_engineering_generative"
+"task": "mmlu_redux_electrical_engineering_generative"
 "task_alias": "electrical_engineering"

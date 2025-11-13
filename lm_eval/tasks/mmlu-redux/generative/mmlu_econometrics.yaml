@@ -3,5 +3,5 @@
   \n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_econometrics_generative"
+"task": "mmlu_redux_econometrics_generative"
 "task_alias": "econometrics"

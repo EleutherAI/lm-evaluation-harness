@@ -3,5 +3,5 @@
   \ studies.\n\n"
 "tag": "mmlu_social_sciences_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_security_studies_generative"
+"task": "mmlu_redux_security_studies_generative"
 "task_alias": "security_studies"
