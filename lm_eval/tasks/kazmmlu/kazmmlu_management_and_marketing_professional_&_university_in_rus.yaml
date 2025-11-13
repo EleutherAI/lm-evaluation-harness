@@ -1,0 +1,5 @@
+"dataset_name": "Management and Marketing (Professional & University in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_social_science"
+"task": "kazmmlu_management_and_marketing_(professional_&_university_in_rus)"
+"task_alias": "Management and Marketing (Professional & University in rus)"
