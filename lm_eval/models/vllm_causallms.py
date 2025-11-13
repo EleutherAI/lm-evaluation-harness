@@ -47,7 +47,7 @@ try:
         # Moved since vllm-project/vllm#27164
         from vllm.utils.network_utils import get_open_port
     except ModuleNotFoundError:
-        from vllm.network_utils import get_open_port
+        from vllm.utils import get_open_port
 except ModuleNotFoundError:
     pass
 
