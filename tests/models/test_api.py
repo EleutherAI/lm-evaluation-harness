@@ -226,3 +226,99 @@ def test_get_batched_requests_with_no_ssl(
 
         mock_connector.assert_called_with(limit=2, ssl=False)
         assert result_batches
+
+
+def test_local_completionsapi_remote_tokenizer_authenticated(monkeypatch):
+    captured = {}
+
+    class DummyTokenizer:
+        def __init__(
+            self, base_url, timeout, verify_certificate, ca_cert_path, auth_token
+        ):
+            captured.update(locals())
+
+    monkeypatch.setattr("lm_eval.utils.RemoteTokenizer", DummyTokenizer)
+    LocalCompletionsAPI(
+        base_url="https://secure-server",
+        tokenizer_backend="remote",
+        verify_certificate=True,
+        ca_cert_path="secure.crt",
+        auth_token="secure-token",
+    )
+    assert captured["base_url"] == "https://secure-server"
+    assert captured["verify_certificate"] is True
+    assert captured["ca_cert_path"] == "secure.crt"
+    assert captured["auth_token"] == "secure-token"
+
+
+def test_local_completionsapi_remote_tokenizer_unauthenticated(monkeypatch):
+    captured = {}
+
+    class DummyTokenizer:
+        def __init__(
+            self, base_url, timeout, verify_certificate, ca_cert_path, auth_token
+        ):
+            captured.update(locals())
+
+    monkeypatch.setattr("lm_eval.utils.RemoteTokenizer", DummyTokenizer)
+    LocalCompletionsAPI(
+        base_url="http://localhost:8000",
+        tokenizer_backend="remote",
+        verify_certificate=False,
+        ca_cert_path=None,
+        auth_token=None,
+    )
+    assert captured["base_url"] == "http://localhost:8000"
+    assert captured["verify_certificate"] is False
+    assert captured["ca_cert_path"] is None
+    assert captured["auth_token"] is None
+
+
+def test_localchatcompletion_remote_tokenizer_authenticated(monkeypatch):
+    captured = {}
+
+    class DummyTokenizer:
+        def __init__(
+            self, base_url, timeout, verify_certificate, ca_cert_path, auth_token
+        ):
+            captured.update(locals())
+
+    monkeypatch.setattr("lm_eval.utils.RemoteTokenizer", DummyTokenizer)
+    from lm_eval.models.openai_completions import LocalChatCompletion
+
+    LocalChatCompletion(
+        base_url="https://secure-server",
+        tokenizer_backend="remote",
+        verify_certificate=True,
+        ca_cert_path="secure.crt",
+        auth_token="secure-token",
+    )
+    assert captured["base_url"] == "https://secure-server"
+    assert captured["verify_certificate"] is True
+    assert captured["ca_cert_path"] == "secure.crt"
+    assert captured["auth_token"] == "secure-token"
+
+
+def test_localchatcompletion_remote_tokenizer_unauthenticated(monkeypatch):
+    captured = {}
+
+    class DummyTokenizer:
+        def __init__(
+            self, base_url, timeout, verify_certificate, ca_cert_path, auth_token
+        ):
+            captured.update(locals())
+
+    monkeypatch.setattr("lm_eval.utils.RemoteTokenizer", DummyTokenizer)
+    from lm_eval.models.openai_completions import LocalChatCompletion
+
+    LocalChatCompletion(
+        base_url="http://localhost:8000",
+        tokenizer_backend="remote",
+        verify_certificate=False,
+        ca_cert_path=None,
+        auth_token=None,
+    )
+    assert captured["base_url"] == "http://localhost:8000"
+    assert captured["verify_certificate"] is False
+    assert captured["ca_cert_path"] is None
+    assert captured["auth_token"] is None
