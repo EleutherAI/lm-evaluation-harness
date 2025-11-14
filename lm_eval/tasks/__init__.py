@@ -711,7 +711,9 @@ def get_task_dict(
                         eval_logger.info(f"    Subgroup: {subgroup.group}")
                         for task_name, configurable_task in task_dict.items():
                             if isinstance(configurable_task, ConfigurableTask):
-                                eval_logger.info(f"        Task: {task_name} ({task_manager.task_index[task_name]['yaml_path']})")
+                                eval_logger.info(
+                                    f"        Task: {task_name} ({task_manager.task_index[task_name]['yaml_path']})"
+                                )
                             else:
                                 eval_logger.info(f"{task_name}: {configurable_task}")
                 else:
