@@ -1,0 +1,6 @@
+"dataset_name": "college_physics"
+"description": "The following are questions (with answers) about college\
+  \ physics.\n\n"
+"tag": "mmlu_stem_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_college_physics_continuation"

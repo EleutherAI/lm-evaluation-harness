@@ -1,0 +1,6 @@
+"dataset_name": "high_school_mathematics"
+"description": "The following are questions (with answers) about high\
+  \ school mathematics.\n\n"
+"tag": "mmlu_stem_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_high_school_mathematics_continuation"

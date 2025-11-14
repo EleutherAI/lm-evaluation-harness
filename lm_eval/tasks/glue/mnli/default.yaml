@@ -1,0 +1,14 @@
+tag: glue
+task: mnli
+dataset_path: nyu-mll/glue
+dataset_name: mnli
+output_type: multiple_choice
+training_split: train
+validation_split: validation_matched
+doc_to_text: !function utils.doc_to_text
+doc_to_target: label
+doc_to_choice: ["True", "Neither", "False"]
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

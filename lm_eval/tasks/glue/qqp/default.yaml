@@ -1,0 +1,15 @@
+tag: glue
+task: qqp
+dataset_path: nyu-mll/glue
+dataset_name: qqp
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "Question 1: {{question1}}\nQuestion 2: {{question2}}\nQuestion: Do both questions ask the same thing?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["no", "yes"]
+metric_list:
+  - metric: acc
+  - metric: f1
+metadata:
+  version: 2.0

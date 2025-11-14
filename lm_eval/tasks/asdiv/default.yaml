@@ -1,0 +1,14 @@
+task: asdiv
+dataset_path: EleutherAI/asdiv
+output_type: loglikelihood
+validation_split: validation
+doc_to_text: "{{body}}\nQuestion:{{question}}\nAnswer:"
+doc_to_target: "{{answer.split(' (')[0]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{body}} {{question}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

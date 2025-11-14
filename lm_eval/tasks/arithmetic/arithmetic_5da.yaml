@@ -1,0 +1,3 @@
+include: arithmetic_1dc.yaml
+task: arithmetic_5da
+dataset_name: arithmetic_5da

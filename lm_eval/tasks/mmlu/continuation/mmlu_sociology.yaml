@@ -1,0 +1,6 @@
+"dataset_name": "sociology"
+"description": "The following are questions (with answers) about sociology.\n\
+  \n"
+"tag": "mmlu_social_sciences_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_sociology_continuation"

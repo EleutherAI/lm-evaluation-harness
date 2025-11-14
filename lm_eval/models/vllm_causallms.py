@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import copy
 import gc
-import inspect
 import logging
 import os
 from importlib.metadata import version
@@ -20,8 +21,11 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
+    _add_special_kwargs,
     configure_pad_token,
     handle_stop_sequences,
+    has_bos_prefix,
+    postprocess_generated_text,
     undistribute,
 )
 from lm_eval.utils import (
@@ -32,7 +36,7 @@ from lm_eval.utils import (
 
 try:
     import ray
-    from vllm import LLM, SamplingParams
+    from vllm import LLM, SamplingParams, TokensPrompt
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
     from vllm.utils import get_open_port
@@ -50,7 +54,7 @@ eval_logger = logging.getLogger(__name__)
 
 def _vllm_mp_worker(
     model_args: dict,
-    sampling_params: "SamplingParams",
+    sampling_params: list["SamplingParams"],
     requests: list[list[int]],
     lora_request: "LoRARequest",
     result_queue: "Queue",
@@ -78,7 +82,7 @@ def _vllm_mp_worker(
     try:
         llm = LLM(**model_args)
         res = llm.generate(
-            prompt_token_ids=requests,
+            [TokensPrompt(prompt_token_ids=request) for request in requests],
             sampling_params=sampling_params,
             lora_request=lora_request,
         )
@@ -118,7 +122,7 @@ class VLLM(TemplateLM):
         tokenizer: Optional[str] = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
-        add_bos_token: Optional[bool] = False,
+        add_bos_token: Optional[bool] = None,
         prefix_token_id: Optional[int] = None,
         tensor_parallel_size: int = 1,
         quantization: Optional[str] = None,
@@ -130,10 +134,14 @@ class VLLM(TemplateLM):
         max_model_len: int = None,
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
-        device: str = "cuda",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
-        enable_thinking: bool = False,
+        # VLLM: enable thinking tags in the prompt.
+        enable_thinking: bool = True,
+        chat_template_args: Optional[dict] = None,
+        # End marker for thinking tags - splits to get response after this token (if provided).
+        think_end_token: Optional[str] = None,
+        max_lora_rank: int = 16,
         **kwargs,
     ):
         super().__init__()
@@ -147,6 +155,8 @@ class VLLM(TemplateLM):
         assert max_length is None or max_model_len is None, (
             "Either max_length or max_model_len may be provided, but not both"
         )
+        kwargs.pop("device", None)
+        self.think_end_token = think_end_token
         self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
@@ -166,7 +176,8 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
-            "device": str(device),
+            "enable_lora": True if lora_local_path else False,
+            "max_lora_rank": int(max_lora_rank),
         }
         self.model_args.update(kwargs)
         self.batch_size = (
@@ -188,6 +199,8 @@ class VLLM(TemplateLM):
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
 
+        self.add_bos_token = add_bos_token
+
         from transformers import AutoConfig
 
         self._config = AutoConfig.from_pretrained(
@@ -198,16 +211,17 @@ class VLLM(TemplateLM):
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
             revision=tokenizer_revision,
-            add_bos_token=add_bos_token,
+            **(
+                {"add_bos_token": self.add_bos_token}
+                if self.add_bos_token is not None
+                else {}
+            ),
         )
         self.tokenizer = configure_pad_token(self.tokenizer, model_config=self._config)
-        self.enable_thinking = enable_thinking
-        self.add_bos_token = add_bos_token
-        if "gemma" in pretrained.lower():
-            self.add_bos_token = True
-            eval_logger.info(
-                "Found 'gemma' in model name, a BOS token will be used as Gemma series models underperform without it."
-            )
+        self.chat_template_args = chat_template_args or {}
+        self.enable_thinking = self.chat_template_args.pop(
+            "enable_thinking", enable_thinking
+        )
 
         if parse_version(version("vllm")) >= parse_version("0.8.3"):
             kwargs_resolve_hf_chat_template = {
@@ -228,13 +242,6 @@ class VLLM(TemplateLM):
                     model_config = engine_args.create_model_config()
 
                     kwargs_resolve_hf_chat_template["model_config"] = model_config
-
-            # https://github.com/vllm-project/vllm/pull/18259
-            if (
-                "trsut_remote_code"
-                in inspect.signature(resolve_hf_chat_template).parameters
-            ):
-                kwargs_resolve_hf_chat_template["trsut_remote_code"] = trust_remote_code
             else:
                 kwargs_resolve_hf_chat_template["trust_remote_code"] = trust_remote_code
 
@@ -309,6 +316,7 @@ class VLLM(TemplateLM):
                 continue_final_message=not add_generation_prompt,
                 chat_template=self.hf_chat_template,
                 enable_thinking=self.enable_thinking,
+                **self.chat_template_args,
             )
         except jinja2.exceptions.TemplateError:
             eval_logger.warning(
@@ -321,6 +329,7 @@ class VLLM(TemplateLM):
                 continue_final_message=not add_generation_prompt,
                 chat_template=self.hf_chat_template,
                 enable_thinking=self.enable_thinking,
+                **self.chat_template_args,
             )
 
         return chat_templated
@@ -332,43 +341,74 @@ class VLLM(TemplateLM):
     def tok_encode(
         self,
         string: Union[str, List[str]],
-        left_truncate_len: int = None,
-        add_special_tokens: bool = False,
-        truncation: bool = False,
+        add_special_tokens=None,
+        **kwargs,
     ) -> Union[List[int], List[List[int]]]:
-        if not add_special_tokens:
-            add_special_tokens = False or self.add_bos_token
-        encoding: Union[List[List[int]], List[int]] = self.tokenizer(
-            string,
-            add_special_tokens=add_special_tokens,
-            truncation=truncation,
-            return_attention_mask=False,
-        ).input_ids
+        if not string:
+            return []
+        _string = [string] if isinstance(string, str) else string
+        _bos_token = self.tokenizer.decode(self.prefix_token_id)
 
-        # left-truncate the encoded context to be at most `left_truncate_len` tokens long
-        if left_truncate_len:
-            if not isinstance(string, str):
-                encoding = [enc[-left_truncate_len:] for enc in encoding]
-            else:
-                encoding = encoding[-left_truncate_len:]
+        special_tokens_kwargs = {
+            **kwargs,
+            **_add_special_kwargs(add_special_tokens, self.add_bos_token),
+        }
 
-        return encoding
+        # this is to handle chat templates, which usually add bos token.
+        # this handles a mixed case where some messages have bos token and some don't,
+        # which should not (ever) be the case but to be exhaustive.
+        has_prefix_flags = [has_bos_prefix(s, _bos_token) for s in _string]
+        idx_has = [i for i, f in enumerate(has_prefix_flags) if f]
+        idx_not = [i for i, f in enumerate(has_prefix_flags) if not f]
+
+        strs_has = [_string[i] for i in idx_has]
+        strs_not = [_string[i] for i in idx_not]
+
+        enc_has = []
+        # If the text already has BOS, do not add special tokens (to avoid double BOS).
+        if strs_has:
+            kwargs_off = {**special_tokens_kwargs, "add_special_tokens": False}
+            enc_has = (
+                self.tokenizer(
+                    strs_has,
+                    return_attention_mask=False,
+                    **kwargs_off,
+                ).input_ids
+                if strs_has
+                else []
+            )
+
+        enc_not = (
+            self.tokenizer(
+                strs_not,
+                return_attention_mask=False,
+                **special_tokens_kwargs,
+            ).input_ids
+            if strs_not
+            else []
+        )
+        out: list[list[int]] = [None] * len(_string)  # type: ignore
+        for j, i in enumerate(idx_has):
+            out[i] = enc_has[j]
+        for j, i in enumerate(idx_not):
+            out[i] = enc_not[j]
+
+        # we do not truncate here, as vllm can handle each request separately
+
+        return out[0] if isinstance(string, str) else out
 
     def _model_generate(
         self,
         requests: List[List[int]] = None,
         generate: bool = False,
-        max_tokens: int = None,
-        stop: Optional[List[str]] = None,
-        **kwargs,
+        sampling_params: Union[List["SamplingParams"], "SamplingParams", None] = None,
     ):
-        if generate:
-            kwargs = self.modify_gen_kwargs(kwargs)
-            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
-        else:
+        if not generate or sampling_params is None:
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
             )
+        if not isinstance(sampling_params, list):
+            sampling_params = [sampling_params] * len(requests)
         if self.data_parallel_size > 1 and not self.V1:
             # vLLM hangs if resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
@@ -376,13 +416,13 @@ class VLLM(TemplateLM):
             @ray.remote
             def run_inference_one_model(
                 model_args: dict,
-                sampling_params: SamplingParams,
+                sampling_params: List["SamplingParams"],
                 requests: List[List[int]],
-                lora_request: LoRARequest,
+                lora_request: "LoRARequest",
             ):
                 llm = LLM(**model_args)
                 return llm.generate(
-                    prompt_token_ids=requests,
+                    [TokensPrompt(prompt_token_ids=request) for request in requests],
                     sampling_params=sampling_params,
                     lora_request=lora_request,
                 )
@@ -390,9 +430,12 @@ class VLLM(TemplateLM):
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
             requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
+            sampling_params = [
+                list(sp) for sp in distribute(self.data_parallel_size, sampling_params)
+            ]
             inputs = (
-                (self.model_args, sampling_params, req, self.lora_request)
-                for req in requests
+                (self.model_args, sp, req, self.lora_request)
+                for req, sp in zip(requests, sampling_params)
             )
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
@@ -407,16 +450,18 @@ class VLLM(TemplateLM):
             dp_master_port = os.environ.get("VLLM_DP_MASTER_PORT") or get_open_port()
 
             requests = (list(x) for x in distribute(self.data_parallel_size, requests))
-
+            sampling_params = (
+                list(sp) for sp in distribute(self.data_parallel_size, sampling_params)
+            )
             procs, resq = [], Queue()
             # We use Process as it is non-daemonic
             try:
-                for rank, req in enumerate(requests):
+                for rank, (req, sp) in enumerate(zip(requests, sampling_params)):
                     proc = Process(
                         target=_vllm_mp_worker,
                         args=(
                             self.model_args.copy(),
-                            sampling_params,
+                            sp,
                             req,
                             self.lora_request,
                             resq,
@@ -471,7 +516,7 @@ class VLLM(TemplateLM):
 
         else:
             outputs = self.model.generate(
-                prompt_token_ids=requests,
+                [TokensPrompt(prompt_token_ids=request) for request in requests],
                 sampling_params=sampling_params,
                 use_tqdm=True if self.batch_size == "auto" else False,
                 lora_request=self.lora_request,
@@ -554,10 +599,8 @@ class VLLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding: List[List[int]] = self.tok_encode(
-            context, add_special_tokens=self.add_bos_token
-        )
-        requests = [
+        context_encoding = self.tok_encode(context)
+        reqs = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
 
@@ -570,16 +613,17 @@ class VLLM(TemplateLM):
             # - any OOMs will happen right away rather than near the end
             return -len(_requests[0][1]), _requests[0][0]
 
-        # we group requests by their generation_kwargs,
-        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
-        # in the same batch.
-        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
+        re_ords = Collator(
+            reqs,
+            _collate_gen,
+            group_by=None,
+        )
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
 
         pbar = tqdm(
-            total=len(requests),
+            total=len(reqs),
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
@@ -588,50 +632,53 @@ class VLLM(TemplateLM):
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
             context, context_encoding = zip(*context_and_encoding)
-            # we assume all gen kwargs in the batch are the same
-            # this is safe to assume because the `grouper` object ensures it.
-            gen_kwargs = all_gen_kwargs[0]
-            # unpack our keyword arguments.
-            if isinstance(gen_kwargs, dict):
-                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                # add EOS token to stop sequences
-                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
-            else:
-                raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                )
-            if "max_gen_toks" in kwargs.keys():
-                max_gen_toks = kwargs.pop("max_gen_toks")
-            else:
-                max_gen_toks = self.max_gen_toks
-
-            # set the max length in tokens of inputs ("context_enc")
-            # max len for inputs = max length, minus room to generate the max new tokens
-            max_ctx_len = self.max_length - max_gen_toks
-            all_lengths = [len(x) for x in context_encoding]
-            for length in all_lengths:
-                if length > max_ctx_len:
-                    eval_logger.warning(
-                        f"Context length {length} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
+            context_encoding_truncated = []
+            sampling_params = []
+            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs):
+                # unpack our keyword arguments.
+                if isinstance(gen_kwargs, dict):
+                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                    # add EOS token to stop sequences
+                    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+                else:
+                    raise ValueError(
+                        f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
-            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
+                if "max_gen_toks" in kwargs.keys():
+                    max_gen_toks = kwargs.pop("max_gen_toks")
+                else:
+                    max_gen_toks = self.max_gen_toks
+
+                # set the max length in tokens of inputs ("context_enc")
+                # max len for inputs = max length, minus room to generate the max new tokens
+                max_ctx_len = self.max_length - max_gen_toks
+                if len(x) > max_ctx_len:
+                    eval_logger.warning(
+                        f"Context length {len(x)} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
+                    )
+                    context_encoding_truncated.append(x[-max_ctx_len:])
+                else:
+                    context_encoding_truncated.append(x)
+                # create sampling params
+                kwargs = self.modify_gen_kwargs(kwargs)
+                sampling_params.append(
+                    SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
+                )
 
             # perform batched generation
             cont = self._model_generate(
-                requests=context_encoding,
+                requests=context_encoding_truncated,
                 generate=True,
-                max_tokens=max_gen_toks,
-                stop=until,
-                **kwargs,
+                sampling_params=sampling_params,
             )
 
             # cache generations
             for output, context in zip(cont, context):
-                generated_text = output.outputs[0].text
+                generated_text: str = output.outputs[0].text
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                for term in until:
-                    if len(term) > 0:
-                        generated_text = generated_text.split(term)[0]
+                generated_text = postprocess_generated_text(
+                    generated_text, until, self.think_end_token
+                )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text

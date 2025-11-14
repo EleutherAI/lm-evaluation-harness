@@ -1,0 +1,14 @@
+tag: glue
+task: qnli
+dataset_path: nyu-mll/glue
+dataset_name: qnli
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "{{question}}\n{{sentence}}\nQuestion: Does this response answer the question?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["yes", "no"]
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0

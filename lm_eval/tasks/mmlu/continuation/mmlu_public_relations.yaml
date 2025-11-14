@@ -1,0 +1,6 @@
+"dataset_name": "public_relations"
+"description": "The following are questions (with answers) about public\
+  \ relations.\n\n"
+"tag": "mmlu_social_sciences_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_public_relations_continuation"

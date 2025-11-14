@@ -1,0 +1,6 @@
+"dataset_name": "logical_fallacies"
+"description": "The following are questions (with answers) about logical\
+  \ fallacies.\n\n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_logical_fallacies_continuation"

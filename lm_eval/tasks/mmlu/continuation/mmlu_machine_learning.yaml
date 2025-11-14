@@ -1,0 +1,6 @@
+"dataset_name": "machine_learning"
+"description": "The following are questions (with answers) about machine\
+  \ learning.\n\n"
+"tag": "mmlu_stem_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_machine_learning_continuation"

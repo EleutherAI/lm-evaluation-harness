@@ -509,6 +509,22 @@ def consolidate_group_results(
                 group_metadata = group_config.get("metadata", None)
                 if group_metadata is not None:
                     versions[group_or_task] = group_metadata.get("version", None)
+
+            # Clean up duplicate score rows for subtasks that also report other metrics.
+            for task in task_list:
+                task_metrics = [
+                    key
+                    for key in results[task].keys()
+                    if "," in key and not key.startswith("score_stderr")
+                ]
+                score_metrics = [
+                    key for key in task_metrics if key.startswith("score,")
+                ]
+                if score_metrics and len(task_metrics) > len(score_metrics):
+                    for score_metric in score_metrics:
+                        results[task].pop(score_metric, None)
+                        stderr_key = score_metric.replace("score,", "score_stderr,")
+                        results[task].pop(stderr_key, None)
     # print(results)
     return results, versions, show_group_table, task_aggregation_list
 

@@ -12,7 +12,6 @@ from . import (
     mistral_completions, #! Added by Anwar
     gemini_completions, #! Added by Anwar
     nemo_lm,
-    neuralmagic,
     neuron_optimum,
     openai_completions,
     gemini_completions,

@@ -1,0 +1,6 @@
+"dataset_name": "jurisprudence"
+"description": "The following are questions (with answers) about jurisprudence.\n\
+  \n"
+"tag": "mmlu_humanities_continuation"
+"include": "_continuation_template_yaml"
+"task": "mmlu_jurisprudence_continuation"

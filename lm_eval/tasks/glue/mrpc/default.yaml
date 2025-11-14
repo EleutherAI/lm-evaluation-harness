@@ -1,0 +1,15 @@
+tag: glue
+task: mrpc
+dataset_path: nyu-mll/glue
+dataset_name: mrpc
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "Sentence 1: {{sentence1}}\nSentence 2: {{sentence2}}\nQuestion: Do both sentences mean the same thing?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["no", "yes"]
+metric_list:
+  - metric: acc
+  - metric: f1
+metadata:
+  version: 1.0

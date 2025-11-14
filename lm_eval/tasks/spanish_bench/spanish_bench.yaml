@@ -1,0 +1,19 @@
+group: spanish_bench
+task:
+  - belebele_spa_Latn
+  - copa_es
+  - escola
+  - openbookqa_es
+  - wnli_es
+  - xnli_es_spanish_bench
+  - xstorycloze_es
+  - xquad_es
+  - xlsum_es
+  - paws_es_spanish_bench
+  - mgsm_direct_es_spanish_bench
+  - eqbench_es
+  - flores_es
+  - phrases_es
+  - cocoteros_es
+metadata:
+  version: 1.1
