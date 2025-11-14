@@ -1,0 +1,36 @@
+task: dream_interpretation_english
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/abdelrahman.sadallah/mbzuai/lm-evaluation-harness/lm_eval/tasks/dream_interpretation_v2/data/english.json
+test_split: test
+
+output_type: multiple_choice
+
+doc_to_text: |
+  System Prompt: You are a helpful assistant.
+  User Prompt:
+  ### Question
+  {{ question }}
+  ### Options
+  {% for option in options %}
+  {{ option }}
+  {% endfor %}
+  =============
+  Answer the above question by only returning the option (A, B, C, D or E) without any further explanation.
+
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
+  description: "Dream interpretation task for English dreams with English questions"

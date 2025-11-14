@@ -1,0 +1,16 @@
+group: dream_interpretation_v2_gen_all
+task:
+  - dream_interpretation_english_gen
+  - dream_interpretation_english_arabic_gen
+  - dream_interpretation_arabic_gen
+  - dream_interpretation_arabic_english_gen
+
+group_alias: dream_interpretation_v2_gen
+
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+    
+metadata:
+  version: 1.0
+  description: "Generation-based comprehensive dream interpretation tasks covering English and Arabic dreams with cross-language questions"

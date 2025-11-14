@@ -1,0 +1,36 @@
+task: dream_interpretation_english_arabic
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/abdelrahman.sadallah/mbzuai/lm-evaluation-harness/lm_eval/tasks/dream_interpretation_v2/data/english-arabic.json
+test_split: test
+
+output_type: multiple_choice
+
+doc_to_text: |
+  موجه النظام: أنت مساعد مفيد.
+  موجه المستخدم:
+  ### السؤال
+  {{ question }}
+  ### الخيارات
+  {% for option in options %}
+  {{ option }}
+  {% endfor %}
+  =============
+  أجب عن السؤال أعلاه بإرجاع الخيار فقط (A أو B أو C أو D أو E) دون أي شرح إضافي.
+
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
+  description: "Dream interpretation task for English dreams with Arabic questions"

@@ -1,0 +1,8 @@
+task: dream_interpretation_english_gen
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/abdelrahman.sadallah/mbzuai/lm-evaluation-harness/lm_eval/tasks/dream_interpretation_v2_gen/data/english.json
+
+include: _default_template.yaml
