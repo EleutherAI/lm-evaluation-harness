@@ -693,4 +693,32 @@ def get_task_dict(
     # we explicitly check and error in this case.
     _check_duplicates(get_subtask_list(final_task_dict))
 
+    # NOTE: Only nicely logs:
+    # 1/ group
+    #     2/ subgroup
+    #         3/ tasks
+    # layout. There may be other layouts.
+    eval_logger.info("Selected tasks:")
+    for key, value in final_task_dict.items():
+        if isinstance(key, ConfigurableGroup):
+            eval_logger.info(f"Group: {key.group}")
+
+            if isinstance(value, dict):
+                first_key = next(iter(value.keys()))
+
+                if isinstance(first_key, ConfigurableGroup):
+                    for subgroup, task_dict in value.items():
+                        eval_logger.info(f"    Subgroup: {subgroup.group}")
+                        for task_name, configurable_task in task_dict.items():
+                            if isinstance(configurable_task, ConfigurableTask):
+                                eval_logger.info(f"        Task: {task_name} ({task_manager.task_index[task_name]['yaml_path']})")
+                            else:
+                                eval_logger.info(f"{task_name}: {configurable_task}")
+                else:
+                    eval_logger.info(f"{key}: {value}")
+            else:
+                eval_logger.info(f"{key}: {value}")
+        else:
+            eval_logger.info(f"{key}: {value}")
+
     return final_task_dict
