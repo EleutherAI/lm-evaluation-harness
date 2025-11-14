@@ -1,3 +1,0 @@
-dataset_path: CM/codexglue_code2text_java
-task: code2text_java
-include: _default_template_yaml

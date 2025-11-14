@@ -1,3 +1,0 @@
-dataset_path: CM/codexglue_code2text_php
-task: code2text_php
-include: _default_template_yaml
