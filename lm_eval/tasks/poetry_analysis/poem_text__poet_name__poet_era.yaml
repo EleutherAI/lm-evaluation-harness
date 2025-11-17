@@ -1,0 +1,11 @@
+dataset_kwargs:
+  data_files:
+    test:
+    - poetry_analysis/analysis_poem_text__poet_name___poet_era.json
+dataset_name: null
+dataset_path: json
+include: _default_poetry_analysis_template_yaml
+tag: poem_text__poet_name__poet_era_task
+task: poem_text__poet_name__poet_era
+# task_alias: poem_text__poet_name__poet_era
+test_split: test

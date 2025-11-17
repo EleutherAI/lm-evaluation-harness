@@ -1,0 +1,11 @@
+dataset_kwargs:
+  data_files:
+    test:
+    - poetry_analysis/analysis_poet_name___meter.json
+dataset_name: null
+dataset_path: json
+include: _default_poetry_analysis_template_yaml
+tag: poet_name__meter_task
+task: poet_name__meter
+# task_alias: poet_name__meter
+test_split: test
