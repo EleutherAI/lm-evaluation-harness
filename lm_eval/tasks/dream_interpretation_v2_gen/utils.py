@@ -96,17 +96,17 @@ def process_results(doc, results):
     Process generation results to calculate accuracy.
     """
 
-    print(f"results: {results}")
-    print(f"doc: {doc}")
+    # print(f"results: {results}")
+    # print(f"doc: {doc}")
     generation = results[0] if results else ""
 
-    print(f"generation: {generation}")
+    # print(f"generation: {generation}")
     generation = post_process_response(generation)
-    print(f"post-processed generation: {generation}")
+    # print(f"post-processed generation: {generation}")
     predicted_answer = extract_answer(generation)
     target_answer = doc_to_target(doc)
 
-    print(f"Predicted Answer: {predicted_answer}, Target Answer: {target_answer}")
+    # print(f"Predicted Answer: {predicted_answer}, Target Answer: {target_answer}")
     # Calculate accuracy
     acc = 1.0 if predicted_answer == target_answer else 0.0
 
