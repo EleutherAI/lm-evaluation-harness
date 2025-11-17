@@ -249,7 +249,7 @@ def check_is_number(string):
 
 
 def normalize_str(string):
-    """Normalize the str to lower case and make them float numbers if possible. """
+    """Normalize the str to lower case and make them float numbers if possible."""
     # check if characters in the string
 
     # if number, numerize it.

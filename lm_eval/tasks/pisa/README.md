@@ -13,13 +13,13 @@ HuggingFace Dataset: https://huggingface.co/datasets/PisaBench/pisa-bench
 ### Citation
 
 ```@misc{haller2025pisabenchpisaindexmultilingual,
-      title={PISA-Bench: The PISA Index as a Multilingual and Multimodal Metric for the Evaluation of Vision-Language Models}, 
+      title={PISA-Bench: The PISA Index as a Multilingual and Multimodal Metric for the Evaluation of Vision-Language Models},
       author={Patrick Haller and Fabio Barth and Jonas Golde and Georg Rehm and Alan Akbik},
       year={2025},
       eprint={2510.24792},
       archivePrefix={arXiv},
       primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2510.24792}, 
+      url={https://arxiv.org/abs/2510.24792},
 }```
 
 ### Groups, Tags, and Tasks
