@@ -1,4 +1,4 @@
-dataset_path: "edinburgh-dawg/mmlu-redux-2.0"
+dataset_path: "fxmarty/mmlu-redux-2.0-ok"
 test_split: test
 dataset_kwargs:
   trust_remote_code: true
