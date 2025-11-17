@@ -4,7 +4,7 @@
 #PBS -k oed
 #PBS -N lm_evaluation_harness_run
 #PBS -q auto
-#PBS -l select=1:ngpus=1
+#PBS -l select=1:ngpus=4
 #PBS -l walltime=56:00:00
 
 cd $PBS_O_WORKDIR
@@ -28,9 +28,10 @@ echo "GPU info:"
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
 
 lm_eval --model hf \
-    --model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-replay,parallelize=True \
-    --tasks xnli_en,xnli_th,xnli_vi,xnli_zh,xcopa_id,xcopa_ta,xcopa_th,xcopa_vi,xcopa_zh,xquad_en,xquad_th,xquad_vi,xquad_zh \
-    --output_path /scratch/e1583535/multiLingual-llm-project/outputs/lm_evaluation_harness \
+    --model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-last-100B-step42931,parallelize=True \
+    --tasks xlsum_en,xlsum_id,xlsum_ta,xlsum_th,xlsum_vi,xlsum_zh \
+    --output_path /scratch/e1583535/results/lm_evaluation_harness \
+    --limit 100 \
     --batch_size 16
 
 EOF

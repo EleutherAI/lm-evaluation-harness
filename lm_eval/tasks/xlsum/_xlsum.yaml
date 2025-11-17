@@ -1,0 +1,10 @@
+group: xlsum
+task:
+  - xlsum_en  
+  - xlsum_id
+  - xlsum_ta
+  - xlsum_th
+  - xlsum_vi
+  - xlsum_zh
+metadata:
+  version: 1.0

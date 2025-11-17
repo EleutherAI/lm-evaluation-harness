@@ -1,0 +1,25 @@
+task: xlsum_ta
+dataset_path: csebuetnlp/xlsum
+dataset_name: tamil
+output_type: generate_until
+# validation_split: validation
+test_split: test
+num_fewshot: 0
+doc_to_text: |
+  கட்டுரை:
+  {{text}}
+
+  சுருக்கம்:
+doc_to_target: '{{summary}}'
+generation_kwargs:
+  until:
+    - "<|endoftext|>"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: rouge
+    aggregation: mean
+    higher_is_better: true
+    rouge_types: ["rougeL"]
+metadata:
+  version: 1.0
