@@ -1,0 +1,34 @@
+task: vsfc_sentiment_vi
+
+dataset_path: uitnlp/vietnamese_students_feedback
+# default config, so no dataset_name
+
+training_split: train
+validation_split: validation
+test_split: test
+fewshot_split: train
+
+output_type: multiple_choice
+num_fewshot: 0
+
+# ===== Prompt =====
+doc_to_text: |
+  Cho câu phản hồi sau của sinh viên:
+
+  "{{ sentence }}"
+
+  Cảm xúc của câu này là gì? (negative, neutral hay positive)
+
+# sentiment: 0=negative, 1=neutral, 2=positive
+doc_to_choice:
+  - negative
+  - neutral
+  - positive
+
+# `sentiment` is already an int index into the choices
+doc_to_target: "{{ sentiment }}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

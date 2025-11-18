@@ -1,0 +1,30 @@
+task: batayan_sentiment_tl
+
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: /scratch/e1583535/SEA-HELM/seahelm_tasks/nlu/sentiment_analysis/data/tl_elections_sentiment.jsonl   # ← your local .jsonl file
+
+test_split: test
+num_fewshot: 0
+output_type: multiple_choice
+
+# Use your own Tagalog prompt text; for simplicity I'll just use "prompts[0].text"
+# If your JSONL has "prompts": [{"text": "..."}], you can do:
+doc_to_text: |
+  Ano ang sentimyento sa sumusunod na pangungusap?
+
+  "{{ prompts[0].text }}"
+
+  Pumili ng isa: negative, neutral, o positive.
+
+# Choices shown to the model (Tagalog)
+doc_to_choice: "{{ ['negative', 'neutral', 'positive'] }}"
+
+# Map ENGLISH dataset labels -> index into Tagalog choices
+doc_to_target: "{{label.lower()}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

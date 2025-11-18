@@ -1,0 +1,38 @@
+task: wisesight_sentiment_th
+
+dataset_path: pythainlp/wisesight_sentiment
+dataset_name: wisesight_sentiment
+
+# dataset has train / validation / test splits
+training_split: train
+validation_split: validation
+test_split: test
+fewshot_split: train
+
+output_type: multiple_choice
+num_fewshot: 0
+
+# Prompt in Thai (you can change text to English if you prefer)
+doc_to_text: |
+  ข้อความต่อไปนี้เป็นข้อความจากสื่อสังคมออนไลน์:
+
+  "{{ texts }}"
+
+  อารมณ์ของข้อความนี้คืออะไร? (pos, neu, neg หรือ q)
+
+# 4-way label space: pos, neu, neg, q
+# In the HF dataset, `category` is a ClassLabel, i.e. integer 0..3 with
+# names ["pos", "neu", "neg", "q"].
+doc_to_choice:
+  - pos
+  - neu
+  - neg
+  - q
+
+# Because `category` is an int index into the ClassLabel, we can use it directly
+doc_to_target: "{{ category }}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

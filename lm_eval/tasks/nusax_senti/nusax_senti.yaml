@@ -1,0 +1,35 @@
+task: nusax_senti_ind
+
+dataset_path: indonlp/NusaX-senti
+dataset_name: ind          # language subset: ace, ban, bbc, bjn, bug, eng, ind, ...
+
+# use the test split for evaluation
+test_split: test
+
+# multiple-choice classification: model scores each label string
+output_type: multiple_choice
+num_fewshot: 0
+
+# Map each row to an input text
+doc_to_text: |
+  Teks berikut berisi ulasan atau komentar:
+
+  "{{text}}"
+
+  Sentimen dari teks di atas adalah (negative, neutral, atau positive)?
+
+# label column is 0,1,2 (0=negative, 1=neutral, 2=positive) in the dataset viewer :contentReference[oaicite:1]{index=1}
+# For multiple_choice tasks, doc_to_target should be the *index* of the correct choice
+doc_to_target: "{{label}}"
+
+# Choices we will score under the prompt above
+# This must be a Jinja expression that returns a list
+doc_to_choice: "{{ ['negative', 'neutral', 'positive'] }}"
+
+# Metrics — accuracy is the standard for classification
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
