@@ -680,14 +680,10 @@ def get_task_dict(
         yaml_path = task_manager.task_index[task_name]["yaml_path"]
         yaml_path = Path(yaml_path)
         lm_eval_tasks_path = Path(__file__).parent
-        relative_yaml_path = yaml_path.relative_to(
-            lm_eval_tasks_path
-        )
-        
+        relative_yaml_path = yaml_path.relative_to(lm_eval_tasks_path)
+
         pad = "  " * indent
-        eval_logger.info(
-            f"{pad}Task: {task_name} ({relative_yaml_path})"
-        )
+        eval_logger.info(f"{pad}Task: {task_name} ({relative_yaml_path})")
 
     # NOTE: Only nicely logs:
     # 1/ group
@@ -717,7 +713,7 @@ def get_task_dict(
             else:
                 eval_logger.info(f"{key}: {value}")
         elif isinstance(key, str) and isinstance(value, ConfigurableTask):
-            pretty_print_task(key, task_manager, indent=0)            
+            pretty_print_task(key, task_manager, indent=0)
         else:
             eval_logger.info(f"{key}: {value}")
 
