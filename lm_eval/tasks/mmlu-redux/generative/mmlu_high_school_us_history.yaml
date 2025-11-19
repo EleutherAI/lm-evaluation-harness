@@ -1,7 +1,7 @@
 "dataset_name": "high_school_us_history"
 "description": "The following are multiple choice questions (with answers) about high\
   \ school us history.\n\n"
-"tag": "mmlu_humanities_generative"
+"tag": "mmlu_redux_humanities_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_high_school_us_history_generative"
+"task": "mmlu_redux_high_school_us_history_generative"
 "task_alias": "high_school_us_history"

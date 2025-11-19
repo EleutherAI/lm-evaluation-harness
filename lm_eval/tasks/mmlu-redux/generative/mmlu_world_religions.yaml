@@ -1,7 +1,7 @@
 "dataset_name": "world_religions"
 "description": "The following are multiple choice questions (with answers) about world\
   \ religions.\n\n"
-"tag": "mmlu_humanities_generative"
+"tag": "mmlu_redux_humanities_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_world_religions_generative"
+"task": "mmlu_redux_world_religions_generative"
 "task_alias": "world_religions"
