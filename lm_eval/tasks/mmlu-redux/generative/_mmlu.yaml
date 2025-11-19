@@ -30,4 +30,4 @@ aggregate_metric_list:
     metric: exact_match
     weight_by_size: true
 metadata:
-  version: 3
+  version: 4
