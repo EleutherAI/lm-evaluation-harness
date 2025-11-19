@@ -3,6 +3,7 @@ import inspect
 import logging
 import os
 from functools import partial
+from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
@@ -679,7 +680,8 @@ def get_task_dict(
     # 1/ group
     #     2/ subgroup
     #         3/ tasks
-    # layout. There may be other layouts.
+    # layout.
+    # TODO: Verify if there are other layouts to nicely display
     eval_logger.info("Selected tasks:")
     for key, value in final_task_dict.items():
         if isinstance(key, ConfigurableGroup):
@@ -693,8 +695,17 @@ def get_task_dict(
                         eval_logger.info(f"    Subgroup: {subgroup.group}")
                         for task_name, configurable_task in task_dict.items():
                             if isinstance(configurable_task, ConfigurableTask):
+                                yaml_path = {
+                                    task_manager.task_index[task_name]["yaml_path"]
+                                }
+                                yaml_path = Path(yaml_path)
+                                lm_eval_tasks_path = Path(__file__)
+                                relative_yaml_path = yaml_path.relative_to(
+                                    lm_eval_tasks_path
+                                )
+
                                 eval_logger.info(
-                                    f"        Task: {task_name} ({task_manager.task_index[task_name]['yaml_path']})"
+                                    f"        Task: {task_name} ({relative_yaml_path})"
                                 )
                             else:
                                 eval_logger.info(f"{task_name}: {configurable_task}")
