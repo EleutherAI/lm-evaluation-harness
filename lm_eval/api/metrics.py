@@ -641,7 +641,9 @@ def pass_at_k(n: int, ci: int, k: int) -> float:
     Returns:
         float: Estimated pass@k value.
     """
-    return 1 - binom(n-ci, k) / binom(n, k)
+    if n - ci < k:
+        return 1.0
+    return 1 - np.prod(1 - k / np.arange(n - ci + 1, n + 1))
 
 def estimate_pass_at_k(results: List[bool], k: int) -> float:
     """
