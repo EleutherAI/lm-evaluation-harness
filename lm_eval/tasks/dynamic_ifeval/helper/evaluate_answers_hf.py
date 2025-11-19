@@ -5,6 +5,68 @@ from datasets import Dataset
 import yaml, pickle, re, ast
 
 
+def passed_rules(answer, rules, rules_letter_must_be_in, count_number, sum_characters_value):
+    num_passed_rules = 0
+    num_total_rules = 0
+    
+    if rules["letter_must_be_in"]["enabled"]:
+        for set_accepted_letters, pos_word, pos_letter in rules_letter_must_be_in:
+            num_total_rules += 1
+            if letter_must_be_in(answer, set_accepted_letters, pos_word, pos_letter):
+                num_passed_rules += 1
+
+    for key, value in rules["count_number_of"].items():
+        if value["enabled"]:
+            num_total_rules += 1
+            if number_of_must_be(answer, key, count_number[key]):
+                num_passed_rules += 1
+    if rules["sum_characters_must_be"]["enabled"]:
+        num_total_rules += 1
+        if not sum_characters_must_be(answer, sum_characters_value):
+            num_passed_rules += 1
+
+    if answer is None or answer == "":
+        return 0, num_total_rules
+
+    return num_passed_rules, num_total_rules
+
+
+def parse_thinking(response):
+    # Strip everything up to and including the first </think>
+    if "</think>" in response:
+        response = response.split("</think>", 1)[1].lstrip()
+
+    # Extract the content of the first <answer>...</answer> pair if present
+    answer_blocks = re.findall(r"<answer>(.*?)</answer>", response, re.DOTALL | re.IGNORECASE)
+    if answer_blocks:
+        response = answer_blocks[0].strip()
+
+    # If LaTeX boxed answers exist, take the first one inside the (possibly reduced) response
+    matches = re.findall(r"\\boxed\{(.*?)\}", response, re.DOTALL)
+    if matches:
+        response = matches[0].strip()
+        
+    return response
+
+
+def finegraned_evaluate_answer(answer, rules, rules_letter_must_be_in, count_number, sum_characters_value):
+    answer = parse_thinking(answer)
+    if answer is None or answer == "":
+        return False
+    num_passed_rules, num_total_rules = passed_rules(answer, rules, rules_letter_must_be_in, count_number, sum_characters_value)
+    return num_passed_rules / num_total_rules
+
+
+def finegraned_evaluate_answers(answers, test_dataset):
+    results = [finegraned_evaluate_answer(answer, doc["rules"], ast.literal_eval(doc["rules_letter_must_be_in"]),
+                                doc["count_number"], doc["sum_characters_value"])
+           for answer, doc in zip(answers, test_dataset)]
+    avg_reward = sum(results) / len(results)
+    print(f"Average reward: {avg_reward}")
+    return avg_reward
+
+
+
 def aux_evaluate_answer(answer, rules, rules_letter_must_be_in, count_number, sum_characters_value):
     pass_all_rules = True
     

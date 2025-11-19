@@ -1,7 +1,7 @@
 from lm_eval.tasks.dynamic_ifeval.helper.create_dataset import create_dataset, save_dataset
 from lm_eval.tasks.dynamic_ifeval.helper.utils import TextPool
 from lm_eval.tasks.dynamic_ifeval.helper.convert_yaml_to_hfdataset import convert_yaml_to_hfdataset
-from lm_eval.tasks.dynamic_ifeval.helper.evaluate_answers_hf import evaluate_answer
+from lm_eval.tasks.dynamic_ifeval.helper.evaluate_answers_hf import evaluate_answer, finegraned_evaluate_answer
 
 from itertools import chain
 from typing import List, Tuple, Dict, Set, Any
@@ -41,11 +41,17 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
     return dataset.map(_process_doc)
 
+
 def process_results(doc, results):
-    acc = [evaluate_answer(answer, doc["rules"], ast.literal_eval(doc["rules_letter_must_be_in"]),
+    finegraned_acc = [finegraned_evaluate_answer(answer, doc["rules"], ast.literal_eval(doc["rules_letter_must_be_in"]),
+                                                    doc["count_number"], doc["sum_characters_value"])
+                                 for answer in results]
+    strict_acc = [evaluate_answer(answer, doc["rules"], ast.literal_eval(doc["rules_letter_must_be_in"]),
                                                     doc["count_number"], doc["sum_characters_value"])
                                    for answer in results]
-    acc = sum(acc) / len(acc)
+    finegraned_acc = sum(finegraned_acc) / len(finegraned_acc)
+    strict_acc = sum(strict_acc) / len(strict_acc)
     return {
-        "acc": acc
+        "finegraned_acc": finegraned_acc,
+        "strict_acc": strict_acc
     }

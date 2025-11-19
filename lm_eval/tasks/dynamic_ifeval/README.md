@@ -17,18 +17,8 @@ The benchmark ensures that:
 - Evaluation is grounded: each response can be automatically verified for correctness exactly, without the need for a neural reward model.
 
 ### References
-The benchmark is inspired and offers a dynamic version of
-```bibtex
-@misc{zhou2023instructionfollowingevaluationlargelanguage,
-      title={Instruction-Following Evaluation for Large Language Models}, 
-      author={Jeffrey Zhou and Tianjian Lu and Swaroop Mishra and Siddhartha Brahma and Sujoy Basu and Yi Luan and Denny Zhou and Le Hou},
-      year={2023},
-      eprint={2311.07911},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2311.07911}, 
-}
-```
+The benchmark is described in
+https://drive.google.com/file/d/1xCKYK88hEEMt0dHf3SgZldSbIOUF26Cs/view?usp=sharing
 
 ### Additional Requirements
 datasets
@@ -37,7 +27,7 @@ datasets
 lm_eval \
   --model vllm \
   --model_args '{"pretrained":"Qwen/Qwen3-4B","trust_remote_code":true,"max_model_len":16384,"enable_thinking":true}' \
-  --gen_kwargs '{"max_gen_toks":8192,"until":["Input","Input:","<eot_id>","<|im_end|>","###","Question","question","####","Problem","Response"],"temperature":0.6}' \
+  --gen_kwargs '{"max_gen_toks":8192,"temperature":0.6}' \
   --apply_chat_template \
   --tasks dynamic_ifeval \
   --batch_size auto \
