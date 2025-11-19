@@ -26,24 +26,7 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
             answers.append(None)
         retvals.append(retval)
     
-    mode, model_index = majority_voting(answers)
-    mode_val = verify(parse(f'${str(mode)}$'), parse(f'${str(target)}$'))
+    correct_count = sum(retvals)
+    maj_val = 1 if correct_count > len(retvals) / 2 else 0
 
-    return {"pass@1": retvals, "pass@k": retvals, "maj@k": mode_val}
-
-def majority_voting(lst: List[str]) -> Tuple[str, int]:
-    """
-    Return the most frequent item in the list and its index.
-
-    Args:
-        lst (List[Any]): List of items.
-
-    Returns:
-        Tuple[Any, int]: Most frequent item and its index (any valid occurrence).
-    """
-
-    frequency = Counter(lst)
-    most_freq_item, _ = frequency.most_common(1)[0]
-    index = lst.index(most_freq_item)
-
-    return most_freq_item, index
+    return {"pass@1": retvals, "pass@k": retvals, "maj@k": maj_val}
