@@ -57,5 +57,7 @@ If other tasks on this dataset are already supported:
 - [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 - [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
-ver 1: PR #2705
-First implementation
+
+
+- version 3: First implementation from PR https://github.com/EleutherAI/lm-evaluation-harness/pull/2705.
+- version 4: Filter out the answers not marked as `error_type="ok"` in https://github.com/EleutherAI/lm-evaluation-harness/pull/3410 (~6.5% of questions, 370 out of 5700 are filtered out).

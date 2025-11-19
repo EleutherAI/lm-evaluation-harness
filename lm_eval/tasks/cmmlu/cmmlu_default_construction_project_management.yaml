@@ -1,4 +1,0 @@
-"dataset_name": "construction_project_management"
-"description": "以下是关于建设工程管理的单项选择题，请直接给出正确答案的选项。\n\n"
-"include": "_default_template_yaml"
-"task": "cmmlu_construction_project_management"

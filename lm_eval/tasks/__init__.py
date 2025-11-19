@@ -488,9 +488,10 @@ class TaskManager:
             ".ipynb_checkpoints",
         ]
         tasks_and_groups = collections.defaultdict()
-        overriden_tasks = []
         for root, dirs, file_list in os.walk(task_dir):
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
+            dirs.sort()  # Sort directories for deterministic traversal order
+            file_list.sort()  # Sort files for consistent processing order
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
@@ -498,12 +499,6 @@ class TaskManager:
                     if self._config_is_python_task(config):
                         # This is a python class config
                         task = config["task"]
-
-                        if task in tasks_and_groups:
-                            overriden_tasks.append(
-                                (task, tasks_and_groups[task]["yaml_path"])
-                            )
-
                         tasks_and_groups[task] = {
                             "type": "python_task",
                             "yaml_path": yaml_path,
@@ -513,14 +508,6 @@ class TaskManager:
                         )
                     elif self._config_is_group(config):
                         # This is a group config
-                        if config["group"] in tasks_and_groups:
-                            overriden_tasks.append(
-                                (
-                                    config["group"],
-                                    tasks_and_groups[config["group"]]["yaml_path"],
-                                )
-                            )
-
                         tasks_and_groups[config["group"]] = {
                             "type": "group",
                             "task": -1,  # This signals that
@@ -544,9 +531,12 @@ class TaskManager:
                         # This is a task config
                         task = config["task"]
                         if task in tasks_and_groups:
-                            overriden_tasks.append(
-                                (task, tasks_and_groups[task]["yaml_path"])
+                            eval_logger.warning(
+                                f"Duplicate task name '{task}' found. "
+                                f"Already registered from: {tasks_and_groups[task]['yaml_path']}. "
+                                f"Skipping duplicate from: {yaml_path}"
                             )
+                            continue
                         tasks_and_groups[task] = {
                             "type": "task",
                             "yaml_path": yaml_path,
@@ -556,14 +546,6 @@ class TaskManager:
                         )
                     else:
                         eval_logger.debug(f"File {f} in {root} could not be loaded")
-
-        if len(overriden_tasks) > 0:
-            # TODO: We should outright ban duplicate task/group names. This may result in pulling the wrong yaml files for a given task (where the task has been overriden in `tasks_and_groups`).
-            eval_logger.debug(
-                "The following tasks have been overriden in TaskManager._task_index - this may lead to unexpected behaviors for these tasks:"
-            )
-            for overidden in overriden_tasks:
-                eval_logger.debug(f"{overidden}")
 
         return tasks_and_groups
 

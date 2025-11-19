@@ -35,4 +35,4 @@ aggregate_metric_list:
     weight_by_size: true
     filter_list: default
 metadata:
-  version: 3
+  version: 4

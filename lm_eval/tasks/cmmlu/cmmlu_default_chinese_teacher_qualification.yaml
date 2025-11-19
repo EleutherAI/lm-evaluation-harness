@@ -1,4 +1,0 @@
-"dataset_name": "chinese_teacher_qualification"
-"description": "以下是关于中国教师资格的单项选择题，请直接给出正确答案的选项。\n\n"
-"include": "_default_template_yaml"
-"task": "cmmlu_chinese_teacher_qualification"
