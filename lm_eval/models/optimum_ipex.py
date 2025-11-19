@@ -73,7 +73,7 @@ class IPEXLM(HFLM):
         self._model = IPEXModelForCausalLM.from_pretrained(
             pretrained,
             revision=revision,
-            torch_dtype=get_dtype(dtype),
+            dtype=get_dtype(dtype),
             trust_remote_code=trust_remote_code,
             **model_kwargs,
         )
