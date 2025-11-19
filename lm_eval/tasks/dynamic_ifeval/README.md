@@ -1,7 +1,14 @@
 # Dynamic IFEval
 
 ## Task Summary
-This benchmark evaluates an LLM's ability to follow verifiable instructions that are grounded in specific input texts.
+Dynamic-IFEval is a fully automated benchmark for evaluating and training Large Language Models (LLMs) on verifiable instruction-following. Unlike existing datasets such as IFEval, which rely on small, manually-validated sets of constraints, Dynamic-IFEval generates diverse, non-contradictory, and automatically verifiable instructions directly from real text sources.
+
+By construction, every generated instruction is guaranteed to have at least one valid solution, eliminating the need for human annotation, constraint dictionaries, or manual conflict checking. This makes Dynamic-IFEval especially suited for reinforcement learning (RL)–based alignment, where large amounts of verifiable training data are required.
+
+Dynamic-IFEval supports:
+- Unlimited dynamic generation of instruction-following tasks
+- Deterministic, rule-based evaluation (no reward models required)
+- Easy extensibility through new instruction types
 
 ### Overview
 - A dataset of natural language texts is used as the source of truth.
@@ -38,12 +45,6 @@ You can set the seed used for the generation of the dataset with the following f
 
 ### Task Validity Checklist
 
-- [ ] Is the task an existing benchmark in the literature?
-  - [ ] Have you referenced the original paper that introduced the task?
-  - [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-
-If other tasks on this dataset are already supported:
-
-- [ ] Is the "Main" variant of this task clearly denoted?
-- [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-- [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+- [ ] Is the task an existing benchmark in the literature? Yes
+  - [ ] Have you referenced the original paper that introduced the task? Yes
+  - [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test? Yes
