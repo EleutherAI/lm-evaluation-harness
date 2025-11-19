@@ -27,6 +27,8 @@ echo "Running on host: $(hostname)"
 echo "GPU info:"
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
 
+# Remember use limit=100 for abstract summarization task to avoid OOM
+
 lm_eval --model hf \
     --model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-last-100B-step42931,parallelize=True \
     --tasks xlsum_en,xlsum_id,xlsum_ta,xlsum_th,xlsum_vi,xlsum_zh \
