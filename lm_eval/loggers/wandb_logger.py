@@ -138,7 +138,7 @@ class WandbLogger:
                 version = results.get("versions").get(k)
                 if version == "N/A":
                     version = None
-                n = results.get("n-shot").get(k)
+                n = results.get("n_shot").get(k)
 
                 for (mf), v in dic.items():
                     m, _, f = mf.partition(",")

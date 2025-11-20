@@ -382,7 +382,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         column_name,
         "Version",
         "Filter",
-        "n-shot",
+        "n_shot",
         "Metric",
         "",
         "Value",
@@ -406,7 +406,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
     for k in keys:
         dic = result_dict[column][k]
         version = result_dict["versions"].get(k, "    N/A")
-        n = str(result_dict.get("n-shot", " ").get(k, " "))
+        n = str(result_dict.get("n_shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         if "alias" in dic:
