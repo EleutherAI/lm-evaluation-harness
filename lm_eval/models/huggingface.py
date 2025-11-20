@@ -107,7 +107,7 @@ class HFLM(TemplateLM):
         chat_template_args: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
-        super().__init__()
+        self.raw_generations = []
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
             eval_logger.warning(
@@ -1366,6 +1366,7 @@ class HFLM(TemplateLM):
     def generate_until(
         self, requests: list[Instance], disable_tqdm: bool = False
     ) -> list[str]:
+        self.raw_generations = []
         res = []
 
         def _collate(req: tuple[str, dict]):
@@ -1427,6 +1428,9 @@ class HFLM(TemplateLM):
                 kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
                 # add EOS token to stop sequences
                 until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+                # sanitize problematic stop sequences that can appear in CoT traces
+                if until:
+                    until = [u for u in until if u.strip().lower() != "question:"]
             else:
                 raise TypeError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
@@ -1483,11 +1487,14 @@ class HFLM(TemplateLM):
                     if think_token_indices:
                         cont_toks = cont_toks[think_token_indices[-1] + 1 :]
 
-                s = self.tok_decode(cont_toks)
+                raw_s = self.tok_decode(cont_toks)
+                self.raw_generations.append(raw_s)
 
                 # Strip leading whitespace if we removed thinking tokens
                 if isinstance(self.think_end_token, int):
-                    s = s.lstrip()
+                    s = raw_s.lstrip()
+                else:
+                    s = raw_s
 
                 # Apply post-processing: remove stop sequences and string-based thinking tokens
                 s = postprocess_generated_text(
@@ -1499,7 +1506,9 @@ class HFLM(TemplateLM):
                 )
                 res.append(s)
 
-                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), raw_s
+                )
                 pbar.update(1)
         # reorder this group of results back to original unsorted form
         res = re_ords.get_original(res)
