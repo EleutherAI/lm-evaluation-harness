@@ -1,8 +1,14 @@
 import re
 from typing import Dict, List, Tuple
-from math_verify import parse, verify
 from collections import Counter
-
+from math_verify import parse, verify
+try:
+    from math_verify import parse, verify
+except ModuleNotFoundError as e:
+    raise ModuleNotFoundError(
+        "`math_verify` is required for AIME tasks. "
+        "Please install via `pip install lm-eval[math]` or `pip install math-verify`"
+    ) from e
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     responses = results[0]
