@@ -1,4 +1,4 @@
-MODEL_ARGS=/u/shawntan/proj/mayank/checkpoints/hybrid-attn-rsa-2.5b-64-cosine/unsharded_model
+MODEL=/u/shawntan/proj/mayank/checkpoints/hybrid-attn-rsa-2.5b-64-cosine/unsharded_model
 
 accelerate launch -m lm_eval \
     --model hf \
