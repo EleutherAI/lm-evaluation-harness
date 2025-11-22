@@ -43,6 +43,14 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
+try:
+    import lm_engine.hf_models
+    from lm_engine.kernels import enable_kernels, Kernel
+
+    enable_kernels([Kernel.causal_conv1d, Kernel.mamba2_ssm]).__enter__()
+except ImportError:
+    pass
+
 
 if TYPE_CHECKING:
     from transformers.quantizers.auto import AutoQuantizationConfig
