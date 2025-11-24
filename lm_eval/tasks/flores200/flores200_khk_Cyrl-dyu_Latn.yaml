@@ -1,0 +1,7 @@
+"dataset_name": "khk_Cyrl-dyu_Latn"
+"doc_to_target": "{{sentence_dyu_Latn}}"
+"doc_to_text": "{{sentence_khk_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_khk_Cyrl-dyu_Latn"
+"test_split": "dev"

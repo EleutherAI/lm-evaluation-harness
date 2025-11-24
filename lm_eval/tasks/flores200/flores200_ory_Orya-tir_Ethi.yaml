@@ -1,0 +1,7 @@
+"dataset_name": "ory_Orya-tir_Ethi"
+"doc_to_target": "{{sentence_tir_Ethi}}"
+"doc_to_text": "{{sentence_ory_Orya}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ory_Orya-tir_Ethi"
+"test_split": "dev"
