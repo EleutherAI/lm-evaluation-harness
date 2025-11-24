@@ -19,6 +19,7 @@ from . import (
     textsynth,
     vllm_causallms,
     vllm_vlms,
+    yandexgpt_llms,
 )
 
 
