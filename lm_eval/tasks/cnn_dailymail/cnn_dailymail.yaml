@@ -1,4 +1,4 @@
-task: cnn_dailymail_fewshot
+task: cnn_dailymail_abisee
 dataset_path: abisee/cnn_dailymail
 dataset_name: "3.0.0"
 output_type: generate_until
