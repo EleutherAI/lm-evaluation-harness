@@ -5,6 +5,7 @@ from typing import Any
 
 
 def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") -> str:
+    """Join prefix and suffix, adding delimiter only if neither has whitespace at the boundary."""
     if not prefix:
         return suffix or ""
     if not suffix:
@@ -16,24 +17,46 @@ def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") 
     )
 
 
+def requires_delimiter(prefix: str, suffix: str) -> bool:
+    """Return True if neither string has whitespace at the join boundary."""
+    return not (prefix[-1].isspace() or suffix[0].isspace())
+
+
 @dataclass
 class Message:
+    r"""A single message in a prompt, supporting both chat and plain-text formats.
+
+    Used by `build_qa_turn()` and `fewshot_context()` to construct prompts that can
+    be rendered either as plain text or as chat-formatted messages.
+
+    Attributes:
+        role (str): "system", "user", or "assistant".
+        content (str): The message text.
+        _delimiter (str): Suffix appended when rendering as plain text (via `to_text()`).
+            Prefixed with `_` so it's excluded from the ` to_dict () ` output. Typically used
+            for target delimiters (e.g., " ") or fewshot delimiters (e.g., "\n\n").
+    """
+
     role: str  # "system" | "user" | "assistant"
     content: str
     _delimiter: str = ""
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, str]:
+        """Convert to chat format dict, excluding internal fields like `_delimiter`."""
         return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
-    def to_text(self):
+    def to_text(self) -> str:
+        """Render as plain text with delimiter appended."""
         return self.content + self._delimiter
 
 
 def messages_to_text(messages: list[Message]) -> str:
+    """Concatenate all messages into plain text, using each message's `_delimiter`."""
     return "".join(m.to_text() for m in messages)
 
 
 def multiturn_to_singleturn(messages: list[Message]) -> list[dict[str, Any]]:
+    """Collapse multi-turn messages into a single user message (plus optional system/assistant)."""
     system, messages = (
         (messages[0], messages[1:])
         if messages[0].role == "system"
@@ -54,6 +77,7 @@ def multiturn_to_singleturn(messages: list[Message]) -> list[dict[str, Any]]:
 
 
 def format_turn(content: str, role: str, type: str | None = None) -> dict[str, str]:
+    """Create a chat message dict with role, content, and optional type."""
     return (
         {"role": role, "content": content}
         if not type

@@ -5,22 +5,14 @@ import ast
 import logging
 import random
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 from functools import partial
 from inspect import getsource
 from typing import (
     Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     Literal,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
     cast,
 )
 
@@ -40,7 +32,12 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
+from lm_eval.api.utils import (
+    Message,
+    maybe_delimit,
+    multiturn_to_singleturn,
+    requires_delimiter,
+)
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -59,49 +56,49 @@ eval_logger = logging.getLogger(__name__)
 @dataclass
 class TaskConfig(dict):
     # task naming/registry
-    task: Optional[str] = None
-    task_alias: Optional[str] = None
-    tag: Optional[Union[str, list]] = None
+    task: str | None = None
+    task_alias: str | None = None
+    tag: str | list | None = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Optional[Callable] = None
-    dataset_path: Optional[str] = None
-    dataset_name: Optional[str] = None
-    dataset_kwargs: Optional[dict] = None
-    training_split: Optional[str] = None
-    validation_split: Optional[str] = None
-    test_split: Optional[str] = None
-    fewshot_split: Optional[str] = (
+    custom_dataset: Callable | None = None
+    dataset_path: str | None = None
+    dataset_name: str | None = None
+    dataset_kwargs: dict | None = None
+    training_split: str | None = None
+    validation_split: str | None = None
+    test_split: str | None = None
+    fewshot_split: str | None = (
         None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    process_docs: Optional[Callable] = None
-    doc_to_text: Optional[Union[Callable, str]] = None
-    doc_to_target: Optional[Union[Callable, str]] = None
-    doc_to_image: Union[Callable, str] = None
-    doc_to_audio: Union[Callable, str] = None
+    process_docs: Callable | None = None
+    doc_to_text: Callable | str | None = None
+    doc_to_target: Callable | str | None = None
+    doc_to_image: Callable | str = None
+    doc_to_audio: Callable | str = None
     unsafe_code: bool = False
-    doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
-    process_results: Optional[Union[Callable, str]] = None
-    use_prompt: Optional[str] = None
+    doc_to_choice: Callable | str | dict | list | None = None
+    process_results: Callable | str | None = None
+    use_prompt: str | None = None
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
-    fewshot_config: Optional[dict] = None
+    fewshot_config: dict | None = None
     # runtime configuration options
-    num_fewshot: Optional[int] = None
+    num_fewshot: int | None = None
     # scoring options
-    metric_list: Optional[list] = None
+    metric_list: list | None = None
     output_type: OutputType = "generate_until"
-    generation_kwargs: Optional[dict] = None
+    generation_kwargs: dict | None = None
     repeats: int = 1
-    filter_list: Optional[Union[str, list]] = None
+    filter_list: str | list | None = None
     should_decontaminate: bool = False
-    doc_to_decontamination_query: Optional[str] = None
-    gen_prefix: Optional[str] = None
-    metadata: Optional[dict] = (
+    doc_to_decontamination_query: str | None = None
+    gen_prefix: str | None = None
+    metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
 
@@ -172,8 +169,8 @@ class TaskConfig(dict):
         return cfg_dict
 
     def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
+        self, value: Callable | str, keep_callable=False
+    ) -> Callable | str:
         """Serializes a given function or string.
 
         If 'keep_callable' is True, the original callable is returned.
@@ -198,23 +195,23 @@ class Task(abc.ABC):
         {"question": ..., question, answer)
     """
 
-    VERSION: Optional[Union[int, str]] = None
+    VERSION: int | str | None = None
 
     # The name of the `Task` benchmark as denoted in the HuggingFace datasets Hub
     # or a path to a custom `datasets` loading script.
-    DATASET_PATH: Optional[str] = None
+    DATASET_PATH: str | None = None
 
     # The name of a subset within `DATASET_PATH`.
-    DATASET_NAME: Optional[str] = None
+    DATASET_NAME: str | None = None
 
-    OUTPUT_TYPE: Optional[OutputType] = None
+    OUTPUT_TYPE: OutputType | None = None
 
     def __init__(
         self,
-        data_dir: Optional[str] = None,
-        cache_dir: Optional[str] = None,
-        download_mode: Optional[datasets.DownloadMode] = None,
-        config: Optional[Mapping] = None,  # Union[dict, TaskConfig]
+        data_dir: str | None = None,
+        cache_dir: str | None = None,
+        download_mode: datasets.DownloadMode | None = None,
+        config: Mapping | None = None,  # Union[dict, TaskConfig]
     ) -> None:
         """
         :param data_dir: str
@@ -238,21 +235,21 @@ class Task(abc.ABC):
                 Fresh download and fresh dataset.
         """
         self.download(data_dir, cache_dir, download_mode)
-        self._training_docs: Optional[list] = None
-        self._fewshot_docs: Optional[list] = None
-        self._instances: Optional[List[Instance]] = None
+        self._training_docs: list | None = None
+        self._fewshot_docs: list | None = None
+        self._instances: list[Instance] | None = None
 
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[random.Random] = (
+        self.fewshot_rnd: random.Random | None = (
             None  # purposely induce errors in case of improper usage
         )
 
     def download(
         self,
-        data_dir: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        data_dir: str | None = None,
+        cache_dir: str | None = None,
         download_mode=None,
     ) -> None:
         """Downloads and returns the task dataset.
@@ -357,7 +354,7 @@ class Task(abc.ABC):
         return doc
 
     @property
-    def instances(self) -> List[Instance]:
+    def instances(self) -> list[Instance]:
         """After calling `task.build_all_requests()`, tasks
         maintain a list of the dataset instances which will be evaluated.
         """
@@ -395,16 +392,16 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit: Union[int, None] = None,
-        samples: Optional[List[int]] = None,
+        limit: int | None = None,
+        samples: list[int] | None = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
         rewrite_requests_cache: bool = False,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
+        chat_template: Callable | None = None,
         tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -629,7 +626,7 @@ class Task(abc.ABC):
         example = self.doc_to_text(doc)
         return description + labeled_examples + example
 
-    def apply_filters(self) -> Optional[List[Instance]]:
+    def apply_filters(self) -> list[Instance] | None:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
@@ -684,13 +681,13 @@ class Task(abc.ABC):
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
 
-    def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
+    def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
         if hasattr(self, "sampler"):
             self.sampler.set_rnd(seed)
 
     @property
-    def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
+    def eval_docs(self) -> datasets.Dataset | list[dict]:
         if self.has_test_docs():
             return self.test_docs()
         elif self.has_validation_docs():
@@ -704,10 +701,10 @@ class Task(abc.ABC):
         self,
         *,
         rank: int = 0,
-        limit: Union[int, None] = None,
+        limit: int | None = None,
         world_size: int = 1,
-        samples: Optional[List[int]] = None,
-    ) -> Iterator[Tuple[int, Any]]:
+        samples: list[int] | None = None,
+    ) -> Iterator[tuple[int, Any]]:
         if samples:
             n = len(self.eval_docs)
             assert all([e < n for e in samples]), (
@@ -748,7 +745,7 @@ class ConfigurableTask(Task):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
-        config: Optional[dict] = None,
+        config: dict | None = None,
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
         self._config = self.CONFIG
@@ -921,7 +918,7 @@ class ConfigurableTask(Task):
                     f"fewshot_config.sampler should be a string or subclass of ContextSampler, "
                     f"not {type(config_sampler)}"
                 )
-            self.sampler = sampler_cls(fewshot_docs, rnd=None)  # type: ignore
+            self.sampler: samplers.ContextSampler = sampler_cls(fewshot_docs, rnd=None)  # type: ignore
 
         self.task_docs = self.eval_docs
 
@@ -982,9 +979,7 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
-    def download(
-        self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> None:
+    def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
         from packaging.version import parse as vparse
 
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
@@ -1075,31 +1070,36 @@ class ConfigurableTask(Task):
         self,
         doc: dict,
         num_fewshot: int,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
-        gen_prefix: Optional[str] = None,
-    ) -> Union[str, list[str]]:
-        """Returns a fewshot context string that is made up of a prepended description
-        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
+        chat_template: Callable[..., str] | None = None,
+        gen_prefix: str | None = None,
+    ) -> str | list[str]:
+        """Build the full prompt context including system prompt, few-shot examples, and eval doc.
 
-        :param doc: str
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param num_fewshot: int
-            The number of fewshot examples to provide in the returned context string.
-        :param  system_instruction: str
-            System instruction to be applied to the prompt.
-        :param apply_chat_template: bool
-            Whether to apply the chat template to the fewshot context.
-        :param fewshot_as_multiturn: bool
-            Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param chat_template:
-            callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
-        :param gen_prefix:
-            String to append after the <|assistant|> token.
-        :returns: str
-            The fewshot context.
+        Constructs a complete prompt by:
+        1. Adding system instruction + task description (if provided)
+        2. Adding `num_fewshot` labeled examples from the fewshot split
+        3. Adding the evaluation document (without its answer)
+
+        Each component is built using `build_qa_turn()` and can be rendered as plain
+        text or formatted via a chat template.
+
+        Args:
+            doc (dict): The evaluation document to build context for.
+            num_fewshot (int): Number of few-shot examples to include.
+            system_instruction (str | None): System instruction to prepend to the prompt.
+            apply_chat_template (bool): If True, format output using the chat template.
+            fewshot_as_multiturn (bool): If True, keep few-shot examples as separate
+                user/assistant turns. If False, collapse into a single user message.
+            chat_template (Callable | None): Renders a list of message dicts to a string.
+            gen_prefix (str | None): Prefix to start the assistant's response (e.g., "Answer:").
+
+        Returns:
+            str | list[str]: The formatted prompt string, or a list of strings for
+                multiple-input tasks (e.g., Winogrande where each choice becomes a
+                separate context).
         """
         messages = []
         tgt_delim, few_delim = (
@@ -1114,7 +1114,7 @@ class ConfigurableTask(Task):
         description = self.resolve_field(doc, self.config.description) or ""
         system_prompt = maybe_delimit(system_instruction, description, few_delim)
         if system_prompt:
-            messages.append(Message("system", system_prompt, tgt_delim))
+            messages.append(Message("system", system_prompt))
 
         if num_fewshot > 0:
             for fs_doc in self.sampler.sample(
@@ -1131,7 +1131,7 @@ class ConfigurableTask(Task):
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
                 if self.multiple_input:
-                    q = cast(str, c[q])  # type: ignore
+                    q = cast("str", c[q])  # type: ignore
                     c = None
                 # TODO: fix types
                 messages += self.build_qa_turn(
@@ -1160,9 +1160,7 @@ class ConfigurableTask(Task):
         messages += self.build_qa_turn(
             q=q,
             c=c,
-            a=a,
             gen_prefix=gen_prefix,
-            include_answer=False,
             tgt_delim=tgt_delim,
             few_delim="",
         )
@@ -1185,14 +1183,45 @@ class ConfigurableTask(Task):
         c: list[str] | None = None,
         a: str | int | list[str] | None = None,
         gen_prefix: str | None = None,
-        include_answer: bool = True,
         tgt_delim=" ",
         few_delim="\n\n",
     ) -> list[Message]:
-        """Return `[user, assistant?]` for a single doc."""
+        r"""Build a single Q&A turn as a list of Messages.
+
+        Constructs a user message containing the question/context, and optionally
+        an assistant message containing the answer. Used for building both few-shot
+        examples and the final evaluation prompt. The returned Messages can be
+        rendered as plain text (via to_text()) or converted to chat format
+        (via to_dict()) depending on whether a chat template is applied.
+
+        Args:
+            q (str): The question or context text (required).
+            c (list[str] | None): List of answer choices for multiple-choice tasks.
+                When provided with an integer `a`, indexes into this list to get the answer.
+            a (str | int | list[str] | None): The answer - can be a string, an index
+                into `c`, or a list of strings (for multiple targets).
+            gen_prefix (str | None): A prefix to prepend to generated text (e.g., "Answer:").
+            tgt_delim (str): Delimiter between question and answer (default: " ").
+            few_delim (str): Delimiter after assistant response for few-shot separation
+                (default: "\n\n").
+
+        Returns:
+            list[Message]: [user_msg] or [user_msg, assistant_msg] depending on
+                whether an answer or gen_prefix is provided.
+        """
         assert isinstance(q, str), f"Context is not a string! : {q}"
-        msgs = [Message("user", q, tgt_delim if include_answer or gen_prefix else "")]
-        if include_answer:
+        msgs = [
+            Message(
+                "user",
+                q,
+                tgt_delim
+                if a and not gen_prefix
+                else tgt_delim
+                if gen_prefix and requires_delimiter(q, gen_prefix)
+                else "",
+            )
+        ]
+        if a is not None and a != "":
             answer_text = (
                 c[a]
                 if (c and isinstance(a, int))
@@ -1202,21 +1231,39 @@ class ConfigurableTask(Task):
                 else a
             )
             assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
-            answer_text = maybe_delimit(gen_prefix, answer_text)
+            # Currently, we always delimit gen_prefex and answer with space if deliimter required.
+            answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
-        if gen_prefix:
+        elif gen_prefix:
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
     def multiple_input_context(
         self,
-        prev_context: Union[list[Message], None],
-        gen_prefix: Union[str, None],
+        prev_context: list[Message] | None,
+        gen_prefix: str | None,
         q: list[str],
-        chat_template: Union[Callable[..., str], None] = None,
+        chat_template: Callable[..., str] | None = None,
         fewshot_as_multiturn: bool = False,
     ) -> list[str]:
-        """For multiple input tasks (e.g. winograde) we have multiple contexts and a single target."""
+        """Build separate prompt contexts for each input choice in multiple-input tasks.
+
+        For tasks like Winogrande where each answer choice produces a different
+        input context (e.g., filling a blank with different options), this method
+        creates a separate full prompt for each choice. All prompts share the same
+        fewshot prefix but differ in the final evaluation turn.
+
+        Args:
+            prev_context (list[Message] | None): Messages from system prompt and fewshot
+                examples (shared across all choices).
+            gen_prefix (str | None): Prefix to start the assistant's response (e.g., "Answer:").
+            q (list[str]): List of input texts, one per choice.
+            chat_template (Callable | None): Renders a list of message dicts to a string.
+            fewshot_as_multiturn (bool): If True, keep messages as separate turns.
+
+        Returns:
+            list[str]: Formatted prompt strings, one per input choice.
+        """
         # for multiple inputs, q is list[str]
         res_ = []
         prev_context = prev_context if prev_context else []
@@ -1225,7 +1272,6 @@ class ConfigurableTask(Task):
             + self.build_qa_turn(
                 q=ctx,
                 gen_prefix=gen_prefix,
-                include_answer=False,
                 tgt_delim="",
             )
             for ctx in q
@@ -1243,7 +1289,7 @@ class ConfigurableTask(Task):
             res_.append(res)
         return res_
 
-    def apply_filters(self) -> Optional[List[Instance]]:
+    def apply_filters(self) -> list[Instance] | None:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
@@ -1319,7 +1365,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
+    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
         if self.prompt is not None:
             doc_to_target = self.prompt
         elif doc_to_target is not None:
@@ -1365,7 +1411,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> List[str]:
+    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
         if self.prompt is not None:
             doc_to_choice = self.prompt
         elif doc_to_choice is not None:
@@ -1391,7 +1437,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_image(self, doc: Any, doc_to_image=None) -> Union[int, str, list]:
+    def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list:
         if doc_to_image is not None:
             doc_to_image = doc_to_image
         elif self.config.doc_to_image is not None:
@@ -1414,7 +1460,7 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list:
         if doc_to_audio is not None:
             doc_to_audio = doc_to_audio
         elif self.config.doc_to_audio is not None:
@@ -1446,8 +1492,8 @@ class ConfigurableTask(Task):
         return None
 
     def construct_requests(
-        self, doc: dict, ctx: Union[str, list[str]], **kwargs
-    ) -> Union[List[Instance], Instance]:
+        self, doc: dict, ctx: str | list[str], **kwargs
+    ) -> list[Instance] | Instance:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
 
@@ -1764,20 +1810,20 @@ class MultipleChoiceTask(Task):
     def doc_to_target(self, doc: dict) -> str:
         return " " + doc["choices"][doc["gold"]]
 
-    def construct_requests(self, doc: dict, ctx: str, **kwargs) -> List[Instance]:
+    def construct_requests(self, doc: dict, ctx: str, **kwargs) -> list[Instance]:
         # TODO: add mutual info here?
         return [
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice)),
+                arguments=(ctx, f" {choice}"),
                 idx=i,
                 **kwargs,
             )
             for i, choice in enumerate(doc["choices"])
         ]
 
-    def process_results(self, doc: dict, results: Iterable[Tuple[float, bool]]) -> dict:
+    def process_results(self, doc: dict, results: Iterable[tuple[float, bool]]) -> dict:
         results = [
             res[0] for res in results
         ]  # only retain loglikelihoods, discard is_greedy TODO: do we need is_greedy anywhere?
@@ -1811,7 +1857,7 @@ class PerplexityTask(Task):
     def has_training_docs(self) -> bool:
         return False
 
-    def fewshot_examples(self, k: int, rnd) -> List:
+    def fewshot_examples(self, k: int, rnd) -> list:
         if k != 0:
             raise ValueError(
                 "The number of fewshot examples must be 0 for perplexity tasks."
@@ -1842,7 +1888,7 @@ class PerplexityTask(Task):
     def doc_to_target(self, doc):
         return doc
 
-    def construct_requests(self, doc: dict, ctx: Optional[str], **kwargs):
+    def construct_requests(self, doc: dict, ctx: str | None, **kwargs):
         if bool(ctx):
             raise ValueError
 
@@ -1854,7 +1900,7 @@ class PerplexityTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc: dict, results: Tuple[float]) -> dict:
+    def process_results(self, doc: dict, results: tuple[float]) -> dict:
         (loglikelihood,) = results
         words = self.count_words(self.doc_to_target(doc))
         bytes_ = self.count_bytes(self.doc_to_target(doc))
