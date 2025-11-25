@@ -488,7 +488,7 @@ def register_model(*names):
     return decorate
 
 
-def get_model(model_name):
+def get_model(model_name: str):
     """Get a model class by name.
 
     Args:
@@ -500,6 +500,10 @@ def get_model(model_name):
     Raises:
         ValueError: If model name is not found
     """
+    # Auto-import models module if registry is empty (lazy initialization)
+    if len(model_registry) == 0:
+        import lm_eval.models  # noqa: F401
+
     try:
         return model_registry.get(model_name)
     except KeyError:
@@ -676,6 +680,10 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     Returns:
         The metric compute function, or None if not found
     """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(metric_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
     if not hf_evaluate_metric:
         if name in metric_registry:
             return metric_registry.get(name)
@@ -720,6 +728,10 @@ def get_aggregation(name: str) -> Callable[..., float] | None:
     Returns:
         The aggregation function, or None if not found
     """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(aggregation_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
     try:
         return aggregation_registry.get(name)
     except KeyError:
@@ -736,6 +748,10 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
     Returns:
         The aggregation function for that metric, or None if not found
     """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(metric_agg_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
     try:
         return metric_agg_registry.get(name)
     except KeyError:
@@ -752,6 +768,10 @@ def is_higher_better(metric_name: str) -> bool | None:
     Returns:
         True if higher is better, False otherwise, None if not found
     """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(higher_is_better_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
     try:
         return higher_is_better_registry.get(metric_name)
     except KeyError:
