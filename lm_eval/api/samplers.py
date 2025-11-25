@@ -46,20 +46,25 @@ class ContextSampler:
         Returns:
             List of sampled documents
         """
-        if n <= 0:
+        assert n >= 0, "Error: number of samples requested must be >=0"
+        if n == 0:
             return []
 
         if df:
             self.df = df
 
         assert self.df, "Error: no documents available for sampling."
-        return (
+        res = (
             self.rnd.sample(self.fewshot_docs(), n)
             if not eval_doc
             else self.rm_eval_doc(
                 eval_doc, self.rnd.sample(self.fewshot_docs(), n + 1), n
             )
         )
+        assert len(res) == n, (
+            f"Error: number of fewshot samples returned ({len(res)}) not equal to number requested ({n})."
+        )
+        return res
 
     def set_rnd(self, rnd: int | None):
         self.rnd = Random(rnd)
