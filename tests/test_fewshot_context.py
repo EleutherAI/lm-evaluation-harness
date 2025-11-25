@@ -210,7 +210,7 @@ class TestBuildQaTurn:
 
     def test_no_answer_format(self, task):
         """Without answer, only user message with no delimiter."""
-        msgs = ConfigurableTask.build_qa_turn(task, q="Question?", include_answer=False)
+        msgs = ConfigurableTask.build_qa_turn(task, q="Question?")
 
         assert len(msgs) == 1
         assert msgs[0].role == "user"
@@ -252,7 +252,7 @@ class TestBuildQaTurn:
     def test_gen_prefix_without_answer(self, task):
         """gen_prefix adds assistant message when no answer."""
         msgs = ConfigurableTask.build_qa_turn(
-            task, q="Question?", include_answer=False, gen_prefix="Let me think"
+            task, q="Question?", gen_prefix="Let me think"
         )
 
         assert len(msgs) == 2
@@ -308,7 +308,6 @@ class TestBuildQaTurn:
         msgs = ConfigurableTask.build_qa_turn(
             task,
             q="Q",
-            include_answer=False,
             gen_prefix="The answer is:",
             tgt_delim=" ",
         )
@@ -320,7 +319,7 @@ class TestBuildQaTurn:
     def test_gen_prefix_with_trailing_space_without_answer(self, task):
         """gen_prefix with trailing space preserved when no answer."""
         msgs = ConfigurableTask.build_qa_turn(
-            task, q="Q", include_answer=False, gen_prefix="Answer: ", tgt_delim=" "
+            task, q="Q", gen_prefix="Answer: ", tgt_delim=" "
         )
 
         assert msgs[1].content == "Answer: "
@@ -371,13 +370,13 @@ class TestBuildQaTurn:
         assert messages_to_text(msgs) == "QXA"
 
         # Row 2: "Q" + None + None → "Q"
-        msgs = ConfigurableTask.build_qa_turn(task, q="Q", include_answer=False)
+        msgs = ConfigurableTask.build_qa_turn(task, q="Q")
         assert msgs[0]._delimiter == ""
         assert messages_to_text(msgs) == "Q"
 
         # Row 3: "Q" + "P" + None → "QXP"
         msgs = ConfigurableTask.build_qa_turn(
-            task, q="Q", include_answer=False, gen_prefix="P", tgt_delim="X"
+            task, q="Q", gen_prefix="P", tgt_delim="X"
         )
         assert msgs[0]._delimiter == "X"
         assert messages_to_text(msgs) == "QXP"
@@ -398,7 +397,7 @@ class TestBuildQaTurn:
 
         # Row 6: "Q" + "\nP" + None → "Q\nP" (P starts with \n, no X needed)
         msgs = ConfigurableTask.build_qa_turn(
-            task, q="Q", include_answer=False, gen_prefix="\nP", tgt_delim="X"
+            task, q="Q", gen_prefix="\nP", tgt_delim="X"
         )
         assert msgs[0]._delimiter == ""
         assert messages_to_text(msgs) == "Q\nP"

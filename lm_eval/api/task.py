@@ -1164,9 +1164,7 @@ class ConfigurableTask(Task):
         messages += self.build_qa_turn(
             q=q,
             c=c,
-            a=a,
             gen_prefix=gen_prefix,
-            include_answer=False,
             tgt_delim=tgt_delim,
             few_delim="",
         )
@@ -1189,7 +1187,6 @@ class ConfigurableTask(Task):
         c: list[str] | None = None,
         a: str | int | list[str] | None = None,
         gen_prefix: str | None = None,
-        include_answer: bool = True,
         tgt_delim=" ",
         few_delim="\n\n",
     ) -> list[Message]:
@@ -1200,13 +1197,13 @@ class ConfigurableTask(Task):
                 "user",
                 q,
                 tgt_delim
-                if include_answer and not gen_prefix
+                if a and not gen_prefix
                 else tgt_delim
                 if gen_prefix and requires_delimiter(q, gen_prefix)
                 else "",
             )
         ]
-        if include_answer:
+        if a:
             answer_text = (
                 c[a]
                 if (c and isinstance(a, int))
@@ -1239,7 +1236,6 @@ class ConfigurableTask(Task):
             + self.build_qa_turn(
                 q=ctx,
                 gen_prefix=gen_prefix,
-                include_answer=False,
                 tgt_delim="",
             )
             for ctx in q
