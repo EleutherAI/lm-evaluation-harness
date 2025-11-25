@@ -59,8 +59,3 @@ def format_turn(content: str, role: str, type: str | None = None) -> dict[str, s
         if not type
         else {"type": type, "role": role, "content": content}
     )
-
-def handle_multiple_inputs(q,c,a):
-    if not isinstance(q, list):
-        return q,c,a
-
