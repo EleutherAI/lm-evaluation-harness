@@ -685,7 +685,7 @@ class Task(abc.ABC):
     def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
         self.fewshot_rnd = random.Random(seed)
         if hasattr(self, "sampler"):
-            self.sampler.rnd = self.fewshot_rnd
+            self.sampler.set_rnd(seed)
 
     @property
     def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
@@ -904,24 +904,22 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            config_sampler: Union[str, Callable] = (
+            config_sampler: str | type[samplers.ContextSampler] = (
                 self.config.fewshot_config.get("sampler", "default")
                 if self.config.fewshot_config
                 else "default"
             )
+            fewshot_docs = list(self.fewshot_docs())  # type: ignore
             if isinstance(config_sampler, str):
-                self.sampler = samplers.get_sampler(config_sampler)(
-                    list(self.fewshot_docs()), rnd=None
-                )  # setting with no seed, to be overridden at a later time
-            elif callable(config_sampler) and issubclass(
-                config_sampler, samplers.ContextSampler
-            ):
-                self.sampler = config_sampler(df=list(self.fewshot_docs()), rnd=None)
+                sampler_cls = samplers.get_sampler(config_sampler)
+            elif issubclass(config_sampler, samplers.ContextSampler):
+                sampler_cls = config_sampler
             else:
                 raise TypeError(
-                    f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
+                    f"fewshot_config.sampler should be a string or subclass of ContextSampler, "
                     f"not {type(config_sampler)}"
                 )
+            self.sampler = sampler_cls(fewshot_docs, rnd=None)  # type: ignore
 
         self.task_docs = self.eval_docs
 
@@ -1158,7 +1156,7 @@ class ConfigurableTask(Task):
                     q = cast(str, c[q])  # type: ignore
                     c = None
                 # TODO: fix types
-                messages += self.doc_to_qa_message(
+                messages += self.build_qa_turn(
                     gen_prefix, q=q, c=c, a=a, tgt_delim=tgt_delim, few_delim=few_delim
                 )
 
@@ -1175,7 +1173,7 @@ class ConfigurableTask(Task):
                 chat_template=chat_template if apply_chat_template else None,
                 fewshot_as_multiturn=fewshot_as_multiturn,
             )
-        messages += self.doc_to_qa_message(
+        messages += self.build_qa_turn(
             gen_prefix,
             q=q,
             c=c,
@@ -1196,7 +1194,7 @@ class ConfigurableTask(Task):
 
         return res
 
-    def doc_to_qa_message(
+    def build_qa_turn(
         self,
         gen_prefix: str | None = None,
         *,
@@ -1227,12 +1225,13 @@ class ConfigurableTask(Task):
         chat_template: Union[Callable[..., str], None] = None,
         fewshot_as_multiturn: bool = False,
     ) -> Union[str, list[list[dict[str, Any]]]]:
+        """For multiple input tasks (e.g. winograde) we have multiple contexts and a single target."""
         # for multiple inputs, q is list[str]
         res_ = []
         prev_context = prev_context if prev_context else []
         contexts = [
             prev_context
-            + self.doc_to_qa_message(
+            + self.build_qa_turn(
                 gen_prefix,
                 q=ctx,
                 include_answer=False,
@@ -1459,7 +1458,7 @@ class ConfigurableTask(Task):
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
-        chat_template: Callable | None = kwargs.pop("chat_template", None)
+        chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
 
         aux_arguments = None
 
