@@ -1101,7 +1101,7 @@ class ConfigurableTask(Task):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
-    ) -> Union[str, list[str], list[dict[str, Any]], list[list[dict[str, Any]]]]:
+    ) -> Union[str, list[str]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -1146,7 +1146,7 @@ class ConfigurableTask(Task):
             ):
                 q, c, a = (
                     self.doc_to_text(fs_doc),
-                    self.doc_to_choice(fs_doc),
+                    self.doc_to_choice(fs_doc) if self.config.doc_to_choice else None,
                     self.doc_to_target(fs_doc),
                 )
                 # for multiple inputs, q: int, c: list[str], target: str
@@ -1161,7 +1161,7 @@ class ConfigurableTask(Task):
 
         q, c, a = (
             self.doc_to_text(doc),
-            self.doc_to_choice(doc),
+            self.doc_to_choice(doc) if self.config.doc_to_choice else None,
             self.doc_to_target(doc),
         )
         if self.multiple_input:
@@ -1223,7 +1223,7 @@ class ConfigurableTask(Task):
         q: list[str],
         chat_template: Union[Callable[..., str], None] = None,
         fewshot_as_multiturn: bool = False,
-    ) -> Union[str, list[list[dict[str, Any]]]]:
+    ) -> list[str]:
         """For multiple input tasks (e.g. winograde) we have multiple contexts and a single target."""
         # for multiple inputs, q is list[str]
         res_ = []
@@ -1454,7 +1454,7 @@ class ConfigurableTask(Task):
         return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
+        self, doc: dict, ctx: Union[str, list[str]], **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
