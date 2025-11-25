@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import ast
 import logging
@@ -1068,30 +1070,6 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
-    @staticmethod
-    def append_target_question(
-        labeled_examples: List[Dict[str, str]],
-        question: str,
-        fewshot_as_multiturn: bool = False,
-        gen_prefix: Optional[str] = None,
-    ) -> None:
-        """Adds a target question to the labeled examples list.
-        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
-        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
-        """
-        if not fewshot_as_multiturn:
-            # if no messages or last message is system, append as new user entry
-            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
-            # if last message is user, append to it to avoid two user messages in a row
-            else:
-                labeled_examples[-1]["content"] += question
-        else:
-            # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append({"role": "user", "content": question})
-        if gen_prefix:
-            labeled_examples.append({"role": "assistant", "content": gen_prefix})
-
     @utils.positional_deprecated
     def fewshot_context(
         self,
@@ -1102,7 +1080,7 @@ class ConfigurableTask(Task):
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable] = None,
         gen_prefix: Optional[str] = None,
-    ) -> Union[str, list[str], list[dict[str, Any]], list[list[dict[str, Any]]]]:
+    ) -> Union[str, list[str]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -1147,7 +1125,7 @@ class ConfigurableTask(Task):
             ):
                 q, c, a = (
                     self.doc_to_text(fs_doc),
-                    self.doc_to_choice(fs_doc),
+                    self.doc_to_choice(fs_doc) if self.config.doc_to_choice else None,
                     self.doc_to_target(fs_doc),
                 )
                 # for multiple inputs, q: int, c: list[str], target: str
@@ -1157,15 +1135,21 @@ class ConfigurableTask(Task):
                     c = None
                 # TODO: fix types
                 messages += self.build_qa_turn(
-                    gen_prefix, q=q, c=c, a=a, tgt_delim=tgt_delim, few_delim=few_delim
+                    q=q,
+                    c=c,
+                    a=a,
+                    gen_prefix=gen_prefix,
+                    tgt_delim=tgt_delim,
+                    few_delim=few_delim,
                 )
 
         q, c, a = (
             self.doc_to_text(doc),
-            self.doc_to_choice(doc),
+            self.doc_to_choice(doc) if self.config.doc_to_choice else None,
             self.doc_to_target(doc),
         )
         if self.multiple_input:
+            assert isinstance(c, list), "multiple inputs require choices to be a list"
             return self.multiple_input_context(
                 messages,
                 gen_prefix,
@@ -1174,13 +1158,13 @@ class ConfigurableTask(Task):
                 fewshot_as_multiturn=fewshot_as_multiturn,
             )
         messages += self.build_qa_turn(
-            gen_prefix,
             q=q,
             c=c,
             a=a,
+            gen_prefix=gen_prefix,
             include_answer=False,
             tgt_delim=tgt_delim,
-            few_delim=few_delim,
+            few_delim="",
         )
         if apply_chat_template and chat_template:
             res = (
@@ -1196,11 +1180,11 @@ class ConfigurableTask(Task):
 
     def build_qa_turn(
         self,
-        gen_prefix: str | None = None,
         *,
         q: str | None = None,
         c: list[str] | None = None,
-        a: str | int | None = None,
+        a: str | int | list[str] | None = None,
+        gen_prefix: str | None = None,
         include_answer: bool = True,
         tgt_delim=" ",
         few_delim="\n\n",
@@ -1209,7 +1193,14 @@ class ConfigurableTask(Task):
         assert isinstance(q, str), f"Context is not a string! : {q}"
         msgs = [Message("user", q, tgt_delim if include_answer or gen_prefix else "")]
         if include_answer:
-            answer_text = c[a] if (c and isinstance(a, int)) else a
+            answer_text = (
+                c[a]
+                if (c and isinstance(a, int))
+                # TODO: for multiple targets a is a list[str]. Fix this hack
+                else a[0]
+                if isinstance(a, list)
+                else a
+            )
             assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
             answer_text = maybe_delimit(gen_prefix, answer_text)
             msgs.append(Message("assistant", answer_text, few_delim))
@@ -1224,7 +1215,7 @@ class ConfigurableTask(Task):
         q: list[str],
         chat_template: Union[Callable[..., str], None] = None,
         fewshot_as_multiturn: bool = False,
-    ) -> Union[str, list[list[dict[str, Any]]]]:
+    ) -> list[str]:
         """For multiple input tasks (e.g. winograde) we have multiple contexts and a single target."""
         # for multiple inputs, q is list[str]
         res_ = []
@@ -1232,8 +1223,8 @@ class ConfigurableTask(Task):
         contexts = [
             prev_context
             + self.build_qa_turn(
-                gen_prefix,
                 q=ctx,
+                gen_prefix=gen_prefix,
                 include_answer=False,
                 tgt_delim="",
             )
@@ -1455,7 +1446,7 @@ class ConfigurableTask(Task):
         return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
+        self, doc: dict, ctx: Union[str, list[str]], **kwargs
     ) -> Union[List[Instance], Instance]:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
