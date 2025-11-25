@@ -40,7 +40,12 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
-from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
+from lm_eval.api.utils import (
+    Message,
+    maybe_delimit,
+    multiturn_to_singleturn,
+    requires_delimiter,
+)
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -1190,7 +1195,17 @@ class ConfigurableTask(Task):
     ) -> list[Message]:
         """Return `[user, assistant?]` for a single doc."""
         assert isinstance(q, str), f"Context is not a string! : {q}"
-        msgs = [Message("user", q, tgt_delim if include_answer or gen_prefix else "")]
+        msgs = [
+            Message(
+                "user",
+                q,
+                tgt_delim
+                if include_answer and not gen_prefix
+                else tgt_delim
+                if gen_prefix and requires_delimiter(q, gen_prefix)
+                else "",
+            )
+        ]
         if include_answer:
             answer_text = (
                 c[a]
@@ -1203,7 +1218,7 @@ class ConfigurableTask(Task):
             assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
             answer_text = maybe_delimit(gen_prefix, answer_text)
             msgs.append(Message("assistant", answer_text, few_delim))
-        if gen_prefix:
+        elif gen_prefix:
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 

@@ -16,6 +16,10 @@ def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") 
     )
 
 
+def requires_delimiter(prefix: str, suffix: str) -> bool:
+    return not (prefix[-1].isspace() or suffix[0].isspace())
+
+
 @dataclass
 class Message:
     role: str  # "system" | "user" | "assistant"
