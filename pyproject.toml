@@ -19,7 +19,6 @@ classifiers = [
 requires-python = ">=3.10"
 license = { "text" = "MIT" }
 dependencies = [
-    "accelerate>=0.26.0",
     "evaluate",
     "datasets>=2.16.0",
     "evaluate>=0.4.0",
@@ -32,9 +31,6 @@ dependencies = [
     "sacrebleu>=1.5.0",
     "scikit-learn>=0.24.1",
     "sqlitedict",
-    "torch>=1.8",
-    "tqdm-multiprocess",
-    "transformers>=4.1",
     "zstandard",
     "dill",
     "word2number",
@@ -57,37 +53,40 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
-acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
+# Model backend dependencies
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
-audiolm_qwen = ["librosa", "soundfile"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+hf = ["transformers>=4.1","torch>=1.8", "accelerate>=0.26.0"]
+vllm = ["vllm>=0.4.2"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
-hf_transfer = ["hf_transfer"]
-ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
-ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 ipex = ["optimum"]
+ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
+#mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"] # build error
+neuronx = ["optimum[neuronx]>0.0.1"]
+optimum = ["optimum[openvino]"]
+sparsify = ["sparsify"]
+sae_lens = ["sae_lens"]
+# Task specific dependencies
+acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
+audiolm_qwen = ["librosa", "soundfile"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+hf_transfer = ["hf_transfer"]
+ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
-mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
-neuronx = ["optimum[neuronx]"]
-optimum = ["optimum[openvino]"]
-promptsource = ["promptsource>=0.2.3"]
+#promptsource = [
+#  "promptsource>=0.2.3 ; python_version <= '3.12'",
+#]
 ruler = ["nltk", "wonderwords", "scipy"]
-sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
-sparsify = ["sparsify"]
 discrim_eval = ["statsmodels==0.14.4"]
-testing = ["pytest", "pytest-cov", "pytest-xdist"]
 unitxt = ["unitxt==1.22.0"]
-vllm = ["vllm>=0.4.2"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
-    "lm_eval[acpbench]",
     "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
     "lm_eval[japanese_leaderboard]",
@@ -97,6 +96,22 @@ tasks = [
     "lm_eval[math]",
     "lm_eval[multilingual]",
     "lm_eval[ruler]",
+]
+
+[tool.uv]
+conflicts = [
+    [
+      { extra = "acpbench" },
+      { extra = "math" },
+    ],
+    [
+      { extra = "acpbench" },
+      { extra = "tasks" },
+    ],
+    [
+      { extra = "gptq" },
+      { extra = "vllm" },
+    ],
 ]
 
 [tool.pymarkdown]
@@ -120,5 +135,5 @@ known-first-party = ["lm_eval"]
 
 [dependency-groups]
 dev = [
-    "api", "dev", "sentencepiece"
+    "lm_eval[api]", "lm_eval[dev]", "lm_eval[hf]","sentencepiece"
 ]
