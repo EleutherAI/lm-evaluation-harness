@@ -44,8 +44,6 @@ from functools import lru_cache
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union, cast, overload
 
-import evaluate as hf_evaluate
-
 
 eval_logger = logging.getLogger(__name__)
 
@@ -130,32 +128,11 @@ def _materialise_placeholder(ph: Placeholder) -> Any:
 
 
 class Registry(Generic[T]):
-    """A thread-safe registry for named objects with lazy loading support.
+    """Thread-safe dict mapping string aliases to objects or lazy placeholders.
 
-    The Registry provides a central location for registering and retrieving
-    components by name. It supports:
-
-    - Direct registration of objects
-    - Lazy registration with placeholders (strings or entry points)
-    - Type checking against a base class
-    - Thread-safe operations
-    - Freezing to prevent further modifications
-
-    Example:
-        >>> from lm_eval.api.model import LM
-        >>> registry = Registry("models", base_cls=LM)
-        >>>
-        >>> # Direct registration
-        >>> @registry.register("my-model")
-        >>> class MyModel(LM):
-        ...     pass
-        >>>
-        >>> # Lazy registration
-        >>> registry.register("lazy-model", lazy="mypackage:LazyModel")
-        >>>
-        >>> # Retrieval (triggers lazy loading if needed)
-        >>> model_cls = registry.get("my-model")
-        >>> model = model_cls()
+    Lazy placeholders ("module.path:attr" strings or EntryPoints) are
+    materialized on first access via `get()`. Optional `base_cls` enforces
+    type constraints. Call `freeze()` to make read-only.
     """
 
     def __init__(
@@ -693,6 +670,8 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
             )
 
     try:
+        import evaluate as hf_evaluate
+
         metric_object = hf_evaluate.load(name)
         return metric_object.compute
     except Exception:
