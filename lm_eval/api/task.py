@@ -19,6 +19,7 @@ from typing import (
     Optional,
     Tuple,
     Union,
+    cast,
 )
 
 import datasets
@@ -1153,8 +1154,9 @@ class ConfigurableTask(Task):
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
                 if self.multiple_input:
-                    q = c[q]  # type: ignore
+                    q = cast(str, c[q])  # type: ignore
                     c = None
+                # TODO: fix types
                 messages += self.doc_to_qa_message(
                     gen_prefix, q=q, c=c, a=a, tgt_delim=tgt_delim, few_delim=few_delim
                 )
@@ -1169,7 +1171,7 @@ class ConfigurableTask(Task):
                 messages,
                 gen_prefix,
                 c,
-                apply_chat_template=apply_chat_template and chat_template is not None,
+                chat_template=chat_template if apply_chat_template else None,
                 fewshot_as_multiturn=fewshot_as_multiturn,
             )
         messages += self.doc_to_qa_message(
@@ -1187,6 +1189,7 @@ class ConfigurableTask(Task):
                 if fewshot_as_multiturn
                 else multiturn_to_singleturn(messages)
             )
+            res = chat_template(res)
         else:
             res = "".join(m.to_text() for m in messages)
 
@@ -1220,7 +1223,7 @@ class ConfigurableTask(Task):
         prev_context: Union[list[Message], None],
         gen_prefix: Union[str, None],
         q: list[str],
-        apply_chat_template: bool = False,
+        chat_template: Union[Callable[..., str], None] = None,
         fewshot_as_multiturn: bool = False,
     ) -> Union[str, list[list[dict[str, Any]]]]:
         # for multiple inputs, q is list[str]
@@ -1237,12 +1240,13 @@ class ConfigurableTask(Task):
             for ctx in q
         ]
         for messages in contexts:
-            if apply_chat_template:
+            if chat_template:
                 res = (
                     [m.to_dict() for m in messages]
                     if fewshot_as_multiturn
                     else multiturn_to_singleturn(messages)
                 )
+                res = chat_template(res)
             else:
                 res = "".join(m.to_text() for m in messages)
             res_.append(res)
