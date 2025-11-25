@@ -486,7 +486,7 @@ def register_model(*names):
     return decorate
 
 
-def get_model(model_name):
+def get_model(model_name: str):
     """Get a model class by name.
 
     Args:

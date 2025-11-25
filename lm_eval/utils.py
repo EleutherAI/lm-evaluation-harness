@@ -840,3 +840,9 @@ def check_remote_tokenizer_support(
         return False
 
     return True
+
+
+def set_torch_seed(seed: int):
+    import torch
+
+    torch.manual_seed(seed)
