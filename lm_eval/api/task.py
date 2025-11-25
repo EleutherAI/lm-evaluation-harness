@@ -6,6 +6,7 @@ import re
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
+from functools import partial
 from inspect import getsource
 from typing import (
     Any,
@@ -36,6 +37,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.api.utils import Message, maybe_delimit, multiturn_to_singleturn
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -727,6 +729,11 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
+    @staticmethod
+    def resolve_field(doc: dict[str, Any], field: str | None = None):
+        if field is not None:
+            return doc[field] if field in doc else utils.apply_template(field, doc)
+
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -1122,6 +1129,70 @@ class ConfigurableTask(Task):
         :returns: str
             The fewshot context.
         """
+        messages = []
+        tgt_delim, few_delim = (
+            self.config.target_delimiter,
+            self.config.fewshot_delimiter,
+        )
+        chat_template = (
+            partial(chat_template, add_generation_prompt=not gen_prefix)
+            if chat_template
+            else None
+        )
+        description = self.resolve_field(doc, self.config.description) or ""
+        system_prompt = maybe_delimit(system_instruction, description, few_delim)
+        if system_prompt:
+            messages.append(Message("system", system_prompt, tgt_delim))
+
+        if num_fewshot > 0:
+            for fs_doc in self.sampler.sample(
+                n=num_fewshot,
+                eval_doc=doc
+                if self.config.fewshot_split == self.config.test_split
+                else None,
+            ):
+                q, c, a = (
+                    self.doc_to_text(fs_doc),
+                    self.doc_to_choice(fs_doc),
+                    self.doc_to_target(fs_doc),
+                )
+                messages += self.doc_to_qa_message(
+                    gen_prefix, q=q, c=c, a=a, tgt_delim=tgt_delim, few_delim=few_delim
+                )
+
+        q, c, a = (
+            self.doc_to_text(doc),
+            self.doc_to_choice(doc),
+            self.doc_to_target(doc),
+        )
+        if self.multiple_input:
+            return self.multiple_input_context(
+                gen_prefix,
+                q,
+                apply_chat_template,
+                chat_template,
+                fewshot_as_multiturn,
+            )
+        messages += self.doc_to_qa_message(
+            gen_prefix,
+            q=q,
+            c=c,
+            a=a,
+            include_answer=False,
+            tgt_delim=tgt_delim,
+            few_delim=few_delim,
+        )
+        if apply_chat_template and chat_template:
+            res = (
+                [m.to_dict() for m in messages]
+                if fewshot_as_multiturn
+                else multiturn_to_singleturn(messages)
+            )
+        else:
+            res = "".join(m.to_text() for m in messages)
+
+        return res
+
         if apply_chat_template:
             labeled_examples = []
         else:
@@ -1239,6 +1310,60 @@ class ConfigurableTask(Task):
                     return labeled_examples + choices[example] + prefix
                 else:
                     return labeled_examples + str(example) + prefix
+
+    def doc_to_qa_message(
+        self,
+        gen_prefix: str | None = None,
+        *,
+        q: str | None = None,
+        c: list[str] | None = None,
+        a: str | int | None = None,
+        include_answer: bool = True,
+        tgt_delim=" ",
+        few_delim="\n\n",
+    ) -> list[Message]:
+        """Return `[user, assistant?]` for a single doc."""
+        assert isinstance(q, str), f"Context is not a string! : {q}"
+        msgs = [Message("user", q, tgt_delim if include_answer or gen_prefix else "")]
+        if include_answer:
+            answer_text = c[a] if (c and isinstance(a, int)) else a
+            assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
+            answer_text = maybe_delimit(gen_prefix, answer_text)
+            msgs.append(Message("assistant", answer_text, few_delim))
+        if gen_prefix:
+            msgs.append(Message("assistant", gen_prefix))
+        return msgs
+
+    def multiple_input_context(
+        self,
+        gen_prefix,
+        q,
+        apply_chat_template,
+        chat_template,
+        fewshot_as_multiturn,
+    ):
+        # for multiple inputs, q is list[str]
+        res_ = []
+        contexts = [
+            self.doc_to_qa_message(
+                gen_prefix,
+                q=q[i],
+                include_answer=False,
+                tgt_delim="",
+            )
+            for i, _ in enumerate(q)
+        ]
+        for messages in contexts:
+            if apply_chat_template and chat_template:
+                res = (
+                    [m.to_dict() for m in messages]
+                    if fewshot_as_multiturn
+                    else multiturn_to_singleturn(messages)
+                )
+            else:
+                res = "".join(m.to_text() for m in messages)
+            res_.append(res)
+        return res_
 
     def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
