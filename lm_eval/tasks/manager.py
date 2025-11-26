@@ -16,6 +16,13 @@ if TYPE_CHECKING:
 
 
 class TaskManager:
+    """Discovers, indexes, and loads evaluation tasks from YAML configs.
+
+    Scans directories for task definitions and provides methods to load them
+    by name, glob pattern, or inline config. Handles groups, tags, and task
+    namespacing (e.g., "mmlu_humanities::formal_logic").
+    """
+
     def __init__(
         self,
         verbosity: str | None = None,
@@ -23,6 +30,13 @@ class TaskManager:
         include_defaults: bool = True,
         metadata: dict[str, dict[str, Any]] | None = None,
     ) -> None:
+        """
+        Args:
+            verbosity: Logging level (e.g., "INFO", "DEBUG")
+            include_path: Custom paths to scan for task configs (takes precedence)
+            include_defaults: Whether to include built-in tasks from lm_eval/tasks/
+            metadata: Extra metadata to attach to all loaded tasks
+        """
         if verbosity:
             setup_logging(verbosity)
 
@@ -62,22 +76,27 @@ class TaskManager:
     # ---------------------------------------------------------------- properties
     @property
     def all_tasks(self) -> list[str]:
+        """All registered names (tasks, groups, tags)."""
         return self._all_tasks
 
     @property
     def all_groups(self) -> list[str]:
+        """All group names (e.g., "mmlu", "arc")."""
         return self._all_groups
 
     @property
     def all_subtasks(self) -> list[str]:
+        """All individual task names (YAML and Python tasks)."""
         return self._all_subtasks
 
     @property
     def all_tags(self) -> list[str]:
+        """All tag names (e.g., "ai2_arc", "mmlu_humanities_tasks")."""
         return self._all_tags
 
     @property
     def task_index(self) -> dict[str, Entry]:
+        """Raw index mapping names to Entry objects."""
         return self._index
 
     # ---------------------------------------------------------------- name checks
@@ -169,9 +188,13 @@ class TaskManager:
         return self._index[name]
 
     def load_spec(self, spec: str | dict[str, Any]):
-        """Spec can be:
-        • str task / group / tag name (registered)
-        • dict inline overrides {'task': 'hellaswag', 'num_fewshot': 5}
+        """Load a task/group/tag by name or with inline overrides.
+
+        Args:
+            spec: Task name (str) or dict with "task" key and overrides
+
+        Returns:
+            Dict mapping task names to task objects (nested for groups)
         """
         if isinstance(spec, str):
             entry = self._entry(spec)
@@ -209,6 +232,7 @@ def get_task_dict(
     task_name_list: str | list[str | dict | Task],
     task_manager: TaskManager | None = None,
 ):
+    """Helper to load multiple tasks into a dict. Creates TaskManager if not provided."""
     if not task_manager:
         task_manager = TaskManager()
     else:
