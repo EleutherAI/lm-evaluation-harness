@@ -33,8 +33,7 @@ class TaskManager:
         self._factory = TaskFactory(meta=metadata)
 
         all_paths: list[Path] = []
-        if include_defaults:
-            all_paths.append(Path(__file__).parent)
+        # Process include_path FIRST so user tasks take precedence over defaults
         if include_path:
             all_paths += [
                 Path(p)
@@ -44,6 +43,8 @@ class TaskManager:
                     else [include_path]
                 )
             ]
+        if include_defaults:
+            all_paths.append(Path(__file__).parent)
 
         self._index = index.build(all_paths)
 

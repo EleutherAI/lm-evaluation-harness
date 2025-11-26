@@ -425,32 +425,102 @@ class TestTaskManagerIntegration:
         assert "arc_easy" in result
         assert "arc_challenge" in result
 
-    def test_include_path(self, shared_task_manager, tmp_path):
-        """Custom include_path adds tasks to index"""
-        task_content = """
-task: custom_include_test
-dataset_path: test
-output_type: generate_until
-"""
-        (tmp_path / "custom.yaml").write_text(task_content)
+    def test_include_path(self):
+        """Custom include_path adds tasks to index using tests/test_configs/"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+        # simple_task is defined in test_configs/simple_task.yaml
+        assert "simple_task" in tm.all_tasks
 
-        # Use include_defaults=False to avoid slow full scan
-        tm = TaskManager(include_path=str(tmp_path), include_defaults=False)
-        assert "custom_include_test" in tm.all_tasks
-
-    def test_include_defaults_false(self, tmp_path):
+    def test_include_defaults_false(self):
         """include_defaults=False excludes built-in tasks"""
-        task_content = """
-task: only_this_task
-dataset_path: test
-output_type: generate_until
-"""
-        (tmp_path / "only.yaml").write_text(task_content)
-
-        tm = TaskManager(include_path=str(tmp_path), include_defaults=False)
-        assert "only_this_task" in tm.all_tasks
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+        # Should have tasks from test_configs
+        assert "simple_task" in tm.all_tasks
         # Built-in tasks like arc_easy should not be present
         assert "arc_easy" not in tm.all_tasks
+
+    def test_include_resolution(self):
+        """Test that includes are properly resolved"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+        # include_task_fs5 includes include_base which has the actual task config
+        assert "include_task_fs5" in tm.all_tasks
+
+    def test_include_inheritance_override(self):
+        """Test that child config overrides parent values from include"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        # Load the task to get full resolved config
+        result = tm.load_task_or_group(["include_task_fs5"])
+        task_obj = result["include_task_fs5"]
+
+        # include_base has num_fewshot=0, include_task_fs5 overrides to 5
+        assert task_obj.config.num_fewshot == 5
+
+        # include_base has dataset_path=json (inherited)
+        assert task_obj.config.dataset_path == "json"
+
+    def test_include_custom_metrics(self):
+        """Test that include_task_fs5 has custom metrics (acc + acc_norm)"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load_task_or_group(["include_task_fs5"])
+        task_obj = result["include_task_fs5"]
+
+        # include_task_fs5 defines both acc and acc_norm metrics
+        metric_names = [m["metric"] for m in task_obj.config.metric_list]
+        assert "acc" in metric_names
+        assert "acc_norm" in metric_names
+
+    def test_group_loading(self):
+        """Test that groups are indexed from test_configs"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+        # group.yaml defines a group called 'test_group'
+        assert "test_group" in tm.all_groups
+
+    def test_include_group(self):
+        """Test group with tasks sharing same base config via includes"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+        # include_group.yaml: group with include_task_fs0, fs1, fs5
+        assert "include_group" in tm.all_groups
+        # The subtasks should also be indexed
+        assert "include_task_fs0" in tm.all_tasks
+        assert "include_task_fs1" in tm.all_tasks
+        assert "include_task_fs5" in tm.all_tasks
+
+    def test_task_list_loading(self):
+        """Test task_list feature with shared config and task-specific overrides"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+        # task_list.yaml defines tasks via task_list key
+        assert "task_list_fs0" in tm.all_tasks
+        assert "task_list_fs1" in tm.all_tasks
+        assert "task_list_fs3" in tm.all_tasks
+
+    def test_task_list_overrides(self):
+        """Test task_list task-specific overrides are applied"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        # Load tasks and verify their num_fewshot values
+        result = tm.load_task_or_group(
+            ["task_list_fs0", "task_list_fs1", "task_list_fs3"]
+        )
+
+        assert result["task_list_fs0"].config.num_fewshot == 0
+        assert result["task_list_fs1"].config.num_fewshot == 1
+        assert result["task_list_fs3"].config.num_fewshot == 3
+
+        # task_list_fs3 has custom metrics (acc + acc_norm)
+        metric_names = [m["metric"] for m in result["task_list_fs3"].config.metric_list]
+        assert "acc" in metric_names
+        assert "acc_norm" in metric_names
 
     def test_match_tasks_glob(self, shared_task_manager):
         """match_tasks handles glob patterns"""
@@ -472,3 +542,168 @@ output_type: generate_until
         """_name_is_tag returns True for tags"""
         assert shared_task_manager._name_is_tag("ai2_arc")
         assert not shared_task_manager._name_is_tag("arc_easy")  # This is a task
+
+    def test_include_path_precedence(self):
+        """Test that user-specified include paths take precedence over default paths when tasks have the same name."""
+        with tempfile.TemporaryDirectory() as custom_dir:
+            # Create a custom arc_easy.yaml that has a different metric
+            custom_task_content = """task: arc_easy
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Easy
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Custom Question: {{question}}\\nAnswer:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0
+  custom: true
+"""
+            # Write the custom task file
+            custom_task_path = Path(custom_dir) / "arc_easy.yaml"
+            custom_task_path.write_text(custom_task_content)
+
+            # Test 1: User path should override default when include_defaults=True
+            task_manager = TaskManager(include_defaults=True, include_path=custom_dir)
+
+            # Load the task
+            task_dict = task_manager.load_task_or_group(["arc_easy"])
+            arc_easy_task = task_dict["arc_easy"]
+
+            # Check that the custom version was loaded (has f1 metric and custom doc_to_text)
+            assert any(
+                metric["metric"] == "f1"
+                for metric in arc_easy_task.config["metric_list"]
+            ), "Custom task should have f1 metric"
+            assert "Custom Question:" in arc_easy_task.config["doc_to_text"], (
+                "Custom task should have custom doc_to_text"
+            )
+            assert arc_easy_task.config["metadata"]["version"] == 2.0, (
+                "Custom task should have version 2.0"
+            )
+
+            # Test 2: Verify default is used when no custom path is provided
+            default_task_manager = TaskManager(include_defaults=True)
+            default_task_dict = default_task_manager.load_task_or_group(["arc_easy"])
+            default_arc_easy = default_task_dict["arc_easy"]
+
+            # Default should not have f1 metric or custom text
+            assert not any(
+                metric["metric"] == "f1"
+                for metric in default_arc_easy.config.get("metric_list", [])
+            ), "Default task should not have f1 metric"
+            assert "Custom Question:" not in default_arc_easy.config["doc_to_text"], (
+                "Default task should not have custom doc_to_text"
+            )
+
+    def test_include_defaults_false_with_custom_path(self):
+        """Test that when include_defaults=False, only custom tasks are available."""
+        with tempfile.TemporaryDirectory() as custom_dir:
+            # Create a custom task using a real dataset
+            custom_task_content = """task: custom_arc_task
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Challenge
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Q: {{question}}\nA:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  custom: true
+"""
+            # Write the custom task file
+            custom_task_path = Path(custom_dir) / "custom_arc_task.yaml"
+            custom_task_path.write_text(custom_task_content)
+
+            # Initialize with include_defaults=False
+            task_manager = TaskManager(include_defaults=False, include_path=custom_dir)
+
+            # Custom task should be available
+            assert "custom_arc_task" in task_manager.all_tasks, (
+                "Custom task should be available when include_defaults=False"
+            )
+
+            # Default tasks should NOT be available
+            assert "arc_easy" not in task_manager.all_tasks, (
+                "Default arc_easy should not be available when include_defaults=False"
+            )
+            assert "arc_challenge" not in task_manager.all_tasks, (
+                "Default arc_challenge should not be available when include_defaults=False"
+            )
+
+            # Check that only our custom task is present
+            assert len(task_manager.all_tasks) == 1, (
+                f"Should only have 1 task, but found {len(task_manager.all_tasks)}"
+            )
+
+            # Check task metadata using Entry object API
+            entry = task_manager.task_index["custom_arc_task"]
+            assert entry.kind == Kind.TASK
+            assert custom_dir in str(entry.yaml_path)
+
+    def test_include_defaults_true_with_new_tasks(self, shared_task_manager):
+        """Test that new tasks from include_path are added alongside default tasks."""
+        with tempfile.TemporaryDirectory() as custom_dir:
+            # Create a completely new task (not overriding any default)
+            new_task_content = """task: arc_custom_generation
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Easy
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Question: {{question}}\nGenerate answer:"
+doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+generation_kwargs:
+  max_gen_toks: 50
+  temperature: 0.1
+  until:
+    - "\n"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  custom_benchmark: true
+"""
+            # Write the new task file
+            new_task_path = Path(custom_dir) / "arc_custom_generation.yaml"
+            new_task_path.write_text(new_task_content)
+
+            # Initialize with include_defaults=True (default behavior)
+            task_manager = TaskManager(include_defaults=True, include_path=custom_dir)
+
+            # Both custom and default tasks should be available
+            assert "arc_custom_generation" in task_manager.all_tasks, (
+                "New custom task should be available"
+            )
+            assert "arc_easy" in task_manager.all_tasks, (
+                "Default arc_easy should still be available"
+            )
+            assert "arc_challenge" in task_manager.all_tasks, (
+                "Default arc_challenge should still be available"
+            )
+
+            # Check task metadata using Entry object API
+            entry = task_manager.task_index["arc_custom_generation"]
+            assert entry.kind == Kind.TASK
+            assert custom_dir in str(entry.yaml_path)
+
+            # Verify the counts - should have more tasks than just defaults
+            assert len(task_manager.all_tasks) > len(shared_task_manager.all_tasks), (
+                "Should have more tasks when including custom path"
+            )

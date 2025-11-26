@@ -120,6 +120,16 @@ class TaskFactory:
                 "metadata": {"config": "unknown"}
             }  # python task without YAML
 
+        # Handle task_list configs - merge base config with per-task overrides
+        if "task_list" in cfg:
+            task_list = cfg.pop("task_list")
+            # Find the entry for this task in task_list
+            for item in task_list:
+                if isinstance(item, dict) and item.get("task") == entry.name:
+                    # Merge per-task overrides
+                    cfg = {**cfg, **item}
+                    break
+
         if overrides:
             cfg = {**cfg, **overrides}
         cfg["metadata"] = (

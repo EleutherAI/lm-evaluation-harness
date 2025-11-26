@@ -1,0 +1,36 @@
+# Task list configuration for code walkthrough tests
+# This demonstrates the task_list feature with shared config and task-specific overrides
+
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: tests/test_configs/test_data.json
+output_type: multiple_choice
+doc_to_text: "{{question}}"
+doc_to_target: "{{choices[answer]}}"
+test_split: test
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
+  description: "Task list walkthrough example"
+
+task_list:
+  - task: task_list_fs0
+    num_fewshot: 0
+    description: "Zero-shot variant"
+  - task: task_list_fs1
+    num_fewshot: 1
+    description: "One-shot variant"
+  - task: task_list_fs3
+    num_fewshot: 3
+    description: "Three-shot variant"
+    metric_list:
+      - metric: acc
+        aggregation: mean
+        higher_is_better: true
+      - metric: acc_norm
+        aggregation: mean
+        higher_is_better: true
