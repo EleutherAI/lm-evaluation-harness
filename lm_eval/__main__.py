@@ -231,7 +231,7 @@ def setup_parser() -> argparse.ArgumentParser:
         type=str.upper,
         default=None,
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-        help="(Deprecated) Controls logging verbosity level. Use the `LM_EVAL_LOG_LEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
+        help="(Deprecated) Controls logging verbosity level. Use the `LMEVAL_LOG_LEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
     parser.add_argument(
         "--wandb_args",

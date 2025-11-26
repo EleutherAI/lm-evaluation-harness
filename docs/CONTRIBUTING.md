@@ -35,7 +35,7 @@ python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_openvino
 
 ## Verbose logging
 
-You can enable verbose logging with the environment variable `LM_EVAL_LOG_LEVEL="debug"`.
+You can enable verbose logging with the environment variable `LMEVAL_LOG_LEVEL="debug"`.
 
 ## Contributor License Agreement
 
