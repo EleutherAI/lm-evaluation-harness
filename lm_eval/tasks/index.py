@@ -90,7 +90,7 @@ class TaskIndex:
         if kind is Kind.GROUP:
             grp_name = cfg["group"]
             if grp_name in index:
-                log.warning(
+                log.debug(
                     f"Duplicate group name '{grp_name}' found. "
                     f"Already registered from: {index[grp_name].yaml_path}. "
                     f"Skipping duplicate from: {path}"
@@ -105,26 +105,7 @@ class TaskIndex:
             )
             return
 
-        if kind is Kind.PY_TASK:
-            name = cfg["task"]
-            if name in index:
-                log.warning(
-                    f"Duplicate task name '{name}' found. "
-                    f"Already registered from: {index[name].yaml_path}. "
-                    f"Skipping duplicate from: {path}"
-                )
-                return
-            index[name] = Entry(
-                name=name,
-                kind=Kind.PY_TASK,
-                yaml_path=path,
-                tags=TaskIndex._str_to_set(cfg.get("tag")),
-                cfg=cfg,
-            )
-            TaskIndex._register_tags(name, cfg.get("tag"), index)
-            return
-
-        if kind is Kind.TASK:
+        if kind is Kind.TASK or kind is Kind.PY_TASK:
             name = cfg["task"]
             if name in index:
                 log.warning(

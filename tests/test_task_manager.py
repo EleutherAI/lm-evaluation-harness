@@ -745,3 +745,64 @@ metadata:
             assert len(task_manager.all_tasks) > len(shared_task_manager.all_tasks), (
                 "Should have more tasks when including custom path"
             )
+
+    def test_tag_expansion_in_group(self, test_configs_task_manager):
+        """Test that TAGs inside groups are expanded and each task is namespaced individually.
+
+        This tests the MMLU-like structure: GROUP -> TAG -> multiple tasks
+        Without proper TAG handling, all tasks in the tag get the same namespaced name
+        and collide, leaving only one task.
+        """
+        # Load the subgroup that contains a TAG reference
+        result = test_configs_task_manager.load_task_or_group(["tag_subgroup"])
+
+        # Get the children dict from the group
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # All 3 tasks from the tag should be expanded and namespaced
+        assert "tag_subgroup::tag_task_1" in children, (
+            "tag_task_1 should be namespaced under tag_subgroup"
+        )
+        assert "tag_subgroup::tag_task_2" in children, (
+            "tag_task_2 should be namespaced under tag_subgroup"
+        )
+        assert "tag_subgroup::tag_task_3" in children, (
+            "tag_task_3 should be namespaced under tag_subgroup"
+        )
+
+        # Verify we have exactly 3 tasks (not 1 due to collision)
+        assert len(children) == 3, (
+            f"Should have 3 tasks from TAG expansion, got {len(children)}"
+        )
+
+    def test_nested_group_with_tag(self, test_configs_task_manager):
+        """Test nested groups with TAG: parent_group -> subgroup -> TAG -> tasks.
+
+        This simulates the full MMLU structure where:
+        - mmlu (GROUP) contains mmlu_humanities (GROUP)
+        - mmlu_humanities contains mmlu_humanities_tasks (TAG)
+        - The TAG expands to individual tasks
+        """
+        # Load the parent group
+        result = test_configs_task_manager.load_task_or_group(["tag_parent_group"])
+
+        # Navigate the nested structure
+        parent_key = list(result.keys())[0]
+        parent_children = result[parent_key]
+
+        # Should contain the subgroup
+        assert len(parent_children) == 1, "Parent should have 1 child (the subgroup)"
+
+        # Get the subgroup
+        subgroup_key = list(parent_children.keys())[0]
+        subgroup_children = parent_children[subgroup_key]
+
+        # The subgroup should have all 3 tasks expanded from the TAG
+        # Tasks are namespaced under their immediate parent group (tag_subgroup)
+        assert "tag_subgroup::tag_task_1" in subgroup_children
+        assert "tag_subgroup::tag_task_2" in subgroup_children
+        assert "tag_subgroup::tag_task_3" in subgroup_children
+        assert len(subgroup_children) == 3, (
+            f"Subgroup should have 3 tasks, got {len(subgroup_children)}"
+        )
