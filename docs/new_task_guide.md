@@ -41,7 +41,7 @@ and rename the folders and YAML file(s) as desired.
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
 > [!TIP]
-> To test your task, we recommend using verbose logging using `export LOGLEVEL = DEBUG` in your shell before running the evaluation script. This will help you debug any issues that may arise.
+> To test your task, we recommend using verbose logging using `export LMEVAL_LOG_LEVEL="DEBUG"` in your shell before running the evaluation script. This will help you debug any issues that may arise.
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
 
 ```yaml

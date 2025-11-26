@@ -58,7 +58,7 @@ def setup_logging(verbosity=logging.INFO):
         datefmt="%Y-%m-%d:%H:%M:%S",
     )
 
-    log_level = os.environ.get("LOGLEVEL", verbosity) or verbosity
+    log_level = os.environ.get("LMEVAL_LOG_LEVEL", verbosity) or verbosity
 
     level_map = {
         "DEBUG": logging.DEBUG,
