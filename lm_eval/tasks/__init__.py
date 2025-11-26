@@ -8,7 +8,7 @@ This module provides:
 
 from typing import Dict, List, Optional, Union
 
-from lm_eval.api.task import Task
+from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
 # Import TaskManager from the refactored module
@@ -16,6 +16,7 @@ from lm_eval.tasks.manager import TaskManager
 
 
 __all__ = [
+    "ConfigurableTask",
     "TaskManager",
     "get_task_dict",
     "get_task_name_from_config",
