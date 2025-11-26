@@ -881,9 +881,10 @@ class ConfigurableTask(Task):
                 self._filters.append(filter_pipeline)
         else:
             # TODO: handle repeats in a more general way rather than just discarding
-            eval_logger.debug(
-                "No custom filters defined. Using default 'take_first' filter for handling repeats."
-            )
+            if self.OUTPUT_TYPE == "generate_until":
+                eval_logger.debug(
+                    "No custom filters defined. Using default 'take_first' filter for handling repeats."
+                )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
