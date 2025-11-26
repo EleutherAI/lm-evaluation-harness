@@ -173,13 +173,14 @@ def load_yaml(
     merged = {}
     for inc in includes if isinstance(includes, list) else [includes]:
         inc_path = (path.parent / inc) if not Path(inc).is_absolute() else Path(inc)
-        merged.update(
-            load_yaml(
-                inc_path,
-                resolve_func=resolve_func,
-                recursive=True,
-                _seen=_seen,
-            ),
+        inc_cfg = load_yaml(
+            inc_path,
+            resolve_func=resolve_func,
+            recursive=True,
+            _seen=_seen,
         )
+        # Don't inherit task_list - it defines tasks for the included file only
+        inc_cfg.pop("task_list", None)
+        merged.update(inc_cfg)
     merged.update(cfg)  # local keys win
     return merged

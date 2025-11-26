@@ -144,16 +144,45 @@ class TaskIndex:
             return
 
         if kind is Kind.TASK_LIST:
+            # If config also has a top-level "task", register it as the base task
+            if "task" in cfg and isinstance(cfg["task"], str):
+                base_name = cfg["task"]
+                if base_name not in index:
+                    index[base_name] = Entry(
+                        name=base_name,
+                        kind=Kind.TASK,
+                        yaml_path=path,
+                        tags=TaskIndex._str_to_set(cfg.get("tag")),
+                        cfg=cfg,
+                    )
+                    TaskIndex._register_tags(base_name, cfg.get("tag"), index)
+
+            # Register each task in task_list
+            base_tag = cfg.get("tag")
             for entry in cfg["task_list"]:
                 task_name = entry["task"] if isinstance(entry, dict) else entry
+                if task_name in index:
+                    log.warning(
+                        f"Duplicate task name '{task_name}' found. "
+                        f"Already registered from: {index[task_name].yaml_path}. "
+                        f"Skipping duplicate from: {path}"
+                    )
+                    continue
+                # Combine base tag with per-entry tag
+                entry_tag = entry.get("tag") if isinstance(entry, dict) else None
+                combined_tags = TaskIndex._str_to_set(base_tag) | TaskIndex._str_to_set(
+                    entry_tag
+                )
                 index[task_name] = Entry(
                     name=task_name,
                     kind=Kind.TASK,
                     yaml_path=path,
-                    tags=TaskIndex._str_to_set(cfg.get("tag")),
+                    tags=combined_tags,
                     cfg=cfg,
                 )
-                TaskIndex._register_tags(task_name, entry.get("tag"), index)
+                # Register both base config's tag and per-entry tag
+                TaskIndex._register_tags(task_name, base_tag, index)
+                TaskIndex._register_tags(task_name, entry_tag, index)
             return
 
     @staticmethod

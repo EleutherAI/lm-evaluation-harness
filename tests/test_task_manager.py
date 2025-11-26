@@ -375,6 +375,13 @@ def shared_task_manager():
     return TaskManager()
 
 
+@pytest.fixture(scope="module")
+def test_configs_task_manager():
+    """TaskManager with only test_configs tasks (fast - no default task scanning)"""
+    test_configs_path = Path(__file__).parent / "test_configs"
+    return TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+
 class TestTaskManagerIntegration:
     def test_initialization(self, shared_task_manager):
         """TaskManager initializes with default tasks"""
@@ -407,16 +414,20 @@ class TestTaskManagerIntegration:
         for t in tags[:5]:  # Check first 5
             assert shared_task_manager._name_is_tag(t)
 
-    def test_load_task_by_name(self, shared_task_manager):
+    def test_load_task_by_name(self, test_configs_task_manager):
         """Load a single task by name"""
-        result = shared_task_manager.load_task_or_group(["arc_easy"])
-        assert "arc_easy" in result
+        result = test_configs_task_manager.load_task_or_group(["simple_task"])
+        assert "simple_task" in result
 
-    def test_load_group_by_name(self, shared_task_manager):
-        """Load a group and get nested structure"""
-        result = shared_task_manager.load_task_or_group(["ai2_arc"])
-        # ai2_arc is a tag that contains arc_easy and arc_challenge
-        assert "arc_easy" in result or "arc_challenge" in result
+    def test_load_group_by_name(self, test_configs_task_manager):
+        """Load a group and get nested structure with namespaced task names"""
+        result = test_configs_task_manager.load_task_or_group(["test_group"])
+        # Result is {ConfigurableGroup: {task_name: task_obj}}
+        # Get the children dict from the group
+        children = list(result.values())[0]
+        # test_group contains inline tasks, namespaced as group_name::task_name
+        assert "test_group::group_task_fs0" in children
+        assert "test_group::group_task_fs2" in children
 
     def test_load_tag_by_name(self, shared_task_manager):
         """Load all tasks in a tag"""
@@ -522,6 +533,33 @@ class TestTaskManagerIntegration:
         assert "acc" in metric_names
         assert "acc_norm" in metric_names
 
+    def test_task_list_base_field_inheritance(self):
+        """Test that task_list tasks inherit base fields from the shared config"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load_task_or_group(["task_list_fs0"])
+        task = result["task_list_fs0"]
+
+        # Base fields should be inherited from the shared config
+        assert task.config.dataset_path == "json", (
+            "Should inherit dataset_path from base"
+        )
+        assert task.config.output_type == "multiple_choice", (
+            "Should inherit output_type from base"
+        )
+        assert task.config.doc_to_text == "{{question}}", (
+            "Should inherit doc_to_text from base"
+        )
+        assert task.config.test_split == "test", "Should inherit test_split from base"
+
+        # Default metric_list should be inherited (task_list_fs0 doesn't override it)
+        metric_names = [m["metric"] for m in task.config.metric_list]
+        assert "acc" in metric_names, "Should inherit metric_list from base"
+
+        # Per-task override should still be applied
+        assert task.config.num_fewshot == 0, "Should have per-task num_fewshot override"
+
     def test_match_tasks_glob(self, shared_task_manager):
         """match_tasks handles glob patterns"""
         matches = shared_task_manager.match_tasks(["arc_*"])
@@ -543,7 +581,7 @@ class TestTaskManagerIntegration:
         assert shared_task_manager._name_is_tag("ai2_arc")
         assert not shared_task_manager._name_is_tag("arc_easy")  # This is a task
 
-    def test_include_path_precedence(self):
+    def test_include_path_precedence(self, shared_task_manager):
         """Test that user-specified include paths take precedence over default paths when tasks have the same name."""
         with tempfile.TemporaryDirectory() as custom_dir:
             # Create a custom arc_easy.yaml that has a different metric
@@ -589,8 +627,8 @@ metadata:
             )
 
             # Test 2: Verify default is used when no custom path is provided
-            default_task_manager = TaskManager(include_defaults=True)
-            default_task_dict = default_task_manager.load_task_or_group(["arc_easy"])
+            # Use shared_task_manager instead of creating a new one (saves ~9s)
+            default_task_dict = shared_task_manager.load_task_or_group(["arc_easy"])
             default_arc_easy = default_task_dict["arc_easy"]
 
             # Default should not have f1 metric or custom text

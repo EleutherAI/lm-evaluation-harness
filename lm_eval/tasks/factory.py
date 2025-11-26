@@ -73,29 +73,45 @@ class TaskFactory:
         grp_cfg["metadata"] = grp_cfg.get("metadata", {}) | self._meta
         # Use ConfigurableGroup (hashable) instead of GroupConfig (dict, unhashable)
         group_obj = ConfigurableGroup(config=grp_cfg)
+        group_name = entry.name
 
         children: dict[str, Any] = {}
         for item in group_obj.config["task"]:
-            if isinstance(item, str):  # task: hellaswag
+            if isinstance(item, str):
+                # Case 1: String reference - look up in registry
+                base_name = item
                 child = self.build(
                     registry[item],
                     overrides=overrides,  # group-level overrides propagate
                     registry=registry,
                 )
-            elif isinstance(item, dict):  # task: {task: hellaswag, num_fewshot: 5}
+            elif isinstance(item, dict):
                 base_name = item["task"]
-                child = self.build(
-                    registry[base_name],
-                    overrides=item,  # per-item override
-                    registry=registry,
-                )
+                if base_name in registry:
+                    # Case 2: Modify existing indexed task
+                    child = self.build(
+                        registry[base_name],
+                        overrides=item,  # per-item override
+                        registry=registry,
+                    )
+                else:
+                    # Case 3: Create new task inline (not indexed)
+                    task_cfg = {**item}
+                    task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
+                    task_obj = ConfigurableTask(config=task_cfg)
+                    child = {base_name: task_obj}
             else:
                 raise TypeError(
                     f"Unsupported sub-entry {item!r} in group '{entry.name}'"
                 )
 
-            # `child` itself is a mapping (task-name -> obj) or {ConfigurableGroup: ...}
-            children.update(child)
+            # Namespace ALL child tasks with group_name::task_name
+            namespaced_child = {}
+            for task_name, task_obj in child.items():
+                namespaced_name = f"{group_name}::{task_name}"
+                namespaced_child[namespaced_name] = task_obj
+            children.update(namespaced_child)
+
         return {group_obj: children}
 
     def _build_tag(
