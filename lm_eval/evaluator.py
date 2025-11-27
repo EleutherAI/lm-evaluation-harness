@@ -8,12 +8,11 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
-import torch
 
 import lm_eval.api.metrics
+import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
-import lm_eval.models
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     consolidate_group_results,
@@ -33,6 +32,7 @@ from lm_eval.utils import (
     hash_dict_images,
     hash_string,
     positional_deprecated,
+    set_torch_seed,
     setup_logging,
     simple_parse_args_string,
     wrap_text,
@@ -193,7 +193,7 @@ def simple_evaluate(
 
     if torch_random_seed is not None:
         seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
-        torch.manual_seed(torch_random_seed)
+        set_torch_seed(torch_random_seed)
 
     if fewshot_random_seed is not None:
         seed_message.append(f"Setting fewshot manual seed to {fewshot_random_seed}")
@@ -387,7 +387,7 @@ def simple_evaluate(
             "model_args": model_args,
         }
         # add more detailed model info if available
-        if isinstance(lm, lm_eval.models.huggingface.HFLM):
+        if hasattr(lm, "get_model_info"):
             results["config"].update(lm.get_model_info())
         # add info about execution
         results["config"].update(
@@ -553,6 +553,8 @@ def evaluate(
             requests[reqtype].append(instance)
 
         if lm.world_size > 1:
+            import torch
+
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
             gathered_item = (
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
@@ -661,6 +663,8 @@ def evaluate(
                     task_output.sample_metrics[(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
+        import torch
+
         # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
         for task_output in eval_tasks:

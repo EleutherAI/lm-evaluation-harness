@@ -8,7 +8,7 @@ from lm_eval.api.registry import register_model
 
 @register_model("dummy")
 class DummyLM(LM):
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__()
 
     @classmethod
