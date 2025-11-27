@@ -2,9 +2,10 @@ import collections
 import inspect
 import logging
 import os
+from collections.abc import Mapping
 from functools import partial
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
@@ -25,10 +26,10 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity: Optional[str] = None,
-        include_path: Optional[Union[str, List]] = None,
+        verbosity: str | None = None,
+        include_path: str | list | None = None,
         include_defaults: bool = True,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> None:
         if verbosity is not None:
             utils.setup_logging(verbosity)
@@ -57,7 +58,7 @@ class TaskManager:
 
     def initialize_tasks(
         self,
-        include_path: Optional[Union[str, List]] = None,
+        include_path: str | list | None = None,
         include_defaults: bool = True,
     ) -> dict[str, dict]:
         """Creates a dictionary of tasks indexes.
@@ -257,9 +258,9 @@ class TaskManager:
 
     def _load_individual_task_or_group(
         self,
-        name_or_config: Optional[Union[str, dict]] = None,
-        parent_name: Optional[str] = None,
-        update_config: Optional[dict] = None,
+        name_or_config: str | dict | None = None,
+        parent_name: str | None = None,
+        update_config: dict | None = None,
     ) -> Mapping:
         def _load_task(config, task):
             if "include" in config:
@@ -411,7 +412,7 @@ class TaskManager:
             group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
         }
 
-    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
+    def load_task_or_group(self, task_list: str | list | None = None) -> dict:
         """Loads a dictionary of task objects from a list
 
         :param task_list: Union[str, list] = None
@@ -433,7 +434,7 @@ class TaskManager:
         )
         return all_loaded_tasks
 
-    def load_config(self, config: Dict):
+    def load_config(self, config: dict):
         return self._load_individual_task_or_group(config)
 
     def _get_task_and_group(self, task_dir: str):
@@ -551,7 +552,7 @@ class TaskManager:
         return tasks_and_groups
 
 
-def get_task_name_from_config(task_config: Dict[str, str]) -> str:
+def get_task_name_from_config(task_config: dict[str, str]) -> str:
     if "task" in task_config:
         return task_config["task"]
     if "dataset_name" in task_config:
@@ -601,8 +602,8 @@ def _check_duplicates(task_dict: dict) -> None:
 
 
 def get_task_dict(
-    task_name_list: Union[str, List[Union[str, Dict, Task]]],
-    task_manager: Optional[TaskManager] = None,
+    task_name_list: str | list[str | dict | Task],
+    task_manager: TaskManager | None = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
@@ -681,12 +682,13 @@ def get_task_dict(
         yaml_path = Path(yaml_path)
         lm_eval_tasks_path = Path(__file__).parent
         try:
-            relative_yaml_path = yaml_path.relative_to(lm_eval_tasks_path)
+            display_path = yaml_path.relative_to(lm_eval_tasks_path)
         except ValueError:
-            relative_yaml_path = yaml_path
+            # Path is outside lm_eval/tasks (e.g., from include_path)
+            display_path = yaml_path
 
         pad = "  " * indent
-        eval_logger.info(f"{pad}Task: {task_name} ({relative_yaml_path})")
+        eval_logger.info(f"{pad}Task: {task_name} ({display_path})")
 
     # NOTE: Only nicely logs:
     # 1/ group

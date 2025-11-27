@@ -580,7 +580,7 @@ class TestEdgeCases:
         assert result == expected
 
     def test_vllm_empty_input(self):
-        """vLLM should handle empty input gracefully."""
+        """vLLM should handle empty input gracefully."""  # noqa: D403
         from lm_eval.models.vllm_causallms import VLLM
 
         mock_vllm = Mock()

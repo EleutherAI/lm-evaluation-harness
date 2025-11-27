@@ -63,7 +63,35 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
+### Installing Model Backends
+
+The base installation provides the core evaluation framework. **Model backends must be installed separately** using optional extras:
+
+For HuggingFace transformers models:
+
+```bash
+pip install "lm_eval[hf]"
+```
+
+For vLLM inference:
+
+```bash
+pip install "lm_eval[vllm]"
+```
+
+For API-based models (OpenAI, Anthropic, etc.):
+
+```bash
+pip install "lm_eval[api]"
+```
+
+Multiple backends can be installed together:
+
+```bash
+pip install "lm_eval[hf,vllm,api]"
+```
+
+A detailed table of all optional extras is available at the end of this document.
 
 ## Basic Usage
 
@@ -74,6 +102,9 @@ A user guide detailing the full list of supported arguments is provided [here](.
 A list of supported tasks (or groupings of tasks) can be viewed with `lm-eval --tasks list`. Task descriptions and links to corresponding subfolders are provided [here](./lm_eval/tasks/README.md).
 
 ### Hugging Face `transformers`
+
+> [!Important]
+> To use the HuggingFace backend, first install: `pip install "lm_eval[hf]"`
 
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
 
@@ -307,9 +338,9 @@ lm_eval --model vllm \
     --batch_size auto
 ```
 
-To use vllm, do `pip install lm_eval[vllm]`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
+To use vllm, do `pip install "lm_eval[vllm]"`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
 
-vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
+vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 
 > [!Tip]
 > For fastest performance, we recommend using `--batch_size auto` for vLLM whenever possible, to leverage its continuous batching functionality!
@@ -336,13 +367,16 @@ lm_eval --model sglang \
 ```
 
 > [!Tip]
-> When encountering out of memory (OOM) errors (especially for multiple-choice tasks), try these solutions:
+> When encountering out-of-memory (OOM) errors (especially for multiple-choice tasks), try these solutions:
 >
 > 1. Use a manual `batch_size`, rather than `auto`.
 > 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
 > 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
 
 ### Model APIs and Inference Servers
+
+> [!Important]
+> To use API-based models, first install: `pip install "lm_eval[api]"`
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
 
@@ -581,7 +615,7 @@ To get started with development, first clone the repository and install the dev 
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
-pip install -e ".[dev]"
+pip install -e ".[dev,hf]"
 ````
 
 ### Implementing new tasks
@@ -607,24 +641,50 @@ The best way to get support is to open an issue on this repo or join the [Eleuth
 
 Extras dependencies can be installed via `pip install -e ".[NAME]"`
 
-| NAME                 | Description                    | NAME           | Description                           |
-|----------------------|--------------------------------|----------------|---------------------------------------|
-| tasks                | All task-specific dependencies | api            | API models (Anthropic, OpenAI, local) |
-| acpbench             | ACP Bench tasks                | audiolm_qwen   | Qwen2 audio models                    |
-| ifeval               | IFEval task                    |                |                                       |
-| japanese_leaderboard | Japanese LLM tasks             | gptq           | AutoGPTQ models                       |
-| longbench            | LongBench tasks                | gptqmodel      | GPTQModel models                      |
-| math                 | Math answer checking           | hf_transfer    | Speed up HF downloads                 |
-| multilingual         | Multilingual tokenizers        | ibm_watsonx_ai | IBM watsonx.ai models                 |
-| ruler                | RULER tasks                    | ipex           | Intel IPEX backend                    |
-|                      |                                |                |                                       |
-| dev                  | Linting & contributions        | mamba          | Mamba SSM models                      |
-| promptsource         | PromptSource prompts           | neuronx        | AWS inf2 instances                    |
-| sentencepiece        | Sentencepiece tokenizer        | optimum        | Intel OpenVINO models                 |
-| testing              | Run test suite                 | sae_lens       | SAELens model steering                |
-| unitxt               | Run unitxt tasks               |                |                                       |
-| wandb                | Weights & Biases               | sparsify       | Sparsify model steering               |
-| zeno                 | Result visualization           | vllm           | vLLM models                           |
+### Model Backends
+
+These extras install dependencies required to run specific model backends:
+
+| NAME           | Description                                      |
+|----------------|--------------------------------------------------|
+| hf             | HuggingFace Transformers (torch, transformers, accelerate, peft) |
+| vllm           | vLLM fast inference                              |
+| api            | API models (OpenAI, Anthropic, local servers)    |
+| gptq           | AutoGPTQ quantized models                        |
+| gptqmodel      | GPTQModel quantized models                       |
+| ibm_watsonx_ai | IBM watsonx.ai models                            |
+| ipex           | Intel IPEX backend                               |
+| optimum        | Intel OpenVINO models                            |
+| neuronx        | AWS Inferentia2 instances                        |
+| sparsify       | Sparsify model steering                          |
+| sae_lens       | SAELens model steering                           |
+
+### Task Dependencies
+
+These extras install dependencies required for specific evaluation tasks:
+
+| NAME                 | Description                    |
+|----------------------|--------------------------------|
+| tasks                | All task-specific dependencies |
+| acpbench             | ACP Bench tasks                |
+| audiolm_qwen         | Qwen2 audio models             |
+| ifeval               | IFEval task                    |
+| japanese_leaderboard | Japanese LLM tasks             |
+| longbench            | LongBench tasks                |
+| math                 | Math answer checking           |
+| multilingual         | Multilingual tokenizers        |
+| ruler                | RULER tasks                    |
+
+### Development & Utilities
+
+| NAME          | Description                    |
+|---------------|--------------------------------|
+| dev           | Linting & contributions        |
+| hf_transfer   | Speed up HF downloads          |
+| sentencepiece | Sentencepiece tokenizer        |
+| unitxt        | Unitxt tasks                   |
+| wandb         | Weights & Biases logging       |
+| zeno          | Zeno result visualization      |
 
 ## Cite as
 

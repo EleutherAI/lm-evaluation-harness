@@ -1,35 +1,55 @@
-# Models are now lazily loaded via the registry system
-# No need to import them all at once - they're loaded on demand
+"""Model implementations for lm_eval.
 
-# Define model mappings for lazy registration
+Models are lazily loaded via the registry system to improve startup performance.
+
+Usage
+-----
+For programmatic access, use the registry:
+
+    from lm_eval.api.registry import get_model
+    model_cls = get_model("hf")
+    model = model_cls(pretrained="gpt2")
+
+For direct imports (e.g., subclassing), use explicit module paths:
+
+    from lm_eval.models.huggingface import HFLM
+    from lm_eval.models.vllm_causallms import VLLM
+
+Adding New Models
+-----------------
+1. Create your model class in a new file under lm_eval/models/
+2. Use the @register_model decorator on your class
+3. Add an entry to MODEL_MAPPING below for lazy discovery
+"""
+
 MODEL_MAPPING = {
-    "anthropic-completions": "lm_eval.models.anthropic_llms:AnthropicLM",
     "anthropic-chat": "lm_eval.models.anthropic_llms:AnthropicChatLM",
     "anthropic-chat-completions": "lm_eval.models.anthropic_llms:AnthropicCompletionsLM",
-    "local-completions": "lm_eval.models.openai_completions:LocalCompletionsAPI",
-    "local-chat-completions": "lm_eval.models.openai_completions:LocalChatCompletion",
-    "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
-    "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
+    "anthropic-completions": "lm_eval.models.anthropic_llms:AnthropicLM",
     "dummy": "lm_eval.models.dummy:DummyLM",
-    "gguf": "lm_eval.models.gguf:GGUFLM",
     "ggml": "lm_eval.models.gguf:GGUFLM",
-    "hf-audiolm-qwen": "lm_eval.models.hf_audiolm:HFAudioLM",
-    "steered": "lm_eval.models.hf_steered:SteeredHF",
-    "hf-multimodal": "lm_eval.models.hf_vlms:HFMultimodalLM",
-    "hf-auto": "lm_eval.models.huggingface:HFLM",
+    "gguf": "lm_eval.models.gguf:GGUFLM",
     "hf": "lm_eval.models.huggingface:HFLM",
+    "hf-audiolm-qwen": "lm_eval.models.hf_audiolm:HFAudioLM",
+    "hf-auto": "lm_eval.models.huggingface:HFLM",
+    "hf-multimodal": "lm_eval.models.hf_vlms:HFMultimodalLM",
     "huggingface": "lm_eval.models.huggingface:HFLM",
-    "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:IBMWatsonxAI",
+    "ipex": "lm_eval.models.optimum_ipex:IPEXForCausalLM",
+    "local-chat-completions": "lm_eval.models.openai_completions:LocalChatCompletion",
+    "local-completions": "lm_eval.models.openai_completions:LocalCompletionsAPI",
     "mamba_ssm": "lm_eval.models.mamba_lm:MambaLMWrapper",
     "nemo_lm": "lm_eval.models.nemo_lm:NeMoLM",
     "neuronx": "lm_eval.models.neuron_optimum:NeuronModelForCausalLM",
-    "ipex": "lm_eval.models.optimum_ipex:IPEXForCausalLM",
+    "openai-chat-completions": "lm_eval.models.openai_completions:OpenAIChatCompletion",
+    "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
     "sglang": "lm_eval.models.sglang_causallms:SGLANG",
     "sglang-generate": "lm_eval.models.sglang_generate_API:SGAPI",
+    "steered": "lm_eval.models.hf_steered:SteeredHF",
     "textsynth": "lm_eval.models.textsynth:TextSynthLM",
     "vllm": "lm_eval.models.vllm_causallms:VLLM",
     "vllm-vlm": "lm_eval.models.vllm_vlms:VLLM_VLM",
+    "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:IBMWatsonxAI",
 }
 
 
@@ -48,13 +68,3 @@ def _register_all_models():
 _register_all_models()
 
 __all__ = ["MODEL_MAPPING"]
-
-
-try:
-    # enable hf hub transfer if available
-    import hf_transfer  # type: ignore # noqa
-    import huggingface_hub.constants  # type: ignore
-
-    huggingface_hub.constants.HF_HUB_ENABLE_HF_TRANSFER = True
-except ImportError:
-    pass

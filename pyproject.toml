@@ -122,33 +122,46 @@ plugins.md028.enabled = false # no-blanks-blockquote
 plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
-[tool.ruff]
-lint.extend-select = [
-    "I",      # isort
-    "UP",     # pyupgrade
-    "E",      # pycodestyle errors
-    "C419",   # unnecessary-comprehension-in-call
-    "F",      # pyflakes
+[tool.ruff.lint]
+extend-select = [
     "B",      # flake8-bugbear
-    "SIM",    # flake8-simplify
-    "RUF034", # useless-if-else
-    "W605",   # invalid-escape-sequence
+    "C419",   # unnecessary-comprehension-in-call
+    "D", # docstyle
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
     "FURB",   # refurb
+    "I",      # isort
+    "TC", # typecheck
+    "RUF034", # useless-if-else
+    "SIM",    # flake8-simplify
+    "UP",     # pyupgrade
+    "W605",   # invalid-escape-sequence
 ]
-lint.fixable = [
-    "I001",   # unsorted-imports
+fixable = [
     "F401",   # unused-import
+    "I001",   # unsorted-imports
     "UP",     # pyupgrade fixes
 ]
-lint.ignore = [
-    "E402",   # module-import-not-at-top-of-file
-    "E731",   # lambda-assignment
-    "E501",   # line-too-long
+ignore = [
+    # docstrings
+    "D10",    # missing-docstring
+        # docstrings
+    "D212", # start first line
+    "D415", # terminal punctuation
+    "D205", # missing blank line
+    "D417", # docs: undocumented param
+    "D200", # unnecessary line
+    "D202", # blank-line-after-function
+
     "E111",   # indentation-with-invalid-multiple
     "E114",   # indentation-with-invalid-multiple-comment
     "E117",   # over-indented
-    "E741",   # ambiguous-variable-name
+    "E402",   # module-import-not-at-top-of-file
+    "E501",   # line-too-long
     "E701",   # multiple-statements-on-one-line-colon
+    "E731",   # lambda-assignment
+    "E741",   # ambiguous-variable-name
+    "SIM118", # dict-in-keys
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
@@ -163,3 +176,7 @@ lint.ignore = [
 combine-as-imports = true
 known-first-party = ["lm_eval"]
 lines-after-imports = 2
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+ignore-var-parameters = true

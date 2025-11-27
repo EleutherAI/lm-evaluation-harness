@@ -4,6 +4,15 @@ import os
 
 __version__ = "0.4.9.2"
 
+# Enable hf_transfer if available
+try:
+    import hf_transfer  # type: ignore
+    import huggingface_hub.constants  # type: ignore
+
+    huggingface_hub.constants.HF_HUB_ENABLE_HF_TRANSFER = True
+except ImportError:
+    pass
+
 
 # Lazy-load .evaluator module to improve CLI startup
 def __getattr__(name):

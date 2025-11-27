@@ -19,7 +19,7 @@ class MyModel(LM):
 ### Registering with Lazy Loading
 ```python
 # Register without importing the actual implementation
-model_registry.register("lazy-model", target="my_package.models:LazyModel")
+model_registry.register("lazy-model", target="my_package.models: LazyModel")
 ```
 
 ### Looking up Components
@@ -39,9 +39,10 @@ import importlib.metadata as md
 import inspect
 import logging
 import threading
+from collections.abc import Callable
 from functools import lru_cache
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, overload
 
 
 eval_logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ if TYPE_CHECKING:
 
     from lm_eval.api.filter import Filter
     from lm_eval.api.model import LM
+
 
 __all__ = [
     # Core registry class
@@ -201,7 +203,7 @@ class Registry(Generic[T]):
             >>> class MyModel(LM):
             ...     pass
             >>>
-            >>> # Direct registration with lazy placeholder
+            >>> # Direct registration with a lazy placeholder
             >>> model_registry.register("lazy-name", target="mymodule:MyModel")
 
         Raises:
@@ -401,7 +403,7 @@ class Registry(Generic[T]):
         """Erase registry (for isolated tests).
 
         Clears both the registry contents and the materialization cache.
-        Only use this in test code to ensure clean state between tests.
+        Only use this in test code to ensure a clean state between tests.
         """
         if isinstance(self._objs, MappingProxyType):
             self._objs = dict(self._objs)  # type: ignore[assignment]
@@ -520,7 +522,7 @@ MODEL_REGISTRY = model_registry
 # =============================================================================
 
 
-def register_filter(name):
+def register_filter(name: str):
     """Decorator to register a filter class.
 
     Args:
@@ -550,12 +552,12 @@ def get_filter(filter_name: str | Callable) -> Callable:
         The filter class/function
 
     Raises:
-        KeyError: If filter name is not found and is not callable
+        KeyError: If a filter name is not found and is not callable
     """
     if callable(filter_name):
         return filter_name
     try:
-        return filter_registry.get(filter_name)
+        return filter_registry.get(cast("str", filter_name))
     except KeyError as e:
         eval_logger.warning(f"filter `{filter_name}` is not registered!")
         raise e
@@ -574,7 +576,7 @@ def register_metric(**args):
     """Decorator to register a metric function.
 
     Args:
-        **args: Keyword arguments including:
+        **args: Keyword arguments including
             - metric: Name to register the metric under (required)
             - higher_is_better: Whether higher scores are better
             - aggregation: Name of aggregation function to use
@@ -609,7 +611,7 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
 
     Args:
         name: The metric name
-        hf_evaluate_metric: If True, skip local registry and use HF evaluate
+        hf_evaluate_metric: If True, skip the local registry and use HF evaluate
 
     Returns:
         The metric compute function, or None if not found
