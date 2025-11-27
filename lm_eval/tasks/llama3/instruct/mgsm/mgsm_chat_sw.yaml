@@ -1,0 +1,4 @@
+include: mgsm_chat_template
+dataset_name: sw  # Overridden by language-specific config.
+process_docs: !function utils.process_docs_sw
+task: mgsm_chat_sw
