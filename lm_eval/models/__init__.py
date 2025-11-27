@@ -12,6 +12,7 @@ from . import (
     nemo_lm,
     neuron_optimum,
     openai_completions,
+    gemini_completions,
     optimum_ipex,
     optimum_lm,
     sglang_causallms,

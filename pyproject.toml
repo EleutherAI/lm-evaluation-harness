@@ -39,6 +39,7 @@ dependencies = [
     "dill",
     "word2number",
     "more_itertools",
+    "google-generativeai",
 ]
 
 [tool.setuptools.packages.find]
