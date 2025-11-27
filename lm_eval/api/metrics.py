@@ -8,6 +8,7 @@ from collections.abc import Iterable
 from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
+from scipy.special import binom
 import sacrebleu
 
 from lm_eval.api.registry import register_aggregation, register_metric
@@ -137,6 +138,19 @@ def brier_score(items):  # This is a passthrough function
     gold = list(gold)
     gold_one_hot = np.eye(num_class)[gold]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+@register_aggregation("pass@1")
+def pass_at_1(arr):
+    pass_at_1 = sum(estimate_pass_at_k(arr[i], k=1) for i in range(len(arr))) / len(arr)
+    return pass_at_1
+
+
+@register_aggregation("pass@k")
+def pass_at_k(arr):
+    pass_at_k = sum(estimate_pass_at_k(arr[i], k=len(arr[i])) for i in range(len(arr))) / len(arr)
+    return pass_at_k
+
 
 
 @register_metric(
@@ -625,6 +639,34 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
         ) ** 2
 
     return np.sqrt(variance)
+
+
+def pass_at_k(n: int, ci: int, k: int) -> float:
+    """
+    Estimate the probability that at least one correct answer appears in a random sample of k items from n total.
+    Args:
+        n (int): Total number of samples.
+        ci (int): Number of correct samples.
+        k (int): Number of samples to draw.
+    Returns:
+        float: Estimated pass@k value.
+    """
+    if n - ci < k:
+        return 1.0
+    return 1 - np.prod(1 - k / np.arange(n - ci + 1, n + 1))
+
+def estimate_pass_at_k(results: List[bool], k: int) -> float:
+    """
+    Compute pass@k using a list of boolean correctness values.
+    Args:
+        results (List[bool]): List where each element indicates if a sample is correct (True) or not (False).
+        k (int): Number of samples to consider.
+    Returns:
+        float: pass@k value.
+    """
+    n = len(results)
+    ci = sum(results)
+    return pass_at_k(n, ci, k)
 
 
 def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
