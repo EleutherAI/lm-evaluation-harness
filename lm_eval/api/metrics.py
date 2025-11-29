@@ -1,16 +1,43 @@
+import ipaddress
+import json
 import logging
 import math
 import os
 import random
 import re
 import string
+import uuid
 from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar
 
 import numpy as np
 import sacrebleu
+from jsonschema import Draft202012Validator, FormatChecker, SchemaError, ValidationError
 
 from lm_eval.api.registry import register_aggregation, register_metric
+
+
+eval_logger = logging.getLogger(__name__)
+
+
+# Initialize the FormatChecker
+format_checker = FormatChecker()
+
+
+# Add custom format checkers
+@format_checker.checks("ipv4")
+def ipv4_check(value):
+    ipaddress.IPv4Address(value)
+
+
+@format_checker.checks("ipv6")
+def ipv6_check(value):
+    ipaddress.IPv6Address(value)
+
+
+@format_checker.checks("uuid")
+def uuid_check(value):
+    uuid.UUID(value)
 
 
 T = TypeVar("T")
@@ -317,6 +344,161 @@ def mean_stderr(arr):
 )
 def bypass(items):
     return None
+
+
+def is_json_schema_valid(schema: dict):
+    """
+    Check if a JSON schema is valid.
+
+    :param schema: A JSON schema.
+    :return: True if the schema is valid, False otherwise.
+    """
+    try:
+        # Check if the schema is valid
+        Draft202012Validator.check_schema(schema)
+        return True
+    except SchemaError:
+        return False
+
+
+def schema_conform_with_format_checker(
+    instance: Dict[str, Any], schema: Dict[str, Any]
+) -> bool:
+    """
+    Validate a JSON instance against a schema with enhanced format checking.
+
+    :param schema: The JSON schema to validate against.
+    :param instance: The JSON instance to validate.
+    :raises ValidationError: If the validation fails.
+    """
+    # first check if the schema is valid
+    if not is_json_schema_valid(schema):
+        raise ValidationError("The JSON schema is invalid.")
+    validator = Draft202012Validator(schema, format_checker=format_checker)
+    try:
+        validator.validate(instance)
+    except ValidationError as e:
+        raise ValidationError(e.message)
+    return True
+
+
+@register_metric(
+    metric="json_validity",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="mean",
+)
+def json_validity(
+    references: list[str], predictions: list[str], strip: bool = True
+) -> bool:
+    assert len(predictions) == 1, (
+        "Currently, we don't support pass@k for JSON schema validation."
+    )
+    prediction = predictions[0]  # Since predictions is a list of lists
+
+    if strip:
+        prediction = prediction.strip().strip("```").strip("json").strip()
+
+    try:
+        json.loads(prediction)
+    except json.JSONDecodeError:
+        return False
+    return True
+
+
+@register_metric(
+    metric="grammar_compliance",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="mean",
+)
+def grammar_compliance(
+    references: list[str],
+    predictions: list[str],
+    grammar_file_path: str,
+    grammar_type: str,
+    tokenizer: str = None,
+) -> bool:
+    assert len(references) == 1, (
+        "We only have one reference for this task, which is the JSON schema."
+    )
+    assert len(predictions) == 1, (
+        "Currently, we don't support pass@k for JSON schema validation."
+    )
+
+    prediction = predictions[0]  # Since predictions is a list of lists
+
+    with open(grammar_file_path, "r") as f:
+        grammar_str = f.read().strip()
+
+    if grammar_type == "json":
+        json_schema = json.loads(grammar_str)
+        try:
+            json_obj = json.loads(prediction.strip().strip("```").strip("json"))
+        except json.JSONDecodeError:
+            return False
+
+        try:
+            schema_conform = schema_conform_with_format_checker(json_obj, json_schema)
+        except Exception as e:
+            eval_logger.error(f"Error: {e}")
+            return False
+
+        return schema_conform
+
+    if grammar_type == "regex":
+        return bool(re.fullmatch(grammar_str, prediction.strip()))
+
+    if grammar_type == "gbnf":
+        try:
+            import xgrammar as xgr
+            from transformers import AutoTokenizer
+
+            tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
+
+            tokenizer_info = xgr.TokenizerInfo.from_huggingface(
+                tokenizer, vocab_size=tokenizer.vocab_size
+            )
+            grammar_compiler = xgr.GrammarCompiler(tokenizer_info)
+            compiled_grammar = grammar_compiler.compile_grammar(grammar_str)
+            matcher = xgr.GrammarMatcher(compiled_grammar)
+
+            return matcher.accept_string(prediction.strip())
+
+        except Exception:
+            return False
+
+    raise ValueError(f"Unknown grammar type: {grammar_type}")
+
+
+@register_metric(
+    metric="json_answer_match",
+    higher_is_better=True,
+    output_type=["generate_until"],
+    aggregation="mean",
+)
+def json_answer_match(
+    predictions,
+    references,
+    target_field,
+):
+    extracted_predictions = [""] * len(predictions)
+    for i in range(len(predictions)):
+        try:
+            extracted_predictions[i] = json.loads(predictions[i].strip())[target_field]
+        except (json.JSONDecodeError, KeyError):
+            continue
+
+    # This is an ad hoc solution. We need to generalize it.
+    if isinstance(references[0], str):
+        extracted_predictions = list(map(str, extracted_predictions))
+
+    extracted_predictions = np.array(extracted_predictions)
+    references = np.array(references)
+
+    score_list = extracted_predictions == references
+
+    return {"json_answer_match": np.mean(score_list)}
 
 
 @register_metric(
