@@ -1655,6 +1655,7 @@ class ConfigurableTask(Task):
                     if "brier_score" in use_metric
                     else {}
                 ),
+                **({"likelihood": (gold, lls)} if "likelihood" in use_metric else {}),
             }
 
             if "acc_mutual_info" in use_metric:
