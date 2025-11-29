@@ -7,7 +7,7 @@ Its intended use is within the context of Small Language Model (SLM) evaluation 
 
 This task uses a subset of the [SciKnowEval](https://huggingface.co/datasets/hicai-zju/SciKnowEval) dataset. Specifically, it filters out non-MCQA samples and focuses on questions from levels L1, L2, and L3, which are designed to assess knowledge memory, comprehension and reasoning respectively, as described in the original [paper](https://arxiv.org/pdf/2406.09098v2).
 
-The full SciKnowEval dataset is a comprehensive benchmark for evaluating the scientific knowledge reasoning capabilities of Large Language Models (LLMs). It spans across a few scientific domains: Physics, Chemistry, Biology and Materials. 
+The full SciKnowEval dataset is a comprehensive benchmark for evaluating the scientific knowledge reasoning capabilities of Large Language Models (LLMs). It spans across a few scientific domains: Physics, Chemistry, Biology and Materials.
 
 SciKnowEval_mcqa dataset: https://huggingface.co/datasets/ShAIkespear/SciKnowEval_mcqa
 
