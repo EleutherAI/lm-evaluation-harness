@@ -1,0 +1,9 @@
+group: sciknoweval_mcqa
+group_alias: sciknoweval_mcqa (var5shots)
+task:
+  - sciknoweval_mcqa_task
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+metadata:
+  version: 2
