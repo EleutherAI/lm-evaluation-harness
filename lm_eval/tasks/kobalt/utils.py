@@ -24,8 +24,8 @@ def process_docs(dataset):
     choice_re = re.compile(r"^\s*([A-J])\s*:\s*(.+)$")
 
     def _process_doc(doc):
-        q = doc.get("question", "")
-        a = str(doc.get("answer", "")).strip()
+        q = doc.get("question") or doc.get("Question") or ""
+        a = str(doc.get("answer") or doc.get("Answer") or "").strip()
 
         # Split into header (passage + question) and choices block
         lines = q.splitlines()

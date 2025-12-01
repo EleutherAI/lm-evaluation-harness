@@ -85,7 +85,7 @@ sentencepiece = ["sentencepiece>=0.1.98"]
 sparsify = ["sparsify"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 unitxt = ["unitxt==1.22.0"]
-vllm = ["vllm>=0.4.2"]
+vllm = ["vllm==0.11.0"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
