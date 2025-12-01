@@ -2,10 +2,14 @@ import argparse
 import ast
 import json
 import logging
-from typing import Any, Optional, Union
+from collections.abc import Sequence
+from typing import Any
 
 
-def try_parse_json(value: Union[str, dict, None]) -> Union[str, dict, None]:
+eval_logger = logging.getLogger(__name__)
+
+
+def try_parse_json(value: str | dict[str, Any] | None) -> str | dict[str, Any] | None:
     """Try to parse a string as JSON. If it fails, return the original string."""
     if value is None:
         return None
@@ -23,7 +27,7 @@ def try_parse_json(value: Union[str, dict, None]) -> Union[str, dict, None]:
 
 def _int_or_none_list_arg_type(
     min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","
-) -> list[Union[int, None]]:
+) -> list[int | None]:
     """Parses a string of integers or 'None' values separated by a specified character into a list.
     Validates the number of items against specified minimum and maximum lengths and fills missing values with defaults."""
 
@@ -57,7 +61,7 @@ def _int_or_none_list_arg_type(
     return items
 
 
-def request_caching_arg_to_dict(cache_requests: Optional[str]) -> dict[str, bool]:
+def request_caching_arg_to_dict(cache_requests: str | None) -> dict[str, bool]:
     """Convert a request caching argument to a dictionary."""
     if cache_requests is None:
         return {}
@@ -84,7 +88,7 @@ def check_argument_types(parser: argparse.ArgumentParser) -> None:
             continue
 
 
-def handle_cli_value_string(arg: str) -> Any:
+def handle_cli_value_string(arg: str) -> bool | int | float | str:
     if arg.lower() == "true":
         return True
     elif arg.lower() == "false":
@@ -100,17 +104,37 @@ def handle_cli_value_string(arg: str) -> Any:
             return arg
 
 
-def key_val_to_dict(args: str) -> dict:
+def key_val_to_dict(args: str) -> dict[str, Any]:
     """Parse model arguments from a string into a dictionary."""
-    return (
-        {
-            k: handle_cli_value_string(v)
-            for k, v in (item.split("=") for item in args.split(","))
-        }
-        if args
-        else {}
-    )
+    res = {}
+    if not args:
+        return res
+    for k, v in (item.split("=") for item in args.split(",")):
+        v = handle_cli_value_string(v)
+        if k in res:
+            eval_logger.warning(f"Overwriting key '{k}': {res[k]!r} -> {v!r}")
+        res[k] = v
+    return res
 
 
-def merge_dicts(*dicts):
-    return {k: v for d in dicts for k, v in d.items()}
+class MergeDictAction(argparse.Action):
+    """Argparse action that parses key=value args and merges them into a dict."""
+
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[Any] | None,
+        option_string: str | None = None,
+    ) -> None:
+        current = vars(namespace).setdefault(self.dest, {}) or {}
+        if values:
+            for v in values:
+                v = key_val_to_dict(v)
+                if overlap := current.keys() & v.keys():
+                    eval_logger.warning(
+                        f"{option_string or self.dest}: Overwriting key {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
+                    )
+
+                current.update(v)
+        setattr(namespace, self.dest, current)

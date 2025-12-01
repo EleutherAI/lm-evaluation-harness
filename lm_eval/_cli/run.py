@@ -7,9 +7,8 @@ from functools import partial
 
 from lm_eval._cli.subcommand import SubCommand
 from lm_eval._cli.utils import (
+    MergeDictAction,
     _int_or_none_list_arg_type,
-    key_val_to_dict,
-    merge_dicts,
     request_caching_arg_to_dict,
     try_parse_json,
 )
@@ -87,7 +86,7 @@ class Run(SubCommand):
             "-a",
             default=None,
             nargs="*",
-            type=key_val_to_dict,
+            action=MergeDictAction,
             metavar="<arg>",
             help="Model arguments as 'key=val,key2=val2' or `key=val` `key2=val2`",
         )
@@ -153,9 +152,9 @@ class Run(SubCommand):
         )
         eval_group.add_argument(
             "--gen_kwargs",
-            type=key_val_to_dict,
             default=None,
             nargs="*",
+            action=MergeDictAction,
             metavar="<arg>",
             help=textwrap.dedent(
                 'Generation arguments as `temperature=0,stop=["stop"]` or `key=val` `key2=val2`.'
@@ -265,22 +264,25 @@ class Run(SubCommand):
         )
         logging_group.add_argument(
             "--wandb_args",
-            type=key_val_to_dict,
-            default=argparse.SUPPRESS,
+            default=None,
+            nargs="*",
+            action=MergeDictAction,
             metavar="<args>",
             help="Weights & Biases init arguments key=val key2=val2",
         )
         logging_group.add_argument(
             "--wandb_config_args",
-            type=key_val_to_dict,
-            default=argparse.SUPPRESS,
+            default=None,
+            nargs="*",
+            action=MergeDictAction,
             metavar="<args>",
             help="Weights & Biases config arguments key=val key2=val2",
         )
         logging_group.add_argument(
             "--hf_hub_log_args",
-            type=key_val_to_dict,
-            default=argparse.SUPPRESS,
+            default=None,
+            nargs="*",
+            action=MergeDictAction,
             metavar="<args>",
             help="Hugging Face Hub logging arguments key=val key2=val2",
         )
@@ -333,16 +335,6 @@ class Run(SubCommand):
     def _execute(args: argparse.Namespace) -> None:
         """Runs the evaluation harness with the provided arguments."""
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
-        MERGE_ARGS_DICTS = [
-            "model_args",
-            "gen_kwargs",
-            "wandb_args",
-            "wandb_config_args",
-            "hf_hub_log_args",
-        ]
-        for arg_name in MERGE_ARGS_DICTS:
-            if current_value := getattr(args, arg_name, None):
-                setattr(args, arg_name, merge_dicts(*current_value))
 
         from lm_eval.config.evaluate_config import EvaluatorConfig
 

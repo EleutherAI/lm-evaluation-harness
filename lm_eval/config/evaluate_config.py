@@ -2,9 +2,9 @@ import json
 import logging
 import textwrap
 from argparse import Namespace
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, cast
 
 import yaml
 
@@ -25,7 +25,7 @@ DICT_KEYS = [
 ]
 
 
-@dataclass
+@dataclass(slots=True)
 class EvaluatorConfig:
     """Configuration for language model evaluation runs.
 
@@ -57,43 +57,43 @@ class EvaluatorConfig:
     """
 
     # Core evaluation parameters
-    config: Optional[str] = field(
+    config: str | None = field(
         default=None, metadata={"help": "Path to YAML config file"}
     )
     model: str = field(default="hf", metadata={"help": "Name of model e.g. 'hf'"})
     model_args: dict = field(
         default_factory=dict, metadata={"help": "Arguments for model initialization"}
     )
-    tasks: Union[str, list[str]] = field(
+    tasks: str | list[str] = field(
         default_factory=list,
         metadata={"help": "Comma-separated list of task names to evaluate"},
     )
 
     # Few-shot and batching
-    num_fewshot: Optional[int] = field(
+    num_fewshot: int | None = field(
         default=None, metadata={"help": "Number of examples in few-shot context"}
     )
     batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
-    max_batch_size: Optional[int] = field(
+    max_batch_size: int | None = field(
         default=None, metadata={"help": "Maximum batch size for auto batching"}
     )
 
     # Device
-    device: Optional[str] = field(
+    device: str | None = field(
         default="cuda:0", metadata={"help": "Device to use (e.g. cuda, cuda:0, cpu)"}
     )
 
     # Data sampling and limiting
-    limit: Optional[float] = field(
+    limit: float | None = field(
         default=None, metadata={"help": "Limit number of examples per task"}
     )
-    samples: Union[str, dict, None] = field(
+    samples: str | dict | None = field(
         default=None,
         metadata={"help": "dict, JSON string or path to JSON file with doc indices"},
     )
 
     # Caching
-    use_cache: Optional[str] = field(
+    use_cache: str | None = field(
         default=None,
         metadata={"help": "Path to sqlite db file for caching model outputs"},
     )
@@ -112,7 +112,7 @@ class EvaluatorConfig:
     log_samples: bool = field(
         default=False, metadata={"help": "Save model outputs and inputs"}
     )
-    output_path: Optional[str] = field(
+    output_path: str | None = field(
         default=None, metadata={"help": "Dir path where result metrics will be saved"}
     )
     predict_only: bool = field(
@@ -123,16 +123,16 @@ class EvaluatorConfig:
     )
 
     # Chat and instruction handling
-    system_instruction: Optional[str] = field(
+    system_instruction: str | None = field(
         default=None, metadata={"help": "Custom System instruction to add"}
     )
-    apply_chat_template: Union[bool, str] = field(
+    apply_chat_template: bool | str = field(
         default=False,
         metadata={
             "help": "Apply chat template to prompt. Either True, or a string identifying the tokenizer template."
         },
     )
-    fewshot_as_multiturn: Optional[bool] = field(
+    fewshot_as_multiturn: bool | None = field(
         default=None,
         metadata={
             "help": "Use fewshot as multi-turn conversation. Defaults to True when apply_chat_template is set."
@@ -145,15 +145,15 @@ class EvaluatorConfig:
     )
 
     # External tasks and generation
-    include_path: Optional[str] = field(
+    include_path: str | None = field(
         default=None, metadata={"help": "Additional dir path for external tasks"}
     )
-    gen_kwargs: Optional[dict] = field(
+    gen_kwargs: dict | None = field(
         default=None, metadata={"help": "Arguments for model generation"}
     )
 
     # Logging and verbosity
-    verbosity: Optional[str] = field(
+    verbosity: str | None = field(
         default=None, metadata={"help": "Logging verbosity level"}
     )
 
@@ -201,8 +201,8 @@ class EvaluatorConfig:
         config = asdict(cls())
 
         # Load and merge YAML config if provided
-        if used_config := hasattr(namespace, "config") and namespace.config:
-            config.update(cls.load_yaml_config(namespace.config))
+        if used_config := getattr(namespace, "config", None):
+            config.update(cls.load_yaml_config(cast(str, used_config)))
 
         # Override with CLI args (only truthy values, exclude non-config args)
         excluded_args = {"command", "func"}  # argparse internal args
@@ -211,71 +211,66 @@ class EvaluatorConfig:
         }
         config.update(cli_args)
 
-        # Parse string arguments that should be dictionaries
-        config = cls._parse_dict_args(config)
-
         # Create an instance and validate
-        instance = cls(**config)
+        instance = cls(**config)._parse_dict_args()
         if used_config:
             print(textwrap.dedent(f"""{instance}"""))
-        instance.configure()
+        instance._configure()
 
         return instance
 
     @classmethod
-    def from_config(cls, config_path: Union[str, Path]) -> "EvaluatorConfig":
+    def from_config(cls, config_path: str | Path) -> "EvaluatorConfig":
         """
         Build an EvaluationConfig from a YAML config file.
         Merges with built-in defaults and validates.
         """
         # Load YAML config
         yaml_config = cls.load_yaml_config(config_path)
-        # Parse string arguments that should be dictionaries
-        yaml_config = cls._parse_dict_args(yaml_config)
-        instance = cls(**yaml_config)
-        instance.configure()
-
-        return instance
+        return cls(**yaml_config)._parse_dict_args()._configure()
 
     @staticmethod
-    def _parse_dict_args(config: dict[str, Any]) -> dict[str, Any]:
-        """Parse string arguments that should be dictionaries."""
-        for key in config:
-            if key in DICT_KEYS and isinstance(config[key], str):
-                config[key] = simple_parse_args_string(config[key])
-        return config
-
-    @staticmethod
-    def load_yaml_config(config_path: Union[str, Path]) -> dict[str, Any]:
+    def load_yaml_config(config_path: str | Path) -> dict[str, Any]:
         """Load and validate YAML config file."""
-        config_file = (
-            Path(config_path) if not isinstance(config_path, Path) else config_path
-        )
-        if not config_file.is_file():
-            raise FileNotFoundError(f"Config file not found: {config_path}")
+        _config_path = Path(config_path)
+        if not _config_path.is_file():
+            raise FileNotFoundError(f"Config file not found: {_config_path.resolve()}")
 
         try:
-            yaml_data = yaml.safe_load(config_file.read_text())
+            yaml_data = yaml.safe_load(_config_path.read_text())
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in {config_path}: {e}") from e
+            raise ValueError(f"Invalid YAML in {_config_path}: {e}") from e
         except (OSError, UnicodeDecodeError) as e:
-            raise ValueError(f"Could not read config file {config_path}: {e}") from e
+            raise ValueError(f"Could not read config file {_config_path}: {e}") from e
 
         if not isinstance(yaml_data, dict):
             raise ValueError(
-                f"YAML root must be a mapping, got {type(yaml_data).__name__}"
+                f"YAML root must be a mapping in {_config_path.resolve()}, got {type(yaml_data).__name__}"
             )
 
         return yaml_data
 
-    def configure(self) -> None:
+    def _parse_dict_args(self):
+        # Parse string arguments that should be dictionaries
+        for f in fields(self):
+            if f.type is dict and isinstance(getattr(self, f.name), str):
+                setattr(self, f.name, simple_parse_args_string(getattr(self, f.name)))
+        return self
+
+    def _configure(self):
         """Validate configuration and preprocess fields after creation."""
         self._validate_arguments()
         self._process_arguments()
         self._set_trust_remote_code()
 
+        return self
+
     def _validate_arguments(self) -> None:
         """Validate configuration arguments and cross-field constraints."""
+        # tasks are required
+        if self.tasks is None:
+            raise ValueError("Need to specify task to evaluate.")
+
         if self.limit:
             eval_logger.warning(
                 "--limit SHOULD ONLY BE USED FOR TESTING. "
@@ -307,10 +302,6 @@ class EvaluatorConfig:
         if self.samples and self.limit is not None:
             raise ValueError("If --samples is not None, then --limit must be None.")
 
-        # tasks are required
-        if self.tasks is None:
-            raise ValueError("Need to specify task to evaluate.")
-
     def _process_arguments(self) -> None:
         """Process samples argument - load from a file if needed."""
         if self.samples:
@@ -320,7 +311,7 @@ class EvaluatorConfig:
                 try:
                     self.samples = json.loads(self.samples)
                 except json.JSONDecodeError:
-                    if (samples_path := Path(self.samples)).is_file():
+                    if (samples_path := Path(cast(str, self.samples))).is_file():
                         self.samples = json.loads(samples_path.read_text())
 
         # Set up metadata by merging model_args and metadata.
@@ -331,7 +322,7 @@ class EvaluatorConfig:
 
         self.metadata = self.model_args | self.metadata
 
-    def process_tasks(self, metadata: Optional[dict] = None) -> "TaskManager":
+    def process_tasks(self, metadata: dict | None = None) -> "TaskManager":
         """Process and validate tasks, return resolved task names.
 
         Handles:
@@ -356,10 +347,9 @@ class EvaluatorConfig:
         )
 
         # Normalize tasks to a list
-        if isinstance(self.tasks, str):
-            task_list = self.tasks.split(",")
-        else:
-            task_list = list(self.tasks)
+        task_list = (
+            self.tasks.split(",") if isinstance(self.tasks, str) else list(self.tasks)
+        )
 
         # Handle directory input
         if len(task_list) == 1 and Path(task_list[0]).is_dir():

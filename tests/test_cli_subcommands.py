@@ -162,20 +162,20 @@ class TestRunCommand:
         assert args.tasks == ["hellaswag", "arc_easy"]
 
     def test_run_command_model_args(self):
-        """Test Run command model arguments parsing."""
+        """Test Run command model arguments parsing with MergeDictAction."""
         parser = argparse.ArgumentParser()
         subparsers = parser.add_subparsers()
         Run.create(subparsers)
 
-        # Test key=value format - returns list of dicts due to nargs="*" and key_val_to_dict
+        # Test key=value format - MergeDictAction merges into single dict
         args = parser.parse_args(["run", "--model_args", "pretrained=gpt2,device=cuda"])
-        assert args.model_args == [{"pretrained": "gpt2", "device": "cuda"}]
+        assert args.model_args == {"pretrained": "gpt2", "device": "cuda"}
 
-        # Test space-separated key=value pairs
+        # Test space-separated key=value pairs - also merged into single dict
         args = parser.parse_args(
             ["run", "--model_args", "pretrained=gpt2", "device=cuda"]
         )
-        assert args.model_args == [{"pretrained": "gpt2"}, {"device": "cuda"}]
+        assert args.model_args == {"pretrained": "gpt2", "device": "cuda"}
 
     def test_run_command_batch_size(self):
         """Test Run command batch size arguments."""
@@ -363,7 +363,7 @@ doc_to_target: "{{answer}}"
             tasks=[str(task_yaml)],
             output_path=str(tmp_path),
         )
-        cfg.configure()
+        cfg._configure()
         tm = cfg.process_tasks()  # noqa: F841
 
         # Should load successfully as a dict config, not raise "Tasks not found"
@@ -379,10 +379,163 @@ doc_to_target: "{{answer}}"
             tasks=[str(tmp_path / "nonexistent.yaml")],
             output_path=str(tmp_path),
         )
-        cfg.configure()
+        cfg._configure()
 
         with pytest.raises(ValueError, match="Tasks not found"):
             cfg.process_tasks()
+
+
+class TestEvaluatorConfigFromCLI:
+    """Test EvaluatorConfig.from_cli defaults and argument handling."""
+
+    def test_defaults_applied(self, tmp_path):
+        """Test that dataclass defaults are applied when CLI args are missing."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        # Minimal namespace with only required fields
+        ns = Namespace(
+            tasks=["hellaswag"],
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        # Check defaults from dataclass
+        assert cfg.model == "hf"
+        assert cfg.batch_size == 1
+        assert cfg.device == "cuda:0"
+        assert cfg.num_fewshot is None
+        assert cfg.limit is None
+        assert cfg.seed == [0, 1234, 1234, 1234]
+        assert cfg.trust_remote_code is False
+        assert cfg.apply_chat_template is False
+
+    def test_cli_args_override_defaults(self, tmp_path):
+        """Test that CLI args override dataclass defaults."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["arc_easy"],
+            model="vllm",
+            batch_size=16,
+            device="cuda:1",
+            num_fewshot=5,
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.model == "vllm"
+        assert cfg.batch_size == 16
+        assert cfg.device == "cuda:1"
+        assert cfg.num_fewshot == 5
+
+    def test_model_args_dict_passed_through(self, tmp_path):
+        """Test that model_args dict is passed through correctly."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["hellaswag"],
+            model_args={"pretrained": "gpt2", "dtype": "float16"},
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.model_args["pretrained"] == "gpt2"
+        assert cfg.model_args["dtype"] == "float16"
+
+    def test_gen_kwargs_passed_through(self, tmp_path):
+        """Test that gen_kwargs dict is passed through correctly."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["hellaswag"],
+            gen_kwargs={"temperature": 0.7, "max_tokens": 100},
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.gen_kwargs["temperature"] == 0.7
+        assert cfg.gen_kwargs["max_tokens"] == 100
+
+    def test_none_args_use_defaults(self, tmp_path):
+        """Test that None values fall back to defaults."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["hellaswag"],
+            model=None,  # Should use default "hf"
+            batch_size=None,  # Should use default 1
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.model == "hf"
+        assert cfg.batch_size == 1
+
+    def test_fewshot_as_multiturn_defaults_with_chat_template(self, tmp_path):
+        """Test fewshot_as_multiturn defaults to True when apply_chat_template is set."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["hellaswag"],
+            apply_chat_template=True,
+            output_path=str(tmp_path),
+            log_samples=True,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        assert cfg.fewshot_as_multiturn is True
+
+    def test_empty_tasks_allowed_at_config_level(self):
+        """Test that empty tasks passes config validation (fails later in process_tasks)."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        # tasks=None gets filtered out, default [] is used
+        ns = Namespace(tasks=None)
+
+        cfg = EvaluatorConfig.from_cli(ns)
+        assert cfg.tasks == []  # Empty list, not None
+
+    def test_validation_error_log_samples_without_output(self):
+        """Test that log_samples without output_path raises ValueError."""
+        from argparse import Namespace
+
+        import pytest
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        ns = Namespace(
+            tasks=["hellaswag"],
+            log_samples=True,
+            output_path=None,
+        )
+
+        with pytest.raises(ValueError, match="output_path"):
+            EvaluatorConfig.from_cli(ns)
 
 
 class TestCLIUtils:
