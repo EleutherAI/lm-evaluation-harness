@@ -680,7 +680,10 @@ def get_task_dict(
         yaml_path = task_manager.task_index[task_name]["yaml_path"]
         yaml_path = Path(yaml_path)
         lm_eval_tasks_path = Path(__file__).parent
-        relative_yaml_path = yaml_path.relative_to(lm_eval_tasks_path)
+        try:
+            relative_yaml_path = yaml_path.relative_to(lm_eval_tasks_path)
+        except ValueError:
+            relative_yaml_path = yaml_path
 
         pad = "  " * indent
         eval_logger.info(f"{pad}Task: {task_name} ({relative_yaml_path})")
