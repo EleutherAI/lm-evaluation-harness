@@ -28,6 +28,17 @@ HIGHER_IS_BETTER_SYMBOLS = {
     False: "↓",
 }
 
+# Track whether logging has been configured to avoid duplicate handlers
+_LOGGING_CONFIGURED = False
+
+
+class _LMEvalFormatter(logging.Formatter):
+    """Formatter that strips 'lm_eval.' prefix from logger names for cleaner output."""
+
+    def format(self, record):
+        record.short_name = record.name.removeprefix("lm_eval.")
+        return super().format(record)
+
 
 def is_torch_available() -> bool:
     return importlib.util.find_spec("torch") is not None
@@ -55,43 +66,57 @@ def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:
 
 
 def setup_logging(verbosity=logging.INFO):
-    # Configure the root logger
-    class CustomFormatter(logging.Formatter):
-        def format(self, record):
-            record.name = record.name.removeprefix("lm_eval.")
-            return super().format(record)
+    """Configure logging for lm_eval.
 
-    formatter = CustomFormatter(
-        "%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d] %(message)s",
-        datefmt="%Y-%m-%d:%H:%M:%S",
-    )
+    Args:
+        verbosity: Default log level. Can be overridden by LMEVAL_LOG_LEVEL env var.
+    """
+    global _LOGGING_CONFIGURED
 
-    log_level = os.environ.get("LMEVAL_LOG_LEVEL", verbosity) or verbosity
-
-    level_map = {
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
-
-    log_level = level_map.get(str(log_level).upper(), logging.INFO)
-
-    if not logging.root.handlers:
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-
-        root_logger = logging.getLogger()
-        root_logger.addHandler(handler)
-        root_logger.setLevel(log_level)
-
-        if log_level == logging.DEBUG:
-            third_party_loggers = ["urllib3", "filelock", "fsspec"]
-            for logger_name in third_party_loggers:
-                logging.getLogger(logger_name).setLevel(logging.INFO)
+    # Determine log level from env or argument
+    env_level = os.environ.get("LMEVAL_LOG_LEVEL", "").upper()
+    if env_level:
+        log_level = logging.getLevelName(env_level)
+        # getLevelName returns the string back if invalid
+        if not isinstance(log_level, int):
+            log_level = verbosity
     else:
-        logging.getLogger().setLevel(log_level)
+        log_level = verbosity
+
+    lm_eval_logger = logging.getLogger("lm_eval")
+    lm_eval_logger.setLevel(log_level)
+
+    if not _LOGGING_CONFIGURED:
+        _LOGGING_CONFIGURED = True
+
+        handler = logging.StreamHandler()
+        handler.setFormatter(
+            _LMEvalFormatter(
+                "%(asctime)s %(levelname)-8s [%(short_name)s:%(lineno)d] %(message)s",
+                datefmt="%Y-%m-%d:%H:%M:%S",
+            )
+        )
+        lm_eval_logger.addHandler(handler)
+
+        # Don't propagate to root to avoid duplicate logs if root is also configured
+        lm_eval_logger.propagate = False
+
+        # Quiet noisy third-party loggers in debug mode
+        if log_level == logging.DEBUG:
+            for logger_name in ("urllib3", "filelock", "fsspec"):
+                logging.getLogger(logger_name).setLevel(logging.WARNING)
+
+
+@functools.cache
+def warning_once(logger: logging.Logger, msg: str, *args):
+    """Log a warning message only once per unique message."""
+    logger.warning(msg, *args)
+
+
+@functools.cache
+def info_once(logger: logging.Logger, msg: str, *args):
+    """Log an info message only once per unique message."""
+    logger.info(msg, *args)
 
 
 def hash_string(string: str) -> str:
