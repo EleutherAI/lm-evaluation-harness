@@ -41,14 +41,15 @@ task:
       - metric: acc_norm
         aggregation: mean
         higher_is_better: true
-  - task: mmlu_cloze
+  - task: mmlu
     doc_to_text: "Question: {{question}}\nAnswer:"
     doc_to_choice: "{{ choices }}"
     doc_to_target: "{{ answer }}"
     metric_list:
       - metric: acc_norm
+        higher_is_better: true
         aggregation: mean
-  - task: winogrande
+  - winogrande
 
 
 aggregate_metric_list:
@@ -56,8 +57,5 @@ aggregate_metric_list:
     aggregation: mean
     weight_by_size: false
   - metric: acc_norm
-    aggregation: mean
-    weight_by_size: false
-  - metric: acc_mutual_info
     aggregation: mean
     weight_by_size: false
