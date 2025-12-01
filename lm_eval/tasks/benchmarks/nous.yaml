@@ -2,12 +2,12 @@ group: nous
 task:
   - task: arc_challenge
     metric_list:
-      - metric: acc_mutual_info
+      - metric: acc_norm
         aggregation: mean
         higher_is_better: true
   - task: arc_easy
     metric_list:
-      - metric: acc_mutual_info
+      - metric: acc_norm
         aggregation: mean
         higher_is_better: true
   - boolq
@@ -18,7 +18,7 @@ task:
         higher_is_better: true
   - task: openbookqa
     metric_list:
-      - metric: acc_mutual_info
+      - metric: acc_norm
         aggregation: mean
         higher_is_better: true
   - task: commonsense_qa
@@ -26,7 +26,7 @@ task:
     doc_to_target: '{{["A", "B", "C", "D", "E"].index(answerKey)}}'
     doc_to_choice: "{{ choices['text'] }}"
     metric_list:
-      - metric: acc_mutual_info
+      - metric: acc_norm
         aggregation: mean
         higher_is_better: true
   - task: piqa
