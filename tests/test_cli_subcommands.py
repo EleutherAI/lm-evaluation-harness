@@ -57,9 +57,8 @@ class TestHarnessCLI:
     def test_harness_cli_run_help_only(self):
         """Test that 'lm-eval run' shows help."""
         cli = HarnessCLI()
-        with patch.object(sys, "argv", ["lm-eval", "run"]):
-            with pytest.raises(SystemExit):
-                cli.parse_args()
+        with patch.object(sys, "argv", ["lm-eval", "run"]), pytest.raises(SystemExit):
+            cli.parse_args()
 
 
 class TestListCommand:
