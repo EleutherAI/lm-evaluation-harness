@@ -468,7 +468,7 @@ class TestEvaluatorConfigFromCLI:
         )
 
         cfg = EvaluatorConfig.from_cli(ns)
-
+        assert cfg.gen_kwargs is not None
         assert cfg.gen_kwargs["temperature"] == 0.7
         assert cfg.gen_kwargs["max_tokens"] == 100
 
@@ -656,3 +656,114 @@ class TestCLIUtils:
 
         # Should not raise
         check_argument_types(parser)
+
+
+class TestEvaluatorConfigPrecedence:
+    """Test EvaluatorConfig merging precedence: CLI args > YAML config > built-in defaults."""
+
+    def test_cli_overrides_yaml_overrides_defaults(self, tmp_path):
+        """Test full precedence chain: CLI args > YAML config > built-in defaults."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        # Create a YAML config file
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: vllm
+batch_size: 8
+device: cuda:1
+num_fewshot: 3
+tasks:
+  - hellaswag
+output_path: /yaml/path
+log_samples: true
+""")
+
+        # CLI args: override some YAML values, leave others to YAML/defaults
+        ns = Namespace(
+            config=str(yaml_config),
+            model="openai",  # CLI overrides YAML's "vllm"
+            batch_size=32,  # CLI overrides YAML's 8
+            # device not specified in CLI -> should use YAML's cuda:1
+            # num_fewshot not specified in CLI -> should use YAML's 3
+            tasks=None,  # falsy, should use YAML's hellaswag
+            output_path=None,  # falsy, should use YAML's /yaml/path
+            log_samples=None,  # falsy, should use YAML's true
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        # CLI values win
+        assert cfg.model == "openai", "CLI should override YAML"
+        assert cfg.batch_size == 32, "CLI should override YAML"
+
+        # YAML values win over defaults
+        assert cfg.device == "cuda:1", "YAML should override default (cuda:0)"
+        assert cfg.num_fewshot == 3, "YAML should override default (None)"
+        assert cfg.tasks == ["hellaswag"], "YAML should be used when CLI is falsy"
+        assert cfg.output_path == "/yaml/path", "YAML should be used when CLI is falsy"
+
+        # Defaults used when neither CLI nor YAML specify
+        assert cfg.trust_remote_code is False, "Should use default"
+        assert cfg.seed == [0, 1234, 1234, 1234], "Should use default"
+
+    def test_yaml_overrides_defaults(self, tmp_path):
+        """Test that YAML config values override built-in defaults."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: vllm
+batch_size: 16
+device: cpu
+seed: [42, 42, 42, 42]
+tasks:
+  - arc_easy
+output_path: /tmp/out
+log_samples: true
+""")
+
+        ns = Namespace(config=str(yaml_config))
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        # All should come from YAML, not defaults
+        assert cfg.model == "vllm", "YAML should override default 'hf'"
+        assert cfg.batch_size == 16, "YAML should override default 1"
+        assert cfg.device == "cpu", "YAML should override default 'cuda:0'"
+        assert cfg.seed == [42, 42, 42, 42], "YAML should override default seed"
+
+    def test_cli_overrides_yaml_with_explicit_zero(self, tmp_path):
+        """Test that explicit CLI value 0 overrides YAML."""
+        from argparse import Namespace
+
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        yaml_config = tmp_path / "config.yaml"
+        yaml_config.write_text("""
+model: vllm
+batch_size: 16
+num_fewshot: 5
+tasks:
+  - hellaswag
+output_path: /yaml/path
+log_samples: true
+""")
+
+        ns = Namespace(
+            config=str(yaml_config),
+            num_fewshot=0,  # Explicit 0 should override YAML's 5
+            batch_size=1,  # Explicit 1 should override
+            tasks=None,
+            output_path=None,
+            log_samples=None,
+        )
+
+        cfg = EvaluatorConfig.from_cli(ns)
+
+        # 0 is a valid explicit value and should override YAML
+        assert cfg.num_fewshot == 0, "CLI 0 should override YAML's 5"
+        assert cfg.batch_size == 1, "Truthy CLI value overrides YAML"

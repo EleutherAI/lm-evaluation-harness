@@ -148,8 +148,9 @@ class EvaluatorConfig:
     include_path: str | None = field(
         default=None, metadata={"help": "Additional dir path for external tasks"}
     )
-    gen_kwargs: dict | None = field(
-        default=None, metadata={"help": "Arguments for model generation"}
+    gen_kwargs: dict = field(
+        default_factory=dict,
+        metadata={"help": "Arguments for model generation. Will update Task defaults"},
     )
 
     # Logging and verbosity
@@ -204,18 +205,25 @@ class EvaluatorConfig:
         if used_config := getattr(namespace, "config", None):
             config.update(cls.load_yaml_config(cast(str, used_config)))
 
-        # Override with CLI args (only truthy values, exclude non-config args)
+        # Override with CLI args (only truthy values or 0, exclude non-config args)
         excluded_args = {"command", "func"}  # argparse internal args
         cli_args = {
-            k: v for k, v in vars(namespace).items() if v and k not in excluded_args
+            k: v
+            for k, v in vars(namespace).items()
+            if (v or v == 0) and k not in excluded_args
         }
         config.update(cli_args)
 
         # Create an instance and validate
         instance = cls(**config)._parse_dict_args()
-        if used_config:
-            print(textwrap.dedent(f"""{instance}"""))
         instance._configure()
+
+        if used_config:
+            cli_args.pop("config", None)
+            eval_logger.info(
+                f"CLI args {cli_args} will override yaml"
+            ) if cli_args else None
+            print(textwrap.dedent(f"""{instance}"""))
 
         return instance
 
@@ -227,7 +235,7 @@ class EvaluatorConfig:
         """
         # Load YAML config
         yaml_config = cls.load_yaml_config(config_path)
-        return cls(**yaml_config)._parse_dict_args()._configure()
+        return cls(**yaml_config)._configure()
 
     @staticmethod
     def load_yaml_config(config_path: str | Path) -> dict[str, Any]:
@@ -259,13 +267,11 @@ class EvaluatorConfig:
 
     def _configure(self):
         """Validate configuration and preprocess fields after creation."""
-        self._validate_arguments()
-        self._process_arguments()
-        self._set_trust_remote_code()
+        self._validate_arguments()._process_arguments()._set_trust_remote_code()
 
         return self
 
-    def _validate_arguments(self) -> None:
+    def _validate_arguments(self):
         """Validate configuration arguments and cross-field constraints."""
         # tasks are required
         if self.tasks is None:
@@ -291,7 +297,8 @@ class EvaluatorConfig:
         # - If None and apply_chat_template is set, default to True
         # - If explicitly True, require apply_chat_template
         # - If explicitly False, keep it False
-        if self.fewshot_as_multiturn is None:
+        if self.fewshot_as_multiturn is None and self.apply_chat_template:
+            eval_logger.info("Using default fewshot_as_multiturn=True.")
             self.fewshot_as_multiturn = bool(self.apply_chat_template)
         elif self.fewshot_as_multiturn is True and not self.apply_chat_template:
             raise ValueError(
@@ -302,7 +309,9 @@ class EvaluatorConfig:
         if self.samples and self.limit is not None:
             raise ValueError("If --samples is not None, then --limit must be None.")
 
-    def _process_arguments(self) -> None:
+        return self
+
+    def _process_arguments(self):
         """Process samples argument - load from a file if needed."""
         if self.samples:
             if isinstance(self.samples, dict):
@@ -321,6 +330,8 @@ class EvaluatorConfig:
             self.metadata = {}
 
         self.metadata = self.model_args | self.metadata
+
+        return self
 
     def process_tasks(self, metadata: dict | None = None) -> "TaskManager":
         """Process and validate tasks, return resolved task names.
@@ -397,7 +408,7 @@ class EvaluatorConfig:
         self.tasks = task_names
         return task_manager
 
-    def _set_trust_remote_code(self) -> None:
+    def _set_trust_remote_code(self):
         """Apply the trust_remote_code setting if enabled."""
         if self.trust_remote_code:
             # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
@@ -411,3 +422,5 @@ class EvaluatorConfig:
             if self.model_args is None:
                 self.model_args = {}
             self.model_args["trust_remote_code"] = True
+
+        return self
