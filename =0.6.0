@@ -1,0 +1,13 @@
+Collecting auto-gptq[triton]
+  Using cached auto_gptq-0.7.1.tar.gz (126 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Discarding https://files.pythonhosted.org/packages/90/e5/b22697903982284fe284568fb2663a2196694a8eee637f5cf4ccfe435a38/auto_gptq-0.7.1.tar.gz (from https://pypi.org/simple/auto-gptq/) (requires-python:>=3.8.0): Requested auto-gptq from https://files.pythonhosted.org/packages/90/e5/b22697903982284fe284568fb2663a2196694a8eee637f5cf4ccfe435a38/auto_gptq-0.7.1.tar.gz has inconsistent version: expected '0.7.1', but metadata has '0.7.1+cu126'
+  Using cached auto_gptq-0.7.0.tar.gz (124 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Discarding https://files.pythonhosted.org/packages/34/71/c3e73cf17681f6ff4754ef8f4cb8b67af3def230fc8711eac1250bbd78d5/auto_gptq-0.7.0.tar.gz (from https://pypi.org/simple/auto-gptq/) (requires-python:>=3.8.0): Requested auto-gptq from https://files.pythonhosted.org/packages/34/71/c3e73cf17681f6ff4754ef8f4cb8b67af3def230fc8711eac1250bbd78d5/auto_gptq-0.7.0.tar.gz has inconsistent version: expected '0.7.0', but metadata has '0.7.0+cu126'
+  Using cached auto_gptq-0.6.0.tar.gz (120 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): still running...
+  Preparing metadata (setup.py): finished with status 'error'
