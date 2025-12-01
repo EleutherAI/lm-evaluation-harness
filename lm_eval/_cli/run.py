@@ -56,31 +56,31 @@ class Run(SubCommand):
             "-C",
             default=None,
             type=str,
-            metavar="YAML_PATH",
+            metavar="<path>",
             help="Set initial arguments from YAML config",
         )
 
         # Model and Tasks
         model_group = self._parser.add_argument_group("model and tasks")
         model_group.add_argument(
-            "--model",
-            "-m",
-            type=str,
-            default=None,
-            metavar="MODEL_NAME",
-            help="Model name (default: hf)",
-        )
-        model_group.add_argument(
             "--tasks",
             "-t",
             default=None,
             type=str,
             nargs="*",
-            metavar="TASK1 TASK2",
+            metavar="<task>",
             help=textwrap.dedent("""
                 Space or Comma-separated list of task names or groupings.
                 Use 'lm-eval list tasks' to see all available tasks.
             """).strip(),
+        )
+        model_group.add_argument(
+            "--model",
+            "-m",
+            type=str,
+            default=None,
+            metavar="<model>",
+            help="Model name (default: hf)",
         )
         model_group.add_argument(
             "--model_args",
@@ -88,8 +88,33 @@ class Run(SubCommand):
             default=None,
             nargs="*",
             type=key_val_to_dict,
-            metavar="ARGS",
+            metavar="<arg>",
             help="Model arguments as 'key=val,key2=val2' or `key=val` `key2=val2`",
+        )
+        model_group.add_argument(
+            "--apply_chat_template",
+            type=str,
+            nargs="?",
+            const=True,
+            default=argparse.SUPPRESS,
+            metavar="<template>",
+            help="Apply chat template to prompts (optional template name)",
+        )
+        model_group.add_argument(
+            "--limit",
+            "-L",
+            type=float,
+            default=None,
+            metavar="<limit>",
+            help="Limit examples per task (integer count or fraction)",
+        )
+        model_group.add_argument(
+            "--use_cache",
+            "-c",
+            type=str,
+            default=None,
+            metavar="<path>",
+            help="Path to cache model responses (skips repeated inference)",
         )
 
         # Evaluation Settings
@@ -99,7 +124,7 @@ class Run(SubCommand):
             "-f",
             type=int,
             default=None,
-            metavar="N",
+            metavar="<n>",
             help="Number of examples in few-shot context",
         )
         eval_group.add_argument(
@@ -107,7 +132,7 @@ class Run(SubCommand):
             "-b",
             type=str,
             default=argparse.SUPPRESS,
-            metavar="auto|auto:N|N",
+            metavar="<size>",
             help=textwrap.dedent(
                 "Batch size: 'auto', 'auto:N' (auto-tune N times), or integer (default: 1)"
             ),
@@ -116,14 +141,14 @@ class Run(SubCommand):
             "--max_batch_size",
             type=int,
             default=None,
-            metavar="N",
+            metavar="<n>",
             help="Maximum batch size when using --batch_size auto",
         )
         eval_group.add_argument(
             "--device",
             type=str,
             default=None,
-            metavar="DEVICE",
+            metavar="<device>",
             help="Device to use (e.g. cuda, cuda:0, cpu, mps)",
         )
         eval_group.add_argument(
@@ -131,7 +156,7 @@ class Run(SubCommand):
             type=key_val_to_dict,
             default=None,
             nargs="*",
-            metavar="KWARGS",
+            metavar="<arg>",
             help=textwrap.dedent(
                 'Generation arguments as `temperature=0,stop=["stop"]` or `key=val` `key2=val2`.'
                 "Values should be parsable with ast.literal_eval."
@@ -139,13 +164,15 @@ class Run(SubCommand):
         )
 
         # Data and Output
-        data_group = self._parser.add_argument_group("data and output")
+        data_group = self._parser.add_argument_group(
+            "data and output (see also: --limit)"
+        )
         data_group.add_argument(
             "--output_path",
             "-o",
             default=None,
             type=str,
-            metavar="OUTPUT_PATH",
+            metavar="<path>",
             help="Output dir or json file for results (and samples)",
         )
         data_group.add_argument(
@@ -156,41 +183,24 @@ class Run(SubCommand):
             help="Save all model outputs and documents for post-hoc analysis",
         )
         data_group.add_argument(
-            "--limit",
-            "-L",
-            type=float,
-            default=None,
-            metavar="N|0.0-1.0",
-            help="Limit examples per task (integer count or fraction)",
-        )
-        data_group.add_argument(
             "--samples",
             "-E",
             default=None,
             type=try_parse_json,
-            metavar='"task1": [1,2,3,4,...]"',
-            help=textwrap.dedent(
-                "`...` `...` Sample indices for inputs. Incompatible with --limit."
-                " Values be parsable with ast.literal_eval."
-            ),
+            metavar="<json>",
+            help="JSON mapping task names to sample indices, e.g. '{\"task1\": [0,1,2]}'. Incompatible with --limit.",
         )
 
         # Caching and Performance
-        cache_group = self._parser.add_argument_group("caching and performance")
-        cache_group.add_argument(
-            "--use_cache",
-            "-c",
-            type=str,
-            default=None,
-            metavar="CACHE_DIR",
-            help="SQLite database path for caching model outputs.",
+        cache_group = self._parser.add_argument_group(
+            "caching and performance (see also: --use_cache)"
         )
         cache_group.add_argument(
             "--cache_requests",
             type=request_caching_arg_to_dict,
             default=None,
             choices=["true", "refresh", "delete"],
-            help="Cache dataset request building (true|refresh|delete)",
+            help="Cache preprocessed prompts (true|refresh|delete)",
         )
         cache_group.add_argument(
             "--check_integrity",
@@ -200,22 +210,15 @@ class Run(SubCommand):
         )
 
         # Prompt Formatting
-        template_group = self._parser.add_argument_group("instruct formatting")
+        template_group = self._parser.add_argument_group(
+            "instruct formatting (see also: --apply_chat_template)"
+        )
         template_group.add_argument(
             "--system_instruction",
             type=str,
             default=None,
-            metavar="INSTRUCTION",
+            metavar="<text>",
             help="Add custom system instruction.",
-        )
-        template_group.add_argument(
-            "--apply_chat_template",
-            type=str,
-            nargs="?",
-            const=True,
-            default=argparse.SUPPRESS,
-            metavar="TEMPLATE",
-            help="Apply chat template to prompts (optional template name)",
         )
         template_group.add_argument(
             "--fewshot_as_multiturn",
@@ -223,6 +226,7 @@ class Run(SubCommand):
             nargs="?",
             const=True,
             default=argparse.SUPPRESS,
+            metavar="<bool>",
             help="Use fewshot as multi-turn conversation. Auto-enabled with --apply_chat_template. Use 'false' to disable.",
         )
 
@@ -232,7 +236,7 @@ class Run(SubCommand):
             "--include_path",
             type=str,
             default=None,
-            metavar="TASK_DIR",
+            metavar="<path>",
             help="Additional directory for external tasks",
         )
 
@@ -243,8 +247,8 @@ class Run(SubCommand):
             "-v",
             type=str.upper,
             default=None,
-            metavar="LEVEL",
-            help="(Deprecated) Log level. Use LOGLEVEL env var instead",
+            metavar="<level>",
+            help="(Deprecated) Log level. Use LMEVAL_LOG_LEVEL env var instead",
         )
         logging_group.add_argument(
             "--write_out",
@@ -263,21 +267,21 @@ class Run(SubCommand):
             "--wandb_args",
             type=key_val_to_dict,
             default=argparse.SUPPRESS,
-            metavar="ARGS",
+            metavar="<args>",
             help="Weights & Biases init arguments key=val key2=val2",
         )
         logging_group.add_argument(
             "--wandb_config_args",
             type=key_val_to_dict,
             default=argparse.SUPPRESS,
-            metavar="ARGS",
+            metavar="<args>",
             help="Weights & Biases config arguments key=val key2=val2",
         )
         logging_group.add_argument(
             "--hf_hub_log_args",
             type=key_val_to_dict,
             default=argparse.SUPPRESS,
-            metavar="ARGS",
+            metavar="<args>",
             help="Hugging Face Hub logging arguments key=val key2=val2",
         )
 
@@ -295,7 +299,7 @@ class Run(SubCommand):
             "--seed",
             type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
             default=None,
-            metavar="SEED|S1,S2,S3,S4",
+            metavar="<seed>",
             help=textwrap.dedent(f"""
                 Random seeds for python,numpy,torch,fewshot (default: {default_seed_string}).
                 Use single integer for all, or comma-separated list of 4 values.
@@ -318,7 +322,7 @@ class Run(SubCommand):
             "--metadata",
             type=json.loads,
             default=None,
-            metavar="`key=val` `key2=val2`",
+            metavar="<arg>",
             help=textwrap.dedent(
                 """`key=val` `key2=val` args parsable by ast.literal_eval (merged with model_args),
                 required for some tasks such as RULER"""
