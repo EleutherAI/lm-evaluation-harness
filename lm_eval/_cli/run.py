@@ -322,6 +322,13 @@ class Run(SubCommand):
                 required for some tasks such as RULER"""
             ),
         )
+        advanced_group.add_argument(
+            "--template",
+            type=str,
+            default=None,
+            metavar="`mmlu or cloze ONLY currently`",
+            help=textwrap.dedent("""task template to run"""),
+        )
 
     @staticmethod
     def _execute(args: argparse.Namespace) -> None:
@@ -341,8 +348,10 @@ class Run(SubCommand):
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
         eval_logger = logging.getLogger(__name__)
-
+        if args.template:
+            args.metadata = {**(args.metadata or {}), "template": args.template}
         # Create and validate config (most validation now occurs in EvaluationConfig)
+        delattr(args, "template")
         cfg = EvaluatorConfig.from_cli(args)
 
         from lm_eval import simple_evaluate

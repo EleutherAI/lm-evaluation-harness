@@ -58,7 +58,8 @@ class TaskFactory:
             if hasattr(obj, "config") and hasattr(obj.config, "task"):
                 obj.config.task = entry.name
             return obj
-
+        if "template" in cfg and "template" in overrides:
+            cfg["template"] = overrides["template"]
         return Task.from_config(cfg)  # type: ignore[arg-type]
 
     def _build_group(

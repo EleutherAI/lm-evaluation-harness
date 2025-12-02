@@ -24,6 +24,7 @@ class TaskManager:
     ) -> None:
         if verbosity:
             setup_logging(verbosity)
+        self.metadata = metadata or {}
 
         index = TaskIndex()
         self._factory = TaskFactory(meta=metadata)
@@ -63,9 +64,15 @@ class TaskManager:
         • str task / group / tag name (registered)
         • dict inline overrides {'task': 'hellaswag', 'num_fewshot': 5}
         """
+        print(self.metadata)
+        template = self.metadata.get("template", None)
+        if template:
+            template = {"template": template}
         if isinstance(spec, str):
             entry = self._entry(spec)
-            return self._factory.build(entry, overrides=None, registry=self._index)
+            return self._factory.build(
+                entry, overrides=template or None, registry=self._index
+            )
 
         if isinstance(spec, dict):
             # inline dict => find base entry, then pass overrides

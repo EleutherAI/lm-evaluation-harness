@@ -4,7 +4,7 @@ import textwrap
 from argparse import Namespace
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -57,43 +57,43 @@ class EvaluatorConfig:
     """
 
     # Core evaluation parameters
-    config: Optional[str] = field(
+    config: str | None = field(
         default=None, metadata={"help": "Path to YAML config file"}
     )
     model: str = field(default="hf", metadata={"help": "Name of model e.g. 'hf'"})
     model_args: dict = field(
         default_factory=dict, metadata={"help": "Arguments for model initialization"}
     )
-    tasks: Union[str, list[str]] = field(
+    tasks: str | list[str] = field(
         default_factory=list,
         metadata={"help": "Comma-separated list of task names to evaluate"},
     )
 
     # Few-shot and batching
-    num_fewshot: Optional[int] = field(
+    num_fewshot: int | None = field(
         default=None, metadata={"help": "Number of examples in few-shot context"}
     )
     batch_size: int = field(default=1, metadata={"help": "Batch size for evaluation"})
-    max_batch_size: Optional[int] = field(
+    max_batch_size: int | None = field(
         default=None, metadata={"help": "Maximum batch size for auto batching"}
     )
 
     # Device
-    device: Optional[str] = field(
+    device: str | None = field(
         default="cuda:0", metadata={"help": "Device to use (e.g. cuda, cuda:0, cpu)"}
     )
 
     # Data sampling and limiting
-    limit: Optional[float] = field(
+    limit: float | None = field(
         default=None, metadata={"help": "Limit number of examples per task"}
     )
-    samples: Union[str, dict, None] = field(
+    samples: str | dict | None = field(
         default=None,
         metadata={"help": "dict, JSON string or path to JSON file with doc indices"},
     )
 
     # Caching
-    use_cache: Optional[str] = field(
+    use_cache: str | None = field(
         default=None,
         metadata={"help": "Path to sqlite db file for caching model outputs"},
     )
@@ -112,7 +112,7 @@ class EvaluatorConfig:
     log_samples: bool = field(
         default=False, metadata={"help": "Save model outputs and inputs"}
     )
-    output_path: Optional[str] = field(
+    output_path: str | None = field(
         default=None, metadata={"help": "Dir path where result metrics will be saved"}
     )
     predict_only: bool = field(
@@ -123,10 +123,10 @@ class EvaluatorConfig:
     )
 
     # Chat and instruction handling
-    system_instruction: Optional[str] = field(
+    system_instruction: str | None = field(
         default=None, metadata={"help": "Custom System instruction to add"}
     )
-    apply_chat_template: Union[bool, str] = field(
+    apply_chat_template: bool | str = field(
         default=False,
         metadata={
             "help": "Apply chat template to prompt. Either True, or a string identifying the tokenizer template."
@@ -145,15 +145,15 @@ class EvaluatorConfig:
     )
 
     # External tasks and generation
-    include_path: Optional[str] = field(
+    include_path: str | None = field(
         default=None, metadata={"help": "Additional dir path for external tasks"}
     )
-    gen_kwargs: Optional[dict] = field(
+    gen_kwargs: dict | None = field(
         default=None, metadata={"help": "Arguments for model generation"}
     )
 
     # Logging and verbosity
-    verbosity: Optional[str] = field(
+    verbosity: str | None = field(
         default=None, metadata={"help": "Logging verbosity level"}
     )
 
@@ -199,6 +199,7 @@ class EvaluatorConfig:
         """
         # Start with built-in defaults
         config = asdict(cls())
+        print(f"config_from_cli: {config}")
 
         # Load and merge YAML config if provided
         if used_config := hasattr(namespace, "config") and namespace.config:
@@ -223,7 +224,7 @@ class EvaluatorConfig:
         return instance
 
     @classmethod
-    def from_config(cls, config_path: Union[str, Path]) -> "EvaluatorConfig":
+    def from_config(cls, config_path: str | Path) -> "EvaluatorConfig":
         """
         Build an EvaluationConfig from a YAML config file.
         Merges with built-in defaults and validates.
@@ -246,7 +247,7 @@ class EvaluatorConfig:
         return config
 
     @staticmethod
-    def load_yaml_config(config_path: Union[str, Path]) -> dict[str, Any]:
+    def load_yaml_config(config_path: str | Path) -> dict[str, Any]:
         """Load and validate YAML config file."""
         config_file = (
             Path(config_path) if not isinstance(config_path, Path) else config_path
@@ -326,7 +327,7 @@ class EvaluatorConfig:
 
         self.metadata = self.model_args | self.metadata
 
-    def process_tasks(self, metadata: Optional[dict] = None) -> "TaskManager":
+    def process_tasks(self, metadata: dict | None = None) -> "TaskManager":
         """Process and validate tasks, return resolved task names."""
         from lm_eval.tasks import TaskManager
 
