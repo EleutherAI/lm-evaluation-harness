@@ -75,7 +75,7 @@ class Run(SubCommand):
         )
         model_group.add_argument(
             "--model",
-            "-m",
+            "-M",
             type=str,
             default=None,
             metavar="<model>",
