@@ -1,6 +1,6 @@
 # Uncheatable Eval
 
-These tasks evaluate autoregressive language models on [Uncheatable Eval](https://github.com/Jellyfish042/uncheatable_eval). Each task measures rolling log-likelihood over newly-generated documents across Wikipedia, GitHub, BBC, arXiv, and AO3. 
+These tasks evaluate autoregressive language models on [Uncheatable Eval](https://github.com/Jellyfish042/uncheatable_eval). Each task measures rolling log-likelihood over newly-generated documents across Wikipedia, GitHub, BBC, arXiv, and AO3.
 
 ### Citation
 

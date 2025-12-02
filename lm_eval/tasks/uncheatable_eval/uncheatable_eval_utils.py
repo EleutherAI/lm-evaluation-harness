@@ -7,11 +7,10 @@ from itertools import chain
 from pathlib import Path
 from typing import Any, Iterable, Iterator, List, Optional
 
+import datasets
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
-
-import datasets
 
 
 LOGGER = logging.getLogger(__name__)
@@ -40,9 +39,9 @@ FILENAME_PATTERN = re.compile(
     r"^(?P<prefix>.+)_(?P<start>\d{8})to(?P<end>\d{8})(?P<suffix>(?:\.[^.]+)*)$"
 )
 
-AUTO_DOWNLOAD_ENABLED = (
-    os.getenv("UNCHEATABLE_EVAL_DISABLE_DOWNLOAD", "").lower() not in {"1", "true", "yes"}
-)
+AUTO_DOWNLOAD_ENABLED = os.getenv(
+    "UNCHEATABLE_EVAL_DISABLE_DOWNLOAD", ""
+).lower() not in {"1", "true", "yes"}
 
 DEFAULT_CACHE_DIR = Path(
     os.getenv(
@@ -113,7 +112,7 @@ def load_uncheatable_eval(
     data_root: Optional[str] = None,
     max_documents: Optional[int] = None,
     shuffle_seed: Optional[int] = None,
-    **_
+    **_,
 ) -> dict:
     """Load Uncheatable Eval documents for lm-evaluation-harness."""
 
@@ -186,9 +185,7 @@ def _find_dataset_files(dataset: str, root: Path) -> List[Path]:
         f"{dataset}_*.jsonl",
         f"{dataset}_*.json",
     ]
-    return list(
-        chain.from_iterable(sorted(root.glob(pattern)) for pattern in patterns)
-    )
+    return list(chain.from_iterable(sorted(root.glob(pattern)) for pattern in patterns))
 
 
 def _iter_dataset_records(files: Iterable[Path]) -> Iterator[dict[str, str]]:
@@ -203,7 +200,9 @@ def _iter_dataset_records(files: Iterable[Path]) -> Iterator[dict[str, str]]:
             LOGGER.warning("Skipping unsupported file %s", file_path)
 
 
-def _iter_jsonl(file_path: Path, compression: Optional[str] = None) -> Iterator[dict[str, str]]:
+def _iter_jsonl(
+    file_path: Path, compression: Optional[str] = None
+) -> Iterator[dict[str, str]]:
     opener = gzip.open if compression == "gzip" else open
     with opener(file_path, "rt", encoding="utf-8") as handle:
         for line in handle:
