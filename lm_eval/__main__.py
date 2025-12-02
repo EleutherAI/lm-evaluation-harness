@@ -231,7 +231,7 @@ def setup_parser() -> argparse.ArgumentParser:
         type=str.upper,
         default=None,
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
-        help="(Deprecated) Controls logging verbosity level. Use the `LOGLEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
+        help="(Deprecated) Controls logging verbosity level. Use the `LMEVAL_LOG_LEVEL` environment variable instead. Set to DEBUG for detailed output when testing or adding new task configurations.",
     )
     parser.add_argument(
         "--wandb_args",
@@ -395,24 +395,39 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         print(task_manager.list_all_tasks(list_groups=False, list_tags=False))
         sys.exit()
     else:
-        if os.path.isdir(args.tasks):
-            import glob
+        import glob
 
+        if os.path.isdir(args.tasks):
             task_names = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
                 config = utils.load_yaml_config(yaml_file)
                 task_names.append(config)
         else:
+            import itertools
+
             task_list = args.tasks.split(",")
-            task_names = task_manager.match_tasks(task_list)
-            for task in [task for task in task_list if task not in task_names]:
-                if os.path.isfile(task):
-                    config = utils.load_yaml_config(task)
-                    task_names.append(config)
-            task_missing = [
-                task for task in task_list if task not in task_names and "*" not in task
-            ]  # we don't want errors if a wildcard ("*") task name was used
+            task_list = [
+                os.path.abspath(task) if task.endswith(".yaml") else task
+                for task in task_list
+            ]
+            match_dict = dict.fromkeys(task_list)  # deduplicate file paths
+
+            for task in match_dict.keys():
+                if not task.endswith(".yaml"):  # provided task names
+                    matches = task_manager.match_tasks(task)
+                else:  # custom config files
+                    matches = []
+                    for yaml_file in glob.glob(task):
+                        config = utils.load_yaml_config(yaml_file)
+                        matches.append(config)
+                match_dict[task] = matches
+
+            task_names = []
+            for task in itertools.chain.from_iterable(match_dict.values()):
+                if task not in task_names:
+                    task_names.append(task)
+            task_missing = [task for task, matches in match_dict.items() if not matches]
 
             if task_missing:
                 missing = ", ".join(task_missing)
@@ -437,6 +452,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         if vparse(datasets.__version__) < vparse("4.0.0"):
             datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
+        else:
+            eval_logger.warning(
+                "trust_remote_code and datasets scripts are no longer supported on datasets>=4.0.0. Skipping. If your task still requires this, please downgrade to datasets==3.6.0 or earlier."
+            )
 
         if isinstance(args.model_args, dict):
             args.model_args["trust_remote_code"] = True

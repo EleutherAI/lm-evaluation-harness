@@ -32,10 +32,12 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
+    _add_special_kwargs,
     clear_torch_cache,
     configure_pad_token,
     get_dtype,
     handle_stop_sequences,
+    has_bos_prefix,
     pad_and_concat,
     postprocess_generated_text,
     stop_sequences_criteria,
@@ -84,7 +86,7 @@ class HFLM(TemplateLM):
         max_batch_size: int | None = 64,
         trust_remote_code: bool | None = False,
         use_fast_tokenizer: bool | None = True,
-        add_bos_token: bool | None = False,
+        add_bos_token: bool | None = None,
         prefix_token_id: int | None = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
@@ -124,14 +126,22 @@ class HFLM(TemplateLM):
             assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
 
-            gpus = torch.cuda.device_count()
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
-            if "npu" in accelerator.device.type:
+            # Detect device count based on accelerator device type
+            device_type = accelerator.device.type
+            if "cuda" in device_type:
+                gpus = torch.cuda.device_count()
+            elif "npu" in device_type:
                 gpus = torch.npu.device_count()
+            elif "xpu" in device_type:
+                gpus = torch.xpu.device_count()
+            else:
+                # Fallback to CUDA count for compatibility
+                gpus = torch.cuda.device_count()
 
             # using one process with no model parallelism
             if not (parallelize or accelerator.num_processes > 1):
@@ -141,6 +151,7 @@ class HFLM(TemplateLM):
                     + [f"cuda:{i}" for i in range(gpus)]
                     + ["mps", "mps:0"]
                     + [f"npu:{i}" for i in range(gpus)]
+                    + [f"xpu:{i}" for i in range(gpus)]
                 )
                 if device and device in device_list:
                     self._device = torch.device(device)
@@ -249,11 +260,6 @@ class HFLM(TemplateLM):
         )
 
         self.add_bos_token = add_bos_token
-        if "gemma" in getattr(self.config, "model_type", ""):
-            self.add_bos_token = True
-            eval_logger.info(
-                f"Model type is '{self.config.model_type}', part of the Gemma family--a BOS token will be used as Gemma underperforms without it."
-            )
 
         self._max_length = max_length
         self.pretrained = pretrained
@@ -622,7 +628,7 @@ class HFLM(TemplateLM):
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
-                torch_dtype=get_dtype(dtype),
+                dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
@@ -706,7 +712,7 @@ class HFLM(TemplateLM):
             _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
                 delta,
                 revision=revision,
-                torch_dtype=get_dtype(dtype),
+                dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
@@ -735,7 +741,7 @@ class HFLM(TemplateLM):
         trust_remote_code: bool | None = False,
         use_fast_tokenizer: bool | None = True,
         gguf_file: str | None = None,
-        add_bos_token: bool | None = False,
+        add_bos_token: bool | None = None,
         subfolder: str | None = "",
     ) -> None:
         """Helper method during initialization.
@@ -754,8 +760,8 @@ class HFLM(TemplateLM):
         else:
             kwargs["use_fast"] = use_fast_tokenizer
 
-        if add_bos_token:
-            kwargs["add_bos_token"] = True
+        if add_bos_token is not None:
+            kwargs["add_bos_token"] = add_bos_token
 
         if subfolder:
             kwargs["subfolder"] = subfolder
@@ -849,24 +855,20 @@ class HFLM(TemplateLM):
     def tok_encode(
         self,
         string: str,
-        left_truncate_len: int | None = None,
         add_special_tokens: bool | None = None,
+        left_truncate_len: int | None = None,
+        **kwargs,
     ) -> list[int]:
-        """ """
         # default for None - empty dict, use predefined tokenizer param
         # used for all models except for CausalLM or predefined value
-        special_tokens_kwargs = {}
-
-        # by default for CausalLM - false or self.add_bos_token is set
-        if add_special_tokens is None:
-            if self.backend == "causal":
-                special_tokens_kwargs = {
-                    "add_special_tokens": False or self.add_bos_token
-                }
-        # otherwise the method explicitly defines the value
-        else:
-            special_tokens_kwargs = {"add_special_tokens": add_special_tokens}
-
+        special_tokens_kwargs = _add_special_kwargs(
+            add_special_tokens, self.add_bos_token
+        )
+        # set add_special_tokens=False if the string already starts with BOS token.
+        if add_special_tokens is None and has_bos_prefix(
+            string, self.tokenizer.decode(self.prefix_token_id)
+        ):
+            special_tokens_kwargs["add_special_tokens"] = False
         encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
@@ -888,7 +890,12 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.backend == "causal":
-            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+            if has_bos_prefix(strings[0], getattr(self.tokenizer, "bos_token", None)):
+                add_special_tokens = {"add_special_tokens": False}
+            elif self.add_bos_token is not None:
+                add_special_tokens = {"add_special_tokens": self.add_bos_token}
+            else:
+                add_special_tokens = {}
 
         encoding = self.tokenizer(
             strings,
@@ -962,7 +969,7 @@ class HFLM(TemplateLM):
         context,
         max_length: int,
         stop: list[str],
-        **generation_kwargs: dict[str, Any],
+        **generation_kwargs,
     ) -> torch.Tensor:
         # temperature = 0.0 if not set
         # if do_sample is false and temp==0.0:

@@ -3,6 +3,7 @@ import inspect
 import logging
 import os
 from functools import partial
+from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
@@ -490,6 +491,8 @@ class TaskManager:
         tasks_and_groups = collections.defaultdict()
         for root, dirs, file_list in os.walk(task_dir):
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
+            dirs.sort()  # Sort directories for deterministic traversal order
+            file_list.sort()  # Sort files for consistent processing order
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
@@ -528,6 +531,13 @@ class TaskManager:
                     elif self._config_is_task(config):
                         # This is a task config
                         task = config["task"]
+                        if task in tasks_and_groups:
+                            eval_logger.warning(
+                                f"Duplicate task name '{task}' found. "
+                                f"Already registered from: {tasks_and_groups[task]['yaml_path']}. "
+                                f"Skipping duplicate from: {yaml_path}"
+                            )
+                            continue
                         tasks_and_groups[task] = {
                             "type": "task",
                             "yaml_path": yaml_path,
@@ -665,5 +675,49 @@ def get_task_dict(
     # and we'd be unsure which to use and report.)
     # we explicitly check and error in this case.
     _check_duplicates(get_subtask_list(final_task_dict))
+
+    def pretty_print_task(task_name, task_manager, indent: int):
+        yaml_path = task_manager.task_index[task_name]["yaml_path"]
+        yaml_path = Path(yaml_path)
+        lm_eval_tasks_path = Path(__file__).parent
+        try:
+            relative_yaml_path = yaml_path.relative_to(lm_eval_tasks_path)
+        except ValueError:
+            relative_yaml_path = yaml_path
+
+        pad = "  " * indent
+        eval_logger.info(f"{pad}Task: {task_name} ({relative_yaml_path})")
+
+    # NOTE: Only nicely logs:
+    # 1/ group
+    #     2/ subgroup
+    #         3/ tasks
+    # 2/ task
+    # layout.
+    # TODO: Verify if there are other layouts to nicely display
+    eval_logger.info("Selected tasks:")
+    for key, value in final_task_dict.items():
+        if isinstance(key, ConfigurableGroup):
+            eval_logger.info(f"Group: {key.group}")
+
+            if isinstance(value, dict):
+                first_key = next(iter(value.keys()))
+
+                if isinstance(first_key, ConfigurableGroup):
+                    for subgroup, task_dict in value.items():
+                        eval_logger.info(f"  Subgroup: {subgroup.group}")
+                        for task_name, configurable_task in task_dict.items():
+                            if isinstance(configurable_task, ConfigurableTask):
+                                pretty_print_task(task_name, task_manager, indent=2)
+                            else:
+                                eval_logger.info(f"{task_name}: {configurable_task}")
+                else:
+                    eval_logger.info(f"{key}: {value}")
+            else:
+                eval_logger.info(f"{key}: {value}")
+        elif isinstance(key, str) and isinstance(value, ConfigurableTask):
+            pretty_print_task(key, task_manager, indent=0)
+        else:
+            eval_logger.info(f"{key}: {value}")
 
     return final_task_dict
