@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import ast
-import functools
 from collections.abc import Callable
 from functools import wraps
 from inspect import getsource
 from typing import Any, TypeVar
 
-from frozendict import frozendict
-
+# from frozendict import frozendict
 from lm_eval import utils
 
 
@@ -68,23 +66,23 @@ def doc_to_closure(fn: Callable[..., T]) -> Callable[..., T]:
     return closure
 
 
-from frozendict import frozendict
-
-
-def freezeargs(func):
-    """Convert a mutable dictionary into immutable.
-    Useful to be compatible with cache
-    """
-
-    @functools.wraps(func)
-    def wrapped(*args, **kwargs):
-        args = (frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
-        kwargs = {
-            k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()
-        }
-        return func(*args, **kwargs)
-
-    return wrapped
+# from frozendict import frozendict
+#
+#
+# def freezeargs(func):
+#     """Convert a mutable dictionary into immutable.
+#     Useful to be compatible with cache
+#     """
+#
+#     @functools.wraps(func)
+#     def wrapped(*args, **kwargs):
+#         args = (frozendict(arg) if isinstance(arg, dict) else arg for arg in args)
+#         kwargs = {
+#             k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()
+#         }
+#         return func(*args, **kwargs)
+#
+#     return wrapped
 
 
 def process_field(
