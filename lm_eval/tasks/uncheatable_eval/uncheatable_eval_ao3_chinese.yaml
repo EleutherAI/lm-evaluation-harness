@@ -1,0 +1,9 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_ao3_chinese
+task_alias: UE_ao3_zh
+description: >-
+  Rolling perplexity on Uncheatable Eval Archive of Our Own fanfiction (Chinese)
+  scraped after mid-2024.
+custom_dataset: !function uncheatable_eval_utils.load_uncheatable_eval
+dataset_kwargs:
+  dataset: ao3_chinese

@@ -1,0 +1,22 @@
+output_type: loglikelihood_rolling
+test_split: test
+doc_to_text: ""
+doc_to_target: "{{text}}"
+description: >-
+  Rolling log-likelihood evaluation over deduplicated Uncheatable Eval
+  documents sourced from freshly scraped corpora.
+tag:
+  - uncheatable_eval
+should_decontaminate: false
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false
+metadata:
+  version: 1.0
