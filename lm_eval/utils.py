@@ -9,10 +9,11 @@ import logging
 import os
 import re
 import threading
+from collections.abc import Callable, Generator
 from dataclasses import asdict, is_dataclass
 from itertools import islice
 from pathlib import Path
-from typing import Any, Callable, Generator, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import requests
@@ -28,7 +29,15 @@ HIGHER_IS_BETTER_SYMBOLS = {
 }
 
 
-def wrap_text(string: str, width: int = 140, **kwargs) -> Optional[str]:
+def is_torch_available() -> bool:
+    return importlib.util.find_spec("torch") is not None
+
+
+def is_transformers_available() -> bool:
+    return importlib.util.find_spec("transformers") is not None
+
+
+def wrap_text(string: str, width: int = 140, **kwargs) -> str | None:
     """
     Wraps the given string to the specified width.
     """
@@ -49,8 +58,7 @@ def setup_logging(verbosity=logging.INFO):
     # Configure the root logger
     class CustomFormatter(logging.Formatter):
         def format(self, record):
-            if record.name.startswith("lm_eval."):
-                record.name = record.name[len("lm_eval.") :]
+            record.name = record.name.removeprefix("lm_eval.")
             return super().format(record)
 
     formatter = CustomFormatter(
@@ -110,7 +118,7 @@ def escaped_split(text, sep_char, maxsplit=-1):
         return text
     maxsplit = max(0, maxsplit)
 
-    return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
+    return re.split(r"(?<!\\)" + sep_char, text, maxsplit=maxsplit)
 
 
 def handle_arg_string(arg):
@@ -127,7 +135,7 @@ def handle_arg_string(arg):
 
 
 def handle_non_serializable(o):
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
+    if isinstance(o, (np.int64, np.int32)):
         return int(o)
     elif isinstance(o, set):
         return list(o)
@@ -147,7 +155,7 @@ def sanitize_list(sub):
         return str(sub)
 
 
-def simple_parse_args_string(args_string: Optional[str]) -> dict:
+def simple_parse_args_string(args_string: str | None) -> dict:
     """
     Parses something like
         args1=val1,arg2=val2
@@ -227,7 +235,7 @@ def sanitize_model_name(model_name: str) -> str:
     """
     Given the model name, returns a sanitized version of it.
     """
-    return re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", model_name)
+    return re.sub(r"[\"<>:/|\\?*\[\]]+", "__", model_name)
 
 
 def sanitize_task_name(task_name: str) -> str:
@@ -237,21 +245,21 @@ def sanitize_task_name(task_name: str) -> str:
     return re.sub(r"\W", "_", task_name)
 
 
-def get_latest_filename(filenames: List[str]) -> str:
+def get_latest_filename(filenames: list[str]) -> str:
     """
     Given a list of filenames, returns the filename with the latest datetime.
     """
     return max(filenames, key=lambda f: get_file_datetime(f))
 
 
-def get_results_filenames(filenames: List[str]) -> List[str]:
+def get_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to aggregated results.
     """
     return [f for f in filenames if "/results_" in f and ".json" in f]
 
 
-def get_sample_results_filenames(filenames: List[str]) -> List[str]:
+def get_sample_results_filenames(filenames: list[str]) -> list[str]:
     """
     Extracts filenames that correspond to sample results.
     """
@@ -259,8 +267,8 @@ def get_sample_results_filenames(filenames: List[str]) -> List[str]:
 
 
 def get_rolling_token_windows(
-    token_list: List[int], prefix_token: int, max_seq_len: int, context_len: int
-) -> Generator[Tuple[List[int], List[int]], None, None]:
+    token_list: list[int], prefix_token: int, max_seq_len: int, context_len: int
+) -> Generator[tuple[list[int], list[int]], None, None]:
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
       condition on some context
@@ -302,8 +310,8 @@ def get_rolling_token_windows(
 
 
 def make_disjoint_window(
-    pair: Tuple[List[int], List[int]],
-) -> Tuple[List[int], List[int]]:
+    pair: tuple[list[int], list[int]],
+) -> tuple[list[int], list[int]]:
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
@@ -322,7 +330,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 
 class Reorderer:
-    def __init__(self, arr: List[Any], fn: Callable) -> None:
+    def __init__(self, arr: list[Any], fn: Callable) -> None:
         """Reorder an array according to some function
 
         Args:
@@ -359,7 +367,7 @@ class Reorderer:
         res = [None] * self.size
         cov = [False] * self.size
 
-        for (inds, _), v in zip(self.arr, newarr):
+        for (inds, _), v in zip(self.arr, newarr, strict=True):
             for ind in inds:
                 res[ind] = v
                 cov[ind] = True
@@ -422,11 +430,11 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
-            v = "%.4f" % v if isinstance(v, float) else v
+            v = f"{v:.4f}" if isinstance(v, float) else v
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                se = "   N/A" if se == "N/A" else "%.4f" % se
+                se = "   N/A" if se == "N/A" else f"{se:.4f}"
                 values.append([k, version, f, n, m, hib, v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
@@ -564,7 +572,7 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
 def weighted_f1_score(items):
     from sklearn.metrics import f1_score
 
-    unzipped_list = list(zip(*items))
+    unzipped_list = list(zip(*items, strict=True))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
@@ -637,8 +645,8 @@ class RemoteTokenizer:
         base_url: str,
         timeout: int = 30,
         verify_certificate: bool = True,
-        ca_cert_path: Optional[str] = None,
-        auth_token: Optional[str] = None,
+        ca_cert_path: str | None = None,
+        auth_token: str | None = None,
         max_retries: int = 3,
     ):
         self.timeout = timeout
@@ -708,34 +716,34 @@ class RemoteTokenizer:
             return self._tokenizer_info
 
     @property
-    def eos_token(self) -> Optional[str]:
+    def eos_token(self) -> str | None:
         return self.tokenizer_info.get("eos_token")
 
     @property
-    def bos_token(self) -> Optional[str]:
+    def bos_token(self) -> str | None:
         return self.tokenizer_info.get("bos_token")
 
     @property
-    def pad_token(self) -> Optional[str]:
+    def pad_token(self) -> str | None:
         return self.tokenizer_info.get("pad_token")
 
     @property
-    def eos_token_id(self) -> Optional[int]:
-        if self.eos_token is None:
+    def eos_token_id(self) -> int | None:
+        if (eos := self.eos_token) is None:
             return None
-        return self.encode(self.eos_token)[0]
+        return self.encode(eos)[0]
 
     @property
-    def bos_token_id(self) -> Optional[int]:
-        if self.bos_token is None:
+    def bos_token_id(self) -> int | None:
+        if (bos := self.bos_token) is None:
             return None
-        return self.encode(self.bos_token)[0]
+        return self.encode(bos)[0]
 
     @property
-    def eot_token(self) -> Optional[int]:
+    def eot_token(self) -> int | None:
         return self.eos_token_id
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         url = f"{self.base_url}/tokenize"
         payload = {"prompt": text, "add_special_tokens": False}
         resp = self._request_with_retries("POST", url, json=payload)
@@ -744,7 +752,7 @@ class RemoteTokenizer:
             raise RuntimeError("Malformed response from /tokenize endpoint.")
         return tokens
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         url = f"{self.base_url}/detokenize"
         payload = {"tokens": tokens}
         resp = self._request_with_retries("POST", url, json=payload)
@@ -753,7 +761,7 @@ class RemoteTokenizer:
             raise RuntimeError("Malformed response from /detokenize endpoint.")
         return prompt
 
-    def batch_decode(self, tokens_list: List[List[int]]) -> List[str]:
+    def batch_decode(self, tokens_list: list[list[int]]) -> list[str]:
         return [self.decode(tokens) for tokens in tokens_list]
 
     def apply_chat_template(
@@ -778,8 +786,8 @@ def check_remote_tokenizer_support(
     base_url: str,
     timeout: int = 5,
     verify_certificate: bool = True,
-    ca_cert_path: Optional[str] = None,
-    auth_token: Optional[str] = None,
+    ca_cert_path: str | None = None,
+    auth_token: str | None = None,
     max_retries: int = 3,
 ) -> bool:
     """
@@ -836,7 +844,12 @@ def check_remote_tokenizer_support(
     if not resp:
         return False
     tokens = resp.json().get("tokens")
-    if not isinstance(tokens, list):
-        return False
 
-    return True
+    return isinstance(tokens, list)
+
+
+def set_torch_seed(seed: int):
+    if is_torch_available():
+        import torch
+
+        torch.manual_seed(seed)

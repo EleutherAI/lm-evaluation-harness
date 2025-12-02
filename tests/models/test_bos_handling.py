@@ -46,16 +46,16 @@ def pythia_tokenizer():
 
 
 @pytest.fixture(scope="module")
-def gemma_tokenizer():
+def olmo_tokenizer():
     """
-    Load gemma-2-2b-it tokenizer for testing.
+    Load OLMo-3-7B-Instruct tokenizer for testing.
 
     Properties:
-    - BOS token: '<bos>' (ID: 2)
+    - BOS token: '<|endoftext|>' (ID: 100257)
     - DOES add BOS by default (add_bos_token=True in tokenizer)
     - Used to test tokenizers that add BOS by default
     """
-    tokenizer = AutoTokenizer.from_pretrained("google/gemma-2-2b-it")
+    tokenizer = AutoTokenizer.from_pretrained("allenai/OLMo-3-7B-Instruct")
     # Set pad token to avoid padding errors in batch encoding
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
@@ -150,14 +150,14 @@ class TestAddSpecialKwargs:
 class TestDefaultsToNone:
     """Test that add_bos_token defaults to None, allowing tokenizer defaults."""
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_none_uses_tokenizer_default(self, tokenizer_name, request):
         """
         HF: When add_bos_token=None, should respect tokenizer's default.
 
         Tests both tokenizer types:
         - Pythia: Doesn't add BOS by default
-        - Gemma: DOES add BOS by default
+        - OLMo: DOES add BOS by default
         """
         tokenizer = request.getfixturevalue(tokenizer_name)
         mock_hflm = create_hf_mock(tokenizer, add_bos_token=None)
@@ -166,14 +166,14 @@ class TestDefaultsToNone:
         expected = tokenizer.encode("Hello")
         assert result == expected
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_vllm_none_uses_tokenizer_default(self, tokenizer_name, request):
         """
         vLLM: When add_bos_token=None, should respect tokenizer's default.
 
         Tests both tokenizer types:
         - Pythia: Doesn't add BOS by default
-        - Gemma: DOES add BOS by default
+        - OLMo: DOES add BOS by default
         """
         tokenizer = request.getfixturevalue(tokenizer_name)
         mock_vllm = create_vllm_mock(tokenizer, add_bos_token=None)
@@ -191,7 +191,7 @@ class TestDefaultsToNone:
 class TestNoDuplicateBos:
     """Test that BOS tokens are never duplicated when already present."""
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_detects_bos_in_single_string(self, tokenizer_name, request):
         """HF: Should detect BOS prefix and avoid duplication."""
         tokenizer = request.getfixturevalue(tokenizer_name)
@@ -215,7 +215,7 @@ class TestNoDuplicateBos:
         # Should avoid duplication (fewer or equal tokens)
         assert input_ids.shape[1] <= without_detection.shape[1]
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_adds_bos_when_missing(self, tokenizer_name, request):
         """HF: Should add BOS when string doesn't have it (using add_special_tokens=True)"""
         tokenizer = request.getfixturevalue(tokenizer_name)
@@ -228,13 +228,13 @@ class TestNoDuplicateBos:
 
         assert input_ids.tolist() == expected.tolist()
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_follows_tokenizer_default(self, tokenizer_name, request):
         """
         HF: When add_bos_token is not set (None), follows tokenizer default.
 
         - Pythia: Doesn't add BOS by default
-        - Gemma: DOES add BOS by default
+        - OLMo: DOES add BOS by default
         """
         tokenizer = request.getfixturevalue(tokenizer_name)
         mock_hflm = create_hf_mock(tokenizer, add_bos_token=None)
@@ -244,7 +244,7 @@ class TestNoDuplicateBos:
 
         assert input_ids.tolist() == expected.tolist()
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_vllm_handles_mixed_batch(self, tokenizer_name, add_bos_token, request):
         """
@@ -284,7 +284,7 @@ class TestNoDuplicateBos:
         for i, exp in enumerate(expected):
             assert result[i] == exp
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_vllm_preserves_order_in_mixed_batch(
         self, tokenizer_name, add_bos_token, request
@@ -328,7 +328,7 @@ class TestNoDuplicateBos:
 class TestChatTemplateCompatibility:
     """Test that chat templates (which add BOS) work without duplication."""
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     def test_huggingface_chat_template_no_duplicate_bos(self, tokenizer_name, request):
         """
         HF: Chat template adds BOS, tokenizer should not add another.
@@ -352,7 +352,7 @@ class TestChatTemplateCompatibility:
 
         assert torch.equal(input_ids, expected)
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_vllm_mixed_chat_batch(self, tokenizer_name, add_bos_token, request):
         """
@@ -424,7 +424,7 @@ class TestChatTemplateCompatibility:
 class TestLoglikelihoodBosHandling:
     """Test BOS handling in loglikelihood method."""
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_empty_context_continuation_with_bos(
         self, tokenizer_name, add_bos_token, request
@@ -479,7 +479,7 @@ class TestLoglikelihoodBosHandling:
         )
         assert continuation_enc == continuation_without_bos[1:]  # Skip the BOS token
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_empty_context_continuation_without_bos(
         self, tokenizer_name, add_bos_token, request
@@ -523,7 +523,7 @@ class TestLoglikelihoodBosHandling:
         expected_continuation = tokenizer.encode(continuation, add_special_tokens=False)
         assert continuation_enc == expected_continuation
 
-    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "gemma_tokenizer"])
+    @pytest.mark.parametrize("tokenizer_name", ["pythia_tokenizer", "olmo_tokenizer"])
     @pytest.mark.parametrize("add_bos_token", [None, True])
     def test_context_with_bos_prefix(self, tokenizer_name, add_bos_token, request):
         """When context starts with BOS (e.g., from chat template), should not duplicate BOS."""
@@ -580,7 +580,7 @@ class TestEdgeCases:
         assert result == expected
 
     def test_vllm_empty_input(self):
-        """vLLM should handle empty input gracefully."""
+        """vLLM should handle empty input gracefully."""  # noqa: D403
         from lm_eval.models.vllm_causallms import VLLM
 
         mock_vllm = Mock()
