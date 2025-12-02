@@ -5,6 +5,8 @@
 ---
 
 ## Latest News 📣
+- [2025/12] **CLI refactored** with subcommands (`run`, `ls`, `validate`) and YAML config file support via `--config`. See the [CLI Reference](./docs/interface.md) and [Configuration Guide](./docs/config_files.md).
+- [2025/12] **Lighter install**: Base package no longer includes `transformers`/`torch`. Install model backends separately: `pip install lm_eval[hf]`, `lm_eval[vllm]`, etc.
 - [2025/07] Added `think_end_token` arg to `hf` (token/str), `vllm` and `sglang` (str) for stripping CoT reasoning traces from models that support it.
 - [2025/03] Added support for steering HF models!
 - [2025/02] Added [SGLang](https://docs.sglang.ai/) support!
@@ -95,11 +97,22 @@ A detailed table of all optional extras is available at the end of this document
 
 ## Basic Usage
 
-### User Guide
+### Documentation
 
-A user guide detailing the full list of supported arguments is provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
+| Guide | Description |
+|-------|-------------|
+| [CLI Reference](./docs/interface.md) | Command-line arguments and subcommands |
+| [Configuration Guide](./docs/config_files.md) | YAML config file format and examples |
+| [Python API](./docs/python-api.md) | Programmatic usage with `simple_evaluate()` |
+| [Task Guide](./lm_eval/tasks/README.md) | Available tasks and task configuration |
 
-A list of supported tasks (or groupings of tasks) can be viewed with `lm-eval --tasks list`. Task descriptions and links to corresponding subfolders are provided [here](./lm_eval/tasks/README.md).
+Use `lm-eval -h` to see available options, or `lm-eval run -h` for evaluation options.
+
+List available tasks with:
+
+```bash
+lm-eval ls tasks
+```
 
 ### Hugging Face `transformers`
 

@@ -68,7 +68,7 @@ def simple_evaluate(
     evaluation_tracker: EvaluationTracker | None = None,
     system_instruction: str | None = None,
     apply_chat_template: bool | str = False,
-    fewshot_as_multiturn: bool = False,
+    fewshot_as_multiturn: bool = True,
     gen_kwargs: str | dict | None = None,
     task_manager: TaskManager | None = None,
     verbosity=None,
