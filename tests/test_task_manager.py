@@ -286,7 +286,7 @@ output_type: generate_until
         assert "Duplicate task name" in caplog.text
 
     def test_duplicate_group_detection(self, tmp_path, caplog):
-        """Verify warning logged for duplicate group names"""
+        """Verify debug message logged for duplicate group names"""
         dir1 = tmp_path / "dir1"
         dir2 = tmp_path / "dir2"
         dir1.mkdir()
@@ -304,7 +304,7 @@ task:
         (tmp_path / "task1.yaml").write_text("task: task1\ndataset_path: t")
 
         index = TaskIndex()
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.DEBUG):
             result = index.build([tmp_path])
 
         assert "duplicate_group" in result
@@ -806,3 +806,200 @@ metadata:
         assert len(subgroup_children) == 3, (
             f"Subgroup should have 3 tasks, got {len(subgroup_children)}"
         )
+
+
+# =============================================================================
+# Hierarchical Task Tests (children: syntax)
+# =============================================================================
+
+
+class TestHierarchicalTasks:
+    """Tests for the new hierarchical task system with children: syntax."""
+
+    @pytest.fixture
+    def hierarchical_task_manager(self):
+        """TaskManager with test_configs including hierarchical groups."""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        return TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+    def test_hierarchical_group_indexed(self, hierarchical_task_manager):
+        """Test that hierarchical group and its inline children are indexed."""
+        tm = hierarchical_task_manager
+
+        # The group should be indexed
+        assert "hierarchical_group" in tm.all_groups
+
+        # Inline children should be indexed with :: paths
+        assert "hierarchical_group::inline_task_a" in tm.task_index
+        assert "hierarchical_group::inline_task_b" in tm.task_index
+
+        # They should be TASK kind
+        assert tm.task_index["hierarchical_group::inline_task_a"].kind == Kind.TASK
+        assert tm.task_index["hierarchical_group::inline_task_b"].kind == Kind.TASK
+
+    def test_hierarchical_group_parent_tracking(self, hierarchical_task_manager):
+        """Test that inline children track their parent."""
+        tm = hierarchical_task_manager
+
+        entry_a = tm.task_index["hierarchical_group::inline_task_a"]
+        assert entry_a.parent == "hierarchical_group"
+
+        entry_b = tm.task_index["hierarchical_group::inline_task_b"]
+        assert entry_b.parent == "hierarchical_group"
+
+    def test_hierarchical_group_load(self, hierarchical_task_manager):
+        """Test loading a hierarchical group builds all inline children."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["hierarchical_group"])
+
+        # Should have group structure
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # Both inline tasks should be present
+        assert "hierarchical_group::inline_task_a" in children
+        assert "hierarchical_group::inline_task_b" in children
+        assert len(children) == 2
+
+    def test_hierarchical_direct_task_access(self, hierarchical_task_manager):
+        """Test loading an inline task directly by its :: path."""
+        tm = hierarchical_task_manager
+
+        # Should be able to load inline task directly
+        result = tm.load_task_or_group(["hierarchical_group::inline_task_a"])
+
+        assert "hierarchical_group::inline_task_a" in result
+        task = result["hierarchical_group::inline_task_a"]
+        assert task.config.task == "hierarchical_group::inline_task_a"
+
+    def test_nested_hierarchical_group_indexed(self, hierarchical_task_manager):
+        """Test that nested hierarchical groups are properly indexed."""
+        tm = hierarchical_task_manager
+
+        # Top-level group
+        assert "nested_group" in tm.all_groups
+
+        # Subgroups should be indexed with :: paths
+        assert "nested_group::subgroup_a" in tm.task_index
+        assert "nested_group::subgroup_b" in tm.task_index
+
+        # Nested tasks should be indexed with full :: paths
+        assert "nested_group::subgroup_a::task_1" in tm.task_index
+        assert "nested_group::subgroup_a::task_2" in tm.task_index
+        assert "nested_group::subgroup_b::task_3" in tm.task_index
+
+    def test_nested_hierarchical_parent_chain(self, hierarchical_task_manager):
+        """Test that nested children have correct parent chain."""
+        tm = hierarchical_task_manager
+
+        # Subgroup's parent is the top group
+        subgroup_a = tm.task_index["nested_group::subgroup_a"]
+        assert subgroup_a.parent == "nested_group"
+
+        # Task's parent is the subgroup
+        task_1 = tm.task_index["nested_group::subgroup_a::task_1"]
+        assert task_1.parent == "nested_group::subgroup_a"
+
+    def test_nested_hierarchical_load(self, hierarchical_task_manager):
+        """Test loading nested hierarchical group builds full tree."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["nested_group"])
+
+        # Navigate the structure
+        top_key = list(result.keys())[0]
+        top_children = result[top_key]
+
+        # Should have 2 subgroups
+        assert len(top_children) == 2
+
+        # Find subgroup_a's children
+        subgroup_a_key = None
+        for key in top_children:
+            if hasattr(key, "config") and key.config.get("group") == "subgroup_a":
+                subgroup_a_key = key
+                break
+
+        if subgroup_a_key:
+            subgroup_a_children = top_children[subgroup_a_key]
+            assert "nested_group::subgroup_a::task_1" in subgroup_a_children
+            assert "nested_group::subgroup_a::task_2" in subgroup_a_children
+
+    def test_nested_direct_subgroup_access(self, hierarchical_task_manager):
+        """Test loading a subgroup directly by its :: path."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["nested_group::subgroup_a"])
+
+        # Should get the subgroup
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # Should have the 2 tasks from subgroup_a
+        assert "nested_group::subgroup_a::task_1" in children
+        assert "nested_group::subgroup_a::task_2" in children
+        assert len(children) == 2
+
+    def test_nested_direct_task_access(self, hierarchical_task_manager):
+        """Test loading a deeply nested task directly."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["nested_group::subgroup_a::task_1"])
+
+        assert "nested_group::subgroup_a::task_1" in result
+        task = result["nested_group::subgroup_a::task_1"]
+        assert task.config.task == "nested_group::subgroup_a::task_1"
+
+    def test_hierarchical_with_ref(self, hierarchical_task_manager):
+        """Test hierarchical group with ref: to external task."""
+        tm = hierarchical_task_manager
+
+        # The ref entry should be indexed
+        assert "hierarchical_refs_group::external_ref" in tm.task_index
+
+        # It should have ref_target set
+        entry = tm.task_index["hierarchical_refs_group::external_ref"]
+        assert entry.ref_target == "simple_task"
+
+    def test_hierarchical_with_tag(self, hierarchical_task_manager):
+        """Test hierarchical group with tag: expansion."""
+        tm = hierarchical_task_manager
+
+        # The tag ref entry should be indexed
+        assert "hierarchical_refs_group::tagged_tasks" in tm.task_index
+
+        # It should have tag_ref set
+        entry = tm.task_index["hierarchical_refs_group::tagged_tasks"]
+        assert entry.tag_ref == "test_tag_tasks"
+
+    def test_hierarchical_ref_resolution(self, hierarchical_task_manager):
+        """Test that ref: children resolve to their targets when built."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["hierarchical_refs_group"])
+
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # The inline task should be present
+        assert "hierarchical_refs_group::inline_task" in children
+
+        # The ref should resolve to simple_task
+        # Note: the resolved task keeps its original name
+        assert "simple_task" in children
+
+    def test_hierarchical_tag_expansion(self, hierarchical_task_manager):
+        """Test that tag: children expand to tagged tasks when built."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["hierarchical_refs_group"])
+
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # The tag should expand to all tasks with test_tag_tasks tag
+        # (tag_task_1, tag_task_2, tag_task_3 from test_configs)
+        assert "tag_task_1" in children
+        assert "tag_task_2" in children
+        assert "tag_task_3" in children

@@ -32,7 +32,25 @@ class TaskFactory:
         * entry.kind == TASK / PY_TASK -> returns instantiated task object
         * entry.kind == GROUP -> returns (GroupConfig, mapping-of-subtasks)
         * entry.kind == TAG -> returns mapping-of-tasks (tag expansion)
+        * entry with ref_target -> resolves reference and builds target
+        * entry with tag_ref -> expands tag and builds tasks
         """
+        # Handle external references (ref: in children)
+        if entry.ref_target:
+            if entry.ref_target not in registry:
+                raise KeyError(
+                    f"Reference '{entry.ref_target}' not found for '{entry.name}'"
+                )
+            target_entry = registry[entry.ref_target]
+            return self.build(target_entry, overrides=overrides, registry=registry)
+
+        # Handle tag expansion (tag: in children)
+        if entry.tag_ref:
+            if entry.tag_ref not in registry:
+                raise KeyError(f"Tag '{entry.tag_ref}' not found for '{entry.name}'")
+            tag_entry = registry[entry.tag_ref]
+            return self._build_tag(tag_entry, overrides, registry)
+
         if entry.kind is Kind.TAG:
             return self._build_tag(entry, overrides, registry)
 
@@ -44,6 +62,11 @@ class TaskFactory:
     def _build_task(self, entry: Entry, overrides: dict[str, Any] | None):
         """Build a task and return it wrapped in a dict {task_name: task_obj}."""
         cfg = self._load_full_config(entry, overrides)
+
+        # Remove structural keys that aren't part of task config
+        for key in ("children", "ref", "tag", "group"):
+            cfg.pop(key, None)
+
         # Use cfg["task"] as key (may be overridden, e.g., for namespacing)
         task_name = cfg["task"]
 
@@ -71,17 +94,83 @@ class TaskFactory:
         group_name = entry.name
 
         children: dict[str, Any] = {}
-        for item in group_obj.config["task"]:
+
+        # Handle new-style children: dict (hierarchical)
+        if "children" in raw_cfg:
+            children.update(
+                self._build_children(
+                    raw_cfg["children"], group_name, overrides, registry
+                )
+            )
+
+        # Handle old-style task: list (backward compatibility)
+        if "task" in grp_cfg and isinstance(grp_cfg["task"], list):
+            children.update(
+                self._build_task_list(grp_cfg["task"], group_name, overrides, registry)
+            )
+
+        return {group_obj: children}
+
+    def _build_children(
+        self,
+        children_cfg: dict[str, Any],
+        group_name: str,
+        overrides: dict[str, Any] | None,
+        registry: Mapping[str, Entry],
+    ) -> dict[str, Any]:
+        """Build children defined via children: dict."""
+        result: dict[str, Any] = {}
+
+        for child_name, child_cfg in children_cfg.items():
+            child_path = f"{group_name}::{child_name}"
+
+            # Look up pre-registered entry from index
+            if child_path in registry:
+                child_entry = registry[child_path]
+                child_overrides = overrides or {}
+
+                # Merge any inline overrides from child_cfg (excluding structural keys)
+                inline_overrides = {
+                    k: v
+                    for k, v in child_cfg.items()
+                    if k not in ("ref", "tag", "children")
+                }
+                if inline_overrides:
+                    child_overrides = {**child_overrides, **inline_overrides}
+
+                child = self.build(
+                    child_entry, overrides=child_overrides, registry=registry
+                )
+                result.update(child)
+            else:
+                # Fallback: inline task not pre-registered (shouldn't normally happen)
+                task_cfg = {**child_cfg, "task": child_path}
+                task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
+                result[child_path] = ConfigurableTask(config=task_cfg)
+
+        return result
+
+    def _build_task_list(
+        self,
+        task_list: list,
+        group_name: str,
+        overrides: dict[str, Any] | None,
+        registry: Mapping[str, Entry],
+    ) -> dict[str, Any]:
+        """Build children defined via task: list (backward compatibility)."""
+        result: dict[str, Any] = {}
+
+        for item in task_list:
             # Step 1: Normalize - extract base_name and item_overrides
             if isinstance(item, str):
                 base_name = item
                 item_overrides = overrides or {}
             elif isinstance(item, dict):
                 base_name = item["task"]
-                item_overrides = item
+                item_overrides = {**overrides, **item}
             else:
                 raise TypeError(
-                    f"Unsupported sub-entry {item!r} in group '{entry.name}'"
+                    f"Unsupported sub-entry {item!r} in group '{group_name}'"
                 )
 
             # Step 2: Handle inline task (not in registry)
@@ -89,7 +178,7 @@ class TaskFactory:
                 namespaced = f"{group_name}::{base_name}"
                 task_cfg = {**item_overrides, "task": namespaced}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
-                children[namespaced] = ConfigurableTask(config=task_cfg)
+                result[namespaced] = ConfigurableTask(config=task_cfg)
                 continue
 
             # Step 3: Build based on entry kind
@@ -118,9 +207,9 @@ class TaskFactory:
                     registry=registry,
                 )
 
-            children.update(child)
+            result.update(child)
 
-        return {group_obj: children}
+        return result
 
     def _build_tag(
         self,
@@ -137,7 +226,11 @@ class TaskFactory:
     def _load_full_config(
         self, entry: Entry, overrides: dict[str, Any] | None
     ) -> dict[str, Any]:
-        if entry.yaml_path:
+        # For inline children (have parent), use the stored cfg directly
+        # instead of loading from YAML (which would load the parent's full config)
+        if entry.parent and entry.cfg:
+            cfg = deepcopy(entry.cfg)
+        elif entry.yaml_path:
             cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))
         else:
             cfg: dict[str, Any] = {
