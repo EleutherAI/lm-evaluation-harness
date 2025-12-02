@@ -1,0 +1,17 @@
+aggregate_metric_list:
+    metric: acc
+    weight_by_size: true
+group: gat
+metadata:
+    description: General Aptitude Test for Math & Language Understanding
+    version: 0
+task:
+- gat_math_geometry
+- gat_math_algebra
+- gat_math_arithmetic
+- gat_math_comparisons
+- gat_lc_analogy
+- gat_lc_association
+- gat_lc_completion
+- gat_lc_contextual
+- gat_lc_reading

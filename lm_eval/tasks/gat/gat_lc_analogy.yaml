@@ -1,0 +1,13 @@
+dataset_kwargs:
+  data_files:
+    test:
+      - ./GAT/GATLc/analogy.json
+
+dataset_name: null
+dataset_path: json
+
+include: _default_gat_template_yaml
+task: gat_lc_analogy
+test_split: test
+
+doc_to_text: !function utils.doc_to_text_analogy

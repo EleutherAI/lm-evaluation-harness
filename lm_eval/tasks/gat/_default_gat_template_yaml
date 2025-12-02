@@ -1,0 +1,16 @@
+test_split: test
+
+output_type: multiple_choice
+metric_list:
+  - metric: acc
+    aggregation: mean 
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: !function utils.doc_to_target
+
+metadata:
+  version: 0.0
