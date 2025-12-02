@@ -52,6 +52,7 @@ def simple_evaluate(
     model_args: Optional[Union[str, dict]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
+    repeats: Optional[int] = None,
     batch_size: Optional[Union[int, str]] = None,
     max_batch_size: Optional[int] = None,
     device: Optional[str] = None,
@@ -91,6 +92,8 @@ def simple_evaluate(
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
+    :param num_fewshot: repeats
+        Number of repeats
     :param batch_size: int or str, optional
         Batch size for model
     :param max_batch_size: int, optional
@@ -313,6 +316,16 @@ def simple_evaluate(
                     # we have to change the class properties post-hoc. This is pretty hacky.
                     task_obj.override_metric(metric_name="bypass")
 
+                if repeats is not None:
+                    eval_logger.warning(
+                            f"Overwriting default repeats of {task_name} from {task_obj.get_config('repeats')} to {repeats}"
+                    )
+                    task_obj.set_config(key="repeats", value=repeats)
+                else:
+                    if (
+                        default_repeats := task_obj.get_config("repeats")
+                    ) is None:
+                        task_obj.set_config(key="repeats", value=1)
                 # override tasks' fewshot values to the provided num_fewshot arg value
                 # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
                 if num_fewshot is not None:
