@@ -1,5 +1,6 @@
 group: xcopa
 task:
+  - xcopa_en
   - xcopa_et
   - xcopa_ht
   - xcopa_id

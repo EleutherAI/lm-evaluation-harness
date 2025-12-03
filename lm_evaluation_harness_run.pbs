@@ -4,7 +4,7 @@
 #PBS -k oed
 #PBS -N lm_evaluation_harness_run
 #PBS -q auto
-#PBS -l select=1:ngpus=2
+#PBS -l select=1:ngpus=4
 #PBS -l walltime=56:00:00
 
 cd $PBS_O_WORKDIR
@@ -30,10 +30,9 @@ nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nouni
 # Remember use limit=100 for abstract summarization task to avoid OOM
 
 lm_eval --model hf \
-    --model_args pretrained=/scratch/e1583535/llm/nus-olmo/mixed-n10B,parallelize=True \
-    --tasks batayan_sentiment_tl \
+    --model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step6201-unsharded-hf,parallelize=True \
+    --tasks xcopa_en \
     --output_path /scratch/e1583535/results/lm_evaluation_harness \
-    --limit 1000 \
     --batch_size 16
 
 EOF

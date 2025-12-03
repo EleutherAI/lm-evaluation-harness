@@ -15,6 +15,15 @@ def doc_to_choice(doc):
     return [convert_choice(doc["choice1"]), convert_choice(doc["choice2"])]
 
 
+doc_to_text_en = partial(
+    doc_to_text,
+    connector={
+        "cause": "because",
+        "effect": "therefore",
+    },
+)
+
+
 doc_to_text_et = partial(
     doc_to_text,
     connector={
