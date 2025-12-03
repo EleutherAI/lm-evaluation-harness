@@ -1,4 +1,4 @@
 task: pisa_fr
-include: _template.yaml
+include: _template_yaml
 task_alias: pisa_fr
 test_split: fr
