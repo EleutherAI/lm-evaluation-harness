@@ -109,6 +109,7 @@ def key_val_to_dict(args: str) -> dict[str, Any]:
     res = {}
     if not args:
         return res
+
     for k, v in (item.split("=") for item in args.split(",")):
         v = handle_cli_value_string(v)
         if k in res:
@@ -128,13 +129,23 @@ class MergeDictAction(argparse.Action):
         option_string: str | None = None,
     ) -> None:
         current = vars(namespace).setdefault(self.dest, {}) or {}
-        if values:
-            for v in values:
-                v = key_val_to_dict(v)
-                if overlap := current.keys() & v.keys():
-                    eval_logger.warning(
-                        f"{option_string or self.dest}: Overwriting key {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
-                    )
 
-                current.update(v)
+        assert len(values) == 1
+
+        # e.g. parses `{"pretrained":"/models/openai_gpt-oss-20b","dtype":"auto","chat_template_args":{"reasoning_effort":"low"},"enable_thinking": true,"think_end_token":"<|message|>"}`.
+        result = try_parse_json(values[0])
+
+        if isinstance(result, dict):
+            current = {**current, **result}
+        else:
+            # e.g. parses `max_gen_toks=8000`
+            if values:
+                for v in values:
+                    v = key_val_to_dict(v)
+                    if overlap := current.keys() & v.keys():
+                        eval_logger.warning(
+                            f"{option_string or self.dest}: Overwriting key {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
+                        )
+                    current.update(v)
+
         setattr(namespace, self.dest, current)
