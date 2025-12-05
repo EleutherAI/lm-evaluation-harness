@@ -1,0 +1,11 @@
+task: xnli_google_vi_en
+dataset_name: google_vi_en
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: lm_eval/tasks/xnli/extra_data/test/xnli_google_vn_en.jsonl
+doc_to_choice: '{{[premise+", right? Yes, "+hypothesis,premise+", right? Also, "+hypothesis,premise+", right? No, "+hypothesis]}}'
+doc_to_text: '{{premise}}'
+doc_to_target: label
+test_split: test
+output_type: "multiple_choice"

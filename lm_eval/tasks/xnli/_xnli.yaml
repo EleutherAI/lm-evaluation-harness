@@ -15,6 +15,7 @@ task:
   - xnli_ur
   - xnli_vi
   - xnli_zh
+  - xnli_google_vi_en
 aggregate_metric_list:
   - metric: acc
     aggregation: mean
