@@ -4,7 +4,7 @@
 #PBS -k oed
 #PBS -N lm_evaluation_harness_run
 #PBS -q auto
-#PBS -l select=1:ngpus=8
+#PBS -l select=1:ngpus=4
 #PBS -l walltime=56:00:00
 
 cd $PBS_O_WORKDIR
@@ -13,18 +13,18 @@ image="/app1/common/singularity-img/hopper/pytorch/pytorch_2.3.0_cuda_12.4_ngc_2
 
 module load singularity
 
-XNLI_FULL_TEST_LOG="/scratch/e1583535/multiLingual-llm-project/logs/eval/lm-evaluation-harness/xnli_full_test"
+XCOPA_SAMPLE_ID_TH_LOG="/scratch/e1583535/multiLingual-llm-project/logs/eval/lm-evaluation-harness/xcopa_sample_en/zh"
 
-mkdir -p $XNLI_FULL_TEST_LOG
+mkdir -p $XCOPA_SAMPLE_ID_TH_LOG
 
-XNLI_FULL_TEST_OUTPUT_PATH="/scratch/e1583535/results/lm_evaluation_harness/xnli_full_test"
+XCOPA_SAMPLE_OUTPUT_PATH="/scratch/e1583535/results/lm_evaluation_harness/xcopa_sample_en_zh"
 
-mkdir -p $XNLI_FULL_TEST_OUTPUT_PATH
+mkdir -p $XCOPA_SAMPLE_OUTPUT_PATH
 
 singularity exec -e \
 --env HF_HOME=/scratch/e1583535/cache \
 --env HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets \
-$image bash << EOF > $XNLI_FULL_TEST_LOG/stdout.$PBS_JOBID.log 2> $XNLI_FULL_TEST_LOG/stderr.$PBS_JOBID.log
+$image bash << EOF > $XCOPA_SAMPLE_ID_TH_LOG/stdout.$PBS_JOBID.log 2> $XCOPA_SAMPLE_ID_TH_LOG/stderr.$PBS_JOBID.log
 
 if [ -d "/hpctmp/e1583535/virtualenvs/sea-helm" ]; then
     source /hpctmp/e1583535/virtualenvs/sea-helm/bin/activate
@@ -38,9 +38,9 @@ nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nouni
 # Remember use limit=100 for abstract summarization task to avoid OOM
 
 lm_eval --model hf \
---model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step6201-unsharded-hf,parallelize=True \
---tasks xnli_en,xnli_th,xnli_vi,xnli_zh \
---output_path $XNLI_FULL_TEST_OUTPUT_PATH \
+--model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-replay-n10B,parallelize=True \
+--tasks xcopa_7b_zh_en \
+--output_path $XCOPA_SAMPLE_OUTPUT_PATH \
 --batch_size 16 
 
 EOF
