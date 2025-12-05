@@ -5,9 +5,8 @@ task:
   - hrm8k_math
   - hrm8k_mmmlu
   - hrm8k_omni_math
-metric_list:
+aggregate_metric_list:
   - metric: exact_match
     aggregation: mean
-    higher_is_better: true
 metadata:
   version: 1.0
