@@ -1,0 +1,15 @@
+task: xcopa_7b-5shot_vi_en
+dataset_name: 7b-5shot_vi_en
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: lm_eval/tasks/xcopa/extra_data/xcopa_paraonly_7B_5shot_vi_en.jsonl
+output_type: multiple_choice
+test_split: test
+doc_to_text: !function utils.doc_to_text_en
+doc_to_target: label
+doc_to_choice: !function utils.doc_to_choice
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0
