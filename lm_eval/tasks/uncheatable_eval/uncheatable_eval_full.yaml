@@ -1,0 +1,29 @@
+group: uncheatable_eval_full
+group_alias: Uncheatable Eval (full)
+task:
+  - uncheatable_eval_wikipedia_english
+  - uncheatable_eval_wikipedia_spanish
+  - uncheatable_eval_wikipedia_french
+  - uncheatable_eval_wikipedia_german
+  - uncheatable_eval_wikipedia_japanese
+  - uncheatable_eval_wikipedia_arabic
+  - uncheatable_eval_wikipedia_chinese
+  - uncheatable_eval_github_python
+  - uncheatable_eval_github_cpp
+  - uncheatable_eval_bbc_news
+  - uncheatable_eval_arxiv_physics
+  - uncheatable_eval_arxiv_computer_science
+  - uncheatable_eval_ao3_english
+  - uncheatable_eval_ao3_chinese
+aggregate_metric_list:
+  - metric: word_perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: byte_perplexity
+    aggregation: mean
+    weight_by_size: true
+  - metric: bits_per_byte
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0
