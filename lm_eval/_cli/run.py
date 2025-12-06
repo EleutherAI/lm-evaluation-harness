@@ -65,10 +65,11 @@ class Run(SubCommand):
             "--tasks",
             "-t",
             default=None,
+            nargs="*",
             type=str,
-            metavar="task1,task2",
+            metavar="<task>",
             help=textwrap.dedent("""
-                Comma-separated list of task names or groupings.
+                Space (or comma-separated) list of task names or groupings.
                 Use 'lm-eval list tasks' to see all available tasks.
             """).strip(),
         )
