@@ -8,6 +8,7 @@ from functools import partial
 from lm_eval._cli.subcommand import SubCommand
 from lm_eval._cli.utils import (
     MergeDictAction,
+    SplitArgs,
     _int_or_none_list_arg_type,
     request_caching_arg_to_dict,
     try_parse_json,
@@ -65,11 +66,11 @@ class Run(SubCommand):
             "--tasks",
             "-t",
             default=None,
-            type=str,
-            nargs="*",
+            nargs="+",
             metavar="<task>",
+            action=SplitArgs,
             help=textwrap.dedent("""
-                Space or Comma-separated list of task names or groupings.
+                Space (or comma-separated) list of task names or groupings.
                 Use 'lm-eval list tasks' to see all available tasks.
             """).strip(),
         )
@@ -85,7 +86,7 @@ class Run(SubCommand):
             "--model_args",
             "-a",
             default=None,
-            nargs="*",
+            nargs="+",
             action=MergeDictAction,
             metavar="<arg>",
             help="Model arguments as 'key=val,key2=val2' or `key=val` `key2=val2`",
@@ -153,7 +154,7 @@ class Run(SubCommand):
         eval_group.add_argument(
             "--gen_kwargs",
             default=None,
-            nargs="*",
+            nargs="+",
             action=MergeDictAction,
             metavar="<arg>",
             help=textwrap.dedent(
@@ -265,7 +266,7 @@ class Run(SubCommand):
         logging_group.add_argument(
             "--wandb_args",
             default=None,
-            nargs="*",
+            nargs="+",
             action=MergeDictAction,
             metavar="<args>",
             help="Weights & Biases init arguments key=val key2=val2",
@@ -273,7 +274,7 @@ class Run(SubCommand):
         logging_group.add_argument(
             "--wandb_config_args",
             default=None,
-            nargs="*",
+            nargs="+",
             action=MergeDictAction,
             metavar="<args>",
             help="Weights & Biases config arguments key=val key2=val2",
@@ -281,7 +282,7 @@ class Run(SubCommand):
         logging_group.add_argument(
             "--hf_hub_log_args",
             default=None,
-            nargs="*",
+            nargs="+",
             action=MergeDictAction,
             metavar="<args>",
             help="Hugging Face Hub logging arguments key=val key2=val2",

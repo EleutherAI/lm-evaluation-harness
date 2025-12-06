@@ -209,7 +209,7 @@ def simple_evaluate(
             "No tasks specified, or no tasks found. Please verify the task names."
         )
 
-    if gen_kwargs is not None:
+    if gen_kwargs:
         if isinstance(gen_kwargs, str):
             gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(

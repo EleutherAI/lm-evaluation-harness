@@ -21,7 +21,7 @@ def try_parse_json(value: str | dict[str, Any] | None) -> str | dict[str, Any] |
         if "{" in value:
             raise ValueError(
                 f"Invalid JSON: {value}. Hint: Use double quotes for JSON strings."
-            )
+            ) from None
         return value
 
 
@@ -29,7 +29,9 @@ def _int_or_none_list_arg_type(
     min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","
 ) -> list[int | None]:
     """Parses a string of integers or 'None' values separated by a specified character into a list.
-    Validates the number of items against specified minimum and maximum lengths and fills missing values with defaults."""
+
+    Validates the number of items against specified minimum and maximum lengths and fills missing values with defaults.
+    """
 
     def parse_value(item):
         """Parses an individual item, converting it to an integer or `None`."""
@@ -39,7 +41,7 @@ def _int_or_none_list_arg_type(
         try:
             return int(item)
         except ValueError:
-            raise ValueError(f"{item} is not an integer or None")
+            raise ValueError(f"{item} is not an integer or None") from None
 
     items = [parse_value(v) for v in value.split(split_char)]
     num_items = len(items)
@@ -109,6 +111,7 @@ def key_val_to_dict(args: str) -> dict[str, Any]:
     res = {}
     if not args:
         return res
+
     for k, v in (item.split("=") for item in args.split(",")):
         v = handle_cli_value_string(v)
         if k in res:
@@ -128,13 +131,34 @@ class MergeDictAction(argparse.Action):
         option_string: str | None = None,
     ) -> None:
         current = vars(namespace).setdefault(self.dest, {}) or {}
-        if values:
-            for v in values:
-                v = key_val_to_dict(v)
-                if overlap := current.keys() & v.keys():
-                    eval_logger.warning(
-                        f"{option_string or self.dest}: Overwriting key {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
-                    )
 
-                current.update(v)
+        if not values:
+            return
+
+        # e.g. parses `{"pretrained":"/models/openai_gpt-oss-20b","dtype":"auto","chat_template_args":{"reasoning_effort":"low"},"enable_thinking": true,"think_end_token":"<|message|>"}`.
+        result = try_parse_json(values[0])
+
+        if isinstance(result, dict):
+            current = {**current, **result}
+        else:
+            # e.g. parses `max_gen_toks=8000`
+            if values:
+                for v in values:
+                    v = key_val_to_dict(v)
+                    if overlap := current.keys() & v.keys():
+                        eval_logger.warning(
+                            rf"{option_string or self.dest}: Overwriting {', '.join(f'{k}: {current[k]!r} -> {v[k]!r}' for k in overlap)}"
+                        )
+                    current.update(v)
+
         setattr(namespace, self.dest, current)
+
+
+class SplitArgs(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = getattr(namespace, self.dest) or []
+        values = values or []
+        assert values, f"--{self.dest} passed without any values"
+        for v in values:
+            items.extend(v.split(","))
+        setattr(namespace, self.dest, items)

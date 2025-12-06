@@ -203,7 +203,7 @@ class EvaluatorConfig:
 
         # Load and merge YAML config if provided
         if used_config := getattr(namespace, "config", None):
-            config.update(cls.load_yaml_config(cast(str, used_config)))
+            config.update(cls.load_yaml_config(cast("str", used_config)))
 
         # Override with CLI args (only truthy values or 0, exclude non-config args)
         excluded_args = {"command", "func"}  # argparse internal args
@@ -320,7 +320,7 @@ class EvaluatorConfig:
                 try:
                     self.samples = json.loads(self.samples)
                 except json.JSONDecodeError:
-                    if (samples_path := Path(cast(str, self.samples))).is_file():
+                    if (samples_path := Path(cast("str", self.samples))).is_file():
                         self.samples = json.loads(samples_path.read_text())
 
         # Set up metadata by merging model_args and metadata.
@@ -358,8 +358,11 @@ class EvaluatorConfig:
         )
 
         # Normalize tasks to a list
+        # We still allow tasks in the form task1,task2
         task_list = (
-            self.tasks.split(",") if isinstance(self.tasks, str) else list(self.tasks)
+            self.tasks.split(",")
+            if isinstance(self.tasks, str)
+            else [t for task in self.tasks for t in task.split(",")]
         )
 
         # Handle directory input

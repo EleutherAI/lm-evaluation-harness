@@ -8,6 +8,7 @@ from lm_eval._cli.harness import HarnessCLI
 from lm_eval._cli.ls import List
 from lm_eval._cli.run import Run
 from lm_eval._cli.utils import (
+    MergeDictAction,
     _int_or_none_list_arg_type,
     check_argument_types,
     request_caching_arg_to_dict,
@@ -57,9 +58,8 @@ class TestHarnessCLI:
     def test_harness_cli_run_help_only(self):
         """Test that 'lm-eval run' shows help."""
         cli = HarnessCLI()
-        with patch.object(sys, "argv", ["lm-eval", "run"]):
-            with pytest.raises(SystemExit):
-                cli.parse_args()
+        with patch.object(sys, "argv", ["lm-eval", "run"]), pytest.raises(SystemExit):
+            cli.parse_args()
 
 
 class TestListCommand:
@@ -160,6 +160,36 @@ class TestRunCommand:
         )
         assert args.model == "hf"
         assert args.tasks == ["hellaswag", "arc_easy"]
+
+    def test_run_command_tasks_comma_separated(self):
+        """Test Run command with comma-separated tasks."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        # Comma-separated format: --tasks hellaswag,arc_easy
+        args = parser.parse_args(["run", "--tasks", "hellaswag,arc_easy"])
+        # argparse returns ["hellaswag,arc_easy"], splitting happens in process_tasks
+        assert args.tasks == ["hellaswag", "arc_easy"]
+
+    def test_run_command_tasks_mixed_format(self):
+        """Test Run command with mixed comma and space-separated tasks."""
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        # Mixed format: --tasks hellaswag,arc_easy winogrande
+        args = parser.parse_args(["run", "--tasks", "hellaswag,arc_easy", "winogrande"])
+        assert args.tasks == ["hellaswag", "arc_easy", "winogrande"]
+
+    def test_run_command_tasks_None(self):
+        parser = argparse.ArgumentParser()
+        subparsers = parser.add_subparsers()
+        Run.create(subparsers)
+
+        # Mixed format: --tasks hellaswag,arc_easy winogrande
+        args = parser.parse_args(["run", "--model", "hf"])
+        assert args.tasks is None
 
     def test_run_command_model_args(self):
         """Test Run command model arguments parsing with MergeDictAction."""
@@ -333,9 +363,11 @@ class TestValidateCommand:
 
         args = parser.parse_args(["validate", "--tasks", "hellaswag,nonexistent"])
 
-        with patch("builtins.print") as mock_print:
-            with pytest.raises(SystemExit) as exc_info:
-                validate_cmd._execute(args)
+        with (
+            patch("builtins.print") as mock_print,
+            pytest.raises(SystemExit) as exc_info,
+        ):
+            validate_cmd._execute(args)
 
         assert exc_info.value.code == 1
         mock_print.assert_any_call("Tasks not found: nonexistent")
@@ -343,6 +375,66 @@ class TestValidateCommand:
 
 class TestEvaluatorConfigTaskLoading:
     """Test EvaluatorConfig task loading"""
+
+    @patch("lm_eval.tasks.TaskManager")
+    def test_process_tasks_comma_separated_in_list(self, mock_task_manager):
+        """Test that process_tasks splits comma-separated tasks from CLI (nargs='*')."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        mock_tm_instance = MagicMock()
+        mock_tm_instance.match_tasks.side_effect = lambda x: [x]
+        mock_task_manager.return_value = mock_tm_instance
+
+        # Simulate CLI input: --tasks hellaswag,arc_easy
+        # argparse with nargs="*" gives ["hellaswag,arc_easy"]
+        cfg = EvaluatorConfig(tasks=["hellaswag,arc_easy"])
+        cfg._configure()
+        cfg.process_tasks()
+
+        # Should have split the comma-separated string
+        assert mock_tm_instance.match_tasks.call_count == 2
+        mock_tm_instance.match_tasks.assert_any_call("hellaswag")
+        mock_tm_instance.match_tasks.assert_any_call("arc_easy")
+
+    @patch("lm_eval.tasks.TaskManager")
+    def test_process_tasks_mixed_comma_and_space_separated(self, mock_task_manager):
+        """Test process_tasks handles mixed comma and space-separated tasks."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        mock_tm_instance = MagicMock()
+        mock_tm_instance.match_tasks.side_effect = lambda x: [x]
+        mock_task_manager.return_value = mock_tm_instance
+
+        # Simulate CLI input: --tasks hellaswag,arc_easy winogrande
+        # argparse with nargs="*" gives ["hellaswag,arc_easy", "winogrande"]
+        cfg = EvaluatorConfig(tasks=["hellaswag,arc_easy", "winogrande"])
+        cfg._configure()
+        cfg.process_tasks()
+
+        # Should have split comma-separated and kept space-separated
+        assert mock_tm_instance.match_tasks.call_count == 3
+        mock_tm_instance.match_tasks.assert_any_call("hellaswag")
+        mock_tm_instance.match_tasks.assert_any_call("arc_easy")
+        mock_tm_instance.match_tasks.assert_any_call("winogrande")
+
+    @patch("lm_eval.tasks.TaskManager")
+    def test_process_tasks_string_comma_separated(self, mock_task_manager):
+        """Test process_tasks splits comma-separated string (from YAML)."""
+        from lm_eval.config.evaluate_config import EvaluatorConfig
+
+        mock_tm_instance = MagicMock()
+        mock_tm_instance.match_tasks.side_effect = lambda x: [x]
+        mock_task_manager.return_value = mock_tm_instance
+
+        # Simulate YAML input: tasks: "hellaswag,arc_easy"
+        cfg = EvaluatorConfig(tasks="hellaswag,arc_easy")
+        cfg._configure()
+        cfg.process_tasks()
+
+        # Should have split the comma-separated string
+        assert mock_tm_instance.match_tasks.call_count == 2
+        mock_tm_instance.match_tasks.assert_any_call("hellaswag")
+        mock_tm_instance.match_tasks.assert_any_call("arc_easy")
 
     def test_custom_yaml_file_relative_path(self, tmp_path):
         """Test loading custom task config via a relative path (fixes #3425)."""
@@ -656,6 +748,76 @@ class TestCLIUtils:
 
         # Should not raise
         check_argument_types(parser)
+
+
+class TestMergeDictAction:
+    """Test MergeDictAction for parsing key=value arguments."""
+
+    def test_comma_separated_key_value(self):
+        """Test parsing comma-separated key=value pairs."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", "key1=val1,key2=val2"])
+        assert args.args == {"key1": "val1", "key2": "val2"}
+
+    def test_space_separated_key_value(self):
+        """Test parsing space-separated key=value pairs."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", "key1=val1", "key2=val2"])
+        assert args.args == {"key1": "val1", "key2": "val2"}
+
+    def test_json_dict_input(self):
+        """Test parsing JSON dict input."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", '{"key1": "val1", "key2": 42}'])
+        assert args.args == {"key1": "val1", "key2": 42}
+
+    def test_json_nested_dict(self):
+        """Test parsing nested JSON dict."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", '{"outer": {"inner": "value"}}'])
+        assert args.args == {"outer": {"inner": "value"}}
+
+    def test_empty_values(self):
+        """Test that empty values result in None"""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="*", action=MergeDictAction)
+
+        args = parser.parse_args(["--args"])
+        assert args.args is None
+
+    def test_type_coercion(self):
+        """Test that values are coerced to appropriate types."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", "num=42,flag=true,pi=3.14"])
+        assert args.args["num"] == 42
+        assert args.args["flag"] is True
+        assert args.args["pi"] == 3.14
+
+    def test_multiple_invocations_merge(self):
+        """Test that multiple --args invocations merge values."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", "key1=val1", "--args", "key2=val2"])
+        assert args.args == {"key1": "val1", "key2": "val2"}
+
+    def test_key_overwrite(self):
+        """Test that later values overwrite earlier ones."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--args", nargs="+", action=MergeDictAction)
+
+        args = parser.parse_args(["--args", "key=first", "--args", "key=second"])
+        assert args.args["key"] == "second"
 
 
 class TestEvaluatorConfigPrecedence:
