@@ -1,7 +1,7 @@
 import copy
 import logging
 from collections import defaultdict
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 import torch
 import torch.nn.functional as F
@@ -9,13 +9,13 @@ import transformers
 from packaging import version
 from tqdm import tqdm
 from transformers import GenerationConfig
-from transformers.generation import StoppingCriteriaList
 
 import lm_eval.models.utils
+import lm_eval.models.utils_hf
 from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import stop_sequences_criteria
+from lm_eval.models.utils_hf import stop_sequences_criteria
 
 
 try:
@@ -27,6 +27,9 @@ except ImportError:
     NeuronModelForCausalLM = object
     NEURON_AVAILABLE = False
 
+if TYPE_CHECKING:
+    from transformers.generation import StoppingCriteriaList
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +40,13 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
     def generate(
         self,
         input_ids: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
         stopping_criteria: Optional["StoppingCriteriaList"] = None,
         generation_config: Optional["GenerationConfig"] = None,
         **kwargs,
     ) -> torch.LongTensor:
         r"""
-        A streamlined generate() method overriding the transformers.GenerationMixin.generate() method.
+        A streamlined generate method overriding the transformers.GenerationMixin.generate() method.
 
         This method uses the same logits processors/warpers and stopping criteria as the transformers library
         `generate()` method but restricts the generation to greedy search and sampling.
@@ -129,19 +132,19 @@ class NEURON_HF(TemplateLM):
 
     def __init__(
         self,
-        pretrained: Optional[str] = "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-        revision: Optional[str] = "main",
-        tp_degree: Optional[int] = None,
-        subfolder: Optional[str] = None,
-        tokenizer: Optional[str] = None,
-        truncation: Optional[bool] = False,
-        max_length: Optional[int] = None,
-        dtype: Optional[Union[str, torch.dtype]] = "auto",
-        batch_size: Optional[int] = 1,
-        low_cpu_mem_usage: Optional[bool] = True,
-        trust_remote_code: Optional[bool] = False,
-        use_fast_tokenizer: Optional[bool] = True,
-        add_bos_token: Optional[bool] = False,
+        pretrained: str | None = "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        revision: str | None = "main",
+        tp_degree: int | None = None,
+        subfolder: str | None = None,
+        tokenizer: str | None = None,
+        truncation: bool | None = False,
+        max_length: int | None = None,
+        dtype: str | torch.dtype | None = "auto",
+        batch_size: int | None = 1,
+        low_cpu_mem_usage: bool | None = True,
+        trust_remote_code: bool | None = False,
+        use_fast_tokenizer: bool | None = True,
+        add_bos_token: bool | None = False,
     ) -> None:
         if not NEURON_AVAILABLE:
             raise ImportError(
@@ -193,7 +196,7 @@ class NEURON_HF(TemplateLM):
                     " For inf2.24xlarge, set it <= `12`."
                     " For inf2.48xlarge, set it <= `24`."
                 )
-            torch_dtype = lm_eval.models.utils.get_dtype(dtype)
+            torch_dtype = lm_eval.models.utils_hf.get_dtype(dtype)
 
             if torch_dtype == torch.float16:
                 self.amp_dtype = "f16"
@@ -270,7 +273,7 @@ class NEURON_HF(TemplateLM):
 
     @property
     def device(self):
-        """device are neuron cores, but the created tensors are on CPU."""
+        """Device are neuron cores, but the created tensors are on CPU."""
         return "cpu"
 
     @property
@@ -282,7 +285,7 @@ class NEURON_HF(TemplateLM):
         return 1
 
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
-        """ """
+        """Encode strings to tokens"""
         if add_special_tokens is None:
             add_special_tokens = False or self.add_bos_token
 
@@ -296,7 +299,7 @@ class NEURON_HF(TemplateLM):
 
     def tok_batch_encode(
         self,
-        strings: List[str],
+        strings: list[str],
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
@@ -494,11 +497,11 @@ class NEURON_HF(TemplateLM):
                 ] * (self.batch_size - len(inps))
 
             masks = [torch.ones_like(inp) for inp in inps]
-            batched_inps = lm_eval.models.utils.pad_and_concat(
+            batched_inps = lm_eval.models.utils_hf.pad_and_concat(
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
-            batched_masks = lm_eval.models.utils.pad_and_concat(
+            batched_masks = lm_eval.models.utils_hf.pad_and_concat(
                 padding_len_inp, masks, padding_side="right"
             )
             if self.model.model.neuron_config.output_all_logits:
@@ -524,7 +527,7 @@ class NEURON_HF(TemplateLM):
                 multi_logits = F.log_softmax(torch.concat(outputs, dim=1), dim=-1)
 
             for (cache_key, _, _), logits, inplen, cont_toks in zip(
-                chunk, multi_logits, inplens, cont_toks_list
+                chunk, multi_logits, inplens, cont_toks_list, strict=False
             ):
                 # Slice to original seq length
                 contlen = len(cont_toks)
@@ -592,7 +595,7 @@ class NEURON_HF(TemplateLM):
                 re_ord.get_reordered(), n=self.batch_size
             )
             for chunk in tqdm(chunks, disable=self.rank != 0):
-                contexts, all_gen_kwargs = zip(*chunk)
+                contexts, all_gen_kwargs = zip(*chunk, strict=False)
                 # we assume all gen kwargs in the batch are the same
                 # this is safe to assume because the `grouper` object ensures it.
                 gen_kwargs = all_gen_kwargs[0]
@@ -648,7 +651,7 @@ class NEURON_HF(TemplateLM):
                 )
 
                 cont_toks_list = cont.tolist()
-                for cont_toks, context in zip(cont_toks_list, contexts):
+                for cont_toks, context in zip(cont_toks_list, contexts, strict=False):
                     # discard context + left-padding toks if using causal decoder-only LM
                     cont_toks = cont_toks[context_enc.shape[1] :]
 
