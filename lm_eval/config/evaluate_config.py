@@ -358,7 +358,7 @@ class EvaluatorConfig:
         )
 
         # Normalize tasks to a list
-        # CLI with nargs="*" gives a list, but we still allow comma-separated
+        # We still allow tasks in the form task1,task2
         task_list = (
             self.tasks.split(",")
             if isinstance(self.tasks, str)
