@@ -1,0 +1,5 @@
+task: pisa_de_llm_judged
+include: _template_yaml
+task_alias: pisa_de
+test_split: de
+process_results: !function utils.pisa_process_results_llm_judged

@@ -1,0 +1,4 @@
+task: pisa_de
+include: _template_yaml
+task_alias: pisa_de
+test_split: de
