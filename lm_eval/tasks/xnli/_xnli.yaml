@@ -15,7 +15,15 @@ task:
   - xnli_ur
   - xnli_vi
   - xnli_zh
+  - xnli_7b_5shot_th_en
+  - xnli_7b_5shot_vi_en
+  - xnli_7b_5shot_zh_en
+  - xnli_custom_nmt_th_en
+  - xnli_custom_nmt_vi_en
+  - xnli_custom_nmt_zh_en
+  - xnli_google_th_en
   - xnli_google_vi_en
+  - xnli_google_zh_en
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

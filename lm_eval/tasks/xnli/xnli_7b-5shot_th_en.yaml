@@ -1,9 +1,9 @@
-task: xnli_google_vi_en
-dataset_name: google_vi_en
+task: xnli_7b_5shot_th_en
+dataset_name: 7b_5shot_th_en
 dataset_path: json
 dataset_kwargs:
   data_files:
-    test: lm_eval/tasks/xnli/extra_data/test/xnli_google_vi_en.jsonl
+    test: lm_eval/tasks/xnli/extra_data/test/xnli_paraonly_7B_5shot_th_en.jsonl
 doc_to_choice: '{{[premise+", right? Yes, "+hypothesis,premise+", right? Also, "+hypothesis,premise+", right? No, "+hypothesis]}}'
 doc_to_text: '{{premise}}'
 doc_to_target: label
