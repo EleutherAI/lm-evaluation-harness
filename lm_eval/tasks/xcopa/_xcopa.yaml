@@ -22,6 +22,13 @@ task:
   - xcopa_7b-5shot_vi_en
   - xcopa_7b-5shot_zh_en
   - xcopa_custom_nmt_id_en
+  - xcopa_custom_nmt_ta_en
+  - xcopa_custom_nmt_vi_en
+  - xcopa_google_id_en
+  - xcopa_google_ta_en
+  - xcopa_google_th_en
+  - xcopa_google_vi_en
+  - xcopa_google_zh_en
 aggregate_metric_list:
   - metric: acc
     aggregation: mean

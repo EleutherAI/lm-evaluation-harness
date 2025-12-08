@@ -47,3 +47,5 @@ examples/wandb/
 *.spec
 
 *.o*
+
+results/
