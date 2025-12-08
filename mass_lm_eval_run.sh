@@ -17,9 +17,9 @@ MODELS=(
 )
 
 # NOTE: space-separated here (no commas!)
-TASKS="xcopa_google_id_en xcopa_google_ta_en xcopa_google_th_en xcopa_google_vi_en xcopa_google_zh_en"
+TASKS="xnli_7b_5shot_th_en xnli_7b_5shot_vi_en xnli_7b_5shot_zh_en xnli_custom_nmt_th_en xnli_custom_nmt_vi_en xnli_custom_nmt_zh_en xnli_google_th_en xnli_google_vi_en xnli_google_zh_en"
 
-TYPE="xcopa_google_translate"
+TYPE="xnli_pre-translation"
 BASE_LOG_DIR="/scratch/e1583535/multiLingual-llm-project/logs/eval/lm-evaluation-harness/$TYPE"
 
 mkdir -p "$BASE_LOG_DIR"
