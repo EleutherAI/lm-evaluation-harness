@@ -21,6 +21,12 @@ OUTPUT_PATH="/scratch/e1583535/results/lm_evaluation_harness/xcopa_pre-translati
 
 mkdir -p $OUTPUT_PATH
 
+TASKS="xnli_en,xnli_th,xnli_vi,xnli_zh,xcopa_en,xcopa_id,xcopa_ta,xcopa_th,xcopa_vi,xcopa_zh,"
+TASKS="${TASKS}xcopa_7b-5shot_id_en,xcopa_7b-5shot_ta_en,xcopa_7b-5shot_th_en,xcopa_7b-5shot_vi_en,xcopa_7b-5shot_zh_en,"
+TASKS="${TASKS}xcopa_google_id_en,xcopa_google_ta_en,xcopa_google_th_en,xcopa_google_vi_en,xcopa_google_zh_en,"
+TASKS="${TASKS}xnli_7b_5shot_th_en,xnli_7b_5shot_vi_en,xnli_7b_5shot_zh_en,"
+TASKS="${TASKS}xnli_google_th_en,xnli_google_vi_en,xnli_google_zh_en"
+
 singularity exec -e \
 --env HF_HOME=/scratch/e1583535/cache \
 --env HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets \
@@ -38,8 +44,8 @@ nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nouni
 # Remember use limit=100 for abstract summarization task to avoid OOM
 
 lm_eval --model hf \
---model_args pretrained=/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step8290-unsharded-hf,parallelize=True \
---tasks xcopa_7b-0shot_vi_en \
+--model_args pretrained=meta-llama/Llama-3.1-8B-Instruct,parallelize=True \
+--tasks $TASKS \
 --output_path $OUTPUT_PATH \
 --batch_size 16 
 
