@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.tasks._config_loader import load_yaml
 from lm_eval.tasks.index import Entry, Kind
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class TaskFactory:
@@ -18,7 +21,7 @@ class TaskFactory:
     """
 
     def __init__(self, *, meta: dict[str, Any] | None = None):
-        self._meta = meta or {}
+        self._meta: dict[str, Any] = meta or {}
 
     # ---------------------------------------------------------------- public API
     def build(
@@ -35,29 +38,27 @@ class TaskFactory:
         * entry with ref_target -> resolves reference and builds target
         * entry with tag_ref -> expands tag and builds tasks
         """
-        # Handle external references (ref: in children)
-        if entry.ref_target:
-            if entry.ref_target not in registry:
-                raise KeyError(
-                    f"Reference '{entry.ref_target}' not found for '{entry.name}'"
-                )
-            target_entry = registry[entry.ref_target]
-            return self.build(target_entry, overrides=overrides, registry=registry)
+        match entry:
+            # Handle external references (ref: in children)
+            case Entry(ref_target=str() as ref):
+                if ref not in registry:
+                    raise KeyError(f"Reference '{ref}' not found for '{entry.name}'")
+                return self.build(registry[ref], overrides=overrides, registry=registry)
 
-        # Handle tag expansion (tag: in children)
-        if entry.tag_ref:
-            if entry.tag_ref not in registry:
-                raise KeyError(f"Tag '{entry.tag_ref}' not found for '{entry.name}'")
-            tag_entry = registry[entry.tag_ref]
-            return self._build_tag(tag_entry, overrides, registry)
+            # Handle tag expansion (tag: in children)
+            case Entry(tag_ref=str() as tag):
+                if tag not in registry:
+                    raise KeyError(f"Tag '{tag}' not found for '{entry.name}'")
+                return self._build_tag(registry[tag], overrides, registry)
 
-        if entry.kind is Kind.TAG:
-            return self._build_tag(entry, overrides, registry)
+            case Entry(kind=Kind.TAG):
+                return self._build_tag(entry, overrides, registry)
 
-        if entry.kind is Kind.GROUP:
-            return self._build_group(entry, overrides, registry)
+            case Entry(kind=Kind.GROUP):
+                return self._build_group(entry, overrides, registry)
 
-        return self._build_task(entry, overrides)
+            case _:
+                return self._build_task(entry, overrides)
 
     def _build_task(self, entry: Entry, overrides: dict[str, Any] | None):
         """Build a task and return it wrapped in a dict {task_name: task_obj}."""
@@ -144,7 +145,7 @@ class TaskFactory:
                 result.update(child)
             else:
                 # Fallback: inline task not pre-registered (shouldn't normally happen)
-                task_cfg = {**child_cfg, "task": child_path}
+                task_cfg: dict[str, Any] = {**child_cfg, "task": child_path}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
                 result[child_path] = ConfigurableTask(config=task_cfg)
 
@@ -176,37 +177,37 @@ class TaskFactory:
             # Step 2: Handle inline task (not in registry)
             if base_name not in registry:
                 namespaced = f"{group_name}::{base_name}"
-                task_cfg = {**item_overrides, "task": namespaced}
+                task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
                 result[namespaced] = ConfigurableTask(config=task_cfg)
                 continue
 
             # Step 3: Build based on entry kind
             child_entry = registry[base_name]
-
-            if child_entry.kind is Kind.GROUP:
-                child = self.build(
-                    child_entry, overrides=item_overrides, registry=registry
-                )
-            elif child_entry.kind is Kind.TAG:
-                child = {}
-                for task_name in child_entry.tags:
-                    namespaced = f"{group_name}::{task_name}"
-                    child.update(
-                        self.build(
-                            registry[task_name],
-                            overrides={"task": namespaced, **item_overrides},
-                            registry=registry,
-                        )
+            match child_entry:
+                case Entry(kind=Kind.GROUP):
+                    child = self.build(
+                        child_entry, overrides=item_overrides, registry=registry
                     )
-            else:  # TASK or PY_TASK
-                namespaced = f"{group_name}::{base_name}"
-                child = self.build(
-                    child_entry,
-                    overrides={"task": namespaced, **item_overrides},
-                    registry=registry,
-                )
-
+                case Entry(kind=Kind.TAG):
+                    child = {}
+                    for task_name in child_entry.tags:
+                        namespaced = f"{group_name}::{task_name}"
+                        child.update(
+                            self.build(
+                                registry[task_name],
+                                overrides={"task": namespaced, **item_overrides},
+                                registry=registry,
+                            )
+                        )
+                case _:
+                    # TASK or PY_TASK
+                    namespaced = f"{group_name}::{base_name}"
+                    child = self.build(
+                        child_entry,
+                        overrides={"task": namespaced, **item_overrides},
+                        registry=registry,
+                    )
             result.update(child)
 
         return result
@@ -251,7 +252,7 @@ class TaskFactory:
             cfg = {**cfg, **overrides}
         cfg["metadata"] = (
             m if isinstance(m := cfg.get("metadata", {}), dict) else {"_metadata": m}
-        ) | self._meta
+        ) | self._meta  # type: ignore
         cfg.setdefault("task", entry.name)
         return cfg
 

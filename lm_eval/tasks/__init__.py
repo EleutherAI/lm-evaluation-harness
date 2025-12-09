@@ -6,14 +6,18 @@ This module provides:
 - Helper functions for task name resolution
 """
 
-from typing import Dict, List, Optional, Union
+import logging
+from pathlib import Path
 
+from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
 # Import TaskManager from the refactored module
 from lm_eval.tasks.manager import TaskManager
 
+
+eval_logger = logging.getLogger(__name__)
 
 __all__ = [
     "ConfigurableTask",
@@ -25,12 +29,17 @@ __all__ = [
 
 
 def get_task_name_from_config(task_config: dict[str, str]) -> str:
-    if "task" in task_config:
-        return task_config["task"]
-    if "dataset_name" in task_config:
-        return "{dataset_path}_{dataset_name}".format(**task_config)
-    else:
-        return "{dataset_path}".format(**task_config)
+    match task_config:
+        case {"task": task_name}:
+            return task_name
+        case {"dataset_path": dataset_path, "dataset_name": dataset_name}:
+            return f"{dataset_path}_{dataset_name}"
+        case {"dataset_path": dataset_path}:
+            return f"{dataset_path}"
+        case _:
+            raise ValueError(
+                "Could not extract task name from config. Expected keys 'task' or 'dataset_path' (with optional 'dataset_name')."
+            )
 
 
 def get_task_name_from_object(task_object):
@@ -47,13 +56,14 @@ def get_task_name_from_object(task_object):
 
 
 def _check_duplicates(task_dict: dict) -> None:
-    """helper function solely used in validating get_task_dict output.
+    """Helper function solely used in validating get_task_dict output.
+
     Takes the output of lm_eval.evaluator_utils.get_subtask_list and
     returns a list of all leaf subtasks contained within, and errors if any such leaf subtasks are
     "oversubscribed" to several disjoint groups.
     """
     subtask_names = []
-    for key, value in task_dict.items():
+    for value in task_dict.values():
         subtask_names.extend(value)
 
     duplicate_tasks = {
@@ -98,7 +108,7 @@ def get_task_dict(
     if isinstance(task_name_list, str):
         task_name_list = [task_name_list]
     elif isinstance(task_name_list, list):
-        if not all([isinstance(task, (str, dict, Task)) for task in task_name_list]):
+        if not all(isinstance(task, (str, dict, Task)) for task in task_name_list):
             raise TypeError(
                 "Expected all list items to be of types 'str', 'dict', or 'Task', but at least one entry did not match."
             )
@@ -111,10 +121,10 @@ def get_task_dict(
     others_task_name_list = [
         task for task in task_name_list if not isinstance(task, str)
     ]
-    if len(string_task_name_list) > 0:
-        if task_manager is None:
-            task_manager = TaskManager()
+    if task_manager is None:
+        task_manager = TaskManager()
 
+    if len(string_task_name_list) > 0:
         task_name_from_string_dict = task_manager.load_task_or_group(
             string_task_name_list
         )

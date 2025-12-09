@@ -5,12 +5,15 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any
 
-from lm_eval.tasks._config_loader import load_yaml as load_cfg
+from lm_eval.tasks._config_loader import load_yaml
 
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
+
+log = logging.getLogger(__name__)
+_IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
 
 
 class Kind(Enum):
@@ -37,10 +40,6 @@ class Entry:
     tag_ref: str | None = None  # for children with tag: expands to tagged tasks
 
 
-log = logging.getLogger(__name__)
-_IGNORE_DIRS = {"__pycache__", ".ipynb_checkpoints"}
-
-
 class TaskIndex:
     """Walks one or more directories, parses YAML quickly (functions unresolved),
     and produces a mapping {task_name: Entry}.
@@ -60,7 +59,7 @@ class TaskIndex:
         for root in paths:
             for yaml_path in self._iter_yaml_files(root):
                 try:
-                    cfg = load_cfg(
+                    cfg = load_yaml(
                         yaml_path,
                         resolve_func=False,
                         recursive=resolve_includes,
@@ -94,92 +93,91 @@ class TaskIndex:
         parent_path: str | None = None,
     ) -> None:
         kind = TaskIndex._kind_of(cfg)
-        if kind is Kind.GROUP:
-            grp_name = cfg["group"]
-            # Build full path for hierarchical addressing
-            full_path = f"{parent_path}::{grp_name}" if parent_path else grp_name
+        match kind:
+            case Kind.GROUP:
+                grp_name = cfg["group"]
+                # Build full path for hierarchical addressing
+                full_path = f"{parent_path}::{grp_name}" if parent_path else grp_name
 
-            if full_path in index:
-                log.debug(
-                    f"Duplicate group name '{full_path}' found. "
-                    f"Already registered from: {index[full_path].yaml_path}. "
-                    f"Skipping duplicate from: {path}"
-                )
-                return
-            index[full_path] = Entry(
-                name=full_path,
-                kind=Kind.GROUP,
-                yaml_path=path,
-                tags=TaskIndex._str_to_set(cfg.get("tag")),
-                cfg=cfg,
-                parent=parent_path,
-            )
-
-            # Process inline children if present
-            if "children" in cfg:
-                TaskIndex._process_children(cfg["children"], full_path, path, index)
-            return
-
-        if kind is Kind.TASK or kind is Kind.PY_TASK:
-            name = cfg["task"]
-            if name in index:
-                log.warning(
-                    f"Duplicate task name '{name}' found. "
-                    f"Already registered from: {index[name].yaml_path}. "
-                    f"Skipping duplicate from: {path}"
-                )
-                return
-            index[name] = Entry(
-                name=name,
-                kind=Kind.TASK,
-                yaml_path=path,
-                tags=TaskIndex._str_to_set(cfg.get("tag")),
-                cfg=cfg,
-            )
-            TaskIndex._register_tags(name, cfg.get("tag"), index)
-            return
-
-        if kind is Kind.TASK_LIST:
-            # If config also has a top-level "task", register it as the base task
-            if "task" in cfg and isinstance(cfg["task"], str):
-                base_name = cfg["task"]
-                if base_name not in index:
-                    index[base_name] = Entry(
-                        name=base_name,
-                        kind=Kind.TASK,
-                        yaml_path=path,
-                        tags=TaskIndex._str_to_set(cfg.get("tag")),
-                        cfg=cfg,
-                    )
-                    TaskIndex._register_tags(base_name, cfg.get("tag"), index)
-
-            # Register each task in task_list
-            base_tag = cfg.get("tag")
-            for entry in cfg["task_list"]:
-                task_name = entry["task"] if isinstance(entry, dict) else entry
-                if task_name in index:
-                    log.warning(
-                        f"Duplicate task name '{task_name}' found. "
-                        f"Already registered from: {index[task_name].yaml_path}. "
+                if full_path in index:
+                    log.debug(
+                        f"Duplicate group name '{full_path}' found. "
+                        f"Already registered from: {index[full_path].yaml_path}. "
                         f"Skipping duplicate from: {path}"
                     )
-                    continue
-                # Combine base tag with per-entry tag
-                entry_tag = entry.get("tag") if isinstance(entry, dict) else None
-                combined_tags = TaskIndex._str_to_set(base_tag) | TaskIndex._str_to_set(
-                    entry_tag
+                    return
+                index[full_path] = Entry(
+                    name=full_path,
+                    kind=Kind.GROUP,
+                    yaml_path=path,
+                    tags=TaskIndex._str_to_set(cfg.get("tag")),
+                    cfg=cfg,
+                    parent=parent_path,
                 )
-                index[task_name] = Entry(
-                    name=task_name,
+
+                # Process inline children if present
+                if "children" in cfg:
+                    TaskIndex._process_children(cfg["children"], full_path, path, index)
+
+            case Kind.TASK | Kind.PY_TASK:
+                name = cfg["task"]
+                if name in index:
+                    log.warning(
+                        f"Duplicate task name '{name}' found. "
+                        f"Already registered from: {index[name].yaml_path}. "
+                        f"Skipping duplicate from: {path}"
+                    )
+                    return
+                index[name] = Entry(
+                    name=name,
                     kind=Kind.TASK,
                     yaml_path=path,
-                    tags=combined_tags,
+                    tags=TaskIndex._str_to_set(cfg.get("tag")),
                     cfg=cfg,
                 )
-                # Register both base config's tag and per-entry tag
-                TaskIndex._register_tags(task_name, base_tag, index)
-                TaskIndex._register_tags(task_name, entry_tag, index)
-            return
+                TaskIndex._register_tags(name, cfg.get("tag"), index)
+
+            case Kind.TASK_LIST:
+                # If config also has a top-level "task", register it as the base task
+                if "task" in cfg and isinstance(cfg["task"], str):
+                    base_name = cfg["task"]
+                    if base_name not in index:
+                        index[base_name] = Entry(
+                            name=base_name,
+                            kind=Kind.TASK,
+                            yaml_path=path,
+                            tags=TaskIndex._str_to_set(cfg.get("tag")),
+                            cfg=cfg,
+                        )
+                        TaskIndex._register_tags(base_name, cfg.get("tag"), index)
+
+                # Register each task in task_list
+                base_tag = cfg.get("tag")
+                for entry in cfg["task_list"]:
+                    task_name = entry["task"] if isinstance(entry, dict) else entry
+                    if task_name in index:
+                        log.warning(
+                            f"Duplicate task name '{task_name}' found. "
+                            f"Already registered from: {index[task_name].yaml_path}. "
+                            f"Skipping duplicate from: {path}"
+                        )
+                        continue
+                    # Combine base tag with per-entry tag
+                    entry_tag = entry.get("tag") if isinstance(entry, dict) else None
+                    combined_tags = TaskIndex._str_to_set(
+                        base_tag
+                    ) | TaskIndex._str_to_set(entry_tag)
+                    index[task_name] = Entry(
+                        name=task_name,
+                        kind=Kind.TASK,
+                        yaml_path=path,
+                        tags=combined_tags,
+                        cfg=cfg,
+                    )
+                    # Register both base config's tag and per-entry tag
+                    TaskIndex._register_tags(task_name, base_tag, index)
+                    TaskIndex._register_tags(task_name, entry_tag, index)
+        return
 
     @staticmethod
     def _register_tags(
@@ -198,16 +196,21 @@ class TaskIndex:
 
     @staticmethod
     def _kind_of(cfg: dict) -> Kind:
-        if "class" in cfg:
-            return Kind.PY_TASK
-        if "group" in cfg:
-            return Kind.GROUP
-        if "task_list" in cfg:
-            return Kind.TASK_LIST
-        if "task" in cfg:
-            return Kind.GROUP if isinstance(cfg["task"], list) else Kind.TASK
-        msg = "Unknown config shape"
-        raise ValueError(msg) from None
+        match cfg:
+            # group configs have task: ["task": str | dict]
+            case {"task": list()}:
+                return Kind.GROUP
+            case {"task": _}:
+                return Kind.TASK
+            case {"class": _}:
+                return Kind.PY_TASK
+            case {"group": _}:
+                return Kind.GROUP
+            case {"task_list": _}:
+                return Kind.TASK_LIST
+            case _:
+                msg = "Unknown config shape"
+                raise ValueError(msg) from None
 
     @staticmethod
     def _str_to_set(tags: str | list[str] | None = None) -> set[str]:
@@ -249,47 +252,45 @@ class TaskIndex:
                 log.debug(f"Duplicate child '{child_path}' found, skipping.")
                 continue
 
-            if "ref" in child_cfg:
-                # External reference - register with ref_target for build-time resolution
-                index[child_path] = Entry(
-                    name=child_path,
-                    kind=Kind.GROUP,  # Assume group, will resolve at build time
-                    yaml_path=yaml_path,
-                    parent=parent_path,
-                    ref_target=child_cfg["ref"],
-                    cfg=child_cfg,
-                    tags=TaskIndex._str_to_set(child_cfg.get("tag")),
-                )
-
-            elif "tag" in child_cfg:
-                # Tag expansion - register with tag_ref for build-time expansion
-                index[child_path] = Entry(
-                    name=child_path,
-                    kind=Kind.TAG,
-                    yaml_path=yaml_path,
-                    parent=parent_path,
-                    tag_ref=child_cfg["tag"],
-                    cfg=child_cfg,
-                    tags=TaskIndex._str_to_set(child_cfg.get("tag")),
-                )
-
-            elif "children" in child_cfg:
-                # Nested inline group - recurse
-                nested_cfg = {**child_cfg, "group": child_name}
-                TaskIndex.process_cfg(
-                    nested_cfg, yaml_path, index, parent_path=parent_path
-                )
-
-            else:
-                # Inline task definition
-                task_cfg = {**child_cfg, "task": child_path}
-                index[child_path] = Entry(
-                    name=child_path,
-                    kind=Kind.TASK,
-                    yaml_path=yaml_path,
-                    parent=parent_path,
-                    cfg=task_cfg,
-                    tags=TaskIndex._str_to_set(child_cfg.get("tag")),
-                )
-                # Register tags for inline tasks
-                TaskIndex._register_tags(child_path, child_cfg.get("tag"), index)
+            match child_cfg:
+                case {"ref": ref}:
+                    #  External reference - register with ref_target for build-time resolution
+                    index[child_path] = Entry(
+                        name=child_path,
+                        kind=Kind.GROUP,  # Assume group, will resolve at build time
+                        yaml_path=yaml_path,
+                        parent=parent_path,
+                        ref_target=ref,
+                        cfg=child_cfg,
+                        tags=TaskIndex._str_to_set(child_cfg.get("tag")),
+                    )
+                case {"tag": tag}:
+                    # Tag expansion - register with tag_ref for build-time expansion
+                    index[child_path] = Entry(
+                        name=child_path,
+                        kind=Kind.TAG,
+                        yaml_path=yaml_path,
+                        parent=parent_path,
+                        tag_ref=tag,
+                        cfg=child_cfg,
+                        tags=TaskIndex._str_to_set(child_cfg.get("tag")),
+                    )
+                case {"children": _}:
+                    # Nested inline group - recurse
+                    nested_cfg = {**child_cfg, "group": child_name}
+                    TaskIndex.process_cfg(
+                        nested_cfg, yaml_path, index, parent_path=parent_path
+                    )
+                case _:
+                    # Inline task definition
+                    task_cfg = {**child_cfg, "task": child_path}
+                    index[child_path] = Entry(
+                        name=child_path,
+                        kind=Kind.TASK,
+                        yaml_path=yaml_path,
+                        parent=parent_path,
+                        cfg=task_cfg,
+                        tags=TaskIndex._str_to_set(child_cfg.get("tag")),
+                    )
+                    # Register tags for inline tasks
+                    TaskIndex._register_tags(child_path, child_cfg.get("tag"), index)
