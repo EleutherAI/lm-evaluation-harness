@@ -6,8 +6,8 @@ filter_list:
   - name: "strip-whitespace"
     filter:
       - function: "regex"
-        regex_pattern: "^\\s*(.*?)\\s*$"
-        group_select: 0
+        regex_pattern: "^\\s*(?:\\$?\\\\boxed\\{)?\\s*(.*?)\\s*(?:\\}\\$?)?\\s*$"
+        group_select: 1
       - function: "take_first"
 generation_kwargs:
   until:

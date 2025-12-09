@@ -5,6 +5,9 @@ Utility functions for babilong benchmark.
 import datasets
 from datasets import concatenate_datasets
 
+# Standard guidance to force boxed answers.
+BOXED_GUIDANCE = "Wrap your final answer inside $\\boxed{...}$ and output only that."
+
 
 # All available length splits
 LENGTH_SPLITS = ['0k', '1k', '2k', '4k', '8k', '16k', '32k', '64k', '128k', '256k', '512k', '1M']
@@ -20,7 +23,10 @@ def doc_to_text(doc):
     Returns:
         str: Formatted text for model input
     """
-    return f"{doc['input']}\n\nQ: {doc['question']}\nA:"
+    return (
+        f"{doc['input']}\n\nQ: {doc['question']}\n"
+        f"{BOXED_GUIDANCE}\nA:"
+    )
 
 
 def doc_to_target(doc):
@@ -54,7 +60,8 @@ def doc_to_text_qa1(doc):
                'Answer: shop.\n'
                '</example>')
     
-    post_prompt = 'Your answer should contain only one word - location. Do not write anything else after that.'
+    post_prompt = ('Your answer should contain only one word - location. Do not write anything else after that. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -80,7 +87,8 @@ def doc_to_text_qa2(doc):
                'Answer: kitchen.\n'
                '</example>')
     
-    post_prompt = 'Your answer should contain only one word - location. Do not write anything else after that.'
+    post_prompt = ('Your answer should contain only one word - location. Do not write anything else after that. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -108,7 +116,8 @@ def doc_to_text_qa3(doc):
                'Answer: garden.\n'
                '</example>')
     
-    post_prompt = 'Your answer should contain only one word - location. Do not write anything else after that.'
+    post_prompt = ('Your answer should contain only one word - location. Do not write anything else after that. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -129,7 +138,8 @@ def doc_to_text_qa4(doc):
                'Answer: garden\n'
                '</example>')
     
-    post_prompt = 'Your answer should contain only one word - location. Do not write anything else after that.'
+    post_prompt = ('Your answer should contain only one word - location. Do not write anything else after that. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -156,7 +166,8 @@ def doc_to_text_qa5(doc):
                '</example>')
     
     post_prompt = ('Your answer should contain only one word. Do not write anything else after that. '
-                  'Do not explain your answer.')
+                  'Do not explain your answer. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -178,7 +189,8 @@ def doc_to_text_qa6(doc):
                '</example>\n')
     
     post_prompt = ('Your answer should contain only one word - $yes$ or $no$. Do not write anything else after that. '
-                  'Do not explain your answer.')
+                  'Do not explain your answer. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -203,7 +215,8 @@ def doc_to_text_qa7(doc):
                '</example>\n')
     
     post_prompt = ('Your answer should contain only one word - $none$ or $number_of_objects$. '
-                  'Do not write anything else after that. Do not explain your answer.')
+                  'Do not write anything else after that. Do not explain your answer. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -229,7 +242,8 @@ def doc_to_text_qa8(doc):
                '</example>\n')
     
     post_prompt = ('Your answer should contain only one or two words: $nothing$ or $object$ or $object_1$, $object_2$. '
-                  'Do not write anything else. Do not explain your answer.')
+                  'Do not write anything else. Do not explain your answer. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -251,7 +265,8 @@ def doc_to_text_qa9(doc):
                '</example>\n')
     
     post_prompt = ('Your answer should contain only one word - $yes$ or $no$. Do not write anything else. '
-                  'Do not explain your answer.')
+                  'Do not explain your answer. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
@@ -276,7 +291,8 @@ def doc_to_text_qa10(doc):
                '</example>\n')
     
     post_prompt = ('Your answer should contain only one word - $yes$ or $no$ or $maybe$. Do not write anything else. '
-                  'Do not explain your answer.')
+                  'Do not explain your answer. '
+                  f'{BOXED_GUIDANCE}')
     
     return f"{instruction}\n\n{examples}\n\n{doc['input']}\n\n{doc['question']}\n\n{post_prompt}\n\nAnswer:"
 
