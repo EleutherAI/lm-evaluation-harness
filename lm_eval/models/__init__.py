@@ -23,8 +23,8 @@ Adding New Models
 """
 
 MODEL_MAPPING = {
-    "anthropic-chat": "lm_eval.models.anthropic_llms:AnthropicChatLM",
-    "anthropic-chat-completions": "lm_eval.models.anthropic_llms:AnthropicCompletionsLM",
+    "anthropic-chat": "lm_eval.models.anthropic_llms:AnthropicChat",
+    "anthropic-chat-completions": "lm_eval.models.anthropic_llms:AnthropicChat",
     "anthropic-completions": "lm_eval.models.anthropic_llms:AnthropicLM",
     "dummy": "lm_eval.models.dummy:DummyLM",
     "ggml": "lm_eval.models.gguf:GGUFLM",
