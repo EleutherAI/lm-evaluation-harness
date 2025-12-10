@@ -1,0 +1,16 @@
+"dataset_name": "global_facts"
+"description": "The following are multiple choice questions (with answers) about global_facts.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nAntwort:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_de_de_other"
+"task": "openai_mmmlu_default_de_de_global_facts"
+"task_alias": "de_de global facts"
+"test_split": "DE_DE"
