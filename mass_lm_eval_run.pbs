@@ -4,7 +4,7 @@
 #PBS -k oed
 #PBS -N lm_evaluation_harness_run
 #PBS -q auto
-#PBS -l select=1:ngpus=4
+#PBS -l select=1:ngpus=8
 #PBS -l walltime=56:00:00
 
 cd "$PBS_O_WORKDIR"

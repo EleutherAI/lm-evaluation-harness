@@ -1,25 +1,26 @@
 #!/bin/bash
 
 MODELS=(
-    "/scratch/e1583535/llm/nus-olmo/mixed-n10B"
-    "/scratch/e1583535/llm/nus-olmo/para-first-n10B"
-    "/scratch/e1583535/llm/nus-olmo/para-last-n10B-rerun"
-    "/scratch/e1583535/llm/nus-olmo/para-replay-n10B"
-    "/scratch/e1583535/llm/nus-olmo/para-only-34B8"
-    "/scratch/e1583535/llm/nus-olmo/para-last-100B-checkpoints/step42931-unsharded-hf"
-    "/scratch/e1583535/llm/nus-olmo/para-last-100B"
-    "/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step2385-unsharded-hf"
-    "/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step6201-unsharded-hf"
-    "/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step8290-unsharded-hf"
-    "SeaLLMs/SeaLLMs-v3-1.5B"
-    "sail/Sailor2-L-1B"
-    "aisingapore/Llama-SEA-LION-v3.5-8B-R"
+    # "/scratch/e1583535/llm/nus-olmo/mixed-n10B"
+    # "/scratch/e1583535/llm/nus-olmo/para-first-n10B"
+    # "/scratch/e1583535/llm/nus-olmo/para-last-n10B-rerun"
+    # "/scratch/e1583535/llm/nus-olmo/para-replay-n10B"
+    # "/scratch/e1583535/llm/nus-olmo/para-only-34B8"
+    # "/scratch/e1583535/llm/nus-olmo/para-last-100B-checkpoints/step42931-unsharded-hf"
+    # "/scratch/e1583535/llm/nus-olmo/para-last-100B"
+    # "/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step2385-unsharded-hf"
+    # "/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step6201-unsharded-hf"
+    # "/scratch/e1583535/llm/nus-olmo/para-only-7B-34B-checkpoints/step8290-unsharded-hf"
+    # "SeaLLMs/SeaLLMs-v3-1.5B"
+    # "sail/Sailor2-L-1B"
+    # "aisingapore/Llama-SEA-LION-v3.5-8B-R"
+    "aisingapore/Qwen-SEA-LION-v4-32B-IT"
 )
 
 # NOTE: space-separated here (no commas!)
-TASKS="xnli_7b_5shot_th_en xnli_7b_5shot_vi_en xnli_7b_5shot_zh_en xnli_custom_nmt_th_en xnli_custom_nmt_vi_en xnli_custom_nmt_zh_en xnli_google_th_en xnli_google_vi_en xnli_google_zh_en"
+TASKS="xnli_en xnli_th xnli_vi xnli_zh xcopa_en xcopa_id xcopa_ta xcopa_th xcopa_vi xcopa_zh xcopa_7b-5shot_id_en xcopa_7b-5shot_ta_en xcopa_7b-5shot_th_en xcopa_7b-5shot_vi_en xcopa_7b-5shot_zh_en xcopa_google_id_en xcopa_google_ta_en xcopa_google_th_en xcopa_google_vi_en xcopa_google_zh_en xnli_7b_5shot_th_en xnli_7b_5shot_vi_en xnli_7b_5shot_zh_en xnli_google_th_en xnli_google_vi_en xnli_google_zh_en paws_en paws_zh"
 
-TYPE="xnli_pre-translation"
+TYPE="Qwen-SEA-LION-v4-32B-IT"
 BASE_LOG_DIR="/scratch/e1583535/multiLingual-llm-project/logs/eval/lm-evaluation-harness/$TYPE"
 
 mkdir -p "$BASE_LOG_DIR"
