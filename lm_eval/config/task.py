@@ -35,14 +35,21 @@ class FewshotConfig:
     doc_to_choice: str | Callable[..., str] | dict | list | None = None
     doc_to_target: str | Callable[..., str] | None = None
     gen_prefix: str | None = None
-    fewshot_delimiter: str = "\n\n"
-    target_delimiter: str | None = " "
+    fewshot_delimiter: str | None = None
+    target_delimiter: str | None = None
+
+    def __post_init__(self):
+        if self.split is not None and self.samples is not None:
+            eval_logger.warning(
+                "Both split and samples are configured; split will take precedence"
+            )
 
     @classmethod
     def from_dict(
         cls,
         cfg: dict,
         # inherited from TaskConfig if not specified
+        *,
         split: str | None = None,
         process_docs: Callable[..., list[dict]] | None = None,
         fewshot_delimiter: str | None = None,
@@ -151,7 +158,7 @@ class TaskConfig(dict):
                 process_docs=self.process_docs,
                 fewshot_delimiter=self.fewshot_delimiter,
                 target_delimiter=self.target_delimiter,
-                gen_prefix=self.gen_prefix or "",
+                gen_prefix=self.gen_prefix,
             )
             if isinstance(self.fewshot_config, dict)
             else self.fewshot_config

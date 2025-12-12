@@ -901,22 +901,19 @@ class ConfigurableTask(Task):
         if (split := self.fewshot_config.split) is not None:
             if (process_docs := self.fewshot_config.process_docs) is not None:
                 return process_docs(self.dataset[split])
-            return self.dataset[self.config.fewshot_split]
+            return self.dataset[split]
         elif (
             self.config.fewshot_config is not None
             and (samples := self.fewshot_config.samples) is not None
         ):
+            # fmt: off
             match samples:
-                # fmt: off
-                case list():
-                    return samples
-                case fsamples if callable(samples):
-                    return fsamples()
-                case _:
-                    raise Exception(
+                case list(): return samples
+                case fsamples if callable(samples): return fsamples()
+                case _: raise Exception(
                         "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list of samples as a dict, or function returning this list."
                     ) from None
-                # fmt: on
+            # fmt: on
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
