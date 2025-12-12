@@ -911,7 +911,7 @@ class ConfigurableTask(Task):
                 case list(): return samples
                 case fsamples if callable(samples): return fsamples()
                 case _: raise Exception(
-                        "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list of samples as a dict, or function returning this list."
+                        "`fewshot_config['samples']` was incorrectly defined in the configuration. It should either be `list[dict]`, or callable returning this list."
                     ) from None
             # fmt: on
         else:
