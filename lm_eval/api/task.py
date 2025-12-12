@@ -7,10 +7,9 @@ import random
 import re
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
-from dataclasses import asdict, dataclass
 from functools import partial
-from inspect import getsource
 from typing import (
+    TYPE_CHECKING,
     Any,
     Literal,
     cast,
@@ -39,9 +38,13 @@ from lm_eval.api.utils import (
     requires_delimiter,
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
+from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
+
+if TYPE_CHECKING:
+    from lm_eval.config.task import FewshotConfig
 
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
@@ -53,136 +56,7 @@ ALL_OUTPUT_TYPES = [
 eval_logger = logging.getLogger(__name__)
 
 
-@dataclass
-class TaskConfig(dict):
-    # task naming/registry
-    task: str | None = None
-    task_alias: str | None = None
-    tag: str | list | None = None
-    # HF dataset options.
-    # which dataset to use,
-    # and what splits for what purpose
-    custom_dataset: Callable | None = None
-    dataset_path: str | None = None
-    dataset_name: str | None = None
-    dataset_kwargs: dict | None = None
-    training_split: str | None = None
-    validation_split: str | None = None
-    test_split: str | None = None
-    fewshot_split: str | None = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
-    )
-    # formatting / prompting options.
-    # see docs/advanced_task_guide.md for more info
-    process_docs: Callable | None = None
-    doc_to_text: Callable | str | None = None
-    doc_to_target: Callable | str | None = None
-    doc_to_image: Callable | str = None
-    doc_to_audio: Callable | str = None
-    unsafe_code: bool = False
-    doc_to_choice: Callable | str | dict | list | None = None
-    process_results: Callable | str | None = None
-    use_prompt: str | None = None
-    description: str = ""
-    target_delimiter: str = " "
-    fewshot_delimiter: str = "\n\n"
-    fewshot_config: dict | None = None
-    # runtime configuration options
-    num_fewshot: int | None = None
-    # scoring options
-    metric_list: list | None = None
-    output_type: OutputType = "generate_until"
-    generation_kwargs: dict | None = None
-    repeats: int = 1
-    filter_list: str | list | None = None
-    should_decontaminate: bool = False
-    doc_to_decontamination_query: str | None = None
-    gen_prefix: str | None = None
-    metadata: dict | None = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
-
-    def __post_init__(self) -> None:
-        if self.generation_kwargs is not None:
-            if self.output_type != "generate_until":
-                eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
-                )
-
-            if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
-
-            if "until" not in self.generation_kwargs:
-                eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
-                )
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
-        else:
-            if self.output_type == "generate_until":
-                # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = {
-                    "until": (
-                        None
-                        if self.fewshot_delimiter is None
-                        else [self.fewshot_delimiter]
-                    ),
-                    "do_sample": False,
-                    "temperature": 0,
-                }
-                eval_logger.warning(
-                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
-                )
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def to_dict(self, keep_callable: bool = False) -> dict:
-        """dumps the current config as a dictionary object, as a printable format.
-        null fields will not be printed.
-        Used for dumping results alongside full task configuration
-
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-
-        # TODO: should any default value in the TaskConfig not be printed?
-        """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if v is None:
-                cfg_dict.pop(k)
-            elif k == "metric_list":
-                for metric_dict in v:
-                    for metric_key, metric_value in metric_dict.items():
-                        if callable(metric_value):
-                            metric_dict[metric_key] = self.serialize_function(
-                                metric_value, keep_callable=keep_callable
-                            )
-                cfg_dict[k] = v
-            elif callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Callable | str, keep_callable=False
-    ) -> Callable | str:
-        """Serializes a given function or string.
-
-        If 'keep_callable' is True, the original callable is returned.
-        Otherwise, attempts to return the source code of the callable using 'getsource'.
-        """
-        if keep_callable:
-            return value
-        else:
-            try:
-                return getsource(value)
-            except (TypeError, OSError):
-                return str(value)
+TaskConfig = TaskConfig
 
 
 class Task(abc.ABC):
@@ -678,8 +552,8 @@ class Task(abc.ABC):
             self.aggregation = lambda: {
                 metric_name: get_metric_aggregation(metric_name)
             }
-        setattr(self._config, "metric_list", [{"metric": metric_name}])
-        setattr(self._config, "process_results", None)
+        self._config["metric_list"] = [{"metric": metric_name}]
+        self._config["process_results"] = "process_results"
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
@@ -707,7 +581,7 @@ class Task(abc.ABC):
     ) -> Iterator[tuple[int, Any]]:
         if samples:
             n = len(self.eval_docs)
-            assert all([e < n for e in samples]), (
+            assert all(e < n for e in samples), (
                 f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
             eval_logger.info(
@@ -731,7 +605,7 @@ class Task(abc.ABC):
 
     @staticmethod
     def resolve_field(doc: dict[str, Any], field: str | None = None):
-        if field is not None:
+        if field:
             return doc[field] if field in doc else utils.apply_template(field, doc)
 
 
@@ -763,9 +637,8 @@ class ConfigurableTask(Task):
                 "Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg"
             )
 
-        if isinstance(self.config.metadata, dict):
-            if "version" in self.config.metadata:
-                self.VERSION = self.config.metadata["version"]
+        if isinstance(self.config.metadata, dict) and "version" in self.config.metadata:
+            self.VERSION = self.config.metadata["version"]
 
         if self.config.output_type is not None:
             if self.config.output_type not in ALL_OUTPUT_TYPES:
@@ -773,6 +646,8 @@ class ConfigurableTask(Task):
                     f"Got invalid output_type '{self.config.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
                 )
             self.OUTPUT_TYPE = self.config.output_type
+
+        self.fewshot_cfg = cast("FewshotConfig", self.config.fewshot_config)
 
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
@@ -904,9 +779,7 @@ class ConfigurableTask(Task):
 
         if self.fewshot_docs() is not None:
             config_sampler: str | type[samplers.ContextSampler] = (
-                self.config.fewshot_config.get("sampler", "default")
-                if self.config.fewshot_config
-                else "default"
+                self.fewshot_cfg.sampler if self.config.fewshot_config else "default"
             )
             fewshot_docs = list(self.fewshot_docs())  # type: ignore
             if isinstance(config_sampler, str):
@@ -955,19 +828,13 @@ class ConfigurableTask(Task):
                 test_target = test_choice[test_target]
             else:
                 test_target = str(test_target)
-
-        if test_choice is not None:
-            check_choices = test_choice
-        else:
-            check_choices = [test_target]
+        check_choices = test_choice if test_choice is not None else [test_target]
         if self.config.doc_to_choice is not None:
             for choice in check_choices:
-                choice_has_whitespace = True if choice[0].isspace() else False
+                choice_has_whitespace = bool(choice[0].isspace())
                 delimiter_has_whitespace = (
-                    True
-                    if self.config.target_delimiter.rstrip()
+                    self.config.target_delimiter.rstrip()
                     != self.config.target_delimiter
-                    else False
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
@@ -1000,22 +867,13 @@ class ConfigurableTask(Task):
             )
 
     def has_training_docs(self) -> bool:
-        if self.config.training_split is not None:
-            return True
-        else:
-            return False
+        return self.config.training_split is not None
 
     def has_validation_docs(self) -> bool:
-        if self.config.validation_split is not None:
-            return True
-        else:
-            return False
+        return self.config.validation_split is not None
 
     def has_test_docs(self) -> bool:
-        if self.config.test_split is not None:
-            return True
-        else:
-            return False
+        return self.config.test_split is not None
 
     def training_docs(self) -> datasets.Dataset:
         if self.has_training_docs():
@@ -1040,22 +898,22 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
-        if self.config.fewshot_split is not None:
-            if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.fewshot_split])
-            return self.dataset[self.config.fewshot_split]
+        if (split := self.fewshot_cfg.split) is not None:
+            if (process_docs := self.fewshot_cfg.process_docs) is not None:
+                return process_docs(self.dataset[split])
+            return self.dataset[split]
         elif (
             self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("samples", None) is not None
+            and (samples := self.fewshot_cfg.samples) is not None
         ):
-            if isinstance(self.config.fewshot_config["samples"], list):
-                return self.config.fewshot_config["samples"]
-            elif callable(self.config.fewshot_config["samples"]):
-                return self.config.fewshot_config["samples"]()
-            else:
-                raise Exception(
-                    "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list of samples as a dict, or function returning this list."
-                )
+            # fmt: off
+            match samples:
+                case list(): return samples
+                case fsamples if callable(samples): return fsamples()
+                case _: raise Exception(
+                        "`fewshot_config['samples']` was incorrectly defined in the configuration. It should either be `list[dict]`, or callable returning this list."
+                    ) from None
+            # fmt: on
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
@@ -1102,17 +960,15 @@ class ConfigurableTask(Task):
                 separate context).
         """
         messages = []
-        tgt_delim, few_delim = (
-            self.config.target_delimiter,
-            self.config.fewshot_delimiter,
-        )
         chat_template = (
             partial(chat_template, add_generation_prompt=not gen_prefix)
             if chat_template
             else None
         )
         description = self.resolve_field(doc, self.config.description) or ""
-        system_prompt = maybe_delimit(system_instruction, description, few_delim)
+        system_prompt = maybe_delimit(
+            system_instruction, description, self.config.fewshot_delimiter
+        )
         if system_prompt:
             messages.append(Message("system", system_prompt))
 
@@ -1120,14 +976,17 @@ class ConfigurableTask(Task):
             for fs_doc in self.sampler.sample(
                 n=num_fewshot,
                 eval_doc=doc
-                if self.config.fewshot_split == self.config.test_split
+                if self.fewshot_cfg.split == self.config.test_split
                 else None,
             ):
                 q, c, a = (
-                    self.doc_to_text(fs_doc),
-                    self.doc_to_choice(fs_doc) if self.config.doc_to_choice else None,
-                    self.doc_to_target(fs_doc),
+                    self.doc_to_text(fs_doc, self.fewshot_cfg.doc_to_text),
+                    self.doc_to_choice(fs_doc, self.fewshot_cfg.doc_to_choice)
+                    if self.fewshot_cfg.doc_to_choice
+                    else None,
+                    self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
                 )
+                _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
                 if self.multiple_input:
@@ -1138,9 +997,9 @@ class ConfigurableTask(Task):
                     q=q,
                     c=c,
                     a=a,
-                    gen_prefix=gen_prefix,
-                    tgt_delim=tgt_delim,
-                    few_delim=few_delim,
+                    gen_prefix=_gen_prefix,
+                    tgt_delim=self.fewshot_cfg.target_delimiter,
+                    few_delim=self.fewshot_cfg.fewshot_delimiter,
                 )
 
         q, c, a = (
@@ -1161,7 +1020,7 @@ class ConfigurableTask(Task):
             q=q,
             c=c,
             gen_prefix=gen_prefix,
-            tgt_delim=tgt_delim,
+            tgt_delim=self.config.target_delimiter,
             few_delim="",
         )
         if apply_chat_template and chat_template:
@@ -1437,7 +1296,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list:
+    def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
         if doc_to_image is not None:
             doc_to_image = doc_to_image
         elif self.config.doc_to_image is not None:
@@ -1460,7 +1319,7 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list:
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list | None:
         if doc_to_audio is not None:
             doc_to_audio = doc_to_audio
         elif self.config.doc_to_audio is not None:
@@ -1614,7 +1473,7 @@ class ConfigurableTask(Task):
                 ),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls, is_greedy = zip(*results)
+            lls, is_greedy = zip(*results, strict=True)
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = self.doc_to_choice(doc)
@@ -1667,7 +1526,7 @@ class ConfigurableTask(Task):
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
                 acc_bytes = 1.0 if pred_byte in gold else 0.0
-                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
+                exact_match = int(any(is_greedy[i] if i != -100 else 0 for i in gold))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
@@ -1696,7 +1555,8 @@ class ConfigurableTask(Task):
 
             if "acc_mutual_info" in use_metric:
                 lls_mutual_info = [
-                    ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
+                    ll_c - ll_u
+                    for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
                 ]
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
@@ -1755,10 +1615,7 @@ class ConfigurableTask(Task):
                                 # TODO: this handles the case where HF evaluate returns a dict.
                                 result_score = result_score[metric]
                             scores.append(result_score)
-                        if any(scores):
-                            result_score = 1.0
-                        else:
-                            result_score = 0.0
+                        result_score = 1.0 if any(scores) else 0.0
                 else:
                     try:
                         result_score = self._metric_fn_list[metric](
