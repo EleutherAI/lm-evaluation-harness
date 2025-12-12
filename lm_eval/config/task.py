@@ -159,7 +159,7 @@ class TaskConfig(dict):
                 )
         self.fewshot_config = (
             FewshotConfig.from_dict(
-                self.fewshot_config,
+                self.fewshot_config or {},
                 split=self.fewshot_split,
                 process_docs=self.process_docs,
                 fewshot_delimiter=self.fewshot_delimiter,
@@ -169,7 +169,7 @@ class TaskConfig(dict):
                 doc_to_choice=self.doc_to_choice,
                 doc_to_target=self.doc_to_target,
             )
-            if isinstance(self.fewshot_config, dict)
+            if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
             else self.fewshot_config
         )
 
