@@ -647,7 +647,7 @@ class ConfigurableTask(Task):
                 )
             self.OUTPUT_TYPE = self.config.output_type
 
-        self.fewshot_config = cast("FewshotConfig", self.config.fewshot_config)
+        self.fewshot_cfg = cast("FewshotConfig", self.config.fewshot_config)
 
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
@@ -779,7 +779,7 @@ class ConfigurableTask(Task):
 
         if self.fewshot_docs() is not None:
             config_sampler: str | type[samplers.ContextSampler] = (
-                self.fewshot_config.sampler if self.config.fewshot_config else "default"
+                self.fewshot_cfg.sampler if self.config.fewshot_config else "default"
             )
             fewshot_docs = list(self.fewshot_docs())  # type: ignore
             if isinstance(config_sampler, str):
@@ -898,13 +898,13 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
-        if (split := self.fewshot_config.split) is not None:
-            if (process_docs := self.fewshot_config.process_docs) is not None:
+        if (split := self.fewshot_cfg.split) is not None:
+            if (process_docs := self.fewshot_cfg.process_docs) is not None:
                 return process_docs(self.dataset[split])
             return self.dataset[split]
         elif (
             self.config.fewshot_config is not None
-            and (samples := self.fewshot_config.samples) is not None
+            and (samples := self.fewshot_cfg.samples) is not None
         ):
             # fmt: off
             match samples:
@@ -976,17 +976,25 @@ class ConfigurableTask(Task):
             for fs_doc in self.sampler.sample(
                 n=num_fewshot,
                 eval_doc=doc
-                if self.fewshot_config.split == self.config.test_split
+                if self.fewshot_cfg.split == self.config.test_split
                 else None,
             ):
                 q, c, a = (
-                    self.doc_to_text(fs_doc, self.fewshot_config.doc_to_text),
-                    self.doc_to_choice(fs_doc, self.fewshot_config.doc_to_choice)
-                    if self.fewshot_config.doc_to_choice
+                    self.doc_to_text(
+                        fs_doc, self.fewshot_cfg.doc_to_text or self.config.doc_to_text
+                    ),
+                    self.doc_to_choice(
+                        fs_doc,
+                        self.fewshot_cfg.doc_to_choice or self.config.doc_to_choice,
+                    )
+                    if self.fewshot_cfg.doc_to_choice
                     else None,
-                    self.doc_to_target(fs_doc, self.fewshot_config.doc_to_target),
+                    self.doc_to_target(
+                        fs_doc,
+                        self.fewshot_cfg.doc_to_target or self.config.doc_to_target,
+                    ),
                 )
-                _gen_prefix = self.resolve_field(doc, self.fewshot_config.gen_prefix)
+                _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
                 if self.multiple_input:
@@ -998,8 +1006,8 @@ class ConfigurableTask(Task):
                     c=c,
                     a=a,
                     gen_prefix=_gen_prefix,
-                    tgt_delim=self.fewshot_config.target_delimiter,
-                    few_delim=self.fewshot_config.fewshot_delimiter,
+                    tgt_delim=self.fewshot_cfg.target_delimiter,
+                    few_delim=self.fewshot_cfg.fewshot_delimiter,
                 )
 
         q, c, a = (

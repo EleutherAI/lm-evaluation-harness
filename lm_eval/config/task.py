@@ -48,9 +48,9 @@ class FewshotConfig:
     def from_dict(
         cls,
         cfg: dict,
-        # inherited from TaskConfig if not specified
         *,
-        split: str | None = None,
+        # inherited from TaskConfig if not specified
+        fewshot_split: str | None = None,
         process_docs: Callable[..., list[dict]] | None = None,
         fewshot_delimiter: str | None = None,
         target_delimiter: str | None = None,
@@ -58,7 +58,7 @@ class FewshotConfig:
         **overloads,
     ) -> FewshotConfig:
         cfg_dict = {
-            "split": split,
+            "split": fewshot_split,
             "process_docs": process_docs,
             "fewshot_delimiter": fewshot_delimiter,
             "target_delimiter": target_delimiter,
@@ -154,7 +154,7 @@ class TaskConfig(dict):
         self.fewshot_config = (
             FewshotConfig.from_dict(
                 self.fewshot_config,
-                split=self.fewshot_split,
+                fewshot_split=self.fewshot_split,
                 process_docs=self.process_docs,
                 fewshot_delimiter=self.fewshot_delimiter,
                 target_delimiter=self.target_delimiter,
