@@ -84,7 +84,6 @@ fewshot_config:
   sampler: default        # Sampling strategy: "default" (random) or "first_n"
   split: train            # Dataset split to draw fewshot examples from (overrides fewshot_split)
   samples: [...]          # Hardcoded list of fewshot examples, or a callable returning them
-  fewshot_indices: [0, 1] # Specific indices to select from the fewshot split
   doc_to_text: "..."      # Override doc_to_text for fewshot examples only
   doc_to_target: "..."    # Override doc_to_target for fewshot examples only
   doc_to_choice: "..."    # Override doc_to_choice for fewshot examples only
