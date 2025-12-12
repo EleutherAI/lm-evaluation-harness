@@ -980,19 +980,11 @@ class ConfigurableTask(Task):
                 else None,
             ):
                 q, c, a = (
-                    self.doc_to_text(
-                        fs_doc, self.fewshot_cfg.doc_to_text or self.config.doc_to_text
-                    ),
-                    self.doc_to_choice(
-                        fs_doc,
-                        self.fewshot_cfg.doc_to_choice or self.config.doc_to_choice,
-                    )
+                    self.doc_to_text(fs_doc, self.fewshot_cfg.doc_to_text),
+                    self.doc_to_choice(fs_doc, self.fewshot_cfg.doc_to_choice)
                     if self.fewshot_cfg.doc_to_choice
                     else None,
-                    self.doc_to_target(
-                        fs_doc,
-                        self.fewshot_cfg.doc_to_target or self.config.doc_to_target,
-                    ),
+                    self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
                 )
                 _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str

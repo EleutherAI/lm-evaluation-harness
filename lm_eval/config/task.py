@@ -55,6 +55,9 @@ class FewshotConfig:
         fewshot_delimiter: str | None = None,
         target_delimiter: str | None = None,
         gen_prefix: str | None = None,
+        doc_to_text: str | Callable[..., str] | None = None,
+        doc_to_choice: str | Callable[..., str] | dict | list | None = None,
+        doc_to_target: str | Callable[..., str] | None = None,
         **overloads,
     ) -> FewshotConfig:
         cfg_dict = {
@@ -63,6 +66,9 @@ class FewshotConfig:
             "fewshot_delimiter": fewshot_delimiter,
             "target_delimiter": target_delimiter,
             "gen_prefix": gen_prefix,
+            "doc_to_text": doc_to_text,
+            "doc_to_choice": doc_to_choice,
+            "doc_to_target": doc_to_target,
             **cfg,
             **overloads,
         }
@@ -154,11 +160,14 @@ class TaskConfig(dict):
         self.fewshot_config = (
             FewshotConfig.from_dict(
                 self.fewshot_config,
-                fewshot_split=self.fewshot_split,
+                split=self.fewshot_split,
                 process_docs=self.process_docs,
                 fewshot_delimiter=self.fewshot_delimiter,
                 target_delimiter=self.target_delimiter,
                 gen_prefix=self.gen_prefix,
+                doc_to_text=self.doc_to_text,
+                doc_to_choice=self.doc_to_choice,
+                doc_to_target=self.doc_to_target,
             )
             if isinstance(self.fewshot_config, dict)
             else self.fewshot_config
