@@ -4,7 +4,7 @@ import inspect
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
-from lm_eval.api.group import ConfigurableGroup, GroupConfig
+from lm_eval.api.group import AggregationConfig, Group
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.tasks._config_loader import load_yaml
 from lm_eval.tasks.index import Entry, Kind
@@ -13,30 +13,35 @@ from lm_eval.tasks.index import Entry, Kind
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from lm_eval.api.task import Task
+
 
 class TaskFactory:
     """
-    Turns a *Entry* (plus optional overrides) into a
-    *Task* | *ConfigurableTask* | *GroupConfig* hierarchy.
+    Builds Task and Group objects from Entry definitions.
+
+    Returns Task | Group directly - Groups contain their children.
     """
 
     def __init__(self, *, meta: dict[str, Any] | None = None):
         self._meta: dict[str, Any] = meta or {}
 
     # ---------------------------------------------------------------- public API
+
     def build(
         self,
         entry: Entry,
         *,
         overrides: dict[str, Any] | None = None,
         registry: Mapping[str, Entry],
-    ):
+    ) -> Task | Group | list[Task]:
         """
-        * entry.kind == TASK / PY_TASK -> returns instantiated task object
-        * entry.kind == GROUP -> returns (GroupConfig, mapping-of-subtasks)
-        * entry.kind == TAG -> returns mapping-of-tasks (tag expansion)
-        * entry with ref_target -> resolves reference and builds target
-        * entry with tag_ref -> expands tag and builds tasks
+        Build an entry into a Task, Group, or list of Tasks.
+
+        Returns:
+            - Task: for single tasks
+            - Group: for groups (with children populated)
+            - list[Task]: for tags (expanded to multiple tasks)
         """
         match entry:
             # Handle external references (ref: in children)
@@ -60,15 +65,16 @@ class TaskFactory:
             case _:
                 return self._build_task(entry, overrides)
 
-    def _build_task(self, entry: Entry, overrides: dict[str, Any] | None):
-        """Build a task and return it wrapped in a dict {task_name: task_obj}."""
+    # ---------------------------------------------------------------- build methods
+
+    def _build_task(self, entry: Entry, overrides: dict[str, Any] | None) -> Task:
+        """Build and return a Task."""
         cfg = self._load_full_config(entry, overrides)
 
         # Remove structural keys that aren't part of task config
         for key in ("children", "ref", "tag", "group"):
             cfg.pop(key, None)
 
-        # Use cfg["task"] as key (may be overridden, e.g., for namespacing)
         task_name = cfg["task"]
 
         if "class" in cfg:  # PY_TASK route
@@ -76,41 +82,55 @@ class TaskFactory:
             obj = cls(config=cfg) if _ctor_accepts_config(cls) else cls()
             if hasattr(obj, "config") and hasattr(obj.config, "task"):
                 obj.config.task = task_name
-            return {task_name: obj}
+        else:
+            obj = ConfigurableTask(config=cfg)
 
-        # Regular YAML task - use ConfigurableTask
-        task_obj = ConfigurableTask(config=cfg)
-        return {task_name: task_obj}
+        return obj
 
     def _build_group(
         self,
         entry: Entry,
         overrides: dict[str, Any] | None,
         registry: Mapping[str, Entry],
-    ):
+    ) -> Group:
+        """Build a Group with its children populated."""
         raw_cfg = self._load_full_config(entry, None)
-        grp_cfg = {k: v for k, v in raw_cfg.items() if k in GroupConfig.__annotations__}
-        grp_cfg["metadata"] = grp_cfg.get("metadata", {}) | self._meta
-        group_obj = ConfigurableGroup(config=grp_cfg)
         group_name = entry.name
 
-        children: dict[str, Any] = {}
+        # Parse aggregation config
+        aggregation = None
+        if agg_list := raw_cfg.get("aggregate_metric_list"):
+            if isinstance(agg_list, dict):
+                agg_list = [agg_list]
+            aggregation = [
+                AggregationConfig(**item) if isinstance(item, dict) else item
+                for item in agg_list
+            ]
 
-        # Handle new-style children: dict (hierarchical)
+        # Create the Group object
+        group = Group(
+            name=group_name,
+            alias=raw_cfg.get("group_alias"),
+            aggregation=aggregation,
+            metadata=raw_cfg.get("metadata", {}) | self._meta,
+        )
+
+        # Build and add children from new-style children: dict
         if "children" in raw_cfg:
-            children.update(
-                self._build_children(
-                    raw_cfg["children"], group_name, overrides, registry
-                )
-            )
+            for child in self._build_children(
+                raw_cfg["children"], group_name, overrides, registry
+            ):
+                group.add(child)
 
-        # Handle old-style task: list (backward compatibility)
-        if "task" in grp_cfg and isinstance(grp_cfg["task"], list):
-            children.update(
-                self._build_task_list(grp_cfg["task"], group_name, overrides, registry)
-            )
+        # Build and add children from old-style task: list
+        task_field = raw_cfg.get("task")
+        if isinstance(task_field, list):
+            for child in self._build_task_list(
+                task_field, group_name, overrides, registry
+            ):
+                group.add(child)
 
-        return {group_obj: children}
+        return group
 
     def _build_children(
         self,
@@ -118,19 +138,22 @@ class TaskFactory:
         group_name: str,
         overrides: dict[str, Any] | None,
         registry: Mapping[str, Entry],
-    ) -> dict[str, Any]:
-        """Build children defined via children: dict."""
-        result: dict[str, Any] = {}
+    ) -> list[Task | Group]:
+        """Build children defined via children: dict.
+
+        Returns:
+            List of Task | Group objects
+        """
+        children: list[Task | Group] = []
 
         for child_name, child_cfg in children_cfg.items():
             child_path = f"{group_name}::{child_name}"
 
-            # Look up pre-registered entry from index
             if child_path in registry:
                 child_entry = registry[child_path]
                 child_overrides = overrides or {}
 
-                # Merge any inline overrides from child_cfg (excluding structural keys)
+                # Merge any inline overrides from child_cfg
                 inline_overrides = {
                     k: v
                     for k, v in child_cfg.items()
@@ -139,17 +162,22 @@ class TaskFactory:
                 if inline_overrides:
                     child_overrides = {**child_overrides, **inline_overrides}
 
-                child = self.build(
+                child_obj = self.build(
                     child_entry, overrides=child_overrides, registry=registry
                 )
-                result.update(child)
+
+                # For refs, rename the task to use the child name
+                if child_entry.ref_target and hasattr(child_obj, "config"):
+                    child_obj.config.task = child_name
+
+                children.append(child_obj)
             else:
-                # Fallback: inline task not pre-registered (shouldn't normally happen)
+                # Fallback: inline task not pre-registered
                 task_cfg: dict[str, Any] = {**child_cfg, "task": child_path}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
-                result[child_path] = ConfigurableTask(config=task_cfg)
+                children.append(ConfigurableTask(config=task_cfg))
 
-        return result
+        return children
 
     def _build_task_list(
         self,
@@ -157,72 +185,78 @@ class TaskFactory:
         group_name: str,
         overrides: dict[str, Any] | None,
         registry: Mapping[str, Entry],
-    ) -> dict[str, Any]:
-        """Build children defined via task: list (backward compatibility)."""
-        result: dict[str, Any] = {}
+    ) -> list[Task | Group]:
+        """Build children defined via task: list (backward compatibility).
+
+        Returns:
+            List of Task | Group objects
+        """
+        children: list[Task | Group] = []
 
         for item in task_list:
-            # Step 1: Normalize - extract base_name and item_overrides
+            # Normalize - extract base_name and item_overrides
             if isinstance(item, str):
                 base_name = item
                 item_overrides = overrides or {}
             elif isinstance(item, dict):
                 base_name = item["task"]
-                item_overrides = {**overrides, **item}
+                item_overrides = {**overrides, **item} if overrides else item
             else:
                 raise TypeError(
                     f"Unsupported sub-entry {item!r} in group '{group_name}'"
                 )
 
-            # Step 2: Handle inline task (not in registry)
+            # Handle inline task (not in registry)
             if base_name not in registry:
                 namespaced = f"{group_name}::{base_name}"
                 task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
-                result[namespaced] = ConfigurableTask(config=task_cfg)
+                children.append(ConfigurableTask(config=task_cfg))
                 continue
 
-            # Step 3: Build based on entry kind
+            # Build based on entry kind
             child_entry = registry[base_name]
             match child_entry:
                 case Entry(kind=Kind.GROUP):
-                    child = self.build(
+                    child_obj = self.build(
                         child_entry, overrides=item_overrides, registry=registry
                     )
+                    children.append(child_obj)
+
                 case Entry(kind=Kind.TAG):
-                    child = {}
                     for task_name in child_entry.tags:
                         namespaced = f"{group_name}::{task_name}"
-                        child.update(
-                            self.build(
-                                registry[task_name],
-                                overrides={"task": namespaced, **item_overrides},
-                                registry=registry,
-                            )
+                        child_obj = self.build(
+                            registry[task_name],
+                            overrides={"task": namespaced, **item_overrides},
+                            registry=registry,
                         )
+                        children.append(child_obj)
+
                 case _:
                     # TASK or PY_TASK
                     namespaced = f"{group_name}::{base_name}"
-                    child = self.build(
+                    child_obj = self.build(
                         child_entry,
                         overrides={"task": namespaced, **item_overrides},
                         registry=registry,
                     )
-            result.update(child)
+                    children.append(child_obj)
 
-        return result
+        return children
 
     def _build_tag(
         self,
         entry: Entry,
         overrides: dict[str, Any] | None,
         registry: Mapping[str, Entry],
-    ):
-        """Build all tasks in a tag and return merged dict."""
-        result = {}
-        for name in entry.tags:
-            result.update(self._build_task(registry[name], overrides))
-        return result
+    ) -> list[Task]:
+        """Build all tasks from a tag.
+
+        Tags are just a shorthand for multiple tasks, not a container.
+        Returns a list of Task objects (not a Group).
+        """
+        return [self._build_task(registry[name], overrides) for name in entry.tags]
 
     def _load_full_config(
         self, entry: Entry, overrides: dict[str, Any] | None

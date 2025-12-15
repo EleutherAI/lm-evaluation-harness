@@ -22,27 +22,27 @@ class TaskOutput:
     """
     Wrapper class for Task outputs.It contains various attributes and methods to manage and calculate metrics for the task.
 
-        Attributes:
-            task (object): The task object.
-            task_name (str): The name of the task.
-            task_config (dict): The configuration of the task.
-            version (str): The version of the task.
-            group_name (str): The name of the task group.
-            n_shot (int): The number of shots for the task.
-            task_alias (str): The alias of the task.
-            group_alias (str): The alias of the task group.
-            is_group (bool): Indicates if the task is a group.
-            logged_samples (list): The list of logged samples.
-            sample_len (int): The length of the samples.
-            sample_metrics (defaultdict): The dictionary of samples' metrics.
-            agg_metrics (defaultdict): The dictionary of aggregate metrics.
+    Attributes:
+        task (object): The task object.
+        task_name (str): The name of the task.
+        task_config (dict): The configuration of the task.
+        version (str): The version of the task.
+        group_name (str): The name of the task group.
+        n_shot (int): The number of shots for the task.
+        task_alias (str): The alias of the task.
+        group_alias (str): The alias of the task group.
+        is_group (bool): Indicates if the task is a group.
+        logged_samples (list): The list of logged samples.
+        sample_len (int): The length of the samples.
+        sample_metrics (defaultdict): The dictionary of samples' metrics.
+        agg_metrics (defaultdict): The dictionary of aggregate metrics.
 
-        Methods:
-            from_taskdict(cls, task_name: str, task):
-                Creates a TaskOutput instance from a task dictionary.
+    Methods:
+        from_taskdict(cls, task_name: str, task):
+            Creates a TaskOutput instance from a task dictionary.
 
-            calculate_aggregate_metric(bootstrap_iters=100000) -> None:
-                Calculates the aggregate metrics for the task.
+        calculate_aggregate_metric(bootstrap_iters=100000) -> None:
+            Calculates the aggregate metrics for the task.
     """
 
     def __init__(
@@ -138,13 +138,21 @@ class TaskOutput:
         )
 
 
-def get_task_list(task_dict: dict) -> list[TaskOutput]:
+def get_task_list(task_dict: dict, parent_group: str | None = None) -> list[TaskOutput]:
     outputs = []
     for task_name, task_obj in task_dict.items():
         if isinstance(task_obj, dict):
-            _outputs = get_task_list(task_obj)
+            # Pass group context down when recursing
+            if isinstance(task_name, ConfigurableGroup):
+                group_name = task_name.group_name
+            else:
+                group_name = parent_group
+            _outputs = get_task_list(task_obj, parent_group=group_name)
             outputs.extend(_outputs)
         else:
+            # Pass group as tuple so from_taskdict can extract it
+            if parent_group:
+                task_obj = (parent_group, task_obj)
             task_output = TaskOutput.from_taskdict(task_name, task_obj)
             outputs.append(task_output)
 
@@ -264,10 +272,8 @@ def prepare_print_tasks(
             from_configurable_group = True
             task_or_group_obj = _sort_task_dict(task_or_group_obj)
         elif isinstance(task_or_group_name, str):
+            # Use the dict key as the result lookup key (preserves hierarchical child names)
             name = task_or_group_name
-            if isinstance(task_or_group_obj, Task):
-                # string_name = task_or_group_obj.task_name
-                name = task_or_group_obj.task_name
             from_configurable_group = False
 
         task_agg[name] = results[name].copy()
@@ -277,10 +283,7 @@ def prepare_print_tasks(
             else:
                 alias = task_or_group_name.group
         else:
-            if "alias" in task_agg[name]:
-                alias = task_agg[name]["alias"]
-            else:
-                alias = name
+            alias = task_agg[name].get("alias", name)
 
         task_agg[name]["alias"] = tab_string + alias
         if "samples" in task_agg[name]:
@@ -351,15 +354,18 @@ def consolidate_results(
             results[task_output.task_name]["alias"] = task_config["task_alias"]
         else:
             results[task_output.task_name]["alias"] = task_output.task_name
-        if group_alias := task_output.group_alias:
-            if group_alias not in results and (group_name := task_output.group_name):
-                results[group_name]["alias"] = group_alias
+        if (
+            (group_alias := task_output.group_alias)
+            and group_alias not in results
+            and (group_name := task_output.group_name)
+        ):
+            results[group_name]["alias"] = group_alias
         num_fewshot[task_output.task_name] = task_output.n_shot
         configs[task_output.task_name] = task_output.task_config
         versions[task_output.task_name] = task_output.version
         samples[task_output.task_name] = task_output.logged_samples
         higher_is_better[task_output.task_name] = task_output.task.higher_is_better()
-        for (metric, filter_key), items in task_output.sample_metrics.items():
+        for (metric, filter_key), _ in task_output.sample_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_name][metric_key] = task_output.agg_metrics[
                 metric_key
@@ -567,3 +573,266 @@ def run_task_tests(task_list: list[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
+
+
+# =============================================================================
+# V2 API - Simplified functions using Group as container
+# =============================================================================
+
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
+
+from lm_eval.api.group import Group
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.task import Task
+
+
+@dataclass
+class EvalResults:
+    """
+    Simplified container for evaluation results.
+
+    Replaces the 6 separate dicts returned by consolidate_results().
+    """
+
+    # Core results: {task_name: {metric_key: value}}
+    metrics: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+    # Per-task metadata
+    configs: dict[str, dict] = field(default_factory=dict)
+    versions: dict[str, Any] = field(default_factory=dict)
+    num_fewshot: dict[str, int] = field(default_factory=dict)
+    higher_is_better: dict[str, dict[str, bool]] = field(default_factory=dict)
+
+    # Sample-level data (optional)
+    samples: dict[str, list] = field(default_factory=dict)
+
+    # All groups (for aggregation and formatting)
+    groups: dict[str, "Group"] = field(default_factory=dict)
+
+
+def collect_results_v2(
+    eval_tasks: list[TaskOutput],
+    groups: dict[str, "Group"] | None = None,
+) -> EvalResults:
+    """
+    Collect task results into an EvalResults container.
+
+    This is a simplified version of consolidate_results() that:
+    - Returns a single dataclass instead of 6 separate dicts
+    - Works with flat task list (no nested structures)
+    - Stores groups for aggregation
+
+    Args:
+        eval_tasks: List of TaskOutput objects with computed metrics
+        groups: Dict of group name -> Group objects
+
+    Returns:
+        EvalResults with all results consolidated
+    """
+    result = EvalResults()
+    result.groups = groups or {}
+
+    for task_output in eval_tasks:
+        task_name = task_output.task_name
+
+        # Initialize metrics dict for this task
+        task_metrics: dict[str, Any] = {}
+
+        # Set alias
+        if task_config := task_output.task_config:
+            task_metrics["alias"] = task_config.get("task_alias", task_name)
+        else:
+            task_metrics["alias"] = task_name
+
+        # Collect aggregated metrics
+        for (metric, filter_key), _ in task_output.sample_metrics.items():
+            metric_key = f"{metric},{filter_key}"
+            stderr_key = f"{metric}_stderr,{filter_key}"
+
+            task_metrics[metric_key] = task_output.agg_metrics.get(metric_key)
+            task_metrics[stderr_key] = task_output.agg_metrics.get(stderr_key)
+
+        task_metrics["samples"] = task_output.sample_len
+
+        # Store results
+        result.metrics[task_name] = task_metrics
+        result.configs[task_name] = task_output.task_config or {}
+        result.versions[task_name] = task_output.version
+        result.num_fewshot[task_name] = task_output.n_shot
+
+        if task_output.task:
+            result.higher_is_better[task_name] = task_output.task.higher_is_better()
+
+        result.samples[task_name] = task_output.logged_samples
+
+    return result
+
+
+def aggregate_groups_v2(
+    results: EvalResults,
+) -> EvalResults:
+    """
+    Compute aggregated metrics for groups.
+
+    Uses Group's built-in get_all_tasks() to find leaf tasks.
+    Processes groups bottom-up (children before parents) using
+    Group's hierarchical structure directly.
+
+    Args:
+        results: EvalResults from collect_results_v2
+
+    Returns:
+        Same EvalResults with group metrics added
+    """
+    # Collect all groups in bottom-up order (children before parents)
+    all_groups = _collect_groups_bottom_up(results.groups)
+
+    for group in all_groups:
+        # Get leaf task names using Group's built-in method
+        leaf_tasks = [t.task_name for t in group.get_all_tasks()]
+
+        group_metrics: dict[str, Any] = {"alias": group.display_name}
+
+        if leaf_tasks and group.has_aggregation:
+            for agg_config in group.aggregation:
+                for filter_name in agg_config.filter_list:
+                    metric_key = f"{agg_config.metric},{filter_name}"
+                    stderr_key = f"{agg_config.metric}_stderr,{filter_name}"
+
+                    # Gather values from leaf tasks
+                    values = []
+                    stderrs = []
+                    sizes = []
+
+                    for task_name in leaf_tasks:
+                        if task_name not in results.metrics:
+                            continue
+                        task_metrics = results.metrics[task_name]
+                        if metric_key in task_metrics:
+                            values.append(task_metrics[metric_key])
+                            sizes.append(task_metrics.get("samples", 0))
+                            stderr_val = task_metrics.get(stderr_key)
+                            if stderr_val is not None:
+                                stderrs.append(stderr_val)
+
+                    if values:
+                        group_metrics[metric_key] = aggregate_subtask_metrics(
+                            values, sizes, agg_config.weight_by_size
+                        )
+                        group_metrics["samples"] = sum(sizes)
+
+                        if len(stderrs) == len(values) and "N/A" not in stderrs:
+                            group_metrics[stderr_key] = pooled_sample_stderr(
+                                stderrs, sizes
+                            )
+                        else:
+                            group_metrics[stderr_key] = "N/A"
+
+        results.metrics[group.name] = group_metrics
+
+    return results
+
+
+def get_root_groups(groups: dict[str, "Group"]) -> list["Group"]:
+    """
+    Find groups that aren't children of any other group.
+
+    These are the "top-level" groups for traversal.
+    """
+    # Collect all group names that appear as children of other groups
+    child_names: set[str] = set()
+    for group in groups.values():
+        for subgroup in group.get_all_groups(recursive=False):
+            child_names.add(subgroup.name)
+
+    # Root groups are those not in child_names
+    return [g for name, g in groups.items() if name not in child_names]
+
+
+def _collect_groups_bottom_up(groups: dict[str, "Group"]) -> list["Group"]:
+    """
+    Collect all groups in bottom-up order (children before parents).
+
+    This is a post-order traversal that ensures subgroups are processed
+    before their parent groups.
+    """
+    result: list[Group] = []
+    visited: set[str] = set()
+
+    def visit(group: "Group") -> None:
+        if group.name in visited:
+            return
+        # Visit children first (post-order)
+        for child in group:
+            if isinstance(child, Group):
+                visit(child)
+        # Then add this group
+        visited.add(group.name)
+        result.append(group)
+
+    # Start from root groups and traverse down
+    for root in get_root_groups(groups):
+        visit(root)
+
+    return result
+
+
+def format_results_v2(
+    results: EvalResults,
+    show_groups: bool = True,
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    """
+    Format results for display with indentation.
+
+    Args:
+        results: EvalResults with metrics
+        show_groups: Whether to include group aggregations in output
+
+    Returns:
+        Tuple of (task_results, group_results) formatted for display
+    """
+    task_results: dict[str, dict] = {}
+    group_results: dict[str, dict] = {}
+
+    def format_entry(name: str, metrics: dict, depth: int = 0) -> dict:
+        indent = " " * depth + "- " if depth > 0 else ""
+        formatted = dict(metrics)
+        alias = formatted.get("alias", name)
+        formatted["alias"] = indent + alias
+        formatted.pop("samples", None)
+        return formatted
+
+    def process_item(item: "Task | Group", depth: int) -> None:
+        if isinstance(item, Group):
+            name = item.name
+            if name in results.metrics:
+                formatted = format_entry(name, results.metrics[name], depth)
+                task_results[name] = formatted
+
+                if item.has_aggregation and show_groups:
+                    group_results[name] = formatted.copy()
+
+            # Process children
+            for child in item:
+                process_item(child, depth + 1)
+        else:
+            # Task
+            name = item.task_name
+            if name in results.metrics:
+                task_results[name] = format_entry(name, results.metrics[name], depth)
+
+    # Process root groups first (for hierarchy) - sorted for determinism
+    for root in sorted(get_root_groups(results.groups), key=lambda g: g.name):
+        process_item(root, 0)
+
+    # Add all tasks not yet processed (standalone or from groups) - sorted for determinism
+    for task_name in sorted(results.metrics.keys()):
+        if task_name not in task_results and task_name not in results.groups:
+            task_results[task_name] = format_entry(
+                task_name, results.metrics[task_name]
+            )
+
+    return task_results, group_results

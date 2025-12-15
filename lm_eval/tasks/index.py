@@ -197,13 +197,14 @@ class TaskIndex:
     @staticmethod
     def _kind_of(cfg: dict) -> Kind:
         match cfg:
-            # group configs have task: ["task": str | dict]
+            # Python task: has 'class' key (check before 'task' since PY_TASK may have both)
+            case {"class": _}:
+                return Kind.PY_TASK
+            # Group configs have task: list[str | dict]
             case {"task": list()}:
                 return Kind.GROUP
             case {"task": _}:
                 return Kind.TASK
-            case {"class": _}:
-                return Kind.PY_TASK
             case {"group": _}:
                 return Kind.GROUP
             case {"task_list": _}:

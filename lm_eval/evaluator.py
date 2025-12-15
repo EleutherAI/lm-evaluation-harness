@@ -13,20 +13,22 @@ import lm_eval.api.metrics
 import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
+from lm_eval.api.group import Group
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
-    consolidate_group_results,
-    consolidate_results,
+    # v2 API
+    EvalResults,
+    TaskOutput,
+    aggregate_groups_v2,
+    collect_results_v2,
+    format_results_v2,
     get_sample_size,
-    get_subtask_list,
-    get_task_list,
-    prepare_print_tasks,
     print_writeout,
     run_task_tests,
 )
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
-from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.tasks import TaskManager
 from lm_eval.utils import (
     handle_non_serializable,
     hash_dict_images,
@@ -44,6 +46,65 @@ if TYPE_CHECKING:
     from lm_eval.api.task import Task
 
 eval_logger = logging.getLogger(__name__)
+
+
+def _log_selected_tasks(
+    task_dict: dict,
+    groups: dict[str, Group],
+    task_manager: TaskManager,
+) -> None:
+    """Log selected tasks with hierarchy information."""
+    from pathlib import Path
+
+    def get_task_path(task_name: str) -> str:
+        """Get display path for a task."""
+        if task_name not in task_manager.task_index:
+            return "N/A"
+        entry = task_manager.task_index[task_name]
+        if not entry.yaml_path:
+            return "N/A"
+        yaml_path = Path(entry.yaml_path)
+        tasks_dir = Path(__file__).parent / "tasks"
+        try:
+            return str(yaml_path.relative_to(tasks_dir))
+        except ValueError:
+            return str(yaml_path)
+
+    eval_logger.info("Selected tasks:")
+
+    # Find root groups (not children of other groups)
+    all_children = set()
+    for group in groups.values():
+        all_children.update(group.children)
+    root_groups = [name for name in groups if name not in all_children]
+
+    # Log groups hierarchically
+    logged_tasks = set()
+
+    def log_group(group_name: str, indent: int = 0):
+        if group_name not in groups:
+            return
+        group = groups[group_name]
+        pad = "  " * indent
+        eval_logger.info(f"{pad}Group: {group_name}")
+
+        for child in group.children:
+            if child in groups:
+                log_group(child, indent + 1)
+            elif child in task_dict:
+                child_pad = "  " * (indent + 1)
+                path = get_task_path(child)
+                eval_logger.info(f"{child_pad}Task: {child} ({path})")
+                logged_tasks.add(child)
+
+    for root in sorted(root_groups):
+        log_group(root)
+
+    # Log standalone tasks (not in any group)
+    for task_name in sorted(task_dict.keys()):
+        if task_name not in logged_tasks:
+            path = get_task_path(task_name)
+            eval_logger.info(f"Task: {task_name} ({path})")
 
 
 @positional_deprecated
@@ -281,65 +342,50 @@ def simple_evaluate(
         ) | (metadata or {})
         task_manager = TaskManager(metadata=metadata)
 
-    task_dict = get_task_dict(
-        tasks,
-        task_manager,
-    )
+    # Load tasks using v2 API - returns {tasks, groups}
+    loaded = task_manager.load_v2(tasks)
+    task_dict = loaded["tasks"]
+    groups = loaded["groups"]
 
-    # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
-    # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
-    def _adjust_config(task_dict):
-        adjusted_task_dict = {}
-        for task_name, task_obj in task_dict.items():
-            if isinstance(task_obj, dict):
-                adjusted_task_dict = {
-                    **adjusted_task_dict,
-                    **{task_name: _adjust_config(task_obj)},
-                }
+    # Log selected tasks with hierarchy
+    _log_selected_tasks(task_dict, groups, task_manager)
 
+    # Apply config overrides to tasks (no recursion needed with flat dict)
+    for task_name, task_obj in task_dict.items():
+        if task_obj.get_config("output_type") == "generate_until":
+            if gen_kwargs is not None:
+                task_obj.set_config(
+                    key="generation_kwargs", value=gen_kwargs, update=True
+                )
+            eval_logger.info(
+                f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
+            )
+
+        if predict_only:
+            eval_logger.info(
+                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+            )
+            # we have to change the class properties post-hoc. This is pretty hacky.
+            task_obj.override_metric(metric_name="bypass")
+
+        # override tasks' fewshot values to the provided num_fewshot arg value
+        # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
+        if num_fewshot is not None:
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
+                eval_logger.info(
+                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                )
             else:
-                if task_obj.get_config("output_type") == "generate_until":
-                    if gen_kwargs is not None:
-                        task_obj.set_config(
-                            key="generation_kwargs", value=gen_kwargs, update=True
-                        )
-                    eval_logger.info(
-                        f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
-                    )
-
-                if predict_only:
-                    eval_logger.info(
-                        f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
-                    )
-                    # we have to change the class properties post-hoc. This is pretty hacky.
-                    task_obj.override_metric(metric_name="bypass")
-
-                # override tasks' fewshot values to the provided num_fewshot arg value
-                # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
-                if num_fewshot is not None:
-                    if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
-                        eval_logger.info(
-                            f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
-                        )
-                    else:
-                        eval_logger.warning(
-                            f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
-                        )
-                        task_obj.set_config(key="num_fewshot", value=num_fewshot)
-                else:
-                    # if num_fewshot not provided, and the task does not define a default one, default to 0
-                    if (
-                        default_num_fewshot := task_obj.get_config("num_fewshot")
-                    ) is None:
-                        task_obj.set_config(key="num_fewshot", value=0)
-                # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
-                task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-
-                adjusted_task_dict[task_name] = task_obj
-
-        return adjusted_task_dict
-
-    task_dict = _adjust_config(task_dict)
+                eval_logger.warning(
+                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                )
+                task_obj.set_config(key="num_fewshot", value=num_fewshot)
+        else:
+            # if num_fewshot not provided, and the task does not define a default one, default to 0
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
+                task_obj.set_config(key="num_fewshot", value=0)
+        # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
+        task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -358,6 +404,7 @@ def simple_evaluate(
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
+        groups=groups,
         limit=limit,
         samples=samples,
         cache_requests=cache_requests,
@@ -420,7 +467,8 @@ def simple_evaluate(
 @positional_deprecated
 def evaluate(
     lm: "LM",
-    task_dict,
+    task_dict: dict,
+    groups: dict[str, "Group"] | None = None,
     limit: int | None = None,
     samples: dict | None = None,
     cache_requests: bool = False,
@@ -487,8 +535,15 @@ def evaluate(
     # number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
-    # get lists of group hierarchy and each type of request
-    eval_tasks = get_task_list(task_dict)
+    # Initialize groups dict if not provided
+    if groups is None:
+        groups = {}
+
+    # Create TaskOutput objects from flat task dict (v2 API)
+    eval_tasks = [
+        TaskOutput.from_taskdict(task_name, task_obj)
+        for task_name, task_obj in task_dict.items()
+    ]
     if not log_samples and not all(
         "bypass" not in getattr(task_output.task, "_metric_fn_list", {})
         for task_output in eval_tasks
@@ -696,59 +751,54 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for task_output in eval_tasks:
             task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-        (
-            results,
-            samples,
-            configs,
-            versions,
-            num_fewshot,
-            higher_is_better,
-        ) = consolidate_results(eval_tasks)
 
-        ### Calculate group metrics ###
-        if bool(results):
-            results, versions, show_group_table, *_ = consolidate_group_results(
-                results, versions, task_dict
-            )
+        # V2 result processing pipeline
+        eval_results = collect_results_v2(eval_tasks, groups)
+        eval_results = aggregate_groups_v2(eval_results)
+        results_agg, group_agg = format_results_v2(eval_results)
 
-        results_agg, group_agg = prepare_print_tasks(task_dict, results)
-        subtask_list = get_subtask_list(task_dict)
+        # Get all groups for subtask list
+        all_groups: list[Group] = list(groups.values())
 
-        # collect all higher_is_better values for metrics
-        # in the group's subtasks.
-        # TODO: clean this up ; unify with the below metric_list loop?
-        _higher_is_better = {}
-        for group, task_list in subtask_list.items():
-            if (
-                len(task_list) != 0
-            ):  # subtask list will list "task_name": [] for solo tasks
-                for task in task_list:
-                    for m, h in higher_is_better[task].items():
+        # Build subtask list from groups
+        subtask_list = {group.name: group.children for group in all_groups}
+
+        # Determine if we should show group table
+        show_group_table = any(g.has_aggregation for g in all_groups)
+
+        # Collect higher_is_better from eval_results
+        higher_is_better = dict(eval_results.higher_is_better)
+
+        # Propagate higher_is_better to groups
+        for group in all_groups:
+            _higher_is_better = {}
+            for child in group.children:
+                if child in higher_is_better:
+                    for m, h in higher_is_better[child].items():
                         if m not in _higher_is_better:
                             _higher_is_better[m] = h
-
-                        if (
-                            m in _higher_is_better
-                            and _higher_is_better[m] is not None
+                        elif (
+                            _higher_is_better[m] is not None
                             and _higher_is_better[m] != h
                         ):
                             eval_logger.warning(
-                                f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
+                                f"Higher_is_better values for metric {m} in group {group.name} are not consistent. Defaulting to None."
                             )
                             _higher_is_better[m] = None
-                higher_is_better[group] = _higher_is_better
+            if _higher_is_better:
+                higher_is_better[group.name] = _higher_is_better
 
         results_dict = {
             "results": dict(results_agg.items()),
             **(
                 {"groups": dict(group_agg.items())}
-                if (bool(group_agg) & show_group_table)
+                if (bool(group_agg) and show_group_table)
                 else {}
             ),
-            "group_subtasks": dict(reversed(subtask_list.items())),
-            "configs": dict(sorted(configs.items())),
-            "versions": dict(sorted(versions.items())),
-            "n-shot": dict(sorted(num_fewshot.items())),
+            "group_subtasks": subtask_list,
+            "configs": dict(sorted(eval_results.configs.items())),
+            "versions": dict(sorted(eval_results.versions.items())),
+            "n-shot": dict(sorted(eval_results.num_fewshot.items())),
             "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": {
                 task_output.task_name: {
@@ -763,6 +813,7 @@ def evaluate(
         }
         if log_samples:
             # default: hash images
+            samples = eval_results.samples
             samples = (
                 hash_dict_images(samples)
                 if os.environ.get("LMEVAL_HASHMM", "1") != "0"
@@ -785,3 +836,58 @@ def request_caching_arg_to_dict(cache_requests: str) -> dict:
     }
 
     return request_caching_args
+
+
+# =============================================================================
+# V2 API - Simplified result processing
+# =============================================================================
+
+
+def process_results_v2(
+    eval_tasks: list,
+    groups: dict[str, "Group"] | None = None,
+) -> EvalResults:
+    """
+    Process evaluation results using the simplified v2 pipeline.
+
+    This is an alternative to the legacy consolidate_results/consolidate_group_results
+    pipeline. It uses the new Group dataclass and provides cleaner result handling.
+
+    Args:
+        eval_tasks: List of TaskOutput objects from evaluation
+        groups: Dict of group name -> Group objects from load_v2()
+
+    Returns:
+        EvalResults dataclass with:
+        - metrics: Dict of task/group metrics
+        - configs: Task configurations
+        - versions: Task versions
+        - num_fewshot: Number of few-shot examples
+        - higher_is_better: Metric direction info
+        - samples: Sample-level results
+        - groups: Groups dict for traversal
+
+    Example usage:
+        # Load tasks using v2 API
+        loaded = task_manager.load_v2(['arc', 'hellaswag'])
+
+        # Run evaluation
+        eval_tasks = evaluate_tasks(loaded['tasks'].values())
+
+        # Process results with v2 pipeline
+        results = process_results_v2(eval_tasks, loaded['groups'])
+
+        # Format for display
+        task_results, group_results = format_results_v2(results)
+    """
+    # Normalize groups to dict
+    if groups is None:
+        groups = {}
+
+    # Collect task results
+    results = collect_results_v2(eval_tasks, groups)
+
+    # Aggregate group metrics
+    results = aggregate_groups_v2(results)
+
+    return results

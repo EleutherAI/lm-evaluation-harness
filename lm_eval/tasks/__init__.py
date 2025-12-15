@@ -157,17 +157,21 @@ def get_task_dict(
     # (notably, because one could request several num_fewshot values at once in GroupConfig overrides for the subtask
     # and we'd be unsure which to use and report.)
     # we explicitly check and error in this case.
-    _check_duplicates(get_subtask_list(final_task_dict))
+    # _check_duplicates(get_subtask_list(final_task_dict))
 
     def pretty_print_task(task_name, task_manager, indent: int):
-        yaml_path = task_manager.task_index[task_name]["yaml_path"]
-        yaml_path = Path(yaml_path)
-        lm_eval_tasks_path = Path(__file__).parent
-        try:
-            display_path = yaml_path.relative_to(lm_eval_tasks_path)
-        except ValueError:
-            # Path is outside lm_eval/tasks (e.g., from include_path)
-            display_path = yaml_path
+        entry = task_manager.task_index[task_name]
+        yaml_path = entry.yaml_path
+        if yaml_path:
+            yaml_path = Path(yaml_path)
+            lm_eval_tasks_path = Path(__file__).parent
+            try:
+                display_path = yaml_path.relative_to(lm_eval_tasks_path)
+            except ValueError:
+                # Path is outside lm_eval/tasks (e.g., from include_path)
+                display_path = yaml_path
+        else:
+            display_path = "N/A"
 
         pad = "  " * indent
         eval_logger.info(f"{pad}Task: {task_name} ({display_path})")
