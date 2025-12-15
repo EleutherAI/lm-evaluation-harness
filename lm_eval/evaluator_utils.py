@@ -3,7 +3,6 @@ import logging
 import math
 import pathlib
 import sys
-from typing import List, Optional, Tuple, Union
 
 from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.metrics import (
@@ -139,7 +138,7 @@ class TaskOutput:
         )
 
 
-def get_task_list(task_dict: dict) -> List[TaskOutput]:
+def get_task_list(task_dict: dict) -> list[TaskOutput]:
     outputs = []
     for task_name, task_obj in task_dict.items():
         if isinstance(task_obj, dict):
@@ -210,7 +209,7 @@ def print_writeout(task) -> None:
             eval_logger.info(f"Request: {str(inst)}")
 
 
-def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
+def get_sample_size(task, limit: int | None) -> int | None:
     if limit is not None:
         limit = (
             int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
@@ -223,7 +222,7 @@ def prepare_print_tasks(
     results: dict,
     task_depth=0,
     group_depth=0,
-) -> Tuple[dict, dict]:
+) -> tuple[dict, dict]:
     """
     @param task_dict: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
     value is a list of task names.
@@ -311,8 +310,8 @@ def prepare_print_tasks(
 
 
 def consolidate_results(
-    eval_tasks: List[TaskOutput],
-) -> Tuple[dict, dict, dict, dict, dict, dict]:
+    eval_tasks: list[TaskOutput],
+) -> tuple[dict, dict, dict, dict, dict, dict]:
     """
     @param eval_tasks: list(TaskOutput).
     @return: A tuple containing the consolidated results, samples, configs, versions, and num_fewshot.
@@ -379,7 +378,7 @@ def consolidate_group_results(
     task_root=None,
     show_group_table=False,
     task_aggregation_list=None,
-) -> Tuple[dict, dict, bool, Union[None,]]:
+) -> tuple[dict, dict, bool, None]:
     """
     (Recursively) calculates groups' aggregated metrics and updates the results and versions dictionaries with this info.
 
@@ -509,6 +508,22 @@ def consolidate_group_results(
                 group_metadata = group_config.get("metadata", None)
                 if group_metadata is not None:
                     versions[group_or_task] = group_metadata.get("version", None)
+
+            # Clean up duplicate score rows for subtasks that also report other metrics.
+            for task in task_list:
+                task_metrics = [
+                    key
+                    for key in results[task].keys()
+                    if "," in key and not key.startswith("score_stderr")
+                ]
+                score_metrics = [
+                    key for key in task_metrics if key.startswith("score,")
+                ]
+                if score_metrics and len(task_metrics) > len(score_metrics):
+                    for score_metric in score_metrics:
+                        results[task].pop(score_metric, None)
+                        stderr_key = score_metric.replace("score,", "score_stderr,")
+                        results[task].pop(stderr_key, None)
     # print(results)
     return results, versions, show_group_table, task_aggregation_list
 
@@ -532,7 +547,7 @@ def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
 
 
 @positional_deprecated
-def run_task_tests(task_list: List[str]):
+def run_task_tests(task_list: list[str]):
     """
     Find the package root and run the tests for the given tasks
     """

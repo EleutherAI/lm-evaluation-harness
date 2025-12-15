@@ -1,0 +1,3 @@
+dataset_name: tgl_latn
+include: _template
+task: global_piqa_completions_tgl_latn

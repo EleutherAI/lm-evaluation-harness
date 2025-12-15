@@ -1,0 +1,3 @@
+dataset_name: mkd_cyrl
+include: _template
+task: global_piqa_completions_mkd_cyrl
