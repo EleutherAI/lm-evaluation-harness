@@ -3,8 +3,10 @@ import logging
 import math
 import pathlib
 import sys
+from dataclasses import dataclass, field
+from typing import Any
 
-from lm_eval.api.group import ConfigurableGroup
+from lm_eval.api.group import ConfigurableGroup, Group
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
     mean,
@@ -373,15 +375,6 @@ def run_task_tests(task_list: list[str]):
 # V2 API - Simplified functions using Group as container
 # =============================================================================
 
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
-
-from lm_eval.api.group import Group
-
-
-if TYPE_CHECKING:
-    from lm_eval.api.task import Task
-
 
 @dataclass
 class EvalResults:
@@ -504,9 +497,8 @@ def aggregate_groups_v2(
     """
     Compute aggregated metrics for groups.
 
-    Uses Group's built-in get_all_tasks() to find leaf tasks.
-    Processes groups bottom-up (children before parents) using
-    Group's hierarchical structure directly.
+    Processes groups bottom-up (children before parents) and delegates
+    aggregation to each Group's aggregate() method.
 
     Args:
         results: EvalResults from collect_results_v2
@@ -518,47 +510,8 @@ def aggregate_groups_v2(
     all_groups = _collect_groups_bottom_up(results.groups)
 
     for group in all_groups:
-        # Get leaf task names using Group's built-in method
-        leaf_tasks = [t.task_name for t in group.get_all_tasks()]
-
-        group_metrics: dict[str, Any] = {"alias": group.display_name}
-
-        if leaf_tasks and group.has_aggregation:
-            for agg_config in group.aggregation:
-                for filter_name in agg_config.filter_list:
-                    metric_key = f"{agg_config.metric},{filter_name}"
-                    stderr_key = f"{agg_config.metric}_stderr,{filter_name}"
-
-                    # Gather values from leaf tasks
-                    values = []
-                    stderrs = []
-                    sizes = []
-
-                    for task_name in leaf_tasks:
-                        if task_name not in results.metrics:
-                            continue
-                        task_metrics = results.metrics[task_name]
-                        if metric_key in task_metrics:
-                            values.append(task_metrics[metric_key])
-                            sizes.append(task_metrics.get("samples", 0))
-                            stderr_val = task_metrics.get(stderr_key)
-                            if stderr_val is not None:
-                                stderrs.append(stderr_val)
-
-                    if values:
-                        group_metrics[metric_key] = aggregate_subtask_metrics(
-                            values, sizes, agg_config.weight_by_size
-                        )
-                        group_metrics["samples"] = sum(sizes)
-
-                        if len(stderrs) == len(values) and "N/A" not in stderrs:
-                            group_metrics[stderr_key] = pooled_sample_stderr(
-                                stderrs, sizes
-                            )
-                        else:
-                            group_metrics[stderr_key] = "N/A"
-
-        results.metrics[group.name] = group_metrics
+        # Each group aggregates its own metrics from leaf tasks
+        results.metrics[group.name] = group.aggregate(results.metrics)
 
     return results
 

@@ -83,3 +83,11 @@ def format_turn(content: str, role: str, type: str | None = None) -> dict[str, s
         if not type
         else {"type": type, "role": role, "content": content}
     )
+
+
+def random_task_id():
+    """Generate a random 8-character alphanumeric task ID."""
+    import random
+    import string
+
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))

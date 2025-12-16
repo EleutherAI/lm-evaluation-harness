@@ -14,18 +14,21 @@ Example:
 from __future__ import annotations
 
 import abc
-from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from inspect import getsource
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
+
+from typing_extensions import deprecated
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from lm_eval.api.task import Task
 
 
 @dataclass
-class AggregationConfig:
+class AggMetricConfig:
     """Configuration for how to aggregate a metric across a group's children."""
 
     metric: str
@@ -66,18 +69,16 @@ class Group:
 
     name: str
     alias: str | None = None
-    aggregation: list[AggregationConfig] | None = None
-    metadata: dict | None = None
+    aggregation: list[AggMetricConfig] | None = None
+    metadata: dict[str, Any] | None = None
     _children: dict[str, Task | Group] = field(default_factory=dict, repr=False)
-
-    # =========================================================================
-    # Container API
-    # =========================================================================
 
     def add(self, item: Task | Group) -> None:
         """Add a task or subgroup to this group."""
         # Tasks have task_name, Groups have name
-        key = item.task_name if hasattr(item, "task_name") else item.name
+        key: str = cast(
+            "str", item.task_name if hasattr(item, "task_name") else item.name
+        )
         self._children[key] = item
 
     def remove(self, name: str) -> None:
@@ -100,9 +101,7 @@ class Group:
         """Number of direct children."""
         return len(self._children)
 
-    # =========================================================================
     # Query API
-    # =========================================================================
 
     def get_all_tasks(self, recursive: bool = True) -> list[Task]:
         """
@@ -159,13 +158,67 @@ class Group:
         """Whether this group defines aggregation metrics."""
         return self.aggregation is not None and len(self.aggregation) > 0
 
-    # =========================================================================
-    # Serialization
-    # =========================================================================
+    def aggregate(self, task_metrics: dict[str, dict]) -> dict[str, Any]:
+        """
+        Aggregate metrics for this group from its leaf task results.
 
-    def to_dict(self) -> dict:
+        Args:
+            task_metrics: {task_name: {metric_key: value, "samples": int, ...}}
+                Results from leaf tasks (EvalResults.metrics)
+
+        Returns:
+            Aggregated metrics dict for this group:
+            {"alias": str, "acc,none": float, "acc_stderr,none": float, "samples": int, ...}
+        """
+        from lm_eval.api.metrics import aggregate_subtask_metrics, pooled_sample_stderr
+
+        group_metrics: dict[str, Any] = {"alias": self.display_name}
+
+        if not self.aggregation:
+            return group_metrics
+
+        # Get leaf task names
+        leaf_tasks = [t.task_name for t in self.get_all_tasks()]
+
+        for agg_config in self.aggregation:
+            for filter_name in agg_config.filter_list:
+                metric_key = f"{agg_config.metric},{filter_name}"
+                stderr_key = f"{agg_config.metric}_stderr,{filter_name}"
+
+                # Gather values from leaf tasks
+                values: list[float] = []
+                stderrs: list[float] = []
+                sizes: list[int] = []
+
+                for task_name in leaf_tasks:
+                    if task_name not in task_metrics:
+                        continue
+                    task_result = task_metrics[task_name]
+                    if metric_key in task_result:
+                        values.append(task_result[metric_key])
+                        sizes.append(task_result.get("samples", 0))
+                        stderr_val = task_result.get(stderr_key)
+                        if stderr_val is not None:
+                            stderrs.append(stderr_val)
+
+                if values:
+                    group_metrics[metric_key] = aggregate_subtask_metrics(
+                        values, sizes, agg_config.weight_by_size
+                    )
+                    group_metrics["samples"] = sum(sizes)
+
+                    if len(stderrs) == len(values) and "N/A" not in stderrs:
+                        group_metrics[stderr_key] = pooled_sample_stderr(stderrs, sizes)
+                    else:
+                        group_metrics[stderr_key] = "N/A"
+
+        return group_metrics
+
+    # I/O
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
-        result = {"group": self.name}
+        result: dict[str, Any] = {"group": self.name}
         if self._children:
             result["children"] = list(self._children.keys())
         if self.alias:
@@ -177,14 +230,14 @@ class Group:
         return result
 
     @classmethod
-    def from_config(cls, config: dict) -> Group:
+    def from_config(cls, config: dict[str, Any]) -> Group:
         """
         Create a Group from a config dict (e.g., parsed from YAML).
 
         Note: This only creates the Group shell. Children must be added
         separately via group.add() after Tasks/subGroups are built.
         """
-        name = config.get("group", "")
+        name: str = config.get("group", "")
 
         # Parse aggregation config
         aggregation = None
@@ -192,7 +245,7 @@ class Group:
             if isinstance(agg_list, dict):
                 agg_list = [agg_list]
             aggregation = [
-                AggregationConfig(**item) if isinstance(item, dict) else item
+                AggMetricConfig(**item) if isinstance(item, dict) else item
                 for item in agg_list
             ]
 
@@ -212,24 +265,7 @@ class Group:
 # =============================================================================
 
 
-@dataclass
-class AggMetricConfig(dict):
-    """DEPRECATED: Use AggregationConfig instead."""
-
-    metric: str | None = None
-    aggregation: str | None = "mean"
-    weight_by_size: str | None = False
-    filter_list: str | list | None = "none"
-
-    def __post_init__(self):
-        if self.aggregation != "mean" and not callable(self.aggregation):
-            raise ValueError(
-                f"Currently, 'mean' is the only pre-defined aggregation. Got '{self.aggregation}'."
-            )
-        if isinstance(self.filter_list, str):
-            self.filter_list = [self.filter_list]
-
-
+@deprecated("Use `Group` instead.")
 @dataclass
 class GroupConfig(dict):
     """DEPRECATED: Use Group instead."""
@@ -237,7 +273,9 @@ class GroupConfig(dict):
     group: str | None = None
     group_alias: str | None = None
     task: str | list | None = None
-    aggregate_metric_list: list[AggMetricConfig] | AggMetricConfig | dict | None = None
+    aggregate_metric_list: (
+        list[AggMetricConfig] | AggMetricConfig | dict[str, str] | None
+    ) = None
     metadata: dict | None = None
 
     def __getitem__(self, item):
@@ -273,7 +311,8 @@ class GroupConfig(dict):
             return str(value)
 
 
-class ConfigurableGroup(abc.ABC):
+@deprecated("Use Group instead.")
+class ConfigurableGroup(abc.ABC):  # noqa: B024
     """DEPRECATED: Use Group instead."""
 
     def __init__(self, config: dict | None = None) -> None:

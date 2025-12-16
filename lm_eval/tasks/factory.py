@@ -4,7 +4,7 @@ import inspect
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
-from lm_eval.api.group import AggregationConfig, Group
+from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.tasks._config_loader import load_yaml
 from lm_eval.tasks.index import Entry, Kind
@@ -103,7 +103,7 @@ class TaskFactory:
             if isinstance(agg_list, dict):
                 agg_list = [agg_list]
             aggregation = [
-                AggregationConfig(**item) if isinstance(item, dict) else item
+                AggMetricConfig(**item) if isinstance(item, dict) else item
                 for item in agg_list
             ]
 
@@ -115,7 +115,7 @@ class TaskFactory:
             metadata=raw_cfg.get("metadata", {}) | self._meta,
         )
 
-        # Build and add children from new-style children: dict
+        # Build and add children from children: dict
         if "children" in raw_cfg:
             for child in self._build_children(
                 raw_cfg["children"], group_name, overrides, registry
@@ -181,7 +181,7 @@ class TaskFactory:
 
     def _build_task_list(
         self,
-        task_list: list,
+        task_list: list[str | dict[str, Any]],
         group_name: str,
         overrides: dict[str, Any] | None,
         registry: Mapping[str, Entry],

@@ -159,7 +159,7 @@ def get_task_dict(
     # we explicitly check and error in this case.
     # _check_duplicates(get_subtask_list(final_task_dict))
 
-    def pretty_print_task(task_name, task_manager, indent: int):
+    def pretty_print_task(task_name: str, task_manager: "TaskManager", indent: int):
         entry = task_manager.task_index[task_name]
         yaml_path = entry.yaml_path
         if yaml_path:
