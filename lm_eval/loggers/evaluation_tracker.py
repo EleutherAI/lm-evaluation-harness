@@ -114,7 +114,7 @@ class EvaluationTracker:
 
     def __init__(
         self,
-        output_path: str = None,
+        output_path: str | None = None,
         hub_results_org: str = "",
         hub_repo_name: str = "",
         details_repo_name: str = "",
@@ -193,14 +193,14 @@ class EvaluationTracker:
     def save_results_aggregated(
         self,
         results: dict,
-        samples: dict,
+        samples: dict | None = None,
     ) -> None:
         """
         Saves the aggregated results and samples to the output path and pushes them to the Hugging Face hub if requested.
 
         Args:
             results (dict): The aggregated results to save.
-            samples (dict): The samples results to save.
+            samples (dict | None): The samples results to save.
         """
         self.general_config_tracker.log_end_time()
 

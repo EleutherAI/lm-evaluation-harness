@@ -541,3 +541,87 @@ def test_apply_chat_template(monkeypatch):
     chat_history = [{"role": "user", "content": "Hello"}]
     rendered = tokenizer.apply_chat_template(chat_history)
     assert rendered == "Hello"
+
+
+# Tests for lm_eval.api.utils
+from lm_eval.api.utils import maybe_delimit, requires_delimiter
+
+
+class TestRequiresDelimiter:
+    """Tests for requires_delimiter function."""
+
+    def test_no_whitespace_requires_delimiter(self):
+        """Neither string has whitespace at boundary - delimiter required."""
+        assert requires_delimiter("hello", "world") is True
+
+    def test_prefix_ends_with_space(self):
+        """Prefix ends with space - no delimiter needed."""
+        assert requires_delimiter("hello ", "world") is False
+
+    def test_suffix_starts_with_space(self):
+        """Suffix starts with space - no delimiter needed."""
+        assert requires_delimiter("hello", " world") is False
+
+    def test_both_have_whitespace(self):
+        """Both have whitespace at boundary - no delimiter needed."""
+        assert requires_delimiter("hello ", " world") is False
+
+    def test_prefix_ends_with_newline(self):
+        """Prefix ends with newline - no delimiter needed."""
+        assert requires_delimiter("hello\n", "world") is False
+
+    def test_suffix_starts_with_tab(self):
+        """Suffix starts with tab - no delimiter needed."""
+        assert requires_delimiter("hello", "\tworld") is False
+
+
+class TestMaybeDelimit:
+    """Tests for maybe_delimit function."""
+
+    def test_both_present_no_whitespace(self):
+        """Both strings present, neither has whitespace - adds delimiter."""
+        assert maybe_delimit("hello", "world") == "hello world"
+
+    def test_both_present_prefix_has_space(self):
+        """Prefix ends with space - no delimiter added."""
+        assert maybe_delimit("hello ", "world") == "hello world"
+
+    def test_both_present_suffix_has_space(self):
+        """Suffix starts with space - no delimiter added."""
+        assert maybe_delimit("hello", " world") == "hello world"
+
+    def test_custom_delimiter(self):
+        """Custom delimiter is used when needed."""
+        assert maybe_delimit("hello", "world", delimiter="-") == "hello-world"
+
+    def test_prefix_is_none(self):
+        """Prefix is None - returns suffix."""
+        assert maybe_delimit(None, "world") == "world"
+
+    def test_prefix_is_empty(self):
+        """Prefix is empty string - returns suffix."""
+        assert maybe_delimit("", "world") == "world"
+
+    def test_suffix_is_none(self):
+        """Suffix is None - returns prefix."""
+        assert maybe_delimit("hello", None) == "hello"
+
+    def test_suffix_is_empty(self):
+        """Suffix is empty string - returns prefix."""
+        assert maybe_delimit("hello", "") == "hello"
+
+    def test_both_none(self):
+        """Both are None - returns empty string."""
+        assert maybe_delimit(None, None) == ""
+
+    def test_both_empty(self):
+        """Both are empty strings - returns empty string."""
+        assert maybe_delimit("", "") == ""
+
+    def test_newline_delimiter(self):
+        """Newline delimiter is used correctly."""
+        assert maybe_delimit("line1", "line2", delimiter="\n") == "line1\nline2"
+
+    def test_prefix_ends_with_newline_no_extra_delimiter(self):
+        """Prefix ends with newline - no extra delimiter added."""
+        assert maybe_delimit("line1\n", "line2", delimiter=" ") == "line1\nline2"

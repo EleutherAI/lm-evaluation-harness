@@ -274,3 +274,62 @@ def get_qa_f1_zh_score(doc: dict, results: list[str], **kwargs):
         score = qa_f1_zh_score(prediction, ground_truth)
         output = max(score, output)
     return {"qa_f1_zh_score": output}
+
+
+# Unified scoring wrappers for group aggregation
+# Each wrapper calls the original get_* function and returns with "score" key
+# This enables all tasks to output the same metric name for group-level aggregation
+
+
+def get_qa_f1_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_qa_f1_score(doc, results, **kwargs)
+    qa_f1 = result["qa_f1_score"]
+    return {"score": qa_f1, "qa_f1_score": qa_f1}
+
+
+def get_qa_f1_zh_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_qa_f1_zh_score(doc, results, **kwargs)
+    qa_f1_zh = result["qa_f1_zh_score"]
+    return {"score": qa_f1_zh, "qa_f1_zh_score": qa_f1_zh}
+
+
+def get_rouge_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_rouge_score(doc, results, **kwargs)
+    rouge = result["rouge_score"]
+    return {"score": rouge, "rouge_score": rouge}
+
+
+def get_rouge_zh_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_rouge_zh_score(doc, results, **kwargs)
+    rouge_zh = result["rouge_zh_score"]
+    return {"score": rouge_zh, "rouge_zh_score": rouge_zh}
+
+
+def get_classification_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_classification_score(doc, results, **kwargs)
+    classification = result["classification_score"]
+    return {"score": classification, "classification_score": classification}
+
+
+def get_count_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_count_score(doc, results, **kwargs)
+    count = result["count_score"]
+    return {"score": count, "count_score": count}
+
+
+def get_retrieval_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_retrieval_score(doc, results, **kwargs)
+    retrieval = result["retrieval_score"]
+    return {"score": retrieval, "retrieval_score": retrieval}
+
+
+def get_retrieval_zh_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_retrieval_zh_score(doc, results, **kwargs)
+    retrieval_zh = result["retrieval_zh_score"]
+    return {"score": retrieval_zh, "retrieval_zh_score": retrieval_zh}
+
+
+def get_code_sim_with_score(doc: dict, results: list[str], **kwargs):
+    result = get_code_sim_score(doc, results, **kwargs)
+    code_sim = result["code_sim_score"]
+    return {"score": code_sim, "code_sim_score": code_sim}

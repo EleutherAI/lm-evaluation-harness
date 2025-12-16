@@ -41,7 +41,7 @@ and rename the folders and YAML file(s) as desired.
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
 > [!TIP]
-> To test your task, we recommend using verbose logging using `export LOGLEVEL = DEBUG` in your shell before running the evaluation script. This will help you debug any issues that may arise.
+> To test your task, we recommend using verbose logging using `export LMEVAL_LOG_LEVEL="DEBUG"` in your shell before running the evaluation script. This will help you debug any issues that may arise.
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
 
 ```yaml
@@ -77,7 +77,24 @@ fewshot_config:
   ]
 ```
 
-or by adding the function `list_fewshot_samples` in the associated utils.py file:
+The full `fewshot_config` supports the following fields:
+
+```yaml
+fewshot_config:
+  sampler: default        # Sampling strategy: "default" (random) or "first_n"
+  split: train            # Dataset split to draw fewshot examples from (overrides fewshot_split)
+  samples: [...]          # Hardcoded list of fewshot examples, or a callable returning them
+  doc_to_text: "..."      # Override doc_to_text for fewshot examples only
+  doc_to_target: "..."    # Override doc_to_target for fewshot examples only
+  doc_to_choice: "..."    # Override doc_to_choice for fewshot examples only
+  gen_prefix: "Answer:"   # Prefix for assistant response in fewshot examples
+  fewshot_delimiter: "\n\n"  # Delimiter between fewshot examples
+  target_delimiter: " "      # Delimiter between question and answer
+```
+
+All fields are optional. If not specified, they inherit from the parent `TaskConfig`. This allows you to format fewshot examples differently from the evaluation examples — useful when your fewshot source has different field names or requires different formatting.
+
+You can also hardcode fewshot examples by adding the function `list_fewshot_samples` in the associated utils.py file:
 
 ```python
 def list_fewshot_samples() -> list[dict]:

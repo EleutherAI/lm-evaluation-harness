@@ -1,7 +1,7 @@
 tag:
   - crows_pairs
 task: crows_pairs_english
-dataset_path: BigScienceBiasEval/crows_pairs_multilingual
+dataset_path: jannalu/crows_pairs_multilingual
 dataset_name: english
 test_split: test
 output_type: multiple_choice
