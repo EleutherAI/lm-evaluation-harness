@@ -18,147 +18,6 @@ from lm_eval.utils import positional_deprecated
 eval_logger = logging.getLogger(__name__)
 
 
-class TaskOutput:
-    """
-    Wrapper class for Task outputs.It contains various attributes and methods to manage and calculate metrics for the task.
-
-    Attributes:
-        task (object): The task object.
-        task_name (str): The name of the task.
-        task_config (dict): The configuration of the task.
-        version (str): The version of the task.
-        group_name (str): The name of the task group.
-        n_shot (int): The number of shots for the task.
-        task_alias (str): The alias of the task.
-        group_alias (str): The alias of the task group.
-        is_group (bool): Indicates if the task is a group.
-        logged_samples (list): The list of logged samples.
-        sample_len (int): The length of the samples.
-        sample_metrics (defaultdict): The dictionary of samples' metrics.
-        agg_metrics (defaultdict): The dictionary of aggregate metrics.
-
-    Methods:
-        from_taskdict(cls, task_name: str, task):
-            Creates a TaskOutput instance from a task dictionary.
-
-        calculate_aggregate_metric(bootstrap_iters=100000) -> None:
-            Calculates the aggregate metrics for the task.
-    """
-
-    def __init__(
-        self,
-        task=None,
-        task_name=None,
-        task_config=None,
-        version=None,
-        group_name=None,
-        n_shot=None,
-        task_alias=None,
-        group_alias=None,
-        is_group=None,
-    ):
-        self.task = task
-        self.task_config = task_config
-        self.task_name = task_name
-        self.group_name = group_name
-        self.version = version
-        self.n_shot = n_shot
-        self.task_alias = task_alias
-        self.group_alias = group_alias
-        self.is_group = is_group
-        self.logged_samples = []
-        self.sample_len = None
-        self.sample_metrics = collections.defaultdict(list)
-        self.agg_metrics = collections.defaultdict(list)
-
-    @classmethod
-    def from_taskdict(cls, task_name: str, task):
-        if isinstance(task, tuple):
-            group_name, task = task
-        else:
-            group_name = None
-        if not task:
-            # these gets filtered out in get_task_list
-            # once they are added to group hierarchy
-            is_group = True
-            return cls(
-                task=task, task_name=task_name, is_group=is_group, group_name=group_name
-            )
-        version = task.VERSION
-        task_config = dict(task.dump_config())
-        if (n_shot := task_config.get("num_fewshot")) == 0:
-            n_shot = task_config.get("metadata", {}).get("num_fewshot", 0)
-        task_alias = task_config.get("alias")
-        group_alias = task_config.get("group_alias")
-        return cls(
-            task=task,
-            task_name=task_name,
-            task_config=task_config,
-            group_name=group_name,
-            version=version,
-            n_shot=n_shot,
-            task_alias=task_alias,
-            group_alias=group_alias,
-        )
-
-    def calculate_aggregate_metric(self, bootstrap_iters=100000) -> None:
-        for (metric, filter_key), items in self.sample_metrics.items():
-            try:
-                agg_fn = self.task.aggregation()[metric]
-            except KeyError:
-                # This is when process results output an arbitrary metric
-                # TODO: Handle this better and allow other aggregate functions other than mean.
-                agg_fn = mean
-            metric_key = f"{metric},{filter_key}"
-            self.agg_metrics[metric_key] = agg_fn(items)
-            self.sample_len = len(items)  # TODO: same sample size for each metric?
-            if isinstance(bootstrap_iters, int):
-                stderr_fn = stderr_for_metric(
-                    metric=agg_fn,
-                    bootstrap_iters=min(bootstrap_iters, 100)
-                    if metric in ["bleu", "chrf", "ter"]
-                    else bootstrap_iters,
-                )
-                self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
-                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-                )
-            else:
-                raise ValueError(
-                    f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."
-                )
-
-    def __repr__(self):
-        return (
-            f"TaskOutput(task_name={self.task_name}, "
-            f"group_name={self.group_name}, "
-            f"version={self.version}, "
-            f"n_shot={self.n_shot}, "
-            f"task_alias={self.task_alias}, "
-            f"group_alias={self.group_alias})"
-        )
-
-
-def get_task_list(task_dict: dict, parent_group: str | None = None) -> list[TaskOutput]:
-    outputs = []
-    for task_name, task_obj in task_dict.items():
-        if isinstance(task_obj, dict):
-            # Pass group context down when recursing
-            if isinstance(task_name, ConfigurableGroup):
-                group_name = task_name.group_name
-            else:
-                group_name = parent_group
-            _outputs = get_task_list(task_obj, parent_group=group_name)
-            outputs.extend(_outputs)
-        else:
-            # Pass group as tuple so from_taskdict can extract it
-            if parent_group:
-                task_obj = (parent_group, task_obj)
-            task_output = TaskOutput.from_taskdict(task_name, task_obj)
-            outputs.append(task_output)
-
-    return outputs
-
-
 def get_subtask_list(task_dict, task_root=None, depth=0):
     subtask_list = {}
     for group_obj, task_obj in task_dict.items():
@@ -310,71 +169,6 @@ def prepare_print_tasks(
             task_depth -= 1
             group_depth -= 1
     return task_agg, group_agg
-
-
-def consolidate_results(
-    eval_tasks: list[TaskOutput],
-) -> tuple[dict, dict, dict, dict, dict, dict]:
-    """
-    @param eval_tasks: list(TaskOutput).
-    @return: A tuple containing the consolidated results, samples, configs, versions, and num_fewshot.
-
-    Consolidates the results of multiple evaluation tasks into a single structure.
-
-    The method iterates over each evaluation instance and extracts relevant information to create the consolidated
-    results structure. The consolidated results structure has the following properties:
-
-    - results: A defaultdict with task names as keys and dictionaries as values. Each dictionary contains
-    metric/filter pairs as keys and corresponding metric values as values. The "alias" key is used to store task
-    aliases specified in the task configuration.
-    - samples: A defaultdict with task names as keys and lists of log samples as values.
-    - configs: A defaultdict with task names as keys and task configurations as values.
-    - versions: A defaultdict with task names as keys and task versions as values.
-    - num_fewshot: A defaultdict with task names as keys and number of few-shot samples as values.
-    - higher_is_better: A defaultdict with task names as keys and indicators of whether higher values are better
-    for each metric as values.
-
-    The method then returns the consolidated results, samples, configs, versions, and num_fewshot as a tuple.
-    """
-    # stores the final result for each task, for each metric/filter pair.
-    results = collections.defaultdict(dict)
-    # logs info about each document evaluated.
-    samples = collections.defaultdict(list)
-    # store num-fewshot value per task
-    num_fewshot = collections.defaultdict(int)
-    # Tracks the YAML configs of all chosen task
-    configs = collections.defaultdict(dict)
-    # Tracks each task's version.
-    versions = collections.defaultdict(dict)
-    # Track `higher_is_better` for each metric
-    higher_is_better = collections.defaultdict(dict)
-
-    for task_output in eval_tasks:
-        if "task_alias" in (task_config := task_output.task_config):
-            results[task_output.task_name]["alias"] = task_config["task_alias"]
-        else:
-            results[task_output.task_name]["alias"] = task_output.task_name
-        if (
-            (group_alias := task_output.group_alias)
-            and group_alias not in results
-            and (group_name := task_output.group_name)
-        ):
-            results[group_name]["alias"] = group_alias
-        num_fewshot[task_output.task_name] = task_output.n_shot
-        configs[task_output.task_name] = task_output.task_config
-        versions[task_output.task_name] = task_output.version
-        samples[task_output.task_name] = task_output.logged_samples
-        higher_is_better[task_output.task_name] = task_output.task.higher_is_better()
-        for (metric, filter_key), _ in task_output.sample_metrics.items():
-            metric_key = f"{metric},{filter_key}"
-            results[task_output.task_name][metric_key] = task_output.agg_metrics[
-                metric_key
-            ]
-            results[task_output.task_name]["samples"] = task_output.sample_len
-            results[task_output.task_name][f"{metric}_stderr,{filter_key}"] = (
-                task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
-            )
-    return results, samples, configs, versions, num_fewshot, higher_is_better
 
 
 def consolidate_group_results(
@@ -613,21 +407,65 @@ class EvalResults:
     groups: dict[str, "Group"] = field(default_factory=dict)
 
 
-def collect_results_v2(
-    eval_tasks: list[TaskOutput],
-    groups: dict[str, "Group"] | None = None,
-) -> EvalResults:
+def compute_task_metrics(
+    task: "Task",
+    raw_metrics: dict[tuple[str, str], list],
+    bootstrap_iters: int = 100000,
+) -> tuple[dict[str, Any], int]:
     """
-    Collect task results into an EvalResults container.
-
-    This is a simplified version of consolidate_results() that:
-    - Returns a single dataclass instead of 6 separate dicts
-    - Works with flat task list (no nested structures)
-    - Stores groups for aggregation
+    Compute aggregated metrics from raw per-sample metrics.
 
     Args:
-        eval_tasks: List of TaskOutput objects with computed metrics
+        task: Task object (for aggregation functions)
+        raw_metrics: {(metric_name, filter_key): [values]}
+        bootstrap_iters: Number of bootstrap iterations for stderr
+
+    Returns:
+        (agg_metrics dict, sample_count)
+    """
+    agg_metrics: dict[str, Any] = {}
+    sample_len = 0
+
+    for (metric, filter_key), items in raw_metrics.items():
+        try:
+            agg_fn = task.aggregation()[metric]
+        except KeyError:
+            # Arbitrary metric without a defined aggregation function
+            agg_fn = mean
+
+        metric_key = f"{metric},{filter_key}"
+        agg_metrics[metric_key] = agg_fn(items)
+        sample_len = len(items)
+
+        if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
+            stderr_fn = stderr_for_metric(
+                metric=agg_fn,
+                bootstrap_iters=min(bootstrap_iters, 100)
+                if metric in ["bleu", "chrf", "ter"]
+                else bootstrap_iters,
+            )
+            agg_metrics[f"{metric}_stderr,{filter_key}"] = (
+                stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+            )
+        else:
+            agg_metrics[f"{metric}_stderr,{filter_key}"] = "N/A"
+
+    return agg_metrics, sample_len
+
+
+def collect_results_v2(
+    eval_results_acc: dict[str, dict],
+    groups: dict[str, "Group"] | None = None,
+    bootstrap_iters: int = 100000,
+) -> EvalResults:
+    """
+    Collect and aggregate task results into EvalResults container.
+
+    Args:
+        eval_results_acc: Accumulated metrics from evaluation.
+            Format: {task_name: {"task": Task, "raw_metrics": defaultdict, "logged_samples": []}}
         groups: Dict of group name -> Group objects
+        bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
     Returns:
         EvalResults with all results consolidated
@@ -635,38 +473,27 @@ def collect_results_v2(
     result = EvalResults()
     result.groups = groups or {}
 
-    for task_output in eval_tasks:
-        task_name = task_output.task_name
+    for task_name, acc in eval_results_acc.items():
+        task = acc["task"]
 
-        # Initialize metrics dict for this task
-        task_metrics: dict[str, Any] = {}
+        # Compute aggregated metrics
+        agg_metrics, sample_len = compute_task_metrics(
+            task, acc["raw_metrics"], bootstrap_iters
+        )
 
-        # Set alias
-        if task_config := task_output.task_config:
-            task_metrics["alias"] = task_config.get("task_alias", task_name)
-        else:
-            task_metrics["alias"] = task_name
+        # Get task config
+        task_config = dict(task.dump_config())
 
-        # Collect aggregated metrics
-        for (metric, filter_key), _ in task_output.sample_metrics.items():
-            metric_key = f"{metric},{filter_key}"
-            stderr_key = f"{metric}_stderr,{filter_key}"
-
-            task_metrics[metric_key] = task_output.agg_metrics.get(metric_key)
-            task_metrics[stderr_key] = task_output.agg_metrics.get(stderr_key)
-
-        task_metrics["samples"] = task_output.sample_len
-
-        # Store results
-        result.metrics[task_name] = task_metrics
-        result.configs[task_name] = task_output.task_config or {}
-        result.versions[task_name] = task_output.version
-        result.num_fewshot[task_name] = task_output.n_shot
-
-        if task_output.task:
-            result.higher_is_better[task_name] = task_output.task.higher_is_better()
-
-        result.samples[task_name] = task_output.logged_samples
+        result.metrics[task_name] = {
+            "alias": task_config.get("alias", task_name),
+            "samples": sample_len,
+            **agg_metrics,
+        }
+        result.configs[task_name] = task_config
+        result.versions[task_name] = task.VERSION
+        result.num_fewshot[task_name] = task_config.get("num_fewshot", 0)
+        result.higher_is_better[task_name] = task.higher_is_better()
+        result.samples[task_name] = acc["logged_samples"]
 
     return result
 

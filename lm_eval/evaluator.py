@@ -18,7 +18,6 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     # v2 API
     EvalResults,
-    TaskOutput,
     aggregate_groups_v2,
     collect_results_v2,
     format_results_v2,
@@ -539,14 +538,18 @@ def evaluate(
     if groups is None:
         groups = {}
 
-    # Create TaskOutput objects from flat task dict (v2 API)
-    eval_tasks = [
-        TaskOutput.from_taskdict(task_name, task_obj)
+    # Create result accumulators for each task (v2 API - no TaskOutput class)
+    eval_results_acc = {
+        task_name: {
+            "task": task_obj,
+            "raw_metrics": defaultdict(list),
+            "logged_samples": [],
+        }
         for task_name, task_obj in task_dict.items()
-    ]
+    }
     if not log_samples and not all(
-        "bypass" not in getattr(task_output.task, "_metric_fn_list", {})
-        for task_output in eval_tasks
+        "bypass" not in getattr(task_obj, "_metric_fn_list", {})
+        for task_obj in task_dict.values()
     ):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
@@ -554,14 +557,14 @@ def evaluate(
     # 1.are we running multimodal task <-> non-multimodal model class, or vice-versa.
     # 2.are we running code that is marked as unsafe.
     incompatible_tasks = []
-    for task_output in eval_tasks:
-        task: Task = task_output.task
+    for task_name, acc in eval_results_acc.items():
+        task: Task = acc["task"]
 
         if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
-            incompatible_tasks.append(task_output.task_name)
+            incompatible_tasks.append(task_name)
         elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
             raise ValueError(
-                f"Attempted to run task: {task_output.task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
+                f"Attempted to run task: {task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
             )
     if len(incompatible_tasks) > 0 and not getattr(lm, "MULTIMODAL", False):
         raise ValueError(
@@ -572,16 +575,14 @@ def evaluate(
     # Cache the limit arg.
     limit_arg = limit
     limits = []
-    for task_output in eval_tasks:
-        task: Task = task_output.task
+    for task_name, acc in eval_results_acc.items():
+        task: Task = acc["task"]
 
         limit = get_sample_size(task, limit_arg)
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            samples=samples.get(task_output.task_name, None)
-            if samples is not None
-            else samples,
+            samples=samples.get(task_name, None) if samples is not None else samples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -597,7 +598,7 @@ def evaluate(
             else "",
         )
         eval_logger.debug(
-            f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
+            f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
         )
         if write_out:
             print_writeout(task)
@@ -651,8 +652,8 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output, limit in zip(eval_tasks, limits, strict=True):
-        task = task_output.task
+    for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
+        task = acc["task"]
         task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
@@ -667,11 +668,7 @@ def evaluate(
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
-            indices = (
-                samples.get(task_output.task_name, None)
-                if samples is not None
-                else None
-            )
+            indices = samples.get(task_name, None) if samples is not None else None
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
@@ -709,51 +706,46 @@ def evaluate(
                         "target_hash": hash_string(str(target)),
                     }
                     example.update(metrics)
-                    task_output.logged_samples.append(example)
+                    acc["logged_samples"].append(example)
                 for metric, value in metrics.items():
-                    task_output.sample_metrics[(metric, filter_key)].append(value)
+                    acc["raw_metrics"][(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         import torch
 
         # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
-        for task_output in eval_tasks:
+        for task_name, acc in eval_results_acc.items():
             if log_samples:
-                # for task_name, task_samples in list(samples.items()):
                 full_samples = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
-                    obj=task_output.logged_samples,
+                    obj=acc["logged_samples"],
                     object_gather_list=full_samples,
                     dst=0,
                 )
 
                 if RANK == 0:
-                    task_output.logged_samples = list(
+                    acc["logged_samples"] = list(
                         itertools.chain.from_iterable(full_samples)
                     )
 
             # then collect metrics across all ranks
-            for metrics in task_output.sample_metrics:
+            for metric_key in acc["raw_metrics"]:
                 metric_list = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
-                    obj=task_output.sample_metrics[metrics],
+                    obj=acc["raw_metrics"][metric_key],
                     object_gather_list=metric_list,
                     dst=0,
                 )
                 if RANK == 0:
-                    task_output.sample_metrics[metrics] = list(
+                    acc["raw_metrics"][metric_key] = list(
                         itertools.chain.from_iterable(metric_list)
                     )
 
     if RANK == 0:
         ### Aggregate results over all datapoints ###
-        # aggregate results ; run bootstrap CIs
-        for task_output in eval_tasks:
-            task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-
-        # V2 result processing pipeline
-        eval_results = collect_results_v2(eval_tasks, groups)
+        # V2 result processing pipeline (aggregation happens in collect_results_v2)
+        eval_results = collect_results_v2(eval_results_acc, groups, bootstrap_iters)
         eval_results = aggregate_groups_v2(eval_results)
         results_agg, group_agg = format_results_v2(eval_results)
 
@@ -801,14 +793,16 @@ def evaluate(
             "n-shot": dict(sorted(eval_results.num_fewshot.items())),
             "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": {
-                task_output.task_name: {
-                    "original": len(task_output.task.eval_docs),
+                task_name: {
+                    "original": len(acc["task"].eval_docs),
                     "effective": min(
-                        limit if limit else len(task_output.task.eval_docs),
-                        len(task_output.task.eval_docs),
+                        limit if limit else len(acc["task"].eval_docs),
+                        len(acc["task"].eval_docs),
                     ),
                 }
-                for task_output, limit in zip(eval_tasks, limits, strict=True)
+                for (task_name, acc), limit in zip(
+                    eval_results_acc.items(), limits, strict=True
+                )
             },
         }
         if log_samples:
@@ -844,8 +838,9 @@ def request_caching_arg_to_dict(cache_requests: str) -> dict:
 
 
 def process_results_v2(
-    eval_tasks: list,
+    eval_results_acc: dict[str, dict],
     groups: dict[str, "Group"] | None = None,
+    bootstrap_iters: int = 100000,
 ) -> EvalResults:
     """
     Process evaluation results using the simplified v2 pipeline.
@@ -854,8 +849,10 @@ def process_results_v2(
     pipeline. It uses the new Group dataclass and provides cleaner result handling.
 
     Args:
-        eval_tasks: List of TaskOutput objects from evaluation
+        eval_results_acc: Accumulated metrics from evaluation.
+            Format: {task_name: {"task": Task, "raw_metrics": defaultdict, "logged_samples": []}}
         groups: Dict of group name -> Group objects from load_v2()
+        bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
     Returns:
         EvalResults dataclass with:
@@ -871,11 +868,12 @@ def process_results_v2(
         # Load tasks using v2 API
         loaded = task_manager.load_v2(['arc', 'hellaswag'])
 
-        # Run evaluation
-        eval_tasks = evaluate_tasks(loaded['tasks'].values())
+        # Run evaluation (populates raw_metrics and logged_samples)
+        eval_results_acc = {name: {"task": t, "raw_metrics": defaultdict(list), "logged_samples": []}
+                           for name, t in loaded['tasks'].items()}
 
         # Process results with v2 pipeline
-        results = process_results_v2(eval_tasks, loaded['groups'])
+        results = process_results_v2(eval_results_acc, loaded['groups'])
 
         # Format for display
         task_results, group_results = format_results_v2(results)
@@ -884,8 +882,8 @@ def process_results_v2(
     if groups is None:
         groups = {}
 
-    # Collect task results
-    results = collect_results_v2(eval_tasks, groups)
+    # Collect task results (includes aggregation)
+    results = collect_results_v2(eval_results_acc, groups, bootstrap_iters)
 
     # Aggregate group metrics
     results = aggregate_groups_v2(results)
