@@ -2,9 +2,6 @@ output_type: loglikelihood_rolling
 test_split: test
 doc_to_text: ""
 doc_to_target: "{{text}}"
-description: >-
-  Rolling log-likelihood evaluation over deduplicated Uncheatable Eval
-  documents sourced from freshly scraped corpora.
 tag:
   - uncheatable_eval
 should_decontaminate: false
