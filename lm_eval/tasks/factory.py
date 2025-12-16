@@ -162,13 +162,13 @@ class TaskFactory:
                 if inline_overrides:
                     child_overrides = {**child_overrides, **inline_overrides}
 
+                # For refs, pass the namespaced name so task is built with correct name
+                if child_entry.ref_target:
+                    child_overrides = {**child_overrides, "task": child_path}
+
                 child_obj = self.build(
                     child_entry, overrides=child_overrides, registry=registry
                 )
-
-                # For refs, rename the task to use the child name
-                if child_entry.ref_target and hasattr(child_obj, "config"):
-                    child_obj.config.task = child_name
 
                 children.append(child_obj)
             else:
