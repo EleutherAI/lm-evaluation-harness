@@ -150,6 +150,12 @@ class TaskIndex:
                             cfg=cfg,
                         )
                         TaskIndex._register_tags(base_name, cfg.get("tag"), index)
+                    else:
+                        log.warning(
+                            f"Duplicate task name '{base_name}' found. "
+                            f"Already registered from: {index[base_name].yaml_path}. "
+                            f"Skipping duplicate from: {path}"
+                        )
 
                 # Register each task in task_list
                 base_tag = cfg.get("tag")

@@ -55,6 +55,7 @@ def _log_selected_tasks(
     """Log selected tasks with hierarchy information."""
     from pathlib import Path
 
+    # TODO: Add config info directly in Task object
     def get_task_path(task_name: str) -> str:
         """Get display path for a task."""
         if task_name not in task_manager.task_index:

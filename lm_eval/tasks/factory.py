@@ -184,7 +184,7 @@ class TaskFactory:
         task_list: list[str | dict[str, Any]],
         group_name: str,
         overrides: dict[str, Any] | None,
-        registry: Mapping[str, Entry],
+        registry: dict[str, Entry],
     ) -> list[Task | Group]:
         """Build children defined via task: list (backward compatibility).
 
@@ -232,6 +232,8 @@ class TaskFactory:
                             registry=registry,
                         )
                         children.append(child_obj)
+                        # also register to index with new namespaced name
+                        registry[namespaced] = registry[task_name]
 
                 case _:
                     # TASK or PY_TASK
@@ -242,6 +244,7 @@ class TaskFactory:
                         registry=registry,
                     )
                     children.append(child_obj)
+                    registry[namespaced] = child_entry
 
         return children
 
@@ -287,6 +290,7 @@ class TaskFactory:
         cfg["metadata"] = (
             m if isinstance(m := cfg.get("metadata", {}), dict) else {"_metadata": m}
         ) | self._meta  # type: ignore
+        cfg["metadata"]["config_source"] = str(entry.yaml_path) or "inline"
         cfg.setdefault("task", entry.name)
         return cfg
 
