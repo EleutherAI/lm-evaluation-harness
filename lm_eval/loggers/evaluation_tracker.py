@@ -19,6 +19,7 @@ from lm_eval.utils import (
     get_sample_results_filenames,
     handle_non_serializable,
     hash_string,
+    info_once,
     sanitize_list,
     sanitize_model_name,
     sanitize_task_name,
@@ -246,15 +247,11 @@ class EvaluationTracker:
                         f"{path.stem}_{self.date_id}.json"
                     )
                 else:
-                    path = path.joinpath(
-                        self.general_config_tracker.model_name_sanitized  # type: ignore
-                    )
+                    path = path / str(self.general_config_tracker.model_name_sanitized)
                     path.mkdir(parents=True, exist_ok=True)
-                    file_results_aggregated = path.joinpath(
-                        f"results_{self.date_id}.json"
-                    )
+                    file_results_aggregated = path / f"results_{self.date_id}.json"
 
-                file_results_aggregated.open("w", encoding="utf-8").write(dumped)
+                file_results_aggregated.write_text(dumped, encoding="utf-8")
 
                 if self.api and self.push_results_to_hub:
                     repo_id = (
@@ -307,46 +304,45 @@ class EvaluationTracker:
         """
         if self.output_path:
             try:
-                eval_logger.info(f"Saving per-sample results for: {task_name}")
+                eval_logger.debug(f"Saving per-sample results for: {task_name}")
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
                 if path.suffix == ".json":
                     path = path.parent
                 else:
-                    path = path.joinpath(
-                        self.general_config_tracker.model_name_sanitized  # type: ignore
-                    )
+                    path = path / str(self.general_config_tracker.model_name_sanitized)
                 path.mkdir(parents=True, exist_ok=True)
 
-                file_results_samples = path.joinpath(
-                    f"samples_{task_name}_{self.date_id}.jsonl"
+                file_results_samples = (
+                    path / f"samples_{task_name}_{self.date_id}.jsonl"
                 )
+                info_once(eval_logger, f"Saving per-task samples to {path}/*.jsonl")
+                with open(file_results_samples, "a", encoding="utf-8") as f:
+                    for sample in samples:
+                        # we first need to sanitize arguments and resps
+                        # otherwise we won't be able to load the dataset
+                        # using the datasets library
+                        arguments = {}
+                        for i, arg in enumerate(sample["arguments"]):
+                            arguments[f"gen_args_{i}"] = {}
+                            for j, tmp in enumerate(arg):
+                                arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
 
-                for sample in samples:
-                    # we first need to sanitize arguments and resps
-                    # otherwise we won't be able to load the dataset
-                    # using the datasets library
-                    arguments = {}
-                    for i, arg in enumerate(sample["arguments"]):
-                        arguments[f"gen_args_{i}"] = {}
-                        for j, tmp in enumerate(arg):
-                            arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
-
-                    sample["resps"] = sanitize_list(sample["resps"])
-                    sample["filtered_resps"] = sanitize_list(sample["filtered_resps"])
-                    sample["arguments"] = arguments
-                    sample["target"] = str(sample["target"])
-
-                    sample_dump = (
-                        json.dumps(
-                            sample,
-                            default=handle_non_serializable,
-                            ensure_ascii=False,
+                        sample["resps"] = sanitize_list(sample["resps"])
+                        sample["filtered_resps"] = sanitize_list(
+                            sample["filtered_resps"]
                         )
-                        + "\n"
-                    )
+                        sample["arguments"] = arguments
+                        sample["target"] = str(sample["target"])
 
-                    with open(file_results_samples, "a", encoding="utf-8") as f:
+                        sample_dump = (
+                            json.dumps(
+                                sample,
+                                default=handle_non_serializable,
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
                         f.write(sample_dump)
 
                 if self.api and self.push_samples_to_hub:

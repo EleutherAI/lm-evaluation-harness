@@ -164,9 +164,7 @@ class TaskIndex:
                         continue
                     # Combine base tag with per-entry tag
                     entry_tag = entry.get("tag") if isinstance(entry, dict) else None
-                    combined_tags = TaskIndex._str_to_set(
-                        base_tag
-                    ) | TaskIndex._str_to_set(entry_tag)
+                    combined_tags = TaskIndex._str_to_set(base_tag, entry_tag)
                     index[task_name] = Entry(
                         name=task_name,
                         kind=Kind.TASK,
@@ -201,28 +199,26 @@ class TaskIndex:
             case {"class": _}:
                 return Kind.PY_TASK
             # Group configs have task: list[str | dict]
-            case {"task": list()}:
-                return Kind.GROUP
-            case {"task": _}:
-                return Kind.TASK
             case {"group": _}:
                 return Kind.GROUP
             case {"task_list": _}:
                 return Kind.TASK_LIST
+            case {"task": _}:
+                return Kind.TASK
             case _:
-                msg = "Unknown config shape"
-                raise ValueError(msg) from None
+                raise ValueError("Unknown config shape")
 
     @staticmethod
-    def _str_to_set(tags: str | list[str] | None = None) -> set[str]:
+    def _str_to_set(*args) -> set[str]:
         """Convert a string or list of strings to a set of strings."""
-        return (
-            set(tags)
-            if isinstance(tags, list)
-            else {tags}
-            if isinstance(tags, str)
-            else set()
-        )
+        result = set()
+        if not args:
+            return result
+        for t in args:
+            match t:
+                case str(): result.add(t),  # fmt: skip
+                case list(): result.update(t)  # fmt: skip
+        return result
 
     @staticmethod
     def _process_children(
