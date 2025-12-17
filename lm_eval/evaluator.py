@@ -5,7 +5,7 @@ import os
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
@@ -14,20 +14,21 @@ import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
 from lm_eval.api.group import Group
+from lm_eval.api.task import Task
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
-    # v2 API
-    EvalResults,
-    aggregate_groups_v2,
-    collect_results_v2,
-    format_results_v2,
+    ResultAcc,
+    format_results,
     get_sample_size,
     print_writeout,
+    process_results,
+    propagate_higher_is_better,
     run_task_tests,
 )
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager
+from lm_eval.tasks.manager import TaskDict
 from lm_eval.utils import (
     handle_non_serializable,
     hash_dict_images,
@@ -42,7 +43,6 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
-    from lm_eval.api.task import Task
 
 eval_logger = logging.getLogger(__name__)
 
@@ -109,8 +109,8 @@ def _log_selected_tasks(
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: str | dict | None = None,
-    tasks: list[str | dict | object] | None = None,
+    model_args: str | dict[str, Any] | None = None,
+    tasks: list[str | dict[str, Any] | Task] | None = None,
     num_fewshot: int | None = None,
     batch_size: int | str | None = None,
     max_batch_size: int | None = None,
@@ -120,7 +120,7 @@ def simple_evaluate(
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
     limit: int | float | None = None,
-    samples: dict | None = None,
+    samples: dict[str, list[int]] | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     write_out: bool = False,
@@ -129,7 +129,7 @@ def simple_evaluate(
     system_instruction: str | None = None,
     apply_chat_template: bool | str = False,
     fewshot_as_multiturn: bool = True,
-    gen_kwargs: str | dict | None = None,
+    gen_kwargs: str | dict[str, str | float | int] | None = None,
     task_manager: TaskManager | None = None,
     verbosity=None,
     predict_only: bool = False,
@@ -138,7 +138,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
-    metadata: dict | None = None,
+    metadata: dict[str, Any] | None = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -341,16 +341,14 @@ def simple_evaluate(
         ) | (metadata or {})
         task_manager = TaskManager(metadata=metadata)
 
-    # Load tasks using v2 API - returns {tasks, groups}
-    loaded = task_manager.load_v2(tasks)
-    task_dict = loaded["tasks"]
-    groups = loaded["groups"]
+    # Load tasks - returns {tasks, groups}
+    loaded = task_manager.load(tasks)  # type: ignore
 
     # Log selected tasks with hierarchy
-    _log_selected_tasks(task_dict, groups, task_manager)
+    _log_selected_tasks(loaded["tasks"], loaded["groups"], task_manager)
 
-    # Apply config overrides to tasks (no recursion needed with flat dict)
-    for task_name, task_obj in task_dict.items():
+    # Apply config overrides to tasks
+    for task_name, task_obj in loaded["tasks"].items():
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
                 task_obj.set_config(
@@ -392,7 +390,7 @@ def simple_evaluate(
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
             model_source=model,
-            model_args=model_args,
+            model_args=model_args or "",
             system_instruction=system_instruction,
             chat_template=lm.chat_template(apply_chat_template)
             if apply_chat_template
@@ -402,8 +400,7 @@ def simple_evaluate(
 
     results = evaluate(
         lm=lm,
-        task_dict=task_dict,
-        groups=groups,
+        task_dict=loaded,
         limit=limit,
         samples=samples,
         cache_requests=cache_requests,
@@ -466,8 +463,7 @@ def simple_evaluate(
 @positional_deprecated
 def evaluate(
     lm: "LM",
-    task_dict: dict,
-    groups: dict[str, "Group"] | None = None,
+    task_dict: TaskDict,
     limit: int | None = None,
     samples: dict | None = None,
     cache_requests: bool = False,
@@ -524,48 +520,45 @@ def evaluate(
         )
     if samples is not None:
         eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
-    if apply_chat_template:
-        eval_logger.warning(
-            "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
-        )
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
-    # Initialize groups dict if not provided
-    if groups is None:
-        groups = {}
-
-    # Create result accumulators for each task (v2 API - no TaskOutput class)
+    # Initialize groups dict
+    groups = task_dict.get("groups", {})
+    eval_tasks = task_dict["tasks"]
+    # Create result accumulators for each task
     eval_results_acc = {
         task_name: {
             "task": task_obj,
             "raw_metrics": defaultdict(list),
             "logged_samples": [],
         }
-        for task_name, task_obj in task_dict.items()
+        for task_name, task_obj in eval_tasks.items()
     }
+    eval_results_acc = cast("dict[str, ResultAcc]", cast("object", eval_results_acc))
     if not log_samples and not all(
         "bypass" not in getattr(task_obj, "_metric_fn_list", {})
-        for task_obj in task_dict.values()
+        for task_obj in eval_tasks.values()
     ):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
     # validation checks:
-    # 1.are we running multimodal task <-> non-multimodal model class, or vice-versa.
-    # 2.are we running code that is marked as unsafe.
+    # 1.are we running code that is marked as unsafe.
+    # 2.are we running multimodal task <-> non-multimodal model class, or vice-versa.
     incompatible_tasks = []
     for task_name, acc in eval_results_acc.items():
         task: Task = acc["task"]
 
-        if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
-            incompatible_tasks.append(task_name)
-        elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
+        if getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
             raise ValueError(
                 f"Attempted to run task: {task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
             )
+
+        if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
+            incompatible_tasks.append(task_name)
     if len(incompatible_tasks) > 0 and not getattr(lm, "MULTIMODAL", False):
         raise ValueError(
             f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
@@ -715,7 +708,7 @@ def evaluate(
 
         # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
-        for task_name, acc in eval_results_acc.items():
+        for _, acc in eval_results_acc.items():
             if log_samples:
                 full_samples = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
@@ -744,10 +737,9 @@ def evaluate(
 
     if RANK == 0:
         ### Aggregate results over all datapoints ###
-        # V2 result processing pipeline (aggregation happens in collect_results_v2)
-        eval_results = collect_results_v2(eval_results_acc, groups, bootstrap_iters)
-        eval_results = aggregate_groups_v2(eval_results)
-        results_agg, group_agg = format_results_v2(eval_results)
+        # (aggregation happens in collect_results)
+        eval_results = process_results(eval_results_acc, groups, bootstrap_iters)
+        results_agg, group_agg = format_results(eval_results)
 
         # Get all groups for subtask list
         all_groups: list[Group] = list(groups.values())
@@ -760,25 +752,7 @@ def evaluate(
 
         # Collect higher_is_better from eval_results
         higher_is_better = dict(eval_results.higher_is_better)
-
-        # Propagate higher_is_better to groups
-        for group in all_groups:
-            _higher_is_better = {}
-            for child in group.children:
-                if child in higher_is_better:
-                    for m, h in higher_is_better[child].items():
-                        if m not in _higher_is_better:
-                            _higher_is_better[m] = h
-                        elif (
-                            _higher_is_better[m] is not None
-                            and _higher_is_better[m] != h
-                        ):
-                            eval_logger.warning(
-                                f"Higher_is_better values for metric {m} in group {group.name} are not consistent. Defaulting to None."
-                            )
-                            _higher_is_better[m] = None
-            if _higher_is_better:
-                higher_is_better[group.name] = _higher_is_better
+        propagate_higher_is_better(all_groups, higher_is_better)
 
         results_dict = {
             "results": dict(results_agg.items()),
@@ -830,62 +804,3 @@ def request_caching_arg_to_dict(cache_requests: str) -> dict:
     }
 
     return request_caching_args
-
-
-# =============================================================================
-# V2 API - Simplified result processing
-# =============================================================================
-
-
-def process_results_v2(
-    eval_results_acc: dict[str, dict],
-    groups: dict[str, "Group"] | None = None,
-    bootstrap_iters: int = 100000,
-) -> EvalResults:
-    """
-    Process evaluation results using the simplified v2 pipeline.
-
-    This is an alternative to the legacy consolidate_results/consolidate_group_results
-    pipeline. It uses the new Group dataclass and provides cleaner result handling.
-
-    Args:
-        eval_results_acc: Accumulated metrics from evaluation.
-            Format: {task_name: {"task": Task, "raw_metrics": defaultdict, "logged_samples": []}}
-        groups: Dict of group name -> Group objects from load_v2()
-        bootstrap_iters: Number of bootstrap iterations for stderr calculation
-
-    Returns:
-        EvalResults dataclass with:
-        - metrics: Dict of task/group metrics
-        - configs: Task configurations
-        - versions: Task versions
-        - num_fewshot: Number of few-shot examples
-        - higher_is_better: Metric direction info
-        - samples: Sample-level results
-        - groups: Groups dict for traversal
-
-    Example usage:
-        # Load tasks using v2 API
-        loaded = task_manager.load_v2(['arc', 'hellaswag'])
-
-        # Run evaluation (populates raw_metrics and logged_samples)
-        eval_results_acc = {name: {"task": t, "raw_metrics": defaultdict(list), "logged_samples": []}
-                           for name, t in loaded['tasks'].items()}
-
-        # Process results with v2 pipeline
-        results = process_results_v2(eval_results_acc, loaded['groups'])
-
-        # Format for display
-        task_results, group_results = format_results_v2(results)
-    """
-    # Normalize groups to dict
-    if groups is None:
-        groups = {}
-
-    # Collect task results (includes aggregation)
-    results = collect_results_v2(eval_results_acc, groups, bootstrap_iters)
-
-    # Aggregate group metrics
-    results = aggregate_groups_v2(results)
-
-    return results

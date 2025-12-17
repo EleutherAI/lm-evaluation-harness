@@ -6,6 +6,8 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+from typing_extensions import TypedDict
+
 from lm_eval.api.group import ConfigurableGroup, Group
 from lm_eval.api.metrics import (
     aggregate_subtask_metrics,
@@ -18,6 +20,14 @@ from lm_eval.utils import positional_deprecated
 
 
 eval_logger = logging.getLogger(__name__)
+
+
+class ResultAcc(TypedDict):
+    """Accumulator for results of a single task."""
+
+    task: Task
+    raw_metrics: dict
+    logged_samples: list[Any]
 
 
 def get_subtask_list(task_dict, task_root=None, depth=0):
@@ -371,18 +381,9 @@ def run_task_tests(task_list: list[str]):
         )
 
 
-# =============================================================================
-# V2 API - Simplified functions using Group as container
-# =============================================================================
-
-
 @dataclass
 class EvalResults:
-    """
-    Simplified container for evaluation results.
-
-    Replaces the 6 separate dicts returned by consolidate_results().
-    """
+    """Container for evaluation results."""
 
     # Core results: {task_name: {metric_key: value}}
     metrics: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -403,7 +404,7 @@ class EvalResults:
 def compute_task_metrics(
     task: "Task",
     raw_metrics: dict[tuple[str, str], list],
-    bootstrap_iters: int = 100000,
+    bootstrap_iters: int | None = 100000,
 ) -> tuple[dict[str, Any], int]:
     """
     Compute aggregated metrics from raw per-sample metrics.
@@ -446,10 +447,10 @@ def compute_task_metrics(
     return agg_metrics, sample_len
 
 
-def collect_results_v2(
-    eval_results_acc: dict[str, dict],
+def collect_results(
+    eval_results_acc: dict[str, ResultAcc],
     groups: dict[str, "Group"] | None = None,
-    bootstrap_iters: int = 100000,
+    bootstrap_iters: int | None = 100000,
 ) -> EvalResults:
     """
     Collect and aggregate task results into EvalResults container.
@@ -491,7 +492,7 @@ def collect_results_v2(
     return result
 
 
-def aggregate_groups_v2(
+def aggregate_groups(
     results: EvalResults,
 ) -> EvalResults:
     """
@@ -560,10 +561,10 @@ def _collect_groups_bottom_up(groups: dict[str, "Group"]) -> list["Group"]:
     return result
 
 
-def format_results_v2(
+def format_results(
     results: EvalResults,
     show_groups: bool = True,
-) -> tuple[dict[str, dict], dict[str, dict]]:
+) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
     """
     Format results for display with indentation.
 
@@ -574,8 +575,8 @@ def format_results_v2(
     Returns:
         Tuple of (task_results, group_results) formatted for display
     """
-    task_results: dict[str, dict] = {}
-    group_results: dict[str, dict] = {}
+    task_results = {}
+    group_results = {}
 
     def format_entry(name: str, metrics: dict, depth: int = 0) -> dict:
         indent = " " * depth + "- " if depth > 0 else ""
@@ -616,3 +617,71 @@ def format_results_v2(
             )
 
     return task_results, group_results
+
+
+def process_results(
+    eval_results_acc: dict[str, ResultAcc],
+    groups: dict[str, "Group"] | None = None,
+    bootstrap_iters: int | None = 100000,
+) -> EvalResults:
+    """
+    Process evaluation results.
+
+    Args:
+        eval_results_acc: Accumulated metrics from evaluation.
+            Format: {task_name: {"task": Task, "raw_metrics": defaultdict, "logged_samples": []}}
+        groups: Dict of group name -> Group
+        bootstrap_iters: Number of bootstrap iterations for stderr calculation
+
+    Returns:
+        EvalResults dataclass with:
+        - metrics: Dict of task/group metrics
+        - configs: Task configurations
+        - versions: Task versions
+        - num_fewshot: Number of few-shot examples
+        - higher_is_better: Metric direction info
+        - samples: Sample-level results
+        - groups: Groups dict for traversal
+
+    Example usage:
+        loaded = task_manager.load_v2(['arc', 'hellaswag'])
+
+        # Run evaluation (populates raw_metrics and logged_samples)
+        eval_results_acc = {name: {"task": t, "raw_metrics": defaultdict(list), "logged_samples": []}
+                           for name, t in loaded['tasks'].items()}
+
+        results = process_results(eval_results_acc, loaded['groups'])
+
+        # Format for display
+        task_results, group_results = format_results(results)
+    """
+    # Normalize groups to dict
+    if groups is None:
+        groups = {}
+
+    # Collect task results (includes aggregation)
+    results = collect_results(eval_results_acc, groups, bootstrap_iters)
+
+    # Aggregate group metrics
+    results = aggregate_groups(results)
+
+    return results
+
+
+def propagate_higher_is_better(
+    all_groups: list["Group"], higher_is_better: dict[str, dict[str, bool]]
+) -> None:
+    for group in all_groups:
+        _higher_is_better = {}
+        for child in group.children:
+            if child in higher_is_better:
+                for m, h in higher_is_better[child].items():
+                    if m not in _higher_is_better:
+                        _higher_is_better[m] = h
+                    elif _higher_is_better[m] is not None and _higher_is_better[m] != h:
+                        eval_logger.warning(
+                            f"Higher_is_better values for metric {m} in group {group.name} are not consistent. Defaulting to None."
+                        )
+                        _higher_is_better[m] = None
+        if _higher_is_better:
+            higher_is_better[group.name] = _higher_is_better

@@ -1,19 +1,27 @@
 from __future__ import annotations
 
+import warnings
 from collections import defaultdict
 from itertools import chain
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
+
+from typing_extensions import NotRequired, TypedDict, deprecated
 
 from lm_eval import utils
 from lm_eval.api.group import Group
+from lm_eval.api.task import Task
 from lm_eval.tasks.factory import TaskFactory
 from lm_eval.tasks.index import Entry, Kind, TaskIndex
-from lm_eval.utils import setup_logging
 
 
 if TYPE_CHECKING:
-    from lm_eval.api.task import Task
+    from collections.abc import Iterable
+
+
+class TaskDict(TypedDict):
+    tasks: dict[str, Task]
+    groups: NotRequired[dict[str, Group]]
 
 
 class TaskManager:
@@ -39,7 +47,11 @@ class TaskManager:
             metadata: Extra metadata to attach to all loaded tasks
         """
         if verbosity:
-            setup_logging(verbosity)
+            warnings.warn(
+                "The `verbosity` argument is deprecated. Use logging configuration instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         self.include_path = include_path
         self.metadata = metadata
@@ -99,6 +111,146 @@ class TaskManager:
     def task_index(self) -> dict[str, Entry]:
         """Raw index mapping names to Entry objects."""
         return self._index
+
+    # ---------------------------------------------------------------- core API
+    def _entry(self, name: str) -> Entry:
+        """Get the Entry for a given task/group/tag name from the index."""
+        if name not in self._index:
+            raise KeyError(f"Unknown task/group/tag: {name}")
+        return self._index[name]
+
+    def load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
+        """Load a task/group/tag by name or with inline overrides.
+
+        Args:
+            spec: Task name (str) or dict with "task" key and overrides
+
+        Returns:
+            Dict mapping task names to task objects (nested for groups)
+        """
+        match spec:
+            case str():
+                entry = self._entry(spec)
+                return self._factory.build(entry, overrides=None, registry=self._index)
+            case dict():
+                name = spec.get("task")
+                if not name:
+                    raise KeyError("Inline config dict must have a 'task' key")
+                entry = self._entry(name)
+                return self._factory.build(entry, overrides=spec, registry=self._index)
+            case _:
+                raise TypeError("spec must be str or dict")
+
+    def load_config(self, config: str | dict[str, Any]) -> dict:
+        """Load a task from an inline config dict."""
+        spec = self.load_spec(config)
+        return self._to_nested_dict(spec)
+
+    def load(
+        self,
+        task_list: str
+        | list[str | Task | Group | dict[str, Any]]
+        | Task
+        | Group
+        | dict[str, Any],
+    ) -> TaskDict:
+        """Load tasks/groups and return organized result.
+
+        Groups contain their children (Tasks and sub-Groups) directly.
+        Tags expand to individual Tasks.
+
+        Args:
+            task_list: Single task name or list of task names
+
+        Returns:
+            Dict with:
+            - tasks: {task_name: Task} flat dict of all leaf tasks
+            - groups: {group_name: Group} flat dict of all groups
+        """
+        if not isinstance(task_list, list):
+            task_list = [task_list]  # type: ignore
+
+        # Build all requested items
+        built: list[Task | Group] = []
+        for spec in cast("Iterable", task_list):
+            obj = self.load_spec(spec) if not isinstance(spec, (Task, Group)) else spec  # type:ignore[invalid-argument-type]
+            # Tags return list[Task], flatten
+            if isinstance(obj, list):
+                obj = cast("list[Task]", obj)
+                built.extend(obj)
+            else:
+                built.append(obj)
+
+        # Flatten to task/group dicts
+        tasks: dict[str, Task] = {}
+        groups: dict[str, Group] = {}
+
+        def collect(item: Task | Group) -> None:
+            if isinstance(item, Group):
+                groups[item.name] = item
+                for task in item.get_all_tasks():
+                    tasks[task.task_name] = task
+                for subgroup in item.get_all_groups():
+                    groups[subgroup.name] = subgroup
+            else:
+                tasks[item.task_name] = item
+
+        for item in built:
+            collect(item)
+
+        return {"tasks": tasks, "groups": groups}
+
+    def _to_nested_dict(self, obj: Task | Group | list) -> dict:
+        """Convert Task | Group | list[Task] to legacy nested dict format.
+
+        This adapter maintains backward compatibility with get_task_dict() and other
+        consumers that expect the old nested dict format with ConfigurableGroup keys.
+        """
+        from lm_eval.api.group import ConfigurableGroup, GroupConfig
+
+        # Handle list of tasks (from tag expansion)
+        if isinstance(obj, list):
+            result: dict[str, Any] = {}
+            for task in obj:
+                task = cast("Task", task)
+                result[task.task_name] = task
+            return result
+
+        if isinstance(obj, Group):
+            # Build nested children dict
+            nested: dict[str, Any] = {}
+            for child in obj:
+                if isinstance(child, Group):
+                    nested.update(self._to_nested_dict(child))
+                else:
+                    # Task
+                    nested[child.task_name] = child
+
+            # Wrap in ConfigurableGroup
+            config = GroupConfig(group=obj.name, group_alias=obj.alias)
+            cg = ConfigurableGroup(config=config)
+            return {cg: nested}
+
+        # Task - return flat dict
+        return {obj.task_name: obj}
+
+    @deprecated("load_task_or_group is deprecated, use load() instead")
+    def load_task_or_group(self, task_list: str | list[str]) -> dict:
+        """Load tasks/groups and return a merged dictionary.
+
+        Args:
+            task_list: Single task name or list of task names
+        Returns:
+            Dictionary of task objects (possibly nested for groups)
+        """
+        import collections
+
+        if isinstance(task_list, str):
+            task_list = [task_list]
+
+        # Each load_spec call returns a dict (possibly nested for groups)
+        # We merge them using ChainMap (like the original implementation)
+        return dict(collections.ChainMap(*[self.load_config(s) for s in task_list]))
 
     # ---------------------------------------------------------------- name checks
     def _name_is_registered(self, name: str) -> bool:
@@ -182,144 +334,6 @@ class TaskManager:
             result += subtask_table.dumps() + "\n\n"
         return result
 
-    # ---------------------------------------------------------------- core API
-    def _entry(self, name: str) -> Entry:
-        if name not in self._index:
-            raise KeyError(f"Unknown task/group/tag: {name}")
-        return self._index[name]
-
-    def _to_nested_dict(self, obj: Task | Group | list) -> dict:
-        """Convert Task | Group | list[Task] to legacy nested dict format.
-
-        This adapter maintains backward compatibility with get_task_dict() and other
-        consumers that expect the old nested dict format with ConfigurableGroup keys.
-        """
-        from lm_eval.api.group import ConfigurableGroup, GroupConfig
-
-        # Handle list of tasks (from tag expansion)
-        if isinstance(obj, list):
-            result: dict[str, Any] = {}
-            for task in obj:
-                result[task.task_name] = task
-            return result
-
-        if isinstance(obj, Group):
-            # Build nested children dict
-            nested: dict[str, Any] = {}
-            for child in obj:
-                if isinstance(child, Group):
-                    nested.update(self._to_nested_dict(child))
-                else:
-                    # Task
-                    nested[child.task_name] = child
-
-            # Wrap in ConfigurableGroup
-            config = GroupConfig(group=obj.name, group_alias=obj.alias)
-            cg = ConfigurableGroup(config=config)
-            return {cg: nested}
-
-        # Task - return flat dict
-        return {obj.task_name: obj}
-
-    def load_spec(self, spec: str | dict[str, Any]):
-        """Load a task/group/tag by name or with inline overrides.
-
-        Args:
-            spec: Task name (str) or dict with "task" key and overrides
-
-        Returns:
-            Dict mapping task names to task objects (nested for groups)
-        """
-        if isinstance(spec, str):
-            entry = self._entry(spec)
-            result = self._factory.build(entry, overrides=None, registry=self._index)
-            return self._to_nested_dict(result)
-
-        if isinstance(spec, dict):
-            # inline dict => find base entry, then pass overrides
-            name = spec["task"]
-            entry = self._entry(name)
-            result = self._factory.build(entry, overrides=spec, registry=self._index)
-            return self._to_nested_dict(result)
-
-        raise TypeError("spec must be str or dict")
-
-    def load_task_or_group(self, task_list: str | list[str]) -> dict:
-        """Load tasks/groups and return a merged dictionary.
-
-        :param task_list: Single task name or list of task names
-        :return: Dictionary of task objects (possibly nested for groups)
-        """
-        import collections
-
-        if isinstance(task_list, str):
-            task_list = [task_list]
-
-        # Each load_spec call returns a dict (possibly nested for groups)
-        # We merge them using ChainMap (like the original implementation)
-        return dict(collections.ChainMap(*[self.load_spec(s) for s in task_list]))
-
-    def load_config(self, config: dict) -> dict:
-        """Load a task from an inline config dict."""
-        return self.load_spec(config)
-
-    # ---------------------------------------------------------------- v2 API (simplified)
-
-    def load_v2(self, task_list: str | list[str]) -> dict[str, Any]:
-        """Load tasks/groups and return organized result.
-
-        Groups contain their children (Tasks and sub-Groups) directly.
-        Tags expand to individual Tasks.
-
-        Args:
-            task_list: Single task name or list of task names
-
-        Returns:
-            Dict with:
-            - tasks: {task_name: Task} flat dict of all leaf tasks
-            - groups: {group_name: Group} flat dict of all groups
-        """
-        if isinstance(task_list, str):
-            task_list = [task_list]
-
-        # Build all requested items
-        built: list[Task | Group] = []
-        for spec in task_list:
-            if isinstance(spec, str):
-                entry = self._entry(spec)
-                obj = self._factory.build(entry, overrides=None, registry=self._index)
-            elif isinstance(spec, dict):
-                name = spec["task"]
-                entry = self._entry(name)
-                obj = self._factory.build(entry, overrides=spec, registry=self._index)
-            else:
-                raise TypeError(f"spec must be str or dict, got {type(spec)}")
-
-            # Tags return list[Task], flatten
-            if isinstance(obj, list):
-                built.extend(obj)
-            else:
-                built.append(obj)
-
-        # Flatten to task/group dicts
-        tasks: dict[str, Task] = {}
-        groups: dict[str, Group] = {}
-
-        def collect(item: Task | Group) -> None:
-            if isinstance(item, Group):
-                groups[item.name] = item
-                for task in item.get_all_tasks():
-                    tasks[task.task_name] = task
-                for subgroup in item.get_all_groups():
-                    groups[subgroup.name] = subgroup
-            else:
-                tasks[item.task_name] = item
-
-        for item in built:
-            collect(item)
-
-        return {"tasks": tasks, "groups": groups}
-
 
 def get_task_dict(
     task_name_list: str | list[str | dict | Task],
@@ -332,7 +346,7 @@ def get_task_dict(
         assert isinstance(task_manager, TaskManager)
 
     return {
-        task_name: task_manager.load_spec(task_name)
+        task_name: task_manager.load_config(task_name)
         if isinstance(task_name, str)
         else task_name
         for task_name in task_name_list
