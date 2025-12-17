@@ -479,7 +479,7 @@ def collect_results(
         task_config = dict(task.dump_config())
 
         result.metrics[task_name] = {
-            "alias": task_config.get("alias", task_name),
+            "alias": task_config.get("task_alias", task_name),
             "samples": sample_len,
             **agg_metrics,
         }
@@ -581,7 +581,7 @@ def format_results(
     def format_entry(name: str, metrics: dict, depth: int = 0) -> dict:
         indent = " " * depth + "- " if depth > 0 else ""
         formatted = dict(metrics)
-        alias = formatted.get("alias", name)
+        alias = formatted.get("alias", formatted.get("task_alias", name))
         formatted["alias"] = indent + alias
         formatted.pop("samples", None)
         return formatted
