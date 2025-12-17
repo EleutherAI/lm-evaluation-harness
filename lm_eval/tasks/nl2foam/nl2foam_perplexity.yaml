@@ -1,0 +1,12 @@
+task: nl2foam_perplexity
+dataset_path: p-1-ai/nl2foam-mt-fields-ift
+output_type: loglikelihood_rolling
+validation_split: validation
+doc_to_text: !function utils_qwen3.doc_to_text
+doc_to_target: !function utils_qwen3.doc_to_target_special
+metric_list:
+  - metric: word_perplexity
+  - metric: byte_perplexity
+  - metric: bits_per_byte
+metadata:
+  version: 1.0

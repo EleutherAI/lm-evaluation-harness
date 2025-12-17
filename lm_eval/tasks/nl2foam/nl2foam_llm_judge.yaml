@@ -1,0 +1,15 @@
+task: nl2foam_llm_judged
+custom_dataset: !function llm_judge.load_dataset
+test_split: validation
+doc_to_text: !function utils_qwen3.doc_to_text
+doc_to_target: !function utils_qwen3.doc_to_target
+process_results: !function llm_judge.judge_eval
+generation_kwargs:
+  until:
+    - "<|im_end|>"
+metric_list:
+  - metric: llm_judge
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

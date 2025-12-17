@@ -1,0 +1,32 @@
+task: nl2foam_gen
+dataset_path: p-1-ai/nl2foam-mt-fields-ift
+
+output_type: generate_until
+validation_split: validation
+doc_to_text: !function utils_qwen3.doc_to_text
+doc_to_target: !function utils_qwen3.doc_to_target
+process_results: !function utils_qwen3.process_results_gen
+generation_kwargs:
+  until:
+    - "<|im_end|>"
+metric_list:
+  - metric: bleu
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: rouge1
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: rouge2
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: rougeL
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: bleurt
+    aggregation: nanmean
+    higher_is_better: true
+  - metric: bert_score
+    aggregation: nanmean
+    higher_is_better: true
+metadata:
+  version: 1.0
