@@ -1,11 +1,11 @@
-task: nl2foam_gen_formatted
+task: nl2foam_gen_original
 dataset_path: p-1-ai/nl2foam-mt-fields-ift
 
 output_type: generate_until
 validation_split: validation
-doc_to_text: !function utils_qwen3.doc_to_text_formatted
-doc_to_target: !function utils_qwen3.doc_to_target_formatted
-process_results: !function utils_qwen3.process_results_gen_formatted
+doc_to_text: !function utils_qwen3.doc_to_text_original
+doc_to_target: !function utils_qwen3.doc_to_target_original
+process_results: !function utils_qwen3.process_results_gen_original
 generation_kwargs:
   until:
     - "<|im_end|>"

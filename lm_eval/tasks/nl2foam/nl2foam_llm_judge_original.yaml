@@ -1,8 +1,8 @@
-task: nl2foam_llm_judge_formatted
+task: nl2foam_llm_judge_original
 custom_dataset: !function llm_judge.load_dataset
 test_split: validation
-doc_to_text: !function utils_qwen3.doc_to_text_formatted
-doc_to_target: !function utils_qwen3.doc_to_target_formatted
+doc_to_text: !function utils_qwen3.doc_to_text_original
+doc_to_target: !function utils_qwen3.doc_to_target_original
 process_results: !function llm_judge.judge_eval
 generation_kwargs:
   until:
