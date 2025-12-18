@@ -212,10 +212,9 @@ class EvaluationTracker:
         """Initializes the Hugging Face API if a token is provided."""
         if not token:
             return None
-        else:
-            from huggingface_hub import HfApi
+        from huggingface_hub import HfApi
 
-            return HfApi(token=token)
+        return HfApi(token=token)
 
     def save_results_aggregated(
         self,
