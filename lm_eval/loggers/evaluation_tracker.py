@@ -80,7 +80,7 @@ class GeneralConfigTracker:
         else:
             for prefix in prefixes:
                 if f"{prefix}=" in model_args:
-                    return extract_model_name(model_args, prefix)
+                    return extract_model_name(model_args, f"{prefix}=")
         return ""
 
     def log_experiment_args(
