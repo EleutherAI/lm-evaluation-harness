@@ -20,6 +20,7 @@ from lm_eval.utils import (
     handle_non_serializable,
     hash_string,
     info_once,
+    random_name_id,
     sanitize_list,
     sanitize_model_name,
     sanitize_task_name,
@@ -41,6 +42,14 @@ class GeneralConfigTracker:
         model_source (str | None): Source of the model (e.g. hf, vllm, etc.)
         model_name (str | None): Name of the model.
         model_name_sanitized (str | None): Sanitized model name for directory creation.
+        system_instruction (str | None): System instruction/prompt provided to the model.
+        system_instruction_sha (str | None): SHA hash of the system instruction for
+            tracking and reproducibility.
+        fewshot_as_multiturn (bool | None): Whether few-shot examples are formatted
+            as multi-turn conversations.
+        chat_template (str | None): Chat template used for formatting prompts.
+        chat_template_sha (str | None): SHA hash of the chat template for tracking
+            and reproducibility.
         start_time (float): Start time of the experiment. Logged at class init.
         end_time (float): End time of the experiment. Logged when calling
             `GeneralConfigTracker.log_end_time`.
@@ -63,7 +72,7 @@ class GeneralConfigTracker:
         self.start_time = time.perf_counter()
 
     @staticmethod
-    def _get_model_name(model_args: str | dict[str, Any]) -> str:
+    def _get_model_name(model_args: str | dict[str, Any] | None) -> str | None:
         """Extracts the model name from the model arguments."""
 
         def extract_model_name(model_args: str, key: str) -> str:
@@ -77,11 +86,11 @@ class GeneralConfigTracker:
             for key in prefixes:
                 if key in model_args:
                     return str(model_args[key])
-        else:
+        elif isinstance(model_args, str):
             for prefix in prefixes:
                 if f"{prefix}=" in model_args:
                     return extract_model_name(model_args, f"{prefix}=")
-        return ""
+        return None
 
     def log_experiment_args(
         self,
@@ -93,7 +102,9 @@ class GeneralConfigTracker:
     ) -> None:
         """Logs model parameters and job ID."""
         self.model_source = model_source
-        self.model_name = GeneralConfigTracker._get_model_name(model_args)
+        self.model_name = (
+            GeneralConfigTracker._get_model_name(model_args) or random_name_id()
+        )
         self.model_name_sanitized = sanitize_model_name(self.model_name)
         self.system_instruction = system_instruction
         self.system_instruction_sha = (
@@ -286,9 +297,9 @@ class EvaluationTracker:
                         path_or_fileobj=str(file_results_aggregated),
                         path_in_repo=(
                             os.path.join(
-                                self.general_config_tracker.model_name,
+                                str(self.general_config_tracker.model_name),
                                 file_results_aggregated.name,
-                            )  # type: ignore
+                            )
                         ),
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
