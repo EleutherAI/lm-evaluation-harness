@@ -878,3 +878,11 @@ def set_torch_seed(seed: int):
         import torch
 
         torch.manual_seed(seed)
+
+
+def random_name_id() -> str:
+    """Generate a random 8-character alphanumeric ID."""
+    import random
+    import string
+
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
