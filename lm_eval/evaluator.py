@@ -5,7 +5,7 @@ import os
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
@@ -13,20 +13,22 @@ import lm_eval.api.metrics
 import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
+from lm_eval.api.group import Group
+from lm_eval.api.task import Task
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
-    consolidate_group_results,
-    consolidate_results,
+    ResultAcc,
+    format_results,
     get_sample_size,
-    get_subtask_list,
-    get_task_list,
-    prepare_print_tasks,
     print_writeout,
+    process_results,
+    propagate_higher_is_better,
     run_task_tests,
 )
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
-from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.tasks import TaskManager
+from lm_eval.tasks.manager import TaskDict
 from lm_eval.utils import (
     handle_non_serializable,
     hash_dict_images,
@@ -41,16 +43,75 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
-    from lm_eval.api.task import Task
 
 eval_logger = logging.getLogger(__name__)
+
+
+def _log_selected_tasks(
+    task_dict: dict,
+    groups: dict[str, Group],
+    task_manager: TaskManager,
+) -> None:
+    """Log selected tasks with hierarchy information."""
+    from pathlib import Path
+
+    # TODO: Add config info directly in Task object
+    def get_task_path(task_name: str) -> str:
+        """Get display path for a task."""
+        if task_name not in task_manager.task_index:
+            return "N/A"
+        entry = task_manager.task_index[task_name]
+        if not entry.yaml_path:
+            return "N/A"
+        yaml_path = Path(entry.yaml_path)
+        tasks_dir = Path(__file__).parent / "tasks"
+        try:
+            return str(yaml_path.relative_to(tasks_dir))
+        except ValueError:
+            return str(yaml_path)
+
+    eval_logger.info("Selected tasks:")
+
+    # Find root groups (not children of other groups)
+    all_children = set()
+    for group in groups.values():
+        all_children.update(group.children)
+    root_groups = [name for name in groups if name not in all_children]
+
+    # Log groups hierarchically
+    logged_tasks = set()
+
+    def log_group(group_name: str, indent: int = 0):
+        if group_name not in groups:
+            return
+        group = groups[group_name]
+        pad = "  " * indent
+        eval_logger.info(f"{pad}Group: {group_name}")
+
+        for child in group.children:
+            if child in groups:
+                log_group(child, indent + 1)
+            elif child in task_dict:
+                child_pad = "  " * (indent + 1)
+                path = get_task_path(child)
+                eval_logger.info(f"{child_pad}Task: {child} ({path})")
+                logged_tasks.add(child)
+
+    for root in sorted(root_groups):
+        log_group(root)
+
+    # Log standalone tasks (not in any group)
+    for task_name in sorted(task_dict.keys()):
+        if task_name not in logged_tasks:
+            path = get_task_path(task_name)
+            eval_logger.info(f"Task: {task_name} ({path})")
 
 
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: str | dict | None = None,
-    tasks: list[str | dict | object] | None = None,
+    model_args: str | dict[str, Any] | None = None,
+    tasks: list[str | dict[str, Any] | Task] | None = None,
     num_fewshot: int | None = None,
     batch_size: int | str | None = None,
     max_batch_size: int | None = None,
@@ -60,7 +121,7 @@ def simple_evaluate(
     rewrite_requests_cache: bool = False,
     delete_requests_cache: bool = False,
     limit: int | float | None = None,
-    samples: dict | None = None,
+    samples: dict[str, list[int]] | None = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     write_out: bool = False,
@@ -69,7 +130,7 @@ def simple_evaluate(
     system_instruction: str | None = None,
     apply_chat_template: bool | str = False,
     fewshot_as_multiturn: bool = True,
-    gen_kwargs: str | dict | None = None,
+    gen_kwargs: str | dict[str, str | float | int] | None = None,
     task_manager: TaskManager | None = None,
     verbosity=None,
     predict_only: bool = False,
@@ -78,7 +139,7 @@ def simple_evaluate(
     torch_random_seed: int = 1234,
     fewshot_random_seed: int = 1234,
     confirm_run_unsafe_code: bool = False,
-    metadata: dict | None = None,
+    metadata: dict[str, Any] | None = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -281,65 +342,48 @@ def simple_evaluate(
         ) | (metadata or {})
         task_manager = TaskManager(metadata=metadata)
 
-    task_dict = get_task_dict(
-        tasks,
-        task_manager,
-    )
+    # Load tasks - returns {tasks, groups}
+    loaded = task_manager.load(tasks)  # type: ignore
 
-    # helper function to recursively apply config overrides to leaf subtasks, skipping their constituent groups.
-    # (setting of num_fewshot ; bypassing metric calculation ; setting fewshot seed)
-    def _adjust_config(task_dict):
-        adjusted_task_dict = {}
-        for task_name, task_obj in task_dict.items():
-            if isinstance(task_obj, dict):
-                adjusted_task_dict = {
-                    **adjusted_task_dict,
-                    **{task_name: _adjust_config(task_obj)},
-                }
+    # Log selected tasks with hierarchy
+    _log_selected_tasks(loaded["tasks"], loaded["groups"], task_manager)
 
+    # Apply config overrides to tasks
+    for task_name, task_obj in loaded["tasks"].items():
+        if task_obj.get_config("output_type") == "generate_until":
+            if gen_kwargs is not None:
+                task_obj.set_config(
+                    key="generation_kwargs", value=gen_kwargs, update=True
+                )
+            eval_logger.info(
+                f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
+            )
+
+        if predict_only:
+            eval_logger.info(
+                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+            )
+            # we have to change the class properties post-hoc. This is pretty hacky.
+            task_obj.override_metric(metric_name="bypass")
+
+        # override tasks' fewshot values to the provided num_fewshot arg value
+        # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
+        if num_fewshot is not None:
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
+                eval_logger.info(
+                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                )
             else:
-                if task_obj.get_config("output_type") == "generate_until":
-                    if gen_kwargs is not None:
-                        task_obj.set_config(
-                            key="generation_kwargs", value=gen_kwargs, update=True
-                        )
-                    eval_logger.info(
-                        f"{task_obj.config.task}: Using gen_kwargs: {task_obj.config.generation_kwargs}"
-                    )
-
-                if predict_only:
-                    eval_logger.info(
-                        f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
-                    )
-                    # we have to change the class properties post-hoc. This is pretty hacky.
-                    task_obj.override_metric(metric_name="bypass")
-
-                # override tasks' fewshot values to the provided num_fewshot arg value
-                # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
-                if num_fewshot is not None:
-                    if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
-                        eval_logger.info(
-                            f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
-                        )
-                    else:
-                        eval_logger.warning(
-                            f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
-                        )
-                        task_obj.set_config(key="num_fewshot", value=num_fewshot)
-                else:
-                    # if num_fewshot not provided, and the task does not define a default one, default to 0
-                    if (
-                        default_num_fewshot := task_obj.get_config("num_fewshot")
-                    ) is None:
-                        task_obj.set_config(key="num_fewshot", value=0)
-                # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
-                task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-
-                adjusted_task_dict[task_name] = task_obj
-
-        return adjusted_task_dict
-
-    task_dict = _adjust_config(task_dict)
+                eval_logger.warning(
+                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                )
+                task_obj.set_config(key="num_fewshot", value=num_fewshot)
+        else:
+            # if num_fewshot not provided, and the task does not define a default one, default to 0
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
+                task_obj.set_config(key="num_fewshot", value=0)
+        # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
+        task_obj.set_fewshot_seed(seed=fewshot_random_seed)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -347,7 +391,7 @@ def simple_evaluate(
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
             model_source=model,
-            model_args=model_args,
+            model_args=model_args or "",
             system_instruction=system_instruction,
             chat_template=lm.chat_template(apply_chat_template)
             if apply_chat_template
@@ -357,7 +401,7 @@ def simple_evaluate(
 
     results = evaluate(
         lm=lm,
-        task_dict=task_dict,
+        task_dict=loaded,
         limit=limit,
         samples=samples,
         cache_requests=cache_requests,
@@ -420,7 +464,7 @@ def simple_evaluate(
 @positional_deprecated
 def evaluate(
     lm: "LM",
-    task_dict,
+    task_dict: TaskDict,
     limit: int | None = None,
     samples: dict | None = None,
     cache_requests: bool = False,
@@ -477,37 +521,45 @@ def evaluate(
         )
     if samples is not None:
         eval_logger.info(f"Evaluating examples for tasks {list(samples.keys())}")
-    if apply_chat_template:
-        eval_logger.warning(
-            "Chat template formatting change affects loglikelihood and multiple-choice tasks. See docs/chat-template-readme.md for details."
-        )
     # tracks all Instances/requests a model must generate output on.
     requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
-    # get lists of group hierarchy and each type of request
-    eval_tasks = get_task_list(task_dict)
+    # Initialize groups dict
+    groups = task_dict.get("groups", {})
+    eval_tasks = task_dict["tasks"]
+    # Create result accumulators for each task
+    eval_results_acc = {
+        task_name: {
+            "task": task_obj,
+            "raw_metrics": defaultdict(list),
+            "logged_samples": [],
+        }
+        for task_name, task_obj in eval_tasks.items()
+    }
+    eval_results_acc = cast("dict[str, ResultAcc]", cast("object", eval_results_acc))
     if not log_samples and not all(
-        "bypass" not in getattr(task_output.task, "_metric_fn_list", {})
-        for task_output in eval_tasks
+        "bypass" not in getattr(task_obj, "_metric_fn_list", {})
+        for task_obj in eval_tasks.values()
     ):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
 
     # validation checks:
-    # 1.are we running multimodal task <-> non-multimodal model class, or vice-versa.
-    # 2.are we running code that is marked as unsafe.
+    # 1.are we running code that is marked as unsafe.
+    # 2.are we running multimodal task <-> non-multimodal model class, or vice-versa.
     incompatible_tasks = []
-    for task_output in eval_tasks:
-        task: Task = task_output.task
+    for task_name, acc in eval_results_acc.items():
+        task: Task = acc["task"]
+
+        if getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
+            raise ValueError(
+                f"Attempted to run task: {task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
+            )
 
         if getattr(task, "MULTIMODAL", False) and not getattr(lm, "MULTIMODAL", False):
-            incompatible_tasks.append(task_output.task_name)
-        elif getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
-            raise ValueError(
-                f"Attempted to run task: {task_output.task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
-            )
+            incompatible_tasks.append(task_name)
     if len(incompatible_tasks) > 0 and not getattr(lm, "MULTIMODAL", False):
         raise ValueError(
             f"Attempted to run tasks: {incompatible_tasks} which require multimodal input, but the selected model type does not currently implement this. Multimodal support is currently restricted to the ['hf-multimodal', 'vllm-vlm'] model type."
@@ -517,16 +569,14 @@ def evaluate(
     # Cache the limit arg.
     limit_arg = limit
     limits = []
-    for task_output in eval_tasks:
-        task: Task = task_output.task
+    for task_name, acc in eval_results_acc.items():
+        task: Task = acc["task"]
 
         limit = get_sample_size(task, limit_arg)
         limits.append(limit)
         task.build_all_requests(
             limit=limit,
-            samples=samples.get(task_output.task_name, None)
-            if samples is not None
-            else samples,
+            samples=samples.get(task_name, None) if samples is not None else samples,
             rank=lm.rank,
             world_size=lm.world_size,
             cache_requests=cache_requests,
@@ -542,7 +592,7 @@ def evaluate(
             else "",
         )
         eval_logger.debug(
-            f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
+            f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
         )
         if write_out:
             print_writeout(task)
@@ -596,8 +646,8 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_output, limit in zip(eval_tasks, limits, strict=True):
-        task = task_output.task
+    for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
+        task = acc["task"]
         task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
@@ -612,11 +662,7 @@ def evaluate(
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps:
-            indices = (
-                samples.get(task_output.task_name, None)
-                if samples is not None
-                else None
-            )
+            indices = samples.get(task_name, None) if samples is not None else None
             doc_iterator = task.doc_iterator(
                 rank=RANK,
                 limit=limit,
@@ -654,115 +700,89 @@ def evaluate(
                         "target_hash": hash_string(str(target)),
                     }
                     example.update(metrics)
-                    task_output.logged_samples.append(example)
+                    acc["logged_samples"].append(example)
                 for metric, value in metrics.items():
-                    task_output.sample_metrics[(metric, filter_key)].append(value)
+                    acc["raw_metrics"][(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         import torch
 
         # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
-        for task_output in eval_tasks:
+        for _, acc in eval_results_acc.items():
             if log_samples:
-                # for task_name, task_samples in list(samples.items()):
                 full_samples = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
-                    obj=task_output.logged_samples,
+                    obj=acc["logged_samples"],
                     object_gather_list=full_samples,
                     dst=0,
                 )
 
                 if RANK == 0:
-                    task_output.logged_samples = list(
+                    acc["logged_samples"] = list(
                         itertools.chain.from_iterable(full_samples)
                     )
 
             # then collect metrics across all ranks
-            for metrics in task_output.sample_metrics:
+            for metric_key in acc["raw_metrics"]:
                 metric_list = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
-                    obj=task_output.sample_metrics[metrics],
+                    obj=acc["raw_metrics"][metric_key],
                     object_gather_list=metric_list,
                     dst=0,
                 )
                 if RANK == 0:
-                    task_output.sample_metrics[metrics] = list(
+                    acc["raw_metrics"][metric_key] = list(
                         itertools.chain.from_iterable(metric_list)
                     )
 
     if RANK == 0:
         ### Aggregate results over all datapoints ###
-        # aggregate results ; run bootstrap CIs
-        for task_output in eval_tasks:
-            task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-        (
-            results,
-            samples,
-            configs,
-            versions,
-            num_fewshot,
-            higher_is_better,
-        ) = consolidate_results(eval_tasks)
+        # (aggregation happens in collect_results)
+        eval_results = process_results(eval_results_acc, groups, bootstrap_iters)
+        results_agg, group_agg = format_results(eval_results)
 
-        ### Calculate group metrics ###
-        if bool(results):
-            results, versions, show_group_table, *_ = consolidate_group_results(
-                results, versions, task_dict
-            )
+        # Get all groups for subtask list
+        all_groups: list[Group] = list(groups.values())
 
-        results_agg, group_agg = prepare_print_tasks(task_dict, results)
-        subtask_list = get_subtask_list(task_dict)
+        # Build subtask list from groups
+        subtask_list = {group.name: group.children for group in all_groups}
 
-        # collect all higher_is_better values for metrics
-        # in the group's subtasks.
-        # TODO: clean this up ; unify with the below metric_list loop?
-        _higher_is_better = {}
-        for group, task_list in subtask_list.items():
-            if (
-                len(task_list) != 0
-            ):  # subtask list will list "task_name": [] for solo tasks
-                for task in task_list:
-                    for m, h in higher_is_better[task].items():
-                        if m not in _higher_is_better:
-                            _higher_is_better[m] = h
+        # Determine if we should show group table
+        show_group_table = any(g.has_aggregation for g in all_groups)
 
-                        if (
-                            m in _higher_is_better
-                            and _higher_is_better[m] is not None
-                            and _higher_is_better[m] != h
-                        ):
-                            eval_logger.warning(
-                                f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
-                            )
-                            _higher_is_better[m] = None
-                higher_is_better[group] = _higher_is_better
+        # Collect higher_is_better from eval_results
+        higher_is_better = dict(eval_results.higher_is_better)
+        propagate_higher_is_better(all_groups, higher_is_better)
 
         results_dict = {
             "results": dict(results_agg.items()),
             **(
                 {"groups": dict(group_agg.items())}
-                if (bool(group_agg) & show_group_table)
+                if (bool(group_agg) and show_group_table)
                 else {}
             ),
-            "group_subtasks": dict(reversed(subtask_list.items())),
-            "configs": dict(sorted(configs.items())),
-            "versions": dict(sorted(versions.items())),
-            "n-shot": dict(sorted(num_fewshot.items())),
+            "group_subtasks": subtask_list,
+            "configs": dict(sorted(eval_results.configs.items())),
+            "versions": dict(sorted(eval_results.versions.items())),
+            "n-shot": dict(sorted(eval_results.num_fewshot.items())),
             "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": {
-                task_output.task_name: {
-                    "original": len(task_output.task.eval_docs),
+                task_name: {
+                    "original": len(acc["task"].eval_docs),
                     "effective": min(
-                        limit if limit else len(task_output.task.eval_docs),
-                        len(task_output.task.eval_docs),
+                        limit if limit else len(acc["task"].eval_docs),
+                        len(acc["task"].eval_docs),
                     ),
                 }
-                for task_output, limit in zip(eval_tasks, limits, strict=True)
+                for (task_name, acc), limit in zip(
+                    eval_results_acc.items(), limits, strict=True
+                )
             },
         }
         if log_samples:
             # default: hash images
+            samples = eval_results.samples
             samples = (
                 hash_dict_images(samples)
                 if os.environ.get("LMEVAL_HASHMM", "1") != "0"
@@ -775,13 +795,3 @@ def evaluate(
 
     else:
         return None
-
-
-def request_caching_arg_to_dict(cache_requests: str) -> dict:
-    request_caching_args = {
-        "cache_requests": cache_requests in {"true", "refresh"},
-        "rewrite_requests_cache": cache_requests == "refresh",
-        "delete_requests_cache": cache_requests == "delete",
-    }
-
-    return request_caching_args

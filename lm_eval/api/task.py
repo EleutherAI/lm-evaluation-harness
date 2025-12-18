@@ -35,6 +35,7 @@ from lm_eval.api.utils import (
     Message,
     maybe_delimit,
     multiturn_to_singleturn,
+    random_task_id,
     requires_delimiter,
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
@@ -607,6 +608,10 @@ class Task(abc.ABC):
     def resolve_field(doc: dict[str, Any], field: str | None = None):
         if field:
             return doc[field] if field in doc else utils.apply_template(field, doc)
+
+    @property
+    def task_name(self) -> str:
+        return getattr(self.config, "task", None) or random_task_id()
 
 
 class ConfigurableTask(Task):
@@ -1650,8 +1655,8 @@ class ConfigurableTask(Task):
         return getattr(self._config, key, None)
 
     @property
-    def task_name(self) -> Any:
-        return getattr(self.config, "task", None)
+    def task_name(self) -> str:
+        return getattr(self.config, "task", random_task_id())
 
     def __repr__(self):
         return (

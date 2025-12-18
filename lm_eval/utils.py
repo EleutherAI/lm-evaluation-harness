@@ -406,10 +406,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
-    if column == "results":
-        column_name = "Tasks"
-    elif column == "groups":
-        column_name = "Groups"
+    column_name = "Groups" if column == "groups" else "Tasks"
 
     all_headers = [
         column_name,
