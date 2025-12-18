@@ -1,0 +1,233 @@
+{
+  "results": {
+    "nl2foam_gen_original": {
+      "alias": "nl2foam_gen_original",
+      "bleu,none": 0.2702651154677621,
+      "bleu_stderr,none": 0.0018997936975912383,
+      "rouge1,none": 0.3698707440122289,
+      "rouge1_stderr,none": 0.0014766491382619835,
+      "rouge2,none": 0.2479994417984265,
+      "rouge2_stderr,none": 0.0010899263303833242,
+      "rougeL,none": 0.23295519902093165,
+      "rougeL_stderr,none": 0.0008597828859657954,
+      "bert_score,none": 0.7605354089032311,
+      "bert_score_stderr,none": 0.00022329640345517755
+    },
+    "nl2foam_llm_judge_original": {
+      "alias": "nl2foam_llm_judge_original",
+      "llm_judge,none": 34.128,
+      "llm_judge_stderr,none": 0.560924687467061
+    }
+  },
+  "group_subtasks": {
+    "nl2foam_gen_original": [],
+    "nl2foam_llm_judge_original": []
+  },
+  "configs": {
+    "nl2foam_gen_original": {
+      "task": "nl2foam_gen_original",
+      "dataset_path": "p-1-ai/nl2foam-mt-fields-ift",
+      "validation_split": "validation",
+      "doc_to_text": "def doc_to_text_original(doc):\n    instruction = doc.get(\"instruction\", \"\")\n    user_input = doc.get(\"input\", \"\")\n\n    messages = []\n    if instruction:\n        messages.append({\"role\": \"system\", \"content\": instruction})\n    if user_input:\n        messages.append({\"role\": \"user\", \"content\": user_input})\n\n    assert len(messages) == 2, \"There should be 2 messages.\"\n    assert messages[0][\"role\"] == \"system\", \"System message is not the first message.\"\n    assert messages[1][\"role\"] == \"user\", \"User message is not the second message.\"\n\n    message_text = TOKENIZER.apply_chat_template(  # type: ignore\n        conversation=messages,\n        tokenize=False\n    )\n\n    return message_text\n",
+      "doc_to_target": "def doc_to_target_original(doc):\n    output = doc.get(\"output\", \"\")\n\n    # Construct messages\n    messages = []\n    if output:\n        messages.append({\"role\": \"assistant\", \"content\": output})\n\n    assert len(messages) == 1, \"There should be 1 message.\"\n    assert messages[0][\"role\"] == \"assistant\", \"Assistant message is not the first message.\"\n\n    message_text = TOKENIZER.apply_chat_template(\n        conversation=messages,\n        tokenize=False\n    )\n\n    return message_text\n",
+      "unsafe_code": false,
+      "process_results": "def process_results_gen_original(doc, results):\n    pred, refs = [results[0]], [doc_to_target_original(doc)]\n\n    if len(refs[0]) < 1 or len(pred[0]) < 1:\n        return {\n            \"bleu\": np.nan,\n            \"rouge1\": np.nan,\n            \"rouge2\": np.nan,\n            \"rougeL\": np.nan,\n            \"bert_score\": np.nan,\n        }\n\n    results = doc_eval(pred, refs)\n\n    return {\n        \"bleu\": results[\"bleu\"],\n        \"rouge1\": results[\"rouge1\"],\n        \"rouge2\": results[\"rouge2\"],\n        \"rougeL\": results[\"rougeL\"],\n        \"bert_score\": results[\"bert_score\"],\n    }\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text_original at 0x73f387abc720>",
+        "doc_to_choice": null,
+        "doc_to_target": "<function doc_to_target_original at 0x73f387abda80>",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "bleu",
+          "aggregation": "nanmean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "rouge1",
+          "aggregation": "nanmean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "rouge2",
+          "aggregation": "nanmean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "rougeL",
+          "aggregation": "nanmean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "bleurt",
+          "aggregation": "nanmean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "bert_score",
+          "aggregation": "nanmean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "<|im_end|>"
+        ],
+        "max_gen_toks": 4096
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "Qwen/Qwen3-8B",
+        "tensor_parallel_size": 8
+      }
+    },
+    "nl2foam_llm_judge_original": {
+      "task": "nl2foam_llm_judge_original",
+      "custom_dataset": "def load_dataset(**kwargs):\n    dataset = datasets.load_dataset(\n        \"p-1-ai/nl2foam-mt-fields-ift\", split=\"validation\"\n    ).select(range(LLM_JUDGE_SET_SIZE))\n\n    return {\"validation\": dataset}\n",
+      "test_split": "validation",
+      "doc_to_text": "def doc_to_text_original(doc):\n    instruction = doc.get(\"instruction\", \"\")\n    user_input = doc.get(\"input\", \"\")\n\n    messages = []\n    if instruction:\n        messages.append({\"role\": \"system\", \"content\": instruction})\n    if user_input:\n        messages.append({\"role\": \"user\", \"content\": user_input})\n\n    assert len(messages) == 2, \"There should be 2 messages.\"\n    assert messages[0][\"role\"] == \"system\", \"System message is not the first message.\"\n    assert messages[1][\"role\"] == \"user\", \"User message is not the second message.\"\n\n    message_text = TOKENIZER.apply_chat_template(  # type: ignore\n        conversation=messages,\n        tokenize=False\n    )\n\n    return message_text\n",
+      "doc_to_target": "def doc_to_target_original(doc):\n    output = doc.get(\"output\", \"\")\n\n    # Construct messages\n    messages = []\n    if output:\n        messages.append({\"role\": \"assistant\", \"content\": output})\n\n    assert len(messages) == 1, \"There should be 1 message.\"\n    assert messages[0][\"role\"] == \"assistant\", \"Assistant message is not the first message.\"\n\n    message_text = TOKENIZER.apply_chat_template(\n        conversation=messages,\n        tokenize=False\n    )\n\n    return message_text\n",
+      "unsafe_code": false,
+      "process_results": "def judge_eval(doc: dict, results: list[str]) -> dict[str, float]:\n    client = OpenAI(\n        api_key=os.getenv(\"OPENAI_API_KEY\"),\n    )\n\n    user_prompt = build_user_prompt(doc[\"instruction\"], doc[\"output\"], results[0])\n\n    resp = client.chat.completions.create(\n        model=MODEL_VERSION,\n        temperature=0,\n        max_tokens=10,\n        messages=[\n            {\"role\": \"system\", \"content\": SYSTEM_PROMPT},\n            {\"role\": \"user\", \"content\": user_prompt},\n        ],\n    )\n    raw = resp.choices[0].message.content.strip()\n\n    return {\n        \"llm_judge\": float(raw)\n    }\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text_original at 0x73f38315d3a0>",
+        "doc_to_choice": null,
+        "doc_to_target": "<function doc_to_target_original at 0x73f38315e700>",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "llm_judge",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "<|im_end|>"
+        ],
+        "max_gen_toks": 4096
+      },
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "Qwen/Qwen3-8B",
+        "tensor_parallel_size": 8
+      }
+    }
+  },
+  "versions": {
+    "nl2foam_gen_original": 1.0,
+    "nl2foam_llm_judge_original": 1.0
+  },
+  "n-shot": {
+    "nl2foam_gen_original": 0,
+    "nl2foam_llm_judge_original": 0
+  },
+  "higher_is_better": {
+    "nl2foam_gen_original": {
+      "bleu": true,
+      "rouge1": true,
+      "rouge2": true,
+      "rougeL": true,
+      "bleurt": true,
+      "bert_score": true
+    },
+    "nl2foam_llm_judge_original": {
+      "llm_judge": true
+    }
+  },
+  "n-samples": {
+    "nl2foam_llm_judge_original": {
+      "original": 100,
+      "effective": 100
+    },
+    "nl2foam_gen_original": {
+      "original": 2849,
+      "effective": 2849
+    }
+  },
+  "config": {
+    "model": "vllm",
+    "model_args": {
+      "pretrained": "Qwen/Qwen3-8B",
+      "tensor_parallel_size": 8
+    },
+    "batch_size": "auto",
+    "batch_sizes": [],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": {
+      "max_gen_toks": 4096
+    },
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "02bb9278",
+  "date": 1766004919.612962,
+  "pretty_env_info": "PyTorch version: 2.9.0+cu128\nIs debug build: False\nCUDA used to build PyTorch: 12.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 24.04.2 LTS (x86_64)\nGCC version: (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0\nClang version: Could not collect\nCMake version: version 3.28.3\nLibc version: glibc-2.39\n\nPython version: 3.12.12 (main, Dec  2 2025, 19:47:35) [Clang 21.1.4 ] (64-bit runtime)\nPython platform: Linux-6.11.0-26-generic-x86_64-with-glibc2.39\nIs CUDA available: True\nCUDA runtime version: 12.8.93\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: \nGPU 0: NVIDIA H100 80GB HBM3\nGPU 1: NVIDIA H100 80GB HBM3\nGPU 2: NVIDIA H100 80GB HBM3\nGPU 3: NVIDIA H100 80GB HBM3\nGPU 4: NVIDIA H100 80GB HBM3\nGPU 5: NVIDIA H100 80GB HBM3\nGPU 6: NVIDIA H100 80GB HBM3\nGPU 7: NVIDIA H100 80GB HBM3\n\nNvidia driver version: 570.148.08\ncuDNN version: Probably one of the following:\n/usr/lib/x86_64-linux-gnu/libcudnn.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_adv.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_cnn.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_engines_precompiled.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_engines_runtime_compiled.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_graph.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_heuristic.so.9.10.1\n/usr/lib/x86_64-linux-gnu/libcudnn_ops.so.9.10.1\nIs XPU available: False\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        52 bits physical, 57 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               208\nOn-line CPU(s) list:                  0-207\nVendor ID:                            GenuineIntel\nModel name:                           Intel(R) Xeon(R) Platinum 8480+\nCPU family:                           6\nModel:                                143\nThread(s) per core:                   2\nCore(s) per socket:                   52\nSocket(s):                            2\nStepping:                             8\nBogoMIPS:                             4000.00\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch cpuid_fault ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 wbnoinvd arat vnmi avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b fsrm md_clear serialize tsxldtrk avx512_fp16 arch_capabilities\nVirtualization:                       VT-x\nHypervisor vendor:                    KVM\nVirtualization type:                  full\nL1d cache:                            6.5 MiB (208 instances)\nL1i cache:                            6.5 MiB (208 instances)\nL2 cache:                             416 MiB (104 instances)\nL3 cache:                             32 MiB (2 instances)\nNUMA node(s):                         2\nNUMA node0 CPU(s):                    0-103\nNUMA node1 CPU(s):                    104-207\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Unknown: No mitigations\nVulnerability Reg file data sampling: Not affected\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Not affected\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Mitigation; TSX disabled\n\nVersions of relevant libraries:\n[pip3] Could not collect\n[conda] Could not collect",
+  "transformers_version": "4.57.3",
+  "lm_eval_version": "0.4.9.2",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|endoftext|>",
+    "151643"
+  ],
+  "tokenizer_eos_token": [
+    "<|im_end|>",
+    "151645"
+  ],
+  "tokenizer_bos_token": [
+    null,
+    "None"
+  ],
+  "eot_token_id": 151645,
+  "max_length": 40960,
+  "task_hashes": {
+    "nl2foam_llm_judge_original": "6b43a63e5e0f3df8a0b1d9901be9605e0e0a9574bd2dc5cb8a41699b1f79db72",
+    "nl2foam_gen_original": "bd52d4fcf2394c0e12cadae3fd5bf5c736f77af43b87f89a7cc2c9d842d8b839"
+  },
+  "model_source": "vllm",
+  "model_name": "",
+  "model_name_sanitized": "",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": null,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 1203203.914048082,
+  "end_time": 1204513.120258315,
+  "total_evaluation_time_seconds": "1309.2062102330383"
+}
