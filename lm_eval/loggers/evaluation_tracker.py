@@ -76,7 +76,7 @@ class GeneralConfigTracker:
         if isinstance(model_args, dict):
             for key in prefixes:
                 if key in model_args:
-                    return model_args[key]
+                    return str(model_args[key])
         else:
             for prefix in prefixes:
                 if f"{prefix}=" in model_args:
