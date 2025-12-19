@@ -33,7 +33,7 @@ class TaskFactory:
         entry: Entry,
         *,
         overrides: dict[str, Any] | None = None,
-        registry: Mapping[str, Entry],
+        registry: dict[str, Entry],
     ) -> Task | Group | list[Task]:
         """
         Build an entry into a Task, Group, or list of Tasks.
@@ -91,7 +91,7 @@ class TaskFactory:
         self,
         entry: Entry,
         overrides: dict[str, Any] | None,
-        registry: Mapping[str, Entry],
+        registry: dict[str, Entry],
     ) -> Group:
         """Build a Group with its children populated."""
         raw_cfg = self._load_full_config(entry, None)
@@ -137,7 +137,7 @@ class TaskFactory:
         children_cfg: dict[str, Any],
         group_name: str,
         overrides: dict[str, Any] | None,
-        registry: Mapping[str, Entry],
+        registry: dict[str, Entry],
     ) -> list[Task | Group]:
         """Build children defined via children: dict.
 
@@ -186,7 +186,7 @@ class TaskFactory:
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
     ) -> list[Task | Group]:
-        """Build children defined via task: list (backward compatibility).
+        """Build children defined via task_list.
 
         Returns:
             List of Task | Group objects
