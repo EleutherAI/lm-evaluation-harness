@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_electrical_engineering
+"tag": "mmmlu_it_it_stem_tasks"
+"task": "mmmlu_it_it_electrical_engineering"
+"task_alias": "electrical engineering (Italian)"
+"description": "The following are multiple choice questions (with answers) about electrical engineering (Italian).\n\n"

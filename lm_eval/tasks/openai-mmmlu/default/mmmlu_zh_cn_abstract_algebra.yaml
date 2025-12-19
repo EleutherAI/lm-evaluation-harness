@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_zh_cn_stem_tasks"
+"task": "mmmlu_zh_cn_abstract_algebra"
+"task_alias": "abstract algebra (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (Simplified Chinese).\n\n"

@@ -1,0 +1,30 @@
+group: mmmlu_ar_xy
+group_alias: "Arabic"
+task:
+  - mmmlu_ar_xy_stem
+  - mmmlu_ar_xy_other
+  - mmmlu_ar_xy_social_sciences
+  - mmmlu_ar_xy_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+  - metric: bpb
+    aggregation: mean
+    weight_by_size: false
+  - metric: logprob
+    aggregation: mean
+    weight_by_size: false
+  - metric: choice_logprob
+    aggregation: mean
+    weight_by_size: false
+  - metric: choice_prob_norm
+    aggregation: mean
+    weight_by_size: false
+  - metric: choice_logprob_norm
+    aggregation: mean
+    weight_by_size: false
+
+metadata:
+  version: 1

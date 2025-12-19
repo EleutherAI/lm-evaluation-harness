@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ES_LA"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_es_la_social_sciences_tasks"
+"task": "mmmlu_es_la_professional_psychology"
+"task_alias": "professional psychology (Spanish)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Spanish).\n\n"
