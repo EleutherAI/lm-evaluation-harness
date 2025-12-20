@@ -14,11 +14,15 @@ Example:
 from __future__ import annotations
 
 import abc
+import logging
 from dataclasses import asdict, dataclass, field
 from inspect import getsource
 from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import deprecated
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
@@ -233,17 +237,32 @@ class Group:
                 values: list[float] = []
                 stderrs: list[float] = []
                 sizes: list[int] = []
+                tasks_with_metric: list[str] = []
+                tasks_without_metric: list[str] = []
 
                 for task_name in leaf_tasks:
                     if task_name not in task_metrics:
+                        tasks_without_metric.append(task_name)
                         continue
                     task_result = task_metrics[task_name]
                     if metric_key in task_result:
                         values.append(task_result[metric_key])
                         sizes.append(task_result.get("samples", 0))
+                        tasks_with_metric.append(task_name)
                         stderr_val = task_result.get(stderr_key)
                         if stderr_val is not None:
                             stderrs.append(stderr_val)
+                    else:
+                        tasks_without_metric.append(task_name)
+
+                # Log warning if metric is missing in some tasks
+                if values and tasks_without_metric:
+                    eval_logger.warning(
+                        f"Group '{self.name}': metric '{metric_key}' is missing in "
+                        f"{len(tasks_without_metric)}/{len(leaf_tasks)} tasks. "
+                        f"Missing in: {', '.join(tasks_without_metric[:5])}"
+                        f"{f' and {len(tasks_without_metric) - 5} more' if len(tasks_without_metric) > 5 else ''}"
+                    )
 
                 if values:
                     group_metrics[metric_key] = aggregate_subtask_metrics(
