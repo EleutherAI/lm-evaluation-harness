@@ -32,7 +32,7 @@ class AggMetricConfig:
     """Configuration for how to aggregate a metric across a group's children."""
 
     metric: str
-    filter_list: list[str] = field(default_factory=lambda: ["none"])
+    filter_list: list[str] | None = field(default=None)
     aggregation: str | Callable = "mean"
     weight_by_size: bool = True
 
@@ -41,8 +41,10 @@ class AggMetricConfig:
             raise ValueError(
                 f"Currently, 'mean' is the only pre-defined aggregation. Got '{self.aggregation}'."
             )
-        # Normalize filter_list to always be a list
-        if isinstance(self.filter_list, str):
+        # Handle filter_list: None means auto-discover, string becomes list
+        if self.filter_list is None:
+            pass  # Keep as None for auto-discovery
+        elif isinstance(self.filter_list, str):
             self.filter_list = [self.filter_list]
 
 
@@ -158,6 +160,40 @@ class Group:
         """Whether this group defines aggregation metrics."""
         return self.aggregation is not None and len(self.aggregation) > 0
 
+    def _discover_filters_for_metric(
+        self, metric_name: str, task_metrics: dict[str, dict]
+    ) -> list[str]:
+        """
+        Discover all filter names used with a specific metric in child tasks.
+
+        Scans all leaf task metrics for keys matching "{metric},{filter}" pattern
+        and returns unique filter names.
+
+        Args:
+            metric_name: Metric to search for (e.g., "acc", "acc_norm")
+            task_metrics: Task metrics dict from EvalResults.metrics
+
+        Returns:
+            Sorted list of unique filter names (e.g., ["custom", "none", "prefix"])
+        """
+        discovered_filters = set()
+        leaf_tasks = [t.task_name for t in self.get_all_tasks()]
+
+        for task_name in leaf_tasks:
+            if task_name not in task_metrics:
+                continue
+
+            task_result = task_metrics[task_name]
+            prefix = f"{metric_name},"
+
+            for key in task_result.keys():
+                # Look for "metric,filter" keys (exclude stderr keys)
+                if key.startswith(prefix) and "_stderr" not in key:
+                    filter_name = key[len(prefix) :]  # Extract filter part
+                    discovered_filters.add(filter_name)
+
+        return sorted(list(discovered_filters))  # Sort for deterministic ordering
+
     def aggregate(self, task_metrics: dict[str, dict]) -> dict[str, Any]:
         """
         Aggregate metrics for this group from its leaf task results.
@@ -181,7 +217,15 @@ class Group:
         leaf_tasks = [t.task_name for t in self.get_all_tasks()]
 
         for agg_config in self.aggregation:
-            for filter_name in agg_config.filter_list:
+            # Determine filters: auto-discover if None, else use explicit list
+            if agg_config.filter_list is None:
+                filters_to_aggregate = self._discover_filters_for_metric(
+                    agg_config.metric, task_metrics
+                )
+            else:
+                filters_to_aggregate = agg_config.filter_list
+
+            for filter_name in filters_to_aggregate:
                 metric_key = f"{agg_config.metric},{filter_name}"
                 stderr_key = f"{agg_config.metric}_stderr,{filter_name}"
 
