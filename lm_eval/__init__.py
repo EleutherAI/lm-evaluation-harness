@@ -2,7 +2,7 @@ import logging
 import os
 
 
-__version__ = "0.4.9.2"
+__version__ = "0.4.5.dev0"
 
 # Enable hf_transfer if available
 try:
