@@ -7,9 +7,11 @@ training_split: train
 test_split: test
 target_delimiter: ""
 generation_kwargs:
+  do_sample: false
   until:
-    - "\n\n"
-    - "\n"
+    - "Pregunta:"
+    - </s>
+    - <|im_end|>
 filter_list:
   - name: remove_whitespace
     filter:

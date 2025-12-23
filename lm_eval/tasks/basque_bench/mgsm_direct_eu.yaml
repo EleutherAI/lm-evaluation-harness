@@ -8,14 +8,11 @@ training_split: train
 test_split: test
 target_delimiter: " "
 generation_kwargs:
+  do_sample: false
   until:
-    - "\n\n"
-    - "\n"
     - "Galdera:"
     - </s>
     - <|im_end|>
-  do_sample: false
-  temperature: 0.0
 filter_list:
   - name: remove_whitespace
     filter:
