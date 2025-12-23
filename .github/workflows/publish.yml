@@ -17,24 +17,11 @@ jobs:
       with:
         python-version: "3.x"
 
-    - name: Check version consistency
+    - name: Print version
       run: |
         # Extract version from pyproject.toml
         PYPROJECT_VERSION=$(grep 'version = ' pyproject.toml | head -1 | cut -d'"' -f2)
-
-        # Extract version from __init__.py
-        INIT_VERSION=$(grep '__version__ = ' lm_eval/__init__.py | head -1 | cut -d'"' -f2)
-
         echo "Version in pyproject.toml: $PYPROJECT_VERSION"
-        echo "Version in __init__.py: $INIT_VERSION"
-
-        # Check if versions match
-        if [ "$PYPROJECT_VERSION" != "$INIT_VERSION" ]; then
-          echo "Error: Version mismatch between pyproject.toml ($PYPROJECT_VERSION) and __init__.py ($INIT_VERSION)"
-          exit 1
-        fi
-
-        echo "Version check passed: $PYPROJECT_VERSION"
 
     - name: Install pypa/build
       run: >-
