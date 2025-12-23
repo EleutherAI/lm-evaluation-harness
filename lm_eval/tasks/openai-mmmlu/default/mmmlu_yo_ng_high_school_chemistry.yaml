@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "YO_NG"
+process_docs: !function utils.process_high_school_chemistry
+"tag": "mmmlu_yo_ng_stem_tasks"
+"task": "mmmlu_yo_ng_high_school_chemistry"
+"task_alias": "high school chemistry (Yoruba)"
+"description": "The following are multiple choice questions (with answers) about high school chemistry (Yoruba).\n\n"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_electrical_engineering
+"tag": "mmmlu_sw_ke_stem_tasks"
+"task": "mmmlu_sw_ke_electrical_engineering"
+"task_alias": "electrical engineering (Swahili)"
+"description": "The following are multiple choice questions (with answers) about electrical engineering (Swahili).\n\n"

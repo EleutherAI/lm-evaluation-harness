@@ -1,0 +1,10 @@
+group: mmmlu_id_id_humanities
+group_alias: "Indonesian humanities"
+task:
+  - mmmlu_id_id_humanities_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

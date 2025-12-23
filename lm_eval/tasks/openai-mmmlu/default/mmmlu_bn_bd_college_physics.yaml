@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_college_physics
+"tag": "mmmlu_bn_bd_stem_tasks"
+"task": "mmmlu_bn_bd_college_physics"
+"task_alias": "college physics (Bengali)"
+"description": "The following are multiple choice questions (with answers) about college physics (Bengali).\n\n"

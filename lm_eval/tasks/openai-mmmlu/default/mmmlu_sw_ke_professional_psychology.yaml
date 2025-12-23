@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_sw_ke_social_sciences_tasks"
+"task": "mmmlu_sw_ke_professional_psychology"
+"task_alias": "professional psychology (Swahili)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Swahili).\n\n"

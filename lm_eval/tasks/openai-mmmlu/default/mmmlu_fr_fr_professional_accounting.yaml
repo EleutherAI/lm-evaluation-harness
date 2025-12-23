@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_fr_fr_other_tasks"
+"task": "mmmlu_fr_fr_professional_accounting"
+"task_alias": "professional accounting (French)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (French).\n\n"

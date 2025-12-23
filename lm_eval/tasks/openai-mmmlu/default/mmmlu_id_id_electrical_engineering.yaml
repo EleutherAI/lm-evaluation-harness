@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_electrical_engineering
+"tag": "mmmlu_id_id_stem_tasks"
+"task": "mmmlu_id_id_electrical_engineering"
+"task_alias": "electrical engineering (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about electrical engineering (Indonesian).\n\n"

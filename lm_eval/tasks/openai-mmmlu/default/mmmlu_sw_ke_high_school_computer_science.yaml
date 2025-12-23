@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_high_school_computer_science
+"tag": "mmmlu_sw_ke_stem_tasks"
+"task": "mmmlu_sw_ke_high_school_computer_science"
+"task_alias": "high school computer science (Swahili)"
+"description": "The following are multiple choice questions (with answers) about high school computer science (Swahili).\n\n"

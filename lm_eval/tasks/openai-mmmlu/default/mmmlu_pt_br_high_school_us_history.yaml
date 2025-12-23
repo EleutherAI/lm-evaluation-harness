@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_high_school_us_history
+"tag": "mmmlu_pt_br_humanities_tasks"
+"task": "mmmlu_pt_br_high_school_us_history"
+"task_alias": "high school us history (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about high school us history (Brazilian Portuguese).\n\n"

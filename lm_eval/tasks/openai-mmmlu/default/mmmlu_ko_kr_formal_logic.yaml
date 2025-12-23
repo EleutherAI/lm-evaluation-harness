@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_formal_logic
+"tag": "mmmlu_ko_kr_humanities_tasks"
+"task": "mmmlu_ko_kr_formal_logic"
+"task_alias": "formal logic (Korean)"
+"description": "The following are multiple choice questions (with answers) about formal logic (Korean).\n\n"

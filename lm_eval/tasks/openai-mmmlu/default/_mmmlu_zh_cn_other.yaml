@@ -1,0 +1,10 @@
+group: mmmlu_zh_cn_other
+group_alias: "Simplified Chinese other"
+task:
+  - mmmlu_zh_cn_other_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

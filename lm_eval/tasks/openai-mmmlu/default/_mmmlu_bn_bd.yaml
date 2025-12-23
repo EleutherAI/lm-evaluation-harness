@@ -1,0 +1,15 @@
+group: mmmlu_bn_bd
+group_alias: "Bengali"
+task:
+  - mmmlu_bn_bd_stem
+  - mmmlu_bn_bd_other
+  - mmmlu_bn_bd_social_sciences
+  - mmmlu_bn_bd_humanities
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+  - metric: acc_norm
+    weight_by_size: True
+
+metadata:
+  version: 1

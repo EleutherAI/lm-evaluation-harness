@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_us_foreign_policy
+"tag": "mmmlu_ar_xy_social_sciences_tasks"
+"task": "mmmlu_ar_xy_us_foreign_policy"
+"task_alias": "us foreign policy (Arabic)"
+"description": "The following are multiple choice questions (with answers) about us foreign policy (Arabic).\n\n"

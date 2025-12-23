@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_professional_psychology
+"tag": "mmmlu_zh_cn_social_sciences_tasks"
+"task": "mmmlu_zh_cn_professional_psychology"
+"task_alias": "professional psychology (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about professional psychology (Simplified Chinese).\n\n"

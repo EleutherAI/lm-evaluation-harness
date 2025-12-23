@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_ja_jp_other_tasks"
+"task": "mmmlu_ja_jp_professional_accounting"
+"task_alias": "professional accounting (Japanese)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (Japanese).\n\n"

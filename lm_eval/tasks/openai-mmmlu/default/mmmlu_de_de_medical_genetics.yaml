@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_medical_genetics
+"tag": "mmmlu_de_de_other_tasks"
+"task": "mmmlu_de_de_medical_genetics"
+"task_alias": "medical genetics (German)"
+"description": "The following are multiple choice questions (with answers) about medical genetics (German).\n\n"

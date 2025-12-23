@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_business_ethics
+"tag": "mmmlu_hi_in_other_tasks"
+"task": "mmmlu_hi_in_business_ethics"
+"task_alias": "business ethics (Hindi)"
+"description": "The following are multiple choice questions (with answers) about business ethics (Hindi).\n\n"

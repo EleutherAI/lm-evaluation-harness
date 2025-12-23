@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_elementary_mathematics
+"tag": "mmmlu_sw_ke_stem_tasks"
+"task": "mmmlu_sw_ke_elementary_mathematics"
+"task_alias": "elementary mathematics (Swahili)"
+"description": "The following are multiple choice questions (with answers) about elementary mathematics (Swahili).\n\n"

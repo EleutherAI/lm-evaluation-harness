@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "HI_IN"
+process_docs: !function utils.process_astronomy
+"tag": "mmmlu_hi_in_stem_tasks"
+"task": "mmmlu_hi_in_astronomy"
+"task_alias": "astronomy (Hindi)"
+"description": "The following are multiple choice questions (with answers) about astronomy (Hindi).\n\n"

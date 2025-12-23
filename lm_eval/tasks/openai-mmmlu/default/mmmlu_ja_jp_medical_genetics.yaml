@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_medical_genetics
+"tag": "mmmlu_ja_jp_other_tasks"
+"task": "mmmlu_ja_jp_medical_genetics"
+"task_alias": "medical genetics (Japanese)"
+"description": "The following are multiple choice questions (with answers) about medical genetics (Japanese).\n\n"

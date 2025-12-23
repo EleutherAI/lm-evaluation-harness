@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_high_school_world_history
+"tag": "mmmlu_ja_jp_humanities_tasks"
+"task": "mmmlu_ja_jp_high_school_world_history"
+"task_alias": "high school world history (Japanese)"
+"description": "The following are multiple choice questions (with answers) about high school world history (Japanese).\n\n"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "IT_IT"
+process_docs: !function utils.process_college_mathematics
+"tag": "mmmlu_it_it_stem_tasks"
+"task": "mmmlu_it_it_college_mathematics"
+"task_alias": "college mathematics (Italian)"
+"description": "The following are multiple choice questions (with answers) about college mathematics (Italian).\n\n"

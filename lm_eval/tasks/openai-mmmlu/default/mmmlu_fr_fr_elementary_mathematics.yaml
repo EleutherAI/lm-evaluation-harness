@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "FR_FR"
+process_docs: !function utils.process_elementary_mathematics
+"tag": "mmmlu_fr_fr_stem_tasks"
+"task": "mmmlu_fr_fr_elementary_mathematics"
+"task_alias": "elementary mathematics (French)"
+"description": "The following are multiple choice questions (with answers) about elementary mathematics (French).\n\n"

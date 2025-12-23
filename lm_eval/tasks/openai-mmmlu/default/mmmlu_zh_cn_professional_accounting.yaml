@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_zh_cn_other_tasks"
+"task": "mmmlu_zh_cn_professional_accounting"
+"task_alias": "professional accounting (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (Simplified Chinese).\n\n"

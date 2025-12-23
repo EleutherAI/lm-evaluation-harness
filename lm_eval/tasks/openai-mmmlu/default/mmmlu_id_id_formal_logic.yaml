@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ID_ID"
+process_docs: !function utils.process_formal_logic
+"tag": "mmmlu_id_id_humanities_tasks"
+"task": "mmmlu_id_id_formal_logic"
+"task_alias": "formal logic (Indonesian)"
+"description": "The following are multiple choice questions (with answers) about formal logic (Indonesian).\n\n"
