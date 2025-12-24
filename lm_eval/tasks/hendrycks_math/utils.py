@@ -1,6 +1,14 @@
 from typing import Dict, List
 
 import datasets
+import re
+
+def normalize_answer(text):
+    temp_marker = "____DOUBLE_BACKSLASH____"
+    text = text.replace(r'\\', temp_marker)
+    text = text.replace('\\', r'\\')
+    text = text.replace(temp_marker, r'\\')
+    return text
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
@@ -17,13 +25,9 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     retval = 0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0]
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
-
-    if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
+    answer = normalize_answer(results[0])
+    answer = remove_boxed(last_boxed_only_string(answer))
+    if is_equiv(answer, doc["answer"]):
         retval = 1
 
     results = {
@@ -51,6 +55,8 @@ def is_equiv(str1, str2, verbose=False):
 
 
 def remove_boxed(s):
+    if s is None:
+        return None
     if "\\boxed " in s:
         left = "\\boxed "
         assert s[: len(left)] == left
@@ -229,3 +235,4 @@ def strip_string(string):
     string = fix_a_slash_b(string)
 
     return string
+
