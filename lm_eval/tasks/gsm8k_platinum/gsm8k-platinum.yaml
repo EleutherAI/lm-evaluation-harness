@@ -7,6 +7,7 @@ output_type: generate_until
 training_split: test
 fewshot_split: test
 test_split: test
+description: "Here are some example math questions. Answer the final question yourself, following the format of the previous questions.\n"
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
