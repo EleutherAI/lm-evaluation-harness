@@ -1,0 +1,38 @@
+# Common configuration for WMT24++ English→X translation tasks
+
+# HF dataset information
+# Note: we actually load via `custom_dataset`, but this documents the source.
+dataset_path: google/wmt24pp
+# Each language pair is a separate HF config; see per-language YAMLs.
+
+# We treat the single available split ("train") as the evaluation split.
+training_split: null
+validation_split: null
+test_split: train
+
+output_type: generate_until
+
+# Plain translation: English source → target language
+doc_to_text: "Translate English to the target language: {{source}}"
+doc_to_target: "{{target}}"
+
+# Load and filter data via Python helper
+custom_dataset: !function utils.load_wmt24pp_dataset
+
+# WMT-style metrics: BLEU, TER, ChrF
+metric_list:
+  - metric: bleu
+  - metric: ter
+  - metric: chrf
+
+# Greedy decoding, stop at newline (mirrors translation/wmt_common_yaml)
+generation_kwargs:
+  until:
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+
+# Zero-shot translation by default
+num_fewshot: 0
+
+repeats: 1

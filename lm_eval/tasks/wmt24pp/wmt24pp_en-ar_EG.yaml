@@ -1,0 +1,12 @@
+include: wmt24pp_common.yaml
+
+task: wmt24pp-en-ar_EG
+
+tag:
+  - translation
+  - wmt24pp
+
+metadata:
+  version: 1.0
+  lang_pair: "en-ar_EG"
+doc_to_text: "Translate English to Arabic (Egypt): {{source}}"
