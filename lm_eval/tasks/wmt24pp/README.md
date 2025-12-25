@@ -36,7 +36,7 @@ per-language YAML):
 - `dataset_path: google/wmt24pp`
 - `test_split: train`
 - `output_type: generate_until`
-- `doc_to_text: "Translate English to the target language: {{source}}"`
+- `doc_to_text: !function utils.doc_to_text`
 - `doc_to_target: "{{target}}"`
 - `custom_dataset: !function utils.load_wmt24pp_dataset`
 - Metrics: **BLEU**, **TER**, **ChrF** (same triple as classic WMT tasks)
@@ -157,6 +157,31 @@ repository, exposing three standard MT metrics:
 
 All metrics are implemented via `lm_eval.api.metrics` and use SacreBLEU under
 the hood.
+
+## Task Validity Checklist
+
+For adding novel benchmarks/datasets to the library:
+
+- [x] **Is the task an existing benchmark in the literature?**  
+  Yes. WMT24++ extends the official WMT24 benchmark to 55 languages/dialects as
+described by Deutsch et al. (2025).
+- [x] **Have you referenced the original paper that introduced the task?**  
+  The citation for the WMT24++ paper is provided in the section below.
+- [ ] **If yes, does the original paper provide a reference implementation?**  
+  Prompt template and dataset filtering match the reference release. But we didn't replicate full original implementation. 
+
+If other tasks on this dataset are already supported:
+
+- [x] **Is the "Main" variant of this task clearly denoted?**  
+  Yes. Every YAML task is `wmt24pp-en-<target>` to emphasize the English→X
+setup, and the group config exposes the complete benchmark as `wmt24pp`.
+- [x] **Have you provided a short sentence on what each new variant adds / evaluates?**  
+  The README explains that each YAML corresponds to a single HF config / language
+pair; they all evaluate the same translation direction with identical metrics.
+- [x] **Have you noted which published evaluation setups are matched by this variant?**  
+  Yes. See the section above for the specific alignment with the WMT24++ dataset
+card: same split (`train`), same bad-source filtering, same post-edited reference,
+and the BLEU/TER/ChrF++ metric trio used in the paper/MTME release.
 
 ## Citation
 
