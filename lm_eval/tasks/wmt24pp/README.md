@@ -128,11 +128,6 @@ gen_kwargs:
 output_path: ./results/
 log_samples: true
 
-system_instruction: >-
-  You are a translation engine. Given an English sentence and a target language,
-  output ONLY the translation in the specified target language, with no
-  explanations, quotes, or extra text.
-
 wandb_args: {}
 hf_hub_log_args: {}
 ```
