@@ -1,0 +1,3 @@
+include: _default_template_qa
+dataset_name: songer
+task: caselawqa_songer_qa
