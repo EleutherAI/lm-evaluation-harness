@@ -9,4 +9,3 @@ tag:
 metadata:
   version: 1.0
   lang_pair: "en-ur_PK"
-doc_to_text: "Translate English to Urdu (Pakistan): {{source}}"

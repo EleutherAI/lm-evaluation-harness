@@ -12,8 +12,9 @@ test_split: train
 
 output_type: generate_until
 
-# Plain translation: English source → target language
-doc_to_text: "Translate English to the target language: {{source}}"
+# Shared prompt renderer: official WMT24++ instructions
+doc_to_text: !function utils.doc_to_text
+
 doc_to_target: "{{target}}"
 
 # Load and filter data via Python helper

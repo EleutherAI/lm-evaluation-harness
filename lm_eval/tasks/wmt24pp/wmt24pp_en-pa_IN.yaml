@@ -9,4 +9,3 @@ tag:
 metadata:
   version: 1.0
   lang_pair: "en-pa_IN"
-doc_to_text: "Translate English to Punjabi (India): {{source}}"
