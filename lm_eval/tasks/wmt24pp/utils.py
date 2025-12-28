@@ -79,7 +79,7 @@ PROMPT_TEMPLATE = (
     "grammar, vocabulary, and cultural sensitivities.\n"
     "Please translate the following {src_lang} text into {tgt_lang} ({tgt_code}):\n\n"
     "{input_text}\n\n"
-    "Produce only the {tgt_lang} translation, without any additional explanations or commentary."
+    "Produce only the {tgt_lang} translation, without any additional explanations or commentary:\n\n"
 )
 
 
