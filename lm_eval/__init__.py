@@ -1,8 +1,10 @@
+import importlib.metadata
 import logging
 import os
 
 
-__version__ = "0.4.9.2"
+__version__ = importlib.metadata.version("lm_eval")
+
 
 # Enable hf_transfer if available
 try:

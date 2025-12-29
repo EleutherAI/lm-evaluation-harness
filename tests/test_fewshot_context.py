@@ -341,7 +341,7 @@ class TestBuildQaTurn:
         assert messages_to_text(msgs) == "QA"
 
     def test_whitespace_delimiter_matrix(self, task):
-        """Whitespace interaction matrix for build_qa_turn.
+        r"""Whitespace interaction matrix for build_qa_turn.
 
         Two boundaries are checked:
         1. Q↔P: requires_delimiter(q, gen_prefix) → determines user message's _delimiter
@@ -419,7 +419,7 @@ class TestBuildQaTurn:
     def test_raises_on_non_string_question(self, task):
         """Raises AssertionError if question is not a string."""
         with pytest.raises(AssertionError, match="not a string"):
-            ConfigurableTask.build_qa_turn(task, q=123, a="A") # type: ignore
+            ConfigurableTask.build_qa_turn(task, q=123, a="A")  # type: ignore
 
 
 # =============================================================================
@@ -430,62 +430,35 @@ class TestBuildQaTurn:
 class TestFewshotContext:
     """Tests for ConfigurableTask.fewshot_context method."""
 
-    @pytest.fixture
-    def mock_task(self):
-        """Create a mock task with configurable attributes."""
-        task = Mock(spec=ConfigurableTask)
-
-        # Default config
-        task.config = Mock()
-        task.config.target_delimiter = " "
-        task.config.fewshot_delimiter = "\n\n"
-        task.config.description = None
-        task.config.doc_to_choice = None
-        task.config.fewshot_split = "train"
-        task.config.test_split = "test"
-
-        # Default attributes
-        task.multiple_input = False
-
-        # Mock methods - use real build_qa_turn
-        task.build_qa_turn = lambda **kwargs: ConfigurableTask.build_qa_turn(
-            task, **kwargs
-        )
-        task.resolve_field = Mock(return_value=None)
-
-        # Mock sampler
-        task.sampler = Mock()
-        task.sampler.sample = Mock(return_value=[])
-
-        return task
-
-    def test_zero_shot_format(self, mock_task):
+    def test_zero_shot_format(self, mock_configurable_task):
         """Zero-shot: just the question."""
-        mock_task.doc_to_text = Mock(return_value="What is the capital of France?")
-        mock_task.doc_to_target = Mock(return_value="Paris")
+        mock_configurable_task.doc_to_text = Mock(
+            return_value="What is the capital of France?"
+        )
+        mock_configurable_task.doc_to_target = Mock(return_value="Paris")
 
         result = ConfigurableTask.fewshot_context(
-            mock_task, doc={"q": "test"}, num_fewshot=0
+            mock_configurable_task, doc={"q": "test"}, num_fewshot=0
         )
 
         assert result == "What is the capital of France?"
 
-    def test_one_shot_format(self, mock_task):
+    def test_one_shot_format(self, mock_configurable_task):
         """One-shot: one example + target question."""
         fewshot_doc = {"q": "What is 1+1?", "a": "2"}
         target_doc = {"q": "What is 2+2?", "a": "4"}
 
-        mock_task.sampler.sample.return_value = [fewshot_doc]
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
+        mock_configurable_task.sampler.sample.return_value = [fewshot_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
 
         result = ConfigurableTask.fewshot_context(
-            mock_task, doc=target_doc, num_fewshot=1
+            mock_configurable_task, doc=target_doc, num_fewshot=1
         )
 
         assert result == "What is 1+1? 2\n\nWhat is 2+2?"
 
-    def test_two_shot_format(self, mock_task):
+    def test_two_shot_format(self, mock_configurable_task):
         """Two-shot: two examples + target question."""
         fs_docs = [
             {"q": "Q1", "a": "A1"},
@@ -493,25 +466,25 @@ class TestFewshotContext:
         ]
         target_doc = {"q": "Q3", "a": "A3"}
 
-        mock_task.sampler.sample.return_value = fs_docs
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
+        mock_configurable_task.sampler.sample.return_value = fs_docs
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
 
         result = ConfigurableTask.fewshot_context(
-            mock_task, doc=target_doc, num_fewshot=2
+            mock_configurable_task, doc=target_doc, num_fewshot=2
         )
 
         assert result == "Q1 A1\n\nQ2 A2\n\nQ3"
 
-    def test_with_system_instruction(self, mock_task):
+    def test_with_system_instruction(self, mock_configurable_task):
         """System instruction prepended to context."""
-        mock_task.doc_to_text = Mock(return_value="Question?")
-        mock_task.doc_to_target = Mock(return_value="Answer")
+        mock_configurable_task.doc_to_text = Mock(return_value="Question?")
+        mock_configurable_task.doc_to_target = Mock(return_value="Answer")
 
         system_instruction = "You are a helpful assistant.\n"
 
         result = ConfigurableTask.fewshot_context(
-            mock_task,
+            mock_configurable_task,
             doc={},
             num_fewshot=0,
             system_instruction=system_instruction,
@@ -519,29 +492,31 @@ class TestFewshotContext:
 
         assert result == system_instruction + "Question?"
 
-    def test_with_description(self, mock_task):
+    def test_with_description(self, mock_configurable_task):
         """Description from config is included."""
         description = "Answer math questions.\n"
-        mock_task.config.description = description
-        mock_task.resolve_field = Mock(return_value=description)
-        mock_task.doc_to_text = Mock(return_value="2+2?")
-        mock_task.doc_to_target = Mock(return_value="4")
+        mock_configurable_task.config.description = description
+        mock_configurable_task.resolve_field = Mock(return_value=description)
+        mock_configurable_task.doc_to_text = Mock(return_value="2+2?")
+        mock_configurable_task.doc_to_target = Mock(return_value="4")
 
-        result = ConfigurableTask.fewshot_context(mock_task, doc={}, num_fewshot=0)
+        result = ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc={}, num_fewshot=0
+        )
 
         assert result == f"{description}2+2?"
 
-    def test_system_instruction_and_description(self, mock_task):
+    def test_system_instruction_and_description(self, mock_configurable_task):
         """System instruction combined with description."""
         description = "Answer math questions.\n"
         system_instruction = "Be helpful."
-        mock_task.config.description = description
-        mock_task.resolve_field = Mock(return_value=description)
-        mock_task.doc_to_text = Mock(return_value="2+2?")
-        mock_task.doc_to_target = Mock(return_value="4")
+        mock_configurable_task.config.description = description
+        mock_configurable_task.resolve_field = Mock(return_value=description)
+        mock_configurable_task.doc_to_text = Mock(return_value="2+2?")
+        mock_configurable_task.doc_to_target = Mock(return_value="4")
 
         result = ConfigurableTask.fewshot_context(
-            mock_task,
+            mock_configurable_task,
             doc={},
             num_fewshot=0,
             system_instruction=system_instruction,
@@ -549,55 +524,64 @@ class TestFewshotContext:
 
         assert result == f"{system_instruction}\n\n{description}2+2?"
 
-    def test_with_choices(self, mock_task):
+    def test_with_choices(self, mock_configurable_task):
         """Multiple choice with answer as index."""
-        mock_task.config.doc_to_choice = "choices"
+        mock_configurable_task.config.doc_to_choice = "choices"
+        mock_configurable_task.fewshot_cfg.doc_to_choice = "choices"
 
         fs_doc = {"q": "Pick:", "a": 0}
         target_doc = {"q": "Pick a fruit:", "a": 1}
 
-        mock_task.sampler.sample.return_value = [fs_doc]
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
-        mock_task.doc_to_choice = Mock(
-            side_effect=lambda d: ["A", "B"] if d == fs_doc else ["Apple", "Banana"]
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
+        mock_configurable_task.doc_to_choice = Mock(
+            side_effect=lambda d, *args: ["A", "B"]
+            if d == fs_doc
+            else ["Apple", "Banana"]
         )
 
         result = ConfigurableTask.fewshot_context(
-            mock_task, doc=target_doc, num_fewshot=1
+            mock_configurable_task, doc=target_doc, num_fewshot=1
         )
 
         # Fewshot uses choices[0]="A", target question only (no answer)
         assert "A\n\n" in result
         assert result.endswith("Pick a fruit:")
 
-    def test_custom_delimiters(self, mock_task):
+    def test_custom_delimiters(self, mock_configurable_task):
         """Custom delimiters are respected."""
-        mock_task.config.target_delimiter = "->"
-        mock_task.config.fewshot_delimiter = "||"
+        mock_configurable_task.config.target_delimiter = "->"
+        mock_configurable_task.config.fewshot_delimiter = "||"
+        mock_configurable_task.fewshot_cfg.target_delimiter = "->"
+        mock_configurable_task.fewshot_cfg.fewshot_delimiter = "||"
 
         fs_doc = {"q": "Q1", "a": "A1"}
         target_doc = {"q": "Q2", "a": "A2"}
-        mock_task.sampler.sample.return_value = [fs_doc]
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
 
         result = ConfigurableTask.fewshot_context(
-            mock_task, doc=target_doc, num_fewshot=1
+            mock_configurable_task, doc=target_doc, num_fewshot=1
         )
 
         assert result == "Q1->A1||Q2"
 
-    def test_gen_prefix_in_fewshot(self, mock_task):
-        """gen_prefix is applied to fewshot examples."""
+    def test_gen_prefix_in_fewshot(self, mock_configurable_task):
+        """gen_prefix from fewshot_cfg is applied to fewshot examples."""
         fs_doc = {"q": "Q1", "a": "A1"}
         target_doc = {"q": "Q2", "a": "A2"}
-        mock_task.sampler.sample.return_value = [fs_doc]
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
+        # fewshot examples use fewshot_cfg.gen_prefix
+        mock_configurable_task.fewshot_cfg.gen_prefix = "Answer:"
+        # resolve_field returns the gen_prefix value (not a template)
+        mock_configurable_task.resolve_field = Mock(side_effect=lambda doc, val: val)
 
         result = ConfigurableTask.fewshot_context(
-            mock_task, doc=target_doc, num_fewshot=1, gen_prefix="Answer:"
+            mock_configurable_task, doc=target_doc, num_fewshot=1, gen_prefix="Answer:"
         )
 
         # Fewshot answer should have gen_prefix prepended
@@ -605,39 +589,49 @@ class TestFewshotContext:
         # Target should end with gen_prefix
         assert result.endswith("Answer:")
 
-    def test_sampler_excludes_eval_doc_when_same_split(self, mock_task):
+    def test_sampler_excludes_eval_doc_when_same_split(self, mock_configurable_task):
         """When fewshot_split == test_split, eval_doc is passed to sampler."""
-        mock_task.config.fewshot_split = "test"
-        mock_task.config.test_split = "test"
-        mock_task.doc_to_text = Mock(return_value="Q")
-        mock_task.doc_to_target = Mock(return_value="A")
+        mock_configurable_task.config.fewshot_split = "test"
+        mock_configurable_task.config.test_split = "test"
+        mock_configurable_task.fewshot_cfg.split = "test"
+        mock_configurable_task.doc_to_text = Mock(return_value="Q")
+        mock_configurable_task.doc_to_target = Mock(return_value="A")
 
         eval_doc = {"id": 123}
-        ConfigurableTask.fewshot_context(mock_task, doc=eval_doc, num_fewshot=1)
+        ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=eval_doc, num_fewshot=1
+        )
 
         # Sampler should be called with eval_doc to exclude it
-        mock_task.sampler.sample.assert_called_once_with(n=1, eval_doc=eval_doc)
+        mock_configurable_task.sampler.sample.assert_called_once_with(
+            n=1, eval_doc=eval_doc
+        )
 
-    def test_sampler_no_exclusion_when_different_split(self, mock_task):
+    def test_sampler_no_exclusion_when_different_split(self, mock_configurable_task):
         """When fewshot_split != test_split, eval_doc is not passed to sampler."""
-        mock_task.config.fewshot_split = "train"
-        mock_task.config.test_split = "test"
-        mock_task.doc_to_text = Mock(return_value="Q")
-        mock_task.doc_to_target = Mock(return_value="A")
+        mock_configurable_task.config.fewshot_split = "train"
+        mock_configurable_task.config.test_split = "test"
+        mock_configurable_task.fewshot_cfg.split = "train"
+        mock_configurable_task.doc_to_text = Mock(return_value="Q")
+        mock_configurable_task.doc_to_target = Mock(return_value="A")
 
         eval_doc = {"id": 123}
-        ConfigurableTask.fewshot_context(mock_task, doc=eval_doc, num_fewshot=1)
+        ConfigurableTask.fewshot_context(
+            mock_configurable_task, doc=eval_doc, num_fewshot=1
+        )
 
         # Sampler should be called without eval_doc
-        mock_task.sampler.sample.assert_called_once_with(n=1, eval_doc=None)
+        mock_configurable_task.sampler.sample.assert_called_once_with(
+            n=1, eval_doc=None
+        )
 
-    def test_chat_template_multiturn(self, mock_task):
+    def test_chat_template_multiturn(self, mock_configurable_task):
         """Chat template with fewshot_as_multiturn=True keeps messages separate."""
         fs_doc = {"q": "Q1", "a": "A1"}
         target_doc = {"q": "Q2", "a": "A2"}
-        mock_task.sampler.sample.return_value = [fs_doc]
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
 
         captured_messages = []
 
@@ -646,7 +640,7 @@ class TestFewshotContext:
             return "<chat>"
 
         result = ConfigurableTask.fewshot_context(
-            mock_task,
+            mock_configurable_task,
             doc=target_doc,
             num_fewshot=1,
             apply_chat_template=True,
@@ -661,13 +655,13 @@ class TestFewshotContext:
         assert captured_messages[1]["role"] == "assistant"
         assert captured_messages[2]["role"] == "user"
 
-    def test_chat_template_singleturn(self, mock_task):
+    def test_chat_template_singleturn(self, mock_configurable_task):
         """Chat template with fewshot_as_multiturn=False collapses to single user."""
         fs_doc = {"q": "Q1", "a": "A1"}
         target_doc = {"q": "Q2", "a": "A2"}
-        mock_task.sampler.sample.return_value = [fs_doc]
-        mock_task.doc_to_text = Mock(side_effect=lambda d: d["q"])
-        mock_task.doc_to_target = Mock(side_effect=lambda d: d["a"])
+        mock_configurable_task.sampler.sample.return_value = [fs_doc]
+        mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
+        mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
 
         captured_messages = []
 
@@ -676,7 +670,7 @@ class TestFewshotContext:
             return "<chat>"
 
         result = ConfigurableTask.fewshot_context(
-            mock_task,
+            mock_configurable_task,
             doc=target_doc,
             num_fewshot=1,
             apply_chat_template=True,

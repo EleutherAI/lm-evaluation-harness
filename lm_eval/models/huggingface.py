@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import logging
 import os
-from collections.abc import Iterator, Sequence
 from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -33,18 +32,22 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
     _add_special_kwargs,
-    clear_torch_cache,
     configure_pad_token,
-    get_dtype,
     handle_stop_sequences,
     has_bos_prefix,
-    pad_and_concat,
     postprocess_generated_text,
+)
+from lm_eval.models.utils_hf import (
+    clear_torch_cache,
+    get_dtype,
+    pad_and_concat,
     stop_sequences_criteria,
 )
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+
     from transformers.quantizers.auto import AutoQuantizationConfig
 
     from lm_eval.api.instance import Instance
@@ -555,6 +558,7 @@ class HFLM(TemplateLM):
     def _get_config(
         self,
         pretrained: str,
+        *,
         revision: str = "main",
         trust_remote_code: bool = False,
         gguf_file: str | None = None,
@@ -679,8 +683,7 @@ class HFLM(TemplateLM):
             )
 
         if peft:
-            from peft import PeftModel
-            from peft import __version__ as PEFT_VERSION
+            from peft import PeftModel, __version__ as PEFT_VERSION
 
             if model_kwargs.get("load_in_4bit") and vparse(PEFT_VERSION) < vparse(
                 "0.4.0"
@@ -1079,7 +1082,7 @@ class HFLM(TemplateLM):
         for i in range(0, len(all_windows), batch_size):
             batch = all_windows[i : i + batch_size]
             # Extract just the windows for processing, keeping track of request indices
-            batch_indices, batch_windows = zip(*batch)
+            batch_indices, batch_windows = zip(*batch, strict=True)
 
             batch_nlls = self._loglikelihood_tokens(
                 requests=batch_windows,
@@ -1087,7 +1090,7 @@ class HFLM(TemplateLM):
                 override_bs=len(batch_windows),
             )
             # Store results with their request indices
-            all_nlls.extend(zip(batch_indices, batch_nlls))
+            all_nlls.extend(zip(batch_indices, batch_nlls, strict=True))
 
         # Remove padding if necessary
         if (self.world_size > 1) and (pad_amnt > 0):
@@ -1299,7 +1302,7 @@ class HFLM(TemplateLM):
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
-                chunk, multi_logits, inplens, cont_toks_list
+                chunk, multi_logits, inplens, cont_toks_list, strict=True
             ):
                 # Slice to original seq length
                 contlen = len(cont_toks)
@@ -1418,7 +1421,7 @@ class HFLM(TemplateLM):
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
         for chunk in chunks:
-            contexts, all_gen_kwargs = zip(*chunk)
+            contexts, all_gen_kwargs = zip(*chunk, strict=True)
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
@@ -1468,7 +1471,7 @@ class HFLM(TemplateLM):
             )
 
             cont_toks_list = cont.tolist()
-            for cont_toks, context in zip(cont_toks_list, contexts):
+            for cont_toks, context in zip(cont_toks_list, contexts, strict=True):
                 # discard context + left-padding toks if using causal decoder-only LM
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]
