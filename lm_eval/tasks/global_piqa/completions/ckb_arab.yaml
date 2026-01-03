@@ -1,0 +1,3 @@
+dataset_name: ckb_arab
+include: _template
+task: global_piqa_completions_ckb_arab

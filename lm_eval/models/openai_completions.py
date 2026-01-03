@@ -150,6 +150,8 @@ class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
         base_url=None,
+        tokenizer_backend=None,
+        tokenized_requests=None,
         verify_certificate=True,
         ca_cert_path=None,
         auth_token=None,
@@ -157,8 +159,8 @@ class LocalChatCompletion(LocalCompletionsAPI):
     ):
         super().__init__(
             base_url=base_url,
-            tokenizer_backend=None,
-            tokenized_requests=None,
+            tokenizer_backend=tokenizer_backend,
+            tokenized_requests=tokenized_requests,
             verify_certificate=verify_certificate,
             ca_cert_path=ca_cert_path,
             auth_token=auth_token,
@@ -211,9 +213,16 @@ class LocalChatCompletion(LocalCompletionsAPI):
         if not isinstance(outputs, list):
             outputs = [outputs]
         for out in outputs:
-            tmp = [None] * len(out["choices"])
-            for choices in out["choices"]:
-                tmp[choices["index"]] = choices["message"]["content"]
+            try:
+                tmp = [None] * len(out["choices"])
+                for choices in out["choices"]:
+                    tmp[choices["index"]] = choices["message"]["content"]
+            except Exception as e:
+                # account for cases that generation is blocked by content filter,
+                # which is common for Azure OpenAI Service,
+                # not sure if need to account for multiple choices
+                eval_logger.warning(f"Could not parse generations: {e}")
+                tmp = [""]
             res = res + tmp
         return res
 
@@ -335,9 +344,47 @@ class OpenAIChatCompletion(LocalChatCompletion):
             "seed": seed,
             **gen_kwargs,
         }
-        if "o1" in self.model or "5" in self.model:
+        if (
+            "o1" in self.model
+            or "5" in self.model
+            or "o3" in self.model
+            or "o4" in self.model
+        ):
             output.pop("stop")
             output["temperature"] = 1
-        elif "o3" in self.model:
-            output.pop("temperature")
         return output
+
+
+@register_model("azure-openai-chat-completions")
+class AzureOpenaiChatCompletionsLM(OpenAIChatCompletion):
+    def __init__(
+        self,
+        model: str = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+        base_url: str = os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_version: str = os.getenv("AZURE_OPENAI_API_VERSION", "2025-03-01-preview"),
+        truncate: bool = False,
+        **kwargs,
+    ) -> None:
+        super().__init__()
+        try:
+            import openai  # noqa: E401
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            )
+        self.model = model
+        self.base_url = f"{base_url}/openai/deployments/{model}/chat/completions?api-version={api_version}"
+        self.truncate = truncate
+        self.client = openai.AzureOpenAI(
+            azure_endpoint=base_url, api_version=api_version, api_key=self.api_key
+        )
+
+    @cached_property
+    def api_key(self):
+        key = os.environ.get("AZURE_OPENAI_API_KEY", None)
+        if key is None:
+            raise ValueError(
+                "API key not found. Please set the `AZURE_OPENAI_API_KEY` environment variable."
+            )
+        return key
