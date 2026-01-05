@@ -5,6 +5,8 @@
 ---
 
 ## Latest News 📣
+- [2025/12] **CLI refactored** with subcommands (`run`, `ls`, `validate`) and YAML config file support via `--config`. See the [CLI Reference](./docs/interface.md) and [Configuration Guide](./docs/config_files.md).
+- [2025/12] **Lighter install**: Base package no longer includes `transformers`/`torch`. Install model backends separately: `pip install lm_eval[hf]`, `lm_eval[vllm]`, etc.
 - [2025/07] Added `think_end_token` arg to `hf` (token/str), `vllm` and `sglang` (str) for stripping CoT reasoning traces from models that support it.
 - [2025/03] Added support for steering HF models!
 - [2025/02] Added [SGLang](https://docs.sglang.ai/) support!
@@ -63,17 +65,59 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
+### Installing Model Backends
+
+The base installation provides the core evaluation framework. **Model backends must be installed separately** using optional extras:
+
+For HuggingFace transformers models:
+
+```bash
+pip install "lm_eval[hf]"
+```
+
+For vLLM inference:
+
+```bash
+pip install "lm_eval[vllm]"
+```
+
+For API-based models (OpenAI, Anthropic, etc.):
+
+```bash
+pip install "lm_eval[api]"
+```
+
+Multiple backends can be installed together:
+
+```bash
+pip install "lm_eval[hf,vllm,api]"
+```
+
+A detailed table of all optional extras is available at the end of this document.
 
 ## Basic Usage
 
-### User Guide
+### Documentation
 
-A user guide detailing the full list of supported arguments is provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
+| Guide | Description |
+|-------|-------------|
+| [CLI Reference](./docs/interface.md) | Command-line arguments and subcommands |
+| [Configuration Guide](./docs/config_files.md) | YAML config file format and examples |
+| [Python API](./docs/python-api.md) | Programmatic usage with `simple_evaluate()` |
+| [Task Guide](./lm_eval/tasks/README.md) | Available tasks and task configuration |
 
-A list of supported tasks (or groupings of tasks) can be viewed with `lm-eval --tasks list`. Task descriptions and links to corresponding subfolders are provided [here](./lm_eval/tasks/README.md).
+Use `lm-eval -h` to see available options, or `lm-eval run -h` for evaluation options.
+
+List available tasks with:
+
+```bash
+lm-eval ls tasks
+```
 
 ### Hugging Face `transformers`
+
+> [!Important]
+> To use the HuggingFace backend, first install: `pip install "lm_eval[hf]"`
 
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
 
@@ -307,9 +351,9 @@ lm_eval --model vllm \
     --batch_size auto
 ```
 
-To use vllm, do `pip install lm_eval[vllm]`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
+To use vllm, do `pip install "lm_eval[vllm]"`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
 
-vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
+vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 
 > [!Tip]
 > For fastest performance, we recommend using `--batch_size auto` for vLLM whenever possible, to leverage its continuous batching functionality!
@@ -321,12 +365,12 @@ vLLM occasionally differs in output from Huggingface. We treat Huggingface as th
 
 We support SGLang for efficient offline batch inference. Its **[Fast Backend Runtime](https://docs.sglang.ai/index.html)** delivers high performance through optimized memory management and parallel processing techniques. Key features include tensor parallelism, continuous batching, and support for various quantization methods (FP8/INT4/AWQ/GPTQ).
 
-To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.ai/start/install.html#install-sglang).
+To use SGLang as the evaluation backend, please **install it in advance** via SGLang documents [here](https://docs.sglang.io/get_started/install.html#install-sglang).
 
 > [!Tip]
 > Due to the installing method of [`Flashinfer`](https://docs.flashinfer.ai/)-- a fast attention kernel library, we don't include the dependencies of `SGLang` within [pyproject.toml](pyproject.toml). Note that the `Flashinfer` also has some requirements on `torch` version.
 
-SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.ai/backend/server_arguments.html) for more information. We provide an example of the usage here:
+SGLang's server arguments are slightly different from other backends, see [here](https://docs.sglang.io/advanced_features/server_arguments.html) for more information. We provide an example of the usage here:
 
 ```bash
 lm_eval --model sglang \
@@ -336,13 +380,16 @@ lm_eval --model sglang \
 ```
 
 > [!Tip]
-> When encountering out of memory (OOM) errors (especially for multiple-choice tasks), try these solutions:
+> When encountering out-of-memory (OOM) errors (especially for multiple-choice tasks), try these solutions:
 >
 > 1. Use a manual `batch_size`, rather than `auto`.
 > 2. Lower KV cache pool memory usage by adjusting `mem_fraction_static` - Add to your model arguments for example `--model_args pretrained=...,mem_fraction_static=0.7`.
 > 3. Increase tensor parallel size `tp_size` (if using multiple GPUs).
 
 ### Model APIs and Inference Servers
+
+> [!Important]
+> To use API-based models, first install: `pip install "lm_eval[api]"`
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
 
@@ -581,7 +628,7 @@ To get started with development, first clone the repository and install the dev 
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
-pip install -e ".[dev]"
+pip install -e ".[dev,hf]"
 ````
 
 ### Implementing new tasks
@@ -607,24 +654,50 @@ The best way to get support is to open an issue on this repo or join the [Eleuth
 
 Extras dependencies can be installed via `pip install -e ".[NAME]"`
 
-| NAME                 | Description                    | NAME           | Description                           |
-|----------------------|--------------------------------|----------------|---------------------------------------|
-| tasks                | All task-specific dependencies | api            | API models (Anthropic, OpenAI, local) |
-| acpbench             | ACP Bench tasks                | audiolm_qwen   | Qwen2 audio models                    |
-| ifeval               | IFEval task                    |                |                                       |
-| japanese_leaderboard | Japanese LLM tasks             | gptq           | AutoGPTQ models                       |
-| longbench            | LongBench tasks                | gptqmodel      | GPTQModel models                      |
-| math                 | Math answer checking           | hf_transfer    | Speed up HF downloads                 |
-| multilingual         | Multilingual tokenizers        | ibm_watsonx_ai | IBM watsonx.ai models                 |
-| ruler                | RULER tasks                    | ipex           | Intel IPEX backend                    |
-|                      |                                |                |                                       |
-| dev                  | Linting & contributions        | mamba          | Mamba SSM models                      |
-| promptsource         | PromptSource prompts           | neuronx        | AWS inf2 instances                    |
-| sentencepiece        | Sentencepiece tokenizer        | optimum        | Intel OpenVINO models                 |
-| testing              | Run test suite                 | sae_lens       | SAELens model steering                |
-| unitxt               | Run unitxt tasks               |                |                                       |
-| wandb                | Weights & Biases               | sparsify       | Sparsify model steering               |
-| zeno                 | Result visualization           | vllm           | vLLM models                           |
+### Model Backends
+
+These extras install dependencies required to run specific model backends:
+
+| NAME           | Description                                      |
+|----------------|--------------------------------------------------|
+| hf             | HuggingFace Transformers (torch, transformers, accelerate, peft) |
+| vllm           | vLLM fast inference                              |
+| api            | API models (OpenAI, Anthropic, local servers)    |
+| gptq           | AutoGPTQ quantized models                        |
+| gptqmodel      | GPTQModel quantized models                       |
+| ibm_watsonx_ai | IBM watsonx.ai models                            |
+| ipex           | Intel IPEX backend                               |
+| optimum        | Intel OpenVINO models                            |
+| neuronx        | AWS Inferentia2 instances                        |
+| sparsify       | Sparsify model steering                          |
+| sae_lens       | SAELens model steering                           |
+
+### Task Dependencies
+
+These extras install dependencies required for specific evaluation tasks:
+
+| NAME                 | Description                    |
+|----------------------|--------------------------------|
+| tasks                | All task-specific dependencies |
+| acpbench             | ACP Bench tasks                |
+| audiolm_qwen         | Qwen2 audio models             |
+| ifeval               | IFEval task                    |
+| japanese_leaderboard | Japanese LLM tasks             |
+| longbench            | LongBench tasks                |
+| math                 | Math answer checking           |
+| multilingual         | Multilingual tokenizers        |
+| ruler                | RULER tasks                    |
+
+### Development & Utilities
+
+| NAME          | Description                    |
+|---------------|--------------------------------|
+| dev           | Linting & contributions        |
+| hf_transfer   | Speed up HF downloads          |
+| sentencepiece | Sentencepiece tokenizer        |
+| unitxt        | Unitxt tasks                   |
+| wandb         | Weights & Biases logging       |
+| zeno          | Zeno result visualization      |
 
 ## Cite as
 

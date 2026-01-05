@@ -1,0 +1,3 @@
+dataset_name: yor_latn
+include: _template
+task: global_piqa_completions_yor_latn
