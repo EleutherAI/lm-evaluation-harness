@@ -4,7 +4,7 @@
 #PBS -k oed
 #PBS -N lm_evaluation_harness_run
 #PBS -q auto
-#PBS -l select=1:ngpus=8
+#PBS -l select=1:ngpus=2
 #PBS -l walltime=56:00:00
 
 cd "$PBS_O_WORKDIR"
@@ -48,6 +48,7 @@ nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nouni
 lm_eval --model hf \
   --model_args pretrained=$MODEL,parallelize=True \
   --tasks $TASKS_CSV \
+  --log_samples \
   --output_path $OUTPUT_PATH \
   --batch_size 16
 
