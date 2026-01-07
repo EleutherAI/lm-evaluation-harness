@@ -1,14 +1,14 @@
-# Titulm Bangla MMLU
+# Bangla Benchmark Datasets
 
-This repository contains resources related to **Titulm Bangla MMLU**, a benchmark dataset designed for evaluating Bangla language models. The dataset is used for training, development, and comparative evaluation of language models in the Bangla language.
+This repository contains resources related to **Bangla MMLU**, **Bangla OpenBookQA**, **Bangla BoolQA**, **Bangla PIQA**, **Bangla CommonsenseQA**,  benchmark datasets designed for evaluating Bangla language models. The dataset is used for training, development, and comparative evaluation of language models in the Bangla language.
 
 ---
 
 ## Overview
 
-**TituLLMs** is a family of Bangla large language models (LLMs) with comprehensive benchmarking designed to advance natural language processing for the Bangla language. The benchmark dataset `Titulm Bangla MMLU` covers multiple-choice questions across a diverse range of topics in Bangla.
+**TituLLMs** is a family of Bangla large language models (LLMs) with comprehensive benchmarking designed to advance natural language processing for the Bangla language. The benchmarking datasets covers  questions across a diverse range of topics in Bangla.
 
-This dataset is primarily used to train, validate, and evaluate Bangla language models and compare their performance with other existing models.
+These datasets were primarily used to train, validate, and evaluate Bangla language models(**TituLLM**) and compare their performance with other existing models.
 
 For more details, please refer to the original research paper:  
 [https://arxiv.org/abs/2502.11187](https://arxiv.org/abs/2502.11187)
@@ -18,22 +18,26 @@ For more details, please refer to the original research paper:
 
 ## Dataset
 
-The `Titulm Bangla MMLU` dataset can be found on Hugging Face:  
+The  datasets can be found on Hugging Face:  
 [https://huggingface.co/datasets/hishab/titulm-bangla-mmlu](https://huggingface.co/datasets/hishab/titulm-bangla-mmlu)
 
-This dataset was used as a benchmark in the development and evaluation of TituLLMs and related models.
+[https://huggingface.co/datasets/hishab/boolq_bn](https://huggingface.co/datasets/hishab/boolq_bn)
+
+[https://huggingface.co/datasets/hishab/openbookqa-bn](https://huggingface.co/datasets/hishab/openbookqa-bn)
+
+[https://huggingface.co/datasets/hishab/piqa-bn](https://huggingface.co/datasets/hishab/piqa-bn)
+
+[https://huggingface.co/datasets/hishab/commonsenseqa-bn](https://huggingface.co/datasets/hishab/commonsenseqa-bn)
+
+These datasets were used as a benchmark in the development and evaluation of TituLLMs.
 
 ---
 
 ## Usage
 
 The dataset is intended for use within the [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) repository to evaluate and compare the performance of Bangla language models.
-
 ---
 
-## Note: The dataset can also be used to evaluate other models
-
-### Other datasets like boolq, openbookqa ... soon to be added
 ## Citation
 
 If you use this dataset or model, please cite the original paper:
