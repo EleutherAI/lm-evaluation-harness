@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "SW_KE"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_sw_ke_other_tasks"
+"task": "mmmlu_sw_ke_professional_accounting"
+"task_alias": "professional accounting (Swahili)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (Swahili).\n\n"
