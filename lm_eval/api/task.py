@@ -1069,18 +1069,20 @@ class ConfigurableTask(Task):
                 whether an answer or gen_prefix is provided.
         """
         assert isinstance(q, str), f"Context is not a string! : {q}"
+        # Check if answer is provided (handle a=0 as valid answer index)
+        has_answer = a is not None and a != ""
         msgs = [
             Message(
                 "user",
                 q,
                 tgt_delim
-                if a and not gen_prefix
+                if has_answer and not gen_prefix
                 else tgt_delim
                 if gen_prefix and requires_delimiter(q, gen_prefix)
                 else "",
             )
         ]
-        if a is not None and a != "":
+        if has_answer:
             answer_text = (
                 c[a]
                 if (c and isinstance(a, int))
