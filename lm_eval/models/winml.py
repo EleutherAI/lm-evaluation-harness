@@ -304,20 +304,16 @@ class WindowsML(TemplateLM):
         """
         return self.genai_tokenizer.decode(tokens)
 
-    def _run_genai_inference_for_logits(self, input_text: str) -> np.ndarray:
+    def _run_genai_inference_for_full_logits(self, input_text: str) -> np.ndarray:
         """
-        Run inference using ONNX Runtime GenAI to get logits for loglikelihood computation.
-        
-        Since get_logits() returns only the last position's logits, this method creates
-        separate generators for each prefix position to obtain logits at each token position.
-        This is an O(N²) operation due to API limitations.
+        Run inference using ONNX Runtime GenAI to get full logits sequence.
         
         Args:
             input_text: Input text string to compute logits for
             
         Returns:
             Logits matrix of shape (seq_len, vocab_size) where logits[i] contains
-            predictions after seeing tokens[0:i+1]
+            predictions for the token at position i+1 given tokens[0:i+1]
             
         Raises:
             Exception: If inference fails
@@ -330,38 +326,27 @@ class WindowsML(TemplateLM):
                 eval_logger.warning("No tokens to process; returning empty array")
                 return np.empty((0, 0), dtype=np.float32)
             
-            # Collect logits for each position by creating separate generators
-            all_logits = []
-            
-            for i in range(1, len(input_tokens) + 1):
-                # Create fresh generator for prefix tokens[0:i]
-                params = self.og.GeneratorParams(self.genai_model)
-                params.set_search_options(max_length=4096, do_sample=False)
-                generator = self.og.Generator(self.genai_model, params)
-                
-                # Get logits for this prefix (predicts what comes after position i-1)
-                prefix_tokens = input_tokens[:i]
-                generator.append_tokens(prefix_tokens)
-                
-                # Get logits (shape will be (1, 1, vocab_size))
-                logits = generator.get_logits()
-                logits_array = np.array(logits, dtype=np.float32)
+            # Create generator and get full logits in single pass
+            params = self.og.GeneratorParams(self.genai_model)
+            params.set_search_options(max_length=4096, do_sample=False)
+            generator = self.og.Generator(self.genai_model, params)
 
-                # Extract the logits vector (remove batch/sequence dimensions)
-                if len(logits_array.shape) == 3:  # (batch, seq_len, vocab_size)
-                    logits_vector = logits_array[0, -1, :]  # Take last position
-                elif len(logits_array.shape) == 2:  # (seq_len, vocab_size)
-                    logits_vector = logits_array[-1, :]  # Take last position
-                else:  # (vocab_size,)
-                    logits_vector = logits_array
+            # Append all tokens at once            pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+            generator.append_tokens(input_tokens)
 
-                all_logits.append(logits_vector)
+            # Get FULL logits using get_output("logits") - this gives all positions!
+            full_logits_tensor = generator.get_output("logits")
+            logits_array = np.array(full_logits_tensor, dtype=np.float32)
             
-            # Stack all logits into (seq_len, vocab_size)
-            # logits[i] contains predictions after seeing tokens[0:i+1]
-            logits_matrix = np.stack(all_logits, axis=0) if all_logits else np.zeros((1, 151936), dtype=np.float32)
+            # Handle different tensor shapes
+            if len(logits_array.shape) == 3:  # (batch_size, seq_len, vocab_size)
+                logits_matrix = logits_array[0]  # Remove batch dimension
+            elif len(logits_array.shape) == 2:  # (seq_len, vocab_size)
+                logits_matrix = logits_array
+            else:
+                raise ValueError(f"Unexpected logits shape: {logits_array.shape}")
             
-            eval_logger.debug(f"Built logits matrix shape: {logits_matrix.shape} for {len(input_tokens)} input tokens")
+            eval_logger.debug(f"Full logits shape: {logits_matrix.shape} for {len(input_tokens)} input tokens")
             return logits_matrix
             
         except Exception as e:
@@ -398,8 +383,7 @@ class WindowsML(TemplateLM):
                 continuation_text = self.genai_tokenizer.decode(continuation_enc)
                 full_text = context_text + continuation_text
 
-                # Get logits using GenAI
-                logits = self._run_genai_inference_for_logits(full_text)
+                logits = self._run_genai_inference_for_full_logits(full_text)
                 
                 # Calculate log-likelihood for continuation tokens
                 context_len = len(context_enc)
@@ -460,26 +444,29 @@ class WindowsML(TemplateLM):
                 continue
             
             try:
-                # Get logits for the entire sequence
-                logits = self._run_genai_inference_for_logits(string)
+                # Get full logits using get_output("logits") - more efficient
+                logits = self._run_genai_inference_for_full_logits(string)
+
+                if logits.shape[0] == 0:
+                    results.append(0.0)
+                    continue
                 
-                # Calculate log-likelihood for all tokens
+                # Calculate log-likelihood for all tokens except the first
                 total_log_likelihood = 0.0
-                total_tokens = 0
-                
-                # Process tokens in sequence
-                for i in range(1, min(len(tokens), logits.shape[0])):
-                    # Get log probability for token i given tokens 0:i
-                    logit = logits[i - 1, :]
-                    log_probs = torch.log_softmax(torch.from_numpy(logit), dim=-1)
-                    target_token = tokens[i]
+                valid_tokens = 0
+
+                # logits[i] predicts token[i+1]
+                for i in range(min(len(tokens) - 1, logits.shape[0])):
+                    logit_vector = logits[i, :]
+                    log_probs = torch.log_softmax(torch.from_numpy(logit_vector), dim=-1)
+                    target_token = tokens[i + 1]  # Next token to predict
                     
-                    if target_token < len(log_probs):
+                    if 0 <= target_token < len(log_probs):
                         total_log_likelihood += float(log_probs[target_token])
-                        total_tokens += 1
+                        valid_tokens += 1
                 
                 # Average log-likelihood per token
-                avg_log_likelihood = total_log_likelihood / max(total_tokens, 1)
+                avg_log_likelihood = total_log_likelihood / max(valid_tokens, 1)
                 results.append(avg_log_likelihood)
                 
             except Exception as e:
