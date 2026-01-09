@@ -1,0 +1,5 @@
+include: _french_few_shot_og_template_yaml
+description: Les questions suivantes sont à choix multiples (avec réponses) sur Health
+  oriented education.
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_french_few_shot_og_health_oriented_education

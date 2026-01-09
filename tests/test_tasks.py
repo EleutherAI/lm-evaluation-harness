@@ -13,18 +13,29 @@ from .utils import new_tasks
 
 datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-task_manager = tasks.TaskManager()
 # Default Task
 TASKS = ["arc_easy"]
 
 
-def task_class():
+def get_new_tasks_else_default():
+    """
+    Check if any modifications have been made to built-in tasks and return
+    the list, otherwise return the default task list
+    """
     global TASKS
     # CI: new_tasks checks if any modifications have been made
     task_classes = new_tasks()
     # Check if task_classes is empty
-    task_classes = task_classes if task_classes else TASKS
-    res = tasks.get_task_dict(task_classes, task_manager)
+    return task_classes if task_classes else TASKS
+
+
+def task_class(task_names=None, task_manager=None) -> ConfigurableTask:
+    """
+    Convert a list of task names to a list of ConfigurableTask instances
+    """
+    if task_manager is None:
+        task_manager = tasks.TaskManager()
+    res = tasks.get_task_dict(task_names, task_manager)
     res = [x.task for x in get_task_list(res)]
 
     return res
@@ -35,9 +46,11 @@ def limit() -> int:
     return 10
 
 
-# Tests
-@pytest.mark.parametrize("task_class", task_class(), ids=lambda x: f"{x.config.task}")
-class TestNewTasks:
+class BaseTasks:
+    """
+    Base class for testing tasks
+    """
+
     def test_download(self, task_class: ConfigurableTask):
         task_class.download()
         assert task_class.dataset is not None
@@ -140,3 +153,15 @@ class TestNewTasks:
             for doc in arr
         ]
         assert len(requests) == limit if limit else True
+
+
+@pytest.mark.parametrize(
+    "task_class",
+    task_class(get_new_tasks_else_default()),
+    ids=lambda x: f"{x.config.task}",
+)
+class TestNewTasksElseDefault(BaseTasks):
+    """
+    Test class parameterized with a list of new/modified tasks
+    (or a set of default tasks if none have been modified)
+    """

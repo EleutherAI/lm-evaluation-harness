@@ -1,0 +1,10 @@
+tag: evalita-mp_re_tasks
+include: _re_template_yaml
+task: evalita-mp_re_prompt-1
+fewshot_split: dev
+task_alias: prompt-1
+
+#p4
+doc_to_text: "Dato un documento medico devi estrarre tutte le misurazioni degli esami medici presenti. Riporta ogni relazione nel formato: misurazione$esame, separando ciascuna coppia con '%'. Se non ci sono relazioni da estrarre, rispondi con '&&NOREL&&'.
+Testo: '{{text}}'
+Relazioni:"

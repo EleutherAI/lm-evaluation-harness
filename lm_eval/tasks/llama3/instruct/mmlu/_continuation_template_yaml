@@ -18,6 +18,7 @@ metric_list:
       - "\\$"
       - "\\.$"
 generation_kwargs:
+  do_sample: false
   until:
     - "."
   max_gen_toks: 10
@@ -28,5 +29,3 @@ filter_list:
       - function: take_first
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true

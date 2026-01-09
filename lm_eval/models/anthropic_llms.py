@@ -1,17 +1,17 @@
+import logging
 import os
 from functools import cached_property
 from typing import Any, Dict, List, Tuple, Union
 
 from tqdm import tqdm
 
-from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 from lm_eval.models.utils import handle_stop_sequences, retry_on_specific_exceptions
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 def anthropic_completion(
@@ -323,14 +323,29 @@ class AnthropicChat(LocalCompletionsAPI):
         )
         if system:
             messages = messages[1:]
+
+        cleaned_messages = []
+        for msg in messages:
+            cleaned_msg = {
+                "role": msg["role"],
+                "content": [
+                    {"type": msg["type"], msg["type"]: msg["content"]},
+                ],
+            }
+            cleaned_messages.append(cleaned_msg)
+
         gen_kwargs.pop("do_sample", False)
         max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = handle_stop_sequences(gen_kwargs.pop("until", ["\n\nHuman:"]), eos=eos)
         if not isinstance(stop, list):
             stop = [stop]
+
+        # Filter out empty or whitespace-only stop sequences for Anthropic API
+        stop = [s for s in stop if s and s.strip()]
+
         out = {
-            "messages": messages,
+            "messages": cleaned_messages,
             "model": self.model,
             "max_tokens": max_tokens,
             "temperature": temperature,

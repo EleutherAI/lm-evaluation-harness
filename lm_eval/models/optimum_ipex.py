@@ -1,12 +1,12 @@
+import logging
 from importlib.util import find_spec
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-from lm_eval.models.utils import get_dtype
+from lm_eval.models.utils_hf import get_dtype
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("ipex")
@@ -62,7 +62,7 @@ class IPEXLM(HFLM):
         model_kwargs.update(
             self._get_accelerate_args(
                 parallelize=parallelize,
-                device_map=kwargs.get("device_map", None),
+                device_map=kwargs.get("device_map"),
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
@@ -73,7 +73,7 @@ class IPEXLM(HFLM):
         self._model = IPEXModelForCausalLM.from_pretrained(
             pretrained,
             revision=revision,
-            torch_dtype=get_dtype(dtype),
+            dtype=get_dtype(dtype),
             trust_remote_code=trust_remote_code,
             **model_kwargs,
         )

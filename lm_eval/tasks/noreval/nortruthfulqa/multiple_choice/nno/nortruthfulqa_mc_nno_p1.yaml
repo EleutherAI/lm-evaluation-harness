@@ -1,0 +1,5 @@
+tag: nortruthfulqa_mc_nno
+task: nortruthfulqa_mc_nno_p1
+dataset_name: nn
+include: ../_nortruthfulqa_mc_yaml
+doc_to_text: !function utils.p1_nn

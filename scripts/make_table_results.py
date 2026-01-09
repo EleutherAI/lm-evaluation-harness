@@ -10,7 +10,6 @@ import os
 from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

@@ -5,14 +5,16 @@
 BasqueBench is a benchmark for evaluating language models in Basque tasks. This is, it evaluates the ability of a language model to understand and generate Basque text. BasqueBench offers a combination of pre-existing, open datasets and datasets developed exclusivelly for this benchmark. All the details of BasqueBench will be published in a paper soon.
 
 The new evaluation datasets included in BasqueBench are:
-| Task          | Category       | Homepage  |
-|:-------------:|:-----:|:-----:|
-| MGSM_eu | Math | https://huggingface.co/datasets/HiTZ/MGSM-eu |
-| PIQA_eu | Question Answering | https://huggingface.co/datasets/HiTZ/PIQA-eu |
-| WNLI_eu | Natural Language Inference | https://huggingface.co/datasets/HiTZ/wnli-eu |
-| XCOPA_eu | Commonsense Reasoning | https://huggingface.co/datasets/HiTZ/XCOPA-eu |
+| Task     | Category                   | Homepage                                      |
+|:--------:|:--------------------------:|:---------------------------------------------:|
+| ARC_eu   | Question Answering         | https://huggingface.co/datasets/HiTZ/ARC-eu   |
+| MGSM_eu  | Math                       | https://huggingface.co/datasets/HiTZ/MGSM-eu  |
+| PAWS_eu  | Paraphrasing               | https://huggingface.co/datasets/HiTZ/PAWS-eu  |
+| PIQA_eu  | Question Answering         | https://huggingface.co/datasets/HiTZ/PIQA-eu  |
+| WNLI_eu  | Natural Language Inference | https://huggingface.co/datasets/HiTZ/WNLI-eu  |
+| XCOPA_eu | Commonsense Reasoning      | https://huggingface.co/datasets/HiTZ/XCOPA-eu |
 
-The datasets included in BasqueBench that have been made public in previous pubications are:
+The datasets included in BasqueBench that have been made public in previous publications are:
 
 | Task          | Category       | Paper title          | Homepage  |
 |:-------------:|:-----:|:-------------:|:-----:|
@@ -28,7 +30,40 @@ The datasets included in BasqueBench that have been made public in previous pubi
 
 
 ### Citation
-Paper for BasqueBench coming soon.
+
+```
+@inproceedings{baucells-etal-2025-iberobench,
+    title = "{I}bero{B}ench: A Benchmark for {LLM} Evaluation in {I}berian Languages",
+    author = "Baucells, Irene  and
+      Aula-Blasco, Javier  and
+      de-Dios-Flores, Iria  and
+      Paniagua Su{\'a}rez, Silvia  and
+      Perez, Naiara  and
+      Salles, Anna  and
+      Sotelo Docio, Susana  and
+      Falc{\~a}o, J{\'u}lia  and
+      Saiz, Jose Javier  and
+      Sepulveda Torres, Robiert  and
+      Barnes, Jeremy  and
+      Gamallo, Pablo  and
+      Gonzalez-Agirre, Aitor  and
+      Rigau, German  and
+      Villegas, Marta",
+    editor = "Rambow, Owen  and
+      Wanner, Leo  and
+      Apidianaki, Marianna  and
+      Al-Khalifa, Hend  and
+      Eugenio, Barbara Di  and
+      Schockaert, Steven",
+    booktitle = "Proceedings of the 31st International Conference on Computational Linguistics",
+    month = jan,
+    year = "2025",
+    address = "Abu Dhabi, UAE",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.coling-main.699/",
+    pages = "10491--10519",
+}
+```
 
 ### Groups and Tasks
 
@@ -40,6 +75,8 @@ Paper for BasqueBench coming soon.
 #### Tasks
 
 The following tasks evaluate tasks on BasqueBench dataset using various scoring methods.
+  - `arc_eu_challenge`
+  - `arc_eu_easy`
   - `belebele_eus_Latn`
   - `eus_exams_eu`
   - `eus_proficiency`
@@ -64,6 +101,7 @@ The following tasks evaluate tasks on BasqueBench dataset using various scoring 
   - `flores_pt-eu`
   - `mgsm_direct_eu`
   - `mgsm_native_cot_eu`
+  - `paws_eu`
   - `piqa_eu`
   - `qnlieu`
   - `wnli_eu`

@@ -1,0 +1,4 @@
+include: _italian_template_yaml
+description: The following is multiple-choice question about Health oriented education.
+process_docs: !function 'utils.process_health_oriented_education'
+task: include_base_44_italian_health_oriented_education

@@ -1,13 +1,13 @@
 import json
+import logging
 from importlib.util import find_spec
 from pathlib import Path
 
-from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 @register_model("openvino")
@@ -28,9 +28,8 @@ class OptimumLM(HFLM):
         **kwargs,
     ) -> None:
         if "backend" in kwargs:
-            # optimum currently only supports causal models
-            assert kwargs["backend"] == "causal", (
-                "Currently, only OVModelForCausalLM is supported."
+            assert kwargs["backend"] in ["causal", "seq2seq"], (
+                "Currently, only OVModelForCausalLM or OVModelForSeq2SeqLM are supported."
             )
 
         self.openvino_device = device
@@ -54,7 +53,7 @@ class OptimumLM(HFLM):
                 "package `optimum` is not installed. Please install it via `pip install optimum[openvino]`"
             )
         else:
-            from optimum.intel.openvino import OVModelForCausalLM
+            from optimum.intel.openvino import OVModelForCausalLM, OVModelForSeq2SeqLM
 
         model_kwargs = kwargs if kwargs else {}
         if "ov_config" in model_kwargs:
@@ -76,17 +75,14 @@ class OptimumLM(HFLM):
                 model_kwargs["ov_config"]["MODEL_DISTRIBUTION_POLICY"] = (
                     "PIPELINE_PARALLEL"
                 )
-        model_file = Path(pretrained) / "openvino_model.xml"
-        if model_file.exists():
-            export = False
-        else:
-            export = True
 
-        self._model = OVModelForCausalLM.from_pretrained(
+        model_cls = (
+            OVModelForCausalLM if self.backend == "causal" else OVModelForSeq2SeqLM
+        )
+        self._model = model_cls.from_pretrained(
             pretrained,
             revision=revision,
             trust_remote_code=trust_remote_code,
-            export=export,
             device=self.openvino_device.upper(),
             **model_kwargs,
         )

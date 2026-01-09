@@ -1,0 +1,6 @@
+"dataset_name": "public_relations"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_public_relations"
+"task_alias": "public relations"

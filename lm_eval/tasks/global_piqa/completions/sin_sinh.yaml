@@ -1,0 +1,3 @@
+dataset_name: sin_sinh
+include: _template
+task: global_piqa_completions_sin_sinh

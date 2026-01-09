@@ -1,0 +1,10 @@
+group: mmmlu_zh_cn_stem
+group_alias: "Simplified Chinese stem"
+task:
+  - mmmlu_zh_cn_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

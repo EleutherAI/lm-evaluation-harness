@@ -17,6 +17,12 @@ jobs:
       with:
         python-version: "3.x"
 
+    - name: Print version
+      run: |
+        # Extract version from pyproject.toml
+        PYPROJECT_VERSION=$(grep 'version = ' pyproject.toml | head -1 | cut -d'"' -f2)
+        echo "Version in pyproject.toml: $PYPROJECT_VERSION"
+
     - name: Install pypa/build
       run: >-
         python3 -m

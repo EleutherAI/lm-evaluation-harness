@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_econometrics
+"tag": "mmmlu_ko_kr_social_sciences_tasks"
+"task": "mmmlu_ko_kr_econometrics"
+"task_alias": "econometrics (Korean)"
+"description": "The following are multiple choice questions (with answers) about econometrics (Korean).\n\n"

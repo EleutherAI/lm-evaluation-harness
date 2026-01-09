@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_electrical_engineering
+"tag": "mmmlu_de_de_stem_tasks"
+"task": "mmmlu_de_de_electrical_engineering"
+"task_alias": "electrical engineering (German)"
+"description": "The following are multiple choice questions (with answers) about electrical engineering (German).\n\n"

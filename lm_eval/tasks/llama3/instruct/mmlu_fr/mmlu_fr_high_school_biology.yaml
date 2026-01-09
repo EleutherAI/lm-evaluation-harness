@@ -1,0 +1,64 @@
+fewshot_config:
+  sampler: first_n
+  samples:
+  - input_choice_list:
+      A: Traduction
+      B: Conjugaison
+      C: "Transduction sp\xE9cialis\xE9e"
+      D: Transformation
+    input_correct_responses:
+    - A
+    input_question: "Lequel des \xE9l\xE9ments suivants n&#39;est pas un moyen de\
+      \ former de l&#39;ADN recombinant\_?"
+  - input_choice_list:
+      A: En modifiant le pH optimal de l&#39;enzyme
+      B: En changeant l&#39;emplacement de l&#39;enzyme dans la cellule
+      C: "En changeant la forme de la prot\xE9ine"
+      D: "Un changement d&#39;acide amin\xE9 loin du site actif ne peut pas modifier\
+        \ la sp\xE9cificit\xE9 du substrat de l&#39;enzyme."
+    input_correct_responses:
+    - C
+    input_question: "Une mutation dans une enzyme bact\xE9rienne a chang\xE9 un acide\
+      \ amin\xE9 pr\xE9c\xE9demment polaire en un acide amin\xE9 non polaire. Cet\
+      \ acide amin\xE9 \xE9tait situ\xE9 \xE0 un site \xE9loign\xE9 du site actif\
+      \ de l&#39;enzyme. Comment cette mutation pourrait-elle modifier la sp\xE9cificit\xE9\
+      \ du substrat de l&#39;enzyme ?"
+  - input_choice_list:
+      A: "Membrane plasmique\u2013Appareil de Golgi\u2013ribosome\u2013v\xE9sicule\
+        \ s\xE9cr\xE9toire\u2013ER rugueux"
+      B: "Ribosome\u2013appareil de Golgi\u2013ER rugueux\u2013v\xE9sicule s\xE9cr\xE9\
+        toire\u2013membrane plasmique"
+      C: "Membrane plasmique\u2013Appareil de Golgi\u2013ribosome\u2013v\xE9sicule\
+        \ s\xE9cr\xE9toire\u2013ER rugueux"
+      D: "Ribosome\u2013ER rugueux\u2013appareil de Golgi\u2013v\xE9sicule s\xE9cr\xE9\
+        toire\u2013membrane plasmique"
+    input_correct_responses:
+    - D
+    input_question: "Dans les cellules animales, laquelle des propositions suivantes\
+      \ repr\xE9sente la voie la plus probable qu&#39;une prot\xE9ine s\xE9cr\xE9\
+      toire emprunte lorsqu&#39;elle est synth\xE9tis\xE9e dans une cellule\_?"
+  - input_choice_list:
+      A: Cyclines
+      B: "Prot\xE9ines kinases"
+      C: "Points de contr\xF4le"
+      D: Cellules fibroblastes
+    input_correct_responses:
+    - D
+    input_question: "Lequel des \xE9l\xE9ments suivants n&#39;est pas connu pour \xEA\
+      tre impliqu\xE9 dans le contr\xF4le de la division cellulaire\_?"
+  - input_choice_list:
+      A: les ailes d&#39;un oiseau et les ailes d&#39;une chauve-souris
+      B: les nageoires d&#39;une baleine et les bras d&#39;un homme
+      C: les nageoires pectorales d&#39;un marsouin et les nageoires d&#39;un phoque
+      D: "les pattes ant\xE9rieures d&#39;un insecte et les pattes ant\xE9rieures\
+        \ d&#39;un chien"
+    input_correct_responses:
+    - D
+    input_question: "Les structures homologues sont souvent cit\xE9es comme preuve\
+      \ du processus de s\xE9lection naturelle. Tous les \xE9l\xE9ments suivants sont\
+      \ des exemples de structures homologues SAUF"
+include: _continuation_template_yaml
+process_docs: !function utils.process_docs_high_school_biology
+tag: mmlu_fr_llama_stem_tasks
+task: mmlu_fr_llama_high_school_biology
+task_alias: high_school_biology

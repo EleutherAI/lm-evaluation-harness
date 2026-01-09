@@ -1,6 +1,6 @@
 import argparse
+import logging
 import os
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -8,11 +8,12 @@ import torch
 
 import lm_eval.evaluator
 import lm_eval.models.utils
-from lm_eval import tasks, utils
+import lm_eval.models.utils_hf
+from lm_eval import tasks
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-eval_logger = utils.eval_logger
+eval_logger = logging.getLogger(__name__)
 
 
 def memory_stats():
@@ -21,7 +22,7 @@ def memory_stats():
     )
 
 
-def calculate_z_value(res1: Dict, res2: Dict) -> Tuple[float, float]:
+def calculate_z_value(res1: dict, res2: dict) -> tuple[float, float]:
     from scipy.stats.norm import sf
 
     acc1, acc2 = res1["acc,none"], res2["acc,none"]
@@ -33,7 +34,7 @@ def calculate_z_value(res1: Dict, res2: Dict) -> Tuple[float, float]:
 
 
 def print_results(
-    data_to_print: List = None, results_dict: Dict = None, alpha: float = None
+    data_to_print: list = None, results_dict: dict = None, alpha: float = None
 ):
     model1_data = data_to_print[0]
     model2_data = data_to_print[1]
@@ -115,7 +116,7 @@ if __name__ == "__main__":
         batch_size=args.batch,
     )
     memory_stats()
-    lm_eval.models.utils.clear_torch_cache()
+    lm_eval.models.utils_hf.clear_torch_cache()
     eval_logger.info("Memory stats cleared")
     memory_stats()
     results_hf = lm_eval.evaluator.simple_evaluate(
@@ -128,7 +129,7 @@ if __name__ == "__main__":
     )
     all_res = {}
     for task1, task2 in zip(
-        results_hf["results"].items(), results_vllm["results"].items()
+        results_hf["results"].items(), results_vllm["results"].items(), strict=True
     ):
         assert task1[0] == task2[0]
         z, p_value = calculate_z_value(task1[1], task2[1])

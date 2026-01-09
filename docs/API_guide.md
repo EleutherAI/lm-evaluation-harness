@@ -21,38 +21,40 @@ When subclassing `TemplateAPI`, you need to implement the following methods:
 1. `_create_payload`: Creates the JSON payload for API requests.
 2. `parse_logprobs`: Parses log probabilities from API responses.
 3. `parse_generations`: Parses generated text from API responses.
-4. `headers`: Returns the headers for the API request.
+
+Optional Properties:
+
+4. `header`: Returns the headers for the API request.
+5. `api_key`: Returns the API key for authentication (if required).
 
 You may also need to override other methods or properties depending on your API's specific requirements.
 
 > [!NOTE]
 > Currently loglikelihood and MCQ based tasks (such as MMLU) are only supported for completion endpoints. Not for chat-completion — those that expect a list of dicts — endpoints! Completion APIs which support instruct tuned models can be evaluated with the `--apply_chat_template` option in order to simultaneously evaluate models using a chat template format while still being able to access the model logits needed for loglikelihood-based tasks.
 
-# TemplateAPI Usage Guide
-
 ## TemplateAPI Arguments
 
 When initializing a `TemplateAPI` instance or a subclass, you can provide several arguments to customize its behavior. Here's a detailed explanation of some important arguments:
 
 - `model` or `pretrained` (str):
-   - The name or identifier of the model to use.
-   - `model` takes precedence over `pretrained` when both are provided.
+  - The name or identifier of the model to use.
+  - `model` takes precedence over `pretrained` when both are provided.
 
 - `base_url` (str):
-   - The base URL for the API endpoint.
+  - The base URL for the API endpoint.
 
 - `tokenizer` (str, optional):
   - The name or path of the tokenizer to use.
   - If not provided, it defaults to using the same tokenizer name as the model.
 
 - `num_concurrent` (int):
-   - Number of concurrent requests to make to the API.
-   - Useful for APIs that support parallel processing.
-   - Default is 1 (sequential processing).
+  - Number of concurrent requests to make to the API.
+  - Useful for APIs that support parallel processing.
+  - Default is 1 (sequential processing).
 
 - `timeout` (int, optional):
-   - Timeout for API requests in seconds.
-   - Default is 30.
+  - Timeout for API requests in seconds.
+  - Default is 30.
 
 - `tokenized_requests` (bool):
   - Determines whether the input is pre-tokenized. Defaults to `True`.
@@ -71,8 +73,8 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Default is 2048.
 
 - `max_retries` (int, optional):
-   - Maximum number of retries for failed API requests.
-   - Default is 3.
+  - Maximum number of retries for failed API requests.
+  - Default is 3.
 
 - `max_gen_toks` (int, optional):
   - Maximum number of tokens to generate in completion tasks.
@@ -99,6 +101,9 @@ When initializing a `TemplateAPI` instance or a subclass, you can provide severa
   - Whether to validate the certificate of the API endpoint (if HTTPS).
   - Default is True.
 
+- `header` (dict, optional):
+  - Custom headers for API requests.
+  - If not provided, uses `{"Authorization": f"Bearer {self.api_key}"}` by default.
 
 Example usage:
 
@@ -202,5 +207,5 @@ To implement your own API model:
 ## Best Practices
 
 1. Use the `@register_model` decorator to register your model with the framework (and import it in `lm_eval/models/__init__.py`!).
-3. Use environment variables for sensitive information like API keys.
-4. Properly handle batching and concurrent requests if supported by your API.
+2. Use environment variables for sensitive information like API keys.
+3. Properly handle batching and concurrent requests if supported by your API.

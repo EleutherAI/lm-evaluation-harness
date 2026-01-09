@@ -6,6 +6,7 @@ task:
     - copa_ca
     - openbookqa_ca
     - parafraseja
+    - eqbench_ca
     - paws_ca
     - piqa_ca
     - siqa_ca
@@ -21,5 +22,8 @@ task:
     - cabreu
     - mgsm_direct_ca
     - phrases_va
+    - cocoteros_va
+    - xnli_va
+    - truthfulqa_va
 metadata:
-  version: 1.0
+  version: 2.2
