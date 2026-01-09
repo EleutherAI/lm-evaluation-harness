@@ -1,4 +1,3 @@
-import copy
 import logging
 import os
 from importlib.util import find_spec
@@ -7,6 +6,7 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
+from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
@@ -54,8 +54,17 @@ class HabanaLM(HFLM):
             self.buckets = [self.buckets]
         self.buckets = [int(b) for b in self.buckets]
         self.lazy_mode = os.getenv("PT_HPU_LAZY_MODE", "0") != "0"
-
+        self.options, kwargs = self.setup_generation_config_gaudi(**kwargs)
         super().__init__(backend=kwargs.pop("backend", "causal"), **kwargs)
+
+    @property
+    def max_length(self) -> int:
+        # Better suits loglikelihood
+        return self._max_length if self._max_length else self.buckets[-1]
+
+    @max_length.setter
+    def max_length(self, value: int) -> None:
+        self._max_length = value
 
     def find_bucket(self, length: int, key=lambda b, length: b >= length) -> int:
         """
@@ -75,10 +84,6 @@ class HabanaLM(HFLM):
     def _model_call(self, inps: torch.Tensor) -> torch.Tensor:
         """
         Calls the model with input tensor, handling static shape padding for HPU.
-        Args:
-            inps (torch.Tensor): Input tensor of shape (batch, seq_length)
-        Returns:
-            torch.Tensor: Model logits, unpadded if static shapes were used.
         """
         bs, seq_length = inps.shape
         padding_length = 0
@@ -103,70 +108,77 @@ class HabanaLM(HFLM):
         """
         Add to the model config Intel Gaudi specific args.
         """
-        generation_config = copy.deepcopy(self.config)
-        generation_config.use_cache = kwargs.pop("use_kv_cache", True)
-        generation_config.static_shapes = True
-        generation_config.bucket_size = self.buckets
-        generation_config.bucket_internal = kwargs.pop("bucket_internal", True)
-        generation_config.trim_logits = kwargs.pop("trim_logits", False)
-        generation_config.attn_softmax_bf16 = kwargs.pop("attn_softmax_bf16", True)
-        generation_config.reduce_recompile = kwargs.pop("reduce_recompile", False)
-        if generation_config.reduce_recompile:
-            assert generation_config.bucket_size > 0
-        generation_config.valid_sequence_lengths = None
-        generation_config.attn_batch_split = kwargs.pop("attn_batch_split", 1)
-        generation_config.limit_hpu_graphs = kwargs.pop("limit_hpu_graphs", True)
-        generation_config.sdp_on_bf16 = kwargs.pop("sdp_on_bf16", False)
-        generation_config.clear_hpu_graphs_cache = kwargs.pop(
-            "clear_hpu_graphs_cache", True
-        )
-        generation_config.use_flex_attention = kwargs.pop("use_flex_attention", True)
-        generation_config.use_flash_attention = kwargs.pop("use_flash_attention", True)
-        generation_config.flash_attention_recompute = kwargs.pop(
-            "flash_attention_recompute", True
-        )
-        generation_config.flash_attention_causal_mask = kwargs.pop(
-            "flash_attention_causal_mask", True
-        )
-        generation_config.flash_attention_fast_softmax = kwargs.pop(
-            "flash_attention_fast_softmax", True
-        )
-        generation_config.reuse_cache = kwargs.pop("reuse_cache", True)
-        generation_config.ignore_eos = kwargs.pop("ignore_eos", False)
-        return generation_config, kwargs
+        if not find_spec("optimum"):
+            raise ModuleNotFoundError(
+                "package `optimum-habana` is not installed. Please install it via `pip install optimum[habana]`"
+            )
+        else:
+            from optimum.habana.transformers.generation import GaudiGenerationConfig
+
+            generation_config = GaudiGenerationConfig()  # copy.deepcopy(self.config)
+            generation_config.use_cache = kwargs.pop("use_kv_cache", True)
+            generation_config.static_shapes = True
+            generation_config.bucket_size = self.buckets
+            generation_config.bucket_internal = kwargs.pop("bucket_internal", True)
+            generation_config.trim_logits = kwargs.pop("trim_logits", False)
+            generation_config.attn_softmax_bf16 = kwargs.pop("attn_softmax_bf16", True)
+            generation_config.reduce_recompile = kwargs.pop("reduce_recompile", False)
+            if generation_config.reduce_recompile:
+                assert generation_config.bucket_size > 0
+            generation_config.valid_sequence_lengths = None
+            generation_config.attn_batch_split = kwargs.pop("attn_batch_split", 1)
+            generation_config.limit_hpu_graphs = kwargs.pop("limit_hpu_graphs", True)
+            generation_config.sdp_on_bf16 = kwargs.pop("sdp_on_bf16", False)
+            generation_config.clear_hpu_graphs_cache = kwargs.pop(
+                "clear_hpu_graphs_cache", True
+            )
+            generation_config.use_flex_attention = kwargs.pop(
+                "use_flex_attention", True
+            )
+            generation_config.use_flash_attention = kwargs.pop(
+                "use_flash_attention", True
+            )
+            generation_config.flash_attention_recompute = kwargs.pop(
+                "flash_attention_recompute", True
+            )
+            generation_config.flash_attention_causal_mask = kwargs.pop(
+                "flash_attention_causal_mask", True
+            )
+            generation_config.flash_attention_fast_softmax = kwargs.pop(
+                "flash_attention_fast_softmax", True
+            )
+            generation_config.reuse_cache = kwargs.pop("reuse_cache", True)
+            generation_config.ignore_eos = kwargs.pop("ignore_eos", False)
+            return generation_config, kwargs
 
     def _create_model(self, *args, **kwargs) -> None:
         """
         Create and wrap the model for HPU, calling parent logic and then applying Gaudi specifics.
         """
-        if not find_spec("optimum"):
-            raise ModuleNotFoundError(
-                "package `optimum-habana` is not installed. Please install it via `pip install --upgrade-strategy eager optimum[habana]`"
-            )
-        else:
-            from optimum.habana.transformers.modeling_utils import (
-                adapt_transformers_to_gaudi,
-            )
+        from optimum.habana.transformers.modeling_utils import (
+            adapt_transformers_to_gaudi,
+        )
 
-            adapt_transformers_to_gaudi()
+        adapt_transformers_to_gaudi()
         super()._create_model(*args, **kwargs)
-        self.options, kwargs = self.setup_generation_config_gaudi(**kwargs)
-        self.model_inputs = {
-            "use_cache": self.options.use_cache,
-            "reuse_cache": self.options.reuse_cache,
-            "attn_softmax_bf16": self.options.attn_softmax_bf16,
-            "use_flash_attention": self.options.use_flash_attention,
-            "flash_attention_recompute": self.options.flash_attention_recompute,
-            "flash_attention_causal_mask": self.options.flash_attention_causal_mask,
-            "flash_attention_fast_softmax": self.options.flash_attention_fast_softmax,
-            "use_flex_attention": self.options.use_flex_attention,
-        }
 
         if self.lazy_mode:
             from habana_frameworks.torch.hpu import wrap_in_hpu_graph
 
             self._model = wrap_in_hpu_graph(self._model)
             eval_logger.info("Model wrapped in HPU graph.")
+
+    def generate_until(
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[str]:
+        """
+        Override to change only max_length property
+        """
+        loglikelyhood_max_length = self.max_length
+        self.max_length = super().max_length
+        res = super().generate_until(requests, disable_tqdm)
+        self.max_length = loglikelyhood_max_length
+        return res
 
     def _model_generate(
         self,
