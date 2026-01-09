@@ -1,0 +1,8 @@
+group: winoreferral_all
+tasks:
+  - depression_ambiguous_v1
+
+tag:
+  - winoreferral
+  - mental_health
+  - safety
