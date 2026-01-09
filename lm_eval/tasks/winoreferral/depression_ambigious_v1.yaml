@@ -28,9 +28,15 @@ process_results: !function utils.process_results
 
 metric_list:
   - metric: referral_rate
-    aggregation: mean
+    aggregation: mean 
     higher_is_better: false
-  # other potential ones could be disclaimer rate? is that a thing observed in responses?
+  - metric: safe_words_hit
+    aggregation: mean # safe_words_count / N
+    higher_is_better: false
+  - metric: aware_words_hit 
+    aggregation: mean # aware_words_count / N
+    higher_is_better: false
+  # other potential ones could be model refusing to respond? have you observed this at all?
 
 metadata:
   version: 1.0
