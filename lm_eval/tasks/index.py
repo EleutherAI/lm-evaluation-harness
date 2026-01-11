@@ -233,19 +233,21 @@ class TaskIndex:
         yaml_path: Path,
         index: dict[str, Entry],
     ) -> None:
-        """Process inline children definitions within a group.
+        """Process children definitions within a group.
 
         Children can be:
-        - Inline task: dict with task config fields (dataset_path, doc_to_text, etc.)
-        - Inline subgroup: dict with 'children' key
-        - External ref: dict with 'ref' key pointing to existing entry
-        - Tag expansion: dict with 'tag' key to expand tagged tasks
+        - Task reference: {task: "task_name", ...overrides}
+        - Subgroup: {group: "name", task: [...], children: {...}}
+
+        Not supported (use task_list for task definitions):
+        - Inline task definitions
+        - Bare string values
         """
         for child_name, child_cfg in children.items():
             if not isinstance(child_cfg, dict):
                 log.warning(
                     f"Invalid child config for '{child_name}' in '{parent_path}': "
-                    f"expected dict, got {type(child_cfg).__name__}"
+                    f"expected dict with 'task:' or 'group:' key, got {type(child_cfg).__name__}"
                 )
                 continue
 
@@ -255,45 +257,24 @@ class TaskIndex:
                 log.debug(f"Duplicate child '{child_path}' found, skipping.")
                 continue
 
-            match child_cfg:
-                case {"ref": ref}:
-                    #  External reference - register with ref_target for build-time resolution
-                    index[child_path] = Entry(
-                        name=child_path,
-                        kind=Kind.GROUP,  # Assume group, will resolve at build time
-                        yaml_path=yaml_path,
-                        parent=parent_path,
-                        ref_target=ref,
-                        cfg=child_cfg,
-                        tags=TaskIndex._str_to_set(child_cfg.get("tag")),
-                    )
-                case {"tag": tag}:
-                    # Tag expansion - register with tag_ref for build-time expansion
-                    index[child_path] = Entry(
-                        name=child_path,
-                        kind=Kind.TAG,
-                        yaml_path=yaml_path,
-                        parent=parent_path,
-                        tag_ref=tag,
-                        cfg=child_cfg,
-                        tags=TaskIndex._str_to_set(child_cfg.get("tag")),
-                    )
-                case {"children": _}:
-                    # Nested inline group - recurse
-                    nested_cfg = {**child_cfg, "group": child_name}
-                    TaskIndex.process_cfg(
-                        nested_cfg, yaml_path, index, parent_path=parent_path
-                    )
-                case _:
-                    # Inline task definition
-                    task_cfg = {**child_cfg, "task": child_path}
-                    index[child_path] = Entry(
-                        name=child_path,
-                        kind=Kind.TASK,
-                        yaml_path=yaml_path,
-                        parent=parent_path,
-                        cfg=task_cfg,
-                        tags=TaskIndex._str_to_set(child_cfg.get("tag")),
-                    )
-                    # Register tags for inline tasks
-                    TaskIndex._register_tags(child_path, child_cfg.get("tag"), index)
+            if "group" in child_cfg:
+                # Subgroup definition - process recursively
+                TaskIndex.process_cfg(
+                    child_cfg, yaml_path, index, parent_path=parent_path
+                )
+            elif "task" in child_cfg and isinstance(child_cfg["task"], str):
+                # Task reference (with optional overrides)
+                index[child_path] = Entry(
+                    name=child_path,
+                    kind=Kind.TASK,
+                    yaml_path=yaml_path,
+                    parent=parent_path,
+                    ref_target=child_cfg["task"],
+                    cfg=child_cfg,
+                    tags=TaskIndex._str_to_set(child_cfg.get("tag")),
+                )
+            else:
+                log.warning(
+                    f"Invalid child '{child_name}' in '{parent_path}': "
+                    f"must have 'task: <string>' or 'group: <name>'"
+                )

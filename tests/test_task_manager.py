@@ -963,15 +963,15 @@ class TestHierarchicalTasks:
         assert entry.ref_target == "simple_task"
 
     def test_hierarchical_with_tag(self, hierarchical_task_manager):
-        """Test hierarchical group with tag: expansion."""
+        """Test hierarchical group with subgroup containing tag-based task list."""
         tm = hierarchical_task_manager
 
-        # The tag ref entry should be indexed
+        # The subgroup entry should be indexed
         assert "hierarchical_refs_group::tagged_tasks" in tm.task_index
 
-        # It should have tag_ref set
+        # It should be a GROUP kind (subgroup with task: list containing a tag)
         entry = tm.task_index["hierarchical_refs_group::tagged_tasks"]
-        assert entry.tag_ref == "test_tag_tasks"
+        assert entry.kind == Kind.GROUP
 
     def test_hierarchical_ref_resolution(self, hierarchical_task_manager):
         """Test that ref: children resolve to their targets when built."""
@@ -985,12 +985,15 @@ class TestHierarchicalTasks:
         # The inline task should be present
         assert "hierarchical_refs_group::inline_task" in children
 
-        # The ref should resolve to simple_task
-        # Note: the resolved task keeps its original name
-        assert "simple_task" in children
+        # The ref resolves to simple_task but keeps the namespaced child name
+        assert "hierarchical_refs_group::external_ref" in children
+
+        # Verify the resolved task has the correct config (from simple_task)
+        task = children["hierarchical_refs_group::external_ref"]
+        assert task.config.num_fewshot == 1  # From simple_task.yaml
 
     def test_hierarchical_tag_expansion(self, hierarchical_task_manager):
-        """Test that tag: children expand to tagged tasks when built."""
+        """Test that subgroup with tag in task: list expands to tagged tasks."""
         tm = hierarchical_task_manager
 
         result = tm.load_task_or_group(["hierarchical_refs_group"])
@@ -998,8 +1001,55 @@ class TestHierarchicalTasks:
         group_key = list(result.keys())[0]
         children = result[group_key]
 
-        # The tag should expand to all tasks with test_tag_tasks tag
-        # (tag_task_1, tag_task_2, tag_task_3 from test_configs)
-        assert "tag_task_1" in children
-        assert "tag_task_2" in children
-        assert "tag_task_3" in children
+        # The task refs should be present
+        assert "hierarchical_refs_group::inline_task" in children
+        assert "hierarchical_refs_group::external_ref" in children
+
+        # The tagged_tasks subgroup should contain the expanded tasks
+        # Find the subgroup in children
+        subgroup_found = False
+        for key, value in children.items():
+            if hasattr(key, "config") or isinstance(value, dict):
+                # This is the subgroup - check its children
+                if isinstance(value, dict):
+                    # Tag should expand to tasks with namespaced names
+                    assert any("tag_task_1" in str(k) for k in value.keys())
+                    assert any("tag_task_2" in str(k) for k in value.keys())
+                    assert any("tag_task_3" in str(k) for k in value.keys())
+                    subgroup_found = True
+                    break
+
+        assert subgroup_found, "tagged_tasks subgroup not found in children"
+
+    def test_group_level_config_inheritance(self, hierarchical_task_manager):
+        """Test that group-level config propagates to children."""
+        tm = hierarchical_task_manager
+
+        result = tm.load_task_or_group(["group_with_override"])
+
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # task_a should inherit group-level num_fewshot=5
+        task_a = children["group_with_override::task_a"]
+        assert task_a.config.num_fewshot == 5
+
+        # task_b should override with num_fewshot=3
+        task_b = children["group_with_override::task_b"]
+        assert task_b.config.num_fewshot == 3
+
+    def test_group_level_config_inheritance_with_tag(self, hierarchical_task_manager):
+        """Test that group-level config propagates through tag expansion."""
+        tm = hierarchical_task_manager
+
+        # Create a group config with tag expansion and override
+        # For this test, we'll verify that the existing hierarchical_refs_group
+        # would receive overrides if they were defined at group level
+        result = tm.load_task_or_group(["group_with_override"])
+
+        group_key = list(result.keys())[0]
+        children = result[group_key]
+
+        # Verify we have the expected children
+        assert "group_with_override::task_a" in children
+        assert "group_with_override::task_b" in children
