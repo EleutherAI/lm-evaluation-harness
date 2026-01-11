@@ -196,6 +196,7 @@ class TaskConfig(dict):
         jinja_config = self.presets.to_jinja_config()
 
         # Apply generated templates only if user hasn't specified their own
+        ## TODO: currently doc_to_text overloads those from the the preset
         if self.doc_to_text is None:
             self.doc_to_text = jinja_config["doc_to_text"]
 

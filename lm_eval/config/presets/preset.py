@@ -51,9 +51,9 @@ class PresetConfig:
 
     # Field mappings - map preset fields to document fields
     # These can be simple field names or Jinja expressions
-    question_field: str = "question"
-    choices_field: str | None = "choices"
-    answer_field: str = "answer"
+    doc_to_text: str = "question"
+    doc_to_choice: str | None = "choices"
+    doc_to_target: str = "answer"
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -176,10 +176,10 @@ class PresetConfig:
         # Question prefix and question
         if self.question_prefix:
             template += self._escape_jinja(self.question_prefix + self.prefix_delimiter)
-        template += self._field_ref(self.question_field)
+        template += self._field_ref(self.doc_to_text)
 
         # Choices (if applicable)
-        if self.choice_labels and self.choices_field:
+        if self.choice_labels and self.doc_to_choice:
             template += self._escape_jinja(self.before_choices)
             template += self._build_choices_format_jinja()
 
@@ -199,10 +199,11 @@ class PresetConfig:
         Generates Jinja like:
         {% for choice in choices %}{{ 'ABCD'[loop.index0] }}. {{ choice }}{% if not loop.last %}\n{% endif %}{% endfor %}
         """
-        assert self.choices_field is not None, (
+        assert self.doc_to_choice is not None, (
             "choices_field required for choice formatting"
         )
-        c_ref = self.choices_field
+        # Use _field_ref with for_output=False to strip {{ }} if present
+        c_ref = self._field_ref(self.doc_to_choice, for_output=False)
         delim = self._escape_jinja(self.choice_delimiter)
 
         if self.choice_labels == "letters":
@@ -229,9 +230,13 @@ class PresetConfig:
         For generate_until, returns the formatted answer text.
         """
         # Get field references - raw for control flow, wrapped for output
-        a_raw = self._field_ref(self.answer_field, for_output=False)
-        a_out = self._field_ref(self.answer_field, for_output=True)
-        c_ref = self.choices_field
+        a_raw = self._field_ref(self.doc_to_target, for_output=False)
+        a_out = self._field_ref(self.doc_to_target, for_output=True)
+        c_ref = (
+            self._field_ref(self.doc_to_choice, for_output=False)
+            if self.doc_to_choice
+            else None
+        )
 
         if self.output_type == "multiple_choice":
             # For multiple choice, we need the index
@@ -274,10 +279,11 @@ class PresetConfig:
 
         Returns choice labels if configured, otherwise the raw choices.
         """
-        if not self.choices_field:
+        if not self.doc_to_choice:
             return None
 
-        c_ref = self.choices_field
+        # Strip {{ }} if present to get raw field reference
+        c_ref = self._field_ref(self.doc_to_choice, for_output=False)
 
         if not self.choice_labels:
             # Return raw choices
