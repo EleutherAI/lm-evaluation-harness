@@ -147,10 +147,10 @@ class TaskFactory:
             ):
                 group.add(child)
 
-        # Build and add children from old-style task: list
+        # Build and add children from old-style task: list (references to existing tasks/groups/tags)
         task_field = raw_cfg.get("task")
         if isinstance(task_field, list):
-            for child in self._build_task_list(
+            for child in self._build_group_members(
                 task_field, group_name, merged_overrides, registry
             ):
                 group.add(child)
@@ -203,26 +203,41 @@ class TaskFactory:
 
         return children
 
-    def _build_task_list(
+    def _build_group_members(
         self,
-        task_list: list[str | dict[str, Any]],
+        member_list: list[str | dict[str, Any]],
         group_name: str,
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
     ) -> list[Task | Group]:
-        """Build children defined via task_list.
+        """Build group members from task: list syntax.
+
+        Handles references to existing tasks, groups, tags, and inline group definitions.
+        Each item can be:
+        - str: name of existing task/group/tag
+        - dict with 'task': task reference with overrides
+        - dict with 'group': inline subgroup definition
 
         Returns:
             List of Task | Group objects
         """
         children: list[Task | Group] = []
 
-        for item in task_list:
+        for item in member_list:
             # Normalize - extract base_name and item_overrides
             if isinstance(item, str):
                 base_name = item
                 item_overrides = overrides or {}
             elif isinstance(item, dict):
+                # Check for inline group definition (legacy syntax)
+                # e.g., {group: "stem", task: [...], aggregate_metric_list: [...]}
+                if "group" in item:
+                    inline_group = self._build_inline_group(
+                        item, group_name, overrides, registry
+                    )
+                    children.append(inline_group)
+                    continue
+
                 base_name = item["task"]
                 item_overrides = {**overrides, **item} if overrides else item
             else:
@@ -271,6 +286,48 @@ class TaskFactory:
                     registry[namespaced] = child_entry
 
         return children
+
+    def _build_inline_group(
+        self,
+        group_cfg: dict[str, Any],
+        parent_name: str,
+        overrides: dict[str, Any] | None,
+        registry: dict[str, Entry],
+    ) -> Group:
+        """Build an inline group definition from legacy syntax.
+
+        Handles: {group: "name", task: [...], aggregate_metric_list: [...]}
+        """
+        group_name = group_cfg["group"]
+        namespaced_name = f"{parent_name}::{group_name}"
+
+        # Parse aggregation config
+        aggregation = None
+        if agg_list := group_cfg.get("aggregate_metric_list"):
+            if isinstance(agg_list, dict):
+                agg_list = [agg_list]
+            aggregation = [
+                AggMetricConfig(**item) if isinstance(item, dict) else item
+                for item in agg_list
+            ]
+
+        # Create the Group object
+        group = Group(
+            name=namespaced_name,
+            alias=group_cfg.get("group_alias"),
+            aggregation=aggregation,
+            metadata=group_cfg.get("metadata", {}) | self._meta,
+        )
+
+        # Build children from task: list
+        task_field = group_cfg.get("task")
+        if isinstance(task_field, list):
+            for child in self._build_group_members(
+                task_field, namespaced_name, overrides, registry
+            ):
+                group.add(child)
+
+        return group
 
     def _build_tag(
         self,

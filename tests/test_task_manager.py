@@ -1009,15 +1009,17 @@ class TestHierarchicalTasks:
         # Find the subgroup in children
         subgroup_found = False
         for key, value in children.items():
-            if hasattr(key, "config") or isinstance(value, dict):
-                # This is the subgroup - check its children
-                if isinstance(value, dict):
-                    # Tag should expand to tasks with namespaced names
-                    assert any("tag_task_1" in str(k) for k in value.keys())
-                    assert any("tag_task_2" in str(k) for k in value.keys())
-                    assert any("tag_task_3" in str(k) for k in value.keys())
-                    subgroup_found = True
-                    break
+            if (
+                hasattr(key, "config")
+                or isinstance(value, dict)
+                and isinstance(value, dict)
+            ):
+                # This is the subgroup - check its children and Tag should expand to tasks with namespaced names
+                assert any("tag_task_1" in str(k) for k in value.keys())
+                assert any("tag_task_2" in str(k) for k in value.keys())
+                assert any("tag_task_3" in str(k) for k in value.keys())
+                subgroup_found = True
+                break
 
         assert subgroup_found, "tagged_tasks subgroup not found in children"
 
@@ -1053,3 +1055,33 @@ class TestHierarchicalTasks:
         # Verify we have the expected children
         assert "group_with_override::task_a" in children
         assert "group_with_override::task_b" in children
+
+    def test_inline_subgroup_syntax(self, hierarchical_task_manager):
+        """Test legacy inline subgroup syntax: task: [{group: name, task: [...]}].
+
+        This is the format used by mmlu_flan_cot_fewshot and similar configs.
+        """
+        tm = hierarchical_task_manager
+
+        # Load the group with inline subgroups
+        loaded = tm.load(["inline_subgroup_parent"])
+
+        # Should have one top-level group
+        groups = loaded.get("groups", {})
+        assert "inline_subgroup_parent" in groups
+        parent_group = groups["inline_subgroup_parent"]
+        assert parent_group.name == "inline_subgroup_parent"
+
+        # Should have two inline subgroups (use recursive=False for direct children only)
+        subgroups = parent_group.get_all_groups(recursive=False)
+        assert len(subgroups) == 2
+
+        subgroup_names = {g.name for g in subgroups}
+        assert "inline_subgroup_parent::subgroup_a" in subgroup_names
+        assert "inline_subgroup_parent::subgroup_b" in subgroup_names
+
+        # Each subgroup should have its tasks
+        for subgroup in subgroups:
+            assert len(subgroup.get_all_tasks(recursive=False)) == 1
+            # Verify aggregation was parsed
+            assert subgroup.aggregation is not None
