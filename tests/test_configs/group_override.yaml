@@ -1,0 +1,11 @@
+# Group demonstrating config inheritance to children
+# Group-level config should propagate to children unless overridden
+
+group: group_with_override
+num_fewshot: 5  # Should propagate to all children
+children:
+  task_a:
+    task: simple_task
+  task_b:
+    task: simple_task
+    num_fewshot: 3  # Override

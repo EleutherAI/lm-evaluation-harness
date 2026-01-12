@@ -1,0 +1,19 @@
+# Nested hierarchical group demonstrating multi-level subgroups
+# Uses the new format: group: <name> for subgroups
+
+group: nested_group
+children:
+  subgroup_a:
+    group: subgroup_a
+    children:
+      task_1:
+        task: simple_task
+      task_2:
+        task: simple_task
+        num_fewshot: 1
+  subgroup_b:
+    group: subgroup_b
+    children:
+      task_3:
+        task: simple_task
+        num_fewshot: 2

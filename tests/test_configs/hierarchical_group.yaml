@@ -1,0 +1,10 @@
+# Group demonstrating children: syntax with task references
+# Uses the new format: task: <string> for references, group: <name> for subgroups
+
+group: hierarchical_group
+children:
+  inline_task_a:
+    task: simple_task
+  inline_task_b:
+    task: simple_task
+    num_fewshot: 2
