@@ -36,8 +36,12 @@ class Entry:
     parent: str | None = (
         None  # parent path for inline children (e.g., "mmlu" for "mmlu::stem")
     )
-    ref_target: str | None = None  # for children with ref: points to external entry
-    tag_ref: str | None = None  # for children with tag: expands to tagged tasks
+    ref_task: str | None = (
+        None  # group: task name this entry references (e.g., "simple_task")
+    )
+    tag_ref: str | None = (
+        None  # group: tag name this entry expands (e.g., "mmlu_tasks")
+    )
 
 
 class TaskIndex:
@@ -221,9 +225,7 @@ class TaskIndex:
         if not args:
             return result
         for t in args:
-            match t:
-                case str(): result.add(t),  # fmt: skip
-                case list(): result.update(t)  # fmt: skip
+            result.update([t] if isinstance(t, str) else t)
         return result
 
     @staticmethod
@@ -269,7 +271,7 @@ class TaskIndex:
                     kind=Kind.TASK,
                     yaml_path=yaml_path,
                     parent=parent_path,
-                    ref_target=child_cfg["task"],
+                    ref_task=child_cfg["task"],
                     cfg=child_cfg,
                     tags=TaskIndex._str_to_set(child_cfg.get("tag")),
                 )

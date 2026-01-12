@@ -57,7 +57,7 @@ class TaskManager:
         self.metadata = metadata
 
         index = TaskIndex()
-        self._factory = TaskFactory(meta=metadata)
+        self._factory: TaskFactory = TaskFactory(meta=metadata)
 
         all_paths: list[Path] = []
         # Process include_path FIRST so user tasks take precedence over defaults
@@ -149,6 +149,7 @@ class TaskManager:
     def load(
         self,
         task_list: str
+        | list[str]
         | list[str | Task | Group | dict[str, Any]]
         | Task
         | Group

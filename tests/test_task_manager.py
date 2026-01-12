@@ -371,13 +371,13 @@ tag: my_custom_tag
 # Module-level fixture to avoid re-creating TaskManager for each test
 @pytest.fixture(scope="module")
 def shared_task_manager():
-    """Create a TaskManager with default tasks (shared across module)"""
+    """Create a TaskManager with default tasks"""
     return TaskManager()
 
 
 @pytest.fixture(scope="module")
 def test_configs_task_manager():
-    """TaskManager with only test_configs tasks (fast - no default task scanning)"""
+    """TaskManager with only test_configs tasks"""
     test_configs_path = Path(__file__).parent / "test_configs"
     return TaskManager(include_path=str(test_configs_path), include_defaults=False)
 
@@ -958,9 +958,9 @@ class TestHierarchicalTasks:
         # The ref entry should be indexed
         assert "hierarchical_refs_group::external_ref" in tm.task_index
 
-        # It should have ref_target set
+        # It should have ref_task set
         entry = tm.task_index["hierarchical_refs_group::external_ref"]
-        assert entry.ref_target == "simple_task"
+        assert entry.ref_task == "simple_task"
 
     def test_hierarchical_with_tag(self, hierarchical_task_manager):
         """Test hierarchical group with subgroup containing tag-based task list."""

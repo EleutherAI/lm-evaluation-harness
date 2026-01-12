@@ -3,19 +3,16 @@ from __future__ import annotations
 import inspect
 import logging
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from lm_eval.api.group import AggMetricConfig, Group
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.tasks._config_loader import load_yaml
 from lm_eval.tasks.index import Entry, Kind
 
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-
-    from lm_eval.api.task import Task
-
 
 eval_logger = logging.getLogger(__name__)
 
@@ -49,7 +46,7 @@ class TaskFactory:
         """
         match entry:
             # Handle external references (ref: in children)
-            case Entry(ref_target=str() as ref):
+            case Entry(ref_task=str() as ref):
                 if ref not in registry:
                     raise KeyError(f"Reference '{ref}' not found for '{entry.name}'")
                 # Use namespaced name for the task
@@ -80,7 +77,7 @@ class TaskFactory:
         cfg = self._load_full_config(entry, overrides)
 
         # Remove structural keys that aren't part of task config
-        for key in ("children", "ref", "tag", "group"):
+        for key in ("children", "tag", "group"):
             cfg.pop(key, None)
 
         task_name = cfg["task"]
@@ -195,11 +192,14 @@ class TaskFactory:
             merged = {**(overrides or {}), **child_overrides}
 
             # For task references, use namespaced name
-            if child_entry.ref_target:
+            if child_entry.ref_task:
                 merged["task"] = child_path
 
             child_obj = self.build(child_entry, overrides=merged, registry=registry)
-            children.append(child_obj)
+            if isinstance(child_obj, (Task, Group)):
+                children.append(child_obj)
+            else:
+                children.extend(child_obj)
 
         return children
 
@@ -260,7 +260,7 @@ class TaskFactory:
                     child_obj = self.build(
                         child_entry, overrides=item_overrides, registry=registry
                     )
-                    children.append(child_obj)
+                    children.append(cast("Group", child_obj))
 
                 case Entry(kind=Kind.TAG):
                     for task_name in child_entry.tags:
@@ -270,7 +270,7 @@ class TaskFactory:
                             overrides={"task": namespaced, **item_overrides},
                             registry=registry,
                         )
-                        children.append(child_obj)
+                        children.append(cast("Task", child_obj))
                         # also register to index with new namespaced name
                         registry[namespaced] = registry[task_name]
 
@@ -282,7 +282,7 @@ class TaskFactory:
                         overrides={"task": namespaced, **item_overrides},
                         registry=registry,
                     )
-                    children.append(child_obj)
+                    children.append(cast("Task", child_obj))
                     registry[namespaced] = child_entry
 
         return children
@@ -338,7 +338,7 @@ class TaskFactory:
         """Build all tasks from a tag.
 
         Tags are just a shorthand for multiple tasks, not a container.
-        Returns a list of Task objects (not a Group).
+        Returns a list of Task objects.
         """
         return [self._build_task(registry[name], overrides) for name in entry.tags]
 
