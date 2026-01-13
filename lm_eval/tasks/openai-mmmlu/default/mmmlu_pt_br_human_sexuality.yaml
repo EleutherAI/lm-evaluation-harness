@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "PT_BR"
+process_docs: !function utils.process_human_sexuality
+"tag": "mmmlu_pt_br_social_sciences_tasks"
+"task": "mmmlu_pt_br_human_sexuality"
+"task_alias": "human sexuality (Brazilian Portuguese)"
+"description": "The following are multiple choice questions (with answers) about human sexuality (Brazilian Portuguese).\n\n"
