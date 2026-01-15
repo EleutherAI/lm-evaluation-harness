@@ -1,4 +1,4 @@
-# Task-name
+# BEAR
 
 Dataset to evaluate common factual knowledge in language models. This dataset was created as part of the [paper "BEAR: A Unified Framework for Evaluating Relational Knowledge in Causal and Masked Language Models"](https://aclanthology.org/2024.findings-naacl.155/).
 
@@ -45,25 +45,13 @@ Homepage: https://lm-pub-quiz.github.io/
 
 #### Tags
 
-* `tag_name`: `Short description`
+* No specific tags yet
 
 #### Tasks
 
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+* `bear`: BEAR knowledge probe (factual multiple choice task)
+* `bear_big`: Big variant of BEAR (more questions, larger answer spaces)
 
-### Checklist
 
-For adding novel benchmarks/datasets to the library:
-
-* [ ] Is the task an existing benchmark in the literature?
-  * [ ] Have you referenced the original paper that introduced the task?
-  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-
-If other tasks on this dataset are already supported:
-
-* [ ] Is the "Main" variant of this task clearly denoted?
-* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Changelog
