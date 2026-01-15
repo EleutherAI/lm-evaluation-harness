@@ -421,6 +421,36 @@ class TestBuildQaTurn:
         with pytest.raises(AssertionError, match="not a string"):
             ConfigurableTask.build_qa_turn(task, q=123, a="A")  # type: ignore
 
+    def test_answer_index_zero_uses_delimiter(self, task):
+        """Answer index 0 should still use target delimiter (regression test for #3452).
+
+        When answer is an integer index into choices, a=0 should be treated as a valid
+        answer, not as falsy. Previously, a=0 caused the target delimiter to be skipped.
+        """
+        choices = ["A", "B", "C", "D"]
+        msgs = ConfigurableTask.build_qa_turn(
+            task, q="Question?", c=choices, a=0, tgt_delim=" ", few_delim="\n\n"
+        )
+
+        # Should have 2 messages: user question with delimiter, assistant answer
+        assert len(msgs) == 2
+        assert msgs[0].role == "user"
+        assert msgs[0]._delimiter == " "  # delimiter should be applied
+        assert msgs[1].role == "assistant"
+        assert msgs[1].content == "A"  # choices[0]
+        assert messages_to_text(msgs) == "Question? A\n\n"
+
+    def test_answer_index_nonzero_uses_delimiter(self, task):
+        """Answer index > 0 should use target delimiter."""
+        choices = ["A", "B", "C", "D"]
+        msgs = ConfigurableTask.build_qa_turn(
+            task, q="Question?", c=choices, a=2, tgt_delim=" ", few_delim="\n\n"
+        )
+
+        assert msgs[0]._delimiter == " "
+        assert msgs[1].content == "C"  # choices[2]
+        assert messages_to_text(msgs) == "Question? C\n\n"
+
 
 # =============================================================================
 # Fewshot Context Tests

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_abstract_algebra
+"tag": "mmmlu_de_de_stem_tasks"
+"task": "mmmlu_de_de_abstract_algebra"
+"task_alias": "abstract algebra (German)"
+"description": "The following are multiple choice questions (with answers) about abstract algebra (German).\n\n"
