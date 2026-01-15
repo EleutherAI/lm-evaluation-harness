@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_high_school_computer_science
+"tag": "mmmlu_de_de_stem_tasks"
+"task": "mmmlu_de_de_high_school_computer_science"
+"task_alias": "high school computer science (German)"
+"description": "The following are multiple choice questions (with answers) about high school computer science (German).\n\n"

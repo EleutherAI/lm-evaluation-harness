@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_bn_bd_other_tasks"
+"task": "mmmlu_bn_bd_professional_accounting"
+"task_alias": "professional accounting (Bengali)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (Bengali).\n\n"

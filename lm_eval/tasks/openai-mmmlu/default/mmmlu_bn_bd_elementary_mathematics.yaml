@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "BN_BD"
+process_docs: !function utils.process_elementary_mathematics
+"tag": "mmmlu_bn_bd_stem_tasks"
+"task": "mmmlu_bn_bd_elementary_mathematics"
+"task_alias": "elementary mathematics (Bengali)"
+"description": "The following are multiple choice questions (with answers) about elementary mathematics (Bengali).\n\n"
