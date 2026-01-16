@@ -8,3 +8,5 @@ generation_kwargs:
   - 'Pregunta:'
   - </s>
   - <|im_end|>
+metadata:
+  version: 1.1

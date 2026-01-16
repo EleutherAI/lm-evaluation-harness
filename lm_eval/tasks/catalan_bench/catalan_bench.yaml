@@ -25,4 +25,4 @@ task:
     - cocoteros_va
     - xnli_va
 metadata:
-  version: 2.1
+  version: 2.2

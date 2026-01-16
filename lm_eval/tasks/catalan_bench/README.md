@@ -151,3 +151,4 @@ If other tasks on this dataset are already supported:
 ### Changelog
 version 2.0: (2025-Mar-18) add [`cococteros_va`](./cocoteros_va.yaml) task.
 version 2.1: (2025-Jul-30) add [`xnli_va`](./xnli_va.yaml) task.
+version 2.2: (2026-Jan-16) exclude line breaks from stop criteria in `mgsm_direct_ca`
