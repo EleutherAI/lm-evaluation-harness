@@ -1,6 +1,6 @@
 tag:
   - math_word_problems
-task: ru_math500
+task: math_500_ru
 dataset_path: AvitoTech/ru_math500
 training_split: null
 validation_split: null

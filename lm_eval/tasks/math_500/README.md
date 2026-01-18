@@ -32,7 +32,7 @@ Homepage: https://github.com/openai/prm800k/tree/main#math-splits
 #### Tasks
 
 * `math_500`: The math_500 original dataset with instructions from https://www.vals.ai/benchmarks/math500.
-* `ru_math500`: A translated version of math_500 into Russian, used to evaluate models’ mathematical reasoning in Russian.
+* `math_500_ru`: A Russian translation of math_500 from the [AvitoTech/ru_math500](https://huggingface.co/datasets/AvitoTech/ru_math500) HuggingFace dataset, used to evaluate models' mathematical reasoning in Russian.
 
 ### Checklist
 

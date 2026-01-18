@@ -10,7 +10,7 @@ try:
     from pylatexenc import latex2text
 except ModuleNotFoundError as exception:
     raise type(exception)(
-        "Package `pylatexenc` is not installed. Please install pylatexenc via pip install lm-eval[math]` or `pip install -e .[math]`",
+        "Package `pylatexenc` is not installed. Please install it via `pip install lm-eval[math_500]` or `pip install -e .[math_500]`",
     )
 from sympy.parsing import sympy_parser
 

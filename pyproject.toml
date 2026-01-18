@@ -74,6 +74,7 @@ longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]", "pylatexenc"]
+math_500 = ["sympy>=1.12", "pylatexenc"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 #promptsource = [
 #  "promptsource>=0.2.3 ; python_version <= '3.12'",
@@ -91,6 +92,7 @@ tasks = [
     "lm_eval[longbench]",
     "lm_eval[libra]",
     "lm_eval[math]",
+    "lm_eval[math_500]",
     "lm_eval[multilingual]",
     "lm_eval[ruler]",
 ]
