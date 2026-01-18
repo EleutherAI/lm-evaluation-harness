@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "JA_JP"
+process_docs: !function utils.process_machine_learning
+"tag": "mmmlu_ja_jp_stem_tasks"
+"task": "mmmlu_ja_jp_machine_learning"
+"task_alias": "machine learning (Japanese)"
+"description": "The following are multiple choice questions (with answers) about machine learning (Japanese).\n\n"

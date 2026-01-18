@@ -1,0 +1,10 @@
+group: mmmlu_ko_kr_humanities
+group_alias: "Korean humanities"
+task:
+  - mmmlu_ko_kr_humanities_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

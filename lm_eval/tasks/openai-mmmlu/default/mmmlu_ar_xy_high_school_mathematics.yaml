@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_high_school_mathematics
+"tag": "mmmlu_ar_xy_stem_tasks"
+"task": "mmmlu_ar_xy_high_school_mathematics"
+"task_alias": "high school mathematics (Arabic)"
+"description": "The following are multiple choice questions (with answers) about high school mathematics (Arabic).\n\n"

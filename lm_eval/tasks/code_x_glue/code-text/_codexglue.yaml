@@ -1,0 +1,15 @@
+group: code2text
+task:
+  - code2text_go
+  - code2text_java
+  - code2text_javascript
+  - code2text_php
+  - code2text_python
+  - code2text_ruby
+aggregate_metric_list:
+  - aggregation: mean
+    metric: !function bleu.smoothed_bleu_4
+    weight_by_size: true
+metadata:
+  version: 1.0
+# 449326

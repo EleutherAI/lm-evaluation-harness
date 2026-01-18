@@ -31,5 +31,3 @@ filter_list:
         - function: take_first
 metadata:
   version: 1.0
-dataset_kwargs:
-  trust_remote_code: true

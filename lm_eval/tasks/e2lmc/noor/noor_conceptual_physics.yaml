@@ -1,0 +1,7 @@
+"dataset_name": "conceptual_physics"
+"description": "The following are multiple choice questions (with answers) about conceptual\
+  \ physics.\n\n"
+"include": "_noor_template"
+"tag": "noor_stem_tasks"
+"task": "noor_conceptual_physics"
+"task_alias": "conceptual physics"

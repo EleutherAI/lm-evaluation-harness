@@ -64,3 +64,7 @@ If other tasks on this dataset are already supported:
   * Added one newline to task description(s) as per [reference implementation](https://github.com/TIGER-AI-Lab/MMLU-Pro/blob/47b9891aacb8bd7cda29d5c5ba17b9434dd333bc/evaluate_from_local.py#L93)
 * (tasks, group) 2025-03-20 -- (version 2.0 --> version 2.1)
   * Changed default max_length from 2048 to 8192 and max_gen_toks from 256 to 2048.
+* (tasks, group) 2025-05-20 -- (version 2.1 --> version 3)
+  * changed stop sequence from "Q:" to "Question:" PR #2945
+* (tasks, group) 2026-01-16 -- (version 2.1 --> version 3)
+  * trimmed whitespace from options: [see](https://x.com/fujikanaeda/status/2011565035408277996)

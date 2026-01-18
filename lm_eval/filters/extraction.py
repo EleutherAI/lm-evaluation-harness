@@ -38,6 +38,8 @@ class RegexFilter(Filter):
         def filter_set(inst):
             filtered = []
             for resp in inst:
+                if not isinstance(resp, str):
+                    resp = ""
                 match = self.regex.findall(resp)
                 if match:
                     match = match[self.group_select]
@@ -54,19 +56,64 @@ class RegexFilter(Filter):
             return filtered
 
         filtered_resps = list(map(lambda x: filter_set(x), resps))
+        return filtered_resps
+
+
+@register_filter("regex_pos")
+class POSFilter(Filter):
+    """ """
+
+    def __init__(
+        self,
+        regex_pattern: str = r"\['(.*?)'\]",
+        group_select=0,
+        fallback=None,
+    ) -> None:
+        """
+        pass a string `regex` to run `re.compile(r"regex")` on.
+        `fallback` defines the output returned if no matches for the regex are located.
+        """
+        if fallback is None:
+            fallback = ["invalid"]
+        self.regex_pattern = regex_pattern
+        self.regex = re.compile(regex_pattern)
+        self.group_select = group_select
+        self.fallback = fallback
+
+    def apply(self, resps, docs):
+        def extract_tagged_tokens(text):
+            # Extract tagged tokens list from text input using regex
+            tokens = re.findall(r"\('([^']*)', '([^']*)'\)", text)
+            return [(token, pos) for token, pos in tokens]
+
+        def extract_pos_tags(result):
+            pos_tags = []
+            if isinstance(result, str):
+                result = extract_tagged_tokens(result)
+            pos_tags.extend(pos for _, pos in result)
+            return pos_tags if pos_tags else self.fallback
+
+        def filter_set(inst):
+            filtered = []
+            for resp in inst:
+                match = extract_pos_tags(resp)
+                filtered.append(match)
+            return filtered
+
+        filtered_resps = map(lambda x: filter_set(x), resps)
 
         return filtered_resps
 
 
 @register_filter("remove_whitespace")
 class WhitespaceFilter(Filter):
-    """Filters out leading whitespace from responses."""
+    """Filters out leading and trailing whitespace from responses."""
 
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:
-                resp = resp.lstrip()
+                resp = resp.strip()
                 filtered_resp.append(resp)
             return filtered_resp
 
@@ -96,7 +143,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         """
         regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
                         - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
-                        - step 2 : We parse the choice with regex :[\s]*([A-?]), where ? varies by number of choices.
+                        - step 2 : We parse the choice with regex: r's*([A-?])', where ? varies by number of choices.
         group_select: Selects the (group_select)th match from the findall result.
         ignore_case: Ignores the case during step 1 matching
         ignore_punctuation: Remove the punctuation during step 1 matching
@@ -114,6 +161,8 @@ class MultiChoiceRegexFilter(RegexFilter):
         # independently (and keep them a list.)
 
         def find_match(regex, resp, convert_dict={}):
+            if not isinstance(resp, str):
+                resp = ""
             match = regex.findall(resp)
             if match:
                 match = match[self.group_select]

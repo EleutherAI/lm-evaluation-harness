@@ -1,0 +1,10 @@
+group: longbench_code
+group_alias: "Code Completion"
+task:
+  - longbench_lcc
+  - longbench_repobench-p
+aggregate_metric_list:
+  - metric: score
+    weight_by_size: False
+metadata:
+  version: 0.0
