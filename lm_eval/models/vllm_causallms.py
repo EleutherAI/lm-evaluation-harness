@@ -9,7 +9,7 @@ from importlib.util import find_spec
 from multiprocessing import Process, Queue
 from queue import Empty
 from time import sleep
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import jinja2
 from more_itertools import distribute
@@ -38,10 +38,15 @@ try:
     import ray
     from vllm import LLM, SamplingParams, TokensPrompt
     from vllm.lora.request import LoRARequest
-    from vllm.transformers_utils.tokenizer import get_tokenizer
 
     if parse_version(version("vllm")) >= parse_version("0.8.3"):
         from vllm.entrypoints.chat_utils import resolve_hf_chat_template
+
+    try:
+        # Moved since vllm-project/vllm#29793
+        from vllm.tokenizers import get_tokenizer
+    except ModuleNotFoundError:
+        from vllm.transformers_utils.tokenizer import get_tokenizer
 
     try:
         # Moved since vllm-project/vllm#27164
@@ -49,9 +54,6 @@ try:
     except ModuleNotFoundError:
         from vllm.utils import get_open_port
 except ModuleNotFoundError:
-    pass
-
-if TYPE_CHECKING:
     pass
 
 eval_logger = logging.getLogger(__name__)

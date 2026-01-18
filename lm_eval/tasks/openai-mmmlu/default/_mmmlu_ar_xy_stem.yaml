@@ -1,0 +1,10 @@
+group: mmmlu_ar_xy_stem
+group_alias: "Arabic stem"
+task:
+  - mmmlu_ar_xy_stem_tasks
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: True
+
+metadata:
+  version: 1

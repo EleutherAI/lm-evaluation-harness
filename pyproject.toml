@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.9.2"
+version = "0.4.10.dev0"
 authors = [
     { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
@@ -19,6 +19,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "datasets>=2.16.0",
+    "numpy",
     "evaluate>=0.4.0",
     "jinja2",
     "jsonlines",
