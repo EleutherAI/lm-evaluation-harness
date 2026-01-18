@@ -1619,7 +1619,7 @@ class HFLM_Accelerate(HFLM):
         # Do not instantiate parent (HFLM), only instantiate grandparent (TemplateLM)
         TemplateLM.__init__(self)
         self._model = pretrained
-        self._config = self._model.config
+        self._config = self._model.module.config
 
         self._get_backend(
             config=self.config, backend=backend, trust_remote_code=trust_remote_code
