@@ -2,8 +2,10 @@ import collections
 import inspect
 import logging
 import os
+from collections.abc import Mapping
 from functools import partial
-from typing import Dict, List, Mapping, Optional, Union
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.group import ConfigurableGroup, GroupConfig
@@ -24,10 +26,10 @@ class TaskManager:
 
     def __init__(
         self,
-        verbosity: Optional[str] = None,
-        include_path: Optional[Union[str, List]] = None,
+        verbosity: str | None = None,
+        include_path: str | list | None = None,
         include_defaults: bool = True,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> None:
         if verbosity is not None:
             utils.setup_logging(verbosity)
@@ -56,7 +58,7 @@ class TaskManager:
 
     def initialize_tasks(
         self,
-        include_path: Optional[Union[str, List]] = None,
+        include_path: str | list | None = None,
         include_defaults: bool = True,
     ) -> dict[str, dict]:
         """Creates a dictionary of tasks indexes.
@@ -256,9 +258,9 @@ class TaskManager:
 
     def _load_individual_task_or_group(
         self,
-        name_or_config: Optional[Union[str, dict]] = None,
-        parent_name: Optional[str] = None,
-        update_config: Optional[dict] = None,
+        name_or_config: str | dict | None = None,
+        parent_name: str | None = None,
+        update_config: dict | None = None,
     ) -> Mapping:
         def _load_task(config, task):
             if "include" in config:
@@ -410,7 +412,7 @@ class TaskManager:
             group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
         }
 
-    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
+    def load_task_or_group(self, task_list: str | list | None = None) -> dict:
         """Loads a dictionary of task objects from a list
 
         :param task_list: Union[str, list] = None
@@ -432,7 +434,7 @@ class TaskManager:
         )
         return all_loaded_tasks
 
-    def load_config(self, config: Dict):
+    def load_config(self, config: dict):
         return self._load_individual_task_or_group(config)
 
     def _get_task_and_group(self, task_dir: str):
@@ -490,6 +492,8 @@ class TaskManager:
         tasks_and_groups = collections.defaultdict()
         for root, dirs, file_list in os.walk(task_dir):
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
+            dirs.sort()  # Sort directories for deterministic traversal order
+            file_list.sort()  # Sort files for consistent processing order
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
@@ -528,6 +532,13 @@ class TaskManager:
                     elif self._config_is_task(config):
                         # This is a task config
                         task = config["task"]
+                        if task in tasks_and_groups:
+                            eval_logger.warning(
+                                f"Duplicate task name '{task}' found. "
+                                f"Already registered from: {tasks_and_groups[task]['yaml_path']}. "
+                                f"Skipping duplicate from: {yaml_path}"
+                            )
+                            continue
                         tasks_and_groups[task] = {
                             "type": "task",
                             "yaml_path": yaml_path,
@@ -541,7 +552,7 @@ class TaskManager:
         return tasks_and_groups
 
 
-def get_task_name_from_config(task_config: Dict[str, str]) -> str:
+def get_task_name_from_config(task_config: dict[str, str]) -> str:
     if "task" in task_config:
         return task_config["task"]
     if "dataset_name" in task_config:
@@ -591,8 +602,8 @@ def _check_duplicates(task_dict: dict) -> None:
 
 
 def get_task_dict(
-    task_name_list: Union[str, List[Union[str, Dict, Task]]],
-    task_manager: Optional[TaskManager] = None,
+    task_name_list: str | list[str | dict | Task],
+    task_manager: TaskManager | None = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
@@ -665,5 +676,59 @@ def get_task_dict(
     # and we'd be unsure which to use and report.)
     # we explicitly check and error in this case.
     _check_duplicates(get_subtask_list(final_task_dict))
+
+    def pretty_print_task(task_name, task_manager, indent: int):
+        yaml_path = task_manager.task_index[task_name]["yaml_path"]
+        yaml_path = Path(yaml_path)
+        lm_eval_tasks_path = Path(__file__).parent
+        try:
+            display_path = yaml_path.relative_to(lm_eval_tasks_path)
+        except ValueError:
+            # Path is outside lm_eval/tasks (e.g., from include_path)
+            display_path = yaml_path
+
+        pad = "  " * indent
+        eval_logger.info(f"{pad}Task: {task_name} ({display_path})")
+
+    # NOTE: Only nicely logs:
+    # 1/ group
+    #     2/ subgroup
+    #         3/ tasks
+    # 2/ task
+    # layout.
+    # TODO: Verify if there are other layouts to nicely display
+    eval_logger.info("Selected tasks:")
+    for key, value in final_task_dict.items():
+        if isinstance(key, ConfigurableGroup):
+            eval_logger.info(f"Group: {key.group}")
+
+            if isinstance(value, dict):
+                first_key = next(iter(value.keys()))
+                # TODO: simplify
+                if isinstance(first_key, ConfigurableGroup):
+                    for subgroup, task_dict in value.items():
+                        if isinstance(subgroup, ConfigurableGroup):
+                            eval_logger.info(f"  Subgroup: {subgroup.group}")
+                            for task_name, configurable_task in task_dict.items():
+                                if isinstance(configurable_task, ConfigurableTask):
+                                    pretty_print_task(task_name, task_manager, indent=2)
+                                else:
+                                    eval_logger.info(
+                                        f"{task_name}: {configurable_task}"
+                                    )
+                        elif isinstance(subgroup, str) and isinstance(
+                            task_dict, ConfigurableTask
+                        ):
+                            pretty_print_task(subgroup, task_manager, indent=1)
+                        else:
+                            eval_logger.info(f"  {subgroup}: {task_dict}")
+                else:
+                    eval_logger.info(f"{key}: {value}")
+            else:
+                eval_logger.info(f"{key}: {value}")
+        elif isinstance(key, str) and isinstance(value, ConfigurableTask):
+            pretty_print_task(key, task_manager, indent=0)
+        else:
+            eval_logger.info(f"{key}: {value}")
 
     return final_task_dict

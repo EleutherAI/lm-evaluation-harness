@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import logging
 import os
-from collections.abc import Iterator, Sequence
 from datetime import timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -32,17 +31,23 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
-    clear_torch_cache,
+    _add_special_kwargs,
     configure_pad_token,
-    get_dtype,
     handle_stop_sequences,
-    pad_and_concat,
+    has_bos_prefix,
     postprocess_generated_text,
+)
+from lm_eval.models.utils_hf import (
+    clear_torch_cache,
+    get_dtype,
+    pad_and_concat,
     stop_sequences_criteria,
 )
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+
     from transformers.quantizers.auto import AutoQuantizationConfig
 
     from lm_eval.api.instance import Instance
@@ -84,7 +89,7 @@ class HFLM(TemplateLM):
         max_batch_size: int | None = 64,
         trust_remote_code: bool | None = False,
         use_fast_tokenizer: bool | None = True,
-        add_bos_token: bool | None = False,
+        add_bos_token: bool | None = None,
         prefix_token_id: int | None = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
@@ -258,11 +263,6 @@ class HFLM(TemplateLM):
         )
 
         self.add_bos_token = add_bos_token
-        if "gemma" in getattr(self.config, "model_type", ""):
-            self.add_bos_token = True
-            eval_logger.info(
-                f"Model type is '{self.config.model_type}', part of the Gemma family--a BOS token will be used as Gemma underperforms without it."
-            )
 
         self._max_length = max_length
         self.pretrained = pretrained
@@ -558,6 +558,7 @@ class HFLM(TemplateLM):
     def _get_config(
         self,
         pretrained: str,
+        *,
         revision: str = "main",
         trust_remote_code: bool = False,
         gguf_file: str | None = None,
@@ -631,7 +632,7 @@ class HFLM(TemplateLM):
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
-                torch_dtype=get_dtype(dtype),
+                dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
@@ -682,8 +683,7 @@ class HFLM(TemplateLM):
             )
 
         if peft:
-            from peft import PeftModel
-            from peft import __version__ as PEFT_VERSION
+            from peft import PeftModel, __version__ as PEFT_VERSION
 
             if model_kwargs.get("load_in_4bit") and vparse(PEFT_VERSION) < vparse(
                 "0.4.0"
@@ -715,7 +715,7 @@ class HFLM(TemplateLM):
             _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
                 delta,
                 revision=revision,
-                torch_dtype=get_dtype(dtype),
+                dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
@@ -744,7 +744,7 @@ class HFLM(TemplateLM):
         trust_remote_code: bool | None = False,
         use_fast_tokenizer: bool | None = True,
         gguf_file: str | None = None,
-        add_bos_token: bool | None = False,
+        add_bos_token: bool | None = None,
         subfolder: str | None = "",
     ) -> None:
         """Helper method during initialization.
@@ -763,8 +763,8 @@ class HFLM(TemplateLM):
         else:
             kwargs["use_fast"] = use_fast_tokenizer
 
-        if add_bos_token:
-            kwargs["add_bos_token"] = True
+        if add_bos_token is not None:
+            kwargs["add_bos_token"] = add_bos_token
 
         if subfolder:
             kwargs["subfolder"] = subfolder
@@ -858,24 +858,20 @@ class HFLM(TemplateLM):
     def tok_encode(
         self,
         string: str,
-        left_truncate_len: int | None = None,
         add_special_tokens: bool | None = None,
+        left_truncate_len: int | None = None,
+        **kwargs,
     ) -> list[int]:
-        """ """
         # default for None - empty dict, use predefined tokenizer param
         # used for all models except for CausalLM or predefined value
-        special_tokens_kwargs = {}
-
-        # by default for CausalLM - false or self.add_bos_token is set
-        if add_special_tokens is None:
-            if self.backend == "causal":
-                special_tokens_kwargs = {
-                    "add_special_tokens": False or self.add_bos_token
-                }
-        # otherwise the method explicitly defines the value
-        else:
-            special_tokens_kwargs = {"add_special_tokens": add_special_tokens}
-
+        special_tokens_kwargs = _add_special_kwargs(
+            add_special_tokens, self.add_bos_token
+        )
+        # set add_special_tokens=False if the string already starts with BOS token.
+        if add_special_tokens is None and has_bos_prefix(
+            string, self.tokenizer.decode(self.prefix_token_id)
+        ):
+            special_tokens_kwargs["add_special_tokens"] = False
         encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
@@ -897,7 +893,12 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.backend == "causal":
-            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+            if has_bos_prefix(strings[0], getattr(self.tokenizer, "bos_token", None)):
+                add_special_tokens = {"add_special_tokens": False}
+            elif self.add_bos_token is not None:
+                add_special_tokens = {"add_special_tokens": self.add_bos_token}
+            else:
+                add_special_tokens = {}
 
         encoding = self.tokenizer(
             strings,
@@ -971,7 +972,7 @@ class HFLM(TemplateLM):
         context,
         max_length: int,
         stop: list[str],
-        **generation_kwargs: dict[str, Any],
+        **generation_kwargs,
     ) -> torch.Tensor:
         # temperature = 0.0 if not set
         # if do_sample is false and temp==0.0:
@@ -1081,7 +1082,7 @@ class HFLM(TemplateLM):
         for i in range(0, len(all_windows), batch_size):
             batch = all_windows[i : i + batch_size]
             # Extract just the windows for processing, keeping track of request indices
-            batch_indices, batch_windows = zip(*batch)
+            batch_indices, batch_windows = zip(*batch, strict=True)
 
             batch_nlls = self._loglikelihood_tokens(
                 requests=batch_windows,
@@ -1089,7 +1090,7 @@ class HFLM(TemplateLM):
                 override_bs=len(batch_windows),
             )
             # Store results with their request indices
-            all_nlls.extend(zip(batch_indices, batch_nlls))
+            all_nlls.extend(zip(batch_indices, batch_nlls, strict=True))
 
         # Remove padding if necessary
         if (self.world_size > 1) and (pad_amnt > 0):
@@ -1301,7 +1302,7 @@ class HFLM(TemplateLM):
             )  # [batch, padding_length (inp or cont), vocab]
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
-                chunk, multi_logits, inplens, cont_toks_list
+                chunk, multi_logits, inplens, cont_toks_list, strict=True
             ):
                 # Slice to original seq length
                 contlen = len(cont_toks)
@@ -1420,7 +1421,7 @@ class HFLM(TemplateLM):
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
         for chunk in chunks:
-            contexts, all_gen_kwargs = zip(*chunk)
+            contexts, all_gen_kwargs = zip(*chunk, strict=True)
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
@@ -1470,7 +1471,7 @@ class HFLM(TemplateLM):
             )
 
             cont_toks_list = cont.tolist()
-            for cont_toks, context in zip(cont_toks_list, contexts):
+            for cont_toks, context in zip(cont_toks_list, contexts, strict=True):
                 # discard context + left-padding toks if using causal decoder-only LM
                 if self.backend == "causal":
                     cont_toks = cont_toks[context_enc.shape[1] :]

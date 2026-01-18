@@ -1,0 +1,11 @@
+group: graphwalks
+task:
+  - graphwalks_128k
+  - graphwalks_1M
+aggregate_metric_list:
+  - metric: f1
+    weight_by_size: true
+  - metric: flexible_f1
+    weight_by_size: true
+metadata:
+  version: 0.0

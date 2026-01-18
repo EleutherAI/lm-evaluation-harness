@@ -3,31 +3,36 @@ group_alias: mmlu_redux (generative)
 task:
   - group: stem
     task:
-      - mmlu_stem_generative
+      - mmlu_redux_stem_generative
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
+        filter_list: default
   - group: other
     task:
-      - mmlu_other_generative
+      - mmlu_redux_other_generative
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
+        filter_list: default
   - group: social sciences
     task:
-      - mmlu_social_sciences_generative
+      - mmlu_redux_social_sciences_generative
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
+        filter_list: default
   - group: humanities
     task:
-      - mmlu_humanities_generative
+      - mmlu_redux_humanities_generative
     aggregate_metric_list:
       - metric: exact_match
         weight_by_size: true
+        filter_list: default
 aggregate_metric_list:
   - aggregation: mean
     metric: exact_match
     weight_by_size: true
+    filter_list: default
 metadata:
-  version: 3
+  version: 4

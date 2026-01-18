@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_high_school_macroeconomics
+"tag": "mmmlu_ko_kr_social_sciences_tasks"
+"task": "mmmlu_ko_kr_high_school_macroeconomics"
+"task_alias": "high school macroeconomics (Korean)"
+"description": "The following are multiple choice questions (with answers) about high school macroeconomics (Korean).\n\n"

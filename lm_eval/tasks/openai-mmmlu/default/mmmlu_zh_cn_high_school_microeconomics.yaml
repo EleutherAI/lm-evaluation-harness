@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_high_school_microeconomics
+"tag": "mmmlu_zh_cn_social_sciences_tasks"
+"task": "mmmlu_zh_cn_high_school_microeconomics"
+"task_alias": "high school microeconomics (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about high school microeconomics (Simplified Chinese).\n\n"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "YO_NG"
+process_docs: !function utils.process_moral_scenarios
+"tag": "mmmlu_yo_ng_humanities_tasks"
+"task": "mmmlu_yo_ng_moral_scenarios"
+"task_alias": "moral scenarios (Yoruba)"
+"description": "The following are multiple choice questions (with answers) about moral scenarios (Yoruba).\n\n"
