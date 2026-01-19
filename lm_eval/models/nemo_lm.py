@@ -122,12 +122,25 @@ def load_model(
     model_class._original_build_tokenizer = model_class._build_tokenizer
     model_class._build_tokenizer = _synced_build_tokenizer
 
+    extra_restore_kwargs = {}
+    try:
+        from megatron.core.dist_checkpointing.validation import StrictHandling
+        # TransformerEngine has changed the way metadata is stored in checkpoints after
+        # v1.10. This change requires users to relax the strictness when checkpoint restoring.
+        # See https://docs.nvidia.com/nemo-framework/user-guide/24.12/knownissues.html#known-issues
+        # for more details. For convenience, relax strictness by default if the enum is available to
+        # log all mismatches.
+        extra_restore_kwargs['strict'] = StrictHandling.LOG_ALL
+    except:
+        pass
+
     model = model_class.restore_from(
         restore_path=model_to_load_path.as_posix(),
         trainer=trainer,
         override_config_path=override_config,
         save_restore_connector=save_restore_connector,
         map_location=f"cuda:{trainer.local_rank}",
+        **extra_restore_kwargs
     )
 
     model.freeze()
