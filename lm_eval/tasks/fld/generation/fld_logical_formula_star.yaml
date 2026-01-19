@@ -1,0 +1,3 @@
+include: fld_logical_formula_default.yaml
+task: fld_logical_formula_star
+dataset_name: star
