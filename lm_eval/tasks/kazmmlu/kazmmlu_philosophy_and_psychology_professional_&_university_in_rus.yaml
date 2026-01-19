@@ -1,0 +1,5 @@
+"dataset_name": "Philosophy and Psychology (Professional & University in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_humanities"
+"task": "kazmmlu_philosophy_and_psychology_(professional_&_university_in_rus)"
+"task_alias": "Philosophy and Psychology (Professional & University in rus)"
