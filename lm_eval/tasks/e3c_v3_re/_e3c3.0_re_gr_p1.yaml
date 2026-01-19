@@ -1,0 +1,10 @@
+tag: e3c3.0_re_gr_tasks
+include: _re_gr_template_yaml
+task: e3c3.0_re_gr_task
+fewshot_split: dev
+task_alias: prompt-1
+
+#p1
+doc_to_text: "Given a medical document in Greek, you need to extract all the measurements of the medical exams present. Report each relation in the format: measurement$exam, separating each pair with '%'. If there are no relations to extract, respond with '&&NOREL&&'.
+Text: '{{text}}'
+Relazioni:"
