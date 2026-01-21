@@ -752,7 +752,7 @@ def postprocess_generated_text(
     return generation
 
 
-def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None):
+def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None) -> bool:
     if bos_str is None:
         return False
     elif isinstance(bos_str, str):
