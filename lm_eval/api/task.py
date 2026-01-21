@@ -777,11 +777,11 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.fewshot_docs() is not None:
+        if (_fs_docs := self.fewshot_docs()) is not None:
             config_sampler: str | type[samplers.ContextSampler] = (
                 self.fewshot_cfg.sampler if self.config.fewshot_config else "default"
             )
-            fewshot_docs = list(self.fewshot_docs())  # type: ignore
+            fewshot_docs = list(_fs_docs)  # type: ignore
             if isinstance(config_sampler, str):
                 sampler_cls = samplers.get_sampler(config_sampler)
             elif issubclass(config_sampler, samplers.ContextSampler):
@@ -915,10 +915,10 @@ class ConfigurableTask(Task):
                     ) from None
             # fmt: on
         else:
-            if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
+            if (_shots := self.config.num_fewshot) is not None and (_shots > 0):
                 eval_logger.warning(
                     f"[Task: {self.config.task}] "
-                    "num_fewshot > 0 but fewshot_split is None. "
+                    f"num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
             return super().fewshot_docs()
@@ -1069,18 +1069,20 @@ class ConfigurableTask(Task):
                 whether an answer or gen_prefix is provided.
         """
         assert isinstance(q, str), f"Context is not a string! : {q}"
+        # Check if answer is provided (handle a=0 as valid answer index)
+        has_answer = a is not None and a != ""
         msgs = [
             Message(
                 "user",
                 q,
                 tgt_delim
-                if a and not gen_prefix
+                if has_answer and not gen_prefix
                 else tgt_delim
                 if gen_prefix and requires_delimiter(q, gen_prefix)
                 else "",
             )
         ]
-        if a is not None and a != "":
+        if has_answer:
             answer_text = (
                 c[a]
                 if (c and isinstance(a, int))

@@ -704,15 +704,24 @@ def get_task_dict(
 
             if isinstance(value, dict):
                 first_key = next(iter(value.keys()))
-
+                # TODO: simplify
                 if isinstance(first_key, ConfigurableGroup):
                     for subgroup, task_dict in value.items():
-                        eval_logger.info(f"  Subgroup: {subgroup.group}")
-                        for task_name, configurable_task in task_dict.items():
-                            if isinstance(configurable_task, ConfigurableTask):
-                                pretty_print_task(task_name, task_manager, indent=2)
-                            else:
-                                eval_logger.info(f"{task_name}: {configurable_task}")
+                        if isinstance(subgroup, ConfigurableGroup):
+                            eval_logger.info(f"  Subgroup: {subgroup.group}")
+                            for task_name, configurable_task in task_dict.items():
+                                if isinstance(configurable_task, ConfigurableTask):
+                                    pretty_print_task(task_name, task_manager, indent=2)
+                                else:
+                                    eval_logger.info(
+                                        f"{task_name}: {configurable_task}"
+                                    )
+                        elif isinstance(subgroup, str) and isinstance(
+                            task_dict, ConfigurableTask
+                        ):
+                            pretty_print_task(subgroup, task_manager, indent=1)
+                        else:
+                            eval_logger.info(f"  {subgroup}: {task_dict}")
                 else:
                     eval_logger.info(f"{key}: {value}")
             else:
