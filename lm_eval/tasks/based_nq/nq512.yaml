@@ -1,0 +1,3 @@
+
+task: based_nq_512
+class: !function task.BasedNQ512

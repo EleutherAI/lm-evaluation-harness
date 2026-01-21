@@ -1,0 +1,3 @@
+
+task: based_nq_2048_twice
+class: !function task.BasedNQTwice2048
