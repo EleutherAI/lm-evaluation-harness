@@ -1,0 +1,4 @@
+
+
+task: based_drop
+class: !function task.BasedDrop
