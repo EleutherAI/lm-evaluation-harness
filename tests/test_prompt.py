@@ -79,9 +79,78 @@ MMLU_ANATOMY_FIVE_SHOT_REQUESTS = [
     (MMLU_ANATOMY_FIVE_SHOT, " D"),
 ]
 
+# Expected prompts with gen_prefix="The answer is:"
+# Fewshot answers get gen_prefix prepended, target question ends with gen_prefix
+MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX = """The following are multiple choice questions (with answers) about anatomy.
+
+A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral
+A. paralysis of the facial muscles.
+B. paralysis of the facial muscles and loss of taste.
+C. paralysis of the facial muscles, loss of taste and lacrimation.
+D. paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation.
+Answer: The answer is:"""
+
+MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX = """The following are multiple choice questions (with answers) about anatomy.
+
+What is the embryological origin of the hyoid bone?
+A. The first pharyngeal arch
+B. The first and second pharyngeal arches
+C. The second pharyngeal arch
+D. The second and third pharyngeal arches
+Answer: The answer is: D
+
+Which of these branches of the trigeminal nerve contain somatic motor processes?
+A. The supraorbital nerve
+B. The infraorbital nerve
+C. The mental nerve
+D. None of the above
+Answer: The answer is: D
+
+The pleura
+A. have no sensory innervation.
+B. are separated by a 2 mm space.
+C. extend into the neck.
+D. are composed of respiratory epithelium.
+Answer: The answer is: C
+
+In Angle's Class II Div 2 occlusion there is
+A. excess overbite of the upper lateral incisors.
+B. negative overjet of the upper central incisors.
+C. excess overjet of the upper lateral incisors.
+D. excess overjet of the upper central incisors.
+Answer: The answer is: C
+
+Which of the following is the body cavity that contains the pituitary gland?
+A. Abdominal
+B. Cranial
+C. Pleural
+D. Spinal
+Answer: The answer is: B
+
+A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral
+A. paralysis of the facial muscles.
+B. paralysis of the facial muscles and loss of taste.
+C. paralysis of the facial muscles, loss of taste and lacrimation.
+D. paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation.
+Answer: The answer is:"""
+
+MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX_REQUESTS = [
+    (MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX, " A"),
+    (MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX, " B"),
+    (MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX, " C"),
+    (MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX, " D"),
+]
+
+MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX_REQUESTS = [
+    (MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX, " A"),
+    (MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX, " B"),
+    (MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX, " C"),
+    (MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX, " D"),
+]
+
 
 @pytest.mark.parametrize(
-    "task_names,sets,num_fewshot,seed,num_examples,expected_prompt,expected_requests",
+    "task_names,sets,num_fewshot,seed,num_examples,expected_prompt,expected_requests,gen_prefix",
     [
         (
             ["mmlu_anatomy"],
@@ -91,6 +160,7 @@ MMLU_ANATOMY_FIVE_SHOT_REQUESTS = [
             1,
             MMLU_ANATOMY_ZERO_SHOT,
             MMLU_ANATOMY_ZERO_SHOT_REQUESTS,
+            None,
         ),
         (
             ["mmlu_anatomy"],
@@ -100,6 +170,27 @@ MMLU_ANATOMY_FIVE_SHOT_REQUESTS = [
             1,
             MMLU_ANATOMY_FIVE_SHOT,
             MMLU_ANATOMY_FIVE_SHOT_REQUESTS,
+            None,
+        ),
+        (
+            ["mmlu_anatomy"],
+            "test",
+            0,
+            42,
+            1,
+            MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX,
+            MMLU_ANATOMY_ZERO_SHOT_WITH_GEN_PREFIX_REQUESTS,
+            "The answer is:",
+        ),
+        (
+            ["mmlu_anatomy"],
+            "test",
+            5,
+            42,
+            1,
+            MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX,
+            MMLU_ANATOMY_FIVE_SHOT_WITH_GEN_PREFIX_REQUESTS,
+            "The answer is:",
         ),
     ],
 )
@@ -111,6 +202,7 @@ def test_mmlu_prompt_rendering(
     num_examples: int,
     expected_prompt: str,
     expected_requests: list[tuple[str, str]],
+    gen_prefix: str | None,
 ):
     np.random.seed(seed)
 
@@ -120,6 +212,11 @@ def test_mmlu_prompt_rendering(
     for _task_name, task in task_dict.items():
         if isinstance(task, tuple):
             _, task = task
+
+        # Apply gen_prefix to task config if provided
+        if gen_prefix is not None:
+            task.config.gen_prefix = gen_prefix
+            task.fewshot_cfg.gen_prefix = gen_prefix
 
         rnd = random.Random()
         rnd.seed(seed)
@@ -150,6 +247,7 @@ def test_mmlu_prompt_rendering(
             ctx = task.fewshot_context(
                 doc=doc,
                 num_fewshot=num_fewshot,
+                gen_prefix=gen_prefix,
             )
 
             assert ctx == expected_prompt
