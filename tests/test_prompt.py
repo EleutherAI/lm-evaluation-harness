@@ -1,10 +1,10 @@
 import random
-from typing import List
 
 import numpy as np
 import pytest
 
 from lm_eval import tasks
+from lm_eval.api.instance import Instance
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import join_iters
 
@@ -62,28 +62,62 @@ C. paralysis of the facial muscles, loss of taste and lacrimation.
 D. paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation.
 Answer:"""
 
+# Expected request arguments for construct_requests
+# Each tuple is (context, continuation) for loglikelihood request
+# MMLU uses doc_to_choice: ["A", "B", "C", "D"] and target_delimiter: " "
+MMLU_ANATOMY_ZERO_SHOT_REQUESTS = [
+    (MMLU_ANATOMY_ZERO_SHOT, " A"),
+    (MMLU_ANATOMY_ZERO_SHOT, " B"),
+    (MMLU_ANATOMY_ZERO_SHOT, " C"),
+    (MMLU_ANATOMY_ZERO_SHOT, " D"),
+]
+
+MMLU_ANATOMY_FIVE_SHOT_REQUESTS = [
+    (MMLU_ANATOMY_FIVE_SHOT, " A"),
+    (MMLU_ANATOMY_FIVE_SHOT, " B"),
+    (MMLU_ANATOMY_FIVE_SHOT, " C"),
+    (MMLU_ANATOMY_FIVE_SHOT, " D"),
+]
+
 
 @pytest.mark.parametrize(
-    "task_names,sets,num_fewshot,seed,num_examples,expected_prompt",
+    "task_names,sets,num_fewshot,seed,num_examples,expected_prompt,expected_requests",
     [
-        (["mmlu_anatomy"], "test", 0, 42, 1, MMLU_ANATOMY_ZERO_SHOT),
-        (["mmlu_anatomy"], "test", 5, 42, 1, MMLU_ANATOMY_FIVE_SHOT),
+        (
+            ["mmlu_anatomy"],
+            "test",
+            0,
+            42,
+            1,
+            MMLU_ANATOMY_ZERO_SHOT,
+            MMLU_ANATOMY_ZERO_SHOT_REQUESTS,
+        ),
+        (
+            ["mmlu_anatomy"],
+            "test",
+            5,
+            42,
+            1,
+            MMLU_ANATOMY_FIVE_SHOT,
+            MMLU_ANATOMY_FIVE_SHOT_REQUESTS,
+        ),
     ],
 )
 def test_mmlu_prompt_rendering(
-    task_names: List[str],
+    task_names: list[str],
     sets: str,
     num_fewshot: int,
     seed: int,
     num_examples: int,
     expected_prompt: str,
+    expected_requests: list[tuple[str, str]],
 ):
     np.random.seed(seed)
 
     task_manager = TaskManager()
     task_dict = tasks.get_task_dict(task_names, task_manager)
 
-    for task_name, task in task_dict.items():
+    for _task_name, task in task_dict.items():
         if isinstance(task, tuple):
             _, task = task
 
@@ -108,8 +142,10 @@ def test_mmlu_prompt_rendering(
 
         docs = join_iters(iters)
 
-        for i, doc in (
-            zip(range(num_examples), docs) if num_examples > 0 else enumerate(docs)
+        for _, doc in (
+            zip(range(num_examples), docs, strict=False)
+            if num_examples > 0
+            else enumerate(docs)
         ):
             ctx = task.fewshot_context(
                 doc=doc,
@@ -117,3 +153,26 @@ def test_mmlu_prompt_rendering(
             )
 
             assert ctx == expected_prompt
+
+            # Test construct_requests
+            requests = task.construct_requests(doc=doc, ctx=ctx)
+
+            # MMLU is multiple_choice, so we expect a list of Instance objects
+            assert isinstance(requests, list), (
+                "construct_requests should return a list for multiple_choice tasks"
+            )
+            assert len(requests) == 4, (
+                "MMLU should have 4 requests (one per choice A, B, C, D)"
+            )
+
+            for i, req in enumerate(requests):
+                assert isinstance(req, Instance), f"Request {i} should be an Instance"
+                assert req.request_type == "loglikelihood", (
+                    f"Request {i} should be loglikelihood type"
+                )
+                assert req.idx == i, f"Request {i} should have idx={i}"
+                assert req.arguments == expected_requests[i], (
+                    f"Request {i} arguments mismatch.\n"
+                    f"Expected: {expected_requests[i]}\n"
+                    f"Got: {req.arguments}"
+                )
