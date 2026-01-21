@@ -44,6 +44,8 @@ from lm_eval.models.utils_hf import (
     stop_sequences_criteria,
 )
 
+import lm_engine.hf_models
+
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
