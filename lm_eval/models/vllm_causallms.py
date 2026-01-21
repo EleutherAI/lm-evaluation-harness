@@ -859,8 +859,8 @@ class VLLM(TemplateLM):
         max_gen_toks = int(kwargs.pop("max_tokens", default_max_gen_toks))
 
         # Handle sampling params
-        do_sample = kwargs.pop("do_sample", False)
-        # Force greedy decoding when do_sample=False, to consistency with HF
+        do_sample = kwargs.pop("do_sample", None)
+        # Force greedy decoding when do_sample=False, for consistency with HF
         kwargs["temperature"] = (
             0.0 if do_sample is False else kwargs.get("temperature", 0.0)
         )
