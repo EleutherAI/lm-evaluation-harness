@@ -44,14 +44,6 @@ from lm_eval.models.utils_hf import (
     stop_sequences_criteria,
 )
 
-import lm_engine.hf_models
-from lm_engine.kernels import enable_kernels, Kernel
-
-enable_kernels([Kernel.mamba2_ssm, Kernel.sonicmoe, Kernel.gru, Kernel.rnn]).__enter__()
-# try:
-# except ImportError:
-#     pass
-
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
