@@ -1,0 +1,3 @@
+
+task: based_triviaqa_twice
+class: !function task.BasedTriviaQATwice
