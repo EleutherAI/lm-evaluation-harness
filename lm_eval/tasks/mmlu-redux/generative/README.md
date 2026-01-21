@@ -38,10 +38,10 @@ BibTeX
 
 #### Tasks
 
-- `mmlu_stem_generative`
-- `mmlu_other_generative`
-- `mmlu_social_sciences_generative`
-- `mmlu_humanities_generative`
+- `mmlu_redux_stem_generative`
+- `mmlu_redux_other_generative`
+- `mmlu_redux_social_sciences_generative`
+- `mmlu_redux_humanities_generative`
 
 ### Checklist
 

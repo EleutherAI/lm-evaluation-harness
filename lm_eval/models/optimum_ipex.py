@@ -3,7 +3,7 @@ from importlib.util import find_spec
 
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
-from lm_eval.models.utils import get_dtype
+from lm_eval.models.utils_hf import get_dtype
 
 
 eval_logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class IPEXLM(HFLM):
         model_kwargs.update(
             self._get_accelerate_args(
                 parallelize=parallelize,
-                device_map=kwargs.get("device_map", None),
+                device_map=kwargs.get("device_map"),
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,

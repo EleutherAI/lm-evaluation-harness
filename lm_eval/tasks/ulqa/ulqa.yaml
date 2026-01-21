@@ -1,0 +1,13 @@
+group: ulqa
+tag:
+  - uyghur_language
+  - uyghur_llm
+task:
+  - ulut
+  - lambada_uyghur
+  - ulqa_
+  - uleval
+  - celep1
+  - celep2
+metadata:
+  version: 1.0

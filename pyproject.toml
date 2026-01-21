@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=40.8.0", "wheel"]
+requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.9.1"
+version = "0.4.10.dev0"
 authors = [
     { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
@@ -13,28 +13,21 @@ readme = "README.md"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 requires-python = ">=3.10"
-license = { "text" = "MIT" }
+license = { text = "MIT" }
 dependencies = [
-    "accelerate>=0.26.0",
-    "evaluate",
     "datasets>=2.16.0",
+    "numpy",
     "evaluate>=0.4.0",
+    "jinja2",
     "jsonlines",
-    "numexpr",
-    "peft>=0.2.0",
-    "pybind11>=2.6.2",
     "pytablewriter",
     "rouge-score>=0.0.4",
     "sacrebleu>=1.5.0",
     "scikit-learn>=0.24.1",
     "sqlitedict",
-    "torch>=1.8",
-    "tqdm-multiprocess",
-    "transformers>=4.1",
     "zstandard",
     "dill",
     "word2number",
@@ -57,46 +50,69 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
-acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
+# Model backend dependencies
 api = ["requests", "aiohttp", "tenacity", "tqdm", "tiktoken"]
-audiolm_qwen = ["librosa", "soundfile"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece"]
+hf = ["transformers>=4.1","torch>=1.8", "accelerate>=0.26.0", "peft>=0.2.0",]
+vllm = ["vllm>=0.4.2"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 gptqmodel = ["gptqmodel>=1.0.9"]
-hf_transfer = ["hf_transfer"]
+ipex = ["optimum-intel"]
 ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
+# mamba requires CUDA (nvcc) - cannot build on macOS/CPU-only systems
+# mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
+optimum = ["optimum[openvino]"]
+sparsify = ["sparsify"]
+sae_lens = ["sae_lens"]
+# Task specific dependencies
+acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
+audiolm_qwen = ["librosa", "soundfile"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "ruff"]
+hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
-ipex = ["optimum"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
-mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
-neuronx = ["optimum[neuronx]"]
-optimum = ["optimum[openvino]"]
-promptsource = ["promptsource>=0.2.3"]
+#promptsource = [
+#  "promptsource>=0.2.3 ; python_version <= '3.12'",
+#]
 ruler = ["nltk", "wonderwords", "scipy"]
-sae_lens = ["sae_lens"]
 sentencepiece = ["sentencepiece>=0.1.98"]
-sparsify = ["sparsify"]
 discrim_eval = ["statsmodels==0.14.4"]
-testing = ["pytest", "pytest-cov", "pytest-xdist"]
 unitxt = ["unitxt==1.22.0"]
-vllm = ["vllm>=0.4.2"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 zeno = ["pandas", "zeno-client"]
 tasks = [
-    "lm_eval[acpbench]",
     "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
     "lm_eval[libra]",
-    "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
     "lm_eval[ruler]",
+]
+
+[dependency-groups]
+dev = [
+    "lm_eval[api]", "lm_eval[dev]", "lm_eval[hf]","sentencepiece"
+]
+
+[tool.uv]
+conflicts = [
+    [
+      { extra = "acpbench" },
+      { extra = "math" },
+    ],
+    [
+      { extra = "acpbench" },
+      { extra = "tasks" },
+    ],
+    [
+      { extra = "gptq" },
+      { extra = "vllm" },
+    ],
 ]
 
 [tool.pymarkdown]
@@ -108,17 +124,60 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
-extend-select = ["I", "W605"]
+extend-select = [
+    "B",      # flake8-bugbear
+    "C419",   # unnecessary-comprehension-in-call
+    "D", # docstyle
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "FURB",   # refurb
+    "I",      # isort
+    "TC", # typecheck
+    "RUF034", # useless-if-else
+    "SIM",    # flake8-simplify
+    "UP",     # pyupgrade
+    "W605",   # invalid-escape-sequence
+]
+fixable = [
+    "F401",   # unused-import
+    "I001",   # unsorted-imports
+    "UP",     # pyupgrade fixes
+]
+ignore = [
+    # docstrings
+    "D10",    # missing-docstring
+        # docstrings
+    "D212", # start first line
+    "D415", # terminal punctuation
+    "D205", # missing blank line
+    "D417", # docs: undocumented param
+    "D200", # unnecessary line
+    "D202", # blank-line-after-function
 
-[tool.ruff.lint.isort]
-lines-after-imports = 2
-known-first-party = ["lm_eval"]
+    "E111",   # indentation-with-invalid-multiple
+    "E114",   # indentation-with-invalid-multiple-comment
+    "E117",   # over-indented
+    "E402",   # module-import-not-at-top-of-file
+    "E501",   # line-too-long
+    "E701",   # multiple-statements-on-one-line-colon
+    "E731",   # lambda-assignment
+    "E741",   # ambiguous-variable-name
+    "SIM118", # dict-in-keys
+]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"__init__.py" = ["F401", "F402", "F403"]
-"utils.py" = ["F401"]
-
-[dependency-groups]
-dev = [
-    "api", "dev", "sentencepiece"
+"__init__.py" = [
+    "F401",   # unused-import
+    "F402",   # import-shadowed-by-loop-var
+    "F403",   # undefined-local-with-import-star
+    "F405",   # undefined-local-with-import-star-usage
 ]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["lm_eval"]
+lines-after-imports = 2
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+ignore-var-parameters = true
