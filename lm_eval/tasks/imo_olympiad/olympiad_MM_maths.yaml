@@ -1,4 +1,0 @@
-include: olympiad.yaml
-task: olympiad_MM_maths
-dataset_kwargs:
-  data_files: putnam-math/data/OlympiadBench_Dataset/data_math_boxed_21_08_2024_v2/OE_MM_maths_en_COMP_modified.json
