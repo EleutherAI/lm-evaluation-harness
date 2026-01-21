@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 
 def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int]):
