@@ -1,3 +1,2 @@
-
 task: based_nq_2048
 class: !function task.BasedNQ2048

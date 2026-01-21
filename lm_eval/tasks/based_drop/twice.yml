@@ -1,3 +1,2 @@
-
 task: based_drop_twice
 class: !function task.BasedDropTwice
