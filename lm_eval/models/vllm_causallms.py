@@ -661,17 +661,14 @@ class VLLM(TemplateLM):
             context_encoding_truncated = []
             sampling_params = []
             for x, gen_kwargs in zip(context_encoding, all_gen_kwargs, strict=True):
-                # unpack our keyword arguments.
-                if isinstance(gen_kwargs, dict):
-                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                    # add EOS token to stop sequences
-                    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
-                else:
+                if not isinstance(gen_kwargs, dict):
                     raise ValueError(
-                        f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+                        f"Expected `gen_kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
 
-                max_gen_toks = int(kwargs.pop("max_tokens", self.max_gen_toks))
+                kwargs, until, max_gen_toks = self.modify_gen_kwargs(
+                    gen_kwargs, eos=eos, default_max_gen_toks=self.max_gen_toks
+                )
 
                 # set the max length in tokens of inputs ("context_enc")
                 # max len for inputs = max length, minus room to generate the max new tokens
@@ -683,8 +680,7 @@ class VLLM(TemplateLM):
                     context_encoding_truncated.append(x[-max_ctx_len:])
                 else:
                     context_encoding_truncated.append(x)
-                # create sampling params
-                kwargs = self.modify_gen_kwargs(kwargs)
+
                 sampling_params.append(
                     SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
                 )
@@ -838,18 +834,40 @@ class VLLM(TemplateLM):
         return continuation_logprobs, is_greedy
 
     @staticmethod
-    def modify_gen_kwargs(kwargs: dict) -> dict:
-        # sampling_params
-        kwargs["temperature"] = kwargs.get("temperature", 0.0)
-        do_sample = kwargs.pop("do_sample", None)
-        if do_sample is False and "temperature" not in kwargs:
-            eval_logger.debug(
-                "Got `do_sample=False` and no temperature value, setting VLLM temperature to 0.0 ..."
-            )
-            kwargs["temperature"] = 0.0
-        # hf defaults
+    def modify_gen_kwargs(
+        gen_kwargs: dict, eos: str | None = None, default_max_gen_toks: int = 256
+    ) -> tuple[dict, list[str], int]:
+        """Process generation kwargs into vLLM-compatible format.
+
+        Args:
+            gen_kwargs: Raw generation kwargs from the request.
+            eos: EOS token string for stop sequence handling.
+            default_max_gen_toks: Default max tokens if not specified in gen_kwargs.
+
+        Returns:
+            A tuple of (kwargs, stop_sequences, max_gen_toks) where:
+            - kwargs: Processed kwargs ready for SamplingParams
+            - stop_sequences: List of stop sequences including EOS
+            - max_gen_toks: Maximum tokens to generate
+        """
+        kwargs = copy.deepcopy(gen_kwargs)
+
+        # Extract and process stop sequences
+        until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+
+        # Extract max_tokens
+        max_gen_toks = int(kwargs.pop("max_tokens", default_max_gen_toks))
+
+        # Handle sampling params
+        do_sample = kwargs.pop("do_sample", False)
+        # Force greedy decoding when do_sample=False, to consistency with HF
+        kwargs["temperature"] = (
+            0.0 if do_sample is False else kwargs.get("temperature", 0.0)
+        )
+        # HF defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
         kwargs["spaces_between_special_tokens"] = kwargs.get(
             "spaces_between_special_tokens", False
         )
-        return kwargs
+
+        return kwargs, until, max_gen_toks
