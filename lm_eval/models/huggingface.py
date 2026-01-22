@@ -142,6 +142,8 @@ class HFLM(TemplateLM):
                 gpus = torch.npu.device_count()
             elif "xpu" in device_type:
                 gpus = torch.xpu.device_count()
+            elif "hpu" in device_type:
+                gpus = torch.hpu.device_count()
             else:
                 # Fallback to CUDA count for compatibility
                 gpus = torch.cuda.device_count()
@@ -155,6 +157,7 @@ class HFLM(TemplateLM):
                     + ["mps", "mps:0"]
                     + [f"npu:{i}" for i in range(gpus)]
                     + [f"xpu:{i}" for i in range(gpus)]
+                    + [f"hpu:{i}" for i in range(gpus)]
                 )
                 if device and device in device_list:
                     self._device = torch.device(device)
@@ -628,11 +631,15 @@ class HFLM(TemplateLM):
                 )
                 if compute_dtype := model_kwargs.get("bnb_4bit_compute_dtype"):
                     model_kwargs["bnb_4bit_compute_dtype"] = get_dtype(compute_dtype)
-
+            dtype_arg = (
+                "dtype"
+                if vparse(transformers.__version__) >= vparse("4.56.0")
+                else "torch_dtype"
+            )
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
-                dtype=get_dtype(dtype),
+                **{dtype_arg: get_dtype(dtype)},
                 trust_remote_code=trust_remote_code,
                 gguf_file=gguf_file,
                 quantization_config=quantization_config,
@@ -712,10 +719,15 @@ class HFLM(TemplateLM):
                 eval_logger.warning(
                     "Delta weights might trigger unexpected behavior when used with AutoGPTQ."
                 )
+                dtype_arg = (
+                    "dtype"
+                    if vparse(transformers.__version__) >= vparse("4.56.0")
+                    else "torch_dtype"
+                )
             _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
                 delta,
                 revision=revision,
-                dtype=get_dtype(dtype),
+                **{dtype_arg: get_dtype(dtype)},
                 trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
