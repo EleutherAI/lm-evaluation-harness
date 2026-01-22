@@ -61,7 +61,7 @@ ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 # mamba requires CUDA (nvcc) - cannot build on macOS/CPU-only systems
 # mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 optimum = ["optimum[openvino]"]
-habana = ["optimum[habana]"]
+habana = ["optimum-habana"]
 sparsify = ["sparsify"]
 sae_lens = ["sae_lens"]
 # Task specific dependencies

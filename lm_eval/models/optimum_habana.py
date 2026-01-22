@@ -31,7 +31,7 @@ class HabanaLM(HFLM):
         # Validate required dependencies
         if not find_spec("optimum"):
             raise ModuleNotFoundError(
-                "package `optimum-habana` is not installed. Please install it via `pip install optimum[habana]`"
+                "package `optimum-habana` is not installed. Please install it via `pip install optimum-habana`"
             )
         # Validate backend
         if "backend" in kwargs:
