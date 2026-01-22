@@ -1,4 +1,3 @@
-tag: truthfulqa_va
 task: truthfulqa_va
 dataset_path: gplsi/truthfulqa_va
 dataset_name: generation

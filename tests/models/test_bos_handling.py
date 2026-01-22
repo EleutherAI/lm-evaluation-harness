@@ -15,10 +15,58 @@ This test suite validates:
 4. Loglikelihood handles BOS correctly (reuses BOS, never duplicates)
 """
 
-from unittest.mock import Mock
+import importlib.metadata
+import sys
+from unittest.mock import MagicMock, Mock
 
-import pytest
-from transformers import AutoTokenizer
+
+# Mock importlib.metadata.version for vllm before any imports
+_original_version = importlib.metadata.version
+
+
+def _mock_version(name):
+    if name == "vllm":
+        return "0.8.0"  # Return a fake version
+    return _original_version(name)
+
+
+importlib.metadata.version = _mock_version  # type:ignore[invalid-assignment]
+
+
+class MockModuleFinder:
+    """Auto-mock any submodule of specified packages using modern import hooks."""
+
+    def __init__(self, modules):
+        self.modules = modules
+
+    def find_spec(self, fullname, path, target=None):
+        if fullname in self.modules or any(
+            fullname.startswith(m + ".") for m in self.modules
+        ):
+            from importlib.machinery import ModuleSpec
+
+            return ModuleSpec(fullname, self)
+        return None
+
+    def create_module(self, spec):
+        mock = MagicMock()
+        mock.__path__ = []
+        mock.__package__ = spec.name
+        mock.__name__ = spec.name
+        mock.__loader__ = self
+        mock.__spec__ = spec
+        return mock
+
+    def exec_module(self, module):
+        # Nothing to execute for mocks
+        pass
+
+
+# Mock ray and vllm (and all subpackages) before importing from lm_eval.models
+sys.meta_path.insert(0, MockModuleFinder(["vllm", "ray"]))  # type: ignore
+
+import pytest  # noqa: E402
+from transformers import AutoTokenizer  # noqa: E402
 
 from lm_eval.models.utils import _add_special_kwargs, has_bos_prefix
 
