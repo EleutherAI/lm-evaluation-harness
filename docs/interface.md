@@ -4,167 +4,262 @@ This document details the interface exposed by `lm-eval` and provides details on
 
 ## Command-line Interface
 
-A majority of users run the library by cloning it from Github, installing the package as editable, and running the `python -m lm_eval` script.
+The `lm-eval` CLI is organized into subcommands:
 
-Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
+| Command | Description |
+|---------|-------------|
+| `lm-eval run` | Run evaluations on language models |
+| `lm-eval ls` | List available tasks, groups, subtasks, or tags |
+| `lm-eval validate` | Validate task configurations |
 
-This mode supports a number of command-line arguments, the details of which can also be seen via running with `-h` or `--help`:
+Run the library via the `lm-eval` entrypoint or `python -m lm_eval`.
 
-- `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#model-apis-and-inference-servers) for a full list of enabled model names and supported libraries or APIs.
+Use `-h` or `--help` to see available options:
 
-- `--model_args` : Controls parameters passed to the model constructor. Accepts a string containing comma-separated keyword arguments to the model class of the format `"arg1=val1,arg2=val2,..."`, such as, for example `--model_args pretrained=EleutherAI/pythia-160m,dtype=float32`. For a full list of what keyword arguments, see the initialization of the `lm_eval.api.model.LM` subclass, e.g. [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/models/huggingface.py#L66)
-
-- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups. A list of supported tasks can be viewed with `--tasks list`.
-
-- `--num_fewshot` : Sets the number of few-shot examples to place in context. Must be an integer.
-
-- `--gen_kwargs` : takes an arg string in same format as `--model_args` and creates a dictionary of keyword arguments. These will be passed to the models for all called `generate_until` (free-form or greedy generation task) tasks, to set options such as the sampling temperature or `top_p` / `top_k`. For a list of what args are supported for each model type, reference the respective library's documentation (for example, the documentation for `transformers.AutoModelForCausalLM.generate()`.) These kwargs will be applied to all `generate_until` tasks called--we do not currently support unique gen_kwargs or batch_size values per task in a single run of the library. To control these on a per-task level, set them in that task's YAML file.
-
-- `--batch_size` : Sets the batch size used for evaluation. Can be a positive integer or `"auto"` to automatically select the largest batch size that will fit in memory, speeding up evaluation. One can pass `--batch_size auto:N` to re-select the maximum batch size `N` times during evaluation. This can help accelerate evaluation further, since `lm-eval` sorts documents in descending order of context length.
-
-- `--max_batch_size` : Sets the maximum batch size to try to fit in memory, if `--batch_size auto` is passed.
-
-- `--device` : Sets which device to place the model onto. Must be a string, for example, `"cuda", "cuda:0", "cpu", "mps"`. Defaults to "cuda", and can be ignored if running multi-GPU or running a non-local model type.
-
-- `--output_path` : A string of the form `dir/file.jsonl` or `dir/`. Provides a path where high-level results will be saved, either into the file named or into the directory named. If `--log_samples` is passed as well, then per-document outputs and metrics will be saved into the directory as well.
-
-- `--log_samples` : If this flag is passed, then the model's outputs, and the text fed into the model, will be saved at per-document granularity. Must be used with `--output_path`.
-
-- `--limit` : Accepts an integer, or a float between 0.0 and 1.0 . If passed, will limit the number of documents to evaluate to the first X documents (if an integer) per task or first X% of documents per task. Useful for debugging, especially on costly API models.
-
-- `--use_cache` : Should be a path where a sqlite db file can be written to. Takes a string of format `/path/to/sqlite_cache_` in order to create a cache db at `/path/to/sqlite_cache_rank{i}.db` for each process (0-NUM_GPUS). This allows results of prior runs to be cached, so that there is no need to re-run results in order to re-score or re-run a given (model, task) pair again.
-
-- `--cache_requests` : Can be "true", "refresh", or "delete". "true" means that the cache should be used. "refresh" means that you wish to regenerate the cache, which you should run if you change your dataset configuration for a given task. "delete" will delete the cache. Cached files are stored under lm_eval/cache/.cache unless you specify a different path via the environment variable: `LM_HARNESS_CACHE_PATH`. e.g. `LM_HARNESS_CACHE_PATH=~/Documents/cache_for_lm_harness`.
-
-- `--check_integrity` : If this flag is used, the library tests for each task selected are run to confirm task integrity.
-
-- `--write_out` : Used for diagnostic purposes to observe the format of task documents passed to a model. If this flag is used, then prints the prompt and gold target string for the first document of each task.
-
-- `--show_config` : If used, prints the full `lm_eval.api.task.TaskConfig` contents (non-default settings the task YAML file) for each task which was run, at the completion of an evaluation. Useful for when one is modifying a task's configuration YAML locally to transmit the exact configurations used for debugging or for reproducibility purposes.
-
-- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`.
-
-- `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
-
-- `--apply_chat_template` : This flag specifies whether to apply a chat template to the prompt. It can be used in the following ways:
-  - `--apply_chat_template` : When used without an argument, applies the only available chat template to the prompt. For Hugging Face models, if no dedicated chat template exists, the default chat template will be applied.
-  - `--apply_chat_template template_name` : If the model has multiple chat templates, apply the specified template to the prompt.
-
-    For Hugging Face models, the default chat template can be found in the [`default_chat_template`](https://github.com/huggingface/transformers/blob/fc35907f95459d7a6c5281dfadd680b6f7b620e3/src/transformers/tokenization_utils_base.py#L1912) property of the Transformers Tokenizer.
-
-- `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
-
-- `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
-
-- `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
-
-- `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```. Also allows for the passing of the step to log things at (passed to `wandb.run.log`), e.g., `--wandb_args step=123`.
-
-- `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
-  - `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
-  - `hub_repo_name` - repository name on Hugging Face Hub (deprecated, `details_repo_name` and `results_repo_name` should be used instead), e.g., `lm-eval-results`,
-  - `details_repo_name` - repository name on Hugging Face Hub to store details, e.g., `lm-eval-results`,
-  - `results_repo_name` - repository name on Hugging Face Hub to store results, e.g., `lm-eval-results`,
-  - `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
-  - `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
-  - `public_repo` - whether the repository is public, can be `True` or `False`,
-  - `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
-  - `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
-  - `gated` - whether to gate the details dataset, can be `True` or `False`.
-
-- `--metadata`: JSON string to pass to TaskConfig. Used for some tasks which require additional metadata to be passed for processing. E.g., `--metadata '{"key": "value"}'`.
-
-## External Library Usage
-
-We also support using the library's external API for use within model training loops or other scripts.
-
-`lm_eval` supplies two functions for external import and use: `lm_eval.evaluate()` and `lm_eval.simple_evaluate()`.
-
-`simple_evaluate()` can be used by simply creating an `lm_eval.api.model.LM` subclass that implements the methods described in the [Model Guide](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs/model_guide.md), and wrapping your custom model in that class as follows:
-
-```python
-import lm_eval
-from lm_eval.utils import setup_logging
-...
-# initialize logging
-setup_logging("DEBUG") # optional, but recommended; or you can set up logging yourself
-my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
-...
-# instantiate an LM subclass that takes your initialized model and can run
-# - `Your_LM.loglikelihood()`
-# - `Your_LM.loglikelihood_rolling()`
-# - `Your_LM.generate_until()`
-lm_obj = Your_LM(model=my_model, batch_size=16)
-
-# indexes all tasks from the `lm_eval/tasks` subdirectory.
-# Alternatively, you can set `TaskManager(include_path="path/to/my/custom/task/configs")`
-# to include a set of tasks in a separate directory.
-task_manager = lm_eval.tasks.TaskManager()
-
-# Setting `task_manager` to the one above is optional and should generally be done
-# if you want to include tasks from paths other than ones in `lm_eval/tasks`.
-# `simple_evaluate` will instantiate its own task_manager if it is set to None here.
-results = lm_eval.simple_evaluate( # call simple_evaluate
-    model=lm_obj,
-    tasks=["taskname1", "taskname2"],
-    num_fewshot=0,
-    task_manager=task_manager,
-    ...
-)
+```bash
+lm-eval -h              # Show all subcommands
+lm-eval run -h          # Show options for run command
+lm-eval ls -h           # Show options for list command
 ```
 
-See the `simple_evaluate()` and `evaluate()` functions in [lm_eval/evaluator.py](../lm_eval/evaluator.py#:~:text=simple_evaluate) for a full description of all arguments available. All keyword arguments to simple_evaluate share the same role as the command-line flags described previously.
+> **Legacy Compatibility**: The original single-command interface still works. Running `lm-eval --model hf --tasks hellaswag` automatically inserts the `run` subcommand.
 
-Additionally, the `evaluate()` function offers the core evaluation functionality provided by the library, but without some of the special handling and simplification + abstraction provided by `simple_evaluate()`.
+---
 
-As a brief example usage of `evaluate()`:
+## Quick Start
 
-```python
-import lm_eval
+```bash
+# List available tasks
+lm-eval ls tasks
 
-# suppose you've defined a custom lm_eval.api.Task subclass in your own external codebase
-from my_tasks import MyTask1
-...
+# Basic evaluation
+lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag
 
-# create your model (could be running finetuning with some custom modeling code)
-my_model = initialize_my_model()
-...
+# With few-shot examples
+lm-eval run --model hf --model_args pretrained=gpt2 --tasks arc_easy --num_fewshot 5
 
-# instantiate an LM subclass that takes your initialized model and can run
-# - `Your_LM.loglikelihood()`
-# - `Your_LM.loglikelihood_rolling()`
-# - `Your_LM.generate_until()`
-lm_obj = Your_LM(model=my_model, batch_size=16)
+# Save results and model outputs
+lm-eval run --model hf --model_args pretrained=gpt2 --tasks hellaswag --output_path ./results/ --log_samples
 
-# optional: the task_manager indexes tasks including ones
-# specified by the user through `include_path`.
-task_manager = lm_eval.tasks.TaskManager(
-    include_path="/path/to/custom/yaml"
-    )
-
-# To get a task dict for `evaluate`
-task_dict = lm_eval.tasks.get_task_dict(
-    [
-        "mmlu", # A stock task
-        "my_custom_task", # A custom task
-        {
-            "task": ..., # A dict that configures a task
-            "doc_to_text": ...,
-            },
-        MyTask1 # A task object from `lm_eval.task.Task`
-        ],
-    task_manager # A task manager that allows lm_eval to
-                 # load the task during evaluation.
-                 # If none is provided, `get_task_dict`
-                 # will instantiate one itself, but this
-                 # only includes the stock tasks so users
-                 # will need to set this if including
-                 # custom paths is required.
-    )
-
-results = evaluate(
-    lm=lm_obj,
-    task_dict=task_dict,
-    ...
-)
+# Use a config file
+lm-eval run --config eval_config.yaml
 ```
+
+---
+
+## `lm-eval run`
+
+Run evaluations on language models.
+
+```bash
+lm-eval run --model <model> --tasks <task> [options]
+```
+
+### Quick Examples
+
+```bash
+# Basic evaluation with HuggingFace model
+lm-eval run --model hf --model_args pretrained=gpt2 dtype=float32 --tasks hellaswag
+
+# Multiple tasks with few-shot examples
+lm-eval run --model vllm --model_args pretrained=EleutherAI/gpt-j-6B --tasks arc_easy arc_challenge --num_fewshot 5
+
+# Custom generation parameters
+lm-eval run --model hf --model_args pretrained=gpt2 --tasks lambada --gen_kwargs temperature=0.8 top_p=0.95
+
+# Use a YAML configuration file
+lm-eval run --config my_config.yaml --tasks mmlu
+```
+
+### Model and Tasks
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--model` | `-M` | Model type/provider name (default: `hf`). See [supported models](https://github.com/EleutherAI/lm-evaluation-harness#model-apis-and-inference-servers). |
+| `--model_args` | `-a` | Model constructor arguments as `key=val key2=val2` or `key=val,key2=val2`. For HuggingFace models, see [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py) for available arguments. |
+| `--tasks` | `-t` | Space or comma-separated list of task names or groups. Use `lm-eval ls tasks` to see available tasks. |
+| `--apply_chat_template` | | Apply chat template to prompts. Use without argument for default template, or specify template name. |
+| `--limit` | `-L` | Limit examples per task. Integer for count, float (0.0-1.0) for percentage. **For testing only.** |
+| `--use_cache` | `-c` | Path prefix for SQLite cache of model responses (e.g., `/path/to/cache_`). |
+
+### Evaluation Settings
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--num_fewshot` | `-f` | Number of few-shot examples in context. |
+| `--batch_size` | `-b` | Batch size: integer, `auto`, or `auto:N` to auto-tune N times (default: 1). |
+| `--max_batch_size` | | Maximum batch size when using `--batch_size auto`. |
+| `--device` | | Device to use: `cuda`, `cuda:0`, `cpu`, `mps` (default: `cuda`). |
+| `--gen_kwargs` | | Generation arguments as `key=val key2=val2`. Values parsed with `ast.literal_eval`. Example: `temperature=0.8 'stop=["\n\n"]'` |
+
+### Data and Output
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--output_path` | `-o` | Output directory or JSON file for results. Required with `--log_samples`. |
+| `--log_samples` | `-s` | Save all model inputs/outputs for post-hoc analysis. |
+| `--samples` | `-E` | JSON mapping task names to sample indices, e.g., `'{"task1": [0,1,2]}'`. Incompatible with `--limit`. |
+
+### Caching and Performance
+
+| Argument | Description |
+|----------|-------------|
+| `--cache_requests` | Cache preprocessed prompts: `true`, `refresh`, or `delete`. Cached files stored in `lm_eval/cache/.cache` or path set by `LM_HARNESS_CACHE_PATH` env var. |
+| `--check_integrity` | Run task test suite validation before evaluation. |
+
+### Prompt Formatting
+
+| Argument | Description |
+|----------|-------------|
+| `--system_instruction` | Custom system instruction prepended to prompts. |
+| `--fewshot_as_multiturn` | Format few-shot examples as multi-turn conversation. Auto-enabled with `--apply_chat_template`. Set to `false` to disable. |
+
+### Task Management
+
+| Argument | Description |
+|----------|-------------|
+| `--include_path` | Additional directory containing external task YAML files. |
+
+### Logging and Tracking
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--verbosity` | `-v` | **(Deprecated)** Use `LMEVAL_LOG_LEVEL` env var instead. |
+| `--write_out` | `-w` | Print prompts for first few documents (for debugging). |
+| `--show_config` | | Display full task configuration after evaluation. |
+| `--wandb_args` | | Weights & Biases arguments as `key=val`. E.g., `project=my-project name=run-1`. |
+| `--wandb_config_args` | | Additional W&B config arguments. |
+| `--hf_hub_log_args` | | HuggingFace Hub logging arguments. See [HF Hub Logging](#huggingface-hub-logging). |
+
+### Advanced Options
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--predict_only` | `-x` | Save predictions only, skip metric computation. Implies `--log_samples`. |
+| `--seed` | | Random seeds as single integer or comma-separated list for `python,numpy,torch,fewshot`. Default: `0,1234,1234,1234`. Use `None` to skip. Example: `--seed 42` or `--seed 0,None,8,52`. |
+| `--trust_remote_code` | | Allow executing remote code from HuggingFace Hub. |
+| `--confirm_run_unsafe_code` | | Confirm understanding of risks for tasks executing arbitrary Python. |
+| `--metadata` | | JSON string passed to TaskConfig. Required for some tasks like RULER. Example: `--metadata '{"max_seq_length": 4096}'`. |
+
+### Configuration File
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--config` | `-C` | Path to YAML configuration file. CLI arguments override config file values. See [Configuration Files](config_files.md). |
+
+### HuggingFace Hub Logging
+
+The `--hf_hub_log_args` argument accepts these keys:
+
+| Key | Description |
+|-----|-------------|
+| `hub_results_org` | Organization name on HF Hub. Defaults to token owner. |
+| `details_repo_name` | Repository name for detailed results. |
+| `results_repo_name` | Repository name for aggregated results. |
+| `push_results_to_hub` | `True`/`False` - push results to Hub. |
+| `push_samples_to_hub` | `True`/`False` - push samples to Hub. Requires `--log_samples`. |
+| `public_repo` | `True`/`False` - make repository public. |
+| `leaderboard_url` | URL to associated leaderboard. |
+| `point_of_contact` | Contact email for results dataset. |
+| `gated` | `True`/`False` - gate the details dataset. |
+
+---
+
+## `lm-eval ls`
+
+List available tasks, groups, subtasks, or tags.
+
+```bash
+lm-eval ls [tasks|groups|subtasks|tags] [--include_path DIR]
+```
+
+### Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `tasks` | List all available tasks (groups, subtasks, and tags). |
+| `groups` | List only task groups (e.g., `mmlu`, `glue`, `superglue`). |
+| `subtasks` | List only individual subtasks (e.g., `mmlu_anatomy`, `hellaswag`). |
+| `tags` | List task tags (e.g., `reasoning`, `knowledge`). |
+| `--include_path` | Additional directory for external task definitions. |
+
+### Task Organization
+
+- **Groups**: Collections of related tasks with aggregated metrics across subtasks (e.g., `mmlu` contains 57 subtasks)
+- **Subtasks**: Individual evaluation tasks (e.g., `mmlu_anatomy`, `hellaswag`)
+- **Tags**: Categories for filtering tasks without aggregated metrics (e.g., `reasoning`, `language`)
+
+### Examples
+
+```bash
+# List all tasks
+lm-eval ls tasks
+
+# List only task groups
+lm-eval ls groups
+
+# Include external tasks
+lm-eval ls tasks --include_path /path/to/external/tasks
+```
+
+---
+
+## `lm-eval validate`
+
+Validate task configurations before running evaluations.
+
+```bash
+lm-eval validate --tasks <task1,task2> [--include_path DIR]
+```
+
+### Arguments
+
+| Argument | Short | Description |
+|----------|-------|-------------|
+| `--tasks` | `-t` | **(Required)** Comma-separated list of task names to validate. |
+| `--include_path` | | Additional directory for external task definitions. |
+
+### Validation Checks
+
+The validate command performs:
+
+- **Task existence**: Verifies all specified tasks are available
+- **Configuration syntax**: Checks YAML/JSON configuration files
+- **Dataset access**: Validates dataset paths and configurations
+- **Required fields**: Ensures all mandatory task parameters are present
+- **Metric definitions**: Verifies metric functions and aggregation methods
+- **Filter pipelines**: Validates filter chains and their parameters
+- **Template rendering**: Tests prompt templates with sample data
+
+### Examples
+
+```bash
+# Validate a single task
+lm-eval validate --tasks hellaswag
+
+# Validate multiple tasks
+lm-eval validate --tasks arc_easy,arc_challenge,hellaswag
+
+# Validate a task group
+lm-eval validate --tasks mmlu
+
+# Validate external tasks
+lm-eval validate --tasks my_custom_task --include_path ./custom_tasks
+```
+
+---
+
+## Python API
+
+For programmatic usage, see the [Python API Guide](python-api.md).
+
+---
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `LMEVAL_LOG_LEVEL` | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
+| `LM_HARNESS_CACHE_PATH` | Path for cached requests (default: `lm_eval/cache/.cache`). |
+| `HF_TOKEN` | HuggingFace Hub token for private datasets/models. |
+| `TOKENIZERS_PARALLELISM` | Set to `false` to avoid tokenizer warnings (auto-set by CLI). |

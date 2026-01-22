@@ -1,23 +1,18 @@
+from __future__ import annotations
+
 import abc
 import ast
 import logging
 import random
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
-from dataclasses import asdict, dataclass
-from inspect import getsource
+from functools import partial
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     Literal,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
+    cast,
 )
 
 import datasets
@@ -36,10 +31,20 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.api.utils import (
+    Message,
+    maybe_delimit,
+    multiturn_to_singleturn,
+    requires_delimiter,
+)
 from lm_eval.caching.cache import load_from_cache, save_to_cache
+from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
+
+if TYPE_CHECKING:
+    from lm_eval.config.task import FewshotConfig
 
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
@@ -51,136 +56,7 @@ ALL_OUTPUT_TYPES = [
 eval_logger = logging.getLogger(__name__)
 
 
-@dataclass
-class TaskConfig(dict):
-    # task naming/registry
-    task: Optional[str] = None
-    task_alias: Optional[str] = None
-    tag: Optional[Union[str, list]] = None
-    # HF dataset options.
-    # which dataset to use,
-    # and what splits for what purpose
-    custom_dataset: Optional[Callable] = None
-    dataset_path: Optional[str] = None
-    dataset_name: Optional[str] = None
-    dataset_kwargs: Optional[dict] = None
-    training_split: Optional[str] = None
-    validation_split: Optional[str] = None
-    test_split: Optional[str] = None
-    fewshot_split: Optional[str] = (
-        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaluating (?)
-    )
-    # formatting / prompting options.
-    # see docs/advanced_task_guide.md for more info
-    process_docs: Optional[Callable] = None
-    doc_to_text: Optional[Union[Callable, str]] = None
-    doc_to_target: Optional[Union[Callable, str]] = None
-    doc_to_image: Union[Callable, str] = None
-    doc_to_audio: Union[Callable, str] = None
-    unsafe_code: bool = False
-    doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
-    process_results: Optional[Union[Callable, str]] = None
-    use_prompt: Optional[str] = None
-    description: str = ""
-    target_delimiter: str = " "
-    fewshot_delimiter: str = "\n\n"
-    fewshot_config: Optional[dict] = None
-    # runtime configuration options
-    num_fewshot: Optional[int] = None
-    # scoring options
-    metric_list: Optional[list] = None
-    output_type: OutputType = "generate_until"
-    generation_kwargs: Optional[dict] = None
-    repeats: int = 1
-    filter_list: Optional[Union[str, list]] = None
-    should_decontaminate: bool = False
-    doc_to_decontamination_query: Optional[str] = None
-    gen_prefix: Optional[str] = None
-    metadata: Optional[dict] = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
-
-    def __post_init__(self) -> None:
-        if self.generation_kwargs is not None:
-            if self.output_type != "generate_until":
-                eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
-                )
-
-            if "temperature" in self.generation_kwargs:
-                self.generation_kwargs["temperature"] = float(
-                    self.generation_kwargs["temperature"]
-                )
-
-            if "until" not in self.generation_kwargs:
-                eval_logger.warning(
-                    f"{self.task}: No `until` specified in `generation_kwargs`! Defaulting to the fewshot_delimiter={repr(self.fewshot_delimiter)}"
-                )
-                self.generation_kwargs["until"] = [self.fewshot_delimiter]
-        else:
-            if self.output_type == "generate_until":
-                # ensure that we greedily generate in absence of explicit arguments otherwise
-                self.generation_kwargs = {
-                    "until": (
-                        None
-                        if self.fewshot_delimiter is None
-                        else [self.fewshot_delimiter]
-                    ),
-                    "do_sample": False,
-                    "temperature": 0,
-                }
-                eval_logger.warning(
-                    f"{self.task}: No `generation_kwargs` specified in task config, defaulting to {self.generation_kwargs}"
-                )
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def to_dict(self, keep_callable: bool = False) -> dict:
-        """dumps the current config as a dictionary object, as a printable format.
-        null fields will not be printed.
-        Used for dumping results alongside full task configuration
-
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-
-        # TODO: should any default value in the TaskConfig not be printed?
-        """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if v is None:
-                cfg_dict.pop(k)
-            elif k == "metric_list":
-                for metric_dict in v:
-                    for metric_key, metric_value in metric_dict.items():
-                        if callable(metric_value):
-                            metric_dict[metric_key] = self.serialize_function(
-                                metric_value, keep_callable=keep_callable
-                            )
-                cfg_dict[k] = v
-            elif callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
-        """Serializes a given function or string.
-
-        If 'keep_callable' is True, the original callable is returned.
-        Otherwise, attempts to return the source code of the callable using 'getsource'.
-        """
-        if keep_callable:
-            return value
-        else:
-            try:
-                return getsource(value)
-            except (TypeError, OSError):
-                return str(value)
+TaskConfig = TaskConfig
 
 
 class Task(abc.ABC):
@@ -193,23 +69,23 @@ class Task(abc.ABC):
         {"question": ..., question, answer)
     """
 
-    VERSION: Optional[Union[int, str]] = None
+    VERSION: int | str | None = None
 
     # The name of the `Task` benchmark as denoted in the HuggingFace datasets Hub
     # or a path to a custom `datasets` loading script.
-    DATASET_PATH: Optional[str] = None
+    DATASET_PATH: str | None = None
 
     # The name of a subset within `DATASET_PATH`.
-    DATASET_NAME: Optional[str] = None
+    DATASET_NAME: str | None = None
 
-    OUTPUT_TYPE: Optional[OutputType] = None
+    OUTPUT_TYPE: OutputType | None = None
 
     def __init__(
         self,
-        data_dir: Optional[str] = None,
-        cache_dir: Optional[str] = None,
-        download_mode: Optional[datasets.DownloadMode] = None,
-        config: Optional[Mapping] = None,  # Union[dict, TaskConfig]
+        data_dir: str | None = None,
+        cache_dir: str | None = None,
+        download_mode: datasets.DownloadMode | None = None,
+        config: Mapping | None = None,  # Union[dict, TaskConfig]
     ) -> None:
         """
         :param data_dir: str
@@ -233,21 +109,21 @@ class Task(abc.ABC):
                 Fresh download and fresh dataset.
         """
         self.download(data_dir, cache_dir, download_mode)
-        self._training_docs: Optional[list] = None
-        self._fewshot_docs: Optional[list] = None
-        self._instances: Optional[List[Instance]] = None
+        self._training_docs: list | None = None
+        self._fewshot_docs: list | None = None
+        self._instances: list[Instance] | None = None
 
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.fewshot_rnd: Optional[random.Random] = (
+        self.fewshot_rnd: random.Random | None = (
             None  # purposely induce errors in case of improper usage
         )
 
     def download(
         self,
-        data_dir: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        data_dir: str | None = None,
+        cache_dir: str | None = None,
         download_mode=None,
     ) -> None:
         """Downloads and returns the task dataset.
@@ -352,7 +228,7 @@ class Task(abc.ABC):
         return doc
 
     @property
-    def instances(self) -> List[Instance]:
+    def instances(self) -> list[Instance]:
         """After calling `task.build_all_requests()`, tasks
         maintain a list of the dataset instances which will be evaluated.
         """
@@ -390,16 +266,16 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit: Union[int, None] = None,
-        samples: Optional[List[int]] = None,
+        limit: int | None = None,
+        samples: list[int] | None = None,
         rank: int = 0,
         world_size: int = 1,
         cache_requests: bool = False,
         rewrite_requests_cache: bool = False,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
+        chat_template: Callable | None = None,
         tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -624,7 +500,7 @@ class Task(abc.ABC):
         example = self.doc_to_text(doc)
         return description + labeled_examples + example
 
-    def apply_filters(self) -> Optional[List[Instance]]:
+    def apply_filters(self) -> list[Instance] | None:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
@@ -676,16 +552,16 @@ class Task(abc.ABC):
             self.aggregation = lambda: {
                 metric_name: get_metric_aggregation(metric_name)
             }
-        setattr(self._config, "metric_list", [{"metric": metric_name}])
-        setattr(self._config, "process_results", None)
+        self._config["metric_list"] = [{"metric": metric_name}]
+        self._config["process_results"] = "process_results"
 
-    def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
+    def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
         if hasattr(self, "sampler"):
-            self.sampler.rnd = self.fewshot_rnd
+            self.sampler.set_rnd(seed)
 
     @property
-    def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
+    def eval_docs(self) -> datasets.Dataset | list[dict]:
         if self.has_test_docs():
             return self.test_docs()
         elif self.has_validation_docs():
@@ -699,13 +575,13 @@ class Task(abc.ABC):
         self,
         *,
         rank: int = 0,
-        limit: Union[int, None] = None,
+        limit: int | None = None,
         world_size: int = 1,
-        samples: Optional[List[int]] = None,
-    ) -> Iterator[Tuple[int, Any]]:
+        samples: list[int] | None = None,
+    ) -> Iterator[tuple[int, Any]]:
         if samples:
             n = len(self.eval_docs)
-            assert all([e < n for e in samples]), (
+            assert all(e < n for e in samples), (
                 f"Elements of --samples should be in the interval [0,k-1] where k is the number of total examples. In this case, k={n}."
             )
             eval_logger.info(
@@ -727,6 +603,11 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
+    @staticmethod
+    def resolve_field(doc: dict[str, Any], field: str | None = None):
+        if field:
+            return doc[field] if field in doc else utils.apply_template(field, doc)
+
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -738,7 +619,7 @@ class ConfigurableTask(Task):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
-        config: Optional[dict] = None,
+        config: dict | None = None,
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
         self._config = self.CONFIG
@@ -756,9 +637,8 @@ class ConfigurableTask(Task):
                 "Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg"
             )
 
-        if isinstance(self.config.metadata, dict):
-            if "version" in self.config.metadata:
-                self.VERSION = self.config.metadata["version"]
+        if isinstance(self.config.metadata, dict) and "version" in self.config.metadata:
+            self.VERSION = self.config.metadata["version"]
 
         if self.config.output_type is not None:
             if self.config.output_type not in ALL_OUTPUT_TYPES:
@@ -766,6 +646,8 @@ class ConfigurableTask(Task):
                     f"Got invalid output_type '{self.config.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
                 )
             self.OUTPUT_TYPE = self.config.output_type
+
+        self.fewshot_cfg = cast("FewshotConfig", self.config.fewshot_config)
 
         if self.config.doc_to_image is not None:
             # mark the task as requiring multimodality.
@@ -881,9 +763,10 @@ class ConfigurableTask(Task):
                 self._filters.append(filter_pipeline)
         else:
             # TODO: handle repeats in a more general way rather than just discarding
-            eval_logger.debug(
-                "No custom filters defined. Using default 'take_first' filter for handling repeats."
-            )
+            if self.OUTPUT_TYPE == "generate_until":
+                eval_logger.debug(
+                    "No custom filters defined. Using default 'take_first' filter for handling repeats."
+                )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
@@ -894,30 +777,21 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.fewshot_docs() is not None:
-            self.fewshot_rnd = (
-                random.Random()
-            )  # setting with no seed, to be overridden at a later time
-            config_sampler: Union[str, Callable] = (
-                self.config.fewshot_config.get("sampler", "default")
-                if self.config.fewshot_config
-                else "default"
+        if (_fs_docs := self.fewshot_docs()) is not None:
+            config_sampler: str | type[samplers.ContextSampler] = (
+                self.fewshot_cfg.sampler if self.config.fewshot_config else "default"
             )
+            fewshot_docs = list(_fs_docs)  # type: ignore
             if isinstance(config_sampler, str):
-                self.sampler = samplers.get_sampler(config_sampler)(
-                    list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
-                )
-            elif callable(config_sampler) and issubclass(
-                config_sampler, samplers.ContextSampler
-            ):
-                self.sampler = config_sampler(
-                    docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
-                )
+                sampler_cls = samplers.get_sampler(config_sampler)
+            elif issubclass(config_sampler, samplers.ContextSampler):
+                sampler_cls = config_sampler
             else:
                 raise TypeError(
-                    f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
+                    f"fewshot_config.sampler should be a string or subclass of ContextSampler, "
                     f"not {type(config_sampler)}"
                 )
+            self.sampler: samplers.ContextSampler = sampler_cls(fewshot_docs, rnd=None)  # type: ignore
 
         self.task_docs = self.eval_docs
 
@@ -954,19 +828,13 @@ class ConfigurableTask(Task):
                 test_target = test_choice[test_target]
             else:
                 test_target = str(test_target)
-
-        if test_choice is not None:
-            check_choices = test_choice
-        else:
-            check_choices = [test_target]
+        check_choices = test_choice if test_choice is not None else [test_target]
         if self.config.doc_to_choice is not None:
             for choice in check_choices:
-                choice_has_whitespace = True if choice[0].isspace() else False
+                choice_has_whitespace = bool(choice[0].isspace())
                 delimiter_has_whitespace = (
-                    True
-                    if self.config.target_delimiter.rstrip()
+                    self.config.target_delimiter.rstrip()
                     != self.config.target_delimiter
-                    else False
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
@@ -978,9 +846,7 @@ class ConfigurableTask(Task):
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
-    def download(
-        self, dataset_kwargs: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> None:
+    def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
         from packaging.version import parse as vparse
 
         if dataset_kwargs and vparse(datasets.__version__) >= vparse("4.0.0"):
@@ -1001,22 +867,13 @@ class ConfigurableTask(Task):
             )
 
     def has_training_docs(self) -> bool:
-        if self.config.training_split is not None:
-            return True
-        else:
-            return False
+        return self.config.training_split is not None
 
     def has_validation_docs(self) -> bool:
-        if self.config.validation_split is not None:
-            return True
-        else:
-            return False
+        return self.config.validation_split is not None
 
     def has_test_docs(self) -> bool:
-        if self.config.test_split is not None:
-            return True
-        else:
-            return False
+        return self.config.test_split is not None
 
     def training_docs(self) -> datasets.Dataset:
         if self.has_training_docs():
@@ -1041,205 +898,259 @@ class ConfigurableTask(Task):
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
-        if self.config.fewshot_split is not None:
-            if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.fewshot_split])
-            return self.dataset[self.config.fewshot_split]
+        if (split := self.fewshot_cfg.split) is not None:
+            if (process_docs := self.fewshot_cfg.process_docs) is not None:
+                return process_docs(self.dataset[split])
+            return self.dataset[split]
         elif (
             self.config.fewshot_config is not None
-            and self.config.fewshot_config.get("samples", None) is not None
+            and (samples := self.fewshot_cfg.samples) is not None
         ):
-            if isinstance(self.config.fewshot_config["samples"], list):
-                return self.config.fewshot_config["samples"]
-            elif callable(self.config.fewshot_config["samples"]):
-                return self.config.fewshot_config["samples"]()
-            else:
-                raise Exception(
-                    "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list of samples as a dict, or function returning this list."
-                )
+            # fmt: off
+            match samples:
+                case list(): return samples
+                case fsamples if callable(samples): return fsamples()
+                case _: raise Exception(
+                        "`fewshot_config['samples']` was incorrectly defined in the configuration. It should either be `list[dict]`, or callable returning this list."
+                    ) from None
+            # fmt: on
         else:
-            if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
+            if (_shots := self.config.num_fewshot) is not None and (_shots > 0):
                 eval_logger.warning(
                     f"[Task: {self.config.task}] "
-                    "num_fewshot > 0 but fewshot_split is None. "
+                    f"num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
             return super().fewshot_docs()
-
-    @staticmethod
-    def append_target_question(
-        labeled_examples: List[Dict[str, str]],
-        question: str,
-        fewshot_as_multiturn: bool = False,
-        gen_prefix: Optional[str] = None,
-    ) -> None:
-        """Adds a target question to the labeled examples list.
-        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
-        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
-        """
-        if not fewshot_as_multiturn:
-            # if no messages or last message is system, append as new user entry
-            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
-                labeled_examples.append({"role": "user", "content": question})
-            # if last message is user, append to it to avoid two user messages in a row
-            else:
-                labeled_examples[-1]["content"] += question
-        else:
-            # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
-            labeled_examples.append({"role": "user", "content": question})
-        if gen_prefix:
-            labeled_examples.append({"role": "assistant", "content": gen_prefix})
 
     @utils.positional_deprecated
     def fewshot_context(
         self,
         doc: dict,
         num_fewshot: int,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable] = None,
-        gen_prefix: Optional[str] = None,
-    ) -> Union[str, List[str]]:
-        """Returns a fewshot context string that is made up of a prepended description
-        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
+        chat_template: Callable[..., str] | None = None,
+        gen_prefix: str | None = None,
+    ) -> str | list[str]:
+        """Build the full prompt context including system prompt, few-shot examples, and eval doc.
 
-        :param doc: str
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param num_fewshot: int
-            The number of fewshot examples to provide in the returned context string.
-        :param  system_instruction: str
-            System instruction to be applied to the prompt.
-        :param apply_chat_template: bool
-            Whether to apply the chat template to the fewshot context.
-        :param fewshot_as_multiturn: bool
-            Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param chat_template:
-            callable (from lm.apply_chat_template) that takes in a list[Dict] chat transcript and renders it into a string.
-        :param gen_prefix:
-            String to append after the <|assistant|> token.
-        :returns: str
-            The fewshot context.
+        Constructs a complete prompt by:
+        1. Adding system instruction + task description (if provided)
+        2. Adding `num_fewshot` labeled examples from the fewshot split
+        3. Adding the evaluation document (without its answer)
+
+        Each component is built using `build_qa_turn()` and can be rendered as plain
+        text or formatted via a chat template.
+
+        Args:
+            doc (dict): The evaluation document to build context for.
+            num_fewshot (int): Number of few-shot examples to include.
+            system_instruction (str | None): System instruction to prepend to the prompt.
+            apply_chat_template (bool): If True, format output using the chat template.
+            fewshot_as_multiturn (bool): If True, keep few-shot examples as separate
+                user/assistant turns. If False, collapse into a single user message.
+            chat_template (Callable | None): Renders a list of message dicts to a string.
+            gen_prefix (str | None): Prefix to start the assistant's response (e.g., "Answer:").
+
+        Returns:
+            str | list[str]: The formatted prompt string, or a list of strings for
+                multiple-input tasks (e.g., Winogrande where each choice becomes a
+                separate context).
         """
-        if apply_chat_template:
-            labeled_examples = []
-        else:
-            labeled_examples = ""
-
-        # get task description
-        if description := self.config.description:
-            description = utils.apply_template(self.config.description, doc)
-
-        # create system prompt based on the provided system instruction and description
-        if system_instruction is not None and description:
-            system_prompt = (
-                f"{system_instruction}{self.sampler.fewshot_delimiter}{description}"
-            )
-        elif system_instruction is not None:
-            system_prompt = system_instruction
-        elif description:
-            system_prompt = description
-        else:
-            system_prompt = ""
-
-        # add system prompt if specified
+        messages = []
+        chat_template = (
+            partial(chat_template, add_generation_prompt=not gen_prefix)
+            if chat_template
+            else None
+        )
+        description = self.resolve_field(doc, self.config.description) or ""
+        system_prompt = maybe_delimit(
+            system_instruction, description, self.config.fewshot_delimiter
+        )
         if system_prompt:
-            if apply_chat_template:
-                labeled_examples.append({"role": "system", "content": system_prompt})
-            else:
-                labeled_examples = system_prompt
-        # if few-shot - append examples after the system prompt
+            messages.append(Message("system", system_prompt))
+
         if num_fewshot > 0:
-            if apply_chat_template:
-                labeled_examples.extend(
-                    self.sampler.get_chat_context(
-                        doc,
-                        num_fewshot,
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
+            for fs_doc in self.sampler.sample(
+                n=num_fewshot,
+                eval_doc=doc
+                if self.fewshot_cfg.split == self.config.test_split
+                else None,
+            ):
+                q, c, a = (
+                    self.doc_to_text(fs_doc, self.fewshot_cfg.doc_to_text),
+                    self.doc_to_choice(fs_doc, self.fewshot_cfg.doc_to_choice)
+                    if self.fewshot_cfg.doc_to_choice
+                    else None,
+                    self.doc_to_target(fs_doc, self.fewshot_cfg.doc_to_target),
                 )
-            else:
-                labeled_examples += self.sampler.get_context(
-                    doc, num_fewshot, gen_prefix=gen_prefix
+                _gen_prefix = self.resolve_field(doc, self.fewshot_cfg.gen_prefix)
+                # for multiple inputs, q: int, c: list[str], target: str
+                # TODO: fix this hacky way of handling multiple inputs
+                if self.multiple_input:
+                    q = cast("str", c[q])  # type: ignore
+                    c = None
+                # TODO: fix types
+                messages += self.build_qa_turn(
+                    q=q,
+                    c=c,
+                    a=a,
+                    gen_prefix=_gen_prefix,
+                    tgt_delim=self.fewshot_cfg.target_delimiter,
+                    few_delim=self.fewshot_cfg.fewshot_delimiter,
                 )
 
-        example = self.doc_to_text(doc)
-        if apply_chat_template:
-            if self.multiple_input:
-                # TODO: append prefill?
-                if not labeled_examples:
-                    return ""
-                return chat_template(labeled_examples)
-            if isinstance(example, str):
-                self.append_target_question(
-                    labeled_examples,
-                    example,
-                    fewshot_as_multiturn,
-                    gen_prefix=gen_prefix,
-                )
-            # for loglikelihood create a list of questions with appended choices
-            elif isinstance(example, list):
-                labeled_examples_list = []
-                # copy chat history for each example and append the answer
-                for ex in example:
-                    chat = deepcopy(labeled_examples)
-                    self.append_target_question(
-                        chat,
-                        ex,
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                    # TODO: append prefill?
-                    labeled_examples_list.append(
-                        chat_template(
-                            chat,
-                            add_generation_prompt=False if gen_prefix else True,
-                        )
-                    )
-                return labeled_examples_list
-            # if example is an integer, append the choice or convert to string
-            elif isinstance(example, int):
-                if self.config.doc_to_choice is not None:
-                    choices = self.doc_to_choice(doc)
-                    self.append_target_question(
-                        labeled_examples,
-                        choices[example],
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                else:
-                    self.append_target_question(
-                        labeled_examples,
-                        str(example),
-                        fewshot_as_multiturn,
-                        gen_prefix=gen_prefix,
-                    )
-                # return lm.apply_chat_template(labeled_examples)
-            return chat_template(
-                labeled_examples,
-                add_generation_prompt=False if gen_prefix else True,
+        q, c, a = (
+            self.doc_to_text(doc),
+            self.doc_to_choice(doc) if self.config.doc_to_choice else None,
+            self.doc_to_target(doc),
+        )
+        if self.multiple_input:
+            assert isinstance(c, list), "multiple inputs require choices to be a list"
+            return self.multiple_input_context(
+                messages,
+                gen_prefix,
+                c,
+                chat_template=chat_template if apply_chat_template else None,
+                fewshot_as_multiturn=fewshot_as_multiturn,
             )
+        messages += self.build_qa_turn(
+            q=q,
+            c=c,
+            gen_prefix=gen_prefix,
+            tgt_delim=self.config.target_delimiter,
+            few_delim="",
+        )
+        if apply_chat_template and chat_template:
+            res = (
+                [m.to_dict() for m in messages]
+                if fewshot_as_multiturn
+                else multiturn_to_singleturn(messages)
+            )
+            res = chat_template(res)
         else:
-            prefix = (
-                self.config.target_delimiter + gen_prefix
-                if gen_prefix is not None
-                else ""
-            )
-            if self.multiple_input:
-                return labeled_examples
-            if isinstance(example, str):
-                return labeled_examples + example + prefix
-            elif isinstance(example, list):
-                return [labeled_examples + ex + prefix for ex in example]
-            elif isinstance(example, int):
-                if self.config.doc_to_choice is not None:
-                    choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example] + prefix
-                else:
-                    return labeled_examples + str(example) + prefix
+            res = "".join(m.to_text() for m in messages)
 
-    def apply_filters(self) -> Optional[List[Instance]]:
+        return res
+
+    def build_qa_turn(
+        self,
+        *,
+        q: str | None = None,
+        c: list[str] | None = None,
+        a: str | int | list[str] | None = None,
+        gen_prefix: str | None = None,
+        tgt_delim=" ",
+        few_delim="\n\n",
+    ) -> list[Message]:
+        r"""Build a single Q&A turn as a list of Messages.
+
+        Constructs a user message containing the question/context, and optionally
+        an assistant message containing the answer. Used for building both few-shot
+        examples and the final evaluation prompt. The returned Messages can be
+        rendered as plain text (via to_text()) or converted to chat format
+        (via to_dict()) depending on whether a chat template is applied.
+
+        Args:
+            q (str): The question or context text (required).
+            c (list[str] | None): List of answer choices for multiple-choice tasks.
+                When provided with an integer `a`, indexes into this list to get the answer.
+            a (str | int | list[str] | None): The answer - can be a string, an index
+                into `c`, or a list of strings (for multiple targets).
+            gen_prefix (str | None): A prefix to prepend to generated text (e.g., "Answer:").
+            tgt_delim (str): Delimiter between question and answer (default: " ").
+            few_delim (str): Delimiter after assistant response for few-shot separation
+                (default: "\n\n").
+
+        Returns:
+            list[Message]: [user_msg] or [user_msg, assistant_msg] depending on
+                whether an answer or gen_prefix is provided.
+        """
+        assert isinstance(q, str), f"Context is not a string! : {q}"
+        # Check if answer is provided (handle a=0 as valid answer index)
+        has_answer = a is not None and a != ""
+        msgs = [
+            Message(
+                "user",
+                q,
+                tgt_delim
+                if has_answer and not gen_prefix
+                else tgt_delim
+                if gen_prefix and requires_delimiter(q, gen_prefix)
+                else "",
+            )
+        ]
+        if has_answer:
+            answer_text = (
+                c[a]
+                if (c and isinstance(a, int))
+                # TODO: for multiple targets a is a list[str]. Fix this hack
+                else a[0]
+                if isinstance(a, list)
+                else a
+            )
+            assert isinstance(answer_text, str), f"Answer is not a string! : {a}"
+            # Currently, we always delimit gen_prefex and answer with space if deliimter required.
+            answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
+            msgs.append(Message("assistant", answer_text, few_delim))
+        elif gen_prefix:
+            msgs.append(Message("assistant", gen_prefix))
+        return msgs
+
+    def multiple_input_context(
+        self,
+        prev_context: list[Message] | None,
+        gen_prefix: str | None,
+        q: list[str],
+        chat_template: Callable[..., str] | None = None,
+        fewshot_as_multiturn: bool = False,
+    ) -> list[str]:
+        """Build separate prompt contexts for each input choice in multiple-input tasks.
+
+        For tasks like Winogrande where each answer choice produces a different
+        input context (e.g., filling a blank with different options), this method
+        creates a separate full prompt for each choice. All prompts share the same
+        fewshot prefix but differ in the final evaluation turn.
+
+        Args:
+            prev_context (list[Message] | None): Messages from system prompt and fewshot
+                examples (shared across all choices).
+            gen_prefix (str | None): Prefix to start the assistant's response (e.g., "Answer:").
+            q (list[str]): List of input texts, one per choice.
+            chat_template (Callable | None): Renders a list of message dicts to a string.
+            fewshot_as_multiturn (bool): If True, keep messages as separate turns.
+
+        Returns:
+            list[str]: Formatted prompt strings, one per input choice.
+        """
+        # for multiple inputs, q is list[str]
+        res_ = []
+        prev_context = prev_context if prev_context else []
+        contexts = [
+            prev_context
+            + self.build_qa_turn(
+                q=ctx,
+                gen_prefix=gen_prefix,
+                tgt_delim="",
+            )
+            for ctx in q
+        ]
+        for messages in contexts:
+            if chat_template:
+                res = (
+                    [m.to_dict() for m in messages]
+                    if fewshot_as_multiturn
+                    else multiturn_to_singleturn(messages)
+                )
+                res = chat_template(res)
+            else:
+                res = "".join(m.to_text() for m in messages)
+            res_.append(res)
+        return res_
+
+    def apply_filters(self) -> list[Instance] | None:
         """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
@@ -1315,7 +1226,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> Union[int, str, list]:
+    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
         if self.prompt is not None:
             doc_to_target = self.prompt
         elif doc_to_target is not None:
@@ -1361,7 +1272,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> List[str]:
+    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
         if self.prompt is not None:
             doc_to_choice = self.prompt
         elif doc_to_choice is not None:
@@ -1387,7 +1298,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_image(self, doc: Any, doc_to_image=None) -> Union[int, str, list]:
+    def doc_to_image(self, doc: Any, doc_to_image=None) -> int | str | list | None:
         if doc_to_image is not None:
             doc_to_image = doc_to_image
         elif self.config.doc_to_image is not None:
@@ -1410,7 +1321,7 @@ class ConfigurableTask(Task):
         else:
             return None
 
-    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> Union[int, str, list]:
+    def doc_to_audio(self, doc: Any, doc_to_audio=None) -> int | str | list | None:
         if doc_to_audio is not None:
             doc_to_audio = doc_to_audio
         elif self.config.doc_to_audio is not None:
@@ -1442,10 +1353,10 @@ class ConfigurableTask(Task):
         return None
 
     def construct_requests(
-        self, doc: dict, ctx: str, **kwargs
-    ) -> Union[List[Instance], Instance]:
+        self, doc: dict, ctx: str | list[str], **kwargs
+    ) -> list[Instance] | Instance:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
-        chat_template: Callable | None = kwargs.pop("chat_template", None)
+        chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
 
         aux_arguments = None
 
@@ -1460,21 +1371,8 @@ class ConfigurableTask(Task):
                 target_delimiter = ""
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
-                # apply chat_template to choices if apply_chat_template
                 cont = self.doc_to_target(doc)
-
-                arguments = [
-                    (
-                        ctx
-                        + (
-                            chat_template([{"role": "user", "content": choice}])
-                            if apply_chat_template
-                            else choice
-                        ),
-                        f"{target_delimiter}{cont}",
-                    )
-                    for choice in choices
-                ]
+                arguments = [(context, f"{target_delimiter}{cont}") for context in ctx]
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
@@ -1577,11 +1475,12 @@ class ConfigurableTask(Task):
                 ),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls, is_greedy = zip(*results)
+            lls, is_greedy = zip(*results, strict=True)
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = self.doc_to_choice(doc)
             completion_len = np.array([float(len(i)) for i in choices])
+            byte_length = np.array([float(len(i.encode("utf-8"))) for i in choices])
 
             if (
                 2 * len(choices) == len(lls)
@@ -1598,6 +1497,7 @@ class ConfigurableTask(Task):
 
             pred = np.argmax(lls)
             pred_norm = np.argmax(lls / completion_len)
+            pred_byte = np.argmax(lls / byte_length)
 
             if self.multiple_input:
                 gold = self.doc_to_text(doc)
@@ -1627,10 +1527,12 @@ class ConfigurableTask(Task):
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
+                acc_bytes = 1.0 if pred_byte in gold else 0.0
+                exact_match = int(any(is_greedy[i] if i != -100 else 0 for i in gold))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
+                acc_bytes = 1.0 if pred_byte == gold else 0.0
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
@@ -1643,17 +1545,20 @@ class ConfigurableTask(Task):
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+                **({"acc_bytes": acc_bytes} if "acc_bytes" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **(
                     {"brier_score": (gold, prob_norm)}
                     if "brier_score" in use_metric
                     else {}
                 ),
+                **({"likelihood": (gold, lls)} if "likelihood" in use_metric else {}),
             }
 
             if "acc_mutual_info" in use_metric:
                 lls_mutual_info = [
-                    ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
+                    ll_c - ll_u
+                    for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
                 ]
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
@@ -1712,10 +1617,7 @@ class ConfigurableTask(Task):
                                 # TODO: this handles the case where HF evaluate returns a dict.
                                 result_score = result_score[metric]
                             scores.append(result_score)
-                        if any(scores):
-                            result_score = 1.0
-                        else:
-                            result_score = 0.0
+                        result_score = 1.0 if any(scores) else 0.0
                 else:
                     try:
                         result_score = self._metric_fn_list[metric](
@@ -1768,20 +1670,20 @@ class MultipleChoiceTask(Task):
     def doc_to_target(self, doc: dict) -> str:
         return " " + doc["choices"][doc["gold"]]
 
-    def construct_requests(self, doc: dict, ctx: str, **kwargs) -> List[Instance]:
+    def construct_requests(self, doc: dict, ctx: str, **kwargs) -> list[Instance]:
         # TODO: add mutual info here?
         return [
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice)),
+                arguments=(ctx, f" {choice}"),
                 idx=i,
                 **kwargs,
             )
             for i, choice in enumerate(doc["choices"])
         ]
 
-    def process_results(self, doc: dict, results: Iterable[Tuple[float, bool]]) -> dict:
+    def process_results(self, doc: dict, results: Iterable[tuple[float, bool]]) -> dict:
         results = [
             res[0] for res in results
         ]  # only retain loglikelihoods, discard is_greedy TODO: do we need is_greedy anywhere?
@@ -1815,7 +1717,7 @@ class PerplexityTask(Task):
     def has_training_docs(self) -> bool:
         return False
 
-    def fewshot_examples(self, k: int, rnd) -> List:
+    def fewshot_examples(self, k: int, rnd) -> list:
         if k != 0:
             raise ValueError(
                 "The number of fewshot examples must be 0 for perplexity tasks."
@@ -1846,7 +1748,7 @@ class PerplexityTask(Task):
     def doc_to_target(self, doc):
         return doc
 
-    def construct_requests(self, doc: dict, ctx: Optional[str], **kwargs):
+    def construct_requests(self, doc: dict, ctx: str | None, **kwargs):
         if bool(ctx):
             raise ValueError
 
@@ -1858,7 +1760,7 @@ class PerplexityTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc: dict, results: Tuple[float]) -> dict:
+    def process_results(self, doc: dict, results: tuple[float]) -> dict:
         (loglikelihood,) = results
         words = self.count_words(self.doc_to_target(doc))
         bytes_ = self.count_bytes(self.doc_to_target(doc))

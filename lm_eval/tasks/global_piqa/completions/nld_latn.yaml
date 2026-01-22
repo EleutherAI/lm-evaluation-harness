@@ -1,0 +1,3 @@
+dataset_name: nld_latn
+include: _template
+task: global_piqa_completions_nld_latn

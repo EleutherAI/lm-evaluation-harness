@@ -12,6 +12,8 @@ from lm_eval.api.metrics import (
 )
 from lm_eval.models.utils import Collator
 from lm_eval.utils import (
+    RemoteTokenizer,
+    check_remote_tokenizer_support,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -396,3 +398,230 @@ def test_aggregate_stderrs(samples):
         mean_stderr(list(itertools.chain.from_iterable(samples))),
         atol=1.0e-3,
     )
+
+
+def test_remote_tokenizer_custom_cert_and_token(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {
+                "name_or_path": "mock",
+                "chat_template": "{{ messages[0].content }}",
+            }
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+    assert tokenizer.cert_config == "dummy.crt"
+    assert tokenizer.headers["Authorization"] == "Bearer dummy-token"
+    assert tokenizer.tokenizer_info["name_or_path"] == "mock"
+
+
+def test_remote_tokenizer_no_cert(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"name_or_path": "mock"}
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path=None,
+        auth_token="dummy-token",
+    )
+    assert tokenizer.cert_config is True
+    assert tokenizer.headers["Authorization"] == "Bearer dummy-token"
+    assert tokenizer.tokenizer_info["name_or_path"] == "mock"
+
+
+def test_remote_tokenizer_http_url(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"name_or_path": "mock"}
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="http://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+    assert tokenizer.base_url.startswith("http://")
+    assert tokenizer.tokenizer_info["name_or_path"] == "mock"
+
+
+def test_check_remote_tokenizer_support(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return self._json
+
+        def raise_for_status(self):
+            pass
+
+        def __init__(self, url, json=None):
+            if "tokenizer_info" in url:
+                self._json = {
+                    "name_or_path": "mock",
+                    "eos_token": "</s>",
+                    "bos_token": "<s>",
+                    "pad_token": "<pad>",
+                    "chat_template": "{{ messages[0].content }}",
+                }
+            elif "tokenize" in url:
+                self._json = {"tokens": [1, 2, 3]}
+            else:
+                self._json = {}
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+
+    def dummy_request(self, method, url, **kwargs):
+        return DummyResponse(url, json=kwargs.get("json"))
+
+    monkeypatch.setattr("requests.Session.request", dummy_request)
+    assert check_remote_tokenizer_support(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+
+
+def test_apply_chat_template(monkeypatch):
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {
+                "name_or_path": "mock",
+                "chat_template": "{{ messages[0].content }}",
+            }
+
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("os.path.exists", lambda path: True)
+    monkeypatch.setattr(
+        "requests.Session.request", lambda self, method, url, **kwargs: DummyResponse()
+    )
+    tokenizer = RemoteTokenizer(
+        base_url="https://mock-server",
+        verify_certificate=True,
+        ca_cert_path="dummy.crt",
+        auth_token="dummy-token",
+    )
+    chat_history = [{"role": "user", "content": "Hello"}]
+    rendered = tokenizer.apply_chat_template(chat_history)
+    assert rendered == "Hello"
+
+
+# Tests for lm_eval.api.utils
+from lm_eval.api.utils import maybe_delimit, requires_delimiter
+
+
+class TestRequiresDelimiter:
+    """Tests for requires_delimiter function."""
+
+    def test_no_whitespace_requires_delimiter(self):
+        """Neither string has whitespace at boundary - delimiter required."""
+        assert requires_delimiter("hello", "world") is True
+
+    def test_prefix_ends_with_space(self):
+        """Prefix ends with space - no delimiter needed."""
+        assert requires_delimiter("hello ", "world") is False
+
+    def test_suffix_starts_with_space(self):
+        """Suffix starts with space - no delimiter needed."""
+        assert requires_delimiter("hello", " world") is False
+
+    def test_both_have_whitespace(self):
+        """Both have whitespace at boundary - no delimiter needed."""
+        assert requires_delimiter("hello ", " world") is False
+
+    def test_prefix_ends_with_newline(self):
+        """Prefix ends with newline - no delimiter needed."""
+        assert requires_delimiter("hello\n", "world") is False
+
+    def test_suffix_starts_with_tab(self):
+        """Suffix starts with tab - no delimiter needed."""
+        assert requires_delimiter("hello", "\tworld") is False
+
+
+class TestMaybeDelimit:
+    """Tests for maybe_delimit function."""
+
+    def test_both_present_no_whitespace(self):
+        """Both strings present, neither has whitespace - adds delimiter."""
+        assert maybe_delimit("hello", "world") == "hello world"
+
+    def test_both_present_prefix_has_space(self):
+        """Prefix ends with space - no delimiter added."""
+        assert maybe_delimit("hello ", "world") == "hello world"
+
+    def test_both_present_suffix_has_space(self):
+        """Suffix starts with space - no delimiter added."""
+        assert maybe_delimit("hello", " world") == "hello world"
+
+    def test_custom_delimiter(self):
+        """Custom delimiter is used when needed."""
+        assert maybe_delimit("hello", "world", delimiter="-") == "hello-world"
+
+    def test_prefix_is_none(self):
+        """Prefix is None - returns suffix."""
+        assert maybe_delimit(None, "world") == "world"
+
+    def test_prefix_is_empty(self):
+        """Prefix is empty string - returns suffix."""
+        assert maybe_delimit("", "world") == "world"
+
+    def test_suffix_is_none(self):
+        """Suffix is None - returns prefix."""
+        assert maybe_delimit("hello", None) == "hello"
+
+    def test_suffix_is_empty(self):
+        """Suffix is empty string - returns prefix."""
+        assert maybe_delimit("hello", "") == "hello"
+
+    def test_both_none(self):
+        """Both are None - returns empty string."""
+        assert maybe_delimit(None, None) == ""
+
+    def test_both_empty(self):
+        """Both are empty strings - returns empty string."""
+        assert maybe_delimit("", "") == ""
+
+    def test_newline_delimiter(self):
+        """Newline delimiter is used correctly."""
+        assert maybe_delimit("line1", "line2", delimiter="\n") == "line1\nline2"
+
+    def test_prefix_ends_with_newline_no_extra_delimiter(self):
+        """Prefix ends with newline - no extra delimiter added."""
+        assert maybe_delimit("line1\n", "line2", delimiter=" ") == "line1\nline2"

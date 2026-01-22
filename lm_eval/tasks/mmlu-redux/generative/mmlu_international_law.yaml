@@ -1,7 +1,7 @@
 "dataset_name": "international_law"
 "description": "The following are multiple choice questions (with answers) about international\
   \ law.\n\n"
-"tag": "mmlu_humanities_generative"
+"tag": "mmlu_redux_humanities_generative"
 "include": "_default_template_yaml"
-"task": "mmlu_international_law_generative"
+"task": "mmlu_redux_international_law_generative"
 "task_alias": "international_law"
