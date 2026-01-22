@@ -30,6 +30,7 @@ output/
 data/
 temp/
 test_logs/
+results/
 
 # Caching
 lm_eval/caching/.cache
@@ -38,6 +39,10 @@ lm_cache/
 # Logging
 *.log
 logs/
+
+# NLTK data (benchmarks may download locally)
+.nltk_data/
+**/.nltk_data/
 
 # wandb experiment tracking
 wandb/

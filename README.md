@@ -681,6 +681,7 @@ These extras install dependencies required for specific evaluation tasks:
 | tasks                | All task-specific dependencies |
 | acpbench             | ACP Bench tasks                |
 | audiolm_qwen         | Qwen2 audio models             |
+| ifbench              | IFBench instruction following  |
 | ifeval               | IFEval task                    |
 | japanese_leaderboard | Japanese LLM tasks             |
 | longbench            | LongBench tasks                |

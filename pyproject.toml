@@ -69,6 +69,7 @@ audiolm_qwen = ["librosa", "soundfile"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "ruff"]
 hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
+ifbench = ["emoji>=2.0.0", "nltk>=3.9.1", "syllapy"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
@@ -86,6 +87,7 @@ zeno = ["pandas", "zeno-client"]
 tasks = [
     "lm_eval[discrim_eval]",
     "lm_eval[ifeval]",
+    "lm_eval[ifbench]",
     "lm_eval[japanese_leaderboard]",
     "lm_eval[longbench]",
     "lm_eval[libra]",

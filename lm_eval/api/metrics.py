@@ -36,6 +36,14 @@ def mean(arr):
     return sum(arr) / len(arr)
 
 
+@register_aggregation("inst_level_acc")
+def inst_level_acc(items):
+    flat_items = [item for sublist in items for item in sublist]
+    if not flat_items:
+        return float("nan")
+    return mean(flat_items)
+
+
 @register_aggregation("median")
 def median(arr):
     return arr[len(arr) // 2]
@@ -319,6 +327,13 @@ def mean_stderr(arr):
     return sample_stddev(arr) / math.sqrt(len(arr))
 
 
+def inst_level_acc_stderr(items):
+    flat_items = [item for sublist in items for item in sublist]
+    if not flat_items:
+        return float("nan")
+    return mean_stderr(flat_items)
+
+
 @register_metric(
     metric="bypass",
     higher_is_better=True,
@@ -582,7 +597,11 @@ def stderr_for_metric(
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
-    stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
+    stderr = {
+        mean: mean_stderr,
+        acc_all: acc_all_stderr,
+        inst_level_acc: inst_level_acc_stderr,
+    }
 
     return stderr.get(metric, None)
 
