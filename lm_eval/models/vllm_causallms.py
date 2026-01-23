@@ -27,6 +27,7 @@ from lm_eval.models.utils import (
     configure_pad_token,
     handle_stop_sequences,
     has_bos_prefix,
+    maybe_truncate,
     normalize_gen_kwargs,
     postprocess_generated_text,
     undistribute,
@@ -153,6 +154,7 @@ class VLLM(TemplateLM):
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: str | None = None,
         max_lora_rank: int = 16,
+        truncation_strategy: Literal["left", "right", "middle"] = "left",
         **kwargs,
     ):
         super().__init__()
@@ -171,6 +173,8 @@ class VLLM(TemplateLM):
         self.V1 = os.environ.get("VLLM_USE_V1", "1") != "0"
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
+        # truncation strategy for inputs exceeding max length
+        self.truncation_strategy = truncation_strategy
         self.data_parallel_size = int(data_parallel_size)
         self.model_args = {
             "model": pretrained,
@@ -662,11 +666,10 @@ class VLLM(TemplateLM):
             context, context_encoding = zip(*context_and_encoding, strict=True)
             context_encoding_truncated = []
             sampling_params = []
-            for x, gen_kwargs in zip(context_encoding, all_gen_kwargs, strict=True):
-                if not isinstance(gen_kwargs, dict):
-                    raise ValueError(
-                        f"Expected `gen_kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                    )
+            for toks, gen_kwargs in zip(context_encoding, all_gen_kwargs, strict=True):
+                assert isinstance(gen_kwargs, dict), (
+                    f"Expected `gen_kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+                )
 
                 gen_kwargs = normalize_gen_kwargs(
                     gen_kwargs, default_max_gen_toks=self.max_gen_toks
@@ -677,14 +680,14 @@ class VLLM(TemplateLM):
 
                 # set the max length in tokens of inputs ("context_enc")
                 # max len for inputs = max length, minus room to generate the max new tokens
-                max_ctx_len = self.max_length - max_gen_toks
-                if len(x) > max_ctx_len:
-                    eval_logger.warning(
-                        f"Context length {len(x)} exceeds max length (context + max gen tokens): {max_ctx_len}. Truncating context."
-                    )
-                    context_encoding_truncated.append(x[-max_ctx_len:])
-                else:
-                    context_encoding_truncated.append(x)
+                toks, max_gen_toks = maybe_truncate(
+                    toks,
+                    max_gen_toks=max_gen_toks,
+                    max_len=self.max_length,
+                    truncation_strategy=self.truncation_strategy,
+                    verbose=True,
+                )
+                context_encoding_truncated.append(toks)
 
                 sampling_params.append(
                     SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
@@ -864,6 +867,7 @@ class VLLM(TemplateLM):
         max_gen_toks = int(kwargs.pop("max_gen_toks", default_max_gen_toks))
 
         # do_sample and temperature normalization is handled by `normalize_gen_kwargs` utility
+        kwargs.pop("do_sample", None)
         # HF defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
         kwargs["spaces_between_special_tokens"] = kwargs.get(

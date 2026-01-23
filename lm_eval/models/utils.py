@@ -15,7 +15,7 @@ from typing import (
 
 from typing_extensions import Required, TypedDict
 
-from lm_eval.utils import warning_once
+from lm_eval.utils import maybe_warn, warning_once
 
 
 eval_logger = logging.getLogger(__name__)
@@ -803,19 +803,95 @@ def resize_image(
 def truncate_tokens(
     tokens: list[int],
     max_length: int,
-    tokenizer: PreTrainedTokenizerBase,
-    strategy: str = "left",
-):
-    if strategy == "left":
-        return tokens[-max_length:]
-    elif strategy == "right":
-        return tokens[:max_length]
-    elif strategy == "middle":
-        # Truncate the middle of the sequence
-        left_length = max_length // 2
-        right_length = max_length - left_length
-        return tokens[:left_length] + tokens[-right_length:]
-    return None
+    strategy: Literal["left", "middle", "right"] = "left",
+) -> list[int]:
+    """Truncate a token list to max_length using the given strategy (left, right, or middle)."""
+    # fmt: off
+    match strategy:
+        case "left": return tokens[-max_length:]
+        case "right": return tokens[:max_length]
+        case "middle":
+            # Truncate the middle of the sequence
+            left_length = max_length // 2
+            right_length = max_length - left_length
+            return tokens[:left_length] + tokens[-right_length:]
+        case _: raise ValueError(f"Unknown truncation {strategy=}. Must be one of 'left', 'middle', or 'right'.")
+    # fmt: on
+
+
+def maybe_truncate(
+    tokens: list[int],
+    max_gen_toks: int,
+    max_len: int,
+    min_gen_toks: int = 1,
+    truncation_strategy: Literal["left", "middle", "right"] = "left",
+    shrink_gen_toks=False,
+    verbose=True,
+) -> tuple[list[int], int]:
+    """
+    Adjusts the max generation length to fit max_model_len up to a min, else truncates the prompt.
+    Strategy:
+        1. No truncation needed: If prompt + max_gen_toks <= max_model_len.
+        2. adjust_gen_toks=False: left truncate prompt to fit max_model_len.
+        3. Reduce generation length: If the prompt fits but max_gen_toks is too large,
+           reduce max_gen_toks >= min_gen_toks.
+        4. Truncate prompt: If the prompt itself is too long, truncate it
+           (using truncation_strategy) to reserve space for min_gen_toks generation tokens.
+
+    Args:
+        tokens (list[int]): The input prompt token IDs to potentially truncate.
+        max_gen_toks (int): The desired maximum number of tokens to generate.
+        max_len (int): The model's maximum context window size (prompt + generation).
+        min_gen_toks (int, optional): The minimum number of generation tokens required.
+        truncation_strategy (str, optional): How to truncate the prompt when needed.
+            One of "left", "right", or "middle". Defaults to "left".
+        shrink_gen_toks (bool, optional): Whether to adjust the generation tokens count
+            to fit within the maximum length. Defaults to False.
+        verbose: Whether to log warnings when truncation or adjustments occur.
+
+    Returns:
+        tuple[list[int], int]: A tuple containing:
+            - list[int]: The (possibly truncated) prompt tokens.
+            - int: The adjusted maximum generation token count.
+
+    Raises:
+        ValueError: when max_model_len <= min_gen_toks.
+    """
+    ctx_len = len(tokens)
+
+    # Case 1: Everything fits comfortably
+    if ctx_len + max_gen_toks <= max_len:
+        return tokens, max_gen_toks
+
+    warning = f"Prompt length ({ctx_len}) + max_gen_toks ({max_gen_toks}) = {ctx_len + max_gen_toks} exceeds max_model_len ({max_len})"
+
+    # Case 2: Do not adjust generation tokens, just truncate prompt
+    if not shrink_gen_toks:
+        maybe_warn(f"{warning}. Left truncating to fit.", verbose)
+        return truncate_tokens(tokens, max_len, strategy="left"), max_gen_toks
+
+    # Case 3: Prompt fits, but need to reduce max_tokens
+    if (max_gen_toks := max_len - ctx_len) >= min_gen_toks:
+        maybe_warn(
+            f"{warning}. Reducing {max_gen_toks=} to fit within model context window.",
+            verbose,
+        )
+        return tokens, max_gen_toks
+
+    # Case 4: Need to truncate prompt to fit min_tokens
+    # Reserve space for min_tokens, use rest for prompt
+    if (max_ctx_len := max_len - min_gen_toks) <= 0:
+        raise ValueError(
+            f"Model context window ({max_len}) is too small to fit "
+            f"prompt len {ctx_len} + minimum generation length ({min_gen_toks})"
+        )
+    maybe_warn(
+        f"{warning}. ({truncation_strategy.title()}) Truncating prompt to {max_ctx_len} tokens to reserve {min_gen_toks} for generation.",
+        verbose,
+    )
+    return truncate_tokens(
+        tokens, max_ctx_len, strategy=truncation_strategy
+    ), min_gen_toks
 
 
 def postprocess_generated_text(
