@@ -13,6 +13,8 @@ from typing import (
     TypeVar,
 )
 
+from typing_extensions import Required, TypedDict
+
 
 eval_logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -24,6 +26,13 @@ if TYPE_CHECKING:
     from PIL import Image
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
+
+
+class GenKwargs(TypedDict, total=False):
+    do_sample: Required[bool]
+    until: Required[list[str]]
+    max_gen_toks: Required[int]
+    temperature: Required[float]
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -603,6 +612,81 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
     if eos is not None and eos not in until:
         until.append(eos)
     return until
+
+
+def prepare_gen_kwargs(
+    gen_kwargs: dict,
+    eos: str | None = None,
+    default_max_gen_toks: int = 256,
+) -> GenKwargs:
+    """Normalize generation kwargs for consistent handling across model backends.
+
+    Model implementations may have different expectations for generation parameters.
+
+    Args:
+        gen_kwargs: Raw generation kwargs from the request. Expected keys include:
+            - do_sample: Whether to use sampling (vs greedy decoding) - Required
+            - until: Stop sequence(s) for generation
+            - max_gen_toks or max_tokens: Maximum tokens to generate
+            - do_sample: Whether to use sampling (vs greedy decoding)
+            - temperature: Sampling temperature
+            - Other backend-specific kwargs
+        eos: EOS token string to add to stop sequences.
+        default_max_gen_toks: Default max tokens if not specified in gen_kwargs.
+
+    Returns:
+        A normalized dict containing:
+        - do_sample (bool): Whether to use sampling (bool)
+        - until: list[str]: List of stop sequences. EOS token always included if provided.
+        - max_gen_toks (int): Maximum tokens to generate (int)
+        - temperature (float): Sampling temperature (float). Note: will always be set to 0.0 if do_sample=False.
+        - All other kwargs passed through unchanged
+
+    Notes:
+        - Accepts both `max_tokens` and `max_gen_toks` for compatibility; `max_gen_toks`
+          takes precedence if both are provided. Output always uses `max_gen_toks`.
+        - When `do_sample=False`, temperature is set to 0.0 for greedy decoding.
+        - When temperature is 0.0 and `do_sample` is not specified, `do_sample` is set
+          to False.
+        - Model backends may further modify the returned dict as needed (e.g., vLLM
+          removes `do_sample` since it uses temperature directly).
+    """
+
+    import copy
+
+    kwargs = copy.deepcopy(gen_kwargs)
+
+    # Extract and normalize stop sequences
+    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+
+    # Extract max_gen_toks - accept both names for compatibility, prefer max_gen_toks
+    max_gen_toks = kwargs.pop("max_gen_toks", None)
+    max_tokens = kwargs.pop("max_tokens", None)
+    if max_gen_toks is not None:
+        max_gen_toks = int(max_gen_toks)
+    elif max_tokens is not None:
+        max_gen_toks = int(max_tokens)
+    else:
+        max_gen_toks = default_max_gen_toks
+
+    # Handle do_sample and temperature consistently
+    do_sample = kwargs.get("do_sample")
+    temperature = kwargs.get("temperature", 0.0)
+
+    # If do_sample=False explicitly, ensure greedy decoding via temperature=0
+    if do_sample is False:
+        kwargs["temperature"] = 0.0
+    else:
+        kwargs["temperature"] = temperature
+        # If temperature is 0 and do_sample wasn't specified, default to greedy
+        if temperature == 0.0 and do_sample is None:
+            kwargs["do_sample"] = False
+
+    # Set normalized values
+    kwargs["until"] = until
+    kwargs["max_gen_toks"] = max_gen_toks
+
+    return GenKwargs(**kwargs)  # type:ignore[missing-typed-dict-key]
 
 
 def resize_image(
