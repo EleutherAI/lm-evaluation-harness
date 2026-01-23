@@ -868,7 +868,9 @@ def maybe_truncate(
     # Case 2: Do not adjust generation tokens, just truncate prompt
     if not shrink_gen_toks:
         maybe_warn(f"{warning}. Left truncating to fit.", verbose)
-        return truncate_tokens(tokens, max_len, strategy="left"), max_gen_toks
+        return truncate_tokens(
+            tokens, max_len - max_gen_toks, strategy="left"
+        ), max_gen_toks
 
     # Case 3: Prompt fits, but need to reduce max_tokens
     if (max_gen_toks := max_len - ctx_len) >= min_gen_toks:
