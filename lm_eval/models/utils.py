@@ -706,7 +706,7 @@ def resize_image(
     height: int | None = None,
     max_dimension: int | None = None,
     keep_aspect_ratio: bool = True,
-    resample_filter: int | str = "Image.BICUBIC",
+    resample_filter: int | None = None,
     min_width: int = 1,
     min_height: int = 1,
 ) -> Image.Image:
