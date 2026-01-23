@@ -27,6 +27,7 @@ from lm_eval.models.utils import (
     configure_pad_token,
     handle_stop_sequences,
     has_bos_prefix,
+    normalize_gen_kwargs,
     postprocess_generated_text,
     undistribute,
 )
@@ -56,6 +57,7 @@ if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
 
     from lm_eval.api.instance import Instance
+    from lm_eval.models.utils import GenKwargs
 
 eval_logger = logging.getLogger(__name__)
 
@@ -195,7 +197,7 @@ class VLLM(TemplateLM):
             else int(batch_size)
         )
         if self.data_parallel_size <= 1:
-            self.model = LLM(**self.model_args)
+            self.model = LLM(**self.model_args)  # type: ignore[invalid-argument-type]
         else:
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
@@ -479,7 +481,7 @@ class VLLM(TemplateLM):
             # We use Process as it is non-daemonic
             try:
                 for rank, (req, sp) in enumerate(
-                    zip(requests, sampling_params, strict=True)
+                    zip(requests, sampling_params, strict=True)  # type: ignore[invalid-argument-type]
                 ):  # type:ignore[invalid-argument-type]
                     proc = Process(
                         target=_vllm_mp_worker,
@@ -666,6 +668,9 @@ class VLLM(TemplateLM):
                         f"Expected `gen_kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
 
+                gen_kwargs = normalize_gen_kwargs(
+                    gen_kwargs, default_max_gen_toks=self.max_gen_toks
+                )
                 kwargs, until, max_gen_toks = self.modify_gen_kwargs(
                     gen_kwargs, eos=eos, default_max_gen_toks=self.max_gen_toks
                 )
@@ -835,7 +840,7 @@ class VLLM(TemplateLM):
 
     @staticmethod
     def modify_gen_kwargs(
-        gen_kwargs: dict, eos: str | None = None, default_max_gen_toks: int = 256
+        gen_kwargs: GenKwargs, eos: str | None = None, default_max_gen_toks: int = 256
     ) -> tuple[dict, list[str], int]:
         """Process generation kwargs into vLLM-compatible format.
 
@@ -850,20 +855,15 @@ class VLLM(TemplateLM):
             - stop_sequences: List of stop sequences including EOS
             - max_gen_toks: Maximum tokens to generate
         """
-        kwargs = copy.deepcopy(gen_kwargs)
+        kwargs = {**copy.deepcopy(gen_kwargs)}
 
         # Extract and process stop sequences
         until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
 
         # Extract max_tokens
-        max_gen_toks = int(kwargs.pop("max_tokens", default_max_gen_toks))
+        max_gen_toks = int(kwargs.pop("max_gen_toks", default_max_gen_toks))
 
-        # Handle sampling params
-        do_sample = kwargs.pop("do_sample", None)
-        # Force greedy decoding when do_sample=False, for consistency with HF
-        kwargs["temperature"] = (
-            0.0 if do_sample is False else kwargs.get("temperature", 0.0)
-        )
+        # do_sample and temperature normalization is handled by `normalize_gen_kwargs` utility
         # HF defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
         kwargs["spaces_between_special_tokens"] = kwargs.get(

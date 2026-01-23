@@ -15,6 +15,8 @@ from typing import (
 
 from typing_extensions import Required, TypedDict
 
+from lm_eval.utils import warning_once
+
 
 eval_logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -30,9 +32,10 @@ if TYPE_CHECKING:
 
 class GenKwargs(TypedDict, total=False):
     do_sample: Required[bool]
-    until: Required[list[str]]
-    max_gen_toks: Required[int]
     temperature: Required[float]
+    # if `max_tokens` are provided then will be converted to `max_gen_toks`.
+    max_gen_toks: int
+    __extra_items__: Any
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -614,9 +617,8 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
     return until
 
 
-def prepare_gen_kwargs(
+def normalize_gen_kwargs(
     gen_kwargs: dict,
-    eos: str | None = None,
     default_max_gen_toks: int = 256,
 ) -> GenKwargs:
     """Normalize generation kwargs for consistent handling across model backends.
@@ -626,18 +628,16 @@ def prepare_gen_kwargs(
     Args:
         gen_kwargs: Raw generation kwargs from the request. Expected keys include:
             - do_sample: Whether to use sampling (vs greedy decoding) - Required
-            - until: Stop sequence(s) for generation
+            - until (str | list[str]): Stop sequence(s) for generation.
             - max_gen_toks or max_tokens: Maximum tokens to generate
-            - do_sample: Whether to use sampling (vs greedy decoding)
             - temperature: Sampling temperature
             - Other backend-specific kwargs
-        eos: EOS token string to add to stop sequences.
-        default_max_gen_toks: Default max tokens if not specified in gen_kwargs.
+        default_max_gen_toks: Default max_gen_toks if not specified in gen_kwargs.
 
     Returns:
         A normalized dict containing:
         - do_sample (bool): Whether to use sampling (bool)
-        - until: list[str]: List of stop sequences. EOS token always included if provided.
+        - until: list[str]: List of stop sequences.
         - max_gen_toks (int): Maximum tokens to generate (int)
         - temperature (float): Sampling temperature (float). Note: will always be set to 0.0 if do_sample=False.
         - All other kwargs passed through unchanged
@@ -656,12 +656,18 @@ def prepare_gen_kwargs(
 
     kwargs = copy.deepcopy(gen_kwargs)
 
-    # Extract and normalize stop sequences
-    until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+    until = kwargs.get("until", [])
+    if not isinstance(until, list):
+        until = [until]
 
     # Extract max_gen_toks - accept both names for compatibility, prefer max_gen_toks
     max_gen_toks = kwargs.pop("max_gen_toks", None)
     max_tokens = kwargs.pop("max_tokens", None)
+    if max_gen_toks and max_tokens:
+        warning_once(
+            eval_logger,
+            f"`max_gen_toks`: {max_gen_toks} and `max_tokens`: {max_tokens} both provided; `max_gen_toks` takes precedence.",
+        )
     if max_gen_toks is not None:
         max_gen_toks = int(max_gen_toks)
     elif max_tokens is not None:
@@ -675,6 +681,11 @@ def prepare_gen_kwargs(
 
     # If do_sample=False explicitly, ensure greedy decoding via temperature=0
     if do_sample is False:
+        if temperature != 0.0:
+            warning_once(
+                eval_logger,
+                f"{do_sample=}` but {temperature=}; setting `temperature` to 0.0 for greedy decoding.",
+            )
         kwargs["temperature"] = 0.0
     else:
         kwargs["temperature"] = temperature
