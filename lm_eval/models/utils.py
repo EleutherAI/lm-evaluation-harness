@@ -863,30 +863,30 @@ def maybe_truncate(
     if ctx_len + max_gen_toks <= max_len:
         return tokens, max_gen_toks
 
-    warning = f"Prompt length ({ctx_len}) + max_gen_toks ({max_gen_toks}) = {ctx_len + max_gen_toks} exceeds model's max length ({max_len})"
+    warning = f"Context length ({ctx_len}) + max_gen_toks ({max_gen_toks}) = {ctx_len + max_gen_toks} exceeds model's max length ({max_len})"
 
     # Case 2: Do not adjust generation tokens, just truncate prompt
     if not shrink_gen_toks:
-        maybe_warn(f"{warning}. {{{side}}} truncating prompt to fit.", verbose)
+        maybe_warn(f"{warning}. Truncating context from {side=}.", verbose)
         return truncate_tokens(tokens, max_len - max_gen_toks, side=side), max_gen_toks
 
     # Case 3: Prompt fits, but need to reduce max_tokens
-    if (max_gen_toks := max_len - ctx_len) >= min_gen_toks:
+    if (new_max := max_len - ctx_len) >= min_gen_toks:
         maybe_warn(
-            f"{warning}. Reducing {max_gen_toks=} to fit within model context window.",
+            f"{warning}. Reducing {max_gen_toks=} to {new_max} to fit within model context window.",
             verbose,
         )
-        return tokens, max_gen_toks
+        return tokens, new_max
 
     # Case 4: Need to truncate prompt to fit min_tokens
     # Reserve space for min_tokens, use rest for prompt
     if (max_ctx_len := max_len - min_gen_toks) <= 0:
         raise ValueError(
             f"Model context window ({max_len}) is too small to fit "
-            f"prompt len {ctx_len} + minimum generation length ({min_gen_toks})"
+            f"initial context len ({ctx_len}) + minimum generation len ({min_gen_toks})"
         )
     maybe_warn(
-        f"{warning}. {{{side}}} Truncating prompt to {max_ctx_len} tokens to reserve {min_gen_toks} token(s) for generation.",
+        f"{warning}. Truncating context from {side=} to {max_ctx_len} tokens to reserve {min_gen_toks=} for generation.",
         verbose,
     )
     return truncate_tokens(tokens, max_ctx_len, side=side), min_gen_toks

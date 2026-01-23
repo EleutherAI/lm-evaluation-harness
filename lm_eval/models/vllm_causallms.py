@@ -154,7 +154,7 @@ class VLLM(TemplateLM):
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: str | None = None,
         max_lora_rank: int = 16,
-        truncation_side: Literal["left", "right", "middle"] = "middle",
+        truncation_side: Literal["left", "right", "middle"] = "left",
         **kwargs,
     ):
         super().__init__()
