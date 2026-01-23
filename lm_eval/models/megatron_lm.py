@@ -72,86 +72,24 @@ def _add_megatron_to_path():
 
 
 def _check_dist_ckpt(load_path: str) -> bool:
-    """检查是否是分布式检查点格式"""
+    """Check if the checkpoint is in distributed checkpoint format."""
     if not os.path.isdir(load_path):
         return False
-    # 检查是否有 .distcp 文件
+    # Check for .distcp files
     for f in os.listdir(load_path):
         if f.endswith('.distcp'):
             return True
-    # 检查是否有 metadata.json
+    # Check for metadata.json
     if os.path.exists(os.path.join(load_path, 'metadata.json')):
         return True
     return False
 
 
-# def _resolve_checkpoint_step(load_path: str, ckpt_step: Optional[int] = None) -> str:
-#     """
-#     解析检查点路径，支持指定步数。
-    
-#     Args:
-#         load_path: 检查点父目录（包含 iter_xxx 子目录）或直接的迭代目录
-#         ckpt_step: 指定的检查点步数（如 40000），None 表示使用最新
-        
-#     Returns:
-#         实际的检查点路径
-#     """
-#     # 如果路径本身就是 iter_xxx 格式，直接返回父目录
-#     base_name = os.path.basename(load_path.rstrip('/'))
-#     if base_name.startswith('iter_'):
-#         return os.path.dirname(load_path)
-    
-#     # 检查是否有 iter_xxx 子目录
-#     if not os.path.isdir(load_path):
-#         return load_path
-        
-#     iter_dirs = [d for d in os.listdir(load_path) if d.startswith('iter_')]
-#     if not iter_dirs:
-#         return load_path
-    
-#     # 如果指定了 ckpt_step，查找对应的目录
-#     if ckpt_step is not None:
-#         target_dir = f"iter_{ckpt_step:07d}"
-#         if target_dir in iter_dirs:
-#             eval_logger.info(f"Using checkpoint step {ckpt_step}: {target_dir}")
-#             return load_path  # 返回父目录，Megatron 会自己处理
-#         else:
-#             # 尝试不带前导零的格式
-#             for iter_dir in iter_dirs:
-#                 # 从 iter_0040000 提取数字
-#                 try:
-#                     step_num = int(iter_dir.split('_')[1])
-#                     if step_num == ckpt_step:
-#                         eval_logger.info(f"Using checkpoint step {ckpt_step}: {iter_dir}")
-#                         return load_path
-#                 except (IndexError, ValueError):
-#                     continue
-            
-#             # 列出所有可用的检查点
-#             available_steps = []
-#             for iter_dir in sorted(iter_dirs):
-#                 try:
-#                     step_num = int(iter_dir.split('_')[1])
-#                     available_steps.append(step_num)
-#                 except (IndexError, ValueError):
-#                     continue
-            
-#             raise ValueError(
-#                 f"Checkpoint step {ckpt_step} not found. "
-#                 f"Available steps: {available_steps}"
-#             )
-    
-#     # 默认使用最新的检查点
-#     latest_iter = sorted(iter_dirs)[-1]
-#     eval_logger.info(f"Using latest checkpoint: {latest_iter}")
-#     return load_path
-
-
 def _parse_extra_args(extra_args: Optional[str]) -> List[str]:
     """
-    解析 extra_args 字符串为命令行参数列表。
+    Parse extra_args string into a list of command line arguments.
     
-    使用空格分隔参数，支持 shell 风格的引号处理。
+    Uses space-separated arguments with shell-style quote handling.
     
     Examples:
         "--no-rope-fusion --trust-remote-code" -> ["--no-rope-fusion", "--trust-remote-code"]
@@ -172,45 +110,45 @@ def _parse_extra_args(extra_args: Optional[str]) -> List[str]:
 @register_model("megatron_lm")
 class MegatronLMEval(LM):
     """
-    Megatron-LM 模型适配器，用于 lm-evaluation-harness
+    Megatron-LM model adapter for lm-evaluation-harness.
     
-    支持:
-    - 标准 Megatron 检查点格式
-    - 分布式检查点格式 (.distcp)
+    Supports:
+    - Standard Megatron checkpoint format
+    - Distributed checkpoint format (.distcp)
     
     Args:
-        load: Megatron 检查点路径（父目录，包含 iter_xxx 子目录）
-        ckpt_step: 指定加载的检查点步数 (如 40000 会加载 iter_0040000)，默认加载最新
-        tokenizer_type: Tokenizer 类型 (如 GPTSentencePieceTokenizer, Qwen2Tokenizer)
-        tokenizer_model: Tokenizer 模型文件路径
-        vocab_file: 词表文件路径 (可选)
-        merge_file: BPE merge 文件路径 (可选)
-        tensor_model_parallel_size: 张量并行度
-        pipeline_model_parallel_size: 流水线并行度
-        seq_length: 最大序列长度
-        micro_batch_size: 微批量大小 (可选，不指定则使用 checkpoint 中的值)
-        max_gen_toks: 最大生成 token 数
-        use_dist_ckpt: 是否使用分布式检查点格式 (自动检测)
-        extra_args: 额外的 MCore 命令行参数，使用空格分隔
-                    例如: "--use-checkpoint-args --no-rope-fusion --trust-remote-code --expert-tensor-parallel-size 1"
+        load: Megatron checkpoint path (parent directory containing iter_xxx subdirectories)
+        ckpt_step: Checkpoint step to load (e.g., 40000 loads iter_0040000), defaults to latest
+        tokenizer_type: Tokenizer type (e.g., GPTSentencePieceTokenizer, Qwen2Tokenizer)
+        tokenizer_model: Tokenizer model file path
+        vocab_file: Vocabulary file path (optional)
+        merge_file: BPE merge file path (optional)
+        tensor_model_parallel_size: Tensor parallelism degree
+        pipeline_model_parallel_size: Pipeline parallelism degree
+        seq_length: Maximum sequence length
+        micro_batch_size: Micro batch size (optional, uses checkpoint value if not specified)
+        max_gen_toks: Maximum number of tokens to generate
+        use_dist_ckpt: Whether to use distributed checkpoint format (auto-detected)
+        extra_args: Extra MCore command line arguments, space-separated
+                    e.g.: "--use-checkpoint-args --no-rope-fusion --trust-remote-code --expert-tensor-parallel-size 1"
     """
     
     def __init__(
         self,
         load: str,
         ckpt_step: Optional[int] = None,
-        tokenizer_type: str = "GPTSentencePieceTokenizer",
+        tokenizer_type: str = "HuggingFaceTokenizer",
         tokenizer_model: Optional[str] = None,
         vocab_file: Optional[str] = None,
         merge_file: Optional[str] = None,
         tensor_model_parallel_size: int = 1,
         pipeline_model_parallel_size: int = 1,
         seq_length: int = 4096,
-        micro_batch_size: Optional[int] = None,
+        micro_batch_size: int = 1,
         max_gen_toks: int = 256,
         use_dist_ckpt: Optional[bool] = None,
         extra_args: Optional[str] = None,
-        # 模型参数（如果不使用 --use-checkpoint-args）
+        # Model parameters (if not using --use-checkpoint-args)
         num_layers: Optional[int] = None,
         hidden_size: Optional[int] = None,
         num_attention_heads: Optional[int] = None,
@@ -226,17 +164,12 @@ class MegatronLMEval(LM):
         self._load_path = load
         self._ckpt_step = ckpt_step
         
-        # 添加 Megatron 到路径
+        # Add Megatron to path
         _add_megatron_to_path()
         
-        # 处理检查点步数
-        # actual_load_path = _resolve_checkpoint_step(load, ckpt_step)
-        # self._actual_load_path = actual_load_path
-        # eval_logger.info(f"Loading checkpoint from: {actual_load_path}")
-        
-        # 自动检测分布式检查点
+        # Auto-detect distributed checkpoint
         if use_dist_ckpt is None:
-            # 检查迭代目录
+            # Check iteration directories
             iter_dirs = [d for d in os.listdir(load) if d.startswith('iter_')]
             if iter_dirs:
                 latest_iter = sorted(iter_dirs)[-1]
@@ -248,7 +181,7 @@ class MegatronLMEval(LM):
         self._use_dist_ckpt = use_dist_ckpt
         eval_logger.info(f"Using distributed checkpoint: {use_dist_ckpt}")
         
-        # 初始化 Megatron 并加载模型
+        # Initialize Megatron and load model
         self._initialize_megatron(
             load=load,
             ckpt_step=ckpt_step,
@@ -274,12 +207,12 @@ class MegatronLMEval(LM):
         eval_logger.info(f"Batch size: {self._batch_size}")
 
     def _initialize_megatron(self, **kwargs):
-        """初始化 Megatron 分布式环境并加载模型"""
+        """Initialize Megatron distributed environment and load model."""
         from megatron.training import initialize_megatron, get_args, get_model, get_tokenizer
         from megatron.training.checkpointing import load_checkpoint
         from megatron.training.arguments import core_transformer_config_from_args
         
-        # 构建命令行参数
+        # Build command line arguments
         argv = [
             sys.argv[0],
             '--load', kwargs['load'],
@@ -294,7 +227,6 @@ class MegatronLMEval(LM):
             '--no-masked-softmax-fusion',
             '--no-bias-gelu-fusion',
             '--no-bias-dropout-fusion',
-            '--no-async-tensor-model-parallel-allreduce',
             '--attention-softmax-in-fp32',
             '--use-cpu-initialization',
             '--exit-on-missing-checkpoint',
@@ -314,7 +246,7 @@ class MegatronLMEval(LM):
         if kwargs.get('merge_file'):
             argv.extend(['--merge-file', kwargs['merge_file']])
             
-        # 如果需要手动指定模型参数
+        # Add model parameters if manually specified
         if kwargs.get('num_layers'):
             argv.extend(['--num-layers', str(kwargs['num_layers'])])
         if kwargs.get('hidden_size'):
@@ -326,20 +258,20 @@ class MegatronLMEval(LM):
         if kwargs.get('num_query_groups'):
             argv.extend(['--num-query-groups', str(kwargs['num_query_groups'])])
         
-        # 添加额外的 MCore 参数
+        # Add extra MCore arguments
         extra_args_list = _parse_extra_args(kwargs.get('extra_args'))
         if extra_args_list:
             argv.extend(extra_args_list)
             eval_logger.info(f"Extra MCore args: {extra_args_list}")
         
-        # 保存原始 argv 并替换
+        # Save original argv and replace
         original_argv = sys.argv
         sys.argv = argv
         
         eval_logger.info(f"Initializing Megatron with args: {' '.join(argv[1:])}")
         
         try:
-            # 初始化 Megatron
+            # Initialize Megatron
             initialize_megatron(
                 extra_args_provider=None,
                 args_defaults={'tokenizer_type': kwargs['tokenizer_type']},
@@ -348,38 +280,24 @@ class MegatronLMEval(LM):
             args = get_args()
             self._args = args
             
-            # 如果用户指定了 micro_batch_size，使用用户指定的值；否则使用 args 中的值更新 self._batch_size
-            if kwargs.get('micro_batch_size') is not None:
-                requested_micro_batch_size = kwargs['micro_batch_size']
-                if args.micro_batch_size != requested_micro_batch_size:
-                    eval_logger.info(
-                        f"Overriding micro_batch_size from checkpoint ({args.micro_batch_size}) "
-                        f"to requested value ({requested_micro_batch_size})"
-                    )
-                    args.micro_batch_size = requested_micro_batch_size
-            else:
-                # 使用 checkpoint 或默认的 micro_batch_size
-                self._batch_size = args.micro_batch_size
-                eval_logger.info(f"Using micro_batch_size from args: {args.micro_batch_size}")
-            
-            # 获取 tokenizer
+            # Get tokenizer
             self.tokenizer = get_tokenizer()
             
-            # 创建 model_provider
-            # 注意：Megatron-LM get_model 会传递 4 个参数: pre_process, post_process, config, pg_collection
+            # Create model_provider
+            # Note: Megatron-LM get_model passes 4 arguments: pre_process, post_process, config, pg_collection
             def model_provider(pre_process=True, post_process=True, config=None, pg_collection=None):
-                """构建 GPT 模型"""
+                """Build GPT model."""
                 from megatron.core.models.gpt import GPTModel
                 from megatron.core.models.gpt.gpt_layer_specs import (
                     get_gpt_layer_local_spec,
                     get_gpt_layer_with_transformer_engine_spec,
                 )
                 
-                # 如果没有传入 config，则从 args 获取
+                # Get config from args if not provided
                 if config is None:
                     config = core_transformer_config_from_args(args)
                 
-                # 选择 layer spec
+                # Select layer spec
                 transformer_impl = getattr(args, 'transformer_impl', 'local')
                 if transformer_impl == 'transformer_engine':
                     transformer_layer_spec = get_gpt_layer_with_transformer_engine_spec(
@@ -414,13 +332,13 @@ class MegatronLMEval(LM):
                 
                 return model
             
-            # 获取模型
+            # Get model
             self._model = get_model(model_provider, wrap_with_ddp=False)
             
-            # 加载检查点
+            # Load checkpoint
             load_checkpoint(self._model, None, None, strict=True)
             
-            # 提取单个模型（无虚拟流水线并行）
+            # Extract single model (no virtual pipeline parallelism)
             assert len(self._model) == 1, f"Expected 1 model, got {len(self._model)}"
             self.model = self._model[0]
             self.model.eval()
@@ -432,7 +350,7 @@ class MegatronLMEval(LM):
     
     @property
     def eot_token_id(self) -> int:
-        """End of text token ID"""
+        """End of text token ID."""
         try:
             return self.tokenizer.eod
         except AttributeError:
@@ -466,21 +384,21 @@ class MegatronLMEval(LM):
         return torch.distributed.get_world_size() if torch.distributed.is_initialized() else 1
 
     def tok_encode(self, string: str, add_special_tokens: bool = False) -> List[int]:
-        """Tokenize 字符串"""
+        """Tokenize string."""
         try:
             return self.tokenizer.tokenize(string)
         except AttributeError:
             return self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
     
     def tok_decode(self, tokens: List[int]) -> str:
-        """Decode tokens 为字符串"""
+        """Decode tokens to string."""
         try:
             return self.tokenizer.detokenize(tokens)
         except AttributeError:
             return self.tokenizer.decode(tokens, skip_special_tokens=True)
     
     def _encode_pair(self, context: str, continuation: str) -> Tuple[List[int], List[int]]:
-        """Encode context-continuation pair"""
+        """Encode context-continuation pair."""
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
@@ -499,15 +417,15 @@ class MegatronLMEval(LM):
         position_ids: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        """模型前向传播"""
+        """Model forward pass."""
         batch_size, seq_len = input_ids.shape
         
-        # 创建 position_ids
+        # Create position_ids
         if position_ids is None:
             position_ids = torch.arange(seq_len, dtype=torch.long, device=input_ids.device)
             position_ids = position_ids.unsqueeze(0).expand(batch_size, -1)
         
-        # 创建 attention_mask (causal mask)
+        # Create attention_mask (causal mask)
         if attention_mask is None:
             attention_mask = torch.ones(
                 (batch_size, 1, seq_len, seq_len), 
@@ -525,7 +443,7 @@ class MegatronLMEval(LM):
         return output
     
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-        """计算 log-likelihood"""
+        """Compute log-likelihood."""
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -542,7 +460,7 @@ class MegatronLMEval(LM):
         requests: List[Tuple],
         disable_tqdm: bool = False,
     ) -> List[Tuple[float, bool]]:
-        """基于 tokens 计算 log-likelihood"""
+        """Compute log-likelihood based on tokens."""
         res = []
         
         def _collate(x):
@@ -564,7 +482,7 @@ class MegatronLMEval(LM):
             contlens = []
             
             for _, context_enc, continuation_enc in chunk:
-                # 截断到最大长度
+                # Truncate to max length
                 inp = (context_enc + continuation_enc)[-(self.max_length):]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - self.max_length
@@ -585,14 +503,14 @@ class MegatronLMEval(LM):
             # Forward pass
             logits = self._model_forward(input_ids)
             
-            # 计算 log probabilities
+            # Compute log probabilities
             log_probs = torch.nn.functional.log_softmax(logits.float(), dim=-1)
             
             for i, (ctxlen, contlen) in enumerate(zip(ctxlens, contlens)):
-                # 获取 padding 长度
+                # Get padding length
                 pad_len = max_len - len(inps[i])
                 
-                # 计算 continuation 的 log probability
+                # Compute log probability of continuation
                 cont_log_probs = []
                 greedy_tokens = []
                 
@@ -606,7 +524,7 @@ class MegatronLMEval(LM):
                 
                 logprob = sum(cont_log_probs)
                 
-                # 检查是否 greedy
+                # Check if greedy
                 actual_tokens = input_ids[i, start_idx + 1:end_idx + 1].cpu().tolist()
                 is_greedy = greedy_tokens == actual_tokens
                 
@@ -627,7 +545,7 @@ class MegatronLMEval(LM):
         requests: List[Instance],
         disable_tqdm: bool = False,
     ) -> List[float]:
-        """计算 rolling log-likelihood (用于 perplexity)"""
+        """Compute rolling log-likelihood (for perplexity)."""
         loglikelihoods = []
         
         for (string,) in tqdm(
@@ -662,7 +580,7 @@ class MegatronLMEval(LM):
         requests: List[Instance],
         disable_tqdm: bool = False,
     ) -> List[str]:
-        """生成文本直到停止条件"""
+        """Generate text until stop condition."""
         results = []
         
         for request in tqdm(
@@ -690,7 +608,7 @@ class MegatronLMEval(LM):
             
             # Autoregressive generation
             for _ in range(max_gen_toks):
-                # 截断输入如果太长
+                # Truncate input if too long
                 if input_ids.shape[1] > self.max_length:
                     input_ids = input_ids[:, -self.max_length:]
                 
@@ -727,14 +645,14 @@ class MegatronLMEval(LM):
                 next_token_id = next_token.item()
                 generated_tokens.append(next_token_id)
                 
-                # 检查 EOS
+                # Check EOS
                 if next_token_id == self.eot_token_id:
                     break
                 
-                # 更新输入
+                # Update input
                 input_ids = torch.cat([input_ids, next_token], dim=1)
                 
-                # 检查停止序列
+                # Check stop sequences
                 generated_text = self.tok_decode(generated_tokens)
                 should_stop = False
                 for stop_seq in until:
@@ -745,7 +663,7 @@ class MegatronLMEval(LM):
                 if should_stop:
                     break
             
-            # 最终处理
+            # Final processing
             continuation = self.tok_decode(generated_tokens)
             for stop_seq in until:
                 if stop_seq in continuation:
