@@ -154,7 +154,7 @@ class VLLM(TemplateLM):
         # End marker for thinking tags - splits to get response after this token (if provided).
         think_end_token: str | None = None,
         max_lora_rank: int = 16,
-        truncation_strategy: Literal["left", "right", "middle"] = "left",
+        truncation_side: Literal["left", "right", "middle"] = "middle",
         **kwargs,
     ):
         super().__init__()
@@ -174,7 +174,7 @@ class VLLM(TemplateLM):
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
         # truncation strategy for inputs exceeding max length
-        self.truncation_strategy = truncation_strategy
+        self.truncation_side = truncation_side
         self.data_parallel_size = int(data_parallel_size)
         self.model_args = {
             "model": pretrained,
@@ -684,7 +684,7 @@ class VLLM(TemplateLM):
                     toks,
                     max_gen_toks=max_gen_toks,
                     max_len=self.max_length,
-                    truncation_strategy=self.truncation_strategy,
+                    side=self.truncation_side,
                     verbose=True,
                 )
                 context_encoding_truncated.append(toks)
