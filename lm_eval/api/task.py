@@ -33,6 +33,7 @@ from lm_eval.api.registry import (
 )
 from lm_eval.api.utils import (
     Message,
+    ends_with_whitespace,
     maybe_delimit,
     multiturn_to_singleturn,
     requires_delimiter,
@@ -1096,6 +1097,7 @@ class ConfigurableTask(Task):
             answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
         elif gen_prefix:
+            # For gen-prefix, the delimiter is added in construct_requests
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
@@ -1368,7 +1370,12 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
             if apply_chat_template:
-                target_delimiter = ""
+                target_delimiter = (
+                    self.config.target_delimiter
+                    if self.config.gen_prefix
+                    and not ends_with_whitespace(self.config.gen_prefix)
+                    else ""
+                )
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
