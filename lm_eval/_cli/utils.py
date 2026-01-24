@@ -112,7 +112,7 @@ def key_val_to_dict(args: str) -> dict[str, Any]:
     if not args:
         return res
 
-    for k, v in (item.split("=") for item in args.split(",")):
+    for k, v in (item.split("=",1) for item in args.split(",")):
         v = handle_cli_value_string(v)
         if k in res:
             eval_logger.warning(f"Overwriting key '{k}': {res[k]!r} -> {v!r}")
