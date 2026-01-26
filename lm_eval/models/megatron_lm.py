@@ -287,16 +287,14 @@ class MegatronLMEval(LM):
             '--no-bias-gelu-fusion',
             '--no-bias-dropout-fusion',
             '--attention-softmax-in-fp32',
-            '--use-cpu-initialization',
             '--exit-on-missing-checkpoint',
         ]
         
+        argv.extend(['--micro-batch-size', str(kwargs['micro_batch_size'])])
+
         # Add ckpt_step if specified
         if kwargs.get('ckpt_step') is not None:
             argv.extend(['--ckpt-step', str(kwargs['ckpt_step'])])
-        
-        if kwargs.get('micro_batch_size'):
-            argv.extend(['--micro-batch-size', str(kwargs['micro_batch_size'])])
         
         if kwargs.get('use_dist_ckpt'):
             argv.append('--use-dist-ckpt')
