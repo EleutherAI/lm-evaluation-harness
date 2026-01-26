@@ -4,6 +4,11 @@ Megatron-LM backend for lm-evaluation-harness.
 This module provides support for evaluating Megatron-LM models, including
 both standard checkpoints and distributed checkpoints (.distcp format).
 
+Supports three parallelism modes:
+1. Data Parallelism (DP): devices > 1, TP=1, PP=1 - Each GPU has a full model replica
+2. Model Parallelism (TP × PP): TP * PP == devices - Model is split across GPUs
+3. Single GPU: devices=1, TP=1, PP=1 - Standard single GPU evaluation
+
 Requirements:
     - Megatron-LM must be installed or accessible via MEGATRON_PATH environment variable
     - PyTorch with CUDA support
@@ -12,24 +17,24 @@ Usage:
     # Set MEGATRON_PATH environment variable
     export MEGATRON_PATH=/path/to/Megatron-LM
 
-    # Run evaluation
-    lm-eval run --model megatron_lm \\
-        --model_args load=/path/to/checkpoint,tokenizer_type=GPTSentencePieceTokenizer,tokenizer_model=/path/to/tokenizer.model \\
+    # Single GPU evaluation
+    lm-eval --model megatron_lm \
+        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model \
         --tasks hellaswag
 
-    # With specific checkpoint step
-    lm-eval run --model megatron_lm \\
-        --model_args load=/path/to/checkpoint,ckpt_step=40000,tokenizer_model=/path/to/tokenizer.model \\
+    # Data Parallelism (4 GPUs, each with full model replica)
+    lm-eval --model megatron_lm \
+        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,devices=4 \
         --tasks hellaswag
 
-    # With tensor parallelism
-    lm-eval run --model megatron_lm \\
-        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,tensor_model_parallel_size=2 \\
+    # Tensor Parallelism (TP=2)
+    lm-eval --model megatron_lm \
+        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,devices=2,tensor_model_parallel_size=2 \
         --tasks hellaswag
 
-    # With extra MCore arguments (e.g. --use-checkpoint-args, --no-rope-fusion, etc.)
-    lm-eval run --model megatron_lm \\
-        --model_args "load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,extra_args=--use-checkpoint-args --no-rope-fusion --trust-remote-code --expert-tensor-parallel-size 1" \\
+    # Mixed Parallelism (TP=2, PP=2, total 4 GPUs)
+    lm-eval --model megatron_lm \
+        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2 \
         --tasks hellaswag
 """
 
@@ -112,9 +117,18 @@ class MegatronLMEval(LM):
     """
     Megatron-LM model adapter for lm-evaluation-harness.
     
-    Supports:
-    - Standard Megatron checkpoint format
-    - Distributed checkpoint format (.distcp)
+    Supports three parallelism modes (NeMo-style):
+    1. Data Parallelism: devices > 1, TP=1, PP=1
+       - Each GPU has a full model replica
+       - Data is distributed across GPUs
+       - Results are gathered from all ranks
+    
+    2. Model Parallelism: TP * PP == devices
+       - Model is split across GPUs using Tensor and/or Pipeline Parallelism
+       - No data parallelism
+    
+    3. Single GPU: devices=1 (default)
+       - Standard single GPU evaluation
     
     Args:
         load: Megatron checkpoint path (parent directory containing iter_xxx subdirectories)
@@ -123,14 +137,14 @@ class MegatronLMEval(LM):
         tokenizer_model: Tokenizer model file path
         vocab_file: Vocabulary file path (optional)
         merge_file: BPE merge file path (optional)
-        tensor_model_parallel_size: Tensor parallelism degree
-        pipeline_model_parallel_size: Pipeline parallelism degree
+        devices: Total number of GPUs to use (default: 1)
+        tensor_model_parallel_size: Tensor parallelism degree (default: 1)
+        pipeline_model_parallel_size: Pipeline parallelism degree (default: 1)
         seq_length: Maximum sequence length
         micro_batch_size: Micro batch size (optional, uses checkpoint value if not specified)
         max_gen_toks: Maximum number of tokens to generate
         use_dist_ckpt: Whether to use distributed checkpoint format (auto-detected)
         extra_args: Extra MCore command line arguments, space-separated
-                    e.g.: "--use-checkpoint-args --no-rope-fusion --trust-remote-code --expert-tensor-parallel-size 1"
     """
     
     def __init__(
@@ -141,6 +155,7 @@ class MegatronLMEval(LM):
         tokenizer_model: Optional[str] = None,
         vocab_file: Optional[str] = None,
         merge_file: Optional[str] = None,
+        devices: int = 1,
         tensor_model_parallel_size: int = 1,
         pipeline_model_parallel_size: int = 1,
         seq_length: int = 4096,
@@ -163,6 +178,12 @@ class MegatronLMEval(LM):
         self._max_gen_toks = max_gen_toks
         self._load_path = load
         self._ckpt_step = ckpt_step
+        self._tp_size = tensor_model_parallel_size
+        self._pp_size = pipeline_model_parallel_size
+        self._devices = devices
+        
+        # Validate parallelism configuration (NeMo-style)
+        self._validate_parallelism_config(devices, tensor_model_parallel_size, pipeline_model_parallel_size)
         
         # Add Megatron to path
         _add_megatron_to_path()
@@ -189,6 +210,7 @@ class MegatronLMEval(LM):
             tokenizer_model=tokenizer_model,
             vocab_file=vocab_file,
             merge_file=merge_file,
+            devices=devices,
             tensor_model_parallel_size=tensor_model_parallel_size,
             pipeline_model_parallel_size=pipeline_model_parallel_size,
             seq_length=seq_length,
@@ -205,6 +227,34 @@ class MegatronLMEval(LM):
         eval_logger.info(f"Megatron-LM model loaded from {load}")
         eval_logger.info(f"Max sequence length: {self._max_length}")
         eval_logger.info(f"Batch size: {self._batch_size}")
+        eval_logger.info(f"Parallelism mode: {self._parallelism_mode}")
+        eval_logger.info(f"Devices: {self._devices}, TP: {self._tp_size}, PP: {self._pp_size}")
+    
+    def _validate_parallelism_config(self, devices: int, tp: int, pp: int):
+        """
+        Validate parallelism configuration (NeMo-style).
+        
+        Supported modes:
+        1. Data Parallelism: tp=1, pp=1, devices>1
+        2. Model Parallelism: tp*pp == devices
+        3. Single GPU: devices=1
+        """
+        if tp == 1 and pp == 1:
+            if devices == 1:
+                self._parallelism_mode = "single"
+                eval_logger.info("Parallelism mode: Single GPU")
+            else:
+                self._parallelism_mode = "data_parallel"
+                eval_logger.info(f"Parallelism mode: Data Parallel with {devices} replicas")
+        elif tp * pp == devices:
+            self._parallelism_mode = "model_parallel"
+            eval_logger.info(f"Parallelism mode: Model Parallel (TP={tp}, PP={pp})")
+        else:
+            raise ValueError(
+                f"Invalid parallelism configuration: devices={devices}, TP={tp}, PP={pp}. "
+                f"For model parallelism, TP * PP must equal devices. "
+                f"For data parallelism, set TP=1 and PP=1."
+            )
 
     def _initialize_megatron(self, **kwargs):
         """Initialize Megatron distributed environment and load model."""
@@ -212,18 +262,27 @@ class MegatronLMEval(LM):
         from megatron.training.checkpointing import load_checkpoint
         from megatron.training.arguments import core_transformer_config_from_args
         
+        devices = kwargs['devices']
+        tp_size = kwargs['tensor_model_parallel_size']
+        pp_size = kwargs['pipeline_model_parallel_size']
+        
+        # For Data Parallelism mode, we use TP=1, PP=1 for each replica
+        # The data distribution is handled in _loglikelihood_tokens
+        actual_tp = tp_size
+        actual_pp = pp_size
+        
         # Build command line arguments
         argv = [
             sys.argv[0],
             '--load', kwargs['load'],
-            '--ckpt-step', str(kwargs['ckpt_step']),
-            '--tensor-model-parallel-size', str(kwargs['tensor_model_parallel_size']),
-            '--pipeline-model-parallel-size', str(kwargs['pipeline_model_parallel_size']),
+            '--tensor-model-parallel-size', str(actual_tp),
+            '--pipeline-model-parallel-size', str(actual_pp),
             '--seq-length', str(kwargs['seq_length']),
             '--tokenizer-type', kwargs['tokenizer_type'],
             '--no-load-optim',
             '--no-load-rng',
             '--bf16',
+            '--use-checkpoint-args',
             '--no-masked-softmax-fusion',
             '--no-bias-gelu-fusion',
             '--no-bias-dropout-fusion',
@@ -231,6 +290,10 @@ class MegatronLMEval(LM):
             '--use-cpu-initialization',
             '--exit-on-missing-checkpoint',
         ]
+        
+        # Add ckpt_step if specified
+        if kwargs.get('ckpt_step') is not None:
+            argv.extend(['--ckpt-step', str(kwargs['ckpt_step'])])
         
         if kwargs.get('micro_batch_size'):
             argv.extend(['--micro-batch-size', str(kwargs['micro_batch_size'])])
@@ -280,11 +343,39 @@ class MegatronLMEval(LM):
             args = get_args()
             self._args = args
             
+            # Import parallel state utilities after initialization
+            from megatron.core import parallel_state
+            self._parallel_state = parallel_state
+            
+            # Store parallel info
+            self._is_pipeline_last_stage = parallel_state.is_pipeline_last_stage()
+            self._is_pipeline_first_stage = parallel_state.is_pipeline_first_stage()
+            self._tp_rank = parallel_state.get_tensor_model_parallel_rank()
+            self._pp_rank = parallel_state.get_pipeline_model_parallel_rank()
+            self._dp_rank = parallel_state.get_data_parallel_rank()
+            
+            # Set up device and rank info based on parallelism mode
+            self._device = torch.device(f"cuda:{torch.cuda.current_device()}")
+            self._global_rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+            
+            if self._parallelism_mode == "data_parallel":
+                # Data Parallelism: each rank is a separate worker processing different data
+                self._rank = self._global_rank
+                self._world_size = devices
+            else:
+                # Model Parallelism (TP/PP): all ranks work together as a single logical worker
+                # From lm_eval's perspective, this is a single worker (world_size=1)
+                # because TP/PP handles computation distribution, not data distribution
+                self._rank = 0
+                self._world_size = 1
+            
+            eval_logger.info(f"Parallel state - TP rank: {self._tp_rank}, PP rank: {self._pp_rank}, "
+                           f"DP rank: {self._dp_rank}, is_last_stage: {self._is_pipeline_last_stage}")
+            
             # Get tokenizer
             self.tokenizer = get_tokenizer()
             
             # Create model_provider
-            # Note: Megatron-LM get_model passes 4 arguments: pre_process, post_process, config, pg_collection
             def model_provider(pre_process=True, post_process=True, config=None, pg_collection=None):
                 """Build GPT model."""
                 from megatron.core.models.gpt import GPTModel
@@ -373,15 +464,68 @@ class MegatronLMEval(LM):
     
     @property
     def device(self) -> torch.device:
-        return torch.device(f"cuda:{torch.cuda.current_device()}")
+        return self._device
     
     @property
     def rank(self) -> int:
-        return torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+        return self._rank
     
     @property
     def world_size(self) -> int:
-        return torch.distributed.get_world_size() if torch.distributed.is_initialized() else 1
+        return self._world_size
+    
+    @property
+    def accelerator(self):
+        """Return accelerator interface for distributed operations (NeMo-style)."""
+        return self._Accelerator(self._world_size, self._device)
+    
+    class _Accelerator:
+        """
+        Internal accelerator class for distributed operations.
+        
+        Provides NeMo-style interface for synchronization and result gathering.
+        """
+        def __init__(self, world_size, device):
+            self.world_size = world_size
+            self.device = device
+        
+        def wait_for_everyone(self):
+            """Synchronize all processes."""
+            if torch.distributed.is_initialized():
+                torch.distributed.barrier()
+        
+        def gather(self, local_tensor):
+            """Gather tensors from all processes.
+            
+            Handles both 0-dimensional (scalar) and multi-dimensional tensors.
+            """
+            if not torch.distributed.is_initialized() or self.world_size == 1:
+                return local_tensor
+            
+            # Handle 0-dimensional (scalar) tensors by reshaping to 1-d
+            is_scalar = local_tensor.dim() == 0
+            if is_scalar:
+                local_tensor = local_tensor.unsqueeze(0)
+            
+            # Create list of tensors to gather into
+            gathered_tensors = [
+                torch.zeros_like(local_tensor) for _ in range(self.world_size)
+            ]
+            torch.distributed.all_gather(gathered_tensors, local_tensor)
+            
+            # Concatenate results
+            result = torch.cat(gathered_tensors)
+            
+            return result
+        
+        def gather_object(self, local_obj):
+            """Gather Python objects from all processes."""
+            if not torch.distributed.is_initialized() or self.world_size == 1:
+                return [local_obj]
+            
+            gathered_objects = [None] * self.world_size
+            torch.distributed.all_gather_object(gathered_objects, local_obj)
+            return gathered_objects
 
     def tok_encode(self, string: str, add_special_tokens: bool = False) -> List[int]:
         """Tokenize string."""
@@ -417,7 +561,18 @@ class MegatronLMEval(LM):
         position_ids: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        """Model forward pass."""
+        """
+        Model forward pass with Pipeline Parallelism support.
+        
+        For PP > 1:
+        - First stage receives input embeddings
+        - Intermediate stages process hidden states
+        - Last stage produces logits
+        - Logits are broadcast to all PP ranks
+        
+        Returns:
+            logits: [batch_size, seq_len, vocab_size] on all ranks
+        """
         batch_size, seq_len = input_ids.shape
         
         # Create position_ids
@@ -434,16 +589,114 @@ class MegatronLMEval(LM):
             ).tril()
         
         with torch.no_grad():
-            output = self.model(
-                input_ids=input_ids,
-                position_ids=position_ids,
-                attention_mask=attention_mask,
-            )
+            if self._pp_size == 1:
+                # No pipeline parallelism - simple forward
+                output = self.model(
+                    input_ids=input_ids,
+                    position_ids=position_ids,
+                    attention_mask=attention_mask,
+                )
+            else:
+                # Pipeline parallelism - need to handle stages
+                output = self._forward_with_pp(
+                    input_ids=input_ids,
+                    position_ids=position_ids,
+                    attention_mask=attention_mask,
+                )
         
         return output
     
+    def _forward_with_pp(
+        self,
+        input_ids: torch.Tensor,
+        position_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Forward pass with Pipeline Parallelism.
+        
+        Handles communication between pipeline stages and broadcasts
+        final logits to all ranks.
+        """
+        from megatron.core import parallel_state
+        
+        batch_size, seq_len = input_ids.shape
+        
+        # For evaluation, we use a simple approach:
+        # - Run forward on all stages
+        # - Broadcast logits from last stage to all stages
+        
+        # Megatron handles pipeline communication internally
+        # All stages can call model with the same interface
+        output = self.model(
+            input_ids=input_ids,
+            position_ids=position_ids,
+            attention_mask=attention_mask,
+        )
+        
+        # Only the last stage has valid logits
+        if self._is_pipeline_last_stage:
+            logits = output
+        else:
+            # Create placeholder tensor for logits
+            logits = torch.zeros(
+                batch_size, seq_len, self._args.padded_vocab_size,
+                dtype=torch.bfloat16,
+                device=self.device
+            )
+        
+        # Broadcast logits from last stage to all stages in the pipeline
+        # Get the rank of the last pipeline stage within the pipeline group
+        pp_group = parallel_state.get_pipeline_model_parallel_group()
+        last_stage_rank = parallel_state.get_pipeline_model_parallel_last_rank()
+        
+        torch.distributed.broadcast(
+            logits,
+            src=last_stage_rank,
+            group=pp_group,
+        )
+        
+        return logits
+    
+    def _distribute_requests(self, requests: List) -> Tuple[List, List[int]]:
+        """
+        Distribute requests across ranks for Data Parallelism.
+        
+        NOTE: When world_size > 1, lm_eval's evaluator already distributes
+        requests to each rank based on lm.rank and lm.world_size.
+        So we should NOT do additional distribution here - just return
+        the requests as-is.
+        
+        Returns:
+            local_requests: Requests for this rank (unchanged when world_size > 1)
+            all_sizes: Number of requests per rank
+        """
+        # lm_eval already handles data distribution when world_size > 1
+        # We just pass through the requests without additional splitting
+        return requests, [len(requests)]
+    
+    def _gather_results(self, local_results: List, sizes: List[int]) -> List:
+        """
+        Gather results from all ranks for Data Parallelism.
+        
+        NOTE: When world_size > 1, lm_eval's evaluator already handles
+        result gathering (via gather_object in evaluator.py line ~692).
+        So we should NOT do additional gathering here - just return
+        the results as-is.
+        
+        Args:
+            local_results: Results from this rank
+            sizes: Number of results per rank
+            
+        Returns:
+            all_results: Results from this rank (unchanged when world_size > 1)
+        """
+        # lm_eval already handles result gathering when world_size > 1
+        # We just return results without additional gathering
+        return local_results
+    
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-        """Compute log-likelihood."""
+        """Compute log-likelihood with Data Parallelism support."""
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -460,19 +713,35 @@ class MegatronLMEval(LM):
         requests: List[Tuple],
         disable_tqdm: bool = False,
     ) -> List[Tuple[float, bool]]:
-        """Compute log-likelihood based on tokens."""
+        """
+        Compute log-likelihood based on tokens.
+        
+        With Data Parallelism:
+        - Requests are distributed across ranks
+        - Each rank processes its share
+        - Results are gathered and combined
+        
+        With Model Parallelism (TP/PP):
+        - All TP ranks compute the same result (TP is transparent)
+        - Only PP last stage has logits, which are broadcast to all stages
+        - Results are computed on all ranks consistently
+        """
+        # Distribute requests for Data Parallelism
+        local_requests, sizes = self._distribute_requests(requests)
+        
         res = []
         
         def _collate(x):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
         
-        re_ord = Collator(requests, sort_fn=_collate)
+        re_ord = Collator(local_requests, sort_fn=_collate)
         chunks = re_ord.get_batched(n=self.batch_size, batch_fn=None)
         
+        # Only show progress bar on global rank 0
         pbar = tqdm(
-            total=len(requests),
-            disable=disable_tqdm or (self.rank != 0),
+            total=len(local_requests),
+            disable=disable_tqdm or (self._global_rank != 0),
             desc="Running loglikelihood requests",
         )
         
@@ -500,7 +769,7 @@ class MegatronLMEval(LM):
             
             input_ids = torch.tensor(padded_inps, dtype=torch.long, device=self.device)
             
-            # Forward pass
+            # Forward pass (handles TP/PP internally)
             logits = self._model_forward(input_ids)
             
             # Compute log probabilities
@@ -538,19 +807,29 @@ class MegatronLMEval(LM):
                 pbar.update(1)
         
         pbar.close()
-        return re_ord.get_original(res)
+        
+        # Reorder local results
+        local_results = re_ord.get_original(res)
+        
+        # Gather results from all ranks (for Data Parallelism)
+        all_results = self._gather_results(local_results, sizes)
+        
+        return all_results
     
     def loglikelihood_rolling(
         self, 
         requests: List[Instance],
         disable_tqdm: bool = False,
     ) -> List[float]:
-        """Compute rolling log-likelihood (for perplexity)."""
+        """Compute rolling log-likelihood (for perplexity) with Data Parallelism support."""
+        # Distribute requests for Data Parallelism
+        local_requests, sizes = self._distribute_requests([req.args for req in requests])
+        
         loglikelihoods = []
         
         for (string,) in tqdm(
-            [req.args for req in requests], 
-            disable=disable_tqdm or (self.rank != 0),
+            local_requests, 
+            disable=disable_tqdm or (self._global_rank != 0),
             desc="Running loglikelihood_rolling requests",
         ):
             rolling_token_windows = list(
@@ -573,19 +852,29 @@ class MegatronLMEval(LM):
             
             self.cache_hook.add_partial("loglikelihood_rolling", (string,), string_nll)
         
-        return loglikelihoods
+        # Gather results from all ranks
+        all_results = self._gather_results(loglikelihoods, sizes)
+        
+        return all_results
     
     def generate_until(
         self, 
         requests: List[Instance],
         disable_tqdm: bool = False,
     ) -> List[str]:
-        """Generate text until stop condition."""
+        """
+        Generate text until stop condition with Data Parallelism support.
+        
+        With PP > 1, generation requires coordination between pipeline stages.
+        """
+        # Distribute requests for Data Parallelism
+        local_requests, sizes = self._distribute_requests(requests)
+        
         results = []
         
         for request in tqdm(
-            requests, 
-            disable=disable_tqdm or (self.rank != 0),
+            local_requests, 
+            disable=disable_tqdm or (self._global_rank != 0),
             desc="Running generate_until requests",
         ):
             context, gen_kwargs = request.args
@@ -642,6 +931,10 @@ class MegatronLMEval(LM):
                 else:
                     next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
                 
+                # For Model Parallelism, broadcast next_token to all ranks for consistency
+                if self._parallelism_mode == "model_parallel" and self.world_size > 1:
+                    torch.distributed.broadcast(next_token, src=0)
+                
                 next_token_id = next_token.item()
                 generated_tokens.append(next_token_id)
                 
@@ -672,4 +965,7 @@ class MegatronLMEval(LM):
             results.append(continuation)
             self.cache_hook.add_partial("generate_until", request.args, continuation)
         
-        return results
+        # Gather results from all ranks
+        all_results = self._gather_results(results, sizes)
+        
+        return all_results
