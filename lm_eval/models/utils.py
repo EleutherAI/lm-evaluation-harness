@@ -35,6 +35,7 @@ class GenKwargs(TypedDict, total=False):
     temperature: Required[float]
     # if `max_tokens` are provided then will be converted to `max_gen_toks`.
     max_gen_toks: int
+    until: list[str]
     __extra_items__: Any
 
 

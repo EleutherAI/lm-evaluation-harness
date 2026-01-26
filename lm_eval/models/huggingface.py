@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import logging
 import os
 from datetime import timedelta
@@ -35,6 +34,7 @@ from lm_eval.models.utils import (
     configure_pad_token,
     handle_stop_sequences,
     has_bos_prefix,
+    normalize_gen_kwargs,
     postprocess_generated_text,
 )
 from lm_eval.models.utils_hf import (
@@ -900,6 +900,7 @@ class HFLM(TemplateLM):
             else:
                 add_special_tokens = {}
 
+        assert self.tokenizer, "Tokenizer shoukd be initialized at this point"
         encoding = self.tokenizer(
             strings,
             truncation=truncation,
@@ -1425,19 +1426,13 @@ class HFLM(TemplateLM):
             # we assume all gen kwargs in the batch are the same
             # this is safe to assume because the `grouper` object ensures it.
             gen_kwargs = all_gen_kwargs[0]
-            # unpack our keyword arguments.
-            if isinstance(gen_kwargs, dict):
-                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                # add EOS token to stop sequences
-                until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
-            else:
-                raise TypeError(
-                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
-                )
-            if "max_gen_toks" in kwargs:
-                max_gen_toks = kwargs.pop("max_gen_toks")
-            else:
-                max_gen_toks = self.max_gen_toks
+            assert isinstance(gen_kwargs, dict), (
+                f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
+            )
+            kwargs = normalize_gen_kwargs(gen_kwargs, self.max_gen_toks)
+            # add EOS token to stop sequences
+            until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+            max_gen_toks = kwargs.pop("max_gen_toks")
 
             # set the max length in tokens of inputs ("context_enc")
             if self.backend == "causal":
@@ -1459,14 +1454,13 @@ class HFLM(TemplateLM):
             context_enc = context_enc.to(self.device)
             attn_masks = attn_masks.to(self.device)
 
-            if "max_length" not in kwargs:
-                kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
-
+            max_length = context_enc.shape[1] + max_gen_toks
             # perform batched generation
             cont = self._model_generate(
                 context=context_enc,
                 attention_mask=attn_masks,
                 stop=until,
+                max_length=max_length,
                 **kwargs,
             )
 
