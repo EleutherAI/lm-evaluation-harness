@@ -13,7 +13,7 @@ from typing import (
     TypeVar,
 )
 
-from typing_extensions import Required, TypedDict
+from typing_extensions import TypedDict
 
 from lm_eval.utils import maybe_warn, warning_once
 
@@ -31,9 +31,9 @@ if TYPE_CHECKING:
 
 
 class GenKwargs(TypedDict, total=False):
-    do_sample: Required[bool]
-    temperature: Required[float]
-    # if `max_tokens` are provided then will be converted to `max_gen_toks`.
+    do_sample: bool
+    temperature: float
+    # other alias' will be converted to `max_gen_toks`.
     max_gen_toks: int
     until: list[str]
     __extra_items__: Any
@@ -630,7 +630,7 @@ def normalize_gen_kwargs(
         gen_kwargs: Raw generation kwargs from the request. Expected keys include:
             - do_sample: Whether to use sampling (vs greedy decoding) - Required
             - until (str | list[str]): Stop sequence(s) for generation.
-            - max_gen_toks or max_tokens: Maximum tokens to generate
+            - max_gen_toks | max_tokens | max_new_tokens | max_length: Maximum tokens to generate
             - temperature: Sampling temperature
             - Other backend-specific kwargs
         default_max_gen_toks: Default max_gen_toks if not specified in gen_kwargs.
@@ -661,37 +661,36 @@ def normalize_gen_kwargs(
     if not isinstance(until, list):
         until = [until]
 
-    # Extract max_gen_toks - accept both names for compatibility, prefer max_gen_toks
-    max_gen_toks = kwargs.pop("max_gen_toks", None)
-    max_tokens = kwargs.pop("max_tokens", None)
-    if max_gen_toks and max_tokens:
+    # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_length)
+    max_token_aliases = {
+        "max_gen_toks": kwargs.pop("max_gen_toks", None),
+        "max_new_tokens": kwargs.pop("max_new_tokens", None),  # used in HF
+        "max_tokens": kwargs.pop(
+            "max_tokens", None
+        ),  # used by vllm, OpenAI API's and others
+        "max_completion_tokens": kwargs.pop(
+            "max_completion_tokens", None
+        ),  # newer OpenAI API alias
+        "max_length": kwargs.pop("max_length", None),  # also used by HF
+    }
+    provided = {k: v for k, v in max_token_aliases.items() if v is not None}
+
+    if len(provided) > 1:
         warning_once(
             eval_logger,
-            f"`max_gen_toks`: {max_gen_toks} and `max_tokens`: {max_tokens} both provided; `max_gen_toks` takes precedence.",
+            f"Multiple max token args provided: {provided}. Using first by priority (max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens > max_length).",
         )
 
-    max_gen_toks = (
-        int(max_gen_toks)
-        if max_gen_toks is not None
-        else int(max_tokens)
-        if max_tokens is not None
-        else int(default_max_gen_toks)
-    )
+    max_gen_toks = int(next(iter(provided.values()), default_max_gen_toks))
 
     # Handle do_sample and temperature consistently
     do_sample: bool | None = kwargs.get("do_sample")
-    temperature: float | None = kwargs.get("temperature")
+    temperature: float | None = kwargs.get("temperature", 0.0)
 
-    # If do_sample=False explicitly, ensure greedy decoding via temperature=0
     match do_sample:
         case None:
-            # always require do_sample to be explicitly set
-            warning_once(
-                eval_logger,
-                "`do_sample` not specified in gen_kwargs; defaulting to `do_sample=False, temperature=0.0` for greedy decoding.",
-            )
-            kwargs["do_sample"] = False
-            kwargs["temperature"] = 0.0
+            if temperature == 0.0:
+                kwargs["do_sample"] = False
         # do_sample=False -> temperature=0.0
         case False:
             if temperature and temperature != 0.0:

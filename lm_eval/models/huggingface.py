@@ -979,14 +979,15 @@ class HFLM(TemplateLM):
         # if do_sample is false and temp==0.0:
         # remove temperature, as do_sample=False takes care of this
         # and we don't want a warning from HF
-        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
         do_sample = generation_kwargs.get("do_sample")
 
         # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
-        if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
+        if (
+            temp := generation_kwargs.get("temperature", 0.0)
+        ) == 0.0 and do_sample is None:
             generation_kwargs["do_sample"] = do_sample = False
 
-        if do_sample is False and generation_kwargs.get("temperature") == 0.0:
+        if do_sample is False and temp == 0.0:
             generation_kwargs.pop("temperature")
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
@@ -1137,7 +1138,7 @@ class HFLM(TemplateLM):
         requests: list[tuple[tuple[str, str], list[int], list[int]]],
         disable_tqdm: bool = False,
         override_bs: int | None = None,
-    ) -> list[tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:  # type: ignore[invalid-method-override]
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
@@ -1276,11 +1277,13 @@ class HFLM(TemplateLM):
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
+            assert padding_len_inp, "padding_len_inp should be set by now"
             if self.backend == "causal":
                 batched_inps = pad_and_concat(
                     padding_len_inp, inps, padding_side="right"
                 )  # [batch, padding_len_inp]
             elif self.backend == "seq2seq":
+                assert padding_len_cont, "padding_len_cont should be set by now"
                 # TODO: left-pad encoder inps and mask?
                 batched_inps = pad_and_concat(
                     padding_len_inp, inps
@@ -1454,13 +1457,13 @@ class HFLM(TemplateLM):
             context_enc = context_enc.to(self.device)
             attn_masks = attn_masks.to(self.device)
 
-            max_length = context_enc.shape[1] + max_gen_toks
+            max_new_tokens = context_enc.shape[1] + max_gen_toks
             # perform batched generation
             cont = self._model_generate(
                 context=context_enc,
                 attention_mask=attn_masks,
                 stop=until,
-                max_length=max_length,
+                max_length=max_new_tokens,
                 **kwargs,
             )
 

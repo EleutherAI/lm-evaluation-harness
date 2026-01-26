@@ -18,4 +18,6 @@ def default_gen_kwargs(
     }
     if until is not None:
         _gen["until"] = [until] if isinstance(until, str) else until
+    else:
+        _gen["until"] = []
     return _gen
