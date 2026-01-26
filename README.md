@@ -341,36 +341,51 @@ Not supported yet: multi-node evaluation and combinations of data replication wi
 export MEGATRON_PATH=/path/to/Megatron-LM
 ```
 
-**Basic usage:**
+**Basic usage (single GPU):**
 ```bash
 lm_eval --model megatron_lm \
-    --model_args load=/path/to/checkpoint,tokenizer_type=GPTSentencePieceTokenizer,tokenizer_model=/path/to/tokenizer.model \
+    --model_args load=/path/to/checkpoint,tokenizer_type=HuggingFaceTokenizer,tokenizer_model=/path/to/tokenizer \
     --tasks hellaswag \
     --batch_size 1
 ```
 
-**With tensor parallelism:**
+**Supported checkpoint formats:**
+- Standard Megatron checkpoints (`model_optim_rng.pt`)
+- Distributed checkpoints (`.distcp` format, auto-detected)
+
+#### Parallelism Modes
+
+The Megatron-LM backend supports three parallelism modes (NeMo-style):
+
+| Mode | Configuration | Description |
+|------|---------------|-------------|
+| Single GPU | `devices=1` (default) | Standard single GPU evaluation |
+| Data Parallelism | `devices>1, TP=1, PP=1` | Each GPU has a full model replica, data is distributed |
+| Model Parallelism | `TP * PP == devices` | Model is split across GPUs using Tensor/Pipeline Parallelism |
+
+**Data Parallelism (4 GPUs, each with full model replica):**
 ```bash
-torchrun --nproc-per-node=2 --no-python lm_eval --model megatron_lm \
-    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,tensor_model_parallel_size=2 \
+torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=4 \
     --tasks hellaswag
 ```
 
-**Supported checkpoint formats:**
-- Standard Megatron checkpoints (`model_optim_rng.pt`)
-- Distributed checkpoints (`.distcp` format)
+**Mixed Parallelism (TP=2, PP=2, total 4 GPUs):**
+```bash
+torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2 \
+    --tasks hellaswag
+```
 
-**Model arguments:**
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `load` | (required) | Path to Megatron checkpoint directory |
-| `ckpt_step` | None | Specific checkpoint step to load (e.g., 40000 for iter_0040000) |
-| `tokenizer_type` | GPTSentencePieceTokenizer | Tokenizer type |
-| `tokenizer_model` | None | Path to tokenizer model file |
-| `tensor_model_parallel_size` | 1 | Tensor parallelism degree |
-| `pipeline_model_parallel_size` | 1 | Pipeline parallelism degree |
-| `seq_length` | 4096 | Maximum sequence length |
-| `use_checkpoint_args` | True | Load model config from checkpoint |
+**Using extra_args for additional Megatron options:**
+```bash
+lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,extra_args="--no-rope-fusion --trust-remote-code" \
+    --tasks hellaswag
+```
+
+> [!Note]
+> The `--use-checkpoint-args` flag is enabled by default, which loads model architecture parameters from the checkpoint. For checkpoints converted via Megatron-Bridge, this typically includes all necessary model configuration.
 
 #### Multi-GPU evaluation with OpenVINO models
 
