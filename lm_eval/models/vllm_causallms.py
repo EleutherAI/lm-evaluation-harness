@@ -671,7 +671,10 @@ class VLLM(TemplateLM):
                         f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                     )
 
-                max_gen_toks = int(kwargs.pop("max_tokens", self.max_gen_toks))
+                if "max_gen_toks" in kwargs:
+                    max_gen_toks = int(kwargs.pop("max_gen_toks"))
+                else:
+                    max_gen_toks = int(kwargs.pop("max_tokens", self.max_gen_toks))
 
                 # set the max length in tokens of inputs ("context_enc")
                 # max len for inputs = max length, minus room to generate the max new tokens
@@ -852,4 +855,7 @@ class VLLM(TemplateLM):
         kwargs["spaces_between_special_tokens"] = kwargs.get(
             "spaces_between_special_tokens", False
         )
+        # remove `max_gen_toks`
+        if "max_gen_toks" in kwargs:
+            del kwargs["max_gen_toks"]
         return kwargs
