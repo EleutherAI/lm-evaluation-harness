@@ -679,8 +679,8 @@ def normalize_gen_kwargs(
     )
 
     # Handle do_sample and temperature consistently
-    do_sample = kwargs.get("do_sample")
-    temperature = kwargs.get("temperature")
+    do_sample: bool | None = kwargs.get("do_sample")
+    temperature: float | None = kwargs.get("temperature")
 
     # If do_sample=False explicitly, ensure greedy decoding via temperature=0
     match do_sample:
