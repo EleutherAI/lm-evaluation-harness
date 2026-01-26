@@ -640,12 +640,13 @@ def normalize_gen_kwargs(
         - do_sample (bool): Whether to use sampling (bool)
         - until: list[str]: List of stop sequences.
         - max_gen_toks (int): Maximum tokens to generate (int)
-        - temperature (float): Sampling temperature (float). Note: will always be set to 0.0 if do_sample=False.
+        - temperature (float): Sampling temperature (float). Note: will always be set to 0.0 if do_sample=False or do_sample is not specified.
         - All other kwargs passed through unchanged
 
     Notes:
-        - Accepts both `max_tokens` and `max_gen_toks` for compatibility; `max_gen_toks`
-          takes precedence if both are provided. Output always uses `max_gen_toks`.
+        - Accepts `max_gen_toks` and other aliases. Priority:
+          max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens > max_length.
+          Output always uses `max_gen_toks`.
         - When `do_sample=False`, temperature is set to 0.0 for greedy decoding.
         - When temperature is 0.0 and `do_sample` is not specified, `do_sample` is set
           to False.
@@ -685,12 +686,11 @@ def normalize_gen_kwargs(
 
     # Handle do_sample and temperature consistently
     do_sample: bool | None = kwargs.get("do_sample")
-    temperature: float | None = kwargs.get("temperature", 0.0)
+    temperature: float | None = float(kwargs.get("temperature", 0.0))
 
     match do_sample:
         case None:
-            if temperature == 0.0:
-                kwargs["do_sample"] = False
+            kwargs["do_sample"] = True if temperature > 0.0 else False  # noqa: SIM210
         # do_sample=False -> temperature=0.0
         case False:
             if temperature and temperature != 0.0:
