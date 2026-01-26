@@ -668,30 +668,44 @@ def normalize_gen_kwargs(
             eval_logger,
             f"`max_gen_toks`: {max_gen_toks} and `max_tokens`: {max_tokens} both provided; `max_gen_toks` takes precedence.",
         )
-    if max_gen_toks is not None:
-        max_gen_toks = int(max_gen_toks)
-    elif max_tokens is not None:
-        max_gen_toks = int(max_tokens)
-    else:
-        max_gen_toks = default_max_gen_toks
+
+    max_gen_toks = (
+        int(max_gen_toks)
+        if max_gen_toks is not None
+        else int(max_tokens)
+        if max_tokens is not None
+        else int(default_max_gen_toks)
+    )
 
     # Handle do_sample and temperature consistently
     do_sample = kwargs.get("do_sample")
-    temperature = kwargs.get("temperature", 0.0)
+    temperature = kwargs.get("temperature")
 
     # If do_sample=False explicitly, ensure greedy decoding via temperature=0
-    if do_sample is False:
-        if temperature != 0.0:
+    match do_sample:
+        case None:
+            # always require do_sample to be explicitly set
             warning_once(
                 eval_logger,
-                f"{do_sample=}` but {temperature=}; setting `temperature` to 0.0 for greedy decoding.",
+                "`do_sample` not specified in gen_kwargs; defaulting to `do_sample=False, temperature=0.0` for greedy decoding.",
             )
-        kwargs["temperature"] = 0.0
-    else:
-        kwargs["temperature"] = temperature
-        # If temperature is 0 and do_sample wasn't specified, default to greedy
-        if temperature == 0.0 and do_sample is None:
             kwargs["do_sample"] = False
+            kwargs["temperature"] = 0.0
+        # do_sample=False -> temperature=0.0
+        case False:
+            if temperature and temperature != 0.0:
+                warning_once(
+                    eval_logger,
+                    f"{do_sample=}` but {temperature=}; setting `temperature` to 0.0 for greedy decoding. For non-greedy decoding, set `do_sample=True`.",
+                )
+            kwargs["temperature"] = 0.0
+        case True:
+            # do_sample=True -> use provided kwargs
+            if temperature == 0.0:
+                warning_once(
+                    eval_logger,
+                    f"{do_sample=}` but {temperature=}. For non-greedy sampling, set temperature > 0.0",
+                )
 
     # Set normalized values
     kwargs["until"] = until
