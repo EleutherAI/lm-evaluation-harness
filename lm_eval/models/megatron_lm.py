@@ -4,38 +4,61 @@ Megatron-LM backend for lm-evaluation-harness.
 This module provides support for evaluating Megatron-LM models, including
 both standard checkpoints and distributed checkpoints (.distcp format).
 
-Supports three parallelism modes:
-1. Data Parallelism (DP): devices > 1, TP=1, PP=1 - Each GPU has a full model replica
-2. Model Parallelism (TP × PP): TP * PP == devices - Model is split across GPUs
-3. Single GPU: devices=1, TP=1, PP=1 - Standard single GPU evaluation
+Parallelism Modes:
+    1. Single GPU: devices=1, TP=1, PP=1
+       - Standard single GPU evaluation
+    
+    2. Data Parallelism (DP): devices > 1, TP=1, PP=1
+       - Each GPU has a full model replica
+       - Data is distributed across GPUs
+       - Results are gathered from all ranks
+    
+    3. Model Parallelism (TP/PP): TP * PP == devices
+       - Model is split across GPUs using Tensor and/or Pipeline Parallelism
+       - No data parallelism
+    
+    4. Expert Parallelism (EP) for MoE models: EP > 1, TP=1, PP=1, devices=EP
+       - Each GPU holds different experts
+       - Tokens are routed via All-to-All communication
+       - EP cannot be combined with TP or PP
 
 Requirements:
     - Megatron-LM must be installed or accessible via MEGATRON_PATH environment variable
     - PyTorch with CUDA support
 
-Usage:
+Usage Examples:
     # Set MEGATRON_PATH environment variable
     export MEGATRON_PATH=/path/to/Megatron-LM
 
     # Single GPU evaluation
-    lm-eval --model megatron_lm \
-        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model \
-        --tasks hellaswag
+    torchrun --nproc_per_node=1 -m lm_eval --model megatron_lm \\
+        --model_args load=/path/to/ckpt,tokenizer_model=/path/to/tokenizer.model \\
+        --tasks arc_easy --batch_size 8
 
     # Data Parallelism (4 GPUs, each with full model replica)
-    lm-eval --model megatron_lm \
-        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,devices=4 \
-        --tasks hellaswag
+    torchrun --nproc_per_node=4 -m lm_eval --model megatron_lm \\
+        --model_args load=/path/to/ckpt,devices=4,tokenizer_model=/path/to/tokenizer.model \\
+        --tasks arc_easy --batch_size 8
 
-    # Tensor Parallelism (TP=2)
-    lm-eval --model megatron_lm \
-        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,devices=2,tensor_model_parallel_size=2 \
-        --tasks hellaswag
+    # Tensor Parallelism (2 GPUs for TP)
+    torchrun --nproc_per_node=2 -m lm_eval --model megatron_lm \\
+        --model_args load=/path/to/ckpt,devices=2,tensor_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
+        --tasks arc_easy --batch_size 8
 
-    # Mixed Parallelism (TP=2, PP=2, total 4 GPUs)
-    lm-eval --model megatron_lm \
-        --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer.model,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2 \
-        --tasks hellaswag
+    # Pipeline Parallelism (2 GPUs for PP)
+    torchrun --nproc_per_node=2 -m lm_eval --model megatron_lm \\
+        --model_args load=/path/to/ckpt,devices=2,pipeline_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
+        --tasks arc_easy --batch_size 8
+
+    # Mixed TP + PP (4 GPUs: TP=2, PP=2)
+    torchrun --nproc_per_node=4 -m lm_eval --model megatron_lm \\
+        --model_args load=/path/to/ckpt,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
+        --tasks arc_easy --batch_size 8
+
+    # Expert Parallelism for MoE models (6 GPUs, EP=6)
+    torchrun --nproc_per_node=6 -m lm_eval --model megatron_lm \\
+        --model_args load=/path/to/moe_ckpt,devices=6,expert_model_parallel_size=6,tokenizer_model=/path/to/tokenizer.model \\
+        --tasks arc_easy --batch_size 8
 """
 
 import logging
@@ -117,18 +140,7 @@ class MegatronLMEval(LM):
     """
     Megatron-LM model adapter for lm-evaluation-harness.
     
-    Supports three parallelism modes (NeMo-style):
-    1. Data Parallelism: devices > 1, TP=1, PP=1
-       - Each GPU has a full model replica
-       - Data is distributed across GPUs
-       - Results are gathered from all ranks
-    
-    2. Model Parallelism: TP * PP == devices
-       - Model is split across GPUs using Tensor and/or Pipeline Parallelism
-       - No data parallelism
-    
-    3. Single GPU: devices=1 (default)
-       - Standard single GPU evaluation
+    See module docstring for parallelism modes and usage examples.
     
     Args:
         load: Megatron checkpoint path (parent directory containing iter_xxx subdirectories)
@@ -140,6 +152,7 @@ class MegatronLMEval(LM):
         devices: Total number of GPUs to use (default: 1)
         tensor_model_parallel_size: Tensor parallelism degree (default: 1)
         pipeline_model_parallel_size: Pipeline parallelism degree (default: 1)
+        expert_model_parallel_size: Expert parallelism degree for MoE models (default: 1)
         seq_length: Maximum sequence length
         micro_batch_size: Micro batch size (optional, uses checkpoint value if not specified)
         max_gen_toks: Maximum number of tokens to generate
@@ -158,6 +171,7 @@ class MegatronLMEval(LM):
         devices: int = 1,
         tensor_model_parallel_size: int = 1,
         pipeline_model_parallel_size: int = 1,
+        expert_model_parallel_size: int = 1,
         seq_length: int = 4096,
         micro_batch_size: int = 1,
         max_gen_toks: int = 256,
@@ -180,10 +194,11 @@ class MegatronLMEval(LM):
         self._ckpt_step = ckpt_step
         self._tp_size = tensor_model_parallel_size
         self._pp_size = pipeline_model_parallel_size
+        self._ep_size = expert_model_parallel_size
         self._devices = devices
         
         # Validate parallelism configuration (NeMo-style)
-        self._validate_parallelism_config(devices, tensor_model_parallel_size, pipeline_model_parallel_size)
+        self._validate_parallelism_config(devices, tensor_model_parallel_size, pipeline_model_parallel_size, expert_model_parallel_size)
         
         # Add Megatron to path
         _add_megatron_to_path()
@@ -213,6 +228,7 @@ class MegatronLMEval(LM):
             devices=devices,
             tensor_model_parallel_size=tensor_model_parallel_size,
             pipeline_model_parallel_size=pipeline_model_parallel_size,
+            expert_model_parallel_size=expert_model_parallel_size,
             seq_length=seq_length,
             micro_batch_size=micro_batch_size,
             use_dist_ckpt=use_dist_ckpt,
@@ -228,24 +244,47 @@ class MegatronLMEval(LM):
         eval_logger.info(f"Max sequence length: {self._max_length}")
         eval_logger.info(f"Batch size: {self._batch_size}")
         eval_logger.info(f"Parallelism mode: {self._parallelism_mode}")
-        eval_logger.info(f"Devices: {self._devices}, TP: {self._tp_size}, PP: {self._pp_size}")
+        eval_logger.info(f"Devices: {self._devices}, TP: {self._tp_size}, PP: {self._pp_size}, EP: {self._ep_size}")
     
-    def _validate_parallelism_config(self, devices: int, tp: int, pp: int):
+    def _validate_parallelism_config(self, devices: int, tp: int, pp: int, ep: int):
         """
         Validate parallelism configuration (NeMo-style).
         
         Supported modes:
-        1. Data Parallelism: tp=1, pp=1, devices>1
+        1. Data Parallelism: tp=1, pp=1, devices>1 (with optional EP)
         2. Model Parallelism: tp*pp == devices
         3. Single GPU: devices=1
+        
+        For Expert Parallelism (EP > 1):
+        - EP cannot be combined with TP or PP (must have TP=1, PP=1)
+        - EP must equal devices (each expert parallel rank is also a data parallel rank)
         """
+        # Validate EP configuration
+        if ep > 1:
+            # EP cannot be combined with TP or PP
+            if tp > 1 or pp > 1:
+                raise ValueError(
+                    f"Expert Parallelism (EP={ep}) cannot be combined with "
+                    f"Tensor Parallelism (TP={tp}) or Pipeline Parallelism (PP={pp}). "
+                    f"Please use EP alone with TP=1, PP=1."
+                )
+            # EP must equal devices
+            if devices != ep:
+                raise ValueError(
+                    f"Invalid Expert Parallelism configuration: devices={devices}, EP={ep}. "
+                    f"When using Expert Parallelism (EP > 1), devices must equal expert-model-parallel-size."
+                )
+        
         if tp == 1 and pp == 1:
             if devices == 1:
                 self._parallelism_mode = "single"
                 eval_logger.info("Parallelism mode: Single GPU")
             else:
                 self._parallelism_mode = "data_parallel"
-                eval_logger.info(f"Parallelism mode: Data Parallel with {devices} replicas")
+                if ep > 1:
+                    eval_logger.info(f"Parallelism mode: Data Parallel with EP={ep} (devices={devices})")
+                else:
+                    eval_logger.info(f"Parallelism mode: Data Parallel with {devices} replicas")
         elif tp * pp == devices:
             self._parallelism_mode = "model_parallel"
             eval_logger.info(f"Parallelism mode: Model Parallel (TP={tp}, PP={pp})")
@@ -265,6 +304,7 @@ class MegatronLMEval(LM):
         devices = kwargs['devices']
         tp_size = kwargs['tensor_model_parallel_size']
         pp_size = kwargs['pipeline_model_parallel_size']
+        ep_size = kwargs['expert_model_parallel_size']
         
         # For Data Parallelism mode, we use TP=1, PP=1 for each replica
         # The data distribution is handled in _loglikelihood_tokens
@@ -277,6 +317,7 @@ class MegatronLMEval(LM):
             '--load', kwargs['load'],
             '--tensor-model-parallel-size', str(actual_tp),
             '--pipeline-model-parallel-size', str(actual_pp),
+            '--expert-model-parallel-size', str(ep_size),
             '--seq-length', str(kwargs['seq_length']),
             '--tokenizer-type', kwargs['tokenizer_type'],
             '--no-load-optim',
@@ -562,11 +603,17 @@ class MegatronLMEval(LM):
         """
         Model forward pass with Pipeline Parallelism support.
         
+        Barriers are placed before and after the forward pass to ensure all ranks 
+        are synchronized during model computation.
+        
         For PP > 1:
         - First stage receives input embeddings
         - Intermediate stages process hidden states
         - Last stage produces logits
         - Logits are broadcast to all PP ranks
+        
+        For EP > 1 (Expert Parallelism):
+        - MoE layers use all-to-all communication which provides implicit synchronization
         
         Returns:
             logits: [batch_size, seq_len, vocab_size] on all ranks
@@ -586,6 +633,10 @@ class MegatronLMEval(LM):
                 device=input_ids.device
             ).tril()
         
+        # Synchronize all ranks before forward pass
+        if torch.distributed.is_initialized():
+            torch.distributed.barrier()
+        
         with torch.no_grad():
             if self._pp_size == 1:
                 # No pipeline parallelism - simple forward
@@ -601,6 +652,10 @@ class MegatronLMEval(LM):
                     position_ids=position_ids,
                     attention_mask=attention_mask,
                 )
+        
+        # Synchronize all ranks after forward pass
+        if torch.distributed.is_initialized():
+            torch.distributed.barrier()
         
         return output
     
@@ -715,14 +770,18 @@ class MegatronLMEval(LM):
         Compute log-likelihood based on tokens.
         
         With Data Parallelism:
-        - Requests are distributed across ranks
+        - Requests are distributed across ranks by lm_eval's evaluator
         - Each rank processes its share
-        - Results are gathered and combined
+        - Results are gathered by lm_eval's evaluator
         
         With Model Parallelism (TP/PP):
         - All TP ranks compute the same result (TP is transparent)
         - Only PP last stage has logits, which are broadcast to all stages
         - Results are computed on all ranks consistently
+        
+        With Expert Parallelism (EP > 1):
+        - MoE layers use all-to-all which provides implicit synchronization
+        - lm_eval's evaluator ensures equal request counts across ranks
         """
         # Distribute requests for Data Parallelism
         local_requests, sizes = self._distribute_requests(requests)
