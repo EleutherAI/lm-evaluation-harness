@@ -140,7 +140,7 @@ class VLLM(TemplateLM):
         quantization: str | None = None,
         max_gen_toks: int = 256,
         swap_space: int = 4,
-        batch_size: str | int = 1,
+        batch_size: str | int = "auto",
         max_batch_size=None,
         max_length: int | None = None,
         max_model_len: int | None = None,
@@ -843,7 +843,9 @@ class VLLM(TemplateLM):
 
     @staticmethod
     def modify_gen_kwargs(
-        gen_kwargs: GenKwargs, eos: str | None = None, default_max_gen_toks: int = 256
+        gen_kwargs: GenKwargs,
+        eos: str | list[str] | None = None,
+        default_max_gen_toks: int = 256,
     ) -> tuple[dict, list[str], int]:
         """Process generation kwargs into vLLM-compatible format.
 
@@ -861,7 +863,9 @@ class VLLM(TemplateLM):
         kwargs = {**copy.deepcopy(gen_kwargs)}
 
         # Extract and process stop sequences
-        until = handle_stop_sequences(kwargs.pop("until", None), eos=eos)
+        until = handle_stop_sequences(
+            kwargs.pop("until", None), eos=eos[0] if isinstance(eos, list) else eos
+        )
 
         # Extract max_tokens
         max_gen_toks = int(kwargs.pop("max_gen_toks", default_max_gen_toks))
