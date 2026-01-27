@@ -1,5 +1,5 @@
 task: triviaqa
-dataset_path: trivia_qa
+dataset_path: mandarjoshi/trivia_qa
 dataset_name: rc.nocontext
 output_type: generate_until
 training_split: train
