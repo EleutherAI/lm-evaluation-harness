@@ -354,16 +354,13 @@ class WindowsML(TemplateLM):
             eval_logger.error(f"GenAI inference failed: {e}")
             raise
 
-    def _loglikelihood_tokens(
-        self, 
-        requests: List["Instance"], 
-        disable_tqdm: bool = False
-    ) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: List["Instance"], disable_tqdm: bool = False) -> List[Tuple[float, bool]]:
         """
-        Compute log-likelihood for tokens using ONNX Runtime GenAI.
+        Compute log-likelihood using ONNX Runtime GenAI, working directly with tokens.
+        Handles empty context for unconditional likelihood computation.
         
         Args:
-            requests: List of instances containing context and continuation tokens
+            requests: List of instances containing context and continuation
             disable_tqdm: Whether to disable progress bar
             
         Returns:
@@ -372,33 +369,47 @@ class WindowsML(TemplateLM):
         results = []
         
         for request in tqdm(requests, disable=disable_tqdm, desc="Computing log-likelihoods"):
-            _, context_enc, continuation_enc = request
+            context, continuation = request.args
+            
+            # Encode using GenAI tokenizer
+            context_enc = self.tok_encode(context) if context else []
+            continuation_enc = self.tok_encode(continuation)
             
             if len(continuation_enc) == 0:
                 results.append((0.0, True))
                 continue
             
             try:
-                # Combine context and continuation using GenAI tokenizer for consistency
-                context_text = self.genai_tokenizer.decode(context_enc)
-                continuation_text = self.genai_tokenizer.decode(continuation_enc)
-                full_text = context_text + continuation_text
-
+                # Combine context and continuation tokens
+                # Handle empty context for unconditional likelihood
+                if len(context_enc) > 0:
+                    full_tokens = context_enc + continuation_enc
+                else:
+                    # For unconditional likelihood, still need some context
+                    # Use BOS/prefix token if available
+                    full_tokens = [self.prefix_token_id] + continuation_enc if self.prefix_token_id is not None else continuation_enc
+                
+                # Decode back to text for inference
+                full_text = self.genai_tokenizer.decode(full_tokens)
                 logits = self._run_genai_inference_for_full_logits(full_text)
                 
                 # Calculate log-likelihood for continuation tokens
-                context_len = len(context_enc)
+                context_len = len(context_enc) if context_enc else 0
                 continuation_len = len(continuation_enc)
                 
+                # For unconditional case with prefix token, adjust context length
+                if len(context_enc) == 0 and self.prefix_token_id is not None:
+                    context_len = 1
+                
                 if context_len >= logits.shape[0]:
-                    # Not enough logits for the context
+                    # Not enough logits
                     results.append((0.0, False))
                     continue
                 
                 # Get logits for continuation positions
                 # Note: logits[i] predicts token[i+1]
-                start_idx = max(0, context_len - 1)
-                end_idx = min(logits.shape[0], context_len + continuation_len - 1)
+                start_idx = max(0, context_len - 1) if context_len > 0 else 0
+                end_idx = min(logits.shape[0], start_idx + continuation_len)
                 
                 if start_idx >= end_idx:
                     results.append((0.0, False))
@@ -453,23 +464,23 @@ class WindowsML(TemplateLM):
                 )
             )
             
-            # Prepare windows for _loglikelihood_tokens (convert to context/continuation text pairs)
-            # We need to convert token windows back to text for processing
+            # Prepare windows for loglikelihood (convert token windows to text pairs)
+            # We decode tokens to text since loglikelihood expects text arguments
             window_requests = []
             for context_tokens, continuation_tokens in rolling_token_windows:
                 context_text = self.tok_decode(context_tokens)
                 continuation_text = self.tok_decode(continuation_tokens)
                 window_requests.append((context_text, continuation_text))
             
-            # Use _loglikelihood_tokens to compute log-likelihoods for all windows
-            # Create fake Instance objects for the windows
+            # Use loglikelihood to compute log-likelihoods for all windows
+            # Create Instance objects for the windows
             from lm_eval.api.instance import Instance
             window_instances = [
                 Instance(request_type="loglikelihood", doc={}, arguments=(ctx, cont), idx=0, metadata={})
                 for ctx, cont in window_requests
             ]
             
-            string_nll = self._loglikelihood_tokens(
+            string_nll = self.loglikelihood(
                 window_instances,
                 disable_tqdm=True,
             )
