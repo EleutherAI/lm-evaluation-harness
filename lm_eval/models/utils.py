@@ -630,7 +630,7 @@ def normalize_gen_kwargs(
         gen_kwargs: Raw generation kwargs from the request. Expected keys include:
             - do_sample: Whether to use sampling (vs greedy decoding) - Required
             - until (str | list[str]): Stop sequence(s) for generation.
-            - max_gen_toks | max_tokens | max_new_tokens | max_length: Maximum tokens to generate
+            - max_gen_toks | max_new_tokens | max_tokens | max_completion_tokens: Maximum tokens to generate
             - temperature: Sampling temperature
             - Other backend-specific kwargs
         default_max_gen_toks: Default max_gen_toks if not specified in gen_kwargs.
@@ -645,7 +645,7 @@ def normalize_gen_kwargs(
 
     Notes:
         - Accepts `max_gen_toks` and other aliases. Priority:
-          max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens > max_length.
+          max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens.
           Output always uses `max_gen_toks`.
         - When `do_sample=False`, temperature is set to 0.0 for greedy decoding.
         - When temperature is 0.0 and `do_sample` is not specified, `do_sample` is set
@@ -662,7 +662,7 @@ def normalize_gen_kwargs(
     if not isinstance(until, list):
         until = [until]
 
-    # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_length)
+    # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens)
     max_token_aliases = {
         "max_gen_toks": kwargs.pop("max_gen_toks", None),
         "max_new_tokens": kwargs.pop("max_new_tokens", None),  # used in HF
@@ -672,14 +672,14 @@ def normalize_gen_kwargs(
         "max_completion_tokens": kwargs.pop(
             "max_completion_tokens", None
         ),  # newer OpenAI API alias
-        "max_length": kwargs.pop("max_length", None),  # also used by HF
+        # note: `max_length` is also used by HF but has different semantics (prompt + generation)
     }
     provided = {k: v for k, v in max_token_aliases.items() if v is not None}
 
     if len(provided) > 1:
         warning_once(
             eval_logger,
-            f"Multiple max token args provided: {provided}. Using first by priority (max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens > max_length).",
+            f"Multiple max token args provided: {provided}. Using first by priority (max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens).",
         )
 
     max_gen_toks = int(next(iter(provided.values()), default_max_gen_toks))

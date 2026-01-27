@@ -1456,13 +1456,19 @@ class HFLM(TemplateLM):
             context_enc = context_enc.to(self.device)
             attn_masks = attn_masks.to(self.device)
 
-            max_new_tokens = context_enc.shape[1] + max_gen_toks
+            # max_length = context + generation tokens
+            if "max_length" in kwargs:
+                eval_logger.warning(
+                    "`max_length` in generation kwargs. Please use `max_gen_toks` instead."
+                )
+            max_length = kwargs.pop("max_length", context_enc.shape[1] + max_gen_toks)  # type: ignore
+
             # perform batched generation
             cont = self._model_generate(
                 context=context_enc,
                 attention_mask=attn_masks,
                 stop=until,
-                max_length=max_new_tokens,
+                max_length=max_length,
                 **kwargs,
             )
 
