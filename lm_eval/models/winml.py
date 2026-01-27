@@ -22,6 +22,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 import onnxruntime_genai as og
@@ -425,55 +426,65 @@ class WindowsML(TemplateLM):
     def loglikelihood_rolling(self, requests: List["Instance"], disable_tqdm: bool = False) -> List[float]:
         """
         Compute rolling log-likelihood for perplexity using ONNX Runtime GenAI.
+        Uses sliding windows to handle sequences longer than max_length.
         
         Args:
             requests: List of instances containing text sequences
             disable_tqdm: Whether to disable progress bar
             
         Returns:
-            List of average log-likelihood values for each request
+            List of sum of log-likelihood values for each request
         """
-        results = []
+        loglikelihoods = []
         
         for request in tqdm(requests, disable=disable_tqdm, desc="Computing rolling log-likelihoods"):
             string = request.args[0]
-            tokens = self.tok_encode(string)
             
-            if len(tokens) <= 1:
-                results.append(0.0)
-                continue
+            # Use sliding window approach for long sequences
+            rolling_token_windows = list(
+                map(
+                    utils.make_disjoint_window,
+                    utils.get_rolling_token_windows(
+                        token_list=self.tok_encode(string),
+                        prefix_token=self.prefix_token_id,
+                        max_seq_len=self.max_length,
+                        context_len=1,
+                    ),
+                )
+            )
             
-            try:
-                # Get full logits using get_output("logits") - more efficient
-                logits = self._run_genai_inference_for_full_logits(string)
-
-                if logits.shape[0] == 0:
-                    results.append(0.0)
-                    continue
-                
-                # Calculate log-likelihood for all tokens except the first
-                total_log_likelihood = 0.0
-                valid_tokens = 0
-
-                # logits[i] predicts token[i+1]
-                for i in range(min(len(tokens) - 1, logits.shape[0])):
-                    logit_vector = logits[i, :]
-                    log_probs = torch.log_softmax(torch.from_numpy(logit_vector), dim=-1)
-                    target_token = tokens[i + 1]  # Next token to predict
-                    
-                    if 0 <= target_token < len(log_probs):
-                        total_log_likelihood += float(log_probs[target_token])
-                        valid_tokens += 1
-                
-                # Average log-likelihood per token
-                avg_log_likelihood = total_log_likelihood / max(valid_tokens, 1)
-                results.append(avg_log_likelihood)
-                
-            except Exception as e:
-                eval_logger.warning(f"Failed to compute rolling loglikelihood: {e}")
-                results.append(0.0)
+            # Prepare windows for _loglikelihood_tokens (convert to context/continuation text pairs)
+            # We need to convert token windows back to text for processing
+            window_requests = []
+            for context_tokens, continuation_tokens in rolling_token_windows:
+                context_text = self.tok_decode(context_tokens)
+                continuation_text = self.tok_decode(continuation_tokens)
+                window_requests.append((context_text, continuation_text))
+            
+            # Use _loglikelihood_tokens to compute log-likelihoods for all windows
+            # Create fake Instance objects for the windows
+            from lm_eval.api.instance import Instance
+            window_instances = [
+                Instance(request_type="loglikelihood", doc={}, arguments=(ctx, cont), idx=0, metadata={})
+                for ctx, cont in window_requests
+            ]
+            
+            string_nll = self._loglikelihood_tokens(
+                window_instances,
+                disable_tqdm=True,
+            )
+            
+            # Extract log-likelihoods (discard is_greedy boolean)
+            string_nll = [x[0] for x in string_nll]
+            
+            # Sum all window log-likelihoods
+            total_nll = sum(string_nll)
+            loglikelihoods.append(total_nll)
+            
+            # Cache this loglikelihood_rolling request
+            self.cache_hook.add_partial("loglikelihood_rolling", (string,), total_nll)
         
-        return results
+        return loglikelihoods
 
     def generate_until(self, requests: List["Instance"], disable_tqdm: bool = False) -> List[str]:
         """
@@ -496,10 +507,20 @@ class WindowsML(TemplateLM):
             
             max_gen_toks = gen_kwargs.get('max_gen_toks', self.max_gen_toks)
             until = gen_kwargs.get('until', [])
+            temperature = gen_kwargs.get('temperature', 0.0)
+            top_p = gen_kwargs.get('top_p', 1.0)
+            top_k = gen_kwargs.get('top_k', 50)
+            do_sample = gen_kwargs.get('do_sample', False)
             
             try:
                 # Use GenAI generation API
-                generated_text = self._run_genai_generation(context, max_gen_toks, until)
+                generated_text = self._run_genai_generation(
+                    context, max_gen_toks, until,
+                    temperature=temperature,
+                    top_p=top_p,
+                    top_k=top_k,
+                    do_sample=do_sample
+                )
                 results.append(generated_text)
                 
             except Exception as e:
@@ -512,7 +533,11 @@ class WindowsML(TemplateLM):
         self, 
         prompt: str, 
         max_tokens: int = 4096, 
-        stop_sequences: Optional[List[str]] = None
+        stop_sequences: Optional[List[str]] = None,
+        temperature: float = 0.0,
+        top_p: float = 1.0,
+        top_k: int = 50,
+        do_sample: bool = False
     ) -> str:
         """
         Run text generation using ONNX Runtime GenAI.
@@ -521,6 +546,10 @@ class WindowsML(TemplateLM):
             prompt: Input text to generate from
             max_tokens: Maximum number of tokens to generate
             stop_sequences: List of sequences that will stop generation
+            temperature: Sampling temperature (0 = greedy, higher = more random)
+            top_p: Nucleus sampling threshold
+            top_k: Top-k sampling parameter
+            do_sample: Whether to use sampling (if False, uses greedy decoding)
             
         Returns:
             Generated text string
@@ -530,7 +559,19 @@ class WindowsML(TemplateLM):
             params = self.og.GeneratorParams(self.genai_model)
             
             # Set generation parameters
-            params.set_search_options(max_length=int(max_tokens))
+            # For greedy decoding (temperature=0 or do_sample=False), disable sampling
+            search_options = {
+                'max_length': int(max_tokens),
+                'do_sample': do_sample and temperature > 0,
+            }
+            
+            # Add sampling parameters if do_sample is enabled
+            if do_sample and temperature > 0:
+                search_options['temperature'] = float(temperature)
+                search_options['top_p'] = float(top_p)
+                search_options['top_k'] = int(top_k)
+            
+            params.set_search_options(**search_options)
             
             # Create generator
             generator = self.og.Generator(self.genai_model, params)
