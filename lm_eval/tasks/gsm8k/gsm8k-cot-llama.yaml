@@ -1,5 +1,5 @@
 dataset_name: main
-dataset_path: gsm8k
+dataset_path: openai/gsm8k
 doc_to_target: '{{answer.split(''####'')[-1].strip() if answer is defined else target}}'
 doc_to_text: "Given the following problem, reason and give a final answer to the problem.\nProblem: {{question}}\nYour response should end with \"The final answer is [answer]\" where [answer] is the response to the problem.\n"
 fewshot_config:
