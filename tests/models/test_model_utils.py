@@ -1,6 +1,6 @@
 import pytest
 
-from lm_eval.models.utils import maybe_truncate, truncate_tokens
+from lm_eval.models.utils import maybe_truncate, normalize_gen_kwargs, truncate_tokens
 
 
 class TestTruncateTokens:
@@ -170,3 +170,124 @@ class TestMaybeTruncate:
             maybe_truncate(
                 tokens, max_gen_toks=5, max_len=2, min_gen_toks=3, shrink_gen_toks=True
             )
+
+
+class TestNormalizeGenKwargs:
+    """Tests for normalize_gen_kwargs utility function."""
+
+    # --- until normalization ---
+
+    def test_until_string_converted_to_list(self):
+        result = normalize_gen_kwargs({"until": "stop"})
+        assert result["until"] == ["stop"]
+
+    def test_until_list_passed_through(self):
+        result = normalize_gen_kwargs({"until": ["stop1", "stop2"]})
+        assert result["until"] == ["stop1", "stop2"]
+
+    def test_until_missing_defaults_to_empty_list(self):
+        result = normalize_gen_kwargs({})
+        assert result["until"] == []
+
+    # --- max token aliases ---
+
+    def test_max_gen_toks_used_directly(self):
+        result = normalize_gen_kwargs({"max_gen_toks": 100})
+        assert result["max_gen_toks"] == 100
+
+    def test_max_new_tokens_converted(self):
+        result = normalize_gen_kwargs({"max_new_tokens": 150})
+        assert result["max_gen_toks"] == 150
+
+    def test_max_tokens_converted(self):
+        result = normalize_gen_kwargs({"max_tokens": 200})
+        assert result["max_gen_toks"] == 200
+
+    def test_max_completion_tokens_converted(self):
+        result = normalize_gen_kwargs({"max_completion_tokens": 250})
+        assert result["max_gen_toks"] == 250
+
+    def test_default_max_gen_toks_when_none_provided(self):
+        result = normalize_gen_kwargs({})
+        assert result["max_gen_toks"] == 256
+
+    def test_custom_default_max_gen_toks(self):
+        result = normalize_gen_kwargs({}, default_max_gen_toks=512)
+        assert result["max_gen_toks"] == 512
+
+    def test_max_token_priority_max_gen_toks_first(self):
+        result = normalize_gen_kwargs(
+            {
+                "max_gen_toks": 100,
+                "max_new_tokens": 200,
+                "max_tokens": 300,
+            }
+        )
+        assert result["max_gen_toks"] == 100
+
+    def test_max_token_priority_max_new_tokens_second(self):
+        result = normalize_gen_kwargs(
+            {
+                "max_new_tokens": 200,
+                "max_tokens": 300,
+                "max_completion_tokens": 400,
+            }
+        )
+        assert result["max_gen_toks"] == 200
+
+    def test_max_token_priority_max_tokens_third(self):
+        result = normalize_gen_kwargs(
+            {
+                "max_tokens": 300,
+                "max_completion_tokens": 400,
+            }
+        )
+        assert result["max_gen_toks"] == 300
+
+    # --- do_sample and temperature interaction ---
+
+    def test_do_sample_none_temperature_zero_sets_do_sample_false(self):
+        result = normalize_gen_kwargs({"temperature": 0.0})
+        assert result["do_sample"] is False
+
+    def test_do_sample_none_temperature_positive_sets_do_sample_true(self):
+        result = normalize_gen_kwargs({"temperature": 0.7})
+        assert result["do_sample"] is True
+
+    def test_do_sample_false_sets_temperature_zero(self):
+        result = normalize_gen_kwargs({"do_sample": False})
+        assert result["temperature"] == 0.0
+
+    def test_do_sample_false_temperature_positive_forces_temperature_zero(self):
+        result = normalize_gen_kwargs({"do_sample": False, "temperature": 0.8})
+        assert result["temperature"] == 0.0
+
+    def test_do_sample_true_temperature_positive_preserved(self):
+        result = normalize_gen_kwargs({"do_sample": True, "temperature": 0.9})
+        assert result["do_sample"] is True
+        assert result["temperature"] == 0.9
+
+    def test_do_sample_true_temperature_zero_preserved(self):
+        result = normalize_gen_kwargs({"do_sample": True, "temperature": 0.0})
+        assert result["do_sample"] is True
+        assert result["temperature"] == 0.0
+
+    # --- other behaviors ---
+
+    def test_extra_kwargs_passed_through(self):
+        result = normalize_gen_kwargs(
+            {
+                "top_p": 0.95,
+                "top_k": 50,
+                "repetition_penalty": 1.1,
+            }
+        )
+        assert result["top_p"] == 0.95  # type: ignore
+        assert result["top_k"] == 50  # type: ignore
+        assert result["repetition_penalty"] == 1.1  # type: ignore
+
+    def test_original_dict_not_mutated(self):
+        original = {"until": "stop", "max_gen_toks": 100, "temperature": 0.5}
+        original_copy = original.copy()
+        normalize_gen_kwargs(original)
+        assert original == original_copy
