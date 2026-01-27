@@ -13,6 +13,7 @@ from lm_eval._cli.utils import (
     request_caching_arg_to_dict,
     try_parse_json,
 )
+from lm_eval.api.metrics import get_pending_llm_judge_details
 
 
 class Run(SubCommand):
@@ -161,6 +162,12 @@ class Run(SubCommand):
                 'Generation arguments as `temperature=0,stop=["stop"]` or `key=val` `key2=val2`.'
                 "Values should be parsable with ast.literal_eval."
             ),
+        )
+        eval_group.add_argument(
+            "--run_llm_judge",
+            action="store_true",
+            default=argparse.SUPPRESS,
+            help="Enable LLM-as-a-Judge metrics (disabled by default)",
         )
 
         # Data and Output
@@ -344,6 +351,10 @@ class Run(SubCommand):
         # Create and validate config (most validation now occurs in EvaluationConfig)
         cfg = EvaluatorConfig.from_cli(args)
 
+        # Set LLM judge flag as env var for tasks to check
+        if cfg.run_llm_judge:
+            os.environ["LM_EVAL_RUN_LLM_JUDGE"] = "1"
+
         from lm_eval import simple_evaluate
         from lm_eval.loggers import EvaluationTracker, WandbLogger
         from lm_eval.utils import handle_non_serializable, make_table
@@ -446,6 +457,11 @@ class Run(SubCommand):
                     evaluation_tracker.save_results_samples(
                         task_name=task_name, samples=samples[task_name]
                     )
+                    
+            # Save LLM judge detailed results if any were collected
+            llm_judge_details = get_pending_llm_judge_details()
+            if llm_judge_details:
+                evaluation_tracker.save_llm_judge_details(llm_judge_details)
 
             if (
                 evaluation_tracker.push_results_to_hub

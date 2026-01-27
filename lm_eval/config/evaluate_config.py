@@ -121,6 +121,12 @@ class EvaluatorConfig:
             "help": "Only save model outputs, don't evaluate metrics. Use with log_samples."
         },
     )
+    run_llm_judge: bool = field(
+        default=False,
+        metadata={
+            "help": "Enable LLM-as-a-Judge metrics (disabled by default)"
+        },
+    )
 
     # Chat and instruction handling
     system_instruction: str | None = field(

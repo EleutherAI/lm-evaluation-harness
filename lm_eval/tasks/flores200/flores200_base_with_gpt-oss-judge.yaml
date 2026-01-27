@@ -1,0 +1,109 @@
+dataset_path: Muennighoff/flores200
+training_split: dev
+validation_split: devtest
+test_split: devtest
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: generate_until
+generation_kwargs:
+  repetition_penalty: 1.00      
+  do_sample: false
+  temperature: 0.0
+  top_p: 1.0 
+  max_gen_toks: 512
+  until:
+    - "\n"
+    - "\n\n"
+    - "|"
+
+metric_list:
+  - metric: bleu
+    aggregation: bleu
+    higher_is_better: true
+  - metric: llm_judge
+    aggregation: llm_judge
+    name: gpt_oss_20b_reference_free # unique name in case you have multiple llm judges
+    higher_is_better: true
+    # Reliability settings
+    preflight_check: true
+    retry_attempts: 3
+    retry_min_wait: 2.0
+    retry_max_wait: 20.0
+    max_error_rate: 0.02   # Strict: fail if >2% errors    
+    source_field: sentence_eng_Latn
+    prompt_template: |
+      You are an expert translation quality evaluator. Your task is to assess the quality of a machine translation.
+
+      Evaluate the translation based on at least these criteria:
+      1. **Accuracy**: Does the translation convey the same meaning as the source text?
+      2. **Fluency**: Is the translation natural and grammatically correct in the target language?
+      3. **Consistency**: Are terminology and style consistent?
+      4. **Completeness**: Is all information from the source text included?
+
+      Source Text:
+      {{ doc[source_field].strip() }}
+
+      Model Translation:
+      {{ prediction.strip() }}
+
+      Please provide:
+      1. A score from 0-10 (where 0 is completely wrong and 10 is perfect).
+      2. A brief explanation of your scoring
+
+      Respond in the following JSON format:
+      {{ response_format }}
+    response_format:
+      explanation: "Explain how you reached your scoring assessment."
+      details:
+        accuracy_score: 0
+        fluency_score: 0
+        consistency_score: 0
+        completeness_score: 0
+      overall_score: 0
+    score_field: overall_score
+    model: openai/gpt-oss-20b
+    # api_base: set via LLM_JUDGE_API_BASE env variable, e.g. LLM_JUDGE_API_BASE=my_vllm_server_host:8000/v1
+    concurrency: 100 # num of concurrent threads making calls to llm judge
+    temperature: 0.4 # gpt-oss generally better with non-zero temperature
+    max_tokens: 3000 # gpt-oss uses thinking-mode, needs more tokens generally
+    save_details: true  # Save detailed results to llm_judge_<task>_<model>_<timestamp>.jsonl (requires --output_path)
+  - metric: llm_judge
+    aggregation: llm_judge
+    name: gpt_oss_20b_with_reference # unique name in case you have multiple llm judges
+    higher_is_better: true
+    source_field: sentence_eng_Latn
+    prompt_template: |
+      You are an expert translation quality evaluator. Your task is to assess the quality of a machine translation.      
+
+      Evaluate the translation based on at least these criteria:
+      1. **Accuracy**: Does the translation convey the same meaning as the source text?
+      2. **Fluency**: Is the translation natural and grammatically correct in the target language?
+      3. **Consistency**: Are terminology and style consistent?
+      4. **Completeness**: Is all information from the source text included?
+
+      Source Text:
+      {{ doc[source_field].strip() }}
+
+      Model Translation:
+      {{ prediction.strip() }}
+
+      Reference Translation:
+      {{ reference }}
+
+      Please provide:
+      1. An integer score from 0-10 (where 0 is completely wrong and 10 is perfect).
+      2. A brief explanation of your scoring
+
+      Start your response with a single line of format "Score: X" where X is an integer from 0 to 10.
+    model: openai/gpt-oss-20b
+    # api_base: set via LLM_JUDGE_API_BASE env variable, e.g. LLM_JUDGE_API_BASE=my_vllm_server_host:8000/v1
+    concurrency: 100 # num of concurrent threads making calls to llm judge
+    temperature: 0.4 # gpt-oss generally better with non-zero temperature
+    max_tokens: 3000 # gpt-oss uses thinking-mode, needs more tokens generally
+    save_details: true  # Save detailed results to llm_judge_<task>_<model>_<timestamp>.jsonl (requires --output_path)  
+metadata:
+  version: 1.0
+  extra_llm_judge_fields:
+    source_field: sentence_eng_Latn  # Default source field, override this in child configs, so that we can re-use the llm complete judge config from base
+  
