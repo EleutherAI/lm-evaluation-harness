@@ -38,14 +38,16 @@ class TestMaybeTruncate:
     # Case 1: Everything fits
     def test_case1_no_truncation(self):
         tokens = [1, 2, 3, 4, 5]
-        result_tokens, result_gen = maybe_truncate(tokens, max_gen_toks=5, max_len=10)
+        result_tokens, result_gen = maybe_truncate(
+            tokens, max_gen_toks=5, max_model_len=10
+        )
         assert result_tokens == [1, 2, 3, 4, 5]
         assert result_gen == 5
 
     def test_case1_no_truncation_with_adjust(self):
         tokens = [1, 2, 3, 4, 5]
         result_tokens, result_gen = maybe_truncate(
-            tokens, max_gen_toks=5, max_len=10, shrink_gen_toks=True
+            tokens, max_gen_toks=5, max_model_len=10, shrink_gen_toks=True
         )
         assert result_tokens == [1, 2, 3, 4, 5]
         assert result_gen == 5
@@ -54,7 +56,7 @@ class TestMaybeTruncate:
     def test_case2_truncate_prompt_no_adjust(self):
         tokens = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         result_tokens, result_gen = maybe_truncate(
-            tokens, max_gen_toks=5, max_len=6, shrink_gen_toks=False
+            tokens, max_gen_toks=5, max_model_len=6, shrink_gen_toks=False
         )
         # Left-truncates prompt to max_len - max_gen_toks = 1, keeps max_gen_toks=5
         assert result_tokens == [10]
@@ -62,14 +64,16 @@ class TestMaybeTruncate:
 
     def test_case2_no_adjust_is_default(self):
         tokens = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        result_tokens, result_gen = maybe_truncate(tokens, max_gen_toks=5, max_len=6)
+        result_tokens, result_gen = maybe_truncate(
+            tokens, max_gen_toks=5, max_model_len=6
+        )
         assert result_tokens == [10]
         assert result_gen == 5
 
     def test_case2_prompt_fits_but_gen_too_large_no_adjust(self):
         tokens = [1, 2, 3, 4, 5, 6, 7, 8]
         result_tokens, result_gen = maybe_truncate(
-            tokens, max_gen_toks=3, max_len=8, shrink_gen_toks=False
+            tokens, max_gen_toks=3, max_model_len=8, shrink_gen_toks=False
         )
         # Prompt (8) + gen (3) > max_len (8), truncate prompt to 8 - 3 = 5
         assert result_tokens == [4, 5, 6, 7, 8]
@@ -79,7 +83,7 @@ class TestMaybeTruncate:
     def test_case3_reduce_gen_toks(self):
         tokens = [1, 2, 3, 4, 5]
         result_tokens, result_gen = maybe_truncate(
-            tokens, max_gen_toks=10, max_len=8, shrink_gen_toks=True
+            tokens, max_gen_toks=10, max_model_len=8, shrink_gen_toks=True
         )
         assert result_tokens == [1, 2, 3, 4, 5]
         assert result_gen == 3
@@ -90,7 +94,7 @@ class TestMaybeTruncate:
         result_tokens, result_gen = maybe_truncate(
             tokens,
             max_gen_toks=5,
-            max_len=6,
+            max_model_len=6,
             min_gen_toks=2,
             side="left",
             shrink_gen_toks=True,
@@ -103,7 +107,7 @@ class TestMaybeTruncate:
         result_tokens, result_gen = maybe_truncate(
             tokens,
             max_gen_toks=5,
-            max_len=6,
+            max_model_len=6,
             min_gen_toks=2,
             side="right",
             shrink_gen_toks=True,
@@ -116,7 +120,7 @@ class TestMaybeTruncate:
         result_tokens, result_gen = maybe_truncate(
             tokens,
             max_gen_toks=5,
-            max_len=6,
+            max_model_len=6,
             min_gen_toks=2,
             side="middle",
             shrink_gen_toks=True,
@@ -130,7 +134,7 @@ class TestMaybeTruncate:
         result_tokens, result_gen = maybe_truncate(
             tokens,
             max_gen_toks=5,
-            max_len=6,
+            max_model_len=6,
             min_gen_toks=2,
             shrink_gen_toks=True,
         )
@@ -143,7 +147,7 @@ class TestMaybeTruncate:
         result_tokens, result_gen = maybe_truncate(
             tokens,
             max_gen_toks=5,
-            max_len=10,
+            max_model_len=10,
             min_gen_toks=0,
             shrink_gen_toks=True,
         )
@@ -156,7 +160,7 @@ class TestMaybeTruncate:
         result_tokens, result_gen = maybe_truncate(
             tokens,
             max_gen_toks=5,
-            max_len=8,
+            max_model_len=8,
             min_gen_toks=0,
             shrink_gen_toks=True,
         )
@@ -168,7 +172,11 @@ class TestMaybeTruncate:
         tokens = [1, 2, 3, 4, 5]
         with pytest.raises(ValueError):
             maybe_truncate(
-                tokens, max_gen_toks=5, max_len=2, min_gen_toks=3, shrink_gen_toks=True
+                tokens,
+                max_gen_toks=5,
+                max_model_len=2,
+                min_gen_toks=3,
+                shrink_gen_toks=True,
             )
 
 

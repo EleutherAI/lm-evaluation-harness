@@ -683,7 +683,7 @@ class VLLM(TemplateLM):
                 toks, max_gen_toks = maybe_truncate(
                     toks,
                     max_gen_toks=max_gen_toks,
-                    max_len=self.max_length,
+                    max_model_len=self.max_length,
                     side=self.truncation_side,
                     verbose=True,
                 )
