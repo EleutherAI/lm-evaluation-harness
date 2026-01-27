@@ -475,7 +475,7 @@ class EvaluationTracker:
                     eval_logger.info(f"Saving LLM judge details to {file_llm_judge}")
 
                     with open(file_llm_judge, "w", encoding="utf-8") as f:
-                        for result in results:
+                        for result in results:  # noqa: FURB122
                             f.write(
                                 json.dumps(
                                     result,

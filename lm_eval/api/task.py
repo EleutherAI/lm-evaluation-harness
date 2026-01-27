@@ -3,12 +3,12 @@ from __future__ import annotations
 import abc
 import ast
 import logging
+import os
 import random
 import re
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from functools import partial
-import os
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -757,7 +757,7 @@ class ConfigurableTask(Task):
         try:
             self.download(self.config.dataset_kwargs)
         except Exception as e:
-            eval_logger.error(f'error loading dataset for {self.config.task}')
+            eval_logger.error(f"error loading dataset for {self.config.task}")
             raise e
         self._training_docs = None
         self._fewshot_docs = None
@@ -1614,8 +1614,10 @@ class ConfigurableTask(Task):
                     llm_judge_config["task_name"] = self.config.task
                     # Merge extra_llm_judge_fields from metadata into config for template variable access
                     # This allows base configs to define variables that child configs can override
-                    if hasattr(self.config, 'metadata') and self.config.metadata:
-                        extra_fields = self.config.metadata.get('extra_llm_judge_fields', {})
+                    if hasattr(self.config, "metadata") and self.config.metadata:
+                        extra_fields = self.config.metadata.get(
+                            "extra_llm_judge_fields", {}
+                        )
                         if extra_fields:
                             for key, value in extra_fields.items():
                                 if key not in llm_judge_config:

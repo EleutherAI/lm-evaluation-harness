@@ -1,20 +1,23 @@
+# ruff: noqa: B905
 import logging
 import math
 import os
 import random
 import re
 import string
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, List, Optional, Sequence, TypeVar
+from typing import TypeVar
 
 import numpy as np
 import sacrebleu
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
+
 try:
     import openai
+
     OPENAI_AVAILABLE = True
     # Suppress verbose httpx logging from OpenAI client
     logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -23,18 +26,21 @@ except ImportError:
 
 try:
     import jinja2
+
     JINJA2_AVAILABLE = True
 except ImportError:
     JINJA2_AVAILABLE = False
 
 try:
     from genson import SchemaBuilder
+
     GENSON_AVAILABLE = True
 except ImportError:
     GENSON_AVAILABLE = False
 
 try:
     import tenacity
+
     TENACITY_AVAILABLE = True
 except ImportError:
     TENACITY_AVAILABLE = False
@@ -150,8 +156,8 @@ def _is_retryable_error(exception: Exception) -> bool:
 
 
 def _preflight_check_llm_judge(
-    api_base: Optional[str],
-    api_key: Optional[str],
+    api_base: str | None,
+    api_key: str | None,
     model: str,
     judge_label: str = "LLM Judge",
 ) -> None:
@@ -174,7 +180,7 @@ def _preflight_check_llm_judge(
             "openai package is required for LLM-as-a-Judge metrics. Install with: pip install openai"
         )
 
-    eval_logger.info(f"  Running pre-flight API check...")
+    eval_logger.info("  Running pre-flight API check...")
 
     client_kwargs = {"api_key": api_key or os.getenv("OPENAI_API_KEY")}
     if api_base:
@@ -184,13 +190,13 @@ def _preflight_check_llm_judge(
 
     try:
         # Minimal API call to verify connectivity
-        response = client.chat.completions.create(
+        client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": "Reply with OK"}],
             max_tokens=5,
             temperature=0.0,
         )
-        eval_logger.info(f"  Pre-flight check: PASSED")
+        eval_logger.info("  Pre-flight check: PASSED")
     except openai.AuthenticationError as e:
         raise RuntimeError(
             f"{judge_label} pre-flight check FAILED: Authentication error. "
@@ -753,7 +759,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -783,10 +789,10 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -804,7 +810,7 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )
@@ -856,9 +862,9 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
 def _render_llm_judge_prompt(
     prompt_template: str,
     prediction: str,
-    reference: Optional[str] = None,
-    doc: Optional[dict] = None,
-    config: Optional[dict] = None,
+    reference: str | None = None,
+    doc: dict | None = None,
+    config: dict | None = None,
 ) -> str:
     """
     Render a Jinja2 template for LLM judge prompts.
@@ -888,13 +894,26 @@ def _render_llm_judge_prompt(
     is defined, instructions will be auto-appended to the prompt.
     """
     # Reserved keys that should not be passed to templates
-    reserved_keys = frozenset({
-        "prompt_template", "api_base", "api_key", "model",
-        "temperature", "max_tokens", "concurrency",
-        "save_details", "task_name", "metric", "aggregation",
-        "higher_is_better", "hf_evaluate", "response_format",
-        "score_field", "name"
-    })
+    reserved_keys = frozenset(
+        {
+            "prompt_template",
+            "api_base",
+            "api_key",
+            "model",
+            "temperature",
+            "max_tokens",
+            "concurrency",
+            "save_details",
+            "task_name",
+            "metric",
+            "aggregation",
+            "higher_is_better",
+            "hf_evaluate",
+            "response_format",
+            "score_field",
+            "name",
+        }
+    )
 
     # Check if response_format is defined in config
     response_format_dict = config.get("response_format") if config else None
@@ -966,16 +985,16 @@ def _render_llm_judge_prompt(
 
 def _call_llm_judge_single(
     prediction: str,
-    reference: Optional[str] = None,
-    doc: Optional[dict] = None,
-    prompt_template: Optional[str] = None,
-    api_base: Optional[str] = None,
-    api_key: Optional[str] = None,
+    reference: str | None = None,
+    doc: dict | None = None,
+    prompt_template: str | None = None,
+    api_base: str | None = None,
+    api_key: str | None = None,
     model: str = "gpt-4",
     temperature: float = 0.0,
     max_tokens: int = 1024,
-    config: Optional[dict] = None,
-    json_schema: Optional[dict] = None,
+    config: dict | None = None,
+    json_schema: dict | None = None,
     score_field: str = "score",
     retry_attempts: int = 3,
     retry_min_wait: float = 1.0,
@@ -1101,7 +1120,9 @@ Your response should start with "Score: X.XX" on the first line."""
                 judgment_parsed = json.loads(judgment_text)
                 score = float(judgment_parsed.get(score_field, 0.0))
             except (json.JSONDecodeError, ValueError, TypeError) as e:
-                eval_logger.warning(f"Failed to parse JSON response: {e}. Raw: {judgment_text}")
+                eval_logger.warning(
+                    f"Failed to parse JSON response: {e}. Raw: {judgment_text}"
+                )
                 score = 0.0
                 judgment_parsed = None
 
@@ -1119,12 +1140,14 @@ Your response should start with "Score: X.XX" on the first line."""
             judgment_text = response.choices[0].message.content
 
             # Parse score - NO CLAMPING
-            score_match = re.search(r"Score:\s*([0-9]*\.?[0-9]+)", judgment_text, re.IGNORECASE)
+            score_match = re.search(
+                r"Score:\s*([0-9]*\.?[0-9]+)", judgment_text, re.IGNORECASE
+            )
             if score_match:
                 score = float(score_match.group(1))
             else:
                 eval_logger.warning(
-                    f"Could not parse score from LLM judge response. Defaulting to 0.0"
+                    "Could not parse score from LLM judge response. Defaulting to 0.0"
                 )
                 score = 0.0
 
@@ -1207,12 +1230,22 @@ def llm_judge_agg(items):
     # Falls back to LLM_JUDGE_API_BASE, LLM_JUDGE_MODEL if name-specific not set
     if judge_name:
         name_upper = judge_name.upper()
-        env_api_base = os.environ.get(f"LLM_JUDGE_{name_upper}_API_BASE") or os.environ.get("LLM_JUDGE_API_BASE")
-        env_api_key = os.environ.get(f"LLM_JUDGE_{name_upper}_API_KEY") or os.environ.get("LLM_JUDGE_API_KEY") or os.environ.get("OPENAI_API_KEY")
-        env_model = os.environ.get(f"LLM_JUDGE_{name_upper}_MODEL") or os.environ.get("LLM_JUDGE_MODEL")
+        env_api_base = os.environ.get(
+            f"LLM_JUDGE_{name_upper}_API_BASE"
+        ) or os.environ.get("LLM_JUDGE_API_BASE")
+        env_api_key = (
+            os.environ.get(f"LLM_JUDGE_{name_upper}_API_KEY")
+            or os.environ.get("LLM_JUDGE_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+        )
+        env_model = os.environ.get(f"LLM_JUDGE_{name_upper}_MODEL") or os.environ.get(
+            "LLM_JUDGE_MODEL"
+        )
     else:
         env_api_base = os.environ.get("LLM_JUDGE_API_BASE")
-        env_api_key = os.environ.get("LLM_JUDGE_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        env_api_key = os.environ.get("LLM_JUDGE_API_KEY") or os.environ.get(
+            "OPENAI_API_KEY"
+        )
         env_model = os.environ.get("LLM_JUDGE_MODEL")
 
     prompt_template = config.get("prompt_template")
@@ -1255,34 +1288,42 @@ def llm_judge_agg(items):
                 response_format_example, name="llm_judge_response"
             )
 
-    # Build metric key for results and details storage
-    metric_key = f"llm_judge_{judge_name}" if judge_name else "llm_judge"
     judge_label = f"LLM Judge ({judge_name})" if judge_name else "LLM Judge"
 
     # Log configuration details
     eval_logger.info(f"=== {judge_label} Configuration ===")
     eval_logger.info(f"  Task: {task_name}")
     eval_logger.info(f"  Model: {model}")
-    eval_logger.info(f"  API endpoint: {api_base or 'https://api.openai.com/v1 (default)'}")
+    eval_logger.info(
+        f"  API endpoint: {api_base or 'https://api.openai.com/v1 (default)'}"
+    )
     eval_logger.info(f"  Items to evaluate: {len(items)}")
     eval_logger.info(f"  Concurrency: {concurrency}")
 
     # Log retry settings
     if TENACITY_AVAILABLE and retry_attempts > 0:
-        eval_logger.info(f"  Retry: ENABLED ({retry_attempts} attempts, {retry_min_wait}s-{retry_max_wait}s exponential backoff)")
+        eval_logger.info(
+            f"  Retry: ENABLED ({retry_attempts} attempts, {retry_min_wait}s-{retry_max_wait}s exponential backoff)"
+        )
     else:
         if not TENACITY_AVAILABLE:
-            eval_logger.info(f"  Retry: DISABLED (tenacity not installed, run: pip install tenacity)")
+            eval_logger.info(
+                "  Retry: DISABLED (tenacity not installed, run: pip install tenacity)"
+            )
         else:
-            eval_logger.info(f"  Retry: DISABLED (retry_attempts=0)")
+            eval_logger.info("  Retry: DISABLED (retry_attempts=0)")
 
-    eval_logger.info(f"  Max error rate: {max_error_rate:.1%} (evaluation fails if exceeded)")
+    eval_logger.info(
+        f"  Max error rate: {max_error_rate:.1%} (evaluation fails if exceeded)"
+    )
 
     if json_schema:
         eval_logger.info(f"  Structured outputs: ENABLED (score_field='{score_field}')")
         eval_logger.info(f"  Inferred JSON schema: {json.dumps(json_schema, indent=2)}")
     else:
-        eval_logger.info(f"  Structured outputs: DISABLED (using text-based 'Score: X.XX' parsing)")
+        eval_logger.info(
+            "  Structured outputs: DISABLED (using text-based 'Score: X.XX' parsing)"
+        )
 
     # Run pre-flight check to verify API connectivity before batch evaluation
     if preflight_check:
@@ -1293,7 +1334,7 @@ def llm_judge_agg(items):
             judge_label=judge_label,
         )
     else:
-        eval_logger.info(f"  Pre-flight check: SKIPPED (preflight_check=false)")
+        eval_logger.info("  Pre-flight check: SKIPPED (preflight_check=false)")
 
     # Log first formatted prompt as example
     if items:
@@ -1305,7 +1346,9 @@ def llm_judge_agg(items):
             doc=first_item[2],
             config=config,
         )
-        eval_logger.info(f"  Example prompt (first item):\n{'=' * 40}\n{example_prompt}\n{'=' * 40}")
+        eval_logger.info(
+            f"  Example prompt (first item):\n{'=' * 40}\n{example_prompt}\n{'=' * 40}"
+        )
 
     eval_logger.info(f"Starting {judge_label} evaluation...")
 
@@ -1364,11 +1407,15 @@ def llm_judge_agg(items):
                 }
 
     # Check error rate against threshold
-    error_count = sum(1 for r in results if r is not None and r.get("error") is not None)
+    error_count = sum(
+        1 for r in results if r is not None and r.get("error") is not None
+    )
     total_count = len(results)
     error_rate = error_count / total_count if total_count > 0 else 0.0
 
-    eval_logger.info(f"{judge_label} completed: {total_count - error_count}/{total_count} successful ({error_count} errors, {error_rate:.1%} error rate)")
+    eval_logger.info(
+        f"{judge_label} completed: {total_count - error_count}/{total_count} successful ({error_count} errors, {error_rate:.1%} error rate)"
+    )
 
     if error_rate > max_error_rate:
         error_msg = (
@@ -1393,7 +1440,9 @@ def llm_judge_agg(items):
 
     scores = [r["score"] for r in results if r is not None]
 
-    if len(scores) == 0 or all(np.isnan(s) if isinstance(s, float) else False for s in scores):
+    if len(scores) == 0 or all(
+        np.isnan(s) if isinstance(s, float) else False for s in scores
+    ):
         return np.nan
 
     return np.nanmean(scores)

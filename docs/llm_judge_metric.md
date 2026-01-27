@@ -216,6 +216,7 @@ metric_list:
 ```
 
 Results will be reported as separate metrics:
+
 ```json
 {
   "llm_judge_accuracy": 8.5,
@@ -264,6 +265,7 @@ Use double curly braces for variables:
 - `{{ doc.field_name }}` - any document field
 
 Jinja2 also supports conditionals and loops if needed:
+
 ```yaml
 prompt_template: |
   {% if reference %}
@@ -397,6 +399,7 @@ metric_list:
 ## Response Parsing
 
 The default parser expects the judge response to start with:
+
 ```
 Score: X.XX
 ```
@@ -646,11 +649,13 @@ pip install jinja2
 ### API Authentication Failed
 
 Set your API key:
+
 ```bash
 export OPENAI_API_KEY=your_key_here
 ```
 
 Or specify in YAML:
+
 ```yaml
 api_key: your_key_here
 ```
@@ -664,6 +669,7 @@ api_key: your_key_here
 ### Rate limit errors
 
 Reduce the `concurrency` parameter:
+
 ```yaml
 concurrency: 8  # Lower for rate-limited endpoints
 ```
