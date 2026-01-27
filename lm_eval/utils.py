@@ -119,6 +119,13 @@ def info_once(logger: logging.Logger, msg: str, *args):
     logger.info(msg, *args)
 
 
+def maybe_warn(msg: str, verbose: bool = True):
+    """Log a warning message only when verbose is True, otherwise noop."""
+    if verbose:
+        logger = logging.getLogger(__name__)
+        logger.warning(msg)
+
+
 def hash_string(string: str) -> str:
     return hashlib.sha256(string.encode("utf-8")).hexdigest()
 

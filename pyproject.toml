@@ -32,6 +32,7 @@ dependencies = [
     "dill",
     "word2number",
     "more_itertools",
+    "typing_extensions"
 ]
 
 [tool.setuptools.packages.find]
