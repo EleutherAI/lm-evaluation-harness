@@ -1,5 +1,5 @@
 task: social_iqa
-dataset_path: social_i_qa
+dataset_path: allenai/social_i_qa
 dataset_name: null
 output_type: multiple_choice
 training_split: train
