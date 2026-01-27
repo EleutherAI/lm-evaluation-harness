@@ -354,13 +354,36 @@ class WindowsML(TemplateLM):
             eval_logger.error(f"GenAI inference failed: {e}")
             raise
 
+    def _loglikelihood_tokens(
+        self,
+        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        disable_tqdm: bool = False,
+        override_bs: Optional[int] = None,
+    ) -> List[Tuple[float, bool]]:
+        """
+        Stub implementation - not used since we override loglikelihood directly.
+        WindowsML uses the GenAI tokenizer and overrides loglikelihood to work
+        with text inputs directly, avoiding tokenization round-trip issues.
+        
+        Args:
+            requests: List of tokenized requests
+            disable_tqdm: Whether to disable progress bar
+            override_bs: Optional batch size override
+            
+        Returns:
+            Empty list (method not used)
+        """
+        raise NotImplementedError(
+            "WindowsML overrides loglikelihood() directly and does not use _loglikelihood_tokens()"
+        )
+
     def loglikelihood(self, requests: List["Instance"], disable_tqdm: bool = False) -> List[Tuple[float, bool]]:
         """
-        Compute log-likelihood using ONNX Runtime GenAI, working directly with tokens.
+        Compute log-likelihood using ONNX Runtime GenAI, working directly with text.
         Handles empty context for unconditional likelihood computation.
         
         Args:
-            requests: List of instances containing context and continuation
+            requests: List of instances containing (context, continuation) text pairs
             disable_tqdm: Whether to disable progress bar
             
         Returns:
@@ -371,52 +394,63 @@ class WindowsML(TemplateLM):
         for request in tqdm(requests, disable=disable_tqdm, desc="Computing log-likelihoods"):
             context, continuation = request.args
             
-            # Encode using GenAI tokenizer
-            context_enc = self.tok_encode(context) if context else []
-            continuation_enc = self.tok_encode(continuation)
-            
-            if len(continuation_enc) == 0:
+            if len(continuation) == 0:
                 results.append((0.0, True))
                 continue
             
             try:
-                # Combine context and continuation tokens
-                # Handle empty context for unconditional likelihood
-                if len(context_enc) > 0:
-                    full_tokens = context_enc + continuation_enc
-                else:
-                    # For unconditional likelihood, still need some context
-                    # Use BOS/prefix token if available
-                    full_tokens = [self.prefix_token_id] + continuation_enc if self.prefix_token_id is not None else continuation_enc
+                # Build full text directly from context and continuation strings
+                full_text = context + continuation
                 
-                # Decode back to text for inference
-                full_text = self.genai_tokenizer.decode(full_tokens)
+                # Tokenize context and full text separately to find continuation tokens
+                # This is necessary because tokenization is context-dependent
+                if context:
+                    context_enc = self.tok_encode(context)
+                    context_len = len(context_enc)
+                else:
+                    context_enc = []
+                    context_len = 0
+                
+                # Tokenize the full text
+                full_tokens = self.tok_encode(full_text)
+                
+                # The continuation tokens are everything after the context
+                # (tokenizing "A+B" may give different tokens than concat(tokenize(A), tokenize(B)))
+                continuation_tokens = full_tokens[context_len:]
+                
+                if len(continuation_tokens) == 0:
+                    results.append((0.0, True))
+                    continue
+                
+                # Get logits for the full sequence
                 logits = self._run_genai_inference_for_full_logits(full_text)
                 
-                # Calculate log-likelihood for continuation tokens
-                context_len = len(context_enc) if context_enc else 0
-                continuation_len = len(continuation_enc)
+                # Extract logits for continuation positions
+                # logits[i] predicts token[i+1]
+                if context_len == 0:
+                    # For unconditional likelihood, start from position 0
+                    start_idx = 0
+                else:
+                    # Start from the last context position
+                    start_idx = context_len - 1
                 
-                # For unconditional case with prefix token, adjust context length
-                if len(context_enc) == 0 and self.prefix_token_id is not None:
-                    context_len = 1
+                end_idx = start_idx + len(continuation_tokens)
                 
-                if context_len >= logits.shape[0]:
-                    # Not enough logits
+                if start_idx >= logits.shape[0] or end_idx > logits.shape[0]:
                     results.append((0.0, False))
                     continue
                 
-                # Get logits for continuation positions
-                # Note: logits[i] predicts token[i+1]
-                start_idx = max(0, context_len - 1) if context_len > 0 else 0
-                end_idx = min(logits.shape[0], start_idx + continuation_len)
-                
-                if start_idx >= end_idx:
-                    results.append((0.0, False))
-                    continue
-                
+                # Extract logits for continuation
                 cont_logits = logits[start_idx:end_idx, :]
-                cont_tokens = np.array(continuation_enc[:end_idx - start_idx])
+                cont_tokens = np.array(continuation_tokens)
+                
+                if len(cont_tokens) != cont_logits.shape[0]:
+                    eval_logger.warning(
+                        f"Token/logit mismatch: {len(cont_tokens)} tokens vs {cont_logits.shape[0]} logits. "
+                        f"Context len: {context_len}, Full tokens: {len(full_tokens)}, Logits: {logits.shape[0]}"
+                    )
+                    results.append((0.0, False))
+                    continue
                 
                 # Calculate log probabilities
                 log_probs = torch.log_softmax(torch.from_numpy(cont_logits), dim=-1)
@@ -464,8 +498,7 @@ class WindowsML(TemplateLM):
                 )
             )
             
-            # Prepare windows for loglikelihood (convert token windows to text pairs)
-            # We decode tokens to text since loglikelihood expects text arguments
+            # Prepare windows for loglikelihood (convert to context/continuation text pairs)
             window_requests = []
             for context_tokens, continuation_tokens in rolling_token_windows:
                 context_text = self.tok_decode(context_tokens)
