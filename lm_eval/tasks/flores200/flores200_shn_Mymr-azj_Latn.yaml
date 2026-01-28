@@ -1,0 +1,7 @@
+"dataset_name": "shn_Mymr-azj_Latn"
+"doc_to_target": "{{sentence_azj_Latn}}"
+"doc_to_text": "{{sentence_shn_Mymr}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_shn_Mymr-azj_Latn"
+"test_split": "dev"
