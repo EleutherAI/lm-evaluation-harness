@@ -1,0 +1,32 @@
+tag:
+  - math_word_problems
+task: dapo_cot_self_consistent
+dataset_path: BytedTsinghua-SIA/DAPO-Math-17k
+dataset_name: null
+dataset_kwargs:
+  trust_remote_code: true
+  download_mode: force_redownload
+output_type: generate_until
+training_split: train
+fewshot_split: train
+test_split: train
+doc_to_text: "{{prompt[0]['content']}} Please reason step by step, and put your final answer within \\boxed{}."
+doc_to_target: "{{reward_model['ground_truth']}}"
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "Q:"
+    - "\n\n"
+    - "<|im_end|>"
+    - "<|eot_id|>"
+  do_sample: true
+  temperature: 0.7
+  top_p: 0.80
+  max_new_tokens: 30000
+num_fewshot: 0
+repeats: 1
+process_results: !function utils.process_results
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true

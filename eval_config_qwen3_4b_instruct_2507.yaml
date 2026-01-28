@@ -1,25 +1,19 @@
-# 评估器配置文件
-# 用于运行 gsm8k_cot_self_consistency_qwen3_4b 任务
-
 model: vllm
 trust_remote_code: true
 device: cuda  # 设置为 cuda（配合 CUDA_VISIBLE_DEVICES 环境变量使用）
 model_args:
   pretrained: /datacenter/models/Qwen/Qwen3-4B-Instruct-2507
-  max_model_len: 4096  # HuggingFace 模型使用 max_length，不是 max_model_len
+  max_model_len: 32768
   tensor_parallel_size: 1
-  data_parallel_size: 4
+  data_parallel_size: 8
   dtype: auto
   gpu_memory_utilization: 0.95
-  # 注意：要指定使用特定 GPU（如 0,1,2,3），请在运行前设置环境变量：
-  # export CUDA_VISIBLE_DEVICES=0,1,2,3
-  # 或者：CUDA_VISIBLE_DEVICES=4,5,6,7 lm-eval run --config eval_config_qwen3_4b.yaml
 
 tasks:
-  - gsm8k_cot_self_consistency_qwen3_4b
+  - dapo_cot_self_consistent
 
 # 限制数据集大小（用于测试）
-# limit: 5
+limit: 1000
 
 # 使用pre-filling技术和raw_prompt，禁用chat template
 apply_chat_template: true
@@ -34,4 +28,4 @@ log_samples: true
 # WandB 日志设置（可选）
 wandb_args:
   project: lmeval-qwen3-4b-instruct
-  name: gsm8k_cot_self_consistency_qwen3_4b
+  name: dapo_cot_self_consistent_qwen3_4b
