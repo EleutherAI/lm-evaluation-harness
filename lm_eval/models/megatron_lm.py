@@ -633,10 +633,6 @@ class MegatronLMEval(LM):
                 device=input_ids.device
             ).tril()
         
-        # Synchronize all ranks before forward pass
-        if torch.distributed.is_initialized():
-            torch.distributed.barrier()
-        
         with torch.no_grad():
             if self._pp_size == 1:
                 # No pipeline parallelism - simple forward
@@ -652,10 +648,6 @@ class MegatronLMEval(LM):
                     position_ids=position_ids,
                     attention_mask=attention_mask,
                 )
-        
-        # Synchronize all ranks after forward pass
-        if torch.distributed.is_initialized():
-            torch.distributed.barrier()
         
         return output
     
@@ -951,66 +943,81 @@ class MegatronLMEval(LM):
             
             input_ids = torch.tensor([context_tokens], dtype=torch.long, device=self.device)
             generated_tokens = []
+            finished = False
             
             # Autoregressive generation
+            # For EP: all ranks must execute same number of forward passes for All-to-All sync
+            # We continue until all ranks are finished (synchronized via all_reduce)
             for _ in range(max_gen_toks):
                 # Truncate input if too long
                 if input_ids.shape[1] > self.max_length:
                     input_ids = input_ids[:, -self.max_length:]
                 
+                # Forward pass - ALL ranks must participate for EP All-to-All sync
                 logits = self._model_forward(input_ids)
-                next_token_logits = logits[:, -1, :].float()
                 
-                # Sampling
-                if temperature > 0:
-                    next_token_logits = next_token_logits / temperature
+                # Process only if not finished
+                if not finished:
+                    next_token_logits = logits[:, -1, :].float()
                     
-                    if top_k > 0:
-                        top_k_vals, _ = torch.topk(next_token_logits, top_k)
-                        threshold = top_k_vals[:, -1].unsqueeze(-1)
-                        next_token_logits = torch.where(
-                            next_token_logits < threshold,
-                            torch.full_like(next_token_logits, float('-inf')),
-                            next_token_logits
-                        )
+                    # Sampling
+                    if temperature > 0:
+                        next_token_logits = next_token_logits / temperature
+                        
+                        if top_k > 0:
+                            top_k_vals, _ = torch.topk(next_token_logits, top_k)
+                            threshold = top_k_vals[:, -1].unsqueeze(-1)
+                            next_token_logits = torch.where(
+                                next_token_logits < threshold,
+                                torch.full_like(next_token_logits, float('-inf')),
+                                next_token_logits
+                            )
+                        
+                        if top_p < 1.0:
+                            sorted_logits, sorted_indices = torch.sort(next_token_logits, descending=True)
+                            cumulative_probs = torch.cumsum(torch.nn.functional.softmax(sorted_logits, dim=-1), dim=-1)
+                            sorted_indices_to_remove = cumulative_probs > top_p
+                            sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
+                            sorted_indices_to_remove[:, 0] = False
+                            indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
+                            next_token_logits = next_token_logits.masked_fill(indices_to_remove, float('-inf'))
+                        
+                        probs = torch.nn.functional.softmax(next_token_logits, dim=-1)
+                        next_token = torch.multinomial(probs, num_samples=1)
+                    else:
+                        next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
                     
-                    if top_p < 1.0:
-                        sorted_logits, sorted_indices = torch.sort(next_token_logits, descending=True)
-                        cumulative_probs = torch.cumsum(torch.nn.functional.softmax(sorted_logits, dim=-1), dim=-1)
-                        sorted_indices_to_remove = cumulative_probs > top_p
-                        sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
-                        sorted_indices_to_remove[:, 0] = False
-                        indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
-                        next_token_logits = next_token_logits.masked_fill(indices_to_remove, float('-inf'))
+                    # For Model Parallelism, broadcast next_token to all ranks for consistency
+                    if self._parallelism_mode == "model_parallel" and self.world_size > 1:
+                        torch.distributed.broadcast(next_token, src=0)
                     
-                    probs = torch.nn.functional.softmax(next_token_logits, dim=-1)
-                    next_token = torch.multinomial(probs, num_samples=1)
-                else:
-                    next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
+                    next_token_id = next_token.item()
+                    generated_tokens.append(next_token_id)
+                    
+                    # Check EOS
+                    if next_token_id == self.eot_token_id:
+                        finished = True
+                    else:
+                        # Update input
+                        input_ids = torch.cat([input_ids, next_token], dim=1)
+                        
+                        # Check stop sequences
+                        generated_text = self.tok_decode(generated_tokens)
+                        for stop_seq in until:
+                            if stop_seq in generated_text:
+                                finished = True
+                                break
                 
-                # For Model Parallelism, broadcast next_token to all ranks for consistency
-                if self._parallelism_mode == "model_parallel" and self.world_size > 1:
-                    torch.distributed.broadcast(next_token, src=0)
-                
-                next_token_id = next_token.item()
-                generated_tokens.append(next_token_id)
-                
-                # Check EOS
-                if next_token_id == self.eot_token_id:
-                    break
-                
-                # Update input
-                input_ids = torch.cat([input_ids, next_token], dim=1)
-                
-                # Check stop sequences
-                generated_text = self.tok_decode(generated_tokens)
-                should_stop = False
-                for stop_seq in until:
-                    if stop_seq in generated_text:
-                        generated_text = generated_text.split(stop_seq)[0]
-                        should_stop = True
+                # Check if ALL ranks are finished - early exit optimization
+                if torch.distributed.is_initialized() and self._ep_size > 1:
+                    # Use all_reduce to check if all ranks are finished
+                    finished_tensor = torch.tensor([1 if finished else 0], dtype=torch.int32, device=self.device)
+                    torch.distributed.all_reduce(finished_tensor, op=torch.distributed.ReduceOp.MIN)
+                    # If min is 1, all ranks are finished
+                    if finished_tensor.item() == 1:
                         break
-                if should_stop:
+                elif finished:
+                    # Single rank or non-EP mode: can break immediately
                     break
             
             # Final processing
