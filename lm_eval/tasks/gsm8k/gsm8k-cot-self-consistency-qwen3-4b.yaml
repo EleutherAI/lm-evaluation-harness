@@ -1,0 +1,39 @@
+include: gsm8k-cot-self-consistency.yaml
+tag:
+  - chain_of_thought
+  - self_consistency
+task: gsm8k_cot_self_consistency_qwen3_4b
+generation_kwargs:
+  until:
+    - "Q:"
+    - "\n\n"
+    - "<|im_end|>"
+  do_sample: true
+  temperature: 0.7
+  top_p: 0.95
+  max_new_tokens: 2048
+repeats: 64
+filter_list:
+  - name: "score-first" # pick only the first response, and report metrics on that
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "take_first"
+  - name: "maj@64"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+  - name: "maj@8" # get Maj@8 , via selecting the first 8 responses. Using a better estimator would be optimal.
+    filter:
+      - function: "take_first_k"
+        k: 8
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+metadata:
+  version: 2.0
+
+test_split: test
