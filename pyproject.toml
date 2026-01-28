@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.10.dev0"
+version = "0.4.11.dev0"
 authors = [
     { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
@@ -32,6 +32,7 @@ dependencies = [
     "dill",
     "word2number",
     "more_itertools",
+    "typing_extensions"
 ]
 
 [tool.setuptools.packages.find]
