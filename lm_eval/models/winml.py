@@ -97,6 +97,16 @@ class WindowsML(TemplateLM):
         self.batch_size = batch_size
         self.max_batch_size = max_batch_size
         
+        # Warn about batch size limitations
+        if batch_size != 1 or max_batch_size != 1:
+            eval_logger.warning(
+                f"WindowsML backend currently only supports batch size 1. "
+                f"Requested batch_size={batch_size}, max_batch_size={max_batch_size}. "
+                f"Setting both to 1."
+            )
+            self.batch_size = 1
+            self.max_batch_size = 1
+
         self._fix_winrt_runtime()
 
         # Initialize Windows ML execution providers
@@ -259,9 +269,53 @@ class WindowsML(TemplateLM):
         Returns:
             End-of-text token ID from the GenAI tokenizer
         """
-        # GenAI tokenizer uses eos_token_id
-        return self.genai_tokenizer.eos_token_id
-    
+        try:
+            # For GenAI tokenizers, try to access EOS from model config or encoding
+            if hasattr(self.genai_model, 'config'):
+                config = self.genai_model.config
+                if hasattr(config, 'eos_token_id') and config.eos_token_id:
+                    if isinstance(config.eos_token_id, list):
+                        return config.eos_token_id[0]
+                    else:
+                        return config.eos_token_id
+
+        except Exception as e:
+            eval_logger.warning(f"Error getting EOS token ID: {e}, using fallback value 2")
+
+        # Fallback: return a common EOS token ID
+        eval_logger.warning("Could not determine EOS token ID, using fallback value 2")
+        return 2
+
+    @property
+    def prefix_token_id(self) -> Optional[int]:
+        """
+        Get the prefix token ID (typically BOS token).
+
+        Returns:
+            BOS token ID if available, otherwise None
+        """
+        try:
+            # For GenAI tokenizers, try to access BOS from model config or encoding
+
+            # If we have access to the model config
+            if hasattr(self.genai_model, 'config'):
+                config = self.genai_model.config
+                if hasattr(config, 'bos_token_id') and config.bos_token_id is not None:
+                    return config.bos_token_id
+
+            # Check if encoding empty string gives BOS token
+            try:
+                empty_enc = self.genai_tokenizer.encode("")
+                if len(empty_enc) > 0:
+                    return empty_enc[0]
+            except Exception:
+                pass
+
+            return None
+
+        except Exception:
+            return None
+
     @property
     def max_gen_toks(self) -> int:
         """
@@ -406,10 +460,14 @@ class WindowsML(TemplateLM):
                 # This is necessary because tokenization is context-dependent
                 if context:
                     context_enc = self.tok_encode(context)
+                    # Handle case when tokenizer inserts BOS token at the beginning
+                    if len(context_enc) > 0 and context_enc[0] == self.prefix_token_id:
+                        context_enc = context_enc[1:]  # Remove BOS token from context
                     context_len = len(context_enc)
                 else:
-                    context_enc = []
-                    context_len = 0
+                    # If context is empty, use BOS/EOS token so continuation has something to condition on
+                    context_enc = [self.prefix_token_id] if hasattr(self, 'prefix_token_id') and self.prefix_token_id is not None else []
+                    context_len = len(context_enc)
                 
                 # Tokenize the full text
                 full_tokens = self.tok_encode(full_text)
