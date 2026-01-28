@@ -1,0 +1,5 @@
+"dataset_name": "nqo_Nkoo"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_nqo_Nkoo"
+"test_split": "test"
