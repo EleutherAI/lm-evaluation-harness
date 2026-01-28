@@ -16,6 +16,7 @@ import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
 from lm_eval.caching.cache import delete_cache
+from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED
 from lm_eval.evaluator_utils import (
     consolidate_group_results,
     consolidate_results,
@@ -75,10 +76,10 @@ def simple_evaluate(
     task_manager: TaskManager | None = None,
     verbosity=None,
     predict_only: bool = False,
-    random_seed: int = 0,
-    numpy_random_seed: int = 1234,
-    torch_random_seed: int = 1234,
-    fewshot_random_seed: int = 1234,
+    random_seed: int = DEFAULT_RANDOM_SEED,
+    numpy_random_seed: int = DEFAULT_OTHER_SEED,
+    torch_random_seed: int = DEFAULT_OTHER_SEED,
+    fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict | None = None,
 ):
