@@ -1,7 +1,7 @@
 tag:
   - anli
 task: anli_r1
-dataset_path: anli
+dataset_path: facebook/anli
 dataset_name: null
 output_type: multiple_choice
 training_split: train_r1
