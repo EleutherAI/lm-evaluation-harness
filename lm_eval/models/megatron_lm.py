@@ -615,23 +615,50 @@ class MegatronLMEval(LM):
         For EP > 1 (Expert Parallelism):
         - MoE layers use all-to-all communication which provides implicit synchronization
         
+        Args:
+            input_ids: [batch_size, seq_len]
+            position_ids: [batch_size, seq_len] or None
+            attention_mask: [batch_size, seq_len] with 1=real token, 0=padding, or None
+        
         Returns:
             logits: [batch_size, seq_len, vocab_size] on all ranks
         """
         batch_size, seq_len = input_ids.shape
         
-        # Create position_ids
-        if position_ids is None:
-            position_ids = torch.arange(seq_len, dtype=torch.long, device=input_ids.device)
-            position_ids = position_ids.unsqueeze(0).expand(batch_size, -1)
-        
-        # Create attention_mask (causal mask)
-        if attention_mask is None:
-            attention_mask = torch.ones(
+        # Create causal mask for Megatron format
+        # Megatron expects: True = masked (cannot attend), False = can attend
+        # So we use triu (upper triangular) with diagonal=1: positions j > i are masked
+        causal_mask = torch.ones(
                 (batch_size, 1, seq_len, seq_len), 
                 dtype=torch.bool, 
                 device=input_ids.device
-            ).tril()
+            ).triu(diagonal=1)  # True for positions that should be masked (future tokens)
+        
+        # Handle position_ids and attention_mask based on whether padding mask is provided
+        if attention_mask is not None and attention_mask.dim() == 2:
+            # attention_mask: [batch, seq] with 1=real, 0=padding
+            
+            # Compute position_ids based on attention_mask
+            # For left-padded inputs: padding gets pos=0, real tokens get 0,1,2,...
+            # E.g., mask=[0,0,1,1,1] -> pos=[0,0,0,1,2]
+            if position_ids is None:
+                position_ids = attention_mask.long().cumsum(-1) - 1
+                position_ids = position_ids.clamp(min=0)
+            
+            # Create padding mask for Megatron format
+            # padding_mask: True = padding (should be masked), False = real token
+            # attention_mask has 1=real, 0=padding, so we invert it
+            padding_mask = (1 - attention_mask).unsqueeze(1).unsqueeze(2).bool()  # [batch, 1, 1, seq]
+            
+            # Combine masks: a position is masked if:
+            # 1. It's a future token (causal_mask=True) OR 2. It's a padding token (padding_mask=True)
+            attention_mask = causal_mask | padding_mask
+        else:
+            # No padding - use standard position_ids
+            if position_ids is None:
+                position_ids = torch.arange(seq_len, dtype=torch.long, device=input_ids.device)
+                position_ids = position_ids.unsqueeze(0).expand(batch_size, -1)
+            attention_mask = causal_mask
         
         with torch.no_grad():
             if self._pp_size == 1:
@@ -914,58 +941,140 @@ class MegatronLMEval(LM):
         """
         Generate text until stop condition with Data Parallelism support.
         
+        Supports batched generation for improved throughput.
         With PP > 1, generation requires coordination between pipeline stages.
+        
+        Uses Collator to sort requests by length, minimizing padding within batches.
+        This is critical for RoPE-based models where position offsets affect results.
         """
         # Distribute requests for Data Parallelism
         local_requests, sizes = self._distribute_requests(requests)
         
-        results = []
+        if not local_requests:
+            return self._gather_results([], sizes)
         
-        for request in tqdm(
-            local_requests, 
+        results = []
+        batch_size = self.batch_size if self.batch_size != "auto" else 1
+        
+        # Use Collator to sort by context length (negative for descending order)
+        # This minimizes padding within each batch, which is critical for RoPE models
+        def _collate_gen(req):
+            # Sort by negative context length (longest first)
+            ctx = req.args[0]
+            return -len(ctx), ctx
+        
+        re_ord = Collator(local_requests, sort_fn=_collate_gen)
+        chunks = re_ord.get_batched(n=batch_size, batch_fn=None)
+        
+        pbar = tqdm(
+            total=len(local_requests),
             disable=disable_tqdm or (self._global_rank != 0),
             desc="Running generate_until requests",
-        ):
-            context, gen_kwargs = request.args
-            gen_kwargs = deepcopy(gen_kwargs)
+        )
+        
+        for chunk in chunks:
+            batch_requests = chunk
+            actual_batch_size = len(batch_requests)
             
-            until = gen_kwargs.pop("until", [])
-            if isinstance(until, str):
-                until = [until]
-            max_gen_toks = gen_kwargs.pop("max_gen_toks", self.max_gen_toks)
-            temperature = gen_kwargs.pop("temperature", 0.0)
-            top_p = gen_kwargs.pop("top_p", 1.0)
-            top_k = gen_kwargs.pop("top_k", 0)
+            # Extract generation parameters from batch
+            contexts = []
+            until_list = []
+            max_gen_toks_list = []
+            temperature_list = []
+            top_p_list = []
+            top_k_list = []
             
-            # Tokenize context
-            context_tokens = self.tok_encode(context)
-            context_tokens = context_tokens[-(self.max_length - max_gen_toks):]
+            for request in batch_requests:
+                context, gen_kwargs = request.args
+                gen_kwargs = deepcopy(gen_kwargs)
+                
+                contexts.append(context)
+                
+                until = gen_kwargs.pop("until", [])
+                if isinstance(until, str):
+                    until = [until]
+                until_list.append(until)
+                
+                max_gen_toks_list.append(gen_kwargs.pop("max_gen_toks", self.max_gen_toks))
+                temperature_list.append(gen_kwargs.pop("temperature", 0.0))
+                top_p_list.append(gen_kwargs.pop("top_p", 1.0))
+                top_k_list.append(gen_kwargs.pop("top_k", 0))
             
-            input_ids = torch.tensor([context_tokens], dtype=torch.long, device=self.device)
-            generated_tokens = []
-            finished = False
+            # Use the max of all max_gen_toks in batch
+            max_gen_toks = max(max_gen_toks_list)
+            # For simplicity, use first sample's parameters for the whole batch
+            # (in practice, lm_eval usually uses same params for all requests)
+            temperature = temperature_list[0]
+            top_p = top_p_list[0]
+            top_k = top_k_list[0]
             
-            # Autoregressive generation
-            # For EP: all ranks must execute same number of forward passes for All-to-All sync
-            # We continue until all ranks are finished (synchronized via all_reduce)
-            for _ in range(max_gen_toks):
-                # Truncate input if too long
+            # Tokenize all contexts
+            context_tokens_list = []
+            for ctx in contexts:
+                tokens = self.tok_encode(ctx)
+                tokens = tokens[-(self.max_length - max_gen_toks):]
+                context_tokens_list.append(tokens)
+            
+            # Left-pad to same length
+            max_ctx_len = max(len(t) for t in context_tokens_list)
+            
+            padded_input_ids = []
+            attention_mask_list = []
+            for tokens in context_tokens_list:
+                pad_len = max_ctx_len - len(tokens)
+                padded_tokens = [0] * pad_len + tokens
+                padded_input_ids.append(padded_tokens)
+                # Attention mask: 0 for padding, 1 for real tokens
+                mask = [0] * pad_len + [1] * len(tokens)
+                attention_mask_list.append(mask)
+            
+            input_ids = torch.tensor(padded_input_ids, dtype=torch.long, device=self.device)
+            attention_mask = torch.tensor(attention_mask_list, dtype=torch.long, device=self.device)
+            
+            # Track generation state for each sample in batch
+            generated_tokens = [[] for _ in range(actual_batch_size)]
+            finished = [False] * actual_batch_size
+            
+            # Autoregressive generation loop
+            # For EP mode: ALL ranks must execute same number of forward passes
+            for step in range(max_gen_toks):
+                # EP synchronization FIRST: check if ALL ranks have ALL samples finished
+                # This MUST be before any early exit to prevent hang
+                if torch.distributed.is_initialized() and self._ep_size > 1:
+                    all_finished_local = all(finished)
+                    finished_tensor = torch.tensor(
+                        [1 if all_finished_local else 0], dtype=torch.int32, device=self.device
+                    )
+                    torch.distributed.all_reduce(finished_tensor, op=torch.distributed.ReduceOp.MIN)
+                    if finished_tensor.item() == 1:
+                        # All ranks agree to exit
+                        break
+                else:
+                    # Non-EP mode: can exit immediately when local batch is done
+                    if all(finished):
+                        break
+                
+                # Truncate if too long
                 if input_ids.shape[1] > self.max_length:
                     input_ids = input_ids[:, -self.max_length:]
+                    attention_mask = attention_mask[:, -self.max_length:]
                 
                 # Forward pass - ALL ranks must participate for EP All-to-All sync
-                logits = self._model_forward(input_ids)
+                # Pass attention_mask to prevent attending to padding tokens
+                logits = self._model_forward(input_ids, attention_mask=attention_mask)
                 
-                # Process only if not finished
-                if not finished:
-                    next_token_logits = logits[:, -1, :].float()
+                # Only process results if this rank's batch is not finished
+                if not all(finished):
+                    # Get next token logits for the last position
+                    next_token_logits = logits[:, -1, :].float()  # [batch_size, vocab_size]
                     
-                    # Sampling
+                    # Apply sampling strategies (batched)
                     if temperature > 0:
                         next_token_logits = next_token_logits / temperature
                         
+                        # Top-K filtering (batched)
                         if top_k > 0:
-                            top_k_vals, _ = torch.topk(next_token_logits, top_k)
+                            top_k_vals, _ = torch.topk(next_token_logits, min(top_k, next_token_logits.size(-1)))
                             threshold = top_k_vals[:, -1].unsqueeze(-1)
                             next_token_logits = torch.where(
                                 next_token_logits < threshold,
@@ -973,61 +1082,81 @@ class MegatronLMEval(LM):
                                 next_token_logits
                             )
                         
+                        # Top-P (nucleus) filtering (batched)
                         if top_p < 1.0:
                             sorted_logits, sorted_indices = torch.sort(next_token_logits, descending=True)
-                            cumulative_probs = torch.cumsum(torch.nn.functional.softmax(sorted_logits, dim=-1), dim=-1)
+                            cumulative_probs = torch.cumsum(
+                                torch.nn.functional.softmax(sorted_logits, dim=-1), dim=-1
+                            )
                             sorted_indices_to_remove = cumulative_probs > top_p
+                            # Shift right to keep at least one token
                             sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
                             sorted_indices_to_remove[:, 0] = False
-                            indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
+                            # Scatter back to original indices
+                            indices_to_remove = sorted_indices_to_remove.scatter(
+                                1, sorted_indices, sorted_indices_to_remove
+                            )
                             next_token_logits = next_token_logits.masked_fill(indices_to_remove, float('-inf'))
                         
+                        # Sample from distribution
                         probs = torch.nn.functional.softmax(next_token_logits, dim=-1)
-                        next_token = torch.multinomial(probs, num_samples=1)
+                        next_tokens = torch.multinomial(probs, num_samples=1)  # [batch_size, 1]
                     else:
-                        next_token = torch.argmax(next_token_logits, dim=-1, keepdim=True)
+                        # Greedy decoding
+                        next_tokens = torch.argmax(next_token_logits, dim=-1, keepdim=True)  # [batch_size, 1]
                     
-                    # For Model Parallelism, broadcast next_token to all ranks for consistency
+                    # For Model Parallelism, broadcast next_tokens to all ranks for consistency
                     if self._parallelism_mode == "model_parallel" and self.world_size > 1:
-                        torch.distributed.broadcast(next_token, src=0)
+                        torch.distributed.broadcast(next_tokens, src=0)
                     
-                    next_token_id = next_token.item()
-                    generated_tokens.append(next_token_id)
-                    
-                    # Check EOS
-                    if next_token_id == self.eot_token_id:
-                        finished = True
-                    else:
-                        # Update input
-                        input_ids = torch.cat([input_ids, next_token], dim=1)
+                    # Process each sample in the batch
+                    for i in range(actual_batch_size):
+                        if finished[i]:
+                            continue
+                        
+                        next_token_id = next_tokens[i].item()
+                        generated_tokens[i].append(next_token_id)
+                        
+                        # Check EOS
+                        if next_token_id == self.eot_token_id:
+                            finished[i] = True
+                            continue
                         
                         # Check stop sequences
-                        generated_text = self.tok_decode(generated_tokens)
-                        for stop_seq in until:
+                        generated_text = self.tok_decode(generated_tokens[i])
+                        for stop_seq in until_list[i]:
                             if stop_seq in generated_text:
-                                finished = True
+                                finished[i] = True
                                 break
+                    
+                    # Update input_ids and attention_mask for next step
+                    input_ids = torch.cat([input_ids, next_tokens], dim=1)
+                    attention_mask = torch.cat([
+                        attention_mask, 
+                        torch.ones((actual_batch_size, 1), dtype=torch.long, device=self.device)
+                    ], dim=1)
+            
+            # Post-process: decode and truncate at stop sequences
+            for i in range(actual_batch_size):
+                continuation = self.tok_decode(generated_tokens[i])
                 
-                # Check if ALL ranks are finished - early exit optimization
-                if torch.distributed.is_initialized() and self._ep_size > 1:
-                    # Use all_reduce to check if all ranks are finished
-                    finished_tensor = torch.tensor([1 if finished else 0], dtype=torch.int32, device=self.device)
-                    torch.distributed.all_reduce(finished_tensor, op=torch.distributed.ReduceOp.MIN)
-                    # If min is 1, all ranks are finished
-                    if finished_tensor.item() == 1:
+                # Truncate at stop sequences
+                for stop_seq in until_list[i]:
+                    if stop_seq in continuation:
+                        continuation = continuation.split(stop_seq)[0]
                         break
-                elif finished:
-                    # Single rank or non-EP mode: can break immediately
-                    break
+                
+                results.append(continuation)
+                self.cache_hook.add_partial(
+                    "generate_until", batch_requests[i].args, continuation
+                )
             
-            # Final processing
-            continuation = self.tok_decode(generated_tokens)
-            for stop_seq in until:
-                if stop_seq in continuation:
-                    continuation = continuation.split(stop_seq)[0]
-            
-            results.append(continuation)
-            self.cache_hook.add_partial("generate_until", request.args, continuation)
+            pbar.update(actual_batch_size)
+        
+        pbar.close()
+        
+        # Reorder results to match original request order
+        results = re_ord.get_original(results)
         
         # Gather results from all ranks
         all_results = self._gather_results(results, sizes)
