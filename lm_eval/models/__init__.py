@@ -51,6 +51,7 @@ MODEL_MAPPING = {
     "vllm": "lm_eval.models.vllm_causallms:VLLM",
     "vllm-vlm": "lm_eval.models.vllm_vlms:VLLM_VLM",
     "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:IBMWatsonxAI",
+    "llama2c": "lm_eval.models.llama2c:LLAMA2C",
 }
 
 

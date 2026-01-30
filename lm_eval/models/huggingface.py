@@ -55,6 +55,7 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 TOKENIZER_INFINITY = 1000000000000000019884624838656
 
+os.environ["HF_ALLOW_CODE_EVAL"] = "1"
 
 @register_model("hf-auto", "hf", "huggingface")
 class HFLM(TemplateLM):
