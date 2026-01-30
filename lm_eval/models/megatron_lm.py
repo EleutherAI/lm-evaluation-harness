@@ -13,14 +13,16 @@ Parallelism Modes:
        - Data is distributed across GPUs
        - Results are gathered from all ranks
     
-    3. Model Parallelism (TP/PP): TP * PP == devices
-       - Model is split across GPUs using Tensor and/or Pipeline Parallelism
+    3. Tensor Parallelism (TP): TP == devices, PP=1
+       - Model layers are split across GPUs using Tensor Parallelism
        - No data parallelism
     
     4. Expert Parallelism (EP) for MoE models: EP > 1, TP=1, PP=1, devices=EP
        - Each GPU holds different experts
        - Tokens are routed via All-to-All communication
        - EP cannot be combined with TP or PP
+
+Note: Pipeline Parallelism (PP > 1) is NOT currently supported.
 
 Requirements:
     - Megatron-LM must be installed or accessible via MEGATRON_PATH environment variable
@@ -43,16 +45,6 @@ Usage Examples:
     # Tensor Parallelism (2 GPUs for TP)
     torchrun --nproc_per_node=2 -m lm_eval --model megatron_lm \\
         --model_args load=/path/to/ckpt,devices=2,tensor_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
-        --tasks arc_easy --batch_size 8
-
-    # Pipeline Parallelism (2 GPUs for PP)
-    torchrun --nproc_per_node=2 -m lm_eval --model megatron_lm \\
-        --model_args load=/path/to/ckpt,devices=2,pipeline_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
-        --tasks arc_easy --batch_size 8
-
-    # Mixed TP + PP (4 GPUs: TP=2, PP=2)
-    torchrun --nproc_per_node=4 -m lm_eval --model megatron_lm \\
-        --model_args load=/path/to/ckpt,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
         --tasks arc_easy --batch_size 8
 
     # Expert Parallelism for MoE models (6 GPUs, EP=6)
@@ -252,13 +244,21 @@ class MegatronLMEval(LM):
         
         Supported modes:
         1. Data Parallelism: tp=1, pp=1, devices>1 (with optional EP)
-        2. Model Parallelism: tp*pp == devices
+        2. Tensor Parallelism: tp == devices, pp=1
         3. Single GPU: devices=1
         
         For Expert Parallelism (EP > 1):
         - EP cannot be combined with TP or PP (must have TP=1, PP=1)
         - EP must equal devices (each expert parallel rank is also a data parallel rank)
+        
+        Note: Pipeline Parallelism (PP > 1) is NOT currently supported.
         """
+        # Validate PP configuration - PP > 1 is not supported
+        assert pp == 1, (
+            f"Pipeline Parallelism (PP={pp}) is not currently supported. "
+            f"Please use Tensor Parallelism (TP) or Data Parallelism instead."
+        )
+        
         # Validate EP configuration
         if ep > 1:
             # EP cannot be combined with TP or PP
@@ -275,7 +275,8 @@ class MegatronLMEval(LM):
                     f"When using Expert Parallelism (EP > 1), devices must equal expert-model-parallel-size."
                 )
         
-        if tp == 1 and pp == 1:
+        # At this point, pp == 1 is guaranteed (pp > 1 was rejected above)
+        if tp == 1:
             if devices == 1:
                 self._parallelism_mode = "single"
                 eval_logger.info("Parallelism mode: Single GPU")
@@ -285,14 +286,14 @@ class MegatronLMEval(LM):
                     eval_logger.info(f"Parallelism mode: Data Parallel with EP={ep} (devices={devices})")
                 else:
                     eval_logger.info(f"Parallelism mode: Data Parallel with {devices} replicas")
-        elif tp * pp == devices:
-            self._parallelism_mode = "model_parallel"
-            eval_logger.info(f"Parallelism mode: Model Parallel (TP={tp}, PP={pp})")
+        elif tp == devices:
+            self._parallelism_mode = "tensor_parallel"
+            eval_logger.info(f"Parallelism mode: Tensor Parallel (TP={tp})")
         else:
             raise ValueError(
-                f"Invalid parallelism configuration: devices={devices}, TP={tp}, PP={pp}. "
-                f"For model parallelism, TP * PP must equal devices. "
-                f"For data parallelism, set TP=1 and PP=1."
+                f"Invalid parallelism configuration: devices={devices}, TP={tp}. "
+                f"For tensor parallelism, TP must equal devices. "
+                f"For data parallelism, set TP=1."
             )
 
     def _initialize_megatron(self, **kwargs):

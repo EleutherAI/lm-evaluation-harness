@@ -355,13 +355,18 @@ lm_eval --model megatron_lm \
 
 #### Parallelism Modes
 
-The Megatron-LM backend supports three parallelism modes (NeMo-style):
+The Megatron-LM backend supports the following parallelism modes:
 
 | Mode | Configuration | Description |
 |------|---------------|-------------|
 | Single GPU | `devices=1` (default) | Standard single GPU evaluation |
-| Data Parallelism | `devices>1, TP=1, PP=1` | Each GPU has a full model replica, data is distributed |
-| Model Parallelism | `TP * PP == devices` | Model is split across GPUs using Tensor/Pipeline Parallelism |
+| Data Parallelism | `devices>1, TP=1` | Each GPU has a full model replica, data is distributed |
+| Tensor Parallelism | `TP == devices` | Model layers are split across GPUs |
+| Expert Parallelism | `EP == devices, TP=1` | For MoE models, experts are distributed across GPUs |
+
+> [!Note]
+> - Pipeline Parallelism (PP > 1) is not currently supported.
+> - Expert Parallelism (EP) cannot be combined with Tensor Parallelism (TP).
 
 **Data Parallelism (4 GPUs, each with full model replica):**
 ```bash
@@ -370,10 +375,17 @@ torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
     --tasks hellaswag
 ```
 
-**Mixed Parallelism (TP=2, PP=2, total 4 GPUs):**
+**Tensor Parallelism (TP=2):**
+```bash
+torchrun --nproc-per-node=2 -m lm_eval --model megatron_lm \
+    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=2,tensor_model_parallel_size=2 \
+    --tasks hellaswag
+```
+
+**Expert Parallelism for MoE models (EP=4):**
 ```bash
 torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
-    --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2 \
+    --model_args load=/path/to/moe_checkpoint,tokenizer_model=/path/to/tokenizer,devices=4,expert_model_parallel_size=4 \
     --tasks hellaswag
 ```
 
