@@ -1106,7 +1106,7 @@ class MegatronLMEval(LM):
                         next_tokens = torch.argmax(next_token_logits, dim=-1, keepdim=True)  # [batch_size, 1]
                     
                     # For Model Parallelism, broadcast next_tokens to all ranks for consistency
-                    if self._parallelism_mode == "model_parallel" and self.world_size > 1:
+                    if self._parallelism_mode == "model_parallel":
                         torch.distributed.broadcast(next_tokens, src=0)
                     
                     # Process each sample in the batch
