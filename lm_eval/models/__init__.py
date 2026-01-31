@@ -45,7 +45,7 @@ MODEL_MAPPING = {
     "openai-completions": "lm_eval.models.openai_completions:OpenAICompletionsAPI",
     "openvino": "lm_eval.models.optimum_lm:OptimumLM",
     "sglang": "lm_eval.models.sglang_causallms:SGLangLM",
-    "sglang-generate": "lm_eval.models.sglang_generate_API:SGAPI",
+    "sglang-generate": "lm_eval.models.sglang_generate_API:SGLANGGENERATEAPI",
     "steered": "lm_eval.models.hf_steered:SteeredHF",
     "textsynth": "lm_eval.models.textsynth:TextSynthLM",
     "vllm": "lm_eval.models.vllm_causallms:VLLM",
