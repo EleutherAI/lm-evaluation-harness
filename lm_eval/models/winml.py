@@ -662,23 +662,25 @@ class WindowsML(TemplateLM):
         try:
             # Create generator parameters
             params = self.og.GeneratorParams(self.genai_model)
-            
-            # Set generation parameters
-            # For greedy decoding (temperature=0 or do_sample=False), disable sampling
-            search_options = {
-                'max_length': int(max_tokens),
-                'do_sample': do_sample and temperature > 0,
-                'temperature': 0.0,
-                'top_p': 1.0,
-            }
-            # Add sampling parameters if do_sample is enabled
+            # Set generation parameters based on mode
             if do_sample and temperature > 0:
-                search_options['temperature'] = float(temperature)
-                search_options['top_p'] = float(top_p)
-                search_options['top_k'] = int(top_k)
-            
-            params.set_search_options(**search_options)
-            
+                # Sampling mode: use provided parameters
+                params.set_search_options(
+                    max_length=int(max_tokens),
+                    top_p=float(top_p),
+                    top_k=int(top_k),
+                    temperature=float(temperature),
+                    repetition_penalty=1.0
+                )
+            else:
+                # Greedy mode: force temperature to 0 for deterministic output
+                params.set_search_options(
+                    max_length=int(max_tokens),
+                    top_p=1.0,
+                    top_k=1,
+                    temperature=0.0,
+                    repetition_penalty=1.0
+                )
             # Create generator
             generator = self.og.Generator(self.genai_model, params)
             # Encode prompt and append tokens to the generator
