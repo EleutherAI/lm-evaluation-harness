@@ -19,9 +19,15 @@ class MCResult:
     target: int | list[int]
     instances: Sequence["Instance"] | None = None
     choices: Sequence[str] = field(default_factory=list)
-    char_lens: npt.NDArray[np.float64] = field(default_factory=list)
-    byte_lens: npt.NDArray[np.float64] = field(default_factory=list)
-    lls_mutual_info: Sequence[float] = field(default_factory=list)
+    char_lens: npt.NDArray[np.float64] = field(
+        default_factory=lambda: np.array([], dtype=np.float64)
+    )
+    byte_lens: npt.NDArray[np.float64] = field(
+        default_factory=lambda: np.array([], dtype=np.float64)
+    )
+    lls_mutual_info: npt.NDArray[np.float64] = field(
+        default_factory=lambda: np.array([], dtype=np.float64)
+    )
     scores: dict[Any, float] = field(default_factory=dict)
     multiple_target: bool = False
 
@@ -67,7 +73,7 @@ class MCResult:
             choices=choices,
             char_lens=char_lens,
             byte_lens=byte_lens,
-            lls_mutual_info=lls_mutual_info,
+            lls_mutual_info=np.array(lls_mutual_info),
             multiple_target=multiple_target,
         )
 

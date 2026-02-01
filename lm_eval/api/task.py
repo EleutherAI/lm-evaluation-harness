@@ -1430,7 +1430,9 @@ class ConfigurableTask(Task):
                 acc_mutual_info="acc_mutual_info" in self._metrics,
             )
             for metric in self._metrics.keys():
-                result_dict[metric] = self._metrics[metric].fn(res)
+                result_dict[metric] = (
+                    -1 if res.target == -100 else self._metrics[metric].fn(res)
+                )
 
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
