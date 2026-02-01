@@ -4,6 +4,22 @@ from dataclasses import dataclass
 from typing import Any
 
 
+def check_gold_index_error(
+    choices: list[str], gold: list[int] | int | str
+) -> tuple[int | list[int], bool]:
+    if isinstance(gold, list):
+        gold = [i if i < len(choices) else -100 for i in gold]
+        gold_index_error = -100 in gold
+    elif isinstance(gold, int):
+        gold = gold if gold < len(choices) else -100
+        gold_index_error = gold == -100
+    else:  # gold is str
+        gold = choices.index(gold) if gold in choices else -100
+        gold_index_error = gold == -100
+
+    return gold, gold_index_error
+
+
 def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") -> str:
     """Join prefix and suffix, adding delimiter only if neither has whitespace at the boundary."""
     if not prefix:
