@@ -1,4 +1,5 @@
 dataset_path: PrincetonPli/LongProc
+unsafe_code: true
 output_type: generate_until
 test_split: test
 process_docs: !function utils.process_docs
