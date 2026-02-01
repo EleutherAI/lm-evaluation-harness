@@ -1430,6 +1430,7 @@ class ConfigurableTask(Task):
                 acc_mutual_info="acc_mutual_info" in self._metrics,
             )
             for metric in self._metrics.keys():
+                # TODO: handle this better
                 result_dict[metric] = (
                     -1 if res.target == -100 else self._metrics[metric].fn(res)
                 )
