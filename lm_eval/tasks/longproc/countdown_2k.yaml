@@ -1,0 +1,17 @@
+include: _default_yaml_2k
+task: longproc_countdown_2k
+dataset_name: countdown_2k
+process_results: !function metrics.process_results_countdown
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: partial_accuracy
+    aggregation: mean
+    higher_is_better: true
+  - metric: extraction_rate
+    aggregation: mean
+    higher_is_better: true
