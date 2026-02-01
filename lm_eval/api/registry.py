@@ -39,13 +39,9 @@ import importlib.metadata as md
 import inspect
 import logging
 import threading
-from collections.abc import Callable
 from functools import lru_cache
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, overload
-
-
-eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
@@ -53,6 +49,10 @@ if TYPE_CHECKING:
 
     from lm_eval.api.filter import Filter
     from lm_eval.api.model import LM
+    from lm_eval.config.metric import MetricConfig
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 __all__ = [
@@ -151,6 +151,11 @@ def _build_key_error_msg(name: str, alias: str, keys: Iterable[str]) -> str:
     if len(available) > 20:
         msg += f"... ({len(available)} total)"
     return msg
+
+
+# Metric-specific metadata storage --------------------------------------------
+
+_metric_meta: dict[str, dict[str, Any]] = {}
 
 
 class Registry(Generic[T]):
@@ -418,7 +423,7 @@ class Registry(Generic[T]):
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
 aggregation_registry: Registry[Callable[..., float]] = Registry("aggregation")
-metric_registry: Registry[Callable] = Registry("metric")
+metric_registry: Registry[MetricConfig] = Registry("metric")
 metric_agg_registry: Registry[Callable] = Registry("metric_aggregation")
 higher_is_better_registry: Registry[bool] = Registry("higher_is_better")
 
@@ -572,11 +577,11 @@ FILTER_REGISTRY = filter_registry
 # =============================================================================
 
 
-def register_metric(**args):
+def register_metric(**kwargs):
     """Decorator to register a metric function.
 
     Args:
-        **args: Keyword arguments including
+        **kwargs: Keyword arguments including
             - metric: Name to register the metric under (required)
             - higher_is_better: Whether higher scores are better
             - aggregation: Name of aggregation function to use
@@ -584,29 +589,92 @@ def register_metric(**args):
     Returns:
         Decorator function
     """
+    from lm_eval.config.metric import MetricConfig
 
-    def decorate(fn):
-        assert "metric" in args
-        name = args["metric"]
+    name = kwargs["metric"]
 
-        # Register the metric function
-        metric_registry.register(name)(fn)
+    def deco(fn_or_class):
+        # Check if this is a class with __call__/aggregate methods (class-based pattern)
+        if inspect.isclass(fn_or_class) and hasattr(fn_or_class, "aggregate"):
+            # Class-based metric: instantiate with kwargs and use as callable
+            init_kwargs = kwargs.get("kwargs", {})
 
-        # Register higher_is_better if provided
-        if "higher_is_better" in args:
-            higher_is_better_registry.register(name, target=args["higher_is_better"])
+            # Try to instantiate with kwargs
+            try:
+                instance = fn_or_class(**init_kwargs)
+            except TypeError as e:
+                # Fallback: create without kwargs if __init__ doesn't accept them
+                if init_kwargs:
+                    eval_logger.warning(
+                        f"Metric class {fn_or_class.__name__} does not accept "
+                        f"kwargs {init_kwargs}: {e}. Creating without kwargs."
+                    )
+                instance = fn_or_class()
 
-        # Register aggregation if provided
-        if "aggregation" in args:
-            agg_fn = aggregation_registry.get(args["aggregation"])
-            metric_agg_registry.register(name, target=agg_fn)
+            if not callable(instance):
+                raise TypeError(
+                    f"Metric class {fn_or_class.__name__} must define __call__ method"
+                )
+            metric_fn = instance  # Instance is directly callable via __call__
+            aggregation_fn = instance.aggregate
+        else:
+            metric_fn = fn_or_class
 
-        return fn
+            # Determine aggregation function
+            if "aggregation" in kwargs:
+                aggregation_fn = aggregation_registry.get(kwargs["aggregation"])
+            else:
+                # Try to get default aggregation for this metric name
+                try:
+                    aggregation_fn = aggregation_registry.get(name)
+                except KeyError:
+                    # Fall back to "mean" as the most common default aggregation
+                    eval_logger.debug(
+                        f"[metric:{name}] No aggregation specified; defaulting to 'mean'"
+                    )
+                    aggregation_fn = aggregation_registry.get("mean")
 
-    return decorate
+        config = MetricConfig(
+            name=name,
+            fn=metric_fn,
+            kwargs=kwargs.get("kwargs", {}),
+            aggregation_fn=aggregation_fn,
+            higher_is_better=kwargs.get("higher_is_better", True),
+            output_type=kwargs.get("output_type", "generate_until"),
+            hf_evaluate=kwargs.get("hf_evaluate", False),
+            scaler_output=kwargs.get("scaler_output", True),
+        )
+        metric_registry.register(name, target=config)
+        _metric_meta[name] = kwargs
+        higher_is_better_registry.register(name, target=config.higher_is_better)
+        return fn_or_class  # Return the original class or function
+
+    return deco
+
+    # def decorate(fn):
+    #     assert "metric" in kwargs
+    #     name = kwargs["metric"]
+    #
+    #     # Register the metric function
+    #     metric_registry.register(name)(fn)
+    #
+    #     # Register higher_is_better if provided
+    #     if "higher_is_better" in kwargs:
+    #         higher_is_better_registry.register(name, target=kwargs["higher_is_better"])
+    #
+    #     # Register aggregation if provided
+    #     if "aggregation" in kwargs:
+    #         agg_fn = aggregation_registry.get(kwargs["aggregation"])
+    #         metric_agg_registry.register(name, target=agg_fn)
+    #
+    #     return fn
+    #
+    # return decorate
 
 
-def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
+def get_metric(
+    name: str, hf_evaluate_metric: bool = False
+) -> MetricConfig | Callable | None:
     """Get a metric function by name.
 
     Args:

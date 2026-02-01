@@ -24,12 +24,8 @@ from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
-    get_aggregation,
-    get_metric,
-    get_metric_aggregation,
-    is_higher_better,
+    metric_registry,
 )
 from lm_eval.api.utils import (
     Message,
@@ -39,6 +35,7 @@ from lm_eval.api.utils import (
     requires_delimiter,
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
+from lm_eval.config.metric import MetricConfig
 from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -538,20 +535,14 @@ class Task(abc.ABC):
         Parameters:
         - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
         """
-        (
-            self._metric_fn_list,
-            self._aggregation_list,
-            self._metric_fn_kwargs,
-            self._higher_is_better,
-        ) = ({}, {}, {}, {})
-        self._metric_fn_list[metric_name] = get_metric(metric_name)
-        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
-        self._higher_is_better[metric_name] = is_higher_better(metric_name)
-        self._metric_fn_kwargs[metric_name] = {}
+        self._metrics: dict[str, MetricConfig] = {}
+        self._metrics[metric_name] = metric_registry.get(metric_name)
         if not isinstance(self, ConfigurableTask):
-            self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
+            self.process_results = lambda x, y: {
+                metric_name: self._metrics[metric_name].fn
+            }
             self.aggregation = lambda: {
-                metric_name: get_metric_aggregation(metric_name)
+                metric_name: self._metrics[metric_name].aggregation_fn
             }
         self._config["metric_list"] = [{"metric": metric_name}]
         self._config["process_results"] = "process_results"
@@ -667,83 +658,17 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
-        self._metric_fn_list = {}
-        self._metric_fn_kwargs = {}
-        self._aggregation_list = {}
-        self._higher_is_better = {}
+        self._metrics: dict[str, MetricConfig] = {}
 
         if self.config.metric_list is None:
-            # TODO: handle this in TaskConfig.__post_init__ ?
+            # Use default metrics for this output type
             _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
-
             for metric_name in _metric_list:
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._metric_fn_kwargs[metric_name] = {}
-                self._aggregation_list[metric_name] = get_metric_aggregation(
-                    metric_name
-                )
-                self._higher_is_better[metric_name] = is_higher_better(metric_name)
+                self._metrics[metric_name] = metric_registry.get(metric_name)
         else:
-            for metric_config in self.config.metric_list:
-                if "metric" not in metric_config:
-                    raise ValueError(
-                        "'metric' key not provided for an entry in 'metric_list', must be specified!"
-                    )
-                metric_name = metric_config["metric"]
-                kwargs = {
-                    key: metric_config[key]
-                    for key in metric_config
-                    if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
-                }
-                hf_evaluate_metric = (
-                    "hf_evaluate" in metric_config
-                    and metric_config["hf_evaluate"] is True
-                )
-
-                if self.config.process_results is not None:
-                    self._metric_fn_list[metric_name] = None
-                    self._metric_fn_kwargs[metric_name] = {}
-                elif callable(metric_name):
-                    metric_fn = metric_name.__call__
-                    metric_name = metric_name.__name__
-                    self._metric_fn_list[metric_name] = metric_fn
-                    self._metric_fn_kwargs[metric_name] = kwargs
-                else:
-                    self._metric_fn_list[metric_name] = get_metric(
-                        metric_name, hf_evaluate_metric
-                    )
-                    self._metric_fn_kwargs[metric_name] = kwargs
-
-                if "aggregation" in metric_config:
-                    agg_name = metric_config["aggregation"]
-                    if isinstance(agg_name, str):
-                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = metric_config[
-                            "aggregation"
-                        ]
-                else:
-                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    metric_agg = get_metric_aggregation(metric_name)
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
-                        f"using default "
-                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
-                    )
-                    self._aggregation_list[metric_name] = metric_agg
-
-                if "higher_is_better" in metric_config:
-                    self._higher_is_better[metric_name] = metric_config[
-                        "higher_is_better"
-                    ]
-                else:
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
-                        f"using default "
-                        f"higher_is_better={is_higher_better(metric_name)}"
-                    )
-                    self._higher_is_better[metric_name] = is_higher_better(metric_name)
+            for metric_cfg in self.config.metric_list:
+                mc = MetricConfig.from_yaml_field(metric_cfg, task=self.config.task)
+                self._metrics[mc.name] = mc
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
@@ -1385,7 +1310,7 @@ class ConfigurableTask(Task):
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in self._metric_fn_list.keys():
+            if "acc_mutual_info" in self._metrics:
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
@@ -1452,7 +1377,7 @@ class ConfigurableTask(Task):
             return self.config.process_results(doc, results)
 
         result_dict = {}
-        use_metric = list(self._metric_fn_list.keys())
+        use_metric = list(self._metrics.keys())
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
@@ -1489,10 +1414,7 @@ class ConfigurableTask(Task):
             completion_len = np.array([float(len(i)) for i in choices])
             byte_length = np.array([float(len(i.encode("utf-8"))) for i in choices])
 
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in self._metrics:
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 # as we extend the args list with unconditional ("", continuation) pairs
@@ -1583,12 +1505,12 @@ class ConfigurableTask(Task):
                 gold = list(gold)
             # TODO: handle this better
             elif type(gold) is not type(result) and not (
-                "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
+                "bypass" in self._metrics or isinstance(result, list)
             ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
-            for metric in self._metric_fn_list.keys():
+            for metric in self._metrics.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1600,24 +1522,24 @@ class ConfigurableTask(Task):
                         gold = [gold]
                     if metric == "exact_match":
                         result = [result for _ in range(len(gold))]
-                        scores = self._metric_fn_list[metric](
+                        scores = self._metrics[metric].fn(
                             references=gold,
                             predictions=result,
-                            **self._metric_fn_kwargs[metric],
+                            **self._metrics[metric].kwargs,
                         )[metric]
                         result_score = 1.0 if scores > 0.0 else 0.0
                     else:
                         for gold_option in gold:
                             try:
-                                result_score = self._metric_fn_list[metric](
+                                result_score = self._metrics[metric].fn(
                                     references=[gold_option],
                                     predictions=[result],
-                                    **self._metric_fn_kwargs[metric],
+                                    **self._metrics[metric].kwargs,
                                 )
                             except (
                                 TypeError
                             ):  # TODO: this is hacky and I don't want to do it
-                                result_score = self._metric_fn_list[metric](
+                                result_score = self._metrics[metric].fn(
                                     [gold_option, result]
                                 )
                             if isinstance(result_score, dict):
@@ -1627,13 +1549,13 @@ class ConfigurableTask(Task):
                         result_score = 1.0 if any(scores) else 0.0
                 else:
                     try:
-                        result_score = self._metric_fn_list[metric](
+                        result_score = self._metrics[metric].fn(
                             references=[gold],
                             predictions=[result],
-                            **self._metric_fn_kwargs[metric],
+                            **self._metrics[metric].kwargs,
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = self._metric_fn_list[metric]([gold, result])
+                        result_score = self._metrics[metric].fn([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
                     # This allows for multiple metrics to be returned from the same function
@@ -1650,10 +1572,10 @@ class ConfigurableTask(Task):
         return result_dict
 
     def aggregation(self) -> dict:
-        return self._aggregation_list
+        return {name: mc.aggregation_fn for name, mc in self._metrics.items()}
 
     def higher_is_better(self) -> dict:
-        return self._higher_is_better
+        return {name: mc.higher_is_better for name, mc in self._metrics.items()}
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)

@@ -2,6 +2,7 @@ import unittest.mock as mock
 
 from lm_eval.api.metrics import _bootstrap_internal_no_mp, mean
 from lm_eval.api.task import ConfigurableTask
+from lm_eval.config.metric import MetricConfig
 from lm_eval.config.task import TaskConfig
 
 
@@ -27,11 +28,11 @@ class MockConfigurableTask(ConfigurableTask):
         self.multiple_input = 0
         self.multiple_target = 0
 
-        # Set up metrics
-        self._metric_fn_list = {"acc": None, "acc_mutual_info": None}
-        self._metric_fn_kwargs = {"acc": {}, "acc_mutual_info": {}}
-        self._aggregation_list = {}
-        self._higher_is_better = {}
+        # Set up metrics using the new MetricConfig structure
+        self._metrics = {
+            "acc": MetricConfig(name="acc"),
+            "acc_mutual_info": MetricConfig(name="acc_mutual_info"),
+        }
 
     def doc_to_choice(self, doc):
         return ["A", "B", "C"]
@@ -139,7 +140,7 @@ def test_acc_mutual_info_without_metric():
 
     task = MockConfigurableTask()
     task._config = TaskConfig(**config)
-    task._metric_fn_list = {"acc": None}  # Only acc
+    task._metrics = {"acc": MetricConfig(name="acc")}  # Only acc
 
     # Only conditional loglikelihoods (no unconditional since acc_mutual_info not requested)
     results = [(-2.0, False), (-1.0, True), (-3.0, False)]  # 3 choices, B wins

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from inspect import getsource
 from typing import TYPE_CHECKING, Any
 
@@ -216,3 +216,9 @@ class TaskConfig(dict):
                 return getsource(value)  # type:ignore[invalid-argument-type]
             except (TypeError, OSError):
                 return str(value)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        """Create a TaskConfig instance from a dictionary."""
+        _fields = {f.name for f in fields(cls)}
+        return cls(**{k: v for k, v in data.items() if k in _fields})
