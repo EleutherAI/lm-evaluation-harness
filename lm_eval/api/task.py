@@ -29,6 +29,7 @@ from lm_eval.api.registry import (
 )
 from lm_eval.api.utils import (
     Message,
+    check_gold_index_error,
     ends_with_whitespace,
     maybe_delimit,
     multiturn_to_singleturn,
@@ -39,6 +40,7 @@ from lm_eval.config.metric import MetricConfig
 from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.types import MCResult
 
 
 if TYPE_CHECKING:
@@ -1407,90 +1409,28 @@ class ConfigurableTask(Task):
                 ),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls, is_greedy = zip(*results, strict=True)
-
-            # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = self.doc_to_choice(doc)
-            completion_len = np.array([float(len(i)) for i in choices])
-            byte_length = np.array([float(len(i.encode("utf-8"))) for i in choices])
-
-            if 2 * len(choices) == len(lls) and "acc_mutual_info" in self._metrics:
-                # then we are doing mutual info.
-                # this stores the "dryrun" / unconditional answer loglikelihoods
-                # as we extend the args list with unconditional ("", continuation) pairs
-                lls_unconditional = lls[len(choices) :]
-                if len(lls_unconditional) != len(choices):
-                    raise ValueError
-                # and this stores our "regular" conditional loglikelihoods
-                lls = lls[: len(choices)]
-
-            pred = np.argmax(lls)
-            pred_norm = np.argmax(lls / completion_len)
-            pred_byte = np.argmax(lls / byte_length)
-
-            if self.multiple_input:
-                gold = self.doc_to_text(doc)
-            else:
-                gold = self.doc_to_target(doc)
-
-            gold_index_error = False
-            if isinstance(gold, list):
-                gold = [i if i < len(choices) else -100 for i in gold]
-                if -100 in gold:
-                    gold_index_error = True
-            else:
-                if isinstance(gold, int):
-                    gold = gold if gold < len(choices) else -100
-                elif isinstance(gold, str):
-                    gold = choices.index(gold) if gold in choices else -100
-
-                if gold == -100:
-                    gold_index_error = True
-
+            gold, gold_index_error = check_gold_index_error(
+                choices,
+                self.doc_to_target(doc)
+                if not self.multiple_input
+                else self.doc_to_text(doc),
+            )
             if gold_index_error:
                 eval_logger.warning(
                     f"Label index was not in within range of available choices,"
                     f"Sample:\n\n{doc}\n\n"
                 )
 
-            if self.multiple_target:
-                acc = 1.0 if pred in gold else 0.0
-                acc_norm = 1.0 if pred_norm in gold else 0.0
-                acc_bytes = 1.0 if pred_byte in gold else 0.0
-                exact_match = int(any(is_greedy[i] if i != -100 else 0 for i in gold))
-            else:
-                acc = 1.0 if pred == gold else 0.0
-                acc_norm = 1.0 if pred_norm == gold else 0.0
-                acc_bytes = 1.0 if pred_byte == gold else 0.0
-                # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold]) if gold != -100 else 0
-
-            prob_norm = utils.softmax(lls)
-
-            # TODO use keyword arguments to the metric?
-            # gold, pred, norm stuff, the original lls,
-            result_dict = {
-                **({"acc": acc} if "acc" in use_metric else {}),
-                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
-                **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-                **({"acc_bytes": acc_bytes} if "acc_bytes" in use_metric else {}),
-                **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-                **(
-                    {"brier_score": (gold, prob_norm)}
-                    if "brier_score" in use_metric
-                    else {}
-                ),
-                **({"likelihood": (gold, lls)} if "likelihood" in use_metric else {}),
-            }
-
-            if "acc_mutual_info" in use_metric:
-                lls_mutual_info = [
-                    ll_c - ll_u
-                    for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
-                ]
-                acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
-                result_dict["acc_mutual_info"] = acc_mutual_info
+            res = MCResult.from_results(
+                results,
+                choices,
+                gold,
+                multiple_target=bool(self.multiple_target),
+                acc_mutual_info="acc_mutual_info" in self._metrics,
+            )
+            for metric in self._metrics.keys():
+                result_dict[metric] = self._metrics[metric].fn(res)
 
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)

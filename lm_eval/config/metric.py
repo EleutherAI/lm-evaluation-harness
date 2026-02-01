@@ -85,6 +85,7 @@ class MetricConfig:
             aggregation_fn=_aggregation,
             higher_is_better=_higher_is_better,
             hf_evaluate=hf_evaluate,
+            # TODO: fix this!!
             output_type=cfg.get("output_type", "generate_until"),
             repeat_reduction=cfg.get("requires", None),
         )

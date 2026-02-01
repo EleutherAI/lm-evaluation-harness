@@ -13,13 +13,60 @@ class MCResult:
 
     lls: Sequence[float]
     is_greedy: Sequence[bool]
-    target: int
+    target: int | list[int]
     instances: Sequence["Instance"] | None = None
     choices: Sequence[str] = field(default_factory=list)
     char_lens: Sequence[int] = field(default_factory=list)
     byte_lens: Sequence[int] = field(default_factory=list)
     lls_mutual_info: Sequence[float] = field(default_factory=list)
     scores: dict[Any, float] = field(default_factory=dict)
+    multiple_target: bool = False
+
+    @classmethod
+    def from_results(
+        cls,
+        results: Sequence[tuple[float, bool]],
+        choices: Sequence[str],
+        target: int | list[int],
+        multiple_target: bool = False,
+        acc_mutual_info: bool = False,
+    ):
+        """Create MCResult from process_results data.
+
+        Args:
+            results: List of (log-likelihood, is_greedy) tuples
+            choices: List of choice strings
+            target: The correct answer index (or list for multiple targets)
+            multiple_target: Whether this is a multiple target task
+            acc_mutual_info: Whether mutual info results are included
+        """
+        lls, is_greedy = zip(*results, strict=True)
+        lls = list(lls)
+        is_greedy = list(is_greedy)
+
+        lls_mutual_info: list[float] = []
+        if acc_mutual_info and 2 * len(choices) == len(lls):
+            # Mutual info: results contain both conditional and unconditional
+            lls_unconditional = lls[len(choices) :]
+            lls = lls[: len(choices)]
+            is_greedy = is_greedy[: len(choices)]
+            lls_mutual_info = [
+                ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
+            ]
+
+        char_lens = [len(c) for c in choices]
+        byte_lens = [len(c.encode("utf-8")) for c in choices]
+
+        return cls(
+            lls=lls,
+            is_greedy=is_greedy,
+            target=target,
+            choices=choices,
+            char_lens=char_lens,
+            byte_lens=byte_lens,
+            lls_mutual_info=lls_mutual_info,
+            multiple_target=multiple_target,
+        )
 
     @classmethod
     def from_instances(cls, results: Sequence["Instance"], acc_mutual_info=False):

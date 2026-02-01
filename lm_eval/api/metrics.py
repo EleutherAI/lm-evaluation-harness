@@ -4,18 +4,43 @@ import os
 import random
 import re
 import string
-from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import Generic, TypeVar, cast
 
 import numpy as np
-import sacrebleu
 
+from lm_eval import utils
 from lm_eval.api.registry import register_aggregation, register_metric
+from lm_eval.types import MCResult
 
 
 T = TypeVar("T")
+InputT = TypeVar("InputT")
+IntermediateT = TypeVar("IntermediateT")
 
 eval_logger = logging.getLogger(__name__)
+
+
+# Base Protocol for Metrics with __call__/Aggregate Pattern
+class MetricProtocol(Generic[InputT, IntermediateT]):
+    """Protocol for metrics with custom compute and aggregation stages.
+
+    This pattern is useful for metrics that:
+    1. Transform individual results (__call__ stage)
+    2. Aggregate transformed results into a final score (aggregate stage)
+
+    We especially use this for metrics that require corpus-level computation.
+
+    Use __init__ to set up any state variables or kwargs
+    """
+
+    def __call__(self, input: InputT) -> IntermediateT:
+        """Transform single result into intermediate representation."""
+        raise NotImplementedError
+
+    def aggregate(self, items: Iterable[IntermediateT]) -> float:
+        """Aggregate intermediate results into final score."""
+        raise NotImplementedError
 
 
 # Register Aggregations First
@@ -58,95 +83,46 @@ def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
 
 
-@register_aggregation("f1")
-def f1_score(items):
-    from sklearn.metrics import f1_score
-
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    fscore = f1_score(golds, preds)
-
-    return np.max(fscore)
-
-
-@register_aggregation("matthews_corrcoef")
-def matthews_corrcoef(items):
-    from sklearn.metrics import matthews_corrcoef
-
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    return matthews_corrcoef(golds, preds)
-
-
-@register_aggregation("bleu")
-def bleu(items):
-    """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
-    for evaluating a generated sentence to a reference sentence. It counts matching
-    n-grams in the candidate translation to n-grams in the reference text, where
-    1-gram or unigram would be each token and a bigram comparison would be each
-    word pair. The comparison is made regardless of word order
-    Source: https://machinelearningmastery.com/calculate-bleu-score-for-text-python/
-    Paper: https://www.aclweb.org/anthology/P02-1040/
-
-    Higher is better
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_bleu(preds, refs).score
-
-
-@register_aggregation("chrf")
-def chrf(items):
-    """chrF++ is a tool for automatic evaluation of machine translation output
-    based on character n-gram precision and recall enhanced with word n-grams.
-    Source: https://github.com/m-popovic/chrF
-    Paper: https://www.aclweb.org/anthology/W15-3049.pdf
-
-    Higher is better  # TODO I think
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_chrf(preds, refs).score
-
-
-@register_aggregation("ter")
-def ter(items):
-    """Translation Error Rate is an error metric for machine translation that
-    measures the number of edits required to change a system output into one
-    of the references
-    Source: http://www.cs.umd.edu/~snover/tercom/
-    Paper: http://mt-archive.info/AMTA-2006-Snover.pdf
-
-    Lower is better
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_ter(preds, refs).score
-
-
-@register_aggregation("brier_score")
-def brier_score(items):  # This is a passthrough function
-    gold, predictions = list(zip(*items))
-    bs, num_class = np.array(predictions).shape
-
-    gold = list(gold)
-    gold_one_hot = np.eye(num_class)[gold]
-    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
-
-
 @register_metric(
     metric="brier_score",
     higher_is_better=False,
     output_type=["multiple_choice"],
-    aggregation="brier_score",
 )
-def brier_score_fn(items):  # This is a passthrough function
-    return items
+class BrierScore:
+    """Brier score for multiple choice tasks.
+
+    Computes the mean squared error between predicted probabilities
+    (from softmax of log-likelihoods) and one-hot encoded targets.
+
+    Lower scores are better (perfect score = 0.0).
+    """
+
+    def __call__(self, result: MCResult):
+        """Extract target and compute softmax probabilities from log-likelihoods.
+
+        Args:
+            result: MCResult containing target index and log-likelihoods
+
+        Returns:
+            Tuple of (target_index, probability_distribution)
+        """
+        return cast("int", result.target), utils.softmax(result.lls)
+
+    def aggregate(self, items) -> float:
+        """Compute mean Brier score across all items.
+
+        Args:
+            items: Iterable of (target, probabilities) tuples
+
+        Returns:
+            Mean Brier score (mean squared error)
+        """
+        gold, predictions = list(zip(*items, strict=True))
+        bs, num_class = np.array(predictions).shape
+
+        gold = list(gold)
+        gold_one_hot = np.eye(num_class)[gold]
+        return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
 
 @register_metric(
@@ -155,18 +131,8 @@ def brier_score_fn(items):  # This is a passthrough function
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="acc_norm",
-    higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
-    aggregation="mean",
-)
-def acc_norm_fn(items):  # This is a passthrough function
-    return items
+def acc_fn(result: MCResult):
+    return 1.0 if np.argmax(result.lls) == result.target else 0.0
 
 
 @register_metric(
@@ -175,8 +141,22 @@ def acc_norm_fn(items):  # This is a passthrough function
     output_type="multiple_choice",
     aggregation="mean",
 )
-def acc_mutual_info_fn(items):  # This is a passthrough function
-    return items
+def acc_mutual_info_fn(result: MCResult):
+    return 1.0 if np.argmax(result.lls_mutual_info) == result.target else 0.0
+
+
+@register_metric(
+    metric="acc_norm",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def acc_norm_fn(result: MCResult):
+    return (
+        1.0
+        if np.argmax(np.array(result.lls) / np.array(result.char_lens)) == result.target
+        else 0.0
+    )
 
 
 @register_metric(
@@ -185,8 +165,12 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_bytes_fn(items):  # This is a passthrough function
-    return items
+def acc_norm_bytes_fn(result: MCResult):  # This is a passthrough function
+    return (
+        1.0
+        if np.argmax(np.array(result.lls) / np.array(result.byte_lens)) == result.target
+        else 0.0
+    )
 
 
 ### the code used in the `exact_match_hf_evaluate` function is ported from
@@ -259,10 +243,23 @@ def exact_match_fn(**kwargs):
     metric="perplexity",
     higher_is_better=False,
     output_type="loglikelihood",
-    aggregation="perplexity",
 )
-def perplexity_fn(items):  # This is a passthrough function
-    return items
+class Perplexity:
+    """Perplexity metric for language modeling.
+
+    Computes exp(-mean(log_likelihoods)) to measure how well
+    a probability model predicts a sample.
+
+    Lower is better (perfect score = 1.0).
+    """
+
+    def __call__(self, items: float) -> float:
+        """Pass through log likelihood values."""
+        return items
+
+    def aggregate(self, items: list[float]) -> float:
+        """Compute perplexity from mean negative log likelihood."""
+        return math.exp(-mean(items))
 
 
 @register_metric(
@@ -279,30 +276,61 @@ def likelihood_fn(items):  # This is a passthrough function
     metric="word_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
-    aggregation="weighted_perplexity",
 )
-def word_perplexity_fn(items):  # This is a passthrough function
-    return items
+class WordPerplexity:
+    """Word-level perplexity for language modeling.
+
+    Similar to Perplexity but uses weighted averaging for rolling contexts.
+    """
+
+    def __call__(self, items: tuple[float, float]) -> tuple[float, float]:
+        """Pass through (log_likelihood, weight) tuples."""
+        return items
+
+    def aggregate(self, items: list[tuple[float, float]]) -> float:
+        """Compute word perplexity using weighted mean."""
+        return math.exp(-weighted_mean(items))
 
 
 @register_metric(
     metric="byte_perplexity",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
-    aggregation="weighted_perplexity",
 )
-def byte_perplexity_fn(items):  # This is a passthrough function
-    return items
+class BytePerplexity:
+    """Byte-level perplexity for language modeling.
+
+    Similar to WordPerplexity but measured at the byte level.
+    """
+
+    def __call__(self, items: tuple[float, float]) -> tuple[float, float]:
+        """Pass through (log_likelihood, weight) tuples."""
+        return items
+
+    def aggregate(self, items: list[tuple[float, float]]) -> float:
+        """Compute byte perplexity using weighted mean."""
+        return math.exp(-weighted_mean(items))
 
 
 @register_metric(
     metric="bits_per_byte",
     higher_is_better=False,
     output_type="loglikelihood_rolling",
-    aggregation="bits_per_byte",
 )
-def bits_per_byte_fn(items):  # This is a passthrough function
-    return items
+class BitsPerByte:
+    """Bits per byte metric for compression and language modeling.
+
+    Measures the average number of bits needed to encode each byte.
+    Lower is better.
+    """
+
+    def __call__(self, items: tuple[float, float]) -> tuple[float, float]:
+        """Pass through (log_likelihood, weight) tuples."""
+        return items
+
+    def aggregate(self, items: list[tuple[float, float]]) -> float:
+        """Compute bits per byte from weighted mean."""
+        return -weighted_mean(items) / math.log(2)
 
 
 def pop_stddev(arr):
@@ -333,50 +361,141 @@ def bypass(items):
     metric="mcc",
     higher_is_better=True,
     output_type="multiple_choice",
-    aggregation="matthews_corrcoef",
 )
-def mcc_fn(items):  # This is a passthrough function
-    return items
+class MatthewsCorrelationCoef:
+    """Matthews Correlation Coefficient for classification tasks.
+
+    MCC is a balanced measure that can be used even if classes are
+    of very different sizes. Returns a value between -1 and +1.
+    """
+
+    def __call__(
+        self, items: tuple[int | str, int | str]
+    ) -> tuple[int | str, int | str]:
+        """Pass through (gold, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[int | str, int | str]]) -> float:
+        """Compute Matthews Correlation Coefficient from all predictions."""
+        from sklearn.metrics import matthews_corrcoef
+
+        unzipped_list = list(zip(*items, strict=True))
+        golds = unzipped_list[0]
+        preds = unzipped_list[1]
+        return matthews_corrcoef(golds, preds)
 
 
 @register_metric(
     metric="f1",
     higher_is_better=True,
     output_type="multiple_choice",
-    aggregation="f1",
 )
-def f1_fn(items):  # This is a passthrough function
-    return items
+class F1Score:
+    """F1 score for classification tasks.
+
+    Harmonic mean of precision and recall.
+    Higher is better (perfect score = 1.0).
+    """
+
+    def __call__(
+        self, items: tuple[int | str, int | str]
+    ) -> tuple[int | str, int | str]:
+        """Pass through (gold, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[int | str, int | str]]) -> float:
+        """Compute F1 score from all predictions."""
+        from sklearn.metrics import f1_score
+
+        unzipped_list = list(zip(*items, strict=True))
+        golds = unzipped_list[0]
+        preds = unzipped_list[1]
+        fscore = f1_score(golds, preds)
+        return np.max(fscore)
 
 
 @register_metric(
     metric="bleu",
     higher_is_better=True,
     output_type="generate_until",
-    aggregation="bleu",
 )
-def bleu_fn(items):  # This is a passthrough function
-    return items
+class BLEU:
+    """BLEU score for machine translation evaluation.
+
+    Bilingual Evaluation Understudy Score - measures n-gram overlap
+    between generated and reference translations.
+
+    Higher is better (0-100 scale).
+    """
+
+    def __call__(self, items: tuple[str, str]) -> tuple[str, str]:
+        """Pass through (reference, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+        """Compute corpus-level BLEU score."""
+        import sacrebleu
+
+        refs = list(zip(*items, strict=True))[0]
+        preds = list(zip(*items, strict=True))[1]
+        refs, preds = _sacreformat(refs, preds)
+        return sacrebleu.corpus_bleu(preds, refs).score
 
 
 @register_metric(
     metric="chrf",
     higher_is_better=True,
     output_type="generate_until",
-    aggregation="chrf",
 )
-def chrf_fn(items):  # This is a passthrough function
-    return items
+class ChrF:
+    """ChrF++ score for machine translation evaluation.
+
+    Character n-gram F-score enhanced with word n-grams.
+    More robust to morphological variations than BLEU.
+
+    Higher is better.
+    """
+
+    def __call__(self, items: tuple[str, str]) -> tuple[str, str]:
+        """Pass through (reference, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+        """Compute corpus-level ChrF score."""
+        import sacrebleu
+
+        refs = list(zip(*items, strict=True))[0]
+        preds = list(zip(*items, strict=True))[1]
+        refs, preds = _sacreformat(refs, preds)
+        return sacrebleu.corpus_chrf(preds, refs).score
 
 
 @register_metric(
     metric="ter",
-    higher_is_better=True,
+    higher_is_better=False,
     output_type="generate_until",
-    aggregation="ter",
 )
-def ter_fn(items):  # This is a passthrough function
-    return items
+class TER:
+    """Translation Error Rate for machine translation.
+
+    Measures the number of edits required to change a system output
+    into a reference translation.
+
+    Lower is better (0 = perfect match).
+    """
+
+    def __call__(self, items: tuple[str, str]) -> tuple[str, str]:
+        """Pass through (reference, prediction) pairs."""
+        return items
+
+    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+        """Compute corpus-level TER score."""
+        import sacrebleu
+
+        refs = list(zip(*items, strict=True))[0]
+        preds = list(zip(*items, strict=True))[1]
+        refs, preds = _sacreformat(refs, preds)
+        return sacrebleu.corpus_ter(preds, refs).score
 
 
 @register_metric(
@@ -388,10 +507,10 @@ def ter_fn(items):  # This is a passthrough function
 def acc_all(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
+    preds = list(zip(*items, strict=True))[0]
+    docs = list(zip(*items, strict=True))[1]
 
-    for doc, pred in zip(docs, preds):
+    for doc, pred in zip(docs, preds, strict=True):
         paragraph_id = doc["idx"]["paragraph"]
         question_id = doc["idx"]["question"]
         if (paragraph_id, question_id) not in question_scoring_dict:
@@ -407,10 +526,10 @@ def acc_all(items):
 def acc_all_stderr(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
+    preds = list(zip(*items, strict=True))[0]
+    docs = list(zip(*items, strict=True))[1]
 
-    for doc, pred in zip(docs, preds):
+    for doc, pred in zip(docs, preds, strict=True):
         question_id = doc["idx"]["question"]
         if question_id not in question_scoring_dict:
             question_scoring_dict[question_id] = []
@@ -432,7 +551,7 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 
 
 def weighted_mean(items):
-    a, b = zip(*items)
+    a, b = zip(*items, strict=True)
     return sum(a) / sum(b)
 
 
@@ -455,7 +574,7 @@ def _sacreformat(refs, preds):
         refs = list(refs)
     if not is_non_str_iterable(refs[0]):
         refs = [[ref] for ref in refs]
-    refs = list(zip(*refs))
+    refs = list(zip(*refs, strict=True))
     # Note the number of refs in each ref list much match the number of preds
 
     # We expect preds to be List[str] or List[List[str]]. Must become List[str]
@@ -554,7 +673,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -568,14 +687,15 @@ def stderr_for_metric(
         # return no function (don't compute stderr) if bootstrap iters = 0
         return None
 
+    # TODO: bootstrappable list should be able to set class based metrics too
     bootstrappable = [
         median,
-        matthews_corrcoef,
-        f1_score,
+        # matthews_corrcoef,
+        # f1_score,
         perplexity,
-        bleu,
-        chrf,
-        ter,
+        # bleu,
+        # chrf,
+        # ter,
         nanmean,
     ]
 
@@ -584,10 +704,10 @@ def stderr_for_metric(
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
-    return stderr.get(metric, None)
+    return stderr.get(metric)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -599,13 +719,18 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     # this empirically seems to match running `stderr_for_metric` on all instances
     # from the subtasks concatenated with each other.
     pooled_sample_var = (
-        sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])
+        sum(
+            [
+                (size - 1) * stderr**2 * size
+                for size, stderr in zip(sizes, stderrs, strict=True)
+            ]
+        )
     ) / (sum(sizes) - len(sizes))
 
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )
@@ -623,7 +748,7 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
     curr_size = sizes[0]
     curr_score = metrics[0]
 
-    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:]):
+    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:], strict=True):
         curr_score = ((curr_score * curr_size) + (score * size)) / (
             curr_size + size
         )  # NOTE: this assumes our aggregation fn is "mean"
@@ -646,4 +771,6 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
 
     assert len(metrics) == len(sizes)
 
-    return sum([metric * size for metric, size in zip(metrics, sizes)]) / sum(sizes)
+    return sum(
+        [metric * size for metric, size in zip(metrics, sizes, strict=True)]
+    ) / sum(sizes)
