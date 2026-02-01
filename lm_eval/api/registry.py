@@ -594,8 +594,8 @@ def register_metric(**kwargs):
     name = kwargs["metric"]
 
     def deco(fn_or_class):
-        # Check if this is a class with __call__/aggregate methods (class-based pattern)
-        if inspect.isclass(fn_or_class) and hasattr(fn_or_class, "aggregate"):
+        # Check if this is a class with __call__/aggregation methods (class-based pattern)
+        if inspect.isclass(fn_or_class) and hasattr(fn_or_class, "aggregation"):
             # Class-based metric: instantiate with kwargs and use as callable
             init_kwargs = kwargs.get("kwargs", {})
 
@@ -616,7 +616,7 @@ def register_metric(**kwargs):
                     f"Metric class {fn_or_class.__name__} must define __call__ method"
                 )
             metric_fn = instance  # Instance is directly callable via __call__
-            aggregation_fn = instance.aggregate
+            aggregation_fn = instance.aggregation
         else:
             metric_fn = fn_or_class
 
@@ -650,26 +650,6 @@ def register_metric(**kwargs):
         return fn_or_class  # Return the original class or function
 
     return deco
-
-    # def decorate(fn):
-    #     assert "metric" in kwargs
-    #     name = kwargs["metric"]
-    #
-    #     # Register the metric function
-    #     metric_registry.register(name)(fn)
-    #
-    #     # Register higher_is_better if provided
-    #     if "higher_is_better" in kwargs:
-    #         higher_is_better_registry.register(name, target=kwargs["higher_is_better"])
-    #
-    #     # Register aggregation if provided
-    #     if "aggregation" in kwargs:
-    #         agg_fn = aggregation_registry.get(kwargs["aggregation"])
-    #         metric_agg_registry.register(name, target=agg_fn)
-    #
-    #     return fn
-    #
-    # return decorate
 
 
 def get_metric(

@@ -24,13 +24,13 @@ eval_logger = logging.getLogger(__name__)
 NAT_TO_BIT = 1.0 / math.log(2)
 
 
-# Base Protocol for Metrics with __call__/Aggregate Pattern
+# Base Protocol for Metrics with __call__/aggregation Pattern
 class MetricProtocol(Generic[InputT, IntermediateT]):
     """Protocol for metrics with custom compute and aggregation stages.
 
     This pattern is useful for metrics that:
     1. Transform individual results (__call__ stage)
-    2. Aggregate transformed results into a final score (aggregate stage)
+    2. Aggregate transformed results into a final score (aggregation stage)
 
     We especially use this for metrics that require corpus-level computation.
 
@@ -41,7 +41,7 @@ class MetricProtocol(Generic[InputT, IntermediateT]):
         """Transform single result into intermediate representation."""
         raise NotImplementedError
 
-    def aggregate(self, items: Iterable[IntermediateT]) -> float:
+    def aggregation(self, items: Iterable[IntermediateT]) -> float:
         """Aggregate intermediate results into final score."""
         raise NotImplementedError
 
@@ -111,7 +111,7 @@ class BrierScore:
         """
         return cast("int", result.target), utils.softmax(result.lls)
 
-    def aggregate(self, items) -> float:
+    def aggregation(self, items) -> float:
         """Compute mean Brier score across all items.
 
         Args:
@@ -356,7 +356,7 @@ class Perplexity:
         """Pass through log likelihood values."""
         return items
 
-    def aggregate(self, items: list[float]) -> float:
+    def aggregation(self, items: list[float]) -> float:
         """Compute perplexity from mean negative log likelihood."""
         return math.exp(-mean(items))
 
@@ -386,7 +386,7 @@ class WordPerplexity:
         """Pass through (log_likelihood, weight) tuples."""
         return items
 
-    def aggregate(self, items: list[tuple[float, float]]) -> float:
+    def aggregation(self, items: list[tuple[float, float]]) -> float:
         """Compute word perplexity using weighted mean."""
         return math.exp(-weighted_mean(items))
 
@@ -406,7 +406,7 @@ class BytePerplexity:
         """Pass through (log_likelihood, weight) tuples."""
         return items
 
-    def aggregate(self, items: list[tuple[float, float]]) -> float:
+    def aggregation(self, items: list[tuple[float, float]]) -> float:
         """Compute byte perplexity using weighted mean."""
         return math.exp(-weighted_mean(items))
 
@@ -427,7 +427,7 @@ class BitsPerByte:
         """Pass through (log_likelihood, weight) tuples."""
         return items
 
-    def aggregate(self, items: list[tuple[float, float]]) -> float:
+    def aggregation(self, items: list[tuple[float, float]]) -> float:
         """Compute bits per byte from weighted mean."""
         return -weighted_mean(items) / math.log(2)
 
@@ -474,7 +474,7 @@ class MatthewsCorrelationCoef:
         """Pass through (gold, prediction) pairs."""
         return items
 
-    def aggregate(self, items: Iterable[tuple[int | str, int | str]]) -> float:
+    def aggregation(self, items: Iterable[tuple[int | str, int | str]]) -> float:
         """Compute Matthews Correlation Coefficient from all predictions."""
         from sklearn.metrics import matthews_corrcoef
 
@@ -502,7 +502,7 @@ class F1Score:
         """Pass through (gold, prediction) pairs."""
         return items
 
-    def aggregate(self, items: Iterable[tuple[int | str, int | str]]) -> float:
+    def aggregation(self, items: Iterable[tuple[int | str, int | str]]) -> float:
         """Compute F1 score from all predictions."""
         from sklearn.metrics import f1_score
 
@@ -531,7 +531,7 @@ class BLEU:
         """Pass through (reference, prediction) pairs."""
         return items
 
-    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+    def aggregation(self, items: Iterable[tuple[str, str]]) -> float:
         """Compute corpus-level BLEU score."""
         import sacrebleu
 
@@ -559,7 +559,7 @@ class ChrF:
         """Pass through (reference, prediction) pairs."""
         return items
 
-    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+    def aggregation(self, items: Iterable[tuple[str, str]]) -> float:
         """Compute corpus-level ChrF score."""
         import sacrebleu
 
@@ -587,7 +587,7 @@ class TER:
         """Pass through (reference, prediction) pairs."""
         return items
 
-    def aggregate(self, items: Iterable[tuple[str, str]]) -> float:
+    def aggregation(self, items: Iterable[tuple[str, str]]) -> float:
         """Compute corpus-level TER score."""
         import sacrebleu
 
