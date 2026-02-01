@@ -2,6 +2,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
+import numpy.typing as npt
+
 
 if TYPE_CHECKING:
     from lm_eval.api.instance import Instance
@@ -11,13 +14,13 @@ if TYPE_CHECKING:
 class MCResult:
     """Result of a multiple-choice task. Instances are grouped by doc_id beforehand"""
 
-    lls: Sequence[float]
+    lls: npt.NDArray[np.float64]
     is_greedy: Sequence[bool]
     target: int | list[int]
     instances: Sequence["Instance"] | None = None
     choices: Sequence[str] = field(default_factory=list)
-    char_lens: Sequence[int] = field(default_factory=list)
-    byte_lens: Sequence[int] = field(default_factory=list)
+    char_lens: npt.NDArray[np.float64] = field(default_factory=list)
+    byte_lens: npt.NDArray[np.float64] = field(default_factory=list)
     lls_mutual_info: Sequence[float] = field(default_factory=list)
     scores: dict[Any, float] = field(default_factory=dict)
     multiple_target: bool = False
@@ -54,11 +57,11 @@ class MCResult:
                 ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
             ]
 
-        char_lens = [len(c) for c in choices]
-        byte_lens = [len(c.encode("utf-8")) for c in choices]
+        char_lens = np.array([len(c) for c in choices])
+        byte_lens = np.array([len(c.encode("utf-8")) for c in choices])
 
         return cls(
-            lls=lls,
+            lls=np.array(lls),
             is_greedy=is_greedy,
             target=target,
             choices=choices,

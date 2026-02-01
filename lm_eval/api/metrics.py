@@ -20,6 +20,9 @@ IntermediateT = TypeVar("IntermediateT")
 
 eval_logger = logging.getLogger(__name__)
 
+# Conversion factor from natural log (nats) to bits
+NAT_TO_BIT = 1.0 / math.log(2)
+
 
 # Base Protocol for Metrics with __call__/Aggregate Pattern
 class MetricProtocol(Generic[InputT, IntermediateT]):
@@ -165,12 +168,108 @@ def acc_norm_fn(result: MCResult):
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_norm_bytes_fn(result: MCResult):  # This is a passthrough function
+def acc_norm_bytes_fn(result: MCResult):
     return (
         1.0
         if np.argmax(np.array(result.lls) / np.array(result.byte_lens)) == result.target
         else 0.0
     )
+
+
+@register_metric(
+    metric="bpb",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="mean",
+)
+def bpb_fn(result: MCResult) -> float:
+    """Bits per byte for the correct choice.
+
+    Measures information content normalized by byte length.
+    Lower is better.
+    """
+    log_probs = np.array(result.lls)
+    byte_lengths = np.array(result.byte_lens)
+    target = result.target
+    correct_logprob = log_probs[target]
+    return float((-correct_logprob / byte_lengths[target]) * NAT_TO_BIT)
+
+
+@register_metric(
+    metric="logprob",
+    higher_is_better=True,
+    output_type=["multiple_choice"],
+    aggregation="mean",
+)
+def logprob_fn(result: MCResult) -> float:
+    """Log probability of the correct choice.
+
+    Higher (less negative) is better.
+    """
+    log_probs = np.array(result.lls)
+    target = result.target
+    return float(log_probs[target])
+
+
+@register_metric(
+    metric="choice_logprob",
+    higher_is_better=True,
+    output_type=["multiple_choice"],
+    aggregation="mean",
+)
+def choice_logprob_fn(result: MCResult) -> float:
+    """Normalized log probability of the correct choice.
+
+    Log probability after softmax normalization (log of the probability mass
+    assigned to the correct choice). Higher is better.
+    """
+    log_probs = np.array(result.lls)
+    normalized_log_probs = log_probs - np.logaddexp.reduce(log_probs)
+    target = result.target
+    return float(normalized_log_probs[target])
+
+
+@register_metric(
+    metric="choice_prob_norm",
+    higher_is_better=True,
+    output_type=["multiple_choice"],
+    aggregation="mean",
+)
+def choice_prob_norm_fn(result: MCResult) -> float:
+    """BPB-weighted probability of the correct choice.
+
+    Probability of the correct choice when weighting by bits-per-byte
+    (lower BPB gets higher weight). Higher is better.
+    """
+    log_probs = np.array(result.lls)
+    byte_lengths = np.array(result.byte_lens)
+    bpb_values = (-log_probs / byte_lengths) * NAT_TO_BIT
+    bpb_weights = np.exp(-bpb_values)
+    bpb_weights /= max(bpb_weights.sum(), 1e-8)  # avoid division by zero
+    target = result.target
+    return float(bpb_weights[target])
+
+
+@register_metric(
+    metric="choice_logprob_norm",
+    higher_is_better=True,
+    output_type=["multiple_choice"],
+    aggregation="mean",
+)
+def choice_logprob_norm_fn(result: MCResult) -> float:
+    """Log of BPB-weighted probability of the correct choice.
+
+    Log probability of the correct choice when weighting by bits-per-byte.
+    Higher is better.
+    """
+    log_probs = np.array(result.lls)
+    byte_lengths = np.array(result.byte_lens)
+    bpb_values = (-log_probs / byte_lengths) * NAT_TO_BIT
+    bpb_weights = np.exp(-bpb_values)
+    bpb_weights /= max(bpb_weights.sum(), 1e-8)  # avoid division by zero
+    target = result.target
+    correct_choice_prob_norm = float(bpb_weights[target])
+    return float(np.log(correct_choice_prob_norm + 1e-30))
 
 
 ### the code used in the `exact_match_hf_evaluate` function is ported from
