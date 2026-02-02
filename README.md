@@ -416,7 +416,6 @@ Supported devices: `npu`, `gpu`, `cpu`.
 > The Windows ML backend is optimized for ONNX models in GenAI format. Models must be converted to ONNX format before evaluation. The backend automatically detects and uses available Windows ML execution providers. (Model Conversion Guide, Microsoft AI Took Kit
 https://code.visualstudio.com/docs/intelligentapps/modelconversion)
 
-
 > [!Tip]
 > For best performance on NPU/GPU-enabled devices (e.g., Intel, Qualcomm, AMD, NVIDIA), use `device=npu or device=gpu`. The backend will automatically configure the appropriate execution provider.
 
