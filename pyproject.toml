@@ -63,12 +63,11 @@ ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 # mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
 optimum = ["optimum[openvino]"]
 sparsify = ["sparsify"]
-sae_lens = ["sae_lens"]
+#sae_lens = ["sae_lens"] #  sae-lens requires datasets < 3.0
 # Task specific dependencies
 acpbench = ["lark>=1.1.9", "tarski[clingo]==0.8.2", "pddl==0.4.2", "kstar-planner==1.4.2"]
 audiolm_qwen = ["librosa", "soundfile"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "requests", "aiohttp", "tenacity", "tqdm", "tiktoken", "sentencepiece", "ruff"]
-hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict", "nltk>=3.9.1"]
 japanese_leaderboard = ["emoji==2.14.0", "neologdn==0.5.3", "fugashi[unidic-lite]", "rouge_score>=0.1.2"]
 longbench = ["jieba", "fuzzywuzzy", "rouge"]
