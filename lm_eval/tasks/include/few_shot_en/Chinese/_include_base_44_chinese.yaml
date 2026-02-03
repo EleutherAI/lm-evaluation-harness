@@ -1,4 +1,4 @@
-group: include_base_44_chinese
+group: include_base_44_chinese_few_shot_en
 task:
 - include_base_44_chinese_few_shot_en_applied_science
 - include_base_44_chinese_few_shot_en_health_oriented_education
@@ -12,4 +12,4 @@ aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1
