@@ -1,4 +1,5 @@
-group: med_text_classification
+tag:
+  - med_text_classification
 task: med_text_classification_easy
 dataset_path: csv
 dataset_name: null
