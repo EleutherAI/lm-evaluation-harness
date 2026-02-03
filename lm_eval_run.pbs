@@ -13,7 +13,7 @@ image="/app1/common/singularity-img/hopper/pytorch/pytorch_2.3.0_cuda_12.4_ngc_2
 
 module load singularity
 
-BASE_LOG_DIR="/scratch/e1583535/multiLingual-llm-project/logs/eval/lm-evaluation-harness/xcopa_pre-translation_en/0shot/vi"
+BASE_LOG_DIR="/scratch/e1583535/multilingual-llm-project/logs/eval/lm-evaluation-harness/xcopa_pre-translation_en/0shot/vi"
 
 mkdir -p $BASE_LOG_DIR
 
