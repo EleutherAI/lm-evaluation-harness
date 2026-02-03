@@ -6,7 +6,7 @@ from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from typing_extensions import NotRequired, TypedDict, deprecated
+from typing_extensions import TypedDict, deprecated
 
 from lm_eval import utils
 from lm_eval.api.group import Group
@@ -16,12 +16,12 @@ from lm_eval.tasks.index import Entry, Kind, TaskIndex
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
 
 
 class TaskDict(TypedDict):
     tasks: dict[str, Task]
-    groups: NotRequired[dict[str, Group]]
+    groups: dict[str, Group]
 
 
 class TaskManager:
@@ -149,8 +149,8 @@ class TaskManager:
     def load(
         self,
         task_list: str
-        | list[str]
-        | list[str | Task | Group | dict[str, Any]]
+        | Sequence[str]
+        | Sequence[str | Task | Group | dict[str, Any]]
         | Task
         | Group
         | dict[str, Any],

@@ -13,7 +13,7 @@ from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.task import ConfigurableTask, Task
 from lm_eval.evaluator_utils import get_subtask_list
 
-# Import TaskManager from the refactored module
+# Import TaskManager
 from lm_eval.tasks.manager import TaskManager
 
 

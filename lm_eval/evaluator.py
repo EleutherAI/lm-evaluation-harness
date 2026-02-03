@@ -342,8 +342,8 @@ def simple_evaluate(
         ) | (metadata or {})
         task_manager = TaskManager(metadata=metadata)
 
-    # Load tasks - returns {tasks, groups}
-    loaded = task_manager.load(tasks)  # type: ignore
+    # Load tasks - returns {"tasks":.., "groups":..}
+    loaded = task_manager.load(tasks)
 
     # Log selected tasks with hierarchy
     _log_selected_tasks(loaded["tasks"], loaded["groups"], task_manager)
