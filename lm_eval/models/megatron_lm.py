@@ -491,6 +491,17 @@ class MegatronLMEval(LM):
                 return self.tokenizer.eos_id
 
     @property
+    def prefix_token_id(self) -> int:
+        """Prefix token ID for loglikelihood (typically BOS or EOS)."""
+        # Try to get BOS token first, fall back to EOT
+        try:
+            if hasattr(self.tokenizer, 'bos_token_id') and self.tokenizer.bos_token_id is not None:
+                return self.tokenizer.bos_token_id
+        except AttributeError:
+            pass
+        return self.eot_token_id
+
+    @property
     def max_length(self) -> int:
         return self._max_length
 
@@ -769,12 +780,25 @@ class MegatronLMEval(LM):
         return local_results
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-        """Compute log-likelihood with Data Parallelism support."""
+        """Compute log-likelihood with Data Parallelism support.
+        
+        Handles BOS token correctly: some tokenizers automatically prepend BOS,
+        so we check and move it to context if present in continuation.
+        """
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
-                context_enc = [self.eot_token_id]
-                continuation_enc = self.tok_encode(continuation)
+                # Encode continuation without special tokens to avoid duplicate BOS
+                continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
+                # Handle BOS token: if continuation starts with prefix_token_id,
+                # use it as context; otherwise use prefix_token_id as context
+                if len(continuation_enc) > 0 and continuation_enc[0] == self.prefix_token_id:
+                    # Continuation already has BOS, move it to context
+                    context_enc = continuation_enc[:1]
+                    continuation_enc = continuation_enc[1:]
+                else:
+                    # Use prefix_token_id (BOS/EOS) as context
+                    context_enc = [self.prefix_token_id]
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
@@ -964,7 +988,14 @@ class MegatronLMEval(LM):
             ctx = req.args[0]
             return -len(ctx), ctx
 
-        re_ord = Collator(local_requests, sort_fn=_collate_gen)
+        # group_by="gen_kwargs" ensures each batch has the same generation parameters
+        # This is important when running multiple tasks with different gen_kwargs
+        re_ord = Collator(
+            local_requests, 
+            sort_fn=_collate_gen,
+            group_by="gen_kwargs",
+            group_fn=lambda x: x.args[1],
+        )
         chunks = re_ord.get_batched(n=batch_size, batch_fn=None)
 
         pbar = tqdm(
