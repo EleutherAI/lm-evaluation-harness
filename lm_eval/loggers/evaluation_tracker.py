@@ -433,12 +433,6 @@ class EvaluationTracker:
             hf_hub_url,
         )
 
-        from huggingface_hub import (
-            DatasetCard,
-            DatasetCardData,
-            hf_hub_url,
-        )
-
         eval_logger.info("Recreating metadata card")
         repo_id = self.details_repo if self.public_repo else self.details_repo_private
 

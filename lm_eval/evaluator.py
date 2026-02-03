@@ -15,8 +15,6 @@ import lm_eval.api.metrics
 import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
-from lm_eval.api.group import Group
-from lm_eval.api.task import Task
 from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED
 from lm_eval.evaluator_utils import (
@@ -43,6 +41,7 @@ from lm_eval.utils import (
 
 
 if TYPE_CHECKING:
+    from lm_eval.api.group import Group
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
     from lm_eval.loggers import EvaluationTracker
@@ -474,7 +473,7 @@ def simple_evaluate(
 @positional_deprecated
 def evaluate(
     lm: LM,
-    task_dict: "TaskDict",
+    task_dict: TaskDict,
     limit: int | None = None,
     samples: dict[str, list[int]] | None = None,
     cache_requests: bool = False,
