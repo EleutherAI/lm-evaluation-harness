@@ -37,7 +37,7 @@ class TaskManager:
         verbosity: str | None = None,
         include_path: str | Path | list[str | Path] | None = None,
         include_defaults: bool = True,
-        metadata: dict[str, dict[str, Any]] | None = None,
+        metadata: dict[str, dict[str, Any] | str] | None = None,
     ) -> None:
         """
         Args:

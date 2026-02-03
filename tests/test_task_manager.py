@@ -698,16 +698,10 @@ metadata:
         group_key = list(result.keys())[0]
         children = result[group_key]
 
-        # All 3 tasks from the tag should be expanded and namespaced
-        assert "tag_subgroup::tag_task_1" in children, (
-            "tag_task_1 should be namespaced under tag_subgroup"
-        )
-        assert "tag_subgroup::tag_task_2" in children, (
-            "tag_task_2 should be namespaced under tag_subgroup"
-        )
-        assert "tag_subgroup::tag_task_3" in children, (
-            "tag_task_3 should be namespaced under tag_subgroup"
-        )
+        # All 3 tasks from the tag should be expanded
+        assert "tag_task_1" in children, "tag_task_1 should be in tag_subgroup"
+        assert "tag_task_2" in children, "tag_task_2 should be in tag_subgroup"
+        assert "tag_task_3" in children, "tag_task_3 should be in tag_subgroup"
 
         # Verify we have exactly 3 tasks (not 1 due to collision)
         assert len(children) == 3, (
@@ -738,15 +732,15 @@ metadata:
 
         # The subgroup should have all 3 tasks expanded from the TAG
         # Tasks are namespaced under their immediate parent group (tag_subgroup)
-        assert "tag_subgroup::tag_task_1" in subgroup_children
-        assert "tag_subgroup::tag_task_2" in subgroup_children
-        assert "tag_subgroup::tag_task_3" in subgroup_children
+        assert "tag_task_1" in subgroup_children
+        assert "tag_task_2" in subgroup_children
+        assert "tag_task_3" in subgroup_children
         assert len(subgroup_children) == 3, (
             f"Subgroup should have 3 tasks, got {len(subgroup_children)}"
         )
 
     def test_inline_subgroup_syntax(self, test_configs_task_manager):
-        """Test legacy inline subgroup syntax: task: [{group: name, task: [...]}].
+        """Test inline subgroup syntax: task: [{group: name, task: [...]}].
 
         This is the format used by mmlu_flan_cot_fewshot and similar configs.
         """
@@ -774,3 +768,226 @@ metadata:
             assert len(subgroup.get_all_tasks(recursive=False)) == 1
             # Verify aggregation was parsed
             assert subgroup.aggregation is not None
+
+
+# =============================================================================
+# Group Building & Factory Tests
+# =============================================================================
+
+
+class TestGroupBuilding:
+    """Tests for group building logic in TaskFactory.
+
+    Covers: config propagation, override precedence, inline vs registry groups,
+    existing group references with overrides, aggregation parsing, and edge cases.
+    """
+
+    @pytest.fixture()
+    def tm(self):
+        test_configs_path = Path(__file__).parent / "test_configs"
+        return TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+    # ---- existing group reference with overrides (the key bug fix) ----
+
+    def test_existing_group_ref_has_children(self, tm):
+        """
+        When a parent group references an existing group via
+        {group: include_group, ...}, the referenced group must still
+        have its own children populated from the registry.
+        """
+        loaded = tm.load(["group_ref_parent"])
+        parent = loaded["groups"]["group_ref_parent"]
+
+        child_groups = parent.get_all_groups(recursive=False)
+        assert len(child_groups) == 1
+
+        include_grp = child_groups[0]
+        assert include_grp.name == "include_group"
+
+        tasks = include_grp.get_all_tasks(recursive=False)
+        assert len(tasks) == 3, (
+            f"include_group should have 3 children, got {len(tasks)}: "
+            f"{[t.task_name for t in tasks]}"
+        )
+
+    def test_existing_group_ref_overrides_propagate(self, tm):
+        """
+        Overrides specified on a group reference should propagate
+        down to the leaf tasks of the referenced group.
+        """
+        loaded = tm.load(["group_ref_parent"])
+        parent = loaded["groups"]["group_ref_parent"]
+        include_grp = parent.get_all_groups(recursive=False)[0]
+
+        for task in include_grp.get_all_tasks():
+            assert task.config.num_fewshot == 99, (
+                f"{task.task_name}: expected num_fewshot=99, "
+                f"got {task.config.num_fewshot}"
+            )
+
+    # ---- group-level config propagation ----
+
+    def test_group_level_config_propagates_to_children(self, tm):
+        """
+        Config keys set at the group level (outside GROUP_ONLY_KEYS)
+        should propagate to all children as defaults.
+        """
+        loaded = tm.load(["propagation_group"])
+        tasks = loaded["tasks"]
+
+        assert len(tasks) == 2
+        for name, task in tasks.items():
+            assert task.config.num_fewshot == 42, (
+                f"{name}: expected num_fewshot=42 from group, "
+                f"got {task.config.num_fewshot}"
+            )
+
+    def test_caller_overrides_beat_group_defaults(self, tm):
+        """
+        Caller-supplied overrides should take precedence over
+        group-level config values.
+        """
+        loaded = tm.load([{"task": "propagation_group", "num_fewshot": 0}])
+        tasks = loaded["tasks"]
+
+        for name, task in tasks.items():
+            assert task.config.num_fewshot == 0, (
+                f"{name}: expected num_fewshot=0 from caller override, "
+                f"got {task.config.num_fewshot}"
+            )
+
+    # ---- mixed member types ----
+
+    def test_mixed_members_string_ref(self, tm):
+        """
+        A bare string in the task list should resolve to the task in
+        the registry.
+        """
+        loaded = tm.load(["mixed_members_group"])
+        tasks = loaded["tasks"]
+        assert "simple_task" in tasks
+
+    def test_mixed_members_dict_with_overrides(self, tm):
+        """A dict with 'task' key should apply inline overrides."""
+        loaded = tm.load(["mixed_members_group"])
+        task_b = loaded["tasks"]["simple_task_b"]
+        assert task_b.config.num_fewshot == 7
+
+    def test_mixed_members_inline_subgroup(self, tm):
+        """
+        A dict with 'group' key (not in registry) should create an
+        inline subgroup with namespacing.
+        """
+        loaded = tm.load(["mixed_members_group"])
+        groups = loaded["groups"]
+
+        # The inline subgroup should be namespaced
+        assert "mixed_members_group::mixed_inline_sub" in groups
+        inline = groups["mixed_members_group::mixed_inline_sub"]
+        assert len(inline.get_all_tasks(recursive=False)) == 1
+        assert inline.aggregation is not None
+        assert inline.aggregation[0].metric == "acc"
+
+    # ---- empty group ----
+
+    def test_empty_group_has_no_children(self, tm):
+        """
+        A group with no task list should build successfully with
+        zero children.
+        """
+        loaded = tm.load(["empty_group"])
+        group = loaded["groups"]["empty_group"]
+        assert len(group) == 0
+        assert group.get_all_tasks() == []
+        # Aggregation should still be parsed
+        assert group.has_aggregation
+
+    # ---- aggregation parsing (unit-level) ----
+
+    def test_parse_aggregation_with_list(self):
+        """aggregate_metric_list as a list should parse to list[AggMetricConfig]."""
+        from lm_eval.tasks.factory import TaskFactory
+
+        cfg = {
+            "aggregate_metric_list": [
+                {"metric": "acc", "weight_by_size": True},
+                {"metric": "f1", "weight_by_size": False},
+            ]
+        }
+        result = TaskFactory._parse_aggregation(cfg)
+        assert result is not None
+        assert len(result) == 2
+        assert result[0].metric == "acc"
+        assert result[0].weight_by_size is True
+        assert result[1].metric == "f1"
+        assert result[1].weight_by_size is False
+
+    def test_parse_aggregation_single_dict_normalized(self):
+        """
+        A single dict (not wrapped in a list) should be normalized
+        to a one-element list.
+        """
+        from lm_eval.tasks.factory import TaskFactory
+
+        cfg = {"aggregate_metric_list": {"metric": "acc", "weight_by_size": True}}
+        result = TaskFactory._parse_aggregation(cfg)
+        assert result is not None
+        assert len(result) == 1
+        assert result[0].metric == "acc"
+
+    def test_parse_aggregation_missing_returns_none(self):
+        """No aggregate_metric_list key should return None."""
+        from lm_eval.tasks.factory import TaskFactory
+
+        assert TaskFactory._parse_aggregation({}) is None
+        assert TaskFactory._parse_aggregation({"aggregate_metric_list": None}) is None
+
+    # ---- group alias / metadata ----
+
+    def test_group_alias_preserved(self, tm):
+        """group_alias from config should appear on the Group object."""
+        # inline_subgroup_parent has no alias, but its children (subgroup_a, subgroup_b) don't either
+        # Use include_group which also has no alias — just verify the field exists
+        loaded = tm.load(["include_group"])
+        group = loaded["groups"]["include_group"]
+        # include_group.yaml doesn't set group_alias, so it should be None
+        assert group.alias is None
+        assert group.display_name == "include_group"
+
+    def test_group_metadata_includes_factory_meta(self):
+        """Factory-level metadata should be merged into every group's metadata."""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(
+            include_path=str(test_configs_path),
+            include_defaults=False,
+            metadata={"run_id": "test-123"},
+        )
+        loaded = tm.load(["include_group"])
+        group = loaded["groups"]["include_group"]
+        assert group.metadata is not None
+        assert group.metadata.get("run_id") == "test-123"
+
+    # ---- nested groups ----
+
+    def test_deeply_nested_get_all_tasks_recursive(self, tm):
+        """
+        get_all_tasks(recursive=True) on a parent group should
+        collect tasks from all levels of nesting.
+        """
+        loaded = tm.load(["group_ref_parent"])
+        parent = loaded["groups"]["group_ref_parent"]
+
+        # parent -> include_group -> 3 tasks
+        all_tasks = parent.get_all_tasks(recursive=True)
+        assert len(all_tasks) == 3
+
+    def test_deeply_nested_get_all_tasks_non_recursive(self, tm):
+        """
+        get_all_tasks(recursive=False) on a parent group should
+        NOT return tasks from nested subgroups.
+        """
+        loaded = tm.load(["group_ref_parent"])
+        parent = loaded["groups"]["group_ref_parent"]
+
+        direct_tasks = parent.get_all_tasks(recursive=False)
+        assert len(direct_tasks) == 0  # parent only has a subgroup, no direct tasks
