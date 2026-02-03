@@ -45,22 +45,6 @@ class TaskFactory:
             - list[Task]: for tags (expanded to multiple tasks)
         """
         match entry:
-            # Handle external references (ref: in children)
-            case Entry(ref_task=str() as ref):
-                if ref not in registry:
-                    raise KeyError(f"Reference '{ref}' not found for '{entry.name}'")
-                # Use namespaced name for the task
-                ref_overrides = {**(overrides or {}), "task": entry.name}
-                return self.build(
-                    registry[ref], overrides=ref_overrides, registry=registry
-                )
-
-            # Handle tag expansion (tag: in children)
-            case Entry(tag_ref=str() as tag):
-                if tag not in registry:
-                    raise KeyError(f"Tag '{tag}' not found for '{entry.name}'")
-                return self._build_tag(registry[tag], overrides, registry)
-
             case Entry(kind=Kind.TAG):
                 return self._build_tag(entry, overrides, registry)
 
@@ -77,7 +61,7 @@ class TaskFactory:
         cfg = self._load_full_config(entry, overrides)
 
         # Remove structural keys that aren't part of task config
-        for key in ("children", "tag", "group"):
+        for key in ("tag", "group", "task_list"):
             cfg.pop(key, None)
 
         task_name = cfg["task"]
@@ -125,7 +109,6 @@ class TaskFactory:
         GROUP_ONLY_KEYS = {
             "group",
             "group_alias",
-            "children",
             "task",
             "aggregate_metric_list",
             "metadata",
@@ -137,14 +120,7 @@ class TaskFactory:
         # Merge: group-level defaults < caller overrides (caller takes precedence)
         merged_overrides = {**group_task_overrides, **(overrides or {})}
 
-        # Build and add children from children: dict
-        if "children" in raw_cfg:
-            for child in self._build_children(
-                raw_cfg["children"], group_name, merged_overrides, registry
-            ):
-                group.add(child)
-
-        # Build and add children from old-style task: list (references to existing tasks/groups/tags)
+        # Build children from task: list (references to existing tasks/groups/tags)
         task_field = raw_cfg.get("task")
         if isinstance(task_field, list):
             for child in self._build_group_members(
@@ -153,55 +129,6 @@ class TaskFactory:
                 group.add(child)
 
         return group
-
-    def _build_children(
-        self,
-        children_cfg: dict[str, Any],
-        group_name: str,
-        overrides: dict[str, Any] | None,
-        registry: dict[str, Entry],
-    ) -> list[Task | Group]:
-        """Build children defined via children: dict.
-
-        Supported child formats:
-        - Task reference: {task: "name", ...overrides}
-        - Subgroup: {group: "name", task: [...], children: {...}}
-
-        Returns:
-            List of Task | Group objects
-        """
-        children: list[Task | Group] = []
-
-        for child_name, child_cfg in children_cfg.items():
-            child_path = f"{group_name}::{child_name}"
-
-            if child_path not in registry:
-                eval_logger.warning(f"Child '{child_path}' not found in registry")
-                continue
-
-            child_entry = registry[child_path]
-
-            # Extract child-level overrides (skip structural keys)
-            child_overrides = {
-                k: v
-                for k, v in child_cfg.items()
-                if k not in ("task", "group", "children", "tag")
-            }
-
-            # Merge: parent overrides < child overrides
-            merged = {**(overrides or {}), **child_overrides}
-
-            # For task references, use namespaced name
-            if child_entry.ref_task:
-                merged["task"] = child_path
-
-            child_obj = self.build(child_entry, overrides=merged, registry=registry)
-            if isinstance(child_obj, (Task, Group)):
-                children.append(child_obj)
-            else:
-                children.extend(child_obj)
-
-        return children
 
     def _build_group_members(
         self,
@@ -345,26 +272,12 @@ class TaskFactory:
     def _load_full_config(
         self, entry: Entry, overrides: dict[str, Any] | None
     ) -> dict[str, Any]:
-        # For inline children (have parent), use the stored cfg directly
-        # instead of loading from YAML (which would load the parent's full config)
-        if entry.parent and entry.cfg:
-            cfg = deepcopy(entry.cfg)
-        elif entry.yaml_path:
+        if entry.yaml_path:
             cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))
         else:
             cfg: dict[str, Any] = {
                 "metadata": {"config": "unknown"}
             }  # python task without YAML
-
-        # Handle task_list configs - merge base config with per-task overrides
-        if "task_list" in cfg:
-            task_list = cfg.pop("task_list")
-            # Find the entry for this task in task_list
-            for item in task_list:
-                if isinstance(item, dict) and item.get("task") == entry.name:
-                    # Merge per-task overrides
-                    cfg = {**cfg, **item}
-                    break
 
         if overrides:
             cfg = {**cfg, **overrides}
