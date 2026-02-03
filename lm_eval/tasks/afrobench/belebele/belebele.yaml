@@ -1,4 +1,4 @@
-group: belebele
+group: afrobench_belebele
 task:
   - belebele_prompt_1
   - belebele_prompt_2
@@ -10,4 +10,4 @@ aggregate_metric_list:
     aggregation: mean
     weight_by_size: true
 metadata:
-  version: 2
+  version: 3
