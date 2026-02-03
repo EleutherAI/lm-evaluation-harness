@@ -55,13 +55,13 @@ class ContextInstance(Instance):
     # used for updating requests from storage info
     @property
     def update_request(self):
-        if getattr(self, "_update_request") is not None:
+        if getattr(self, "_update_request", None) is not None:
             return self._update_request
         raise NotImplementedError("Method for updating request is not defined.")
 
     # used for updating storage from request and LM answer info
     @property
     def update_storage(self):
-        if getattr(self, "_update_storage") is not None:
+        if getattr(self, "_update_storage", None) is not None:
             return self._update_storage
         raise NotImplementedError("Method for updating storage is not defined.")

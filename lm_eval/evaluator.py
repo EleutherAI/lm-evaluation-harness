@@ -621,7 +621,7 @@ def evaluate(
                 resps = getattr(lm, reqtype)(cloned_reqs)
 
                 # put responses from model into a list of length K for each request.
-                for x, req in zip(resps, cloned_reqs):
+                for x, req in zip(resps, cloned_reqs, strict=False):
                     req.resps.append(x)
             # context tasks require separate reqs processing
             else:

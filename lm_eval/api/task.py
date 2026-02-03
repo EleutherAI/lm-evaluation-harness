@@ -5,7 +5,7 @@ import ast
 import logging
 import random
 import re
-from collections.abc import Callable, Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping, Dict
 from copy import deepcopy
 from functools import partial
 from typing import (
@@ -82,7 +82,7 @@ class Task(abc.ABC):
     OUTPUT_TYPE: OutputType | None = None
 
     # defines meta-group of the task
-    CONTEXT_BASED: Optional[bool] = None
+    CONTEXT_BASED: bool | None = None
 
     def __init__(
         self,
