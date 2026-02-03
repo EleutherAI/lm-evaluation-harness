@@ -225,6 +225,8 @@ class TaskIndex:
         if not args:
             return result
         for t in args:
+            if t is None:
+                continue
             result.update([t] if isinstance(t, str) else t)
         return result
 
