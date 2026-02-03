@@ -425,6 +425,9 @@ def compute_task_metrics(
             agg_fn = task.aggregation()[metric]
         except KeyError:
             # Arbitrary metric without a defined aggregation function
+            eval_logger.info(
+                f"[{task.task_name}] No aggregation function defined for metric {metric}. Using mean."
+            )
             agg_fn = mean
 
         metric_key = f"{metric},{filter_key}"

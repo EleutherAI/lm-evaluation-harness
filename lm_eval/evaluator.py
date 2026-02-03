@@ -5,7 +5,7 @@ import os
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -28,7 +28,6 @@ from lm_eval.evaluator_utils import (
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager
-from lm_eval.tasks.manager import TaskDict
 from lm_eval.utils import (
     handle_non_serializable,
     hash_dict_images,
@@ -43,6 +42,7 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
+    from lm_eval.tasks.manager import TaskDict
 
 eval_logger = logging.getLogger(__name__)
 
@@ -143,73 +143,75 @@ def simple_evaluate(
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
-    :param model: Union[str, LM]
-        Name of model or LM object, see lm_eval.models.get_model
-    :param model_args: Optional[str, dict]
-        String or dict arguments for each model class, see LM.create_from_arg_string and LM.create_from_arg_object.
-        Ignored if `model` argument is a LM object.
-    :param tasks: list[Union[str, dict, Task]]
-        List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
-    :param num_fewshot: int
-        Number of examples in few-shot context
-    :param batch_size: int or str, optional
-        Batch size for model
-    :param max_batch_size: int, optional
-        Maximal batch size to try with automatic batch size detection
-    :param device: str, optional
-        PyTorch device (e.g. "cpu" or "cuda:0") for running models
-    :param use_cache: str, optional
-        A path to a sqlite db file for caching model responses. `None` if not caching.
-    :param cache_requests: bool, optional
-        Speed up evaluation by caching the building of dataset requests. `None` if not caching.
-    :param rewrite_requests_cache: bool, optional
-        Rewrites all the request cache if set to `True`. `None` if not desired.
-    :param delete_requests_cache: bool, optional
-        Deletes all the request cache if set to `True`. `None` if not desired.
-    :param limit: int or float, optional
-        Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
-    :param samples: dictionary, optional
-        Dictionary indicating which examples should be tested in each task, e.g., {"mmlu_astronomy":[0,3,6],"mmlu_anatomy":[1,4,7,10]}.
-    :param bootstrap_iters:
-        Number of iterations for bootstrap statistics, used when calculating stderrs. set to 0 for no stderr calculations to be performed.
-    :param check_integrity: bool
-        Whether to run the relevant part of the test suite for the tasks
-    :param write_out: bool
-        If True, write out an example document and model input for checking task integrity
-    :param log_samples: bool
-        If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
-    :param system_instruction: str
-        System instruction to be applied to the prompt
-    :param apply_chat_template: Union[bool, str]
-        Specifies whether to apply a chat template to the prompt.
-        - If set to True, the default chat template is applied.
-        - If set to a string, applies the specified chat template by name.
-        Defaults to False (no chat template applied).
-    :param fewshot_as_multiturn: bool
-        Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param gen_kwargs: dict or comma-separated string
-        Arguments for model generation
-        Ignored for all tasks with loglikelihood output_type
-    :param verbosity: str
-        Verbosity level for logging
-    :param predict_only: bool
-        If true only model outputs will be generated and returned. Metrics will not be evaluated
-    :param random_seed: int
-        Random seed for python's random module. If set to None, the seed will not be set.
-    :param numpy_random_seed: int
-        Random seed for numpy. If set to None, the seed will not be set.
-    :param torch_random_seed: int
-        Random seed for torch. If set to None, the seed will not be set.
-    :param fewshot_random_seed: int
-        Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
-    :param metadata: dict
-        Additional metadata to be added to the task manager. Will get passed to the download function of the task.
+    Args:
+        model: Name of model or LM object, see lm_eval.models.get_model.
+        model_args: String or dict arguments for each model class, e.g.,
+            "pretrained=EleutherAI/pythia-1.3B,revision=main" or {"pretrained": "EleutherAI/pythia-1.3B"}.
+            Ignored if ``model`` argument is a LM object.
+        tasks: List of task names or Task objects. Task objects will be taken
+            to have name task.EVAL_HARNESS_NAME if defined and
+            type(task).__name__ otherwise.
+        num_fewshot: Number of examples in few-shot context.
+        batch_size: Batch size for model.
+        max_batch_size: Maximal batch size to try with automatic batch size
+            detection.
+        device: PyTorch device (e.g. "cpu" or "cuda:0") for running models.
+        use_cache: A path to a sqlite db file for caching model responses (outputs).
+            ``None`` if not caching.
+        cache_requests: Speed up evaluation by caching the building of dataset
+            requests (inputs). ``None`` if not caching.
+        rewrite_requests_cache: Rewrites all the request cache if set to
+            ``True``. ``None`` if not desired.
+        delete_requests_cache: Deletes all the request cache if set to
+            ``True``. ``None`` if not desired.
+        limit: Limit the number of examples per task (only use this for
+            testing). If <1, limit is a percentage of the total number of
+            examples.
+        samples: Dictionary mapping task names to lists of dataset indices to
+            evaluate, e.g.,
+            {"mmlu_astronomy": [0, 3, 6], "mmlu_anatomy": [1, 4, 7, 10]}.
+            Incompatible with `limit`.
+        bootstrap_iters: Number of iterations for bootstrap statistics, used
+            when calculating stderrs. Set to 0 for no stderr calculations to
+            be performed.
+        check_integrity: Whether to run the relevant part of the test suite
+            for the tasks.
+        write_out: If True, write out an example document and model input to terminal.
+            Useful for checking task integrity.
+        log_samples: If True, write out all model outputs and documents for
+            per-sample measurement and post-hoc analysis.
+        system_instruction: System instruction to be prepended to the prompt.
+        apply_chat_template: Specifies whether to apply a chat template to the
+            prompt. If set to True, the default chat template is applied. If
+            set to a string, applies the specified chat template (of tokenizer) by name.
+            Defaults to False (no chat template applied).
+        fewshot_as_multiturn: Whether to provide the fewshot examples as a
+            multiturn conversation or a single user turn.
+        gen_kwargs: Arguments for model generation. Ignored for all tasks with
+            loglikelihood output_type.
+        task_manager: TaskManager instance to use for loading tasks. If None,
+            a new one is created.
+        verbosity: Verbosity level for logging (deprecated)
+        predict_only: If True only model outputs will be generated and
+            returned. Metrics will not be evaluated.
+        random_seed: Random seed for python's random module. If set to None,
+            the seed will not be set.
+        numpy_random_seed: Random seed for numpy. If set to None, the seed
+            will not be set.
+        torch_random_seed: Random seed for torch. If set to None, the seed
+            will not be set.
+        fewshot_random_seed: Random seed for fewshot sampler random generator.
+            If set to None, the seed of generator will be set to None.
+        confirm_run_unsafe_code: Whether to confirm running tasks marked as
+            unsafe (e.g. code execution tasks).
+        metadata: Additional metadata to be added to the task manager. Will
+            get passed to the download function of the task.
 
-    Return:
-        Dictionary of results
+    Returns:
+        Dictionary of results.
     """
     if verbosity is not None:
-        setup_logging(verbosity=verbosity)
+        eval_logger.info("Setting verbosity through simple_evaluate is deprecated.")
     start_date = time.time()
 
     if limit is not None and samples is not None:
@@ -464,9 +466,9 @@ def simple_evaluate(
 @positional_deprecated
 def evaluate(
     lm: "LM",
-    task_dict: TaskDict,
+    task_dict: "TaskDict",
     limit: int | None = None,
-    samples: dict | None = None,
+    samples: dict[str, list[int]] | None = None,
     cache_requests: bool = False,
     rewrite_requests_cache: bool = False,
     bootstrap_iters: int | None = 100000,
@@ -480,39 +482,39 @@ def evaluate(
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
-    :param lm: obj
-        Language Model
-    :param task_dict: dict[str, Task]
-        Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
-    :param limit: int, optional
-        Limit the number of examples per task (only use this for testing)
-    :param samples: dictionary, optional
-        Dictionary indicating which examples should be tested in each task, e.g., {"mmlu_astronomy":[0,3,6],"mmlu_anatomy":[1,4,7,10]}.
-    :param cache_requests: bool, optional
-        Speed up evaluation by caching the building of dataset requests.
-    :param rewrite_requests_cache: bool, optional
-        Rewrites all the request cache if set to `True`.
-    :param bootstrap_iters:
-        Number of iterations for bootstrap statistics, used when calculating stderr. Set to 0 for skipping all stderr calculations.
-    :param write_out: bool
-        If True, write out an example document and model input for checking task integrity
-    :param log_samples: bool
-        If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
-    :param system_instruction: str
-        System instruction to be applied to the prompt
-    :param apply_chat_template: Union[bool, str]
-        Specifies whether to apply a chat template to the prompt.
-        - If set to True, the default chat template is applied.
-        - If set to a string, applies the specified chat template by name.
-        Defaults to False (no chat template applied).
-    :param fewshot_as_multiturn: bool
-        Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-    :param verbosity: str
-        Verbosity level for logging
-    :param confirm_run_unsafe_code: bool
-        Whether to confirm running tasks marked as unsafe.
-    :return
-        Dictionary of results
+    Args:
+        lm: Language Model.
+        task_dict: TaskDict with ``"tasks"``: dict[str, Task] and
+            (optionally) ``"groups"``: dict[str, Group].
+        limit: Limit the number of examples per task (only use this for
+            testing).
+        samples: Dictionary mapping task names to lists of dataset indices to
+            use, e.g.,
+            {"mmlu_astronomy": [0, 3, 6], "mmlu_anatomy": [1, 4, 7, 10]}.
+        cache_requests: Speed up evaluation by caching the building of dataset
+            requests (inputs).
+        rewrite_requests_cache: Rewrites all the request cache if set to
+            ``True``.
+        bootstrap_iters: Number of iterations for bootstrap statistics, used
+            when calculating stderr. Set to 0 for skipping all stderr
+            calculations.
+        write_out: If True, write out an example document and model input for
+            checking task integrity.
+        log_samples: If True, write out all model outputs and documents for
+            per-sample measurement and post-hoc analysis.
+        system_instruction: System instruction to be applied to the prompt.
+        apply_chat_template: Specifies whether to apply a chat template to the
+            prompt. If set to True, the default chat template is applied. If
+            set to a string, applies the specified chat template (of tokenizer) by name.
+            Defaults to False (no chat template applied).
+        fewshot_as_multiturn: Whether to provide the fewshot examples as a
+            multiturn conversation or a single user turn.
+        verbosity: Verbosity level for logging.
+        confirm_run_unsafe_code: Whether to confirm running tasks marked as
+            unsafe (e.g code execution tasks).
+
+    Returns:
+        Dictionary of results.
     """
 
     if limit is not None and samples is not None:
@@ -527,11 +529,11 @@ def evaluate(
     # number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
-    # Initialize groups dict
+    # Initialize groups and tasks
     groups = task_dict.get("groups", {})
     eval_tasks = task_dict["tasks"]
-    # Create result accumulators for each task
-    eval_results_acc = {
+    # Initialize accumulators for per-sample metrics and logged samples
+    eval_results_acc: dict[str, ResultAcc] = {
         task_name: {
             "task": task_obj,
             "raw_metrics": defaultdict(list),
@@ -539,7 +541,6 @@ def evaluate(
         }
         for task_name, task_obj in eval_tasks.items()
     }
-    eval_results_acc = cast("dict[str, ResultAcc]", cast("object", eval_results_acc))
     if not log_samples and not all(
         "bypass" not in getattr(task_obj, "_metric_fn_list", {})
         for task_obj in eval_tasks.values()
@@ -550,9 +551,7 @@ def evaluate(
     # 1.are we running code that is marked as unsafe.
     # 2.are we running multimodal task <-> non-multimodal model class, or vice-versa.
     incompatible_tasks = []
-    for task_name, acc in eval_results_acc.items():
-        task: Task = acc["task"]
-
+    for task_name, task in eval_tasks.items():
         if getattr(task, "UNSAFE_CODE", False) and not confirm_run_unsafe_code:
             raise ValueError(
                 f"Attempted to run task: {task_name} which is marked as unsafe. Set confirm_run_unsafe_code=True to run this task."
@@ -569,9 +568,7 @@ def evaluate(
     # Cache the limit arg.
     limit_arg = limit
     limits = []
-    for task_name, acc in eval_results_acc.items():
-        task: Task = acc["task"]
-
+    for task_name, task in eval_tasks.items():
         limit = get_sample_size(task, limit_arg)
         limits.append(limit)
         task.build_all_requests(
@@ -712,7 +709,7 @@ def evaluate(
         for _, acc in eval_results_acc.items():
             if log_samples:
                 full_samples = [None] * WORLD_SIZE if RANK == 0 else None
-                torch.distributed.gather_object(
+                torch.distributed.gather_object(  # type: ignore
                     obj=acc["logged_samples"],
                     object_gather_list=full_samples,
                     dst=0,
@@ -720,25 +717,23 @@ def evaluate(
 
                 if RANK == 0:
                     acc["logged_samples"] = list(
-                        itertools.chain.from_iterable(full_samples)
+                        itertools.chain.from_iterable(full_samples)  # type: ignore
                     )
 
             # then collect metrics across all ranks
             for metric_key in acc["raw_metrics"]:
                 metric_list = [None] * WORLD_SIZE if RANK == 0 else None
-                torch.distributed.gather_object(
+                torch.distributed.gather_object(  # type: ignore
                     obj=acc["raw_metrics"][metric_key],
                     object_gather_list=metric_list,
                     dst=0,
                 )
                 if RANK == 0:
                     acc["raw_metrics"][metric_key] = list(
-                        itertools.chain.from_iterable(metric_list)
+                        itertools.chain.from_iterable(metric_list)  # type: ignore
                     )
 
     if RANK == 0:
-        ### Aggregate results over all datapoints ###
-        # (aggregation happens in collect_results)
         eval_results = process_results(eval_results_acc, groups, bootstrap_iters)
         results_agg, group_agg = format_results(eval_results)
 
@@ -781,7 +776,6 @@ def evaluate(
             },
         }
         if log_samples:
-            # default: hash images
             samples = eval_results.samples
             samples = (
                 hash_dict_images(samples)
