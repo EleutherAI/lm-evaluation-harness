@@ -250,7 +250,7 @@ class TaskManager:
             task_list = [task_list]
 
         # Each load_spec call returns a dict (possibly nested for groups)
-        # We merge them using ChainMap (like the original implementation)
+        # We merge them using ChainMap
         return dict(collections.ChainMap(*[self.load_config(s) for s in task_list]))
 
     # ---------------------------------------------------------------- name checks

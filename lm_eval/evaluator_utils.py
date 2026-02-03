@@ -26,7 +26,7 @@ class ResultAcc(TypedDict):
     """Accumulator for results of a single task."""
 
     task: Task
-    raw_metrics: dict
+    raw_metrics: dict[tuple[str, str], list]
     logged_samples: list[Any]
 
 

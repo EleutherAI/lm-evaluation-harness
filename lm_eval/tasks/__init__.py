@@ -9,9 +9,7 @@ This module provides:
 import logging
 from pathlib import Path
 
-from lm_eval.api.group import ConfigurableGroup
 from lm_eval.api.task import ConfigurableTask, Task
-from lm_eval.evaluator_utils import get_subtask_list
 
 # Import TaskManager
 from lm_eval.tasks.manager import TaskManager
@@ -87,6 +85,8 @@ def get_task_dict(
     task_name_list: str | list[str | dict | Task],
     task_manager: TaskManager | None = None,
 ):
+    from lm_eval.api.group import ConfigurableGroup
+
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
     :param task_name_list: List[Union[str, Dict, Task]]
@@ -133,7 +133,7 @@ def get_task_dict(
         if isinstance(task_element, dict):
             task_name_from_config_dict = {
                 **task_name_from_config_dict,
-                **task_manager.load_config(config=task_element),
+                **task_manager.load_config(config=task_element),  # type: ignore
             }
 
         elif isinstance(task_element, Task):

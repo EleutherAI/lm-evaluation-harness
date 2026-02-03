@@ -350,10 +350,10 @@ class GroupConfig(dict):
     def __post_init__(self):
         if self.aggregate_metric_list is not None:
             if isinstance(self.aggregate_metric_list, dict):
-                self.aggregate_metric_list = [self.aggregate_metric_list]
-            self.aggregate_metric_list = [
-                AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in self.aggregate_metric_list
+                self.aggregate_metric_list = [self.aggregate_metric_list]  # type: ignore
+            self.aggregate_metric_list = [  # type: ignore
+                AggMetricConfig(**item) if isinstance(item, dict) else item  # type: ignore
+                for item in self.aggregate_metric_list  # type: ignore
             ]
 
     def to_dict(self, keep_callable: bool = False) -> dict:
@@ -369,7 +369,7 @@ class GroupConfig(dict):
         if keep_callable:
             return value
         try:
-            return getsource(value)
+            return getsource(value)  # type: ignore
         except (TypeError, OSError):
             return str(value)
 
@@ -379,7 +379,7 @@ class ConfigurableGroup(abc.ABC):  # noqa: B024
     """DEPRECATED: Use Group instead."""
 
     def __init__(self, config: dict | None = None) -> None:
-        self._config = GroupConfig(**config)
+        self._config = GroupConfig(**config)  # type: ignore
         # Also create a new-style Group for forward compatibility
         self._group = Group.from_config(config or {})
 
