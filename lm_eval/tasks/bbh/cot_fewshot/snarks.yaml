@@ -24,9 +24,7 @@ fewshot_config:
       (A) Yes, because having interests and actively researching them is a huge waste
 
       (B) Yes, because having interests and actively researching them is a huge deal'
-    target: 'Let''s think step by step.
-
-      If we look at (A), it says that having interests and actively researching them
+    target: 'If we look at (A), it says that having interests and actively researching them
       is a huge waste, implying that it is a useless effort. However, we know that
       having interests and actively researching them is typically not a waste but
       rather is beneficial to the individual. The presence of such a juxtaposition
@@ -46,9 +44,7 @@ fewshot_config:
 
       (B) No one is going to disagree with you on this. Ad hominem attacks really
       help your case'
-    target: 'Let''s think step by step.
-
-      If we look at (A), it says that avoiding ad hominem attacks really help your
+    target: 'If we look at (A), it says that avoiding ad hominem attacks really help your
       case, implying that ad hominem attacks are adverse and injurious. Because ad
       hominem attacks are adressed at a person rather than an idea, it is indeed true
       that avoiding them is often useful and helpful; so, (A) is a neutral (valid
@@ -70,9 +66,7 @@ fewshot_config:
 
       (B) Consistency in the league''s punishments? What do you think this is supposed
       to be, moral?'
-    target: 'Let''s think step by step.
-
-      If we look at (A), it likens the consistency in the league''s punishments with
+    target: 'If we look at (A), it likens the consistency in the league''s punishments with
       that in politics. Because politics or political affairs are often not considered
       to be consistent or dependable, this sentence appears to be satirical.
 

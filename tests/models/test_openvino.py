@@ -3,31 +3,43 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from optimum.intel import OVModelForCausalLM
+from optimum.intel import OVModelForCausalLM, OVModelForSeq2SeqLM
 from transformers import AutoTokenizer
 
 from lm_eval import evaluator
 from lm_eval.api.registry import get_model
 
 
-SUPPORTED_ARCHITECTURES_TASKS = {
-    "facebook/opt-125m": "lambada_openai",
-    "hf-internal-testing/tiny-random-gpt2": "wikitext",
-}
+SUPPORTED_ARCHITECTURES_TASKS = [
+    (
+        "causal",
+        "facebook/opt-125m",
+        "lambada_openai",
+    ),
+    (
+        "causal",
+        "hf-internal-testing/tiny-random-gpt2",
+        "wikitext",
+    ),
+    (
+        "seq2seq",
+        "hf-internal-testing/tiny-random-t5",
+        "sst2",
+    ),
+]
 
 
-@pytest.mark.parametrize("model_id,task", SUPPORTED_ARCHITECTURES_TASKS.items())
-def test_evaluator(model_id, task):
+@pytest.mark.parametrize("backend,model_id,task", SUPPORTED_ARCHITECTURES_TASKS)
+def test_evaluator(backend, model_id, task):
     with tempfile.TemporaryDirectory() as tmpdirname:
-        model = OVModelForCausalLM.from_pretrained(
-            model_id, export=True, use_cache=True
-        )
+        model_cls = OVModelForCausalLM if backend == "causal" else OVModelForSeq2SeqLM
+        model = model_cls.from_pretrained(model_id, export=True, use_cache=True)
         model.save_pretrained(tmpdirname)
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         tokenizer.save_pretrained(tmpdirname)
 
         lm = get_model("openvino").create_from_arg_string(
-            f"pretrained={tmpdirname}",
+            f"pretrained={tmpdirname},backend={backend}",
             {
                 "batch_size": 1,
                 "device": "cpu",

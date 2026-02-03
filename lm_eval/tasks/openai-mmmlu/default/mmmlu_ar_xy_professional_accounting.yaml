@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "AR_XY"
+process_docs: !function utils.process_professional_accounting
+"tag": "mmmlu_ar_xy_other_tasks"
+"task": "mmmlu_ar_xy_professional_accounting"
+"task_alias": "professional accounting (Arabic)"
+"description": "The following are multiple choice questions (with answers) about professional accounting (Arabic).\n\n"

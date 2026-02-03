@@ -1,6 +1,6 @@
 tag: glue
 task: qnli
-dataset_path: glue
+dataset_path: nyu-mll/glue
 dataset_name: qnli
 output_type: multiple_choice
 training_split: train

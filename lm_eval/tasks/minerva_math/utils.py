@@ -71,7 +71,7 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidates = results[0]
 
     unnormalized_answer = get_unnormalized_answer(candidates)
@@ -83,14 +83,17 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         retval = 0
 
     # math_verify
-    res = verify(parse(doc["answer"]), parse(candidates))
-    mathval = 1 if res else 0
+    _mvres = verify(
+        gold=parse(doc["solution"]),
+        target=parse(candidates),
+    )
+    mathval = 1 if _mvres else 0
 
-    results = {
+    res = {
         "exact_match": retval,
         "math_verify": mathval,
     }
-    return results
+    return res
 
 
 def last_boxed_only_string(string: str) -> Optional[str]:

@@ -1,0 +1,19 @@
+include: _babilong_common_yaml
+task: babilong_qa16
+test_split: qa16
+dataset_name: 0k
+description: "I will give you context with the facts about animals, their names and colors. The facts and a question are hidden in some random text. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word - a color. Do not write anything else after that.\nDo not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "Lily is a frog. Bernhard is a frog. Bernhard is green. Brian is a lion. Brian is white. Julius is a swan. Julius is green. Lily is green. Greg is a swan."
+      question: "What color is Greg?"
+      target: "green"
+    - input: "Julius is a lion. Lily is a rhino. Bernhard is a swan. Lily is white. Bernhard is green. Greg is a rhino. Greg is gray. Julius is white. Brian is a lion."
+      question: "What color is Brian?"
+      target: "white"
+    - input: "Brian is a rhino. Julius is a lion. Bernhard is a lion. Greg is a swan. Brian is gray. Greg is white. Lily is a rhino. Bernhard is yellow. Lily is gray."
+      question: "What color is Julius?"
+      target: "yellow"

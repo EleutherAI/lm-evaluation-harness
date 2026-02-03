@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "ZH_CN"
+process_docs: !function utils.process_electrical_engineering
+"tag": "mmmlu_zh_cn_stem_tasks"
+"task": "mmmlu_zh_cn_electrical_engineering"
+"task_alias": "electrical engineering (Simplified Chinese)"
+"description": "The following are multiple choice questions (with answers) about electrical engineering (Simplified Chinese).\n\n"

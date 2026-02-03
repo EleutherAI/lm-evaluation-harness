@@ -1,0 +1,23 @@
+task: piqa_bn
+dataset_path: hishab/piqa-bn
+
+description: "Bangla PIQA: physical commonsense reasoning questions."
+test_split: validation
+fewshot_split: train
+fewshot_config:
+  sampler: first_n
+
+output_type: multiple_choice
+
+doc_to_text: |-
+  {{goal.strip()}}
+  A. {{sol1.strip()}}
+  B. {{sol2.strip()}}
+  Answer:
+doc_to_choice: ["A", "B"]
+doc_to_target: label
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

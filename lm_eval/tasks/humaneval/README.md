@@ -33,7 +33,7 @@ Note: For instruct tuned models, we recommend the instruct variant. That uses a 
 - `humaneval` pass@1
 - `humaneval_64` pass@64 variant
 - `humaneval_instruct`: pass@1 with config more appropriate for instruct models. (implementation taken from llama [evals](https://huggingface.co/datasets/meta-llama/Llama-3.1-8B-Instruct-evals/viewer/Llama-3.1-8B-Instruct-evals__human_eval__details?row=0))
-- `humaneval_instruct_64`: pass@64 variant
+- `humaneval_64_instruct`: pass@64 variant
 
 ### Checklist
 
@@ -52,3 +52,5 @@ If other tasks on this dataset are already supported:
 v2 20-MAR-2025: `humaneval_instruct`, `humaneval_instruct_64`: fixed typo in gen_prefix
 
 v3 30-JUN-2025: Updated prompt generation and output parsing to align with the official `Llama-3.1-70B-Instruct-evals`. This corrects the prompt format and fixes a bug in locating the code block. See PR [#3092](https://github.com/EleutherAI/lm-evaluation-harness/pull/3092).
+
+v4 01-AUG-2025: Synchronized definitions between `humaneval_instruct` and `humaneval_instruct_64`. The former had a trailing space in `gen_prefix`, and the latter's `doc_to_text` was outdated.

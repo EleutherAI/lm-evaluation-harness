@@ -51,7 +51,7 @@ def _squad_agg(key, items):
 
 class SQuAD2(ConfigurableTask):
     VERSION = 3
-    DATASET_PATH = "squad_v2"
+    DATASET_PATH = "lighteval/squad_v2"
     DATASET_NAME = None
 
     def __init__(self, config=None):

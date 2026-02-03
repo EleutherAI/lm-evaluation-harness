@@ -38,6 +38,8 @@ class RegexFilter(Filter):
         def filter_set(inst):
             filtered = []
             for resp in inst:
+                if not isinstance(resp, str):
+                    resp = ""
                 match = self.regex.findall(resp)
                 if match:
                     match = match[self.group_select]
@@ -105,13 +107,13 @@ class POSFilter(Filter):
 
 @register_filter("remove_whitespace")
 class WhitespaceFilter(Filter):
-    """Filters out leading whitespace from responses."""
+    """Filters out leading and trailing whitespace from responses."""
 
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:
-                resp = resp.lstrip()
+                resp = resp.strip()
                 filtered_resp.append(resp)
             return filtered_resp
 
@@ -141,7 +143,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         """
         regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
                         - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
-                        - step 2 : We parse the choice with regex :[\s]*([A-?]), where ? varies by number of choices.
+                        - step 2 : We parse the choice with regex: r's*([A-?])', where ? varies by number of choices.
         group_select: Selects the (group_select)th match from the findall result.
         ignore_case: Ignores the case during step 1 matching
         ignore_punctuation: Remove the punctuation during step 1 matching
@@ -159,6 +161,8 @@ class MultiChoiceRegexFilter(RegexFilter):
         # independently (and keep them a list.)
 
         def find_match(regex, resp, convert_dict={}):
+            if not isinstance(resp, str):
+                resp = ""
             match = regex.findall(resp)
             if match:
                 match = match[self.group_select]

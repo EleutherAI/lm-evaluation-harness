@@ -179,6 +179,16 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
 
 
+@register_metric(
+    metric="acc_bytes",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def acc_bytes_fn(items):  # This is a passthrough function
+    return items
+
+
 ### the code used in the `exact_match_hf_evaluate` function is ported from
 ### https://github.com/huggingface/evaluate/blob/main/metrics/exact_match/exact_match.py
 ### which is under the apache license.
@@ -252,6 +262,16 @@ def exact_match_fn(**kwargs):
     aggregation="perplexity",
 )
 def perplexity_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="likelihood",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="mean",
+)
+def likelihood_fn(items):  # This is a passthrough function
     return items
 
 
@@ -505,7 +525,6 @@ def bootstrap_stderr(
     if not os.getenv("DISABLE_MULTIPROC"):
         import multiprocessing as mp
 
-        pool = mp.Pool(mp.cpu_count())
         # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
         # equivalent to stderr calculated without Bessel's correction in the stddev.
         # Unfortunately, I haven't been able to figure out what the right correction is
@@ -517,17 +536,16 @@ def bootstrap_stderr(
         from tqdm import tqdm
 
         print("bootstrapping for stddev:", f.__name__)
-        for bootstrap in tqdm(
-            pool.imap(
-                _bootstrap_internal(f, chunk_size),
-                [(i, xs) for i in range(iters // chunk_size)],
-            ),
-            total=iters // chunk_size,
-        ):
-            # sample w replacement
-            res.extend(bootstrap)
-
-        pool.close()
+        with mp.Pool(mp.cpu_count()) as pool:
+            for bootstrap in tqdm(
+                pool.imap(
+                    _bootstrap_internal(f, chunk_size),
+                    [(i, xs) for i in range(iters // chunk_size)],
+                ),
+                total=iters // chunk_size,
+            ):
+                # sample w replacement
+                res.extend(bootstrap)
     else:
         res = _bootstrap_internal_no_mp(f, xs, iters)
 
