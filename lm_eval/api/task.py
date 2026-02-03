@@ -5,7 +5,7 @@ import ast
 import logging
 import random
 import re
-from collections.abc import Callable, Iterable, Iterator, Mapping, Dict
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from functools import partial
 from typing import (
@@ -607,10 +607,10 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
-    def _update_request(self, request: ContextInstance, storage: Dict[Any, Any]):
+    def _update_request(self, request: ContextInstance, storage: dict[Any, Any]):
         return self.config.request_updater(request, storage)
 
-    def _update_storage(self, request: ContextInstance, storage: Dict[Any, Any]):
+    def _update_storage(self, request: ContextInstance, storage: dict[Any, Any]):
         return self.config.storage_updater(request, storage)
 
     @staticmethod
