@@ -156,7 +156,7 @@ class TaskFactory:
                 base_name = item
                 item_overrides = overrides or {}
             elif isinstance(item, dict):
-                # Check for inline group definition (legacy syntax)
+                # Check for inline group definition
                 # e.g., {group: "stem", task: [...], aggregate_metric_list: [...]}
                 if "group" in item:
                     inline_group = self._build_inline_group(
@@ -191,7 +191,9 @@ class TaskFactory:
 
                 case Entry(kind=Kind.TAG):
                     for task_name in child_entry.tags:
-                        namespaced = f"{group_name}::{task_name}"
+                        # TODO not adding namespaces currently
+                        # namespaced = f"{group_name}::{task_name}"
+                        namespaced = task_name
                         child_obj = self.build(
                             registry[task_name],
                             overrides={"task": namespaced, **item_overrides},
@@ -203,7 +205,9 @@ class TaskFactory:
 
                 case _:
                     # TASK or PY_TASK
-                    namespaced = f"{group_name}::{base_name}"
+                    # TODO not adding namespaces currently
+                    # namespaced = f"{group_name}::{base_name}"
+                    namespaced = base_name
                     child_obj = self.build(
                         child_entry,
                         overrides={"task": namespaced, **item_overrides},
@@ -221,12 +225,16 @@ class TaskFactory:
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
     ) -> Group:
-        """Build an inline group definition from legacy syntax.
+        """Build an inline subgroup.
 
-        Handles: {group: "name", task: [...], aggregate_metric_list: [...]}
+        Handles: {group: "name", task: [...], aggregate_metric_list: [...]},
+        where "group" name is not in the registry yet.
         """
         group_name = group_cfg["group"]
-        namespaced_name = f"{parent_name}::{group_name}"
+        if group_name not in registry:
+            namespaced_name = f"{parent_name}::{group_name}"
+        else:
+            namespaced_name = group_name
 
         # Parse aggregation config
         aggregation = None
