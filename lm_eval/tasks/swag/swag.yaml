@@ -1,5 +1,5 @@
 task: swag
-dataset_path: swag
+dataset_path: allenai/swag
 dataset_name: regular
 output_type: multiple_choice
 training_split: train

@@ -1,0 +1,19 @@
+include: _babilong_common_yaml
+task: babilong_qa18
+test_split: qa18
+dataset_name: 0k
+description: "I will give you context with the facts about different objects and their sizes, hidden in some random text and a question. You need to answer the question based only on the information from the facts.\nYour answer should contain only one word - $yes$ or $no$. Do not write anything else.\nDo not explain your answer.\n\n"
+doc_to_text: "{{input.strip()}}\n{{question.strip()}}"
+
+fewshot_config:
+  sampler: first_n
+  samples:
+    - input: "The box of chocolates fits inside the chest. The box is bigger than the chest. The box is bigger than the suitcase. The suitcase fits inside the box. The container is bigger than the box of chocolates."
+      question: "Does the box fit in the box of chocolates?"
+      target: "no"
+    - input: "The suitcase is bigger than the container. The container fits inside the box. The chest is bigger than the chocolate. The suitcase fits inside the box. The chest fits inside the box."
+      question: "Does the chocolate fit in the box?"
+      target: "yes"
+    - input: "The chocolate fits inside the box of chocolates. The suitcase fits inside the box. The chocolate fits inside the box. The box is bigger than the box of chocolates. The suitcase is bigger than the box of chocolates."
+      question: "Is the chocolate bigger than the box?"
+      target: "no"

@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "KO_KR"
+process_docs: !function utils.process_astronomy
+"tag": "mmmlu_ko_kr_stem_tasks"
+"task": "mmmlu_ko_kr_astronomy"
+"task_alias": "astronomy (Korean)"
+"description": "The following are multiple choice questions (with answers) about astronomy (Korean).\n\n"

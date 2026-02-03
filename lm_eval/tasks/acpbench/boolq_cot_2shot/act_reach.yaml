@@ -1,0 +1,12 @@
+task: acp_areach_bool
+dataset_name: acp_areach_bool
+include: _boolq_cot_2shot_yaml
+fewshot_config:
+  sampler: first_n
+  samples:
+    - context: "This is a ferry domain, where the task is to transport cars from their start to their goal locations, using a ferry. Each location is accessible by ferry from each other location. The cars can be debarked or boarded, and the ferry can carry only one car at a time.  There are 2 locations and 5 cars, numbered consecutively.  Currently, the ferry is at l1, with the car c4 on board. The cars are at locations as follows: c0 and c3 are at l1; c1 and c2 are at l0."
+      question: 'Is it possible to transition to a state where the action "travel by sea from location l0 to location l1" can be applied?'
+      answer: "Let's think step by step.   Step 1: Verify if there is a sequence of actions which transforms the current state into a state where the precondition of the action \"travel by sea from location l0 to location l1\" hold. Step 2: The following sequence of actions would transition to such a state: sail from location l1 to location l0, unload the car c4 from the ferry to location l0, board car c1 at location l0. **Final Answer**: Yes."
+    - context: "There are several cities, each containing several locations, some of which are airports. There are also trucks, which can drive within a single city, and airplanes, which can fly between airports. The goal is to get some packages from various locations to various new locations.  There are 2 trucks and 1 airplane, as well as 4 packages. There are 6 locations across 2 cities.  The locations are in cities as follows: l0-0, l0-1, and l0-2 are in c0; l1-1, l1-2, and l1-0 are in c1.  Currently, a0 is at l1-0, t1 is at l1-1, t0 is at l0-0, p2 and p1 are in t1, p0 and p3 are in a0."
+      question: 'Is it possible to transition to a state where the action "offload the object p0 from the truck p0 at location p1" can be applied?'
+      answer: "Let's think step by step. Step 1: Verify if there is a sequence of actions which transforms the current state into a state where the precondition of the action \"offload the object p0 from the truck p0 at location p1\" hold. Step 2: Action preconditions are \"p0 is in p0 and p0 is at p1\". Step 3: These facts are not reachable together, as they include mutually exclusive facts \"p0 is in p0 and p0 is at p1\". **Final Answer**: No."

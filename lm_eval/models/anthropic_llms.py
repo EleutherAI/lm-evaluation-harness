@@ -323,14 +323,29 @@ class AnthropicChat(LocalCompletionsAPI):
         )
         if system:
             messages = messages[1:]
+
+        cleaned_messages = []
+        for msg in messages:
+            cleaned_msg = {
+                "role": msg["role"],
+                "content": [
+                    {"type": msg["type"], msg["type"]: msg["content"]},
+                ],
+            }
+            cleaned_messages.append(cleaned_msg)
+
         gen_kwargs.pop("do_sample", False)
         max_tokens = gen_kwargs.pop("max_gen_toks", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
         stop = handle_stop_sequences(gen_kwargs.pop("until", ["\n\nHuman:"]), eos=eos)
         if not isinstance(stop, list):
             stop = [stop]
+
+        # Filter out empty or whitespace-only stop sequences for Anthropic API
+        stop = [s for s in stop if s and s.strip()]
+
         out = {
-            "messages": messages,
+            "messages": cleaned_messages,
             "model": self.model,
             "max_tokens": max_tokens,
             "temperature": temperature,

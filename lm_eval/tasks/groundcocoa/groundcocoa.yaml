@@ -14,5 +14,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 dataset_kwargs:
-  trust_remote_code: true
   streaming: true

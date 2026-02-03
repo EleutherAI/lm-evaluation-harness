@@ -30,8 +30,12 @@ in order to ensure linters and other checks will be run upon committing.
 We use [pytest](https://docs.pytest.org/en/latest/) for running unit tests. All library unit tests can be run via:
 
 ```bash
-python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_neuralmagic.py --ignore=tests/models/test_openvino.py
+python -m pytest --showlocals -s -vv -n=auto --ignore=tests/models/test_openvino.py
 ```
+
+## Verbose logging
+
+You can enable verbose logging with the environment variable `LMEVAL_LOG_LEVEL="debug"`.
 
 ## Contributor License Agreement
 

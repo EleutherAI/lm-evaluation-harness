@@ -1,0 +1,6 @@
+"dataset_name": "professional_psychology"
+"include": "_default_darijammlu_template_yaml"
+"tag":
+- "darijammlu_mmlu_tasks"
+"task": "darijammlu_professional_psychology"
+"task_alias": "professional psychology"

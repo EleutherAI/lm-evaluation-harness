@@ -118,7 +118,7 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
 
         # https://www.reddit.com/r/regex/comments/11a38uk/parsing_numbers_written_out_as_english_words
         english_number_regex = regex.compile(
-            "((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))"
+            "((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))"
         )
 
         for r in resps:
@@ -161,7 +161,7 @@ class WordSortFilter(Filter):
 
 class MultiChoiceRegexFilter(ExtendedRegexFilter):
     def __init__(self, *args, **kwargs):
-        """
+        r"""
         regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
                         - step 1 : We parse the choices between ([A-Z])s then try to find these choices in the response.
                         - step 2 : We parse the choice with regex :[\s]*([A-?]), where ? varies by number of choices.
@@ -202,7 +202,7 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
             fallback_regex = re.compile("|".join(fallback_regexes))
             without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
             without_paren_fallback_regex = re.compile(
-                f":[\s]*({without_paren_fallback_regex})"
+                rf":[\s]*({without_paren_fallback_regex})"
             )
 
             filtered = []

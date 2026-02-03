@@ -1,0 +1,12 @@
+group: pisa_llm_judged
+task:
+  - pisa_de_llm_judged
+  - pisa_fr_llm_judged
+  - pisa_it_llm_judged
+  - pisa_en_llm_judged
+  - pisa_es_llm_judged
+  - pisa_ch_llm_judged
+
+aggregate_metric_list:
+  - metric: acc            # or acc_norm, ppl, etc.
+    weight_by_size: false

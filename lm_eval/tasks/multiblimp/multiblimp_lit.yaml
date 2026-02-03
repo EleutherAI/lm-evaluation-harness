@@ -1,0 +1,3 @@
+include: _template_yaml
+dataset_name: lit
+task: multiblimp_lit

@@ -18,7 +18,7 @@ def custom_task_tag():
 
 @pytest.fixture(scope="module")
 def task_yaml(pytestconfig, custom_task_name, custom_task_tag):
-    yield f"""include: {pytestconfig.rootpath}/lm_eval/tasks/hellaswag/hellaswag.yaml
+    yield f"""include: {pytestconfig.rootpath}/lm_eval/tasks/arc/arc_easy.yaml
 task: {custom_task_name}
 class: !function {custom_task_name}.MockPythonTask
 tag:

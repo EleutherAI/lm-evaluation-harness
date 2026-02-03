@@ -1,0 +1,32 @@
+tag:
+  - acp_bool_cot_2shot
+  - acp_bench
+output_type: generate_until
+dataset_path: ibm-research/acp_bench
+test_split: test
+num_fewshot: 2
+doc_to_target: "{{answer}}"
+doc_to_text: "**Question**: {{context}}  {{question}} **Thoughts**:"
+filter_list:
+  - name: "extract-yes-no"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.)|(?<=..Final Answer..: )(.*)(?=.)|(?<=..answer..: )(.*)(?=.)|(?<=..Answer..: )(.*)(?=.)|\\b(Yes|No|yes|no)\\b)"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "**Question**:"
+    - "**Question:**"
+    - "Q:"
+    - "\n\n\n\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 1024
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

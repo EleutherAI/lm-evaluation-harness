@@ -1,0 +1,13 @@
+group: uhura_arc_easy
+task:
+  - uhura_arc_easy_prompt_1
+  - uhura_arc_easy_prompt_2
+  - uhura_arc_easy_prompt_3
+  - uhura_arc_easy_prompt_4
+  - uhura_arc_easy_prompt_5
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1

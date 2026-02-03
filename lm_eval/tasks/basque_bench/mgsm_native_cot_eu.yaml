@@ -1,0 +1,31 @@
+task: mgsm_native_cot_eu
+dataset_path: HiTZ/MGSM-eu
+dataset_name: null
+doc_to_target: '{% if answer is not none %}{{answer[27:]}}{% else %}{{answer_number|string}}{%endif %}'
+doc_to_text: '{% if answer is not none %}{{question+"\nErantzuna urratsez urrats:"}}{% else %}{{"Galdera: "+question+"\nErantzuna urratsez urrats:"}}{% endif %}'
+output_type: generate_until
+training_split: train
+test_split: test
+target_delimiter: " "
+generation_kwargs:
+  do_sample: false
+  until:
+    - "Galdera:"
+    - </s>
+    - <|im_end|>
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "Erantzuna [$%]? ?(-?[0-9]+([ .,][0-9.,]+)?) ?[$%]? da"
+      - function: "take_first"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+      - " "
+metadata:
+  version: 1.1
