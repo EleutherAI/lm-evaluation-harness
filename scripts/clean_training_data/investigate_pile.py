@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     stats_file_path = "pile_statistics.json"
     if os.path.exists(stats_file_path):
-        stats = json.load(open(stats_file_path, "r", encoding="utf-8"))
+        stats = json.load(open(stats_file_path, encoding="utf-8"))
     else:
         document_count, total_document_size_chars, start_offsets = get_stats()
         stats = {

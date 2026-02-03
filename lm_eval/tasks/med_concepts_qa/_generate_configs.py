@@ -1,5 +1,3 @@
-from typing import List
-
 import yaml
 
 
@@ -15,7 +13,7 @@ def generate_yaml_content(vocab_name: str, level: str):
 
 
 def generate_yaml_files(
-    vocab_names: List[str], levels: List[str], file_name_prefix: str
+    vocab_names: list[str], levels: list[str], file_name_prefix: str
 ):
     for vocab_name in vocab_names:
         for level in levels:

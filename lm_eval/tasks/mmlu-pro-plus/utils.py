@@ -28,7 +28,7 @@ def format_cot_example(example, including_answer=True):
     prompt += question + "\n"
     prompt += "Options:\n"
     for i, opt in enumerate(options):
-        prompt += "{}. {}\n".format(choices[i], opt)
+        prompt += f"{choices[i]}. {opt}\n"
     if including_answer:
         cot_content = example["cot_content"].replace(
             "A: Let's think step by step.", "Answer: Let's think step by step."

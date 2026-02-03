@@ -612,6 +612,7 @@ class Task(abc.ABC):
 
     def _update_storage(self, request: ContextInstance, storage: Dict[Any, Any]):
         return self.config.storage_updater(request, storage)
+
     @staticmethod
     def resolve_field(doc: dict[str, Any], field: str | None = None):
         if field:

@@ -263,9 +263,9 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
-                arguments=(ctx, " {}".format(choice))
+                arguments=(ctx, f" {choice}")
                 if not apply_chat_template
-                else (ctx, "{}".format(choice)),
+                else (ctx, f"{choice}"),
                 idx=i,
                 **kwargs,
             )

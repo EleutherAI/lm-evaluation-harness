@@ -7,7 +7,7 @@ Addressing this need, we present Unitxt, an innovative library for customizable 
 import importlib.util
 import re
 from functools import partial
-from typing import Any, Dict, Optional
+from typing import Any
 
 import datasets
 
@@ -59,7 +59,7 @@ class Unitxt(ConfigurableTask):
 
     def __init__(
         self,
-        config: Optional[dict] = None,
+        config: dict | None = None,
     ) -> None:
         if config is None:
             config = {}
@@ -73,7 +73,7 @@ class Unitxt(ConfigurableTask):
         self.image_decoder = datasets.Image()
         self.metrics = self.dataset["test"][0]["metrics"]
 
-    def download(self, dataset_kwargs: Optional[Dict[str, Any]] = None) -> None:
+    def download(self, dataset_kwargs: dict[str, Any] | None = None) -> None:
         assert_unitxt_installed()
         from unitxt import load_dataset
 

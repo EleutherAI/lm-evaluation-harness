@@ -1,11 +1,9 @@
 import re
-from itertools import product
 
 import datasets
 import evaluate
 import numpy as np
 import sacrebleu
-import transformers.data.metrics.squad_metrics as squad_metrics
 from rouge_score import rouge_scorer, scoring
 
 from lm_eval.utils import general_detokenize

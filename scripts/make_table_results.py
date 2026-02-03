@@ -67,7 +67,7 @@ if __name__ == "__main__":
             f.write(f"# {path_name} \n\n")
         for filename in sorted([f for f in filenames if f.endswith(".json")]):
             path = os.path.join(dirpath, filename)
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 result_dict = json.load(f)
             with open(path_readme, "a", encoding="utf-8") as f:
                 f.write(f"## {filename} \n")

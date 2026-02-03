@@ -6,7 +6,6 @@ Usage:
 import argparse
 import logging
 import os
-from typing import List
 
 import torch
 from transformers import (
@@ -34,7 +33,7 @@ MODEL = "EleutherAI/pythia-70m"
 TASK = "text-generation"
 
 
-def run_model_for_task_caching(tasks: List[str], cache_requests: str):
+def run_model_for_task_caching(tasks: list[str], cache_requests: str):
     eval_logger.info(f"Loading HF model: {MODEL}")
 
     trans_pipe = trans_pipeline(

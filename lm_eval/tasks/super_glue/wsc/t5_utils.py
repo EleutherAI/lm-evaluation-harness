@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 
 def doc_to_text(x):
@@ -83,7 +82,7 @@ def clean(s: str) -> str:
     return " ".join([w for w in s.split(" ") if w not in DETERMINERS])
 
 
-def process_results(docs: dict, resps: List):
+def process_results(docs: dict, resps: list):
     prediction = clean(resps[0])
     reference = clean(docs["span1_text"])
 

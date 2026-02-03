@@ -2,7 +2,6 @@ import importlib
 import os
 import sys
 from datetime import datetime
-from typing import List, Optional, Tuple
 
 import pytest
 import torch
@@ -41,7 +40,7 @@ def clear_cache():
 
 
 # leaving tasks here to allow for the option to select specific task files
-def get_cache_files(tasks: Optional[List[str]] = None) -> Tuple[List[str], List[str]]:
+def get_cache_files(tasks: list[str] | None = None) -> tuple[list[str], list[str]]:
     cache_files = os.listdir(PATH)
 
     file_task_names = []
@@ -54,7 +53,7 @@ def get_cache_files(tasks: Optional[List[str]] = None) -> Tuple[List[str], List[
     return cache_files, file_task_names
 
 
-def assert_created(tasks: List[str], file_task_names: List[str]):
+def assert_created(tasks: list[str], file_task_names: list[str]):
     tasks.sort()
     file_task_names.sort()
 
@@ -62,7 +61,7 @@ def assert_created(tasks: List[str], file_task_names: List[str]):
 
 
 @pytest.mark.parametrize("tasks", [DEFAULT_TASKS])
-def requests_caching_true(tasks: List[str]):
+def requests_caching_true(tasks: list[str]):
     run_model_for_task_caching(tasks=tasks, cache_requests="true")
 
     cache_files, file_task_names = get_cache_files()
@@ -71,7 +70,7 @@ def requests_caching_true(tasks: List[str]):
 
 
 @pytest.mark.parametrize("tasks", [DEFAULT_TASKS])
-def requests_caching_refresh(tasks: List[str]):
+def requests_caching_refresh(tasks: list[str]):
     run_model_for_task_caching(tasks=tasks, cache_requests="true")
 
     timestamp_before_test = datetime.now().timestamp()
@@ -91,7 +90,7 @@ def requests_caching_refresh(tasks: List[str]):
 
 
 @pytest.mark.parametrize("tasks", [DEFAULT_TASKS])
-def requests_caching_delete(tasks: List[str]):
+def requests_caching_delete(tasks: list[str]):
     # populate the data first, rerun this test within this test for additional confidence
     # test_requests_caching_true(tasks=tasks)
 

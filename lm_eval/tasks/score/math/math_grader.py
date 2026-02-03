@@ -85,7 +85,6 @@ import re
 import signal
 from importlib.metadata import PackageNotFoundError, version
 from math import isclose
-from typing import Union
 
 
 def _check_antlr_version():
@@ -376,8 +375,8 @@ def normalize(answer) -> str:
 
 
 def math_equal(
-    prediction: Union[bool, float, str],
-    reference: Union[float, str],
+    prediction: bool | float | str,
+    reference: float | str,
     include_percentage: bool = True,
     tolerance: float = 1e-4,
     timeout: float = 10.0,

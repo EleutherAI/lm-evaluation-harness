@@ -1,5 +1,3 @@
-from typing import List
-
 from datasets import Dataset
 
 
@@ -22,7 +20,7 @@ def get_target(doc) -> str:
     return ["A", "B", "C", "D"][doc["choices"].index(ans)]
 
 
-def get_choices(doc) -> List[str]:
+def get_choices(doc) -> list[str]:
     if "CSAT" in doc["id"]:
         return ["A", "B", "C", "D", "E"]
     return ["A", "B", "C", "D"]

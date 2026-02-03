@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Registry of all instructions."""
+
 from lm_eval.tasks.ifeval.multilingual.instructions import (
     ca_instructions,
     es_instructions,
@@ -57,8 +58,7 @@ ES_INSTRUCTION_DICT = {
     _CONTENT + "postscript": es_instructions.PostscriptChecker,
     _FORMAT + "number_bullet_lists": es_instructions.BulletListChecker,
     _FORMAT + "constrained_response": es_instructions.ConstrainedResponseChecker,
-    _FORMAT + "number_highlighted_sections": (
-        es_instructions.HighlightSectionChecker),
+    _FORMAT + "number_highlighted_sections": (es_instructions.HighlightSectionChecker),
     _FORMAT + "multiple_sections": es_instructions.SectionChecker,
     _FORMAT + "json_format": es_instructions.JsonFormat,
     _FORMAT + "title": es_instructions.TitleChecker,
@@ -71,10 +71,8 @@ ES_INSTRUCTION_DICT = {
     _STARTEND + "quotation": es_instructions.QuotationChecker,
     _CHANGE_CASES
     + "capital_word_frequency": es_instructions.CapitalWordFrequencyChecker,
-    _CHANGE_CASES
-    + "spanish_capital": es_instructions.CapitalLettersSpanishChecker,
-    _CHANGE_CASES
-    + "spanish_lowercase": es_instructions.LowercaseLettersSpanishChecker,
+    _CHANGE_CASES + "spanish_capital": es_instructions.CapitalLettersSpanishChecker,
+    _CHANGE_CASES + "spanish_lowercase": es_instructions.LowercaseLettersSpanishChecker,
     _SPECIAL_CHARACTER + "enie": es_instructions.EnieChecker,
     _SPECIAL_CHARACTER + "tildes": es_instructions.TildesChecker,
     _SPECIAL_CHARACTER + "dieresis": es_instructions.DieresisChecker,
@@ -94,8 +92,7 @@ CA_INSTRUCTION_DICT = {
     _CONTENT + "postscript": ca_instructions.PostscriptChecker,
     _FORMAT + "number_bullet_lists": ca_instructions.BulletListChecker,
     _FORMAT + "constrained_response": ca_instructions.ConstrainedResponseChecker,
-    _FORMAT + "number_highlighted_sections": (
-        ca_instructions.HighlightSectionChecker),
+    _FORMAT + "number_highlighted_sections": (ca_instructions.HighlightSectionChecker),
     _FORMAT + "multiple_sections": ca_instructions.SectionChecker,
     _FORMAT + "json_format": ca_instructions.JsonFormat,
     _FORMAT + "title": ca_instructions.TitleChecker,
@@ -108,10 +105,8 @@ CA_INSTRUCTION_DICT = {
     _STARTEND + "quotation": ca_instructions.QuotationChecker,
     _CHANGE_CASES
     + "capital_word_frequency": ca_instructions.CapitalWordFrequencyChecker,
-    _CHANGE_CASES
-    + "catalan_capital": ca_instructions.CapitalLettersCatalanChecker,
-    _CHANGE_CASES
-    + "catalan_lowercase": ca_instructions.LowercaseLettersCatalanChecker,
+    _CHANGE_CASES + "catalan_capital": ca_instructions.CapitalLettersCatalanChecker,
+    _CHANGE_CASES + "catalan_lowercase": ca_instructions.LowercaseLettersCatalanChecker,
     _SPECIAL_CHARACTER + "enie": ca_instructions.EnieChecker,
     _SPECIAL_CHARACTER + "tildes": ca_instructions.TildesChecker,
     _SPECIAL_CHARACTER + "dieresis": ca_instructions.DieresisChecker,

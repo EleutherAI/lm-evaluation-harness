@@ -1,7 +1,8 @@
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union
+from typing import Any
 
 import torch
 from peft.peft_model import PeftModel
@@ -14,7 +15,7 @@ from lm_eval.models.huggingface import HFLM
 
 @contextmanager
 def steer(
-    model: Union[PreTrainedModel, PeftModel], hook_to_steer: dict[str, Callable]
+    model: PreTrainedModel | PeftModel, hook_to_steer: dict[str, Callable]
 ) -> Generator[None, Any, None]:
     """
     Context manager that temporarily hooks models and steers them.
@@ -65,7 +66,7 @@ class SteeredModel(HFLM):
         self,
         pretrained: str,
         steer_path: str,
-        device: Optional[str] = None,
+        device: str | None = None,
         **kwargs,
     ):
         """
@@ -205,7 +206,7 @@ class SteeredModel(HFLM):
         cls,
         acts: Tensor,
         vector: Tensor,
-        head_index: Optional[int],
+        head_index: int | None,
     ):
         """Adds the given vector to the activations.
 
@@ -227,8 +228,8 @@ class SteeredModel(HFLM):
         acts: Tensor,
         direction: Tensor,
         value: float,
-        head_index: Optional[int],
-        bias: Optional[Tensor] = None,
+        head_index: int | None,
+        bias: Tensor | None = None,
     ):
         """Clamps the activations to a given value in a specified direction. The direction
         must be a unit vector.

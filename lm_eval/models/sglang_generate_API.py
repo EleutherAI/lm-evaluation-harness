@@ -1,5 +1,3 @@
-from typing import Dict, List, Optional, Tuple, Union
-
 from lm_eval.api.registry import register_model
 from lm_eval.models.openai_completions import LocalCompletionsAPI
 from lm_eval.models.utils import handle_stop_sequences
@@ -19,9 +17,9 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
 
     def _create_payload(
         self,
-        messages: Union[List[List[int]], List[dict], List[str], str],
+        messages: list[list[int]] | list[dict] | list[str] | str,
         generate=False,
-        gen_kwargs: Optional[dict] = None,
+        gen_kwargs: dict | None = None,
         seed: int = 1234,
         eos=None,
         **kwargs,
@@ -64,11 +62,11 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
 
     @staticmethod
     def parse_logprobs(
-        outputs: Union[Dict, List[Dict]],
-        tokens: List[List[int]] = None,
-        ctxlens: List[int] = None,
+        outputs: dict | list[dict],
+        tokens: list[list[int]] = None,
+        ctxlens: list[int] = None,
         **kwargs,
-    ) -> List[Tuple[float, bool]]:
+    ) -> list[tuple[float, bool]]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -87,7 +85,7 @@ class SGLANGGENERATEAPI(LocalCompletionsAPI):
         return res
 
     @staticmethod
-    def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
+    def parse_generations(outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]

@@ -18,11 +18,9 @@ import logging
 import re
 import string
 import sys
-from functools import partial
 from itertools import combinations
-from typing import Any, Dict, List
+from typing import Any
 
-import numpy as np
 from datasets import Dataset
 
 
@@ -217,7 +215,7 @@ def translate_model_answer_to_labels(answer, labels, option_format=None):
     return answer
 
 
-def calculate_consistency_rate(responses: List[List[str]]) -> float:
+def calculate_consistency_rate(responses: list[list[str]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -240,7 +238,7 @@ def calculate_consistency_rate(responses: List[List[str]]) -> float:
     return total_similarity / total_combinations if total_combinations > 0 else 0.0
 
 
-def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
+def prompt_consistency_rate(results: list[dict[str, Any]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -263,7 +261,7 @@ def prompt_consistency_rate(results: List[Dict[str, Any]]) -> float:
     return calculate_consistency_rate(question_answers_list)
 
 
-def options_consistency_rate(results: List[Dict[str, Any]], labels) -> float:
+def options_consistency_rate(results: list[dict[str, Any]], labels) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 

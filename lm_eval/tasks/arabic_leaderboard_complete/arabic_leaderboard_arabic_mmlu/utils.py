@@ -1,5 +1,4 @@
 import datasets
-import numpy as np
 
 
 # fmt: off

@@ -1,7 +1,7 @@
 import re
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, List
 
 import datasets
 
@@ -19,11 +19,11 @@ except ImportError:
 @dataclass
 class PredictionResult:
     pred_answer: str
-    answers: List[str]
+    answers: list[str]
     length: str
 
 
-def filter_dataset_by_page_lengths(*args, **kwargs) -> Dict[str, datasets.Dataset]:
+def filter_dataset_by_page_lengths(*args, **kwargs) -> dict[str, datasets.Dataset]:
     """Filter dataset by page lengths for Libra task.
 
     in CLI metadata --metadata '{"valid_pages": ["8p", "32p"], "dataset_repo_name": "ai-forever/LIBRA"}'
@@ -78,7 +78,7 @@ def normalize_answer(sentence: str) -> str:
     return " ".join(new_sentence)
 
 
-def process_results(doc: List, results: List[str]) -> Dict:
+def process_results(doc: list, results: list[str]) -> dict:
     """Processes evaluation results by extracting prediction and relevant metadata.
 
     :param doc: A single instance from the evaluation dataset, containing reference answers and metadata.
@@ -126,8 +126,8 @@ def count_score(prediction: str, ground_truth: str) -> float:
 
 
 def aggregate_results(
-    results: List[PredictionResult], scoring_function: Callable
-) -> Dict[str, float]:
+    results: list[PredictionResult], scoring_function: Callable
+) -> dict[str, float]:
     """Aggregates score by 'length' by scoring_function.
 
     :param results: List of dictionaries containing 'pred_answer', 'answers', and 'length'.
@@ -158,13 +158,13 @@ def aggregate_results(
     return {key: correct / total for key, (correct, total) in scores.items()}
 
 
-def aggregate_results_em(results: List[PredictionResult]) -> Dict[str, float]:
+def aggregate_results_em(results: list[PredictionResult]) -> dict[str, float]:
     return aggregate_results(results, exact_match_score)
 
 
-def aggregate_results_f1(results: List[PredictionResult]) -> Dict[str, float]:
+def aggregate_results_f1(results: list[PredictionResult]) -> dict[str, float]:
     return aggregate_results(results, f1_score)
 
 
-def aggregate_results_count_score(results: List[PredictionResult]) -> Dict[str, float]:
+def aggregate_results_count_score(results: list[PredictionResult]) -> dict[str, float]:
     return aggregate_results(results, count_score)

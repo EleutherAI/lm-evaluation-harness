@@ -95,7 +95,7 @@ def doc_to_text(doc) -> str:
     if len(findings) < 5 < len(impressions):
         findings = text[:a]
 
-    return "Given the findings: {}.\nSummarize the findings.".format(findings)
+    return f"Given the findings: {findings}.\nSummarize the findings."
 
 
 def doc_to_target(doc) -> str:
