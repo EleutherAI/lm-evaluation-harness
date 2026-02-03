@@ -1,7 +1,7 @@
 tag:
   - super-glue-t5-prompt
 task: super_glue-wsc-t5-prompt
-dataset_path: super_glue
+dataset_path: aps/super_glue
 dataset_name: wsc.fixed
 training_split: train
 validation_split: validation

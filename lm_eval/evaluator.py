@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import json
 import logging
@@ -16,6 +18,7 @@ import lm_eval.api.task
 from lm_eval.api.group import Group
 from lm_eval.api.task import Task
 from lm_eval.caching.cache import delete_cache
+from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED
 from lm_eval.evaluator_utils import (
     ResultAcc,
     format_results,
@@ -25,7 +28,6 @@ from lm_eval.evaluator_utils import (
     propagate_higher_is_better,
     run_task_tests,
 )
-from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import (
@@ -42,6 +44,8 @@ from lm_eval.utils import (
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
+    from lm_eval.api.task import Task
+    from lm_eval.loggers import EvaluationTracker
     from lm_eval.tasks.manager import TaskDict
 
 eval_logger = logging.getLogger(__name__)
@@ -109,8 +113,8 @@ def _log_selected_tasks(
 
 @positional_deprecated
 def simple_evaluate(
-    model,
-    model_args: str | dict[str, Any] | None = None,
+    model: str | LM,
+    model_args: str | dict[str, str | int | float] | None = None,
     tasks: list[str | dict[str, Any] | Task] | None = None,
     num_fewshot: int | None = None,
     batch_size: int | str | None = None,
@@ -134,81 +138,85 @@ def simple_evaluate(
     task_manager: TaskManager | None = None,
     verbosity=None,
     predict_only: bool = False,
-    random_seed: int = 0,
-    numpy_random_seed: int = 1234,
-    torch_random_seed: int = 1234,
-    fewshot_random_seed: int = 1234,
+    random_seed: int = DEFAULT_RANDOM_SEED,
+    numpy_random_seed: int = DEFAULT_OTHER_SEED,
+    torch_random_seed: int = DEFAULT_OTHER_SEED,
+    fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
     Args:
-        model: Name of model or LM object, see lm_eval.models.get_model.
+        model (str | LM): Name of model or LM object. See
+            lm_eval.models.__init__.py for available aliases.
         model_args: String or dict arguments for each model class, e.g.,
             "pretrained=EleutherAI/pythia-1.3B,revision=main" or {"pretrained": "EleutherAI/pythia-1.3B"}.
             Ignored if ``model`` argument is a LM object.
-        tasks: List of task names or Task objects. Task objects will be taken
-            to have name task.EVAL_HARNESS_NAME if defined and
-            type(task).__name__ otherwise.
-        num_fewshot: Number of examples in few-shot context.
-        batch_size: Batch size for model.
-        max_batch_size: Maximal batch size to try with automatic batch size
-            detection.
-        device: PyTorch device (e.g. "cpu" or "cuda:0") for running models.
-        use_cache: A path to a sqlite db file for caching model responses (outputs).
-            ``None`` if not caching.
-        cache_requests: Speed up evaluation by caching the building of dataset
-            requests (inputs). ``None`` if not caching.
-        rewrite_requests_cache: Rewrites all the request cache if set to
-            ``True``. ``None`` if not desired.
-        delete_requests_cache: Deletes all the request cache if set to
-            ``True``. ``None`` if not desired.
-        limit: Limit the number of examples per task (only use this for
-            testing). If <1, limit is a percentage of the total number of
-            examples.
-        samples: Dictionary mapping task names to lists of dataset indices to
-            evaluate, e.g.,
+        tasks (list[str | dict | Task]): List of task names or Task objects.
+            Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined
+            and type(task).__name__ otherwise.
+        num_fewshot (int): Number of examples in few-shot context.
+        batch_size (int | str | None): Batch size for model.
+        max_batch_size (int | None): Maximal batch size to try with automatic
+            batch size detection.
+        device (str | None): PyTorch device (e.g. "cpu" or "cuda:0") for running
+            models.
+        use_cache (str | None): A path to a sqlite db file for caching model
+            responses. `None` if not caching.
+        cache_requests (bool): Speed up evaluation by caching the building of
+            dataset requests (inputs). `None` if not caching.
+        rewrite_requests_cache (bool): Rewrites all the request cache if set to
+            `True`. `None` if not desired.
+        delete_requests_cache (bool): Deletes all the request cache if set to
+            `True`. `None` if not desired.
+        limit (int | float | None): Limit the number of examples per task (only
+            use this for testing). If <1, limit is a percentage of the total
+            number of examples.
+        samples (dict | None): Dictionary indicating which examples should be
+            tested in each task, e.g.,
             {"mmlu_astronomy": [0, 3, 6], "mmlu_anatomy": [1, 4, 7, 10]}.
             Incompatible with `limit`.
-        bootstrap_iters: Number of iterations for bootstrap statistics, used
-            when calculating stderrs. Set to 0 for no stderr calculations to
-            be performed.
-        check_integrity: Whether to run the relevant part of the test suite
+        bootstrap_iters (int): Number of iterations for bootstrap statistics, used
+            when calculating stderrs. Set to 0 for no stderr calculations to be
+            performed.
+        check_integrity (bool): Whether to run the relevant part of the test suite
             for the tasks.
-        write_out: If True, write out an example document and model input to terminal.
-            Useful for checking task integrity.
-        log_samples: If True, write out all model outputs and documents for
+        write_out (bool): If True, write out an example document and model input
+            for checking task integrity.
+        log_samples (bool): If True, write out all model outputs and documents for
             per-sample measurement and post-hoc analysis.
-        system_instruction: System instruction to be prepended to the prompt.
-        apply_chat_template: Specifies whether to apply a chat template to the
-            prompt. If set to True, the default chat template is applied. If
-            set to a string, applies the specified chat template (of tokenizer) by name.
-            Defaults to False (no chat template applied).
-        fewshot_as_multiturn: Whether to provide the fewshot examples as a
+        evaluation_tracker (EvaluationTracker | None): Tracker for logging
+            experiment configuration and results.
+        system_instruction (str | None): System instruction to be applied to the
+            prompt.
+        apply_chat_template (bool | str): Specifies whether to apply a chat
+            template to the prompt. If set to True, the default chat template is
+            applied. If set to a string, applies the specified chat template by
+            name. Defaults to False (no chat template applied).
+        fewshot_as_multiturn (bool): Whether to provide the fewshot examples as a
             multiturn conversation or a single user turn.
-        gen_kwargs: Arguments for model generation. Ignored for all tasks with
-            loglikelihood output_type.
-        task_manager: TaskManager instance to use for loading tasks. If None,
-            a new one is created.
-        verbosity: Verbosity level for logging (deprecated)
-        predict_only: If True only model outputs will be generated and
+        gen_kwargs (dict | str | None): Arguments for model generation. Ignored
+            for all tasks with loglikelihood output_type.
+        task_manager (TaskManager | None): Task manager instance to use.
+        verbosity (str | None): Verbosity level for logging.
+        predict_only (bool): If True, only model outputs will be generated and
             returned. Metrics will not be evaluated.
-        random_seed: Random seed for python's random module. If set to None,
+        random_seed (int): Random seed for python's random module. If set to None,
             the seed will not be set.
-        numpy_random_seed: Random seed for numpy. If set to None, the seed
+        numpy_random_seed (int): Random seed for numpy. If set to None, the seed
             will not be set.
-        torch_random_seed: Random seed for torch. If set to None, the seed
+        torch_random_seed (int): Random seed for torch. If set to None, the seed
             will not be set.
-        fewshot_random_seed: Random seed for fewshot sampler random generator.
+        fewshot_random_seed (int): Random seed for fewshot sampler random generator.
             If set to None, the seed of generator will be set to None.
-        confirm_run_unsafe_code: Whether to confirm running tasks marked as
-            unsafe (e.g. code execution tasks).
-        metadata: Additional metadata to be added to the task manager. Will
-            get passed to the download function of the task.
+        confirm_run_unsafe_code (bool): Whether to confirm running tasks marked
+            as unsafe (e.g. code execution tasks).
+        metadata (dict | None): Additional metadata to be added to the task
+            manager. Will get passed to the download function of the task.
 
     Returns:
-        Dictionary of results.
+        dict | None: Dictionary of results, or None if not on rank 0.
     """
     if verbosity is not None:
         eval_logger.info("Setting verbosity through simple_evaluate is deprecated.")
@@ -392,7 +400,7 @@ def simple_evaluate(
 
     if evaluation_tracker is not None:
         evaluation_tracker.general_config_tracker.log_experiment_args(
-            model_source=model,
+            model_source=model if isinstance(model, str) else "CUSTOM",
             model_args=model_args or "",
             system_instruction=system_instruction,
             chat_template=lm.chat_template(apply_chat_template)
@@ -435,13 +443,13 @@ def simple_evaluate(
         }
         # add more detailed model info if available
         if hasattr(lm, "get_model_info"):
-            results["config"].update(lm.get_model_info())
+            results["config"].update(lm.get_model_info())  # type: ignore
         # add info about execution
         results["config"].update(
             {
                 "batch_size": batch_size,
                 "batch_sizes": (
-                    list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
+                    list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []  # type: ignore
                 ),
                 "device": device,
                 "use_cache": use_cache,
@@ -465,7 +473,7 @@ def simple_evaluate(
 
 @positional_deprecated
 def evaluate(
-    lm: "LM",
+    lm: LM,
     task_dict: "TaskDict",
     limit: int | None = None,
     samples: dict[str, list[int]] | None = None,
@@ -483,38 +491,39 @@ def evaluate(
     """Instantiate and evaluate a model on a list of tasks.
 
     Args:
-        lm: Language Model.
-        task_dict: TaskDict with ``"tasks"``: dict[str, Task] and
-            (optionally) ``"groups"``: dict[str, Group].
-        limit: Limit the number of examples per task (only use this for
-            testing).
-        samples: Dictionary mapping task names to lists of dataset indices to
-            use, e.g.,
+        lm (LM): Language Model.
+        task_dict (dict[str, Task]): Dictionary of tasks. Tasks will be taken to
+            have name type(task).config.task.
+        limit (int | None): Limit the number of examples per task (only use this
+            for testing).
+        samples (dict | None): Dictionary indicating which examples should be
+            tested in each task, e.g.,
             {"mmlu_astronomy": [0, 3, 6], "mmlu_anatomy": [1, 4, 7, 10]}.
-        cache_requests: Speed up evaluation by caching the building of dataset
-            requests (inputs).
-        rewrite_requests_cache: Rewrites all the request cache if set to
-            ``True``.
-        bootstrap_iters: Number of iterations for bootstrap statistics, used
-            when calculating stderr. Set to 0 for skipping all stderr
-            calculations.
-        write_out: If True, write out an example document and model input for
-            checking task integrity.
-        log_samples: If True, write out all model outputs and documents for
-            per-sample measurement and post-hoc analysis.
-        system_instruction: System instruction to be applied to the prompt.
-        apply_chat_template: Specifies whether to apply a chat template to the
-            prompt. If set to True, the default chat template is applied. If
-            set to a string, applies the specified chat template (of tokenizer) by name.
-            Defaults to False (no chat template applied).
-        fewshot_as_multiturn: Whether to provide the fewshot examples as a
+        cache_requests (bool): Speed up evaluation by caching the building of
+            dataset requests.
+        rewrite_requests_cache (bool): Rewrites all the request cache if set to
+            `True`.
+        bootstrap_iters (int | None): Number of iterations for bootstrap
+            statistics, used when calculating stderr. Set to 0 for skipping all
+            stderr calculations.
+        write_out (bool): If True, write out an example document and model input
+            for checking task integrity.
+        log_samples (bool): If True, write out all model outputs and documents
+            for per-sample measurement and post-hoc analysis.
+        system_instruction (str | None): System instruction to be applied to the
+            prompt.
+        apply_chat_template (bool | str): Specifies whether to apply a chat
+            template to the prompt. If set to True, the default chat template is
+            applied. If set to a string, applies the specified chat template by
+            name. Defaults to False (no chat template applied).
+        fewshot_as_multiturn (bool): Whether to provide the fewshot examples as a
             multiturn conversation or a single user turn.
-        verbosity: Verbosity level for logging.
-        confirm_run_unsafe_code: Whether to confirm running tasks marked as
-            unsafe (e.g code execution tasks).
+        verbosity (str): Verbosity level for logging. (no-op, deprecated)
+        confirm_run_unsafe_code (bool): Whether to confirm running tasks marked
+            as unsafe (e.g code execution tasks).
 
     Returns:
-        Dictionary of results.
+        dict | None: Dictionary of results, or None if not on rank 0.
     """
 
     if limit is not None and samples is not None:

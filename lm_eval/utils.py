@@ -119,6 +119,13 @@ def info_once(logger: logging.Logger, msg: str, *args):
     logger.info(msg, *args)
 
 
+def maybe_warn(msg: str, verbose: bool = True):
+    """Log a warning message only when verbose is True, otherwise noop."""
+    if verbose:
+        logger = logging.getLogger(__name__)
+        logger.warning(msg)
+
+
 def hash_string(string: str) -> str:
     return hashlib.sha256(string.encode("utf-8")).hexdigest()
 
@@ -875,3 +882,11 @@ def set_torch_seed(seed: int):
         import torch
 
         torch.manual_seed(seed)
+
+
+def random_name_id() -> str:
+    """Generate a random 8-character alphanumeric ID."""
+    import random
+    import string
+
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))

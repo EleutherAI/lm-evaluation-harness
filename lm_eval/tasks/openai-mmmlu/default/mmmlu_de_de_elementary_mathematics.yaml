@@ -1,0 +1,7 @@
+"include": "_default_template_yaml"
+"dataset_name": "DE_DE"
+process_docs: !function utils.process_elementary_mathematics
+"tag": "mmmlu_de_de_stem_tasks"
+"task": "mmmlu_de_de_elementary_mathematics"
+"task_alias": "elementary mathematics (German)"
+"description": "The following are multiple choice questions (with answers) about elementary mathematics (German).\n\n"
