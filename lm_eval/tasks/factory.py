@@ -49,7 +49,8 @@ class TaskFactory:
                 return self._build_tag(entry, overrides, registry)
 
             case Entry(kind=Kind.GROUP):
-                return self._build_group(entry, overrides, registry)
+                raw_cfg = self._load_full_config(entry, None)
+                return self._build_group(entry.name, raw_cfg, overrides, registry)
 
             case _:
                 return self._build_task(entry, overrides)
@@ -78,35 +79,26 @@ class TaskFactory:
 
     def _build_group(
         self,
-        entry: Entry,
+        group_name: str,
+        raw_cfg: dict[str, Any],
         overrides: dict[str, Any] | None,
         registry: dict[str, Entry],
     ) -> Group:
-        """Build a Group with its children populated."""
-        raw_cfg = self._load_full_config(entry, None)
-        group_name = entry.name
+        """Build a Group with its children populated.
 
-        # Parse aggregation config
-        aggregation = None
-        if agg_list := raw_cfg.get("aggregate_metric_list"):
-            if isinstance(agg_list, dict):
-                agg_list = [agg_list]
-            aggregation = [
-                AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in agg_list
-            ]
-
-        # Create the Group object
+        Works for both registry-based groups (Entry with yaml) and
+        inline group dicts defined inside a parent's task: list.
+        """
         group = Group(
             name=group_name,
             alias=raw_cfg.get("group_alias"),
-            aggregation=aggregation,
+            aggregation=self._parse_aggregation(raw_cfg),
             metadata=raw_cfg.get("metadata", {}) | self._meta,
         )
 
         # Extract task-config fields from group config for inheritance
         # These are keys that define group structure, not task config
-        GROUP_ONLY_KEYS = {
+        group_only_keys = {
             "group",
             "group_alias",
             "task",
@@ -115,7 +107,7 @@ class TaskFactory:
             "tag",
         }
         group_task_overrides = {
-            k: v for k, v in raw_cfg.items() if k not in GROUP_ONLY_KEYS
+            k: v for k, v in raw_cfg.items() if k not in group_only_keys
         }
         # Merge: group-level defaults < caller overrides (caller takes precedence)
         merged_overrides = {**group_task_overrides, **(overrides or {})}
@@ -143,7 +135,7 @@ class TaskFactory:
         Each item can be:
         - str: name of existing task/group/tag
         - dict with 'task': task reference with overrides
-        - dict with 'group': inline subgroup definition
+        - dict with 'group': checks registry, otherwise new inline subgroup definition
 
         Returns:
             List of Task | Group objects
@@ -156,13 +148,28 @@ class TaskFactory:
                 base_name = item
                 item_overrides = overrides or {}
             elif isinstance(item, dict):
-                # Check for inline group definition
-                # e.g., {group: "stem", task: [...], aggregate_metric_list: [...]}
+                # Dict with 'group' key — either a reference to an
+                # existing group (with overrides) or a true inline definition.
                 if "group" in item:
-                    inline_group = self._build_inline_group(
-                        item, group_name, overrides, registry
-                    )
-                    children.append(inline_group)
+                    name = item["group"]
+                    if name in registry:
+                        # Existing group referenced with overrides
+                        inline_overrides = {
+                            k: v for k, v in item.items() if k != "group"
+                        }
+                        merged = {**(overrides or {}), **inline_overrides}
+                        child_obj = self.build(
+                            registry[name],
+                            overrides=merged,
+                            registry=registry,
+                        )
+                        children.append(cast("Group", child_obj))
+                    else:
+                        # True inline group (not in registry)
+                        name = f"{group_name}::{name}"
+                        children.append(
+                            self._build_group(name, item, overrides, registry)
+                        )
                     continue
 
                 base_name = item["task"]
@@ -218,51 +225,20 @@ class TaskFactory:
 
         return children
 
-    def _build_inline_group(
-        self,
-        group_cfg: dict[str, Any],
-        parent_name: str,
-        overrides: dict[str, Any] | None,
-        registry: dict[str, Entry],
-    ) -> Group:
-        """Build an inline subgroup.
-
-        Handles: {group: "name", task: [...], aggregate_metric_list: [...]},
-        where "group" name is not in the registry yet.
-        """
-        group_name = group_cfg["group"]
-        if group_name not in registry:
-            namespaced_name = f"{parent_name}::{group_name}"
-        else:
-            namespaced_name = group_name
-
-        # Parse aggregation config
-        aggregation = None
-        if agg_list := group_cfg.get("aggregate_metric_list"):
-            if isinstance(agg_list, dict):
-                agg_list = [agg_list]
-            aggregation = [
-                AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in agg_list
-            ]
-
-        # Create the Group object
-        group = Group(
-            name=namespaced_name,
-            alias=group_cfg.get("group_alias"),
-            aggregation=aggregation,
-            metadata=group_cfg.get("metadata", {}) | self._meta,
-        )
-
-        # Build children from task: list
-        task_field = group_cfg.get("task")
-        if isinstance(task_field, list):
-            for child in self._build_group_members(
-                task_field, namespaced_name, overrides, registry
-            ):
-                group.add(child)
-
-        return group
+    @staticmethod
+    def _parse_aggregation(
+        cfg: dict[str, Any],
+    ) -> list[AggMetricConfig] | None:
+        """Parse aggregate_metric_list from a group config dict."""
+        agg_list = cfg.get("aggregate_metric_list")
+        if not agg_list:
+            return None
+        if isinstance(agg_list, dict):
+            agg_list = [agg_list]
+        return [
+            AggMetricConfig(**item) if isinstance(item, dict) else item
+            for item in agg_list
+        ]
 
     def _build_tag(
         self,

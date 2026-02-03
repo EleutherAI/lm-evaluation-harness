@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import deprecated
 
+from lm_eval.api.utils import random_task_id
+
 
 eval_logger = logging.getLogger(__name__)
 
@@ -300,7 +302,7 @@ class Group:
         Note: This only creates the Group shell. Children must be added
         separately via group.add() after Tasks/subGroups are built.
         """
-        name: str = config.get("group", "")
+        name: str = config.get("group", random_task_id())
 
         # Parse aggregation config
         aggregation = None
