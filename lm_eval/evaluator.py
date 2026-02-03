@@ -78,7 +78,7 @@ def _log_selected_tasks(
     # Find root groups (not children of other groups)
     all_children = set()
     for group in groups.values():
-        all_children.update(group.children)
+        all_children.update(group.child_names)
     root_groups = [name for name in groups if name not in all_children]
 
     # Log groups hierarchically
@@ -91,7 +91,7 @@ def _log_selected_tasks(
         pad = "  " * indent
         eval_logger.info(f"{pad}Group: {group_name}")
 
-        for child in group.children:
+        for child in group.child_names:
             if child in groups:
                 log_group(child, indent + 1)
             elif child in task_dict:
@@ -749,7 +749,7 @@ def evaluate(
         all_groups: list[Group] = list(groups.values())
 
         # Build subtask list from groups
-        subtask_list = {group.name: group.children for group in all_groups}
+        subtask_list = {group.name: group.child_names for group in all_groups}
 
         # Determine if we should show group table
         show_group_table = any(g.has_aggregation for g in all_groups)

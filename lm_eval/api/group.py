@@ -59,7 +59,7 @@ class Group:
     """
     A Group is a container for Tasks and/or sub-Groups.
 
-    Groups directly hold their children (not just string references), making
+    Groups directly hold references to their children, making
     traversal and aggregation straightforward.
 
     Attributes:
@@ -89,9 +89,9 @@ class Group:
         )
         self._children[key] = item
 
-    def remove(self, name: str) -> None:
-        """Remove a child by name."""
-        self._children.pop(name, None)
+    def pop(self, name: str) -> Group | Task | None:
+        """Pop a child by name."""
+        return self._children.pop(name, None)
 
     def get(self, name: str) -> Task | Group | None:
         """Get a child by name."""
@@ -152,8 +152,8 @@ class Group:
         return groups
 
     @property
-    def children(self) -> list[str]:
-        """Names of direct children (for backward compatibility)."""
+    def child_names(self) -> list[str]:
+        """Names of direct children."""
         return list(self._children.keys())
 
     @property
@@ -330,7 +330,7 @@ class Group:
 # =============================================================================
 
 
-@deprecated("Use `Group` instead.")
+@deprecated("Use lm_eval.api.Group instead.")
 @dataclass
 class GroupConfig(dict):
     """DEPRECATED: Use Group instead."""
@@ -376,7 +376,7 @@ class GroupConfig(dict):
             return str(value)
 
 
-@deprecated("Use Group instead.")
+@deprecated("Use lm_eval.api.Group instead.")
 class ConfigurableGroup(abc.ABC):  # noqa: B024
     """DEPRECATED: Use Group instead."""
 

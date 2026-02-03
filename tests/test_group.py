@@ -66,7 +66,7 @@ class TestAggMetricConfig:
 
     def test_string_filter_normalized_to_list(self):
         """Test that string filter_list is normalized to list."""
-        config = AggMetricConfig(metric="acc", filter_list="none")
+        config = AggMetricConfig(metric="acc", filter_list="none")  # type: ignore
         assert config.filter_list == ["none"]
         assert isinstance(config.filter_list, list)
 
@@ -525,3 +525,256 @@ class TestGroupEdgeCases:
             rec.message for rec in caplog.records if rec.levelname == "WARNING"
         ]
         assert len(warning_messages) == 2  # One for "none", one for "prefix"
+
+
+class TestGroup:
+    """Tests for Group core container API."""
+
+    def setup_method(self):
+        self.task_a = MockTask("task_a")
+        self.task_b = MockTask("task_b")
+
+    # --- add / remove / get ---
+
+    def test_add_task_uses_task_name(self):
+        group = Group(name="g")
+        group.add(self.task_a)
+        assert "task_a" in group
+        assert group.get("task_a") is self.task_a
+
+    def test_add_group_uses_name(self):
+        parent = Group(name="parent")
+        child = Group(name="child")
+        parent.add(child)
+        assert "child" in parent
+        assert parent.get("child") is child
+
+    def test_pop_existing_child(self):
+        group = Group(name="g")
+        group.add(self.task_a)
+        child = group.pop("task_a")
+        assert child is self.task_a
+        assert "task_a" not in group
+
+    def test_pop_nonexistent_child_no_error(self):
+        group = Group(name="g")
+        child = group.pop("nonexistent")  # should not raise
+        assert child is None
+
+    def test_get_existing(self):
+        group = Group(name="g")
+        group.add(self.task_a)
+        assert group.get("task_a") is self.task_a
+
+    def test_get_missing_returns_none(self):
+        group = Group(name="g")
+        assert group.get("missing") is None
+
+    # --- __contains__ ---
+
+    def test_contains_present(self):
+        group = Group(name="g")
+        group.add(self.task_a)
+        assert "task_a" in group
+
+    def test_contains_absent(self):
+        group = Group(name="g")
+        assert "task_a" not in group
+
+    # --- __iter__ ---
+
+    def test_iter_yields_child_values(self):
+        group = Group(name="g")
+        group.add(self.task_a)
+        group.add(self.task_b)
+        children = list(group)
+        assert len(children) == 2
+        assert self.task_a in children
+        assert self.task_b in children
+
+    # --- __len__ ---
+
+    def test_len(self):
+        group = Group(name="g")
+        assert len(group) == 0
+        group.add(self.task_a)
+        assert len(group) == 1
+        group.add(self.task_b)
+        assert len(group) == 2
+
+    # --- get_all_tasks ---
+
+    def test_get_all_tasks_recursive(self):
+        parent = Group(name="parent")
+        child_group = Group(name="child")
+        child_group.add(self.task_a)
+        parent.add(child_group)
+        parent.add(self.task_b)
+
+        tasks = parent.get_all_tasks(recursive=True)
+        assert len(tasks) == 2
+        assert self.task_a in tasks
+        assert self.task_b in tasks
+
+    def test_get_all_tasks_non_recursive(self):
+        parent = Group(name="parent")
+        child_group = Group(name="child")
+        child_group.add(self.task_a)
+        parent.add(child_group)
+        parent.add(self.task_b)
+
+        tasks = parent.get_all_tasks(recursive=False)
+        assert tasks == [self.task_b]
+
+    # --- get_all_groups ---
+
+    def test_get_all_groups_recursive(self):
+        grandchild = Group(name="grandchild")
+        child = Group(name="child")
+        child.add(grandchild)
+        parent = Group(name="parent")
+        parent.add(child)
+
+        groups = parent.get_all_groups(recursive=True)
+        assert len(groups) == 2
+        assert child in groups
+        assert grandchild in groups
+
+    def test_get_all_groups_non_recursive(self):
+        grandchild = Group(name="grandchild")
+        child = Group(name="child")
+        child.add(grandchild)
+        parent = Group(name="parent")
+        parent.add(child)
+
+        groups = parent.get_all_groups(recursive=False)
+        assert groups == [child]
+
+    # --- children property ---
+
+    def test_child_names_returns_keys(self):
+        group = Group(name="g")
+        group.add(self.task_a)
+        group.add(self.task_b)
+        assert group.child_names == ["task_a", "task_b"]
+
+    # --- display_name ---
+
+    def test_display_name_with_alias(self):
+        group = Group(name="g", alias="My Group")
+        assert group.display_name == "My Group"
+
+    def test_display_name_falls_back_to_name(self):
+        group = Group(name="g")
+        assert group.display_name == "g"
+
+    # --- has_aggregation ---
+
+    def test_has_aggregation_true(self):
+        group = Group(
+            name="g",
+            aggregation=[AggMetricConfig(metric="acc")],
+        )
+        assert group.has_aggregation is True
+
+    def test_has_aggregation_false_none(self):
+        group = Group(name="g")
+        assert group.has_aggregation is False
+
+    def test_has_aggregation_false_empty(self):
+        group = Group(name="g", aggregation=[])
+        assert group.has_aggregation is False
+
+    # --- __repr__ ---
+
+    def test_repr(self):
+        group = Group(name="test_group")
+        group.add(self.task_a)
+        group.add(self.task_b)
+        r = repr(group)
+        assert "test_group" in r
+        assert "2" in r
+
+
+class TestGroupSerialization:
+    """Tests for Group serialization and deserialization."""
+
+    def test_to_dict_round_trip(self):
+        group = Group(
+            name="mmlu",
+            alias="MMLU",
+            aggregation=[AggMetricConfig(metric="acc", filter_list=["none"])],
+            metadata={"version": 1},
+        )
+        task = MockTask("task_a")
+        group.add(task)
+
+        d = group.to_dict()
+        assert d["group"] == "mmlu"
+        assert d["children"] == ["task_a"]
+        assert d["group_alias"] == "MMLU"
+        assert len(d["aggregate_metric_list"]) == 1
+        assert d["aggregate_metric_list"][0]["metric"] == "acc"
+        assert d["metadata"] == {"version": 1}
+
+    def test_from_config_basic(self):
+        config = {
+            "group": "my_group",
+            "group_alias": "My Group",
+            "aggregate_metric_list": [
+                {
+                    "metric": "acc",
+                    "filter_list": ["none"],
+                    "aggregation": "mean",
+                    "weight_by_size": True,
+                }
+            ],
+            "metadata": {"version": 2},
+        }
+        group = Group.from_config(config)
+        assert group.name == "my_group"
+        assert group.alias == "My Group"
+        assert group.aggregation
+        assert len(group.aggregation) == 1
+        assert group.aggregation[0].metric == "acc"
+        assert group.metadata == {"version": 2}
+
+    def test_from_config_single_dict_agg_metric(self):
+        """aggregate_metric_list given as a single dict (not wrapped in a list)."""
+        config = {
+            "group": "g",
+            "aggregate_metric_list": {"metric": "acc"},
+        }
+        group = Group.from_config(config)
+        assert group.aggregation
+        assert len(group.aggregation) == 1
+        assert group.aggregation[0].metric == "acc"
+
+    def test_from_config_missing_group_key(self):
+        """Missing 'group' key should generate a random ID."""
+        config = {}
+        group = Group.from_config(config)
+        assert isinstance(group.name, str)
+        assert len(group.name) > 0
+
+    def test_to_dict_no_optional_fields(self):
+        """to_dict omits optional keys when not set."""
+        group = Group(name="bare")
+        d = group.to_dict()
+        assert d == {"group": "bare"}
+        assert "children" not in d
+        assert "group_alias" not in d
+        assert "aggregate_metric_list" not in d
+        assert "metadata" not in d
+
+
+class TestAggMetricConfigValidation:
+    """Tests for AggMetricConfig validation."""
+
+    def test_invalid_aggregation_raises(self):
+        with pytest.raises(ValueError, match="only pre-defined aggregation"):
+            AggMetricConfig(metric="acc", aggregation="median")
+
+    def test_callable_aggregation_allowed(self):
+        config = AggMetricConfig(metric="acc", aggregation=max)
+        assert config.aggregation is max
