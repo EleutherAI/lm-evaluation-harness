@@ -2,7 +2,8 @@ import pickle
 import re
 import string
 import traceback
-from typing import Iterator, List, Sequence, Tuple, TypeVar
+from collections.abc import Iterator, Sequence
+from typing import TypeVar
 
 
 # This is a cpp module.
@@ -22,7 +23,7 @@ T = TypeVar("T")
 
 # Implementation from nltk source
 # https://www.nltk.org/_modules/nltk/util.html
-def form_ngrams(sequence: Iterator[T], n: int) -> Iterator[Tuple[T, ...]]:
+def form_ngrams(sequence: Iterator[T], n: int) -> Iterator[tuple[T, ...]]:
     history = []
     while n > 1:
         # PEP 479, prevent RuntimeError from being raised when StopIteration bubbles out of generator
@@ -71,14 +72,14 @@ def word_ngrams(s: str, n: int) -> Iterator[str]:
 
 
 # https://stackoverflow.com/questions/13734451/string-split-with-indices-in-python
-def split_indices(s: str) -> Iterator[Tuple[str, Tuple[int, int]]]:
+def split_indices(s: str) -> Iterator[tuple[str, tuple[int, int]]]:
     """Splits a string on whitespaces and records the indices of each in the original string.
     @:return generator((word, (start_idx, end_idx)), ...)
     """
     return ((m.group(0), (m.start(), m.end() - 1)) for m in re.finditer(r"\S+", s))
 
 
-def word_ngrams_indices(s: str, n: int) -> Iterator[Tuple[str, Tuple[int, int]]]:
+def word_ngrams_indices(s: str, n: int) -> Iterator[tuple[str, tuple[int, int]]]:
     """Splits a string into pairs of (ngram words, their start/end indices)"""
     tokens_with_indices = split_indices(s)
 
@@ -158,7 +159,7 @@ class Janitor:
             print("WARNING: Janitor running in python mode")
             return self.register_contaminant_python(dirt_string)
 
-    def clean(self, dirty_string: str) -> List[str]:
+    def clean(self, dirty_string: str) -> list[str]:
         """Clean a string (e.g. a training set) by removing all ngrams previously
         registered as contaminants. Returns a list of clean chunks, or empty if
         the string was too dirty"""
@@ -169,8 +170,8 @@ class Janitor:
             return self.clean_python(dirty_string)
 
     def _split_chunks(
-        self, dirty_string: str, dirty_parts: Sequence[Tuple]
-    ) -> List[str]:
+        self, dirty_string: str, dirty_parts: Sequence[tuple]
+    ) -> list[str]:
         clean_chunks = []
         splice_idx = 0
         end = -1
@@ -198,7 +199,7 @@ class Janitor:
             janitor_util.clean_ngram(dirt_string, self.delete_chars, self.ngram_n)
         )
 
-    def clean_cpp(self, dirty_string: str) -> List[str]:
+    def clean_cpp(self, dirty_string: str) -> list[str]:
         contamination_indices = janitor_util.clean_ngram_with_indices(
             dirty_string, self.delete_chars, self.ngram_n
         )
@@ -216,7 +217,7 @@ class Janitor:
             word_ngrams(self.normalize_string(dirt_string), self.ngram_n)
         )
 
-    def clean_python(self, dirty_string: str) -> List[str]:
+    def clean_python(self, dirty_string: str) -> list[str]:
         contamination_indices = (
             (None, *idx_pair)
             for dirty_ngram, idx_pair in word_ngrams_indices(dirty_string, self.ngram_n)

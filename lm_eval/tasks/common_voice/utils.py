@@ -1,5 +1,4 @@
-import io
-from typing import Any, Dict, List
+from typing import Any
 
 
 INSTRUCTION = (
@@ -7,11 +6,11 @@ INSTRUCTION = (
 )
 
 
-def doc_to_text(doc: Dict[str, Any]) -> str:
+def doc_to_text(doc: dict[str, Any]) -> str:
     return INSTRUCTION
 
 
-def doc_to_audio(doc: Dict[str, Any]) -> List[dict]:
+def doc_to_audio(doc: dict[str, Any]) -> list[dict]:
     audio = {
         "array": doc["audio"]["array"],
         "sampling_rate": doc["audio"]["sampling_rate"],

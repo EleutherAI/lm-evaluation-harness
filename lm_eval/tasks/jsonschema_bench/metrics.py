@@ -2,7 +2,7 @@ import ipaddress
 import json
 import logging
 import uuid
-from typing import Any, Dict
+from typing import Any
 
 
 # check if jsonschema is installed
@@ -53,7 +53,7 @@ def uuid_check(value):
 
 
 def schema_conform_with_format_checker(
-    instance: Dict[str, Any], schema: Dict[str, Any]
+    instance: dict[str, Any], schema: dict[str, Any]
 ) -> bool:
     """
     Validate a JSON instance against a schema with enhanced format checking.

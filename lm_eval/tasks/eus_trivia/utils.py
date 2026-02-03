@@ -1,6 +1,3 @@
-from typing import List
-
-
 letters = ["A", "B", "C", "D"]
 
 
@@ -25,7 +22,7 @@ def doc_to_text(doc) -> str:
     return f"Galdera: {doc['question']}\n{formatted_choices}\nErantzuna:"
 
 
-def doc_to_choice(doc) -> List[str]:
+def doc_to_choice(doc) -> list[str]:
     """
     Returns the answer choices for a document.
 

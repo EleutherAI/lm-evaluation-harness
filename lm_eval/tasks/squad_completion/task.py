@@ -1,6 +1,5 @@
 import re
 from copy import deepcopy
-from typing import List
 
 import numpy as np
 
@@ -96,7 +95,7 @@ class SQUADCompletion(ConfigurableTask):
         }
 
 
-def contains_score(prediction: str, labels: List[str]):
+def contains_score(prediction: str, labels: list[str]):
     return max(
         int(bool(re.search(re.compile(re.escape(label), re.IGNORECASE), prediction)))
         for label in labels

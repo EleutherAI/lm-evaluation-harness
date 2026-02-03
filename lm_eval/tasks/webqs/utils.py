@@ -1,12 +1,9 @@
-from typing import Dict, List
-
-
-def doc_to_choice(doc: Dict) -> List[str]:
+def doc_to_choice(doc: dict) -> list[str]:
     """Return all of the accepted answers as choices."""
     return _remove_prefixes(doc["answers"])
 
 
-def doc_to_target(doc: Dict) -> List[int]:
+def doc_to_target(doc: dict) -> list[int]:
     """Return list of indices of accepted answers (all of them)."""
     remaining = _remove_prefixes(doc["answers"])
     return list(range(len(remaining)))

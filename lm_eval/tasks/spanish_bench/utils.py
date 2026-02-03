@@ -1,8 +1,6 @@
 import re
-from itertools import product
 
 import evaluate
-import transformers.data.metrics.squad_metrics as squad_metrics
 
 from lm_eval.utils import general_detokenize
 

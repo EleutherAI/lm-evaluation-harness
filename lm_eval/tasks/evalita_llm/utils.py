@@ -1,8 +1,5 @@
 import logging
 
-from evaluate import load
-from sklearn.metrics import f1_score
-
 
 eval_logger = logging.getLogger("lm-eval")
 

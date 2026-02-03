@@ -28,6 +28,6 @@ generation_kwargs:
   do_sample: false
   temperature: 0.0
 repeats: 1
-num_fewshot: 0      
+num_fewshot: 0
 metadata:
   version: 1.0.0

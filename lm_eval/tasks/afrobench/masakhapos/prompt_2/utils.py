@@ -2,8 +2,6 @@ from itertools import chain
 
 from sklearn.metrics import accuracy_score
 
-from lm_eval.utils import weighted_f1_score
-
 
 def doc_to_target(doc):
     pos_tag_map = {

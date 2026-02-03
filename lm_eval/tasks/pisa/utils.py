@@ -2,7 +2,6 @@ import ast
 import os
 import random
 import re
-from typing import List
 
 import numpy as np
 
@@ -288,7 +287,7 @@ def get_multi_choice_info(options):
 
 
 # LLM as a judge utils
-def build_user_prompt(student_answer: str, options: List[str], correct: str) -> str:
+def build_user_prompt(student_answer: str, options: list[str], correct: str) -> str:
     """
     options: like ["A) red", "B) blue", "C) green", "D) yellow"]
     correct: either a letter like "B" or the full option text. Both are provided to help you.
@@ -309,7 +308,7 @@ Instructions:
 """
 
 
-def judge_mcq(pred: str, options: List[str], correct: str) -> int:
+def judge_mcq(pred: str, options: list[str], correct: str) -> int:
     client = OpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
     )

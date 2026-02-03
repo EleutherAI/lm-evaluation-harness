@@ -1,7 +1,6 @@
 import random
 
 import datasets
-import numpy as np
 
 
 def doc_to_text(doc):

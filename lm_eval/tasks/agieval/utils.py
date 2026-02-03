@@ -2,7 +2,6 @@
 # https://github.com/ruixiangcui/AGIEval/blob/main/src/
 # math_equivalence.py and post_process.py
 import re
-from typing import Dict, List
 
 import numpy as np
 
@@ -119,7 +118,7 @@ def _fix_a_slash_b(string):
     try:
         a = int(a)
         b = int(b)
-        assert string == "{}/{}".format(a, b)
+        assert string == f"{a}/{b}"
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
     except Exception:
@@ -240,7 +239,7 @@ def is_equiv(str1, str2, verbose=False):
         return str1 == str2
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidate = results[0]
 
     gold = doc["answer"]

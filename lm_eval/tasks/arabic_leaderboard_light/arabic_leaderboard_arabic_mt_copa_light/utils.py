@@ -1,5 +1,4 @@
 import datasets
-import numpy as np
 
 
 def process_docs(dataset: datasets.Dataset):
@@ -10,9 +9,7 @@ def process_docs(dataset: datasets.Dataset):
         question = question_map[doc["question"]]
         answer = doc["label"]
 
-        query = "{}، {} :\n0) {}\n1) {}\nالإجابة:".format(
-            premise, question, choices[0], choices[1]
-        )
+        query = f"{premise}، {question} :\n0) {choices[0]}\n1) {choices[1]}\nالإجابة:"
 
         return {"query": query, "choices": choices, "gold": answer}
 

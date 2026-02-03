@@ -4,8 +4,8 @@
 import argparse
 import json
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 
 LOGGER = logging.getLogger(__name__)
@@ -46,12 +46,8 @@ def subject_alias(subject: str, display_name: str) -> str:
 
 
 def quote(value: str) -> str:
-    escaped = (
-        value.replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-    )
-    return f"\"{escaped}\""
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    return f'"{escaped}"'
 
 
 def write_file(path: Path, content: str) -> None:
@@ -64,13 +60,13 @@ def subject_yaml(base_yaml: str, language: dict, subject: str, category: str) ->
     display_name = language["display_name"]
     slug = language["slug"]
     lines = [
-        f"\"include\": {quote(base_yaml)}",
-        f"\"dataset_name\": {quote(dataset_name)}",
+        f'"include": {quote(base_yaml)}',
+        f'"dataset_name": {quote(dataset_name)}',
         f"process_docs: !function utils.process_{subject}",
-        f"\"tag\": {quote(f'mmmlu_{slug}_{category}_tasks')}",
-        f"\"task\": {quote(f'mmmlu_{slug}_{subject}')}",
-        f"\"task_alias\": {quote(subject_alias(subject, display_name))}",
-        f"\"description\": {quote(description_for(subject, display_name))}",
+        f'"tag": {quote(f"mmmlu_{slug}_{category}_tasks")}',
+        f'"task": {quote(f"mmmlu_{slug}_{subject}")}',
+        f'"task_alias": {quote(subject_alias(subject, display_name))}',
+        f'"description": {quote(description_for(subject, display_name))}',
     ]
     return "\n".join(lines)
 
@@ -102,7 +98,7 @@ def language_group_yaml(language: dict, categories: Iterable[str]) -> str:
 def master_group_yaml(language_groups: Iterable[str]) -> str:
     header = [
         "group: mmmlu",
-        "group_alias: \"MMMLU\"",
+        'group_alias: "MMMLU"',
         "task:",
     ]
     header.extend(f"  - {group}" for group in language_groups)

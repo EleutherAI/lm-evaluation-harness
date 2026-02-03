@@ -2,6 +2,7 @@ import json
 from functools import partial
 from pathlib import Path
 
+
 SUBJECTS_PATH = Path(__file__).resolve().parent.parent / "subjects.json"
 with SUBJECTS_PATH.open(encoding="utf-8") as f:
     SUBJECTS = json.load(f)

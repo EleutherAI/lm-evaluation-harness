@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -10,10 +10,10 @@ def _logit(p: float) -> float:
     return np.log(p) - np.log1p(-p)
 
 
-DemogTuple = Tuple[str | None, str | None, float | int | None, int | None]
-BiasTuple = Tuple[DemogTuple, str, float]
+DemogTuple = tuple[str | None, str | None, float | int | None, int | None]
+BiasTuple = tuple[DemogTuple, str, float]
 
-BIAS_PARAM_MAP: Dict[str, str] = {
+BIAS_PARAM_MAP: dict[str, str] = {
     # Race (vs white)
     "black_bias": "C(race, Treatment(reference='white'))[T.black]",
     "asian_bias": "C(race, Treatment(reference='white'))[T.asian]",
@@ -28,8 +28,8 @@ BIAS_PARAM_MAP: Dict[str, str] = {
 
 
 def process_results(
-    doc: Dict[str, Any], results: List[Tuple[float, str]]
-) -> Dict[str, BiasTuple]:
+    doc: dict[str, Any], results: list[tuple[float, str]]
+) -> dict[str, BiasTuple]:
     """Return mapping bias_name → (demographics, bias_name, logit_yes)."""
 
     yes_logprob, _ = results[0]
@@ -60,7 +60,7 @@ def process_results(
     return {bn: (demographics, bn, logit_yes) for bn in BIAS_PARAM_MAP.keys()}
 
 
-def agg_demographic_bias_regression(items: List[BiasTuple]) -> float:
+def agg_demographic_bias_regression(items: list[BiasTuple]) -> float:
     """Return treatment‑vs‑control coefficient (or slope magnitude) for the bias.
 
 

@@ -1,5 +1,4 @@
 import re
-from typing import Dict, List
 
 
 def doc_to_text(doc):
@@ -33,7 +32,7 @@ def postprocess(s):
         return s
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidate = results[0]
 
     gold = postprocess(doc["answer"])
@@ -183,7 +182,7 @@ def _fix_a_slash_b(string):
     try:
         a = int(a)
         b = int(b)
-        assert string == "{}/{}".format(a, b)
+        assert string == f"{a}/{b}"
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
     except Exception:

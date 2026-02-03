@@ -1,7 +1,7 @@
 import logging
 import os
 from functools import cached_property
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 from tqdm import tqdm
 
@@ -20,7 +20,7 @@ def anthropic_completion(
     prompt: str,
     max_tokens_to_sample: int,
     temperature: float,
-    stop: List[str],
+    stop: list[str],
     **kwargs: Any,
 ) -> str:
     """Wrapper function around the Anthropic completion API client with exponential back-off
@@ -83,7 +83,7 @@ def anthropic_chat(
     prompt: str,
     max_tokens: int,
     temperature: float,
-    stop: List[str],
+    stop: list[str],
     **kwargs: Any,
 ) -> str:
     """Wrapper function around the Anthropic completion API client with exponential back-off
@@ -205,16 +205,16 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError("No support for logits.")
 
-    def tok_encode(self, string: str) -> List[int]:
+    def tok_encode(self, string: str) -> list[int]:
         return self.tokenizer.encode(string).ids
 
-    def tok_decode(self, tokens: List[int]) -> str:
+    def tok_decode(self, tokens: list[int]) -> str:
         return self.tokenizer.decode(tokens)
 
     def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> list[str]:
         try:
             import anthropic
         except ModuleNotFoundError as exception:
@@ -226,7 +226,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         if not requests:
             return []
 
-        _requests: List[Tuple[str, dict]] = [req.args for req in requests]
+        _requests: list[tuple[str, dict]] = [req.args for req in requests]
 
         res = []
         for request in tqdm(_requests, disable=disable_tqdm):
@@ -312,7 +312,7 @@ class AnthropicChat(LocalCompletionsAPI):
 
     def _create_payload(
         self,
-        messages: List[Dict],
+        messages: list[dict],
         generate=True,
         gen_kwargs: dict = None,
         eos="\n\nHuman:",
@@ -356,9 +356,7 @@ class AnthropicChat(LocalCompletionsAPI):
             out["system"] = system
         return out
 
-    def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], **kwargs
-    ) -> List[str]:
+    def parse_generations(self, outputs: dict | list[dict], **kwargs) -> list[str]:
         res = []
         if not isinstance(outputs, list):
             outputs = [outputs]
@@ -373,7 +371,7 @@ class AnthropicChat(LocalCompletionsAPI):
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> List[str]:
+    ) -> list[str]:
         return [string]
 
     def loglikelihood(self, requests, **kwargs):

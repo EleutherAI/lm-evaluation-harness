@@ -4,7 +4,6 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Union
 
 import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
@@ -36,7 +35,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def sanitize_string(model_args_raw: Union[str, dict]) -> str:
+def sanitize_string(model_args_raw: str | dict) -> str:
     """Sanitize the model_args string or dict"""
     # Convert to string if it's a dictionary
     model_args_str = (
@@ -118,7 +117,6 @@ def main():
             data = []
             with open(
                 Path(args.data_path, model, latest_sample_results),
-                "r",
                 encoding="utf-8",
             ) as file:
                 for line in file:

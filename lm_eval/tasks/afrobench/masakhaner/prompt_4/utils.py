@@ -1,8 +1,6 @@
 import collections
 import re
 
-from lm_eval.utils import weighted_f1_score
-
 
 def doc_to_target(doc):
     return transform_text(doc["ner_tags"])

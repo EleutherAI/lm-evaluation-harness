@@ -3,8 +3,7 @@ Utility functions for CNN/DailyMail summarization task evaluation.
 """
 
 import re
-from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any
 
 
 try:
@@ -42,8 +41,8 @@ def normalize_text(text: str) -> str:
 
 
 def calculate_rouge_scores(
-    predictions: List[str], references: List[str]
-) -> Dict[str, float]:
+    predictions: list[str], references: list[str]
+) -> dict[str, float]:
     """
     Calculate ROUGE scores for a list of predictions and references.
 
@@ -80,8 +79,8 @@ def calculate_rouge_scores(
 
 
 def calculate_bertscore(
-    predictions: List[str], references: List[str]
-) -> Dict[str, float]:
+    predictions: list[str], references: list[str]
+) -> dict[str, float]:
     """
     Calculate BERTScore for a list of predictions and references.
 
@@ -121,7 +120,7 @@ def calculate_bertscore(
     }
 
 
-def process_results(doc: Dict[str, Any], results: List[str]) -> Dict[str, float]:
+def process_results(doc: dict[str, Any], results: list[str]) -> dict[str, float]:
     """
     Process results for a single document.
 
@@ -205,7 +204,7 @@ def postprocess_generation(generation: str) -> str:
     return generation
 
 
-def filter_long_articles(doc: Dict[str, Any]) -> bool:
+def filter_long_articles(doc: dict[str, Any]) -> bool:
     """
     Filter out articles that are too long.
 
@@ -221,7 +220,7 @@ def filter_long_articles(doc: Dict[str, Any]) -> bool:
     return word_count <= 2000
 
 
-def doc_to_choice(doc: Dict[str, Any]) -> List[str]:
+def doc_to_choice(doc: dict[str, Any]) -> list[str]:
     """
     For multiple-choice format (not used in summarization, but kept for compatibility).
 

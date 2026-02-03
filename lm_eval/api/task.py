@@ -21,7 +21,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import Instance, OutputType
+from lm_eval.api.instance import ContextInstance, Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
@@ -80,6 +80,9 @@ class Task(abc.ABC):
     DATASET_NAME: str | None = None
 
     OUTPUT_TYPE: OutputType | None = None
+
+    # defines meta-group of the task
+    CONTEXT_BASED: bool | None = None
 
     def __init__(
         self,
@@ -604,6 +607,12 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
+    def _update_request(self, request: ContextInstance, storage: dict[Any, Any]):
+        return self.config.request_updater(request, storage)
+
+    def _update_storage(self, request: ContextInstance, storage: dict[Any, Any]):
+        return self.config.storage_updater(request, storage)
+
     @staticmethod
     def resolve_field(doc: dict[str, Any], field: str | None = None):
         if field:
@@ -666,6 +675,9 @@ class ConfigurableTask(Task):
 
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
+
+        # read context-based flag
+        self.CONTEXT_BASED = getattr(self.config, "context_based", False)
 
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
@@ -1357,6 +1369,20 @@ class ConfigurableTask(Task):
     def construct_requests(
         self, doc: dict, ctx: str | list[str], **kwargs
     ) -> list[Instance] | Instance:
+        # select instance type for the current task
+        # also add context funcs if necessary
+        instance_type = Instance
+        if self.CONTEXT_BASED:
+            instance_type = ContextInstance
+            # update kwargs with context parsing methods
+            kwargs = dict(
+                **kwargs,
+                **{
+                    "requests_updater": self._update_request,
+                    "storage_updater": self._update_storage,
+                },
+            )
+        ###
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
 
@@ -1427,7 +1453,7 @@ class ConfigurableTask(Task):
 
         if self.OUTPUT_TYPE == "multiple_choice":
             request_list = [
-                Instance(
+                instance_type(
                     request_type="loglikelihood",
                     doc=doc,
                     arguments=arg,
@@ -1439,7 +1465,7 @@ class ConfigurableTask(Task):
 
             return request_list
 
-        return Instance(
+        return instance_type(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
             arguments=arguments,
