@@ -85,7 +85,7 @@ def print_writeout(task) -> None:
             eval_logger.info(f"Request: {str(inst)}")
 
 
-def get_sample_size(task, limit: int | None) -> int | None:
+def get_sample_size(task, limit: int | float | None) -> int | None:
     if limit is not None:
         limit = (
             int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
