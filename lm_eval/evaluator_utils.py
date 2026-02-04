@@ -269,6 +269,8 @@ def aggregate_groups(
     for group in all_groups:
         # Each group aggregates its own metrics from leaf tasks
         results.metrics[group.name] = group.aggregate(results.metrics)
+        # Set group version from metadata if available
+        results.versions[group.name] = group.version
 
     return results
 
@@ -316,6 +318,32 @@ def _collect_groups_bottom_up(groups: dict[str, "Group"]) -> list["Group"]:
         visit(root)
 
     return result
+
+
+def get_results_data(
+    results: EvalResults,
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    """
+    Extract raw task and group results from EvalResults.
+    Strips 'samples' count from each entry. No indentation or display formatting.
+
+    Returns:
+        (task_results, group_results) — raw metric dicts
+    """
+    task_results = {}
+    group_results = {}
+
+    for name, metrics in results.metrics.items():
+        entry = dict(metrics)
+        entry.pop("samples", None)
+        task_results[name] = entry
+
+        if name in results.groups:
+            group = results.groups[name]
+            if group.has_aggregation:
+                group_results[name] = dict(entry)
+
+    return task_results, group_results
 
 
 def format_results(

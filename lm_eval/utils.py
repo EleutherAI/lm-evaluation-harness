@@ -409,6 +409,39 @@ class Reorderer:
         return res
 
 
+def _build_hierarchy_info(
+    group_subtasks: dict[str, list[str]], available_keys: set[str]
+) -> tuple[dict[str, int], list[str]]:
+    """Build depth map and hierarchical key ordering from group_subtasks.
+
+    Reuses the same tree-walk approach as format_results() for ordering.
+
+    Returns:
+        (depth_map, ordered_keys) — depths for indentation, keys in display order
+    """
+    depth_map: dict[str, int] = {}
+    ordered: list[str] = []
+
+    def visit(name: str, depth: int):
+        depth_map[name] = depth
+        if name in available_keys:
+            ordered.append(name)
+        for child in sorted(group_subtasks.get(name, [])):
+            visit(child, depth + 1)
+
+    all_children = {c for children in group_subtasks.values() for c in children}
+    for name in sorted(group_subtasks):
+        if name not in all_children:
+            visit(name, 0)
+
+    # Add remaining keys not in any hierarchy (sorted for determinism)
+    for key in sorted(available_keys):
+        if key not in depth_map:
+            ordered.append(key)
+
+    return depth_map, ordered
+
+
 def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
@@ -434,20 +467,33 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
     values = []
 
-    keys = result_dict[column].keys()
-    if sort_results:
+    # Build depth map and hierarchical key ordering from group_subtasks
+    group_subtasks = result_dict.get("group_subtasks", {})
+    depth_map, hierarchical_keys = _build_hierarchy_info(
+        group_subtasks, set(result_dict[column].keys())
+    )
+
+    if sort_results:  # noqa: SIM108
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
-        keys = sorted(keys)
+        keys = sorted(result_dict[column].keys())
+    else:
+        keys = hierarchical_keys
     for k in keys:
-        dic = result_dict[column][k]
+        dic = dict(result_dict[column][k])  # copy — don't mutate original
         version = result_dict["versions"].get(k, "    N/A")
         n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
-        if "alias" in dic:
-            k = dic.pop("alias")
+        display_name = dic.pop("alias", k)
+
+        # Add indentation based on hierarchy depth
+        depth = depth_map.get(k, 0)
+        if depth > 0:
+            display_name = " " * depth + "- " + display_name
+
+        k = display_name
 
         metric_items = dic.items()
         metric_items = sorted(metric_items)

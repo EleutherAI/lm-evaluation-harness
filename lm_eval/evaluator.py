@@ -19,7 +19,7 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED
 from lm_eval.evaluator_utils import (
     ResultAcc,
-    format_results,
+    get_results_data,
     get_sample_size,
     print_writeout,
     process_results,
@@ -743,7 +743,7 @@ def evaluate(
 
     if RANK == 0:
         eval_results = process_results(eval_results_acc, groups, bootstrap_iters)
-        results_agg, group_agg = format_results(eval_results)
+        task_data, group_data = get_results_data(eval_results)
 
         # Get all groups for subtask list
         all_groups: list[Group] = list(groups.values())
@@ -751,18 +751,15 @@ def evaluate(
         # Build subtask list from groups
         subtask_list = {group.name: group.child_names for group in all_groups}
 
-        # Determine if we should show group table
-        show_group_table = any(g.has_aggregation for g in all_groups)
-
         # Collect higher_is_better from eval_results
         higher_is_better = dict(eval_results.higher_is_better)
         propagate_higher_is_better(all_groups, higher_is_better)
 
         results_dict = {
-            "results": dict(results_agg.items()),
+            "results": task_data,
             **(
-                {"groups": dict(group_agg.items())}
-                if (bool(group_agg) and show_group_table)
+                {"groups": group_data}
+                if (bool(group_data) and any(g.has_aggregation for g in all_groups))
                 else {}
             ),
             "group_subtasks": subtask_list,

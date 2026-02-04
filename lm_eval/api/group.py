@@ -162,6 +162,11 @@ class Group:
         return self.alias or self.name
 
     @property
+    def version(self) -> str:
+        """Version string from metadata, if available."""
+        return "N/A" if not self.metadata else str(self.metadata.get("version", "N/A"))
+
+    @property
     def has_aggregation(self) -> bool:
         """Whether this group defines aggregation metrics."""
         return self.aggregation is not None and len(self.aggregation) > 0
@@ -322,7 +327,7 @@ class Group:
         )
 
     def __repr__(self):
-        return f"Group(name={self.name!r}, children={len(self._children)})"
+        return f"Group(name={self.name!r}, children={len(self._children)}, version)"
 
 
 # =============================================================================

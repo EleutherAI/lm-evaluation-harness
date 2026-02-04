@@ -16,6 +16,7 @@ from lm_eval.evaluator_utils import (
     aggregate_groups,
     collect_results,
     format_results,
+    get_results_data,
     get_root_groups,
     get_sample_size,
     process_results,
@@ -628,6 +629,73 @@ class TestFormatResults:
         task_res, _ = format_results(results)
         keys = list(task_res.keys())
         assert keys.index("a_task") < keys.index("z_task")
+
+
+# ---------------------------------------------------------------------------
+# TestGetResultsData
+# ---------------------------------------------------------------------------
+
+
+class TestGetResultsData:
+    def test_strips_samples(self):
+        results = EvalResults()
+        results.metrics["t"] = {"alias": "t", "samples": 100, "acc,none": 0.9}
+        task_res, _ = get_results_data(results)
+        assert "samples" not in task_res["t"]
+
+    def test_alias_not_indented(self):
+        task = MockEvalTask("child_task")
+        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g.add(task)
+
+        results = EvalResults()
+        results.metrics["grp"] = {"alias": "grp", "samples": 50, "acc,none": 0.85}
+        results.metrics["child_task"] = {
+            "alias": "child_task",
+            "samples": 50,
+            "acc,none": 0.85,
+        }
+        results.groups = {"grp": g}
+
+        task_res, group_res = get_results_data(results)
+        # Aliases should be plain strings, no indentation
+        assert task_res["grp"]["alias"] == "grp"
+        assert task_res["child_task"]["alias"] == "child_task"
+        assert group_res["grp"]["alias"] == "grp"
+
+    def test_group_with_aggregation_in_group_results(self):
+        task = MockEvalTask("t")
+        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g.add(task)
+
+        results = EvalResults()
+        results.metrics["grp"] = {"alias": "grp", "acc,none": 0.8}
+        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
+        results.groups = {"grp": g}
+
+        task_res, group_res = get_results_data(results)
+        assert "grp" in task_res
+        assert "grp" in group_res
+
+    def test_group_without_aggregation_not_in_group_results(self):
+        task = MockEvalTask("t")
+        g = Group(name="grp")  # no aggregation
+        g.add(task)
+
+        results = EvalResults()
+        results.metrics["grp"] = {"alias": "grp"}
+        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
+        results.groups = {"grp": g}
+
+        _, group_res = get_results_data(results)
+        assert "grp" not in group_res
+
+    def test_task_only_in_task_results(self):
+        results = EvalResults()
+        results.metrics["standalone"] = {"alias": "standalone", "acc,none": 0.9}
+        task_res, group_res = get_results_data(results)
+        assert "standalone" in task_res
+        assert "standalone" not in group_res
 
 
 # ---------------------------------------------------------------------------
