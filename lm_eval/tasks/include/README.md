@@ -30,6 +30,10 @@ Albanian, Arabic, Armenian, Azerbaijani, Basque, Belarusian, Bengali, Bulgarian,
 **Licenses:** Driving License, Marine License, Medical License, Professional Certifications
 
 
+### Changelog
+
+- **v0.1**: Renamed `few_shot_en` and `few_shot_og` variant group names from `include_base_44_<lang>` to `include_base_44_<lang>_few_shot_en` and `include_base_44_<lang>_few_shot_og` respectively, to resolve duplicate group name conflicts with the `default` variants.
+
 ### Citation
 
 ```bibtex

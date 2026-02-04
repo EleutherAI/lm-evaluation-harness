@@ -33,6 +33,7 @@ from lm_eval.api.registry import (
 )
 from lm_eval.api.utils import (
     Message,
+    ends_with_whitespace,
     maybe_delimit,
     multiturn_to_singleturn,
     requires_delimiter,
@@ -777,11 +778,11 @@ class ConfigurableTask(Task):
         else:
             self.prompt = None
 
-        if self.fewshot_docs() is not None:
+        if (_fs_docs := self.fewshot_docs()) is not None:
             config_sampler: str | type[samplers.ContextSampler] = (
                 self.fewshot_cfg.sampler if self.config.fewshot_config else "default"
             )
-            fewshot_docs = list(self.fewshot_docs())  # type: ignore
+            fewshot_docs = list(_fs_docs)  # type: ignore
             if isinstance(config_sampler, str):
                 sampler_cls = samplers.get_sampler(config_sampler)
             elif issubclass(config_sampler, samplers.ContextSampler):
@@ -915,10 +916,10 @@ class ConfigurableTask(Task):
                     ) from None
             # fmt: on
         else:
-            if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
+            if (_shots := self.config.num_fewshot) is not None and (_shots > 0):
                 eval_logger.warning(
                     f"[Task: {self.config.task}] "
-                    "num_fewshot > 0 but fewshot_split is None. "
+                    f"num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
             return super().fewshot_docs()
@@ -1096,6 +1097,7 @@ class ConfigurableTask(Task):
             answer_text = maybe_delimit(gen_prefix, answer_text, delimiter=" ")
             msgs.append(Message("assistant", answer_text, few_delim))
         elif gen_prefix:
+            # For gen-prefix, the delimiter is added in construct_requests
             msgs.append(Message("assistant", gen_prefix))
         return msgs
 
@@ -1368,7 +1370,12 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
             if apply_chat_template:
-                target_delimiter = ""
+                target_delimiter = (
+                    self.config.target_delimiter
+                    if self.config.gen_prefix
+                    and not ends_with_whitespace(self.config.gen_prefix)
+                    else ""
+                )
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)

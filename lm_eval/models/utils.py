@@ -13,6 +13,10 @@ from typing import (
     TypeVar,
 )
 
+from typing_extensions import TypedDict
+
+from lm_eval.utils import maybe_warn, warning_once
+
 
 eval_logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -24,6 +28,15 @@ if TYPE_CHECKING:
     from PIL import Image
     from transformers import PreTrainedTokenizerBase
     from transformers.configuration_utils import PretrainedConfig
+
+
+class GenKwargs(TypedDict, total=False):
+    do_sample: bool
+    temperature: float
+    # other alias' will be converted to `max_gen_toks`.
+    max_gen_toks: int
+    until: list[str]
+    __extra_items__: Any
 
 
 def chunks(iter, n: int = 0, fn=None):
@@ -605,13 +618,109 @@ def handle_stop_sequences(until: str | list[str] | None, eos: str | None) -> lis
     return until
 
 
+def normalize_gen_kwargs(
+    gen_kwargs: dict,
+    default_max_gen_toks: int = 256,
+) -> GenKwargs:
+    """Normalize generation kwargs for consistent handling across model backends.
+
+    Model implementations may have different expectations for generation parameters.
+
+    Args:
+        gen_kwargs: Raw generation kwargs from the request. Expected keys include:
+            - do_sample: Whether to use sampling (vs greedy decoding) - Required
+            - until (str | list[str]): Stop sequence(s) for generation.
+            - max_gen_toks | max_new_tokens | max_tokens | max_completion_tokens: Maximum tokens to generate
+            - temperature: Sampling temperature
+            - Other backend-specific kwargs
+        default_max_gen_toks: Default max_gen_toks if not specified in gen_kwargs.
+
+    Returns:
+        A normalized dict containing:
+        - do_sample (bool): Whether to use sampling (bool)
+        - until: list[str]: List of stop sequences.
+        - max_gen_toks (int): Maximum tokens to generate (int)
+        - temperature (float): Sampling temperature (float). Note: will always be set to 0.0 if do_sample=False or do_sample is not specified.
+        - All other kwargs passed through unchanged
+
+    Notes:
+        - Accepts `max_gen_toks` and other aliases. Priority:
+          max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens.
+          Output always uses `max_gen_toks`.
+        - When `do_sample=False`, temperature is set to 0.0 for greedy decoding.
+        - When temperature is 0.0 and `do_sample` is not specified, `do_sample` is set
+          to False.
+        - Model backends may further modify the returned dict as needed (e.g., vLLM
+          removes `do_sample` since it uses temperature directly).
+    """
+
+    import copy
+
+    kwargs = copy.deepcopy(gen_kwargs)
+
+    until = kwargs.get("until", [])
+    if not isinstance(until, list):
+        until = [until]
+
+    # Extract max_gen_toks from various aliases (priority order: max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens)
+    max_token_aliases = {
+        "max_gen_toks": kwargs.pop("max_gen_toks", None),
+        "max_new_tokens": kwargs.pop("max_new_tokens", None),  # used in HF
+        "max_tokens": kwargs.pop(
+            "max_tokens", None
+        ),  # used by vllm, OpenAI API's and others
+        "max_completion_tokens": kwargs.pop(
+            "max_completion_tokens", None
+        ),  # newer OpenAI API alias
+        # note: `max_length` is also used by HF but has different semantics (prompt + generation)
+    }
+    provided = {k: v for k, v in max_token_aliases.items() if v is not None}
+
+    if len(provided) > 1:
+        warning_once(
+            eval_logger,
+            f"Multiple max token args provided: {provided}. Using first by priority (max_gen_toks > max_new_tokens > max_tokens > max_completion_tokens).",
+        )
+
+    max_gen_toks = int(next(iter(provided.values()), default_max_gen_toks))
+
+    # Handle do_sample and temperature consistently
+    do_sample: bool | None = kwargs.get("do_sample")
+    temperature: float | None = float(kwargs.get("temperature", 0.0))
+
+    match do_sample:
+        case None:
+            kwargs["do_sample"] = True if temperature > 0.0 else False  # noqa: SIM210
+        # do_sample=False -> temperature=0.0
+        case False:
+            if temperature and temperature != 0.0:
+                warning_once(
+                    eval_logger,
+                    f"{do_sample=}` but {temperature=}; setting `temperature` to 0.0 for greedy decoding. For non-greedy decoding, set `do_sample=True`.",
+                )
+            kwargs["temperature"] = 0.0
+        case True:
+            # do_sample=True -> use provided kwargs
+            if temperature == 0.0:
+                warning_once(
+                    eval_logger,
+                    f"{do_sample=}` but {temperature=}. For non-greedy sampling, set temperature > 0.0",
+                )
+
+    # Set normalized values
+    kwargs["until"] = until
+    kwargs["max_gen_toks"] = max_gen_toks
+
+    return GenKwargs(**kwargs)  # type:ignore[missing-typed-dict-key]
+
+
 def resize_image(
     image: Image.Image,
     width: int | None = None,
     height: int | None = None,
     max_dimension: int | None = None,
     keep_aspect_ratio: bool = True,
-    resample_filter: int | str = "Image.BICUBIC",
+    resample_filter: int | None = None,
     min_width: int = 1,
     min_height: int = 1,
 ) -> Image.Image:
@@ -708,19 +817,94 @@ def resize_image(
 def truncate_tokens(
     tokens: list[int],
     max_length: int,
-    tokenizer: PreTrainedTokenizerBase,
-    strategy: str = "left",
-):
-    if strategy == "left":
-        return tokens[-max_length:]
-    elif strategy == "right":
-        return tokens[:max_length]
-    elif strategy == "middle":
-        # Truncate the middle of the sequence
-        left_length = max_length // 2
-        right_length = max_length - left_length
-        return tokens[:left_length] + tokens[-right_length:]
-    return None
+    side: Literal["left", "middle", "right"] = "left",
+) -> list[int]:
+    """Truncate a token list to max_length using the given strategy (left, right, or middle)."""
+    # fmt: off
+    match side:
+        case "left": return tokens[-max_length:]
+        case "right": return tokens[:max_length]
+        case "middle":
+            # Truncate the middle of the sequence
+            left_length = max_length // 2
+            right_length = max_length - left_length
+            return tokens[:left_length] + tokens[-right_length:]
+        case _: raise ValueError(f"Unknown truncation {side=}. Must be one of 'left', 'middle', or 'right'.")
+    # fmt: on
+
+
+def maybe_truncate(
+    tokens: list[int],
+    max_gen_toks: int,
+    max_model_len: int,
+    min_gen_toks: int = 1,
+    side: Literal["left", "middle", "right"] = "left",
+    shrink_gen_toks=False,
+    verbose=True,
+) -> tuple[list[int], int]:
+    """
+    Truncates input tokens and/or reduces max_gen_toks to fit within max_model_len.
+
+    Strategy:
+        1. No truncation needed: If len(tokens) + max_gen_toks <= max_model_len, return as-is.
+        2. If shrink_gen_toks=False: Truncate context to fit max_model_len - max_gen_toks.
+        3. If shrink_gen_toks=True:
+                a. First try reducing max_gen_toks (down to min_gen_toks) to fit the context.
+                b. If context still doesn't fit, truncate context to reserve space for min_gen_toks.
+
+    Args:
+        tokens (list[int]): The input context tokens to potentially truncate.
+        max_gen_toks (int): The maximum number of tokens to generate.
+        max_model_len (int): The model's maximum context window size (prompt + generation).
+        min_gen_toks (int): Lower bound for generation tokens. Defaults to 1.
+        side (str): "left" | "right" | "middle". Defaults to "left".
+        shrink_gen_toks (bool): Whether to adjust the generation tokens count
+            to fit within the maximum length. Defaults to False.
+        verbose (bool): Whether to log warnings when truncation or adjustments occur.
+
+    Returns:
+        tuple[list[int], int]: A tuple containing:
+            - list[int]: The (possibly truncated) context tokens.
+            - int: The adjusted maximum generation token count.
+
+    Raises:
+        ValueError: when max_model_len <= min_gen_toks.
+    """
+    ctx_len = len(tokens)
+
+    # Case 1: Everything fits comfortably
+    if ctx_len + max_gen_toks <= max_model_len:
+        return tokens, max_gen_toks
+
+    warning = f"Context length ({ctx_len}) + max_gen_toks ({max_gen_toks}) = {ctx_len + max_gen_toks} exceeds model's max length ({max_model_len})"
+
+    # Case 2: Do not adjust generation tokens, just truncate prompt
+    if not shrink_gen_toks:
+        maybe_warn(f"{warning}. Truncating context from {side=}.", verbose)
+        return truncate_tokens(
+            tokens, max_model_len - max_gen_toks, side=side
+        ), max_gen_toks
+
+    # Case 3: Prompt fits, but need to reduce max_tokens
+    if (new_max := max_model_len - ctx_len) >= min_gen_toks:
+        maybe_warn(
+            f"{warning}. Reducing {max_gen_toks=} to {new_max} to fit within model context window.",
+            verbose,
+        )
+        return tokens, new_max
+
+    # Case 4: Need to truncate prompt to fit min_tokens
+    # Reserve space for min_tokens, use rest for prompt
+    if (max_ctx_len := max_model_len - min_gen_toks) <= 0:
+        raise ValueError(
+            f"Model context window ({max_model_len}) is too small to fit "
+            f"initial context len ({ctx_len}) + minimum generation len ({min_gen_toks})"
+        )
+    maybe_warn(
+        f"{warning}. Truncating context from {side=} to {max_ctx_len} tokens to reserve {min_gen_toks=} for generation.",
+        verbose,
+    )
+    return truncate_tokens(tokens, max_ctx_len, side=side), min_gen_toks
 
 
 def postprocess_generated_text(
@@ -752,7 +936,7 @@ def postprocess_generated_text(
     return generation
 
 
-def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None):
+def has_bos_prefix(sequence: str, bos_str: str | Iterable[str] | None = None) -> bool:
     if bos_str is None:
         return False
     elif isinstance(bos_str, str):

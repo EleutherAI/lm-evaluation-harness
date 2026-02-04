@@ -66,3 +66,5 @@ If other tasks on this dataset are already supported:
   * Changed default max_length from 2048 to 8192 and max_gen_toks from 256 to 2048.
 * (tasks, group) 2025-05-20 -- (version 2.1 --> version 3)
   * changed stop sequence from "Q:" to "Question:" PR #2945
+* (tasks, group) 2026-01-16 -- (version 2.1 --> version 3)
+  * trimmed whitespace from options: [see](https://x.com/fujikanaeda/status/2011565035408277996)
