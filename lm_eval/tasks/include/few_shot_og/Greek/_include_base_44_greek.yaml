@@ -1,4 +1,4 @@
-group: include_base_44_greek
+group: include_base_44_greek_few_shot_og
 task:
 - include_base_44_greek_few_shot_og_stem
 - include_base_44_greek_few_shot_og_arts_humanities
@@ -11,4 +11,4 @@ aggregate_metric_list:
 - metric: acc
   weight_by_size: true
 metadata:
-  version: 0.0
+  version: 0.1
