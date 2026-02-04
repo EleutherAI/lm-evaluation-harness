@@ -981,6 +981,16 @@ class MegatronLMEval(LM):
         results = []
         batch_size = self.batch_size if self.batch_size != "auto" else 1
 
+        # NOTE: Megatron-LM's RoPE implementation does not support per-sample position_ids,
+        # which causes accuracy degradation with batch_size > 1 on generation tasks
+        # (e.g., GSM8K, TriviaQA) due to incorrect positional encoding for left-padded sequences.
+        assert batch_size == 1, (
+            f"generate_until does not support batch_size > 1 (got {batch_size}). "
+            "Megatron-LM's RoPE implementation ignores position_ids, causing significant "
+            "accuracy degradation on generation tasks with batched inference. "
+            "Please use batch_size=1 for accurate results."
+        )
+
         # Use Collator to sort by context length (negative for descending order)
         # This minimizes padding within each batch, which is critical for RoPE models
         def _collate_gen(req):
