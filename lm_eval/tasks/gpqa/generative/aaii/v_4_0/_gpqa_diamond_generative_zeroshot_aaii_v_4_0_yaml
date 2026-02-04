@@ -1,0 +1,45 @@
+dataset_path: Idavidrein/gpqa
+dataset_name: gpqa_diamond
+tag: gpqa
+output_type: generate_until
+process_docs: !function utils.process_docs
+training_split: train
+validation_split: train
+test_split: null
+description: ""
+doc_to_text: |
+  Answer the following multiple choice question. The last line of your response should be in the following format: 'Answer: A/B/C/D' (e.g. 'Answer: A').
+
+  {{Question}}
+
+  A) {{A}}
+  B) {{B}}
+  C) {{C}}
+  D) {{D}}
+
+doc_to_target: answer
+num_fewshot: 0
+filter_list:
+  - name: "aaii-extract-letter"
+    filter:
+      - function: regex
+        regex_pattern: "(?i)[\\*_]{0,2}Answer[\\*_]{0,2}\\s*:[\\s\\*_]{0,2}\\s*([A-Z])(?![a-zA-Z0-9])"
+        group_select: 0
+        fallback: ""
+        secondary_regex_patterns:
+          - "\\\\boxed\\{[^}]*([A-Z])[^}]*\\}"
+          - "answer is ([a-zA-Z])"
+          - "answer is \\(([a-zA-Z])"
+          - "([A-Z])\\)\\s*[^A-Z]*"
+          - "([A-Z])\\s+is\\s+the\\s+correct\\s+answer"
+          - "([A-Z])\\s*$"
+          - "([A-Z])\\s*\\."
+          - "([A-Z])\\s*[^\\w]"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: aaii-v4.0
