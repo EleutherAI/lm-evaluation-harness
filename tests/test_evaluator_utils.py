@@ -447,7 +447,7 @@ class TestAggregateGroups:
         task = MockEvalTask("t1")
         g = Group(
             name="grp",
-            aggregation=[AggMetricConfig(metric="acc")],
+            aggregate_metric_list=[AggMetricConfig(metric="acc")],
         )
         g.add(task)
 
@@ -477,13 +477,13 @@ class TestAggregateGroups:
         task = MockEvalTask("leaf")
         child = Group(
             name="child",
-            aggregation=[AggMetricConfig(metric="acc")],
+            aggregate_metric_list=[AggMetricConfig(metric="acc")],
         )
         child.add(task)
 
         parent = Group(
             name="parent",
-            aggregation=[AggMetricConfig(metric="acc")],
+            aggregate_metric_list=[AggMetricConfig(metric="acc")],
         )
         parent.add(child)
 
@@ -518,7 +518,7 @@ class TestProcessResults:
 
     def test_with_groups(self):
         task = MockEvalTask("t", agg={"acc": mean})
-        g = Group(name="g", aggregation=[AggMetricConfig(metric="acc")])
+        g = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
         acc = {"t": make_result_acc(task, {("acc", "none"): [0.5, 0.5]})}
         result = process_results(acc, groups={"g": g}, bootstrap_iters=0)
@@ -545,7 +545,7 @@ class TestFormatResults:
 
     def test_group_with_children_indentation(self):
         task = MockEvalTask("child_task")
-        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
         results = EvalResults()
@@ -558,7 +558,7 @@ class TestFormatResults:
 
     def test_show_groups_true(self):
         task = MockEvalTask("t")
-        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
         results = EvalResults()
@@ -572,7 +572,7 @@ class TestFormatResults:
 
     def test_show_groups_false(self):
         task = MockEvalTask("t")
-        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
         results = EvalResults()
@@ -645,7 +645,7 @@ class TestGetResultsData:
 
     def test_alias_not_indented(self):
         task = MockEvalTask("child_task")
-        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
         results = EvalResults()
@@ -665,7 +665,7 @@ class TestGetResultsData:
 
     def test_group_with_aggregation_in_group_results(self):
         task = MockEvalTask("t")
-        g = Group(name="grp", aggregation=[AggMetricConfig(metric="acc")])
+        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
         results = EvalResults()

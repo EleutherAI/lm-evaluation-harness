@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any, cast
 from typing_extensions import deprecated
 
 from lm_eval.api.utils import random_task_id
+from lm_eval.config.group import AggMetricConfig, GroupConfig as _GroupConfig
 
 
 eval_logger = logging.getLogger(__name__)
@@ -31,27 +32,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from lm_eval.api.task import Task
-
-
-@dataclass
-class AggMetricConfig:
-    """Configuration for how to aggregate a metric across a group's children."""
-
-    metric: str
-    filter_list: list[str] | None = field(default=None)
-    aggregation: str | Callable = "mean"
-    weight_by_size: bool = True
-
-    def __post_init__(self):
-        if self.aggregation != "mean" and not callable(self.aggregation):
-            raise ValueError(
-                f"Currently, 'mean' is the only pre-defined aggregation. Got '{self.aggregation}'."
-            )
-        # Handle filter_list: None means auto-discover, string becomes list
-        if self.filter_list is None:
-            pass  # Keep as None for auto-discovery
-        elif isinstance(self.filter_list, str):
-            self.filter_list = [self.filter_list]
 
 
 @dataclass
@@ -65,7 +45,7 @@ class Group:
     Attributes:
         name: Unique identifier for this group (e.g., "mmlu", "mmlu::humanities")
         alias: Display name (defaults to name if not set)
-        aggregation: Optional list of metrics to aggregate across children
+        aggregate_metric_list: Optional list of metrics to aggregate across children
         metadata: Optional dict for user-defined metadata
 
     Example:
@@ -77,7 +57,7 @@ class Group:
 
     name: str
     alias: str | None = None
-    aggregation: list[AggMetricConfig] | None = None
+    aggregate_metric_list: list[AggMetricConfig] | None = None
     metadata: dict[str, Any] | None = None
     _children: dict[str, Task | Group] = field(default_factory=dict, repr=False)
 
@@ -169,7 +149,10 @@ class Group:
     @property
     def has_aggregation(self) -> bool:
         """Whether this group defines aggregation metrics."""
-        return self.aggregation is not None and len(self.aggregation) > 0
+        return (
+            self.aggregate_metric_list is not None
+            and len(self.aggregate_metric_list) > 0
+        )
 
     def _discover_filters_for_metric(
         self, metric_name: str, task_metrics: dict[str, dict]
@@ -221,13 +204,13 @@ class Group:
 
         group_metrics: dict[str, Any] = {"alias": self.display_name}
 
-        if not self.aggregation:
+        if not self.aggregate_metric_list:
             return group_metrics
 
         # Get leaf task names
         leaf_tasks = [t.task_name for t in self.get_all_tasks()]
 
-        for agg_config in self.aggregation:
+        for agg_config in self.aggregate_metric_list:
             # Determine filters: auto-discover if None, else use explicit list
             if agg_config.filter_list is None:
                 filters_to_aggregate = self._discover_filters_for_metric(
@@ -293,41 +276,37 @@ class Group:
             result["children"] = list(self._children.keys())
         if self.alias:
             result["group_alias"] = self.alias
-        if self.aggregation:
-            result["aggregate_metric_list"] = [asdict(agg) for agg in self.aggregation]
+        if self.aggregate_metric_list:
+            result["aggregate_metric_list"] = [
+                asdict(agg) for agg in self.aggregate_metric_list
+            ]
         if self.metadata:
             result["metadata"] = self.metadata
         return result
 
     @classmethod
-    def from_config(cls, config: dict[str, Any]) -> Group:
+    def from_config(cls, config: _GroupConfig | dict[str, Any]) -> Group:
         """
-        Create a Group from a config dict (e.g., parsed from YAML).
+        Create a Group from a GroupConfig or raw dict (e.g., parsed from YAML).
 
         Note: This only creates the Group shell. Children must be added
         separately via group.add() after Tasks/subGroups are built.
         """
-        name: str = config.get("group", random_task_id())
-
-        # Parse aggregation config
-        aggregation = None
-        if agg_list := config.get("aggregate_metric_list"):
-            if isinstance(agg_list, dict):
-                agg_list = [agg_list]
-            aggregation = [
-                AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in agg_list
-            ]
+        if isinstance(config, dict):
+            config.setdefault("group", random_task_id())  # type:ignore[no-matching-overload]
+            config = _GroupConfig(**config)  # type:ignore[invalid-argument-type]
 
         return cls(
-            name=name,
-            alias=config.get("group_alias"),
-            aggregation=aggregation,
-            metadata=config.get("metadata"),
+            name=config.group,
+            alias=config.group_alias,
+            aggregate_metric_list=cast(
+                "list[AggMetricConfig]", config.aggregate_metric_list
+            ),
+            metadata=config.metadata,
         )
 
     def __repr__(self):
-        return f"Group(name={self.name!r}, children={len(self._children)}, version)"
+        return f"Group(name={self.name!r}, len_children={len(self._children)}, children={self.child_names}, version={self.version})"
 
 
 # =============================================================================
@@ -335,7 +314,7 @@ class Group:
 # =============================================================================
 
 
-@deprecated("Use lm_eval.api.Group instead.")
+@deprecated("Use lm_eval.config.GroupConfig instead.")
 @dataclass
 class GroupConfig(dict):
     """DEPRECATED: Use Group instead."""

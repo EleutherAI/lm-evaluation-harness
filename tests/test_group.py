@@ -212,7 +212,7 @@ class TestGroupAggregation:
         """Test that auto-discovery (filter_list=None) aggregates all filters."""
         group = Group(
             name="test_group",
-            aggregation=[
+            aggregate_metric_list=[
                 AggMetricConfig(metric="acc_norm")
             ],  # filter_list=None by default
         )
@@ -240,7 +240,9 @@ class TestGroupAggregation:
         """Test that explicit filter_list only aggregates specified filters."""
         group = Group(
             name="test_group",
-            aggregation=[AggMetricConfig(metric="acc_norm", filter_list=["none"])],
+            aggregate_metric_list=[
+                AggMetricConfig(metric="acc_norm", filter_list=["none"])
+            ],
         )
         group.add(self.task_a)
         group.add(self.task_b)
@@ -256,7 +258,7 @@ class TestGroupAggregation:
         """Test aggregation with multiple explicit filters."""
         group = Group(
             name="test_group",
-            aggregation=[
+            aggregate_metric_list=[
                 AggMetricConfig(metric="acc_norm", filter_list=["none", "prefix"])
             ],
         )
@@ -274,7 +276,7 @@ class TestGroupAggregation:
         """Test that empty filter_list results in no metric aggregation."""
         group = Group(
             name="test_group",
-            aggregation=[AggMetricConfig(metric="acc_norm", filter_list=[])],
+            aggregate_metric_list=[AggMetricConfig(metric="acc_norm", filter_list=[])],
         )
         group.add(self.task_a)
 
@@ -303,7 +305,7 @@ class TestGroupAggregation:
 
         group = Group(
             name="test_group",
-            aggregation=[
+            aggregate_metric_list=[
                 AggMetricConfig(metric="acc_norm"),  # Auto-discover
                 AggMetricConfig(metric="acc"),  # Auto-discover
             ],
@@ -337,7 +339,7 @@ class TestGroupAggregation:
 
         group = Group(
             name="test_group",
-            aggregation=[
+            aggregate_metric_list=[
                 AggMetricConfig(metric="acc_norm"),  # Auto-discover
                 AggMetricConfig(metric="acc", filter_list=["none"]),  # Explicit
             ],
@@ -359,7 +361,8 @@ class TestGroupAggregation:
     def test_stderr_aggregation_with_auto_discovery(self):
         """Test that stderr values are properly aggregated with auto-discovery."""
         group = Group(
-            name="test_group", aggregation=[AggMetricConfig(metric="acc_norm")]
+            name="test_group",
+            aggregate_metric_list=[AggMetricConfig(metric="acc_norm")],
         )
         group.add(self.task_a)
         group.add(self.task_b)
@@ -383,7 +386,8 @@ class TestGroupAggregation:
     def test_samples_count_with_auto_discovery(self):
         """Test that sample counts are correct with auto-discovery."""
         group = Group(
-            name="test_group", aggregation=[AggMetricConfig(metric="acc_norm")]
+            name="test_group",
+            aggregate_metric_list=[AggMetricConfig(metric="acc_norm")],
         )
         group.add(self.task_a)
         group.add(self.task_b)
@@ -424,7 +428,7 @@ class TestGroupWeightedAggregation:
         # Test with weight_by_size=True (default)
         group_weighted = Group(
             name="test_weighted",
-            aggregation=[AggMetricConfig(metric="acc", weight_by_size=True)],
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=True)],
         )
         group_weighted.add(task_a)
         group_weighted.add(task_b)
@@ -437,7 +441,7 @@ class TestGroupWeightedAggregation:
         # Test with weight_by_size=False
         group_unweighted = Group(
             name="test_unweighted",
-            aggregation=[AggMetricConfig(metric="acc", weight_by_size=False)],
+            aggregate_metric_list=[AggMetricConfig(metric="acc", weight_by_size=False)],
         )
         group_unweighted.add(task_a)
         group_unweighted.add(task_b)
@@ -464,7 +468,9 @@ class TestGroupEdgeCases:
 
     def test_task_not_in_metrics(self):
         """Test when a task is in the group but not in metrics dict."""
-        group = Group(name="test_group", aggregation=[AggMetricConfig(metric="acc")])
+        group = Group(
+            name="test_group", aggregate_metric_list=[AggMetricConfig(metric="acc")]
+        )
         task_a = MockTask("task_a")
         task_b = MockTask("task_b")
         group.add(task_a)
@@ -488,7 +494,9 @@ class TestGroupEdgeCases:
         """Test when a metric is missing in some tasks."""
         import logging
 
-        group = Group(name="test_group", aggregation=[AggMetricConfig(metric="acc")])
+        group = Group(
+            name="test_group", aggregate_metric_list=[AggMetricConfig(metric="acc")]
+        )
         task_a = MockTask("task_a")
         task_b = MockTask("task_b")
         group.add(task_a)
@@ -673,7 +681,7 @@ class TestGroup:
     def test_has_aggregation_true(self):
         group = Group(
             name="g",
-            aggregation=[AggMetricConfig(metric="acc")],
+            aggregate_metric_list=[AggMetricConfig(metric="acc")],
         )
         assert group.has_aggregation is True
 
@@ -682,7 +690,7 @@ class TestGroup:
         assert group.has_aggregation is False
 
     def test_has_aggregation_false_empty(self):
-        group = Group(name="g", aggregation=[])
+        group = Group(name="g", aggregate_metric_list=[])
         assert group.has_aggregation is False
 
     # --- __repr__ ---
@@ -703,7 +711,7 @@ class TestGroupSerialization:
         group = Group(
             name="mmlu",
             alias="MMLU",
-            aggregation=[AggMetricConfig(metric="acc", filter_list=["none"])],
+            aggregate_metric_list=[AggMetricConfig(metric="acc", filter_list=["none"])],
             metadata={"version": 1},
         )
         task = MockTask("task_a")
@@ -734,9 +742,9 @@ class TestGroupSerialization:
         group = Group.from_config(config)
         assert group.name == "my_group"
         assert group.alias == "My Group"
-        assert group.aggregation
-        assert len(group.aggregation) == 1
-        assert group.aggregation[0].metric == "acc"
+        assert group.aggregate_metric_list
+        assert len(group.aggregate_metric_list) == 1
+        assert group.aggregate_metric_list[0].metric == "acc"
         assert group.metadata == {"version": 2}
 
     def test_from_config_single_dict_agg_metric(self):
@@ -746,9 +754,9 @@ class TestGroupSerialization:
             "aggregate_metric_list": {"metric": "acc"},
         }
         group = Group.from_config(config)
-        assert group.aggregation
-        assert len(group.aggregation) == 1
-        assert group.aggregation[0].metric == "acc"
+        assert group.aggregate_metric_list
+        assert len(group.aggregate_metric_list) == 1
+        assert group.aggregate_metric_list[0].metric == "acc"
 
     def test_from_config_missing_group_key(self):
         """Missing 'group' key should generate a random ID."""

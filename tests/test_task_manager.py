@@ -767,7 +767,7 @@ metadata:
         for subgroup in subgroups:
             assert len(subgroup.get_all_tasks(recursive=False)) == 1
             # Verify aggregation was parsed
-            assert subgroup.aggregation is not None
+            assert subgroup.aggregate_metric_list is not None
 
 
 # =============================================================================
@@ -885,8 +885,8 @@ class TestGroupBuilding:
         assert "mixed_members_group::mixed_inline_sub" in groups
         inline = groups["mixed_members_group::mixed_inline_sub"]
         assert len(inline.get_all_tasks(recursive=False)) == 1
-        assert inline.aggregation is not None
-        assert inline.aggregation[0].metric == "acc"
+        assert inline.aggregate_metric_list is not None
+        assert inline.aggregate_metric_list[0].metric == "acc"
 
     # ---- empty group ----
 
@@ -902,23 +902,26 @@ class TestGroupBuilding:
         # Aggregation should still be parsed
         assert group.has_aggregation
 
-    # ---- aggregation parsing (unit-level) ----
+    # ---- aggregation parsing (unit-level, via GroupConfig __post_init__) ----
 
     def test_parse_aggregation_with_list(self):
         """aggregate_metric_list as a list should parse to list[AggMetricConfig]."""
-        from lm_eval.tasks.factory import TaskFactory
+        from lm_eval.config.group import AggMetricConfig, GroupConfig
 
-        cfg = {
-            "aggregate_metric_list": [
+        cfg = GroupConfig(
+            group="test",
+            aggregate_metric_list=[
                 {"metric": "acc", "weight_by_size": True},
                 {"metric": "f1", "weight_by_size": False},
-            ]
-        }
-        result = TaskFactory._parse_aggregation(cfg)
-        assert result is not None
+            ],
+        )
+        result = cfg.aggregate_metric_list
+        assert isinstance(result, list)
         assert len(result) == 2
+        assert isinstance(result[0], AggMetricConfig)
         assert result[0].metric == "acc"
         assert result[0].weight_by_size is True
+        assert isinstance(result[1], AggMetricConfig)
         assert result[1].metric == "f1"
         assert result[1].weight_by_size is False
 
@@ -927,20 +930,27 @@ class TestGroupBuilding:
         A single dict (not wrapped in a list) should be normalized
         to a one-element list.
         """
-        from lm_eval.tasks.factory import TaskFactory
+        from lm_eval.config.group import AggMetricConfig, GroupConfig
 
-        cfg = {"aggregate_metric_list": {"metric": "acc", "weight_by_size": True}}
-        result = TaskFactory._parse_aggregation(cfg)
-        assert result is not None
+        cfg = GroupConfig(
+            group="test",
+            aggregate_metric_list={"metric": "acc", "weight_by_size": True},
+        )
+        result = cfg.aggregate_metric_list
+        assert isinstance(result, list)
         assert len(result) == 1
+        assert isinstance(result[0], AggMetricConfig)
         assert result[0].metric == "acc"
 
     def test_parse_aggregation_missing_returns_none(self):
         """No aggregate_metric_list key should return None."""
-        from lm_eval.tasks.factory import TaskFactory
+        from lm_eval.config.group import GroupConfig
 
-        assert TaskFactory._parse_aggregation({}) is None
-        assert TaskFactory._parse_aggregation({"aggregate_metric_list": None}) is None
+        assert GroupConfig(group="test").aggregate_metric_list is None
+        assert (
+            GroupConfig(group="test", aggregate_metric_list=None).aggregate_metric_list
+            is None
+        )
 
     # ---- group alias / metadata ----
 

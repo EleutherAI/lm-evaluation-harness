@@ -3,10 +3,12 @@ from __future__ import annotations
 import inspect
 import logging
 from copy import deepcopy
+from dataclasses import fields
 from typing import TYPE_CHECKING, Any, cast
 
-from lm_eval.api.group import AggMetricConfig, Group
+from lm_eval.api.group import Group
 from lm_eval.api.task import ConfigurableTask, Task
+from lm_eval.config.group import GroupConfig
 from lm_eval.tasks._config_loader import load_yaml
 from lm_eval.tasks.index import Entry, Kind
 
@@ -15,6 +17,8 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 eval_logger = logging.getLogger(__name__)
+
+GROUP_FIELD_NAMES = {f.name for f in fields(GroupConfig)}
 
 
 class TaskFactory:
@@ -89,25 +93,22 @@ class TaskFactory:
         Works for both registry-based groups (Entry with yaml) and
         inline group dicts defined inside a parent's task: list.
         """
-        group = Group(
-            name=group_name,
-            alias=raw_cfg.get("group_alias"),
-            aggregation=self._parse_aggregation(raw_cfg),
-            metadata=raw_cfg.get("metadata", {}) | self._meta,
-        )
+        # Separate group-config fields from task-override fields
+        group_dict = {k: v for k, v in raw_cfg.items() if k in GROUP_FIELD_NAMES}
+        group_dict["group"] = group_name
 
-        # Extract task-config fields from group config for inheritance
-        # These are keys that define group structure, not task config
-        group_only_keys = {
-            "group",
-            "group_alias",
-            "task",
-            "aggregate_metric_list",
-            "metadata",
-            "tag",
-        }
+        # Parse through GroupConfig (normalizes aggregate_metric_list, task, etc.)
+        group_cfg = GroupConfig(**group_dict)
+
+        # Merge runtime metadata
+        group_cfg.metadata = (group_cfg.metadata or {}) | self._meta
+
+        # Build Group object via existing from_config
+        group = Group.from_config(group_cfg)
+
+        # Task-level overrides = everything NOT a group structural key
         group_task_overrides = {
-            k: v for k, v in raw_cfg.items() if k not in group_only_keys
+            k: v for k, v in raw_cfg.items() if k not in GROUP_FIELD_NAMES
         }
         # Merge: group-level defaults < caller overrides (caller takes precedence)
         merged_overrides = {**group_task_overrides, **(overrides or {})}
@@ -224,21 +225,6 @@ class TaskFactory:
                     registry[namespaced] = child_entry
 
         return children
-
-    @staticmethod
-    def _parse_aggregation(
-        cfg: dict[str, Any],
-    ) -> list[AggMetricConfig] | None:
-        """Parse aggregate_metric_list from a group config dict."""
-        agg_list = cfg.get("aggregate_metric_list")
-        if not agg_list:
-            return None
-        if isinstance(agg_list, dict):
-            agg_list = [agg_list]
-        return [
-            AggMetricConfig(**item) if isinstance(item, dict) else item
-            for item in agg_list
-        ]
 
     def _build_tag(
         self,
