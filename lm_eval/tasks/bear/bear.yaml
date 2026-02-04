@@ -6,6 +6,7 @@ output_type: multiple_choice
 doc_to_text: ""
 doc_to_target: correct
 doc_to_choice: text_options
+target_delimiter: ""
 should_decontaminate: false
 metric_list:
   - metric: acc
