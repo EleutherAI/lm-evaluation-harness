@@ -7,7 +7,7 @@ from typing import Any
 
 from typing_extensions import TypedDict
 
-from lm_eval.api.group import ConfigurableGroup, Group
+from lm_eval.api.group import Group
 from lm_eval.api.metrics import (
     mean,
     stderr_for_metric,
@@ -28,6 +28,8 @@ class ResultAcc(TypedDict):
 
 
 def get_subtask_list(task_dict, task_root=None, depth=0):
+    from lm_eval.api.group import ConfigurableGroup
+
     subtask_list = {}
     for group_obj, task_obj in task_dict.items():
         if isinstance(group_obj, ConfigurableGroup):

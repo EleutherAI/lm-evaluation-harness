@@ -46,6 +46,7 @@ if TYPE_CHECKING:
     from lm_eval.api.task import Task
     from lm_eval.loggers import EvaluationTracker
     from lm_eval.tasks.manager import TaskDict
+    from lm_eval.types import EvalResults
 
 eval_logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ def simple_evaluate(
     fewshot_random_seed: int = DEFAULT_OTHER_SEED,
     confirm_run_unsafe_code: bool = False,
     metadata: dict[str, Any] | None = None,
-):
+) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
     Args:
@@ -486,7 +487,7 @@ def evaluate(
     fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
     confirm_run_unsafe_code: bool = False,
-):
+) -> EvalResults | None:
     """Instantiate and evaluate a model on a list of tasks.
 
     Args:
@@ -755,7 +756,7 @@ def evaluate(
         higher_is_better = dict(eval_results.higher_is_better)
         propagate_higher_is_better(all_groups, higher_is_better)
 
-        results_dict = {
+        results_dict: EvalResults = {
             "results": task_data,
             **(
                 {"groups": group_data}
@@ -771,7 +772,7 @@ def evaluate(
                 task_name: {
                     "original": len(acc["task"].eval_docs),
                     "effective": min(
-                        limit if limit else len(acc["task"].eval_docs),
+                        limit,
                         len(acc["task"].eval_docs),
                     ),
                 }
