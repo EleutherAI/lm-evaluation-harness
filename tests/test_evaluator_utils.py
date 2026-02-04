@@ -3,6 +3,7 @@ Tests for evaluator_utils.py — utility functions used by the evaluation pipeli
 """
 
 import logging
+from typing import Any
 
 import pytest
 
@@ -10,23 +11,27 @@ from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import (
-    EvalResults,
+    EvalAcc,
     ResultAcc,
     _collect_groups_bottom_up,
+    _get_root_groups,
+    _propagate_higher_is_better,
     aggregate_groups,
     collect_results,
-    format_results,
-    get_results_data,
-    get_root_groups,
     get_sample_size,
     process_results,
-    propagate_higher_is_better,
 )
+from lm_eval.types import TaskMetrics
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _m(d: dict[str, Any]) -> TaskMetrics:
+    """Cast a plain dict to TaskMetrics for tests (dynamic metric keys)."""
+    return d  # type: ignore[return-value]
 
 
 class MockEvalTask(Task):
@@ -114,19 +119,20 @@ def make_result_acc(
 
 class TestEvalResults:
     def test_default_fields_are_empty(self):
-        r = EvalResults()
+        r = EvalAcc()
         assert r.metrics == {}
         assert r.configs == {}
         assert r.versions == {}
         assert r.num_fewshot == {}
         assert r.higher_is_better == {}
         assert r.samples == {}
+        assert r.n_samples == {}
         assert r.groups == {}
 
     def test_fields_are_independent_instances(self):
-        a = EvalResults()
-        b = EvalResults()
-        a.metrics["x"] = {"v": 1}
+        a = EvalAcc()
+        b = EvalAcc()
+        a.metrics["x"] = _m({"v": 1})
         assert "x" not in b.metrics
 
 
@@ -166,7 +172,7 @@ class TestGetSampleSize:
 # TestComputeTaskAggregations
 # ---------------------------------------------------------------------------
 
-from lm_eval.evaluator_utils import compute_task_aggregations
+from lm_eval.evaluator_utils import _compute_task_aggregations
 
 
 class TestComputeTaskAggregations:
@@ -176,32 +182,32 @@ class TestComputeTaskAggregations:
     def test_single_metric_mean_aggregation(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0, 1.0, 0.0]}
-        metrics, count = compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert metrics["acc,none"] == pytest.approx(0.5)
         assert count == 4
 
     def test_stderr_with_bootstrap_iters_zero(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0]}
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_stderr_with_bootstrap_iters_none(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0]}
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=None)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=None)
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_stderr_with_positive_bootstrap_iters(self):
         task = self._task()
         raw = {("acc", "none"): [0.0, 1.0, 1.0, 0.0, 1.0]}
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=100)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
         assert isinstance(metrics["acc_stderr,none"], float)
 
     def test_stderr_na_for_single_sample(self):
         task = self._task()
         raw = {("acc", "none"): [1.0]}
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=100)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
         # len(items) <= 1 → "N/A"
         assert metrics["acc_stderr,none"] == "N/A"
 
@@ -209,7 +215,7 @@ class TestComputeTaskAggregations:
         # Task has no aggregation for "custom_metric"
         task = MockEvalTask("t", agg={})
         raw = {("custom_metric", "none"): [2.0, 4.0]}
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert metrics["custom_metric,none"] == pytest.approx(3.0)
 
     def test_multiple_metrics_and_filters(self):
@@ -218,7 +224,7 @@ class TestComputeTaskAggregations:
             ("acc", "none"): [1.0, 0.0],
             ("f1", "exact"): [0.8, 0.6],
         }
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=0)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         assert "acc,none" in metrics
         assert "f1,exact" in metrics
         assert metrics["acc,none"] == pytest.approx(0.5)
@@ -230,7 +236,7 @@ class TestComputeTaskAggregations:
             ("a", "none"): [1.0, 2.0],
             ("b", "none"): [1.0, 2.0, 3.0],
         }
-        _, count = compute_task_aggregations(task, raw, bootstrap_iters=0)
+        _, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
         # sample_len is set by last iteration — dict is insertion‐ordered
         assert count == 3
 
@@ -238,7 +244,7 @@ class TestComputeTaskAggregations:
         task = MockEvalTask("t", agg={"bleu": mean})
         raw = {("bleu", "none"): [0.5, 0.6, 0.7]}
         # Should not raise; bootstrap_iters is capped to 100 internally
-        metrics, _ = compute_task_aggregations(task, raw, bootstrap_iters=200)
+        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=200)
         assert "bleu,none" in metrics
 
 
@@ -265,7 +271,7 @@ class TestCollectResults:
         m = result.metrics["my_task"]
         assert "acc,none" in m
         assert m["alias"] == "My Task"
-        assert m["samples"] == 4
+        assert m["sample_len"] == 4
 
     def test_alias_from_task_config(self):
         task, acc = self._simple_acc()
@@ -337,25 +343,25 @@ class TestCollectResults:
 class TestGetRootGroups:
     def test_single_root_group(self):
         g = Group(name="root")
-        roots = get_root_groups({"root": g})
+        roots = _get_root_groups({"root": g})
         assert roots == [g]
 
     def test_root_excludes_children(self):
         child = Group(name="child")
         parent = Group(name="parent")
         parent.add(child)
-        roots = get_root_groups({"parent": parent, "child": child})
+        roots = _get_root_groups({"parent": parent, "child": child})
         assert roots == [parent]
 
     def test_multiple_independent_roots(self):
         a = Group(name="a")
         b = Group(name="b")
-        roots = get_root_groups({"a": a, "b": b})
+        roots = _get_root_groups({"a": a, "b": b})
         names = {g.name for g in roots}
         assert names == {"a", "b"}
 
     def test_empty_groups(self):
-        assert get_root_groups({}) == []
+        assert _get_root_groups({}) == []
 
     def test_deep_hierarchy(self):
         grandchild = Group(name="gc")
@@ -363,7 +369,7 @@ class TestGetRootGroups:
         child.add(grandchild)
         grandparent = Group(name="gp")
         grandparent.add(child)
-        roots = get_root_groups({"gp": grandparent, "c": child, "gc": grandchild})
+        roots = _get_root_groups({"gp": grandparent, "c": child, "gc": grandchild})
         assert roots == [grandparent]
 
     def test_deep_hierarchy_multiple_roots(self):
@@ -388,7 +394,7 @@ class TestGetRootGroups:
             "c2": c2,
             "gc2": gc2,
         }
-        roots = get_root_groups(all_groups)
+        roots = _get_root_groups(all_groups)
         names = {g.name for g in roots}
         assert names == {"gp1", "gp2"}
 
@@ -451,13 +457,15 @@ class TestAggregateGroups:
         )
         g.add(task)
 
-        results = EvalResults()
-        results.metrics["t1"] = {
-            "alias": "T1",
-            "samples": 100,
-            "acc,none": 0.8,
-            "acc_stderr,none": 0.02,
-        }
+        results = EvalAcc()
+        results.metrics["t1"] = _m(
+            {
+                "alias": "T1",
+                "sample_len": 100,
+                "acc,none": 0.8,
+                "acc_stderr,none": 0.02,
+            }
+        )
         results.groups = {"grp": g}
 
         aggregate_groups(results)
@@ -465,8 +473,8 @@ class TestAggregateGroups:
         assert "acc,none" in results.metrics["grp"]
 
     def test_no_groups_noop(self):
-        results = EvalResults()
-        results.metrics["t"] = {"acc,none": 0.5}
+        results = EvalAcc()
+        results.metrics["t"] = _m({"acc,none": 0.5})
         results.groups = {}
         aggregate_groups(results)
         assert "t" in results.metrics
@@ -487,13 +495,15 @@ class TestAggregateGroups:
         )
         parent.add(child)
 
-        results = EvalResults()
-        results.metrics["leaf"] = {
-            "alias": "Leaf",
-            "samples": 50,
-            "acc,none": 0.9,
-            "acc_stderr,none": 0.01,
-        }
+        results = EvalAcc()
+        results.metrics["leaf"] = _m(
+            {
+                "alias": "Leaf",
+                "sample_len": 50,
+                "acc,none": 0.9,
+                "acc_stderr,none": 0.01,
+            }
+        )
         results.groups = {"parent": parent, "child": child}
 
         aggregate_groups(results)
@@ -514,7 +524,7 @@ class TestProcessResults:
 
     def test_returns_eval_results(self):
         result = process_results(self._basic_acc(), bootstrap_iters=0)
-        assert isinstance(result, EvalResults)
+        assert isinstance(result, EvalAcc)
 
     def test_with_groups(self):
         task = MockEvalTask("t", agg={"acc": mean})
@@ -531,133 +541,36 @@ class TestProcessResults:
 
 
 # ---------------------------------------------------------------------------
-# TestFormatResults
-# ---------------------------------------------------------------------------
-
-
-class TestFormatResults:
-    def test_standalone_task_formatting(self):
-        results = EvalResults()
-        results.metrics["standalone"] = {"alias": "standalone", "acc,none": 0.9}
-        task_res, group_res = format_results(results)
-        assert "standalone" in task_res
-        assert not task_res["standalone"]["alias"].startswith(" ")
-
-    def test_group_with_children_indentation(self):
-        task = MockEvalTask("child_task")
-        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
-        g.add(task)
-
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp", "acc,none": 0.85}
-        results.metrics["child_task"] = {"alias": "child_task", "acc,none": 0.85}
-        results.groups = {"grp": g}
-
-        task_res, _ = format_results(results)
-        assert task_res["child_task"]["alias"].startswith(" - ")
-
-    def test_show_groups_true(self):
-        task = MockEvalTask("t")
-        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
-        g.add(task)
-
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp", "acc,none": 0.8}
-        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
-        results.groups = {"grp": g}
-
-        task_res, group_res = format_results(results, show_groups=True)
-        assert "grp" in task_res
-        assert "grp" in group_res
-
-    def test_show_groups_false(self):
-        task = MockEvalTask("t")
-        g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
-        g.add(task)
-
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp", "acc,none": 0.8}
-        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
-        results.groups = {"grp": g}
-
-        task_res, group_res = format_results(results, show_groups=False)
-        assert "grp" in task_res
-        assert "grp" not in group_res
-
-    def test_group_without_aggregation_not_in_group_results(self):
-        task = MockEvalTask("t")
-        g = Group(name="grp")  # no aggregation
-        g.add(task)
-
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp"}
-        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
-        results.groups = {"grp": g}
-
-        _, group_res = format_results(results, show_groups=True)
-        assert "grp" not in group_res
-
-    def test_alias_used_in_formatting(self):
-        results = EvalResults()
-        results.metrics["task_x"] = {"alias": "Pretty Name", "acc,none": 0.5}
-        task_res, _ = format_results(results)
-        assert task_res["task_x"]["alias"] == "Pretty Name"
-
-    def test_samples_removed_from_formatted_output(self):
-        results = EvalResults()
-        results.metrics["t"] = {"alias": "t", "samples": 100, "acc,none": 0.5}
-        task_res, _ = format_results(results)
-        assert "samples" not in task_res["t"]
-
-    def test_multiple_roots_sorted(self):
-        g_b = Group(name="b_group")
-        g_a = Group(name="a_group")
-
-        results = EvalResults()
-        results.metrics["b_group"] = {"alias": "b_group"}
-        results.metrics["a_group"] = {"alias": "a_group"}
-        results.groups = {"b_group": g_b, "a_group": g_a}
-
-        task_res, _ = format_results(results)
-        keys = list(task_res.keys())
-        assert keys.index("a_group") < keys.index("b_group")
-
-    def test_standalone_tasks_sorted(self):
-        results = EvalResults()
-        results.metrics["z_task"] = {"alias": "z_task", "acc,none": 0.1}
-        results.metrics["a_task"] = {"alias": "a_task", "acc,none": 0.2}
-        task_res, _ = format_results(results)
-        keys = list(task_res.keys())
-        assert keys.index("a_task") < keys.index("z_task")
-
-
-# ---------------------------------------------------------------------------
 # TestGetResultsData
 # ---------------------------------------------------------------------------
 
 
 class TestGetResultsData:
-    def test_strips_samples(self):
-        results = EvalResults()
-        results.metrics["t"] = {"alias": "t", "samples": 100, "acc,none": 0.9}
-        task_res, _ = get_results_data(results)
-        assert "samples" not in task_res["t"]
+    def test_preserves_sample_len(self):
+        results = EvalAcc()
+        results.metrics["t"] = _m({"alias": "t", "sample_len": 100, "acc,none": 0.9})
+        task_res, _ = results.collect()
+        assert task_res["t"]["sample_len"] == 100
 
     def test_alias_not_indented(self):
         task = MockEvalTask("child_task")
         g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp", "samples": 50, "acc,none": 0.85}
-        results.metrics["child_task"] = {
-            "alias": "child_task",
-            "samples": 50,
-            "acc,none": 0.85,
-        }
+        results = EvalAcc()
+        results.metrics["grp"] = _m(
+            {"alias": "grp", "sample_len": 50, "acc,none": 0.85}
+        )
+        results.metrics["child_task"] = _m(
+            {
+                "alias": "child_task",
+                "sample_len": 50,
+                "acc,none": 0.85,
+            }
+        )
         results.groups = {"grp": g}
 
-        task_res, group_res = get_results_data(results)
+        task_res, group_res = results.collect()
         # Aliases should be plain strings, no indentation
         assert task_res["grp"]["alias"] == "grp"
         assert task_res["child_task"]["alias"] == "child_task"
@@ -668,12 +581,12 @@ class TestGetResultsData:
         g = Group(name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
 
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp", "acc,none": 0.8}
-        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
+        results = EvalAcc()
+        results.metrics["grp"] = _m({"alias": "grp", "acc,none": 0.8})
+        results.metrics["t"] = _m({"alias": "t", "acc,none": 0.8})
         results.groups = {"grp": g}
 
-        task_res, group_res = get_results_data(results)
+        task_res, group_res = results.collect()
         assert "grp" in task_res
         assert "grp" in group_res
 
@@ -682,18 +595,18 @@ class TestGetResultsData:
         g = Group(name="grp")  # no aggregation
         g.add(task)
 
-        results = EvalResults()
-        results.metrics["grp"] = {"alias": "grp"}
-        results.metrics["t"] = {"alias": "t", "acc,none": 0.8}
+        results = EvalAcc()
+        results.metrics["grp"] = _m({"alias": "grp"})
+        results.metrics["t"] = _m({"alias": "t", "acc,none": 0.8})
         results.groups = {"grp": g}
 
-        _, group_res = get_results_data(results)
+        _, group_res = results.collect()
         assert "grp" not in group_res
 
     def test_task_only_in_task_results(self):
-        results = EvalResults()
-        results.metrics["standalone"] = {"alias": "standalone", "acc,none": 0.9}
-        task_res, group_res = get_results_data(results)
+        results = EvalAcc()
+        results.metrics["standalone"] = _m({"alias": "standalone", "acc,none": 0.9})
+        task_res, group_res = results.collect()
         assert "standalone" in task_res
         assert "standalone" not in group_res
 
@@ -709,7 +622,7 @@ class TestPropagateHigherIsBetter:
         task = MockEvalTask("t")
         g.add(task)
         hib = {"t": {"acc": True}}
-        propagate_higher_is_better([g], hib)
+        _propagate_higher_is_better([g], hib)
         assert hib["grp"] == {"acc": True}
 
     def test_conflicting_values_set_to_none(self):
@@ -719,7 +632,7 @@ class TestPropagateHigherIsBetter:
         g.add(t1)
         g.add(t2)
         hib = {"t1": {"acc": True}, "t2": {"acc": False}}
-        propagate_higher_is_better([g], hib)
+        _propagate_higher_is_better([g], hib)
         assert hib["grp"]["acc"] is None
 
     def test_conflicting_values_log_warning(self, caplog):
@@ -730,7 +643,7 @@ class TestPropagateHigherIsBetter:
         g.add(t2)
         hib = {"t1": {"acc": True}, "t2": {"acc": False}}
         with caplog.at_level(logging.WARNING):
-            propagate_higher_is_better([g], hib)
+            _propagate_higher_is_better([g], hib)
         assert any("not consistent" in r.message for r in caplog.records)
 
     def test_no_children_in_higher_is_better(self):
@@ -738,7 +651,7 @@ class TestPropagateHigherIsBetter:
         task = MockEvalTask("t")
         g.add(task)
         hib: dict = {}
-        propagate_higher_is_better([g], hib)
+        _propagate_higher_is_better([g], hib)
         # No child data → group should not appear
         assert "grp" not in hib
 
@@ -752,12 +665,161 @@ class TestPropagateHigherIsBetter:
             "t1": {"acc": True, "f1": True},
             "t2": {"acc": True, "f1": False},
         }
-        propagate_higher_is_better([g], hib)
+        _propagate_higher_is_better([g], hib)
         assert hib["grp"]["acc"] is True
         assert hib["grp"]["f1"] is None
 
     def test_empty_groups_list(self):
         hib: dict = {"t": {"acc": True}}
-        propagate_higher_is_better([], hib)
+        _propagate_higher_is_better([], hib)
         # Nothing changes
         assert hib == {"t": {"acc": True}}
+
+
+# ---------------------------------------------------------------------------
+# TestToEvalResults
+# ---------------------------------------------------------------------------
+
+
+class TestToEvalResults:
+    """Tests for EvalAcc.to_eval_results()."""
+
+    def _make_eval_acc(self, *, with_group: bool = False, has_aggregation: bool = True):
+        """Build a minimal EvalAcc for testing to_eval_results()."""
+        task = MockEvalTask(
+            "t1",
+            config_dict={"task_alias": "Task One", "num_fewshot": 3},
+            agg={"acc": mean},
+            hib={"acc": True},
+            n_eval_docs=100,
+        )
+        acc_input = {"t1": make_result_acc(task, {("acc", "none"): [1.0, 0.0, 1.0]})}
+
+        groups = {}
+        if with_group:
+            if has_aggregation:
+                g = Group(
+                    name="grp", aggregate_metric_list=[AggMetricConfig(metric="acc")]
+                )
+            else:
+                g = Group(name="grp")
+            g.add(task)
+            groups = {"grp": g}
+
+        result = process_results(acc_input, groups=groups, bootstrap_iters=0)
+        return result
+
+    def test_output_has_required_keys(self):
+        er = self._make_eval_acc()
+        d = er._to_eval_results()
+        for key in (
+            "results",
+            "group_subtasks",
+            "configs",
+            "versions",
+            "n-shot",
+            "higher_is_better",
+            "n-samples",
+        ):
+            assert key in d, f"Missing key: {key}"
+
+    def test_results_contain_task_metrics(self):
+        er = self._make_eval_acc()
+        d = er._to_eval_results()
+        assert "t1" in d["results"]
+        assert "acc,none" in d["results"]["t1"]
+
+    def test_n_samples_effective_from_sample_len(self):
+        """Effective comes from sample_len (number of raw metric values)."""
+        er = self._make_eval_acc()
+        d = er._to_eval_results()
+        assert d["n-samples"]["t1"]["original"] == 100
+        # 3 raw metric values → sample_len == 3
+        assert d["n-samples"]["t1"]["effective"] == 3
+
+    def test_groups_key_present_when_group_has_aggregation(self):
+        er = self._make_eval_acc(with_group=True, has_aggregation=True)
+        d = er._to_eval_results()
+        assert "groups" in d
+        assert "grp" in d["groups"]
+
+    def test_groups_key_absent_when_no_group_has_aggregation(self):
+        er = self._make_eval_acc(with_group=True, has_aggregation=False)
+        d = er._to_eval_results()
+        assert "groups" not in d
+
+    def test_groups_key_absent_when_no_groups(self):
+        er = self._make_eval_acc(with_group=False)
+        d = er._to_eval_results()
+        assert "groups" not in d
+
+    def test_samples_included_when_provided(self):
+        er = self._make_eval_acc()
+        d = er._to_eval_results(samples={"t1": [{"doc": 1}]})
+        assert "samples" in d
+        assert d["samples"]["t1"] == [{"doc": 1}]
+
+    def test_samples_absent_when_not_provided(self):
+        er = self._make_eval_acc()
+        d = er._to_eval_results()
+        assert "samples" not in d
+
+    def test_higher_is_better_propagated_to_groups(self):
+        er = self._make_eval_acc(with_group=True, has_aggregation=True)
+        d = er._to_eval_results()
+        assert "grp" in d["higher_is_better"]
+        assert d["higher_is_better"]["grp"]["acc"] is True
+
+    def test_configs_sorted(self):
+        er = self._make_eval_acc()
+        d = er._to_eval_results()
+        assert list(d["configs"].keys()) == sorted(d["configs"].keys())
+
+    def test_versions_sorted(self):
+        er = self._make_eval_acc()
+        d = er._to_eval_results()
+        assert list(d["versions"].keys()) == sorted(d["versions"].keys())
+
+
+# ---------------------------------------------------------------------------
+# TestCollectResultsNSamples
+# ---------------------------------------------------------------------------
+
+
+class TestCollectResultsNSamples:
+    """Tests for n_samples population via sample_len in collect_results()."""
+
+    def test_n_samples_effective_equals_sample_len(self):
+        t1 = MockEvalTask("t1", agg={"acc": mean}, n_eval_docs=100)
+        t2 = MockEvalTask("t2", agg={"acc": mean}, n_eval_docs=200)
+        accs = {
+            "t1": make_result_acc(t1, {("acc", "none"): [1.0, 0.0, 1.0]}),
+            "t2": make_result_acc(t2, {("acc", "none"): [0.0]}),
+        }
+        result = collect_results(accs, bootstrap_iters=0)
+        assert result.n_samples["t1"] == {"original": 100, "effective": 3}
+        assert result.n_samples["t2"] == {"original": 200, "effective": 1}
+
+    def test_n_samples_original_from_eval_docs(self):
+        task = MockEvalTask("t1", agg={"acc": mean}, n_eval_docs=42)
+        accs = {"t1": make_result_acc(task, {("acc", "none"): [1.0, 0.5]})}
+        result = collect_results(accs, bootstrap_iters=0)
+        assert result.n_samples["t1"]["original"] == 42
+        assert result.n_samples["t1"]["effective"] == 2
+
+    def test_n_samples_multiple_metrics_uses_last_sample_len(self):
+        """sample_len is set by last metric iteration (dict insertion order)."""
+        # TODO: This needs to be fixed and sample_len should be used for each metric separately
+        task = MockEvalTask("t1", agg={"a": mean, "b": mean}, n_eval_docs=50)
+        accs = {
+            "t1": make_result_acc(
+                task,
+                {
+                    ("a", "none"): [1.0, 2.0],
+                    ("b", "none"): [1.0, 2.0, 3.0],
+                },
+            ),
+        }
+        result = collect_results(accs, bootstrap_iters=0)
+        # sample_len comes from last metric ("b") which has 3 items
+        assert result.n_samples["t1"]["effective"] == 3

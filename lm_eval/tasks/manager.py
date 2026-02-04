@@ -11,8 +11,8 @@ from typing_extensions import TypedDict, deprecated
 from lm_eval import utils
 from lm_eval.api.group import Group
 from lm_eval.api.task import Task
-from lm_eval.tasks.factory import TaskFactory
-from lm_eval.tasks.index import Entry, Kind, TaskIndex
+from lm_eval.tasks._factory import TaskFactory
+from lm_eval.tasks._index import Entry, Kind, TaskIndex
 
 
 if TYPE_CHECKING:

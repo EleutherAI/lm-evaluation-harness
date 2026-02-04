@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any
 
-from lm_eval.tasks._config_loader import load_yaml
+from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:

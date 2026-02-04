@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from lm_eval.api.task import Task
+    from lm_eval.types import TaskMetrics
 
 
 @dataclass
@@ -155,7 +156,7 @@ class Group:
         )
 
     def _discover_filters_for_metric(
-        self, metric_name: str, task_metrics: dict[str, dict]
+        self, metric_name: str, task_metrics: dict[str, TaskMetrics]
     ) -> list[str]:
         """
         Discover all filter names used with a specific metric in child tasks.
@@ -165,7 +166,7 @@ class Group:
 
         Args:
             metric_name: Metric to search for (e.g., "acc", "acc_norm")
-            task_metrics: Task metrics dict from EvalResults.metrics
+            task_metrics: Task metrics dict from EvalAcc.metrics
 
         Returns:
             Sorted list of unique filter names (e.g., ["custom", "none", "prefix"])
@@ -188,24 +189,24 @@ class Group:
 
         return sorted(list(discovered_filters))  # Sort for deterministic ordering
 
-    def aggregate(self, task_metrics: dict[str, dict]) -> dict[str, Any]:
+    def aggregate(self, task_metrics: dict[str, TaskMetrics]) -> TaskMetrics:
         """
         Aggregate metrics for this group from its leaf task results.
 
         Args:
-            task_metrics: {task_name: {metric_key: value, "samples": int, ...}}
-                Results from leaf tasks (EvalResults.metrics)
+            task_metrics: {task_name: {metric_key: value, "sample_len": int, ...}}
+                Results from leaf tasks (EvalAcc.metrics)
 
         Returns:
             Aggregated metrics dict for this group:
-            {"alias": str, "acc,none": float, "acc_stderr,none": float, "samples": int, ...}
+            {"alias": str, "acc,none": float, "acc_stderr,none": float, "sample_len": int, ...}
         """
         from lm_eval.api.metrics import aggregate_subtask_metrics, pooled_sample_stderr
 
         group_metrics: dict[str, Any] = {"alias": self.display_name}
 
         if not self.aggregate_metric_list:
-            return group_metrics
+            return cast("TaskMetrics", group_metrics)
 
         # Get leaf task names
         leaf_tasks = [t.task_name for t in self.get_all_tasks()]
@@ -236,8 +237,8 @@ class Group:
                         continue
                     task_result = task_metrics[task_name]
                     if metric_key in task_result:
-                        values.append(task_result[metric_key])
-                        sizes.append(task_result.get("samples", 0))
+                        values.append(task_result[metric_key])  # type:ignore[invalid-key]
+                        sizes.append(task_result.get("sample_len", 0))
                         tasks_with_metric.append(task_name)
                         stderr_val = task_result.get(stderr_key)
                         if stderr_val is not None:
@@ -258,14 +259,14 @@ class Group:
                     group_metrics[metric_key] = aggregate_subtask_metrics(
                         values, sizes, agg_config.weight_by_size
                     )
-                    group_metrics["samples"] = sum(sizes)
+                    group_metrics["sample_len"] = sum(sizes)
 
                     if len(stderrs) == len(values) and "N/A" not in stderrs:
                         group_metrics[stderr_key] = pooled_sample_stderr(stderrs, sizes)
                     else:
                         group_metrics[stderr_key] = "N/A"
 
-        return group_metrics
+        return cast("TaskMetrics", group_metrics)
 
     # I/O
 

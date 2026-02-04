@@ -18,11 +18,10 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
     ResultAcc,
-    get_results_data,
+    _log_selected_tasks,
     get_sample_size,
     print_writeout,
     process_results,
-    propagate_higher_is_better,
     run_task_tests,
 )
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
@@ -40,7 +39,6 @@ from lm_eval.utils import (
 
 
 if TYPE_CHECKING:
-    from lm_eval.api.group import Group
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
     from lm_eval.loggers import EvaluationTracker
@@ -48,66 +46,6 @@ if TYPE_CHECKING:
     from lm_eval.types import EvalResults
 
 eval_logger = logging.getLogger(__name__)
-
-
-def _log_selected_tasks(
-    task_dict: dict,
-    groups: dict[str, Group],
-    task_manager: TaskManager,
-) -> None:
-    """Log selected tasks with hierarchy information."""
-    from pathlib import Path
-
-    # TODO: Add config info directly in Task object
-    def get_task_path(task_name: str) -> str:
-        """Get display path for a task."""
-        if task_name not in task_manager.task_index:
-            return "N/A"
-        entry = task_manager.task_index[task_name]
-        if not entry.yaml_path:
-            return "N/A"
-        yaml_path = Path(entry.yaml_path)
-        tasks_dir = Path(__file__).parent / "tasks"
-        try:
-            return str(yaml_path.relative_to(tasks_dir))
-        except ValueError:
-            return str(yaml_path)
-
-    eval_logger.info("Selected tasks:")
-
-    # Find root groups (not children of other groups)
-    all_children = set()
-    for group in groups.values():
-        all_children.update(group.child_names)
-    root_groups = [name for name in groups if name not in all_children]
-
-    # Log groups hierarchically
-    logged_tasks = set()
-
-    def log_group(group_name: str, indent: int = 0):
-        if group_name not in groups:
-            return
-        group = groups[group_name]
-        pad = "  " * indent
-        eval_logger.info(f"{pad}Group: {group_name}")
-
-        for child in group.child_names:
-            if child in groups:
-                log_group(child, indent + 1)
-            elif child in task_dict:
-                child_pad = "  " * (indent + 1)
-                path = get_task_path(child)
-                eval_logger.info(f"{child_pad}Task: {child} ({path})")
-                logged_tasks.add(child)
-
-    for root in sorted(root_groups):
-        log_group(root)
-
-    # Log standalone tasks (not in any group)
-    for task_name in sorted(task_dict.keys()):
-        if task_name not in logged_tasks:
-            path = get_task_path(task_name)
-            eval_logger.info(f"Task: {task_name} ({path})")
 
 
 @positional_deprecated
@@ -742,54 +680,14 @@ def evaluate(
                     )
 
     if RANK == 0:
-        eval_results = process_results(eval_results_acc, groups, bootstrap_iters)
-        task_data, group_data = get_results_data(eval_results)
+        res = process_results(eval_results_acc, groups, bootstrap_iters)
 
-        # Get all groups for subtask list
-        all_groups: list[Group] = list(groups.values())
-
-        # Build subtask list from groups
-        subtask_list = {group.name: group.child_names for group in all_groups}
-
-        # Collect higher_is_better from eval_results
-        higher_is_better = dict(eval_results.higher_is_better)
-        propagate_higher_is_better(all_groups, higher_is_better)
-
-        results_dict: EvalResults = {
-            "results": task_data,
-            **(
-                {"groups": group_data}
-                if (bool(group_data) and any(g.has_aggregation for g in all_groups))
-                else {}
-            ),
-            "group_subtasks": subtask_list,
-            "configs": dict(sorted(eval_results.configs.items())),
-            "versions": dict(sorted(eval_results.versions.items())),
-            "n-shot": dict(sorted(eval_results.num_fewshot.items())),
-            "higher_is_better": dict(sorted(higher_is_better.items())),
-            "n-samples": {
-                task_name: {
-                    "original": len(acc["task"].eval_docs),
-                    "effective": min(
-                        limit,
-                        len(acc["task"].eval_docs),
-                    ),
-                }
-                for (task_name, acc), limit in zip(
-                    eval_results_acc.items(), limits, strict=True
-                )
-            },
-        }
+        samples = None
         if log_samples:
-            samples = eval_results.samples
-            samples = (
-                hash_dict_images(samples)
-                if LMEVAL_HASHMM and (hasattr(lm, "MULTIMODAL"))
-                else samples
-            )
-            results_dict["samples"] = dict(samples)
+            samples = res.samples
+            if LMEVAL_HASHMM and hasattr(lm, "MULTIMODAL"):
+                samples = hash_dict_images(samples)
 
-        return results_dict
-
+        return res._to_eval_results(samples=samples)
     else:
         return None

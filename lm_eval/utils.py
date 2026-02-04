@@ -414,7 +414,7 @@ def _build_hierarchy_info(
 ) -> tuple[dict[str, int], list[str]]:
     """Build depth map and hierarchical key ordering from group_subtasks.
 
-    Reuses the same tree-walk approach as format_results() for ordering.
+    Uses a tree-walk approach over group_subtasks for ordering.
 
     Returns:
         (depth_map, ordered_keys) — depths for indentation, keys in display order
@@ -487,6 +487,9 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         display_name = dic.pop("alias", k)
+        ## alias takes care of name, and we don't print sample_len
+        dic.pop("name", None)
+        dic.pop("sample_len", None)
 
         # Add indentation based on hierarchy depth
         depth = depth_map.get(k, 0)

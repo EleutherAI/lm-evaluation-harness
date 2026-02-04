@@ -2,32 +2,36 @@ import os
 from typing import Any
 
 
-_TRUTHY = {"1", "true", "yes", "on", "TRUE", "True"}
-_FALSY = {"0", "false", "no", "off", "", "FALSE", "False"}
-
-
-def strtobool(val: str | None, default: bool = False) -> bool:
-    """Convert a string representation of truth to a bool.
-
-    Replacement for the deprecated ``distutils.util.strtobool``.
-    """
-    if val is None:
-        return default
-    val = os.environ.get(val)
-
-    if val.lower() in _TRUTHY or val is True:
-        return True
-    if val.lower() in _FALSY or val is False:
-        return False
-    raise ValueError(f"invalid truth value {val!r}")
-
-
 DEFAULT_MAX_LENGTH = 2048
 DEFAULT_MAX_GEN_TOKS = 256
 DEFAULT_RANDOM_SEED = 0
 DEFAULT_OTHER_SEED = 1234
+
+"""envars"""
+
+
+def strtobool(val: str) -> bool:
+    """Convert a string representation of truth to a bool."""
+    _TRUTHY = {"1", "true", "yes", "on", "TRUE", "True"}
+    _FALSY = {"0", "false", "no", "off", "", "FALSE", "False"}
+    val = val.lower()
+    if val in _TRUTHY:
+        return True
+    if val in _FALSY:
+        return False
+    raise ValueError(f"invalid truth value {val!r}")
+
+
+def envbool(var: str, default: bool = False) -> bool:
+    """Read an environment variable as a bool."""
+    val = os.environ.get(var)
+    if val is None:
+        return default
+    return strtobool(val)
+
+
 LOGGING_LEVEL = os.environ.get("LMEVAL_LOG_LEVEL", "INFO")
-LMEVAL_HASHMM = strtobool("LMEVAL_HASHMM", default=True)
+LMEVAL_HASHMM = envbool("LMEVAL_HASHMM", default=True)
 
 
 def default_gen_kwargs(

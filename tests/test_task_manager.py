@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 
 from lm_eval.tasks import TaskManager
-from lm_eval.tasks._config_loader import load_yaml
-from lm_eval.tasks.index import Entry, Kind, TaskIndex
+from lm_eval.tasks._index import Entry, Kind, TaskIndex
+from lm_eval.tasks._yaml_loader import load_yaml
 
 
 # =============================================================================

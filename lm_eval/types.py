@@ -3,6 +3,23 @@ from typing import Any
 from typing_extensions import TypedDict
 
 
+class TaskMetrics(TypedDict, total=False):
+    """Per-task metric dict passed through evaluation and display.
+
+    Fixed keys are ``name``, ``alias`` and ``sample_len``.  The remaining keys are
+    dynamic ``metric,filter`` pairs like ``"acc,none"`` and ``"acc_stderr,none"``.
+    """
+
+    name: str
+    """Name of the Task."""
+
+    alias: str
+    """Display name for the task (falls back to task name)."""
+
+    sample_len: int
+    """Number of documents evaluated for this task."""
+
+
 class SampleCount(TypedDict):
     """Number of evaluation samples for a task."""
 
@@ -36,13 +53,11 @@ EvalResults = TypedDict(
     {
         # --- Core evaluation outputs (from evaluate()) ---
         #
-        # Per-task metric values. Keys inside each task dict are dynamic
-        # metric/filter pairs like "accuracy,none" and "accuracy_stderr,none",
-        # plus "alias" (str) and "samples" (int).
-        "results": dict[str, dict[str, Any]],
+        # Per-task metric values.
+        "results": dict[str, TaskMetrics],
         # Aggregated group-level metrics (same shape as "results").
         # Only present when groups are defined and show_group_table is True.
-        "groups": dict[str, dict[str, Any]],
+        "groups": dict[str, TaskMetrics],
         # Maps group/task names to their list of subtask names.
         "group_subtasks": dict[str, list[str]],
         # Full YAML task configs keyed by task name.
