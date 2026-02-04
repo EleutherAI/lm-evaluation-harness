@@ -3,7 +3,6 @@ from __future__ import annotations
 import itertools
 import json
 import logging
-import os
 import random
 import time
 from collections import defaultdict
@@ -16,7 +15,7 @@ import lm_eval.api.model
 import lm_eval.api.registry
 import lm_eval.api.task
 from lm_eval.caching.cache import delete_cache
-from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED
+from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
     ResultAcc,
     get_results_data,
@@ -785,8 +784,7 @@ def evaluate(
             samples = eval_results.samples
             samples = (
                 hash_dict_images(samples)
-                if os.environ.get("LMEVAL_HASHMM", "1") != "0"
-                and (hasattr(lm, "MULTIMODAL"))
+                if LMEVAL_HASHMM and (hasattr(lm, "MULTIMODAL"))
                 else samples
             )
             results_dict["samples"] = dict(samples)
