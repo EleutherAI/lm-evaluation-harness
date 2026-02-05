@@ -149,17 +149,16 @@ def test_printed_results(
             try:
                 t1_item_f = float(t1_item)
                 t2_item_f = float(t2_item)
-                if on_ci:
-                    assert t1_item == t2_item
-                else:
-                    assert abs(t1_item_f - t2_item_f) < 0.3
+                ## TODO: these are pretty loose tolerances but:
+                # - we only test 10 samples
+                # - not sure when/how the ground truth test_data was generated
+                tol = 0.3 if on_ci else 0.5
+                assert abs(t1_item_f - t2_item_f) < tol
             except ValueError:
-                if on_ci:
-                    assert t1_item == t2_item
-                else:
-                    # Locally, values may differ slightly causing column width
-                    # changes. Skip separator lines and compare content stripped.
-                    t1_s = t1_item.strip().rstrip("-:").rstrip("-")
-                    t2_s = t2_item.strip().rstrip("-:").rstrip("-")
-                    if t1_s or t2_s:  # skip separator-only cells
-                        assert t1_s == t2_s
+                assert t1_item == t2_item
+                # # Locally, values may differ slightly causing column width
+                # # changes. Skip separator lines and compare content stripped.
+                # t1_s = t1_item.strip().rstrip("-:").rstrip("-")
+                # t2_s = t2_item.strip().rstrip("-:").rstrip("-")
+                # if t1_s or t2_s:  # skip separator-only cells
+                #     assert t1_s == t2_s

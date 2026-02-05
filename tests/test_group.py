@@ -112,7 +112,7 @@ class TestGroupFilterDiscovery:
             "task_a": {
                 "name": "Task A",
                 "alias": "Task A",
-                "samples": 100,
+                "sample_len": 100,
                 "acc_norm,none": 0.85,
                 "acc_norm_stderr,none": 0.02,
                 "acc_norm,prefix": 0.88,
@@ -121,7 +121,7 @@ class TestGroupFilterDiscovery:
             "task_b": {
                 "name": "Task B",
                 "alias": "Task B",
-                "samples": 150,
+                "sample_len": 150,
                 "acc_norm,none": 0.90,
                 "acc_norm_stderr,none": 0.018,
                 "acc_norm,custom": 0.92,
@@ -397,7 +397,7 @@ class TestGroupAggregation:
         # Stderr for "custom" should be from task_b only
         assert result["acc_norm_stderr,custom"] == 0.012
 
-    def test_samples_count_with_auto_discovery(self):
+    def test_sample_len_count_with_auto_discovery(self):
         """Test that sample counts are correct with auto-discovery."""
         group = Group(
             name="test_group",
@@ -408,13 +408,13 @@ class TestGroupAggregation:
 
         result = group.aggregate(self.task_metrics)
 
-        # Total samples should be sum of both tasks (last filter processed sets this)
+        # Total sample_len should be sum of both tasks (last filter processed sets this)
         # In this case, the last filter processed will determine the final sample count
-        assert "samples" in result
-        # The samples count is set per filter during aggregation
-        # For filters present in both tasks, samples = 100 + 100 = 200
-        # For filters present in one task, samples = 100
-        # The final "samples" value will be from the last filter processed
+        assert "sample_len" in result
+        # The sample_len count is set per filter during aggregation
+        # For filters present in both tasks, sample_len = 100 + 100 = 200
+        # For filters present in one task, sample_len = 100
+        # The final "sample_len" value will be from the last filter processed
 
 
 class TestGroupWeightedAggregation:
@@ -425,15 +425,15 @@ class TestGroupWeightedAggregation:
         task_a = MockTask("task_a")
         task_b = MockTask("task_b")
 
-        # task_a has 100 samples, task_b has 200 samples
+        # task_a has 100 sample_len, task_b has 200 sample_len
         metrics = {
             "task_a": {
-                "samples": 100,
+                "sample_len": 100,
                 "acc,none": 0.60,
                 "acc_stderr,none": 0.02,
             },
             "task_b": {
-                "samples": 200,
+                "sample_len": 200,
                 "acc,none": 0.90,
                 "acc_stderr,none": 0.01,
             },
@@ -493,7 +493,7 @@ class TestGroupEdgeCases:
         # Only task_a in metrics
         metrics = {
             "task_a": {
-                "samples": 100,
+                "sample_len": 100,
                 "acc,none": 0.85,
             }
         }
@@ -518,12 +518,12 @@ class TestGroupEdgeCases:
 
         metrics = {
             "task_a": {
-                "samples": 100,
+                "sample_len": 100,
                 "acc,none": 0.85,
                 "acc,prefix": 0.90,
             },
             "task_b": {
-                "samples": 150,
+                "sample_len": 150,
                 # Missing "acc" metrics entirely
             },
         }
@@ -723,7 +723,7 @@ class TestGroupSerialization:
 
         d = group.to_dict()
         assert d["group"] == "mmlu"
-        assert d["children"] == ["task_a"]
+        assert d["task"] == ["task_a"]
         assert d["group_alias"] == "MMLU"
         assert len(d["aggregate_metric_list"]) == 1
         assert d["aggregate_metric_list"][0]["metric"] == "acc"
@@ -763,18 +763,17 @@ class TestGroupSerialization:
         assert group.aggregate_metric_list[0].metric == "acc"
 
     def test_from_config_missing_group_key(self):
-        """Missing 'group' key should generate a random ID."""
+        """Missing 'group' key raise error."""
         config = {}
-        group = Group.from_config(config)
-        assert isinstance(group.name, str)
-        assert len(group.name) > 0
+        with pytest.raises(TypeError):
+            Group.from_config(config)
 
     def test_to_dict_no_optional_fields(self):
         """to_dict omits optional keys when not set."""
         group = Group(name="bare")
         d = group.to_dict()
         assert d == {"group": "bare"}
-        assert "children" not in d
+        assert "task" not in d
         assert "group_alias" not in d
         assert "aggregate_metric_list" not in d
         assert "metadata" not in d

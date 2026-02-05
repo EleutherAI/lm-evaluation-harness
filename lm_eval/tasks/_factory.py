@@ -21,6 +21,7 @@ eval_logger = logging.getLogger(__name__)
 GROUP_FIELD_NAMES = {f.name for f in fields(GroupConfig)}
 
 
+# TODO: DO not initialize Tasks, initialize in Manager
 class TaskFactory:
     """
     Builds Task and Group objects from Entry definitions.

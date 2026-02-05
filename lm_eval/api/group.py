@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import abc
 import logging
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import deprecated
@@ -264,7 +264,20 @@ class Group:
 
     def to_dict(self) -> dict[str, Any] | None:
         """Convert to dictionary for serialization."""
-        return self._config.to_dict() if self._config else None
+        if self._config:
+            return self._config.to_dict()
+        result: dict[str, Any] = {"group": self.name}
+        if self._children:
+            result["task"] = list(self._children.keys())
+        if self.alias:
+            result["group_alias"] = self.alias
+        if self.aggregate_metric_list:
+            result["aggregate_metric_list"] = [
+                asdict(agg) for agg in self.aggregate_metric_list
+            ]
+        if self.metadata:
+            result["metadata"] = self.metadata
+        return result
 
     @classmethod
     def from_config(cls, config: GroupConfig | dict[str, Any]) -> Group:
