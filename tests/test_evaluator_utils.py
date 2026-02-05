@@ -21,7 +21,7 @@ from lm_eval.evaluator_utils import (
     get_sample_size,
     process_results,
 )
-from lm_eval.types import TaskMetrics
+from lm_eval.types import _TaskMetrics
 
 
 # ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ from lm_eval.types import TaskMetrics
 # ---------------------------------------------------------------------------
 
 
-def _m(d: dict[str, Any]) -> TaskMetrics:
+def _m(d: dict[str, Any]) -> _TaskMetrics:
     """Cast a plain dict to TaskMetrics for tests (dynamic metric keys)."""
     return d  # type: ignore[return-value]
 

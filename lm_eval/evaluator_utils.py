@@ -13,7 +13,7 @@ from lm_eval.api.metrics import (
     mean,
     stderr_for_metric,
 )
-from lm_eval.types import EvalResults, SampleCount, TaskMetrics
+from lm_eval.types import EvalResults, _SampleCount, _TaskMetrics
 from lm_eval.utils import positional_deprecated
 
 
@@ -149,7 +149,7 @@ class EvalAcc:
     """Container for evaluation results."""
 
     # Core results: {task_name: {metric_key: value}}
-    metrics: dict[str, TaskMetrics] = field(default_factory=dict)
+    metrics: dict[str, _TaskMetrics[float]] = field(default_factory=dict)
 
     # Per-task metadata
     configs: dict[str, dict[str, str]] = field(default_factory=dict)
@@ -161,12 +161,12 @@ class EvalAcc:
     samples: dict[str, list[Any]] = field(default_factory=dict)
 
     # Original vs effective sample counts per task
-    n_samples: dict[str, SampleCount] = field(default_factory=dict)
+    n_samples: dict[str, _SampleCount] = field(default_factory=dict)
 
     # All groups (for aggregation and formatting)
     groups: dict[str, Group] = field(default_factory=dict)
 
-    def collect(self) -> tuple[dict[str, TaskMetrics], dict[str, TaskMetrics]]:
+    def collect(self) -> tuple[dict[str, _TaskMetrics], dict[str, _TaskMetrics]]:
         """Split metrics into task results and group results (groups with aggregation)."""
         task_results = {}
         group_results = {}
@@ -307,7 +307,7 @@ def collect_results(
 
         # Compute n_samples: effective comes from sample_len (actual evaluated count)
         original = len(task.eval_docs)
-        result.n_samples[task_name] = SampleCount(
+        result.n_samples[task_name] = _SampleCount(
             original=original, effective=sample_len
         )
 

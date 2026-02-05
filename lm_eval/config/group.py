@@ -87,9 +87,7 @@ class GroupConfig:
     group_alias: str | None = None
     task: str | list[str | dict[str, str | dict[str, str]]] | None = None
     # Accepts loose YAML input; __post_init__ normalizes to list[AggMetricConfig] | None
-    aggregate_metric_list: (
-        list[AggMetricConfig] | list[dict[str, str | list[str] | bool]] | None
-    ) = None
+    aggregate_metric_list: list[AggMetricConfig] | list[dict] | None = None
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
@@ -101,7 +99,7 @@ class GroupConfig:
                 for item in self.aggregate_metric_list
             ]
 
-    def to_dict(self, keep_callable: bool = False) -> dict:
+    def to_dict(self, keep_callable: bool = False) -> dict[str, str]:
         from dataclasses import asdict
 
         cfg_dict = asdict(self)

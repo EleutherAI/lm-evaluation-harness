@@ -1,9 +1,12 @@
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 from typing_extensions import TypedDict
 
 
-class TaskMetrics(TypedDict, total=False):
+T = TypeVar("T", bound=int | float | bool | tuple)
+
+
+class _TaskMetrics(TypedDict, Generic[T], extra_items=T):
     """Per-task metric dict passed through evaluation and display.
 
     Fixed keys are ``name``, ``alias`` and ``sample_len``.  The remaining keys are
@@ -20,7 +23,7 @@ class TaskMetrics(TypedDict, total=False):
     """Number of documents evaluated for this task."""
 
 
-class SampleCount(TypedDict):
+class _SampleCount(TypedDict):
     """Number of evaluation samples for a task."""
 
     original: int
@@ -30,7 +33,7 @@ class SampleCount(TypedDict):
     """Actual number of documents evaluated after applying the limit."""
 
 
-class EvalConfig(TypedDict, total=False):
+class _EvalConfig(TypedDict, total=False):
     """Model and execution configuration stored in results."""
 
     model: str
@@ -54,10 +57,10 @@ EvalResults = TypedDict(
         # --- Core evaluation outputs (from evaluate()) ---
         #
         # Per-task metric values.
-        "results": dict[str, TaskMetrics],
+        "results": dict[str, _TaskMetrics],
         # Aggregated group-level metrics (same shape as "results").
-        # Only present when groups are defined and show_group_table is True.
-        "groups": dict[str, TaskMetrics],
+        # Only present when groups are defined
+        "groups": dict[str, _TaskMetrics],
         # Maps group/task names to their list of subtask names.
         "group_subtasks": dict[str, list[str]],
         # Full YAML task configs keyed by task name.
@@ -69,14 +72,14 @@ EvalResults = TypedDict(
         # Per-task dict mapping metric name to whether higher is better.
         "higher_is_better": dict[str, dict[str, bool | None]],
         # Original and effective (after limit) sample counts per task.
-        "n-samples": dict[str, SampleCount],
+        "n-samples": dict[str, _SampleCount],
         # Per-task list of per-document log dicts.
         # Only present when log_samples is True.
         "samples": dict[str, list[dict[str, Any]]],
         # --- Metadata added by simple_evaluate() ---
         #
         # Model and execution configuration.
-        "config": EvalConfig,
+        "config": _EvalConfig,
         # Git commit hash at evaluation time.
         "git_hash": str,
         # UNIX timestamp when evaluation started.

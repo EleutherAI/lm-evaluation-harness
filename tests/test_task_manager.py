@@ -934,7 +934,7 @@ class TestGroupBuilding:
 
         cfg = GroupConfig(
             group="test",
-            aggregate_metric_list={"metric": "acc", "weight_by_size": True},
+            aggregate_metric_list={"metric": "acc", "weight_by_size": True},  # type:ignore[invalid-argument-type]
         )
         result = cfg.aggregate_metric_list
         assert isinstance(result, list)
@@ -962,7 +962,6 @@ class TestGroupBuilding:
         group = loaded["groups"]["include_group"]
         # include_group.yaml doesn't set group_alias, so it should be None
         assert group.alias is None
-        assert group.display_name == "include_group"
 
     def test_group_metadata_includes_factory_meta(self):
         """Factory-level metadata should be merged into every group's metadata."""

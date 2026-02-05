@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import abc
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import deprecated
@@ -28,7 +28,7 @@ eval_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from lm_eval.api.task import Task
-    from lm_eval.types import TaskMetrics
+    from lm_eval.types import _TaskMetrics
 
 
 @dataclass
@@ -57,6 +57,7 @@ class Group:
     aggregate_metric_list: list[AggMetricConfig] | None = None
     metadata: dict[str, Any] | None = None
     _children: dict[str, Task | Group] = field(default_factory=dict, repr=False)
+    _config: GroupConfig | None = field(default=None, repr=False)
 
     def add(self, item: Task | Group) -> None:
         """Add a task or subgroup to this group."""
@@ -134,11 +135,6 @@ class Group:
         return list(self._children.keys())
 
     @property
-    def display_name(self) -> str:
-        """Name to show in output (alias if set, otherwise name)."""
-        return self.alias or self.name
-
-    @property
     def version(self) -> str:
         """Version string from metadata, if available."""
         return "N/A" if not self.metadata else str(self.metadata.get("version", "N/A"))
@@ -152,7 +148,7 @@ class Group:
         )
 
     def _discover_filters_for_metric(
-        self, metric_name: str, task_metrics: dict[str, TaskMetrics]
+        self, metric_name: str, task_metrics: dict[str, _TaskMetrics]
     ) -> list[str]:
         """
         Discover all filter names used with a specific metric in child tasks.
@@ -185,7 +181,7 @@ class Group:
 
         return sorted(list(discovered_filters))  # Sort for deterministic ordering
 
-    def aggregate(self, task_metrics: dict[str, TaskMetrics]) -> TaskMetrics:
+    def aggregate(self, task_metrics: dict[str, _TaskMetrics]) -> _TaskMetrics:
         """
         Aggregate metrics for this group from its leaf task results.
 
@@ -199,10 +195,10 @@ class Group:
         """
         from lm_eval.api.metrics import aggregate_subtask_metrics, pooled_sample_stderr
 
-        group_metrics: dict[str, Any] = {"alias": self.display_name}
+        group_metrics: dict[str, Any] = {"alias": self.alias or self.name}
 
         if not self.aggregate_metric_list:
-            return cast("TaskMetrics", group_metrics)
+            return cast("_TaskMetrics", group_metrics)
 
         # Get leaf task names
         leaf_tasks = [t.task_name for t in self.get_all_tasks()]
@@ -262,24 +258,13 @@ class Group:
                     else:
                         group_metrics[stderr_key] = "N/A"
 
-        return cast("TaskMetrics", group_metrics)
+        return cast("_TaskMetrics", group_metrics)
 
     # I/O
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> dict[str, Any] | None:
         """Convert to dictionary for serialization."""
-        result: dict[str, Any] = {"group": self.name}
-        if self._children:
-            result["children"] = list(self._children.keys())
-        if self.alias:
-            result["group_alias"] = self.alias
-        if self.aggregate_metric_list:
-            result["aggregate_metric_list"] = [
-                asdict(agg) for agg in self.aggregate_metric_list
-            ]
-        if self.metadata:
-            result["metadata"] = self.metadata
-        return result
+        return self._config.to_dict() if self._config else None
 
     @classmethod
     def from_config(cls, config: GroupConfig | dict[str, Any]) -> Group:
@@ -299,6 +284,7 @@ class Group:
                 "list[AggMetricConfig]", config.aggregate_metric_list
             ),
             metadata=config.metadata,
+            _config=config,
         )
 
     def __repr__(self):

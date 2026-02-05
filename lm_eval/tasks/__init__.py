@@ -9,6 +9,8 @@ This module provides:
 import logging
 from pathlib import Path
 
+from typing_extensions import deprecated
+
 from lm_eval.api.task import ConfigurableTask, Task
 
 # Import TaskManager
@@ -81,6 +83,7 @@ def _check_duplicates(task_dict: dict) -> None:
         )
 
 
+@deprecated("test_task_dict is depreciated. Use TaskManager Public API instead.")
 def get_task_dict(
     task_name_list: str | list[str | dict | Task],
     task_manager: TaskManager | None = None,

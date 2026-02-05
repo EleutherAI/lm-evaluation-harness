@@ -1,11 +1,18 @@
+# type:ignore[invalid-assignment]
 """
 Tests for Group class and filter auto-discovery functionality.
 """
+
+from typing import TYPE_CHECKING
 
 import pytest
 
 from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.task import Task
+
+
+if TYPE_CHECKING:
+    from lm_eval.types import _TaskMetrics
 
 
 class MockTask(Task):
@@ -101,23 +108,25 @@ class TestGroupFilterDiscovery:
         self.task_b = MockTask("task_b")
 
         # Create task metrics with multiple filters
-        self.task_metrics = {
+        self.task_metrics: dict[str, _TaskMetrics] = {
             "task_a": {
+                "name": "Task A",
                 "alias": "Task A",
                 "samples": 100,
                 "acc_norm,none": 0.85,
                 "acc_norm_stderr,none": 0.02,
                 "acc_norm,prefix": 0.88,
                 "acc_norm_stderr,prefix": 0.015,
-            },
+            },  # ty:ignore[invalid-key]
             "task_b": {
+                "name": "Task B",
                 "alias": "Task B",
                 "samples": 150,
                 "acc_norm,none": 0.90,
                 "acc_norm_stderr,none": 0.018,
                 "acc_norm,custom": 0.92,
                 "acc_norm_stderr,custom": 0.012,
-            },
+            },  # ty:ignore[invalid-key]
         }
 
     def test_discover_filters_single_filter(self):
@@ -159,12 +168,15 @@ class TestGroupFilterDiscovery:
         group = Group(name="test_group")
         group.add(self.task_a)
 
-        metrics = {
+        metrics: dict[str, _TaskMetrics] = {
             "task_a": {
+                "name": "Task A",
+                "alias": "Task A",
+                "sample_len": 100,
                 "acc,none": 0.85,
                 "acc_stderr,none": 0.02,  # Should be excluded
             }
-        }
+        }  # ty:ignore[invalid-assignment]
 
         discovered = group._discover_filters_for_metric("acc", metrics)
         # Only "none" from "acc,none", not from "acc_stderr,none"
@@ -189,18 +201,20 @@ class TestGroupAggregation:
         self.task_a = MockTask("task_a")
         self.task_b = MockTask("task_b")
 
-        self.task_metrics = {
+        self.task_metrics: dict[str, _TaskMetrics] = {
             "task_a": {
+                "name": "Task A",
                 "alias": "Task A",
-                "samples": 100,
+                "sample_len": 100,
                 "acc_norm,none": 0.80,
                 "acc_norm_stderr,none": 0.02,
                 "acc_norm,prefix": 0.85,
                 "acc_norm_stderr,prefix": 0.015,
             },
             "task_b": {
+                "name": "Task B",
                 "alias": "Task B",
-                "samples": 100,
+                "sample_len": 100,
                 "acc_norm,none": 0.90,
                 "acc_norm_stderr,none": 0.018,
                 "acc_norm,custom": 0.92,
@@ -665,16 +679,6 @@ class TestGroup:
         group.add(self.task_a)
         group.add(self.task_b)
         assert group.child_names == ["task_a", "task_b"]
-
-    # --- display_name ---
-
-    def test_display_name_with_alias(self):
-        group = Group(name="g", alias="My Group")
-        assert group.display_name == "My Group"
-
-    def test_display_name_falls_back_to_name(self):
-        group = Group(name="g")
-        assert group.display_name == "g"
 
     # --- has_aggregation ---
 
