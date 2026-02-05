@@ -16,21 +16,17 @@ from __future__ import annotations
 import abc
 import logging
 from dataclasses import asdict, dataclass, field
-from inspect import getsource
 from typing import TYPE_CHECKING, Any, cast
 
 from typing_extensions import deprecated
 
-from lm_eval.api.utils import random_task_id
-from lm_eval.config.group import AggMetricConfig, GroupConfig as _GroupConfig
+from lm_eval.config.group import AggMetricConfig, GroupConfig
 
 
 eval_logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from lm_eval.api.task import Task
     from lm_eval.types import TaskMetrics
 
@@ -286,7 +282,7 @@ class Group:
         return result
 
     @classmethod
-    def from_config(cls, config: _GroupConfig | dict[str, Any]) -> Group:
+    def from_config(cls, config: GroupConfig | dict[str, Any]) -> Group:
         """
         Create a Group from a GroupConfig or raw dict (e.g., parsed from YAML).
 
@@ -294,8 +290,7 @@ class Group:
         separately via group.add() after Tasks/subGroups are built.
         """
         if isinstance(config, dict):
-            config.setdefault("group", random_task_id())  # type:ignore[no-matching-overload]
-            config = _GroupConfig(**config)  # type:ignore[invalid-argument-type]
+            config = GroupConfig(**config)  # type:ignore[invalid-argument-type]
 
         return cls(
             name=config.group,
@@ -315,60 +310,14 @@ class Group:
 # =============================================================================
 
 
-@deprecated("Use lm_eval.config.GroupConfig instead.")
-@dataclass
-class GroupConfig(dict):
-    """DEPRECATED: Use Group instead."""
-
-    group: str | None = None
-    group_alias: str | None = None
-    task: str | list | None = None
-    aggregate_metric_list: (
-        list[AggMetricConfig] | AggMetricConfig | dict[str, str] | None
-    ) = None
-    metadata: dict | None = None
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def __post_init__(self):
-        if self.aggregate_metric_list is not None:
-            if isinstance(self.aggregate_metric_list, dict):
-                self.aggregate_metric_list = [self.aggregate_metric_list]  # type: ignore
-            self.aggregate_metric_list = [  # type: ignore
-                AggMetricConfig(**item) if isinstance(item, dict) else item  # type: ignore
-                for item in self.aggregate_metric_list  # type: ignore
-            ]
-
-    def to_dict(self, keep_callable: bool = False) -> dict:
-        cfg_dict = asdict(self)
-        for k, v in list(cfg_dict.items()):
-            if callable(v):
-                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
-        return cfg_dict
-
-    def serialize_function(
-        self, value: Callable | str, keep_callable=False
-    ) -> Callable | str:
-        if keep_callable:
-            return value
-        try:
-            return getsource(value)  # type: ignore
-        except (TypeError, OSError):
-            return str(value)
-
-
 @deprecated("Use lm_eval.api.Group instead.")
 class ConfigurableGroup(abc.ABC):  # noqa: B024
     """DEPRECATED: Use Group instead."""
 
-    def __init__(self, config: dict | None = None) -> None:
-        self._config = GroupConfig(**config)  # type: ignore
-        # Also create a new-style Group for forward compatibility
-        self._group = Group.from_config(config or {})
+    def __init__(self, config: dict | GroupConfig | None = None) -> None:
+        self._config = (
+            config if isinstance(config, GroupConfig) else GroupConfig(**(config or {}))
+        )
 
     @property
     def group(self):

@@ -88,17 +88,36 @@ class GroupConfig:
     task: str | list[str | dict[str, str | dict[str, str]]] | None = None
     # Accepts loose YAML input; __post_init__ normalizes to list[AggMetricConfig] | None
     aggregate_metric_list: (
-        list[AggMetricConfig | dict] | AggMetricConfig | dict | None
+        list[AggMetricConfig] | list[dict[str, str | list[str] | bool]] | None
     ) = None
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
         if self.aggregate_metric_list is not None:
-            if isinstance(self.aggregate_metric_list, dict):
-                self.aggregate_metric_list = [self.aggregate_metric_list]
-            if isinstance(self.aggregate_metric_list, AggMetricConfig):
+            if isinstance(self.aggregate_metric_list, (dict, AggMetricConfig)):
                 self.aggregate_metric_list = [self.aggregate_metric_list]
             self.aggregate_metric_list = [
                 AggMetricConfig(**item) if isinstance(item, dict) else item  # type:ignore[invalid-argument-type]
                 for item in self.aggregate_metric_list
             ]
+
+    def to_dict(self, keep_callable: bool = False) -> dict:
+        from dataclasses import asdict
+
+        cfg_dict = asdict(self)
+        for k, v in list(cfg_dict.items()):
+            if callable(v):
+                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
+        return cfg_dict
+
+    def serialize_function(
+        self, value: Callable | str, keep_callable=False
+    ) -> Callable | str:
+        from inspect import getsource
+
+        if keep_callable:
+            return value
+        try:
+            return getsource(value)  # type: ignore
+        except (TypeError, OSError):
+            return str(value)

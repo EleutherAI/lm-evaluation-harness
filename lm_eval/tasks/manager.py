@@ -119,7 +119,7 @@ class TaskManager:
             raise KeyError(f"Unknown task/group/tag: {name}")
         return self._index[name]
 
-    def load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
+    def _load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
         """Load a task/group/tag by name or with inline overrides.
 
         Args:
@@ -143,7 +143,7 @@ class TaskManager:
 
     def load_config(self, config: str | dict[str, Any]) -> dict:
         """Load a task from an inline config dict."""
-        spec = self.load_spec(config)
+        spec = self._load_spec(config)
         return self._to_nested_dict(spec)
 
     def load(
@@ -174,7 +174,7 @@ class TaskManager:
         # Build all requested items
         built: list[Task | Group] = []
         for spec in cast("Iterable", task_list):
-            obj = self.load_spec(spec) if not isinstance(spec, (Task, Group)) else spec  # type:ignore[invalid-argument-type]
+            obj = self._load_spec(spec) if not isinstance(spec, (Task, Group)) else spec  # type:ignore[invalid-argument-type]
             # Tags return list[Task], flatten
             if isinstance(obj, list):
                 obj = cast("list[Task]", obj)
@@ -336,6 +336,7 @@ class TaskManager:
         return result
 
 
+@deprecated("load_task_or_group is deprecated, Use TaskManager.load() instead")
 def get_task_dict(
     task_name_list: str | list[str | dict | Task],
     task_manager: TaskManager | None = None,
