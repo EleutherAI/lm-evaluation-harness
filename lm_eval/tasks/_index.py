@@ -38,10 +38,10 @@ class TaskIndex:
     """
 
     def __init__(self, *, meta: dict[str, str] | None = None) -> None:
-        self._metadata = meta or {}
+        pass
 
+    @staticmethod
     def build(
-        self,
         paths: Iterable[Path],
         *,
         resolve_includes=True,
@@ -51,14 +51,14 @@ class TaskIndex:
         for root in paths:
             # Build this path's entries (skip duplicates within same path)
             path_index: dict[str, Entry] = {}
-            for yaml_path in self._iter_yaml_files(root):
+            for yaml_path in TaskIndex._iter_yaml_files(root):
                 try:
                     cfg = load_yaml(
                         yaml_path,
                         resolve_func=False,
                         recursive=resolve_includes,
                     )
-                    self.process_cfg(cfg, yaml_path, path_index)
+                    TaskIndex.process_cfg(cfg, yaml_path, path_index)
                 except Exception as err:
                     log.debug("Skip %s (%s)", yaml_path, err)
                     continue
@@ -93,21 +93,21 @@ class TaskIndex:
     def process_cfg(
         cfg: dict[str, Any],
         path: Path,
-        index: dict[str, Entry],
+        index_: dict[str, Entry],
     ) -> None:
         kind = TaskIndex._kind_of(cfg)
         match kind:
             case Kind.GROUP:
                 grp_name = cfg["group"]
 
-                if grp_name in index:
+                if grp_name in index_:
                     log.debug(
                         f"Duplicate group name '{grp_name}' found. "
-                        f"Already registered from: {index[grp_name].yaml_path}. "
+                        f"Already registered from: {index_[grp_name].yaml_path}. "
                         f"Skipping duplicate from: {path}"
                     )
                     return
-                index[grp_name] = Entry(
+                index_[grp_name] = Entry(
                     name=grp_name,
                     kind=Kind.GROUP,
                     yaml_path=path,
@@ -117,33 +117,33 @@ class TaskIndex:
 
             case Kind.TASK | Kind.PY_TASK:
                 name = cfg["task"]
-                if name in index:
+                if name in index_:
                     log.warning(
                         f"Duplicate task name '{name}' found. "
-                        f"Already registered from: {index[name].yaml_path}. "
+                        f"Already registered from: {index_[name].yaml_path}. "
                         f"Skipping duplicate from: {path}"
                     )
                     return
-                index[name] = Entry(
+                index_[name] = Entry(
                     name=name,
                     kind=Kind.TASK,
                     yaml_path=path,
                     tags=TaskIndex._str_to_set(cfg.get("tag")),
                     cfg=cfg,
                 )
-                TaskIndex._register_tags(name, cfg.get("tag"), index)
+                TaskIndex._register_tags(name, cfg.get("tag"), index_)
         return
 
     @staticmethod
     def _register_tags(
         task: str,
         tags: str | list[str] | None,
-        index: dict[str, Entry],
+        index_: dict[str, Entry],
     ) -> None:
         if not tags:
             return
         for tag in tags if isinstance(tags, list) else [tags]:
-            entry = index.setdefault(
+            entry = index_.setdefault(
                 tag,
                 Entry(name=tag, kind=Kind.TAG, yaml_path=None, tags=set()),
             )

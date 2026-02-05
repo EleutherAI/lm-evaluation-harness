@@ -56,40 +56,82 @@ def get_task_name_from_object(task_object):
 
 
 def _check_duplicates(task_dict: dict) -> None:
-    """Helper function solely used in validating get_task_dict output.
+    """Check that no leaf task appears in more than one top-level group.
 
-    Takes the output of lm_eval.evaluator_utils.get_subtask_list and
-    returns a list of all leaf subtasks contained within, and errors if any such leaf subtasks are
-    "oversubscribed" to several disjoint groups.
+    Traverses the nested dict returned by load_task_or_group and errors
+    if any leaf task is claimed by multiple disjoint groups.
     """
-    subtask_names = []
-    for value in task_dict.values():
-        subtask_names.extend(value)
+    from lm_eval.api.group import Group
 
-    duplicate_tasks = {
-        task_name for task_name in subtask_names if subtask_names.count(task_name) > 1
-    }
+    def _collect_leaf_tasks(d: dict) -> list[str]:
+        """Recursively collect leaf task name strings from nested dict."""
+        tasks = []
+        for key, value in d.items():
+            if isinstance(value, dict):
+                tasks.extend(_collect_leaf_tasks(value))
+            else:  # value is a Task
+                tasks.append(key if isinstance(key, str) else key.task_name)
+        return tasks
 
-    # locate the potentially problematic groups that seem to 'compete' for constituent subtasks
-    competing_groups = [
-        group
-        for group in task_dict.keys()
-        if len(set(task_dict[group]).intersection(duplicate_tasks)) > 0
-    ]
+    subtask_map = {}
+    for key, value in task_dict.items():
+        if isinstance(key, Group) and isinstance(value, dict):
+            group_name = key.group_name if hasattr(key, "group_name") else key.name
+            subtask_map[group_name] = _collect_leaf_tasks(value)
 
-    if len(duplicate_tasks) > 0:
+    all_tasks = [t for tasks in subtask_map.values() for t in tasks]
+    duplicates = {t for t in all_tasks if all_tasks.count(t) > 1}
+    if duplicates:
+        competing = [g for g, tasks in subtask_map.items() if set(tasks) & duplicates]
         raise ValueError(
-            f"Found 1 or more tasks while trying to call get_task_dict() that were members of more than 1 called group: {list(duplicate_tasks)}. Offending groups: {competing_groups}. Please call groups which overlap their constituent tasks in separate evaluation runs."
+            f"Found tasks in multiple groups: {list(duplicates)}. "
+            f"Offending groups: {competing}. "
+            f"Please call groups which overlap in separate evaluation runs."
         )
 
 
-@deprecated("test_task_dict is depreciated. Use TaskManager Public API instead.")
+def _log_task_dict(task_dict: dict, task_manager: "TaskManager") -> None:
+    """Log the selected tasks with hierarchy information."""
+    from lm_eval.api.group import ConfigurableGroup
+
+    def pretty_print_task(task_name: str, indent: int):
+        entry = task_manager.task_index.get(task_name)
+        if entry and entry.yaml_path:
+            yaml_path = Path(entry.yaml_path)
+            lm_eval_tasks_path = Path(__file__).parent
+            try:
+                display_path = yaml_path.relative_to(lm_eval_tasks_path)
+            except ValueError:
+                display_path = yaml_path
+        else:
+            display_path = "N/A"
+        pad = "  " * indent
+        eval_logger.info(f"{pad}Task: {task_name} ({display_path})")
+
+    def _log_nested(d: dict, indent: int = 0) -> None:
+        for key, value in d.items():
+            if isinstance(key, ConfigurableGroup):
+                pad = "  " * indent
+                label = "Group" if indent == 0 else "Subgroup"
+                eval_logger.info(f"{pad}{label}: {key.group}")
+                if isinstance(value, dict):
+                    _log_nested(value, indent + 1)
+                else:
+                    eval_logger.info(f"{pad}  {key}: {value}")
+            elif isinstance(key, str) and isinstance(value, Task):
+                pretty_print_task(key, indent)
+            else:
+                eval_logger.info(f"{'  ' * indent}{key}: {value}")
+
+    eval_logger.info("Selected tasks:")
+    _log_nested(task_dict)
+
+
+@deprecated("get_task_dict is deprecated. Use TaskManager.load() instead.")
 def get_task_dict(
     task_name_list: str | list[str | dict | Task],
     task_manager: TaskManager | None = None,
 ):
-    from lm_eval.api.group import ConfigurableGroup
-
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
     :param task_name_list: List[Union[str, Dict, Task]]
@@ -103,121 +145,25 @@ def get_task_dict(
     :return
         Dictionary of task objects
     """
-
-    task_name_from_string_dict = {}
-    task_name_from_config_dict = {}
-    task_name_from_object_dict = {}
-
     if isinstance(task_name_list, str):
         task_name_list = [task_name_list]
-    elif isinstance(task_name_list, list):
-        if not all(isinstance(task, (str, dict, Task)) for task in task_name_list):
-            raise TypeError(
-                "Expected all list items to be of types 'str', 'dict', or 'Task', but at least one entry did not match."
-            )
-    else:
-        raise TypeError(
-            f"Expected a 'str' or 'list' but received {type(task_name_list)}."
-        )
 
-    string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
-    others_task_name_list = [
-        task for task in task_name_list if not isinstance(task, str)
-    ]
     if task_manager is None:
         task_manager = TaskManager()
 
-    if len(string_task_name_list) > 0:
-        task_name_from_string_dict = task_manager.load_task_or_group(
-            string_task_name_list
-        )
+    # Separate pre-built Task objects from specs (str/dict)
+    specs = [s for s in task_name_list if isinstance(s, (str, dict))]
+    task_objects = [s for s in task_name_list if isinstance(s, Task)]
 
-    for task_element in others_task_name_list:
-        if isinstance(task_element, dict):
-            task_name_from_config_dict = {
-                **task_name_from_config_dict,
-                **task_manager._load_config_nested(config=task_element),  # type: ignore
-            }
+    # Load all string/dict specs through load_task_or_group
+    result = task_manager.load_task_or_group(specs) if specs else {}
 
-        elif isinstance(task_element, Task):
-            task_name_from_object_dict = {
-                **task_name_from_object_dict,
-                get_task_name_from_object(task_element): task_element,
-            }
+    # Add pre-built Task objects directly
+    for task_obj in task_objects:
+        result[get_task_name_from_object(task_obj)] = task_obj
 
-    if not set(task_name_from_string_dict.keys()).isdisjoint(
-        set(task_name_from_object_dict.keys())
-    ):
-        raise ValueError
+    # Validate and log
+    _check_duplicates(result)
+    _log_task_dict(result, task_manager)
 
-    final_task_dict = {
-        **task_name_from_string_dict,
-        **task_name_from_config_dict,
-        **task_name_from_object_dict,
-    }
-
-    # behavior can get odd if one tries to invoke several groups that "compete" for the same task.
-    # (notably, because one could request several num_fewshot values at once in GroupConfig overrides for the subtask
-    # and we'd be unsure which to use and report.)
-    # we explicitly check and error in this case.
-    # _check_duplicates(get_subtask_list(final_task_dict))
-
-    def pretty_print_task(task_name: str, task_manager: "TaskManager", indent: int):
-        entry = task_manager.task_index[task_name]
-        yaml_path = entry.yaml_path
-        if yaml_path:
-            yaml_path = Path(yaml_path)
-            lm_eval_tasks_path = Path(__file__).parent
-            try:
-                display_path = yaml_path.relative_to(lm_eval_tasks_path)
-            except ValueError:
-                # Path is outside lm_eval/tasks (e.g., from include_path)
-                display_path = yaml_path
-        else:
-            display_path = "N/A"
-
-        pad = "  " * indent
-        eval_logger.info(f"{pad}Task: {task_name} ({display_path})")
-
-    # NOTE: Only nicely logs:
-    # 1/ group
-    #     2/ subgroup
-    #         3/ tasks
-    # 2/ task
-    # layout.
-    # TODO: Verify if there are other layouts to nicely display
-    eval_logger.info("Selected tasks:")
-    for key, value in final_task_dict.items():
-        if isinstance(key, ConfigurableGroup):
-            eval_logger.info(f"Group: {key.group}")
-
-            if isinstance(value, dict):
-                first_key = next(iter(value.keys()))
-                # TODO: simplify
-                if isinstance(first_key, ConfigurableGroup):
-                    for subgroup, task_dict in value.items():
-                        if isinstance(subgroup, ConfigurableGroup):
-                            eval_logger.info(f"  Subgroup: {subgroup.group}")
-                            for task_name, configurable_task in task_dict.items():
-                                if isinstance(configurable_task, ConfigurableTask):
-                                    pretty_print_task(task_name, task_manager, indent=2)
-                                else:
-                                    eval_logger.info(
-                                        f"{task_name}: {configurable_task}"
-                                    )
-                        elif isinstance(subgroup, str) and isinstance(
-                            task_dict, ConfigurableTask
-                        ):
-                            pretty_print_task(subgroup, task_manager, indent=1)
-                        else:
-                            eval_logger.info(f"  {subgroup}: {task_dict}")
-                else:
-                    eval_logger.info(f"{key}: {value}")
-            else:
-                eval_logger.info(f"{key}: {value}")
-        elif isinstance(key, str) and isinstance(value, ConfigurableTask):
-            pretty_print_task(key, task_manager, indent=0)
-        else:
-            eval_logger.info(f"{key}: {value}")
-
-    return final_task_dict
+    return result

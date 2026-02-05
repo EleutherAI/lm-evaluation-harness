@@ -241,7 +241,9 @@ class TaskFactory:
         return [self._build_task(registry[name], overrides) for name in entry.tags]
 
     def _load_full_config(
-        self, entry: Entry, overrides: dict[str, Any] | None
+        self,
+        entry: Entry,
+        overrides: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if entry.yaml_path:
             cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))

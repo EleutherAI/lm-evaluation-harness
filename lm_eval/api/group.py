@@ -13,7 +13,6 @@ Example:
 
 from __future__ import annotations
 
-import abc
 import logging
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any, cast
@@ -310,33 +309,64 @@ class Group:
 
 
 @deprecated("Use lm_eval.api.Group instead.")
-class ConfigurableGroup(abc.ABC):  # noqa: B024
+class ConfigurableGroup(Group):
     """DEPRECATED: Use Group instead."""
 
     def __init__(self, config: dict | GroupConfig | None = None) -> None:
         self._config = (
             config if isinstance(config, GroupConfig) else GroupConfig(**(config or {}))
         )
+        # Initialize Group dataclass fields so this acts as a proper wrapper
+        self.name = self._config.group
+        self.alias = self._config.group_alias
+        self.aggregate_metric_list = cast(
+            "list[AggMetricConfig]", self._config.aggregate_metric_list
+        )
+        self.metadata = self._config.metadata
+        self._children = {}
 
     @property
     def group(self):
-        return self._config.group
+        return self.name
 
     @property
     def group_alias(self):
-        return self._config.group_alias
+        return self.alias
 
     @property
-    def version(self):
-        return self._config.metadata.get("version") if self._config.metadata else None
+    def version(self) -> str | None:
+        if self._config and self._config.metadata:
+            return self._config.metadata.get("metadata")
 
     @property
     def config(self):
-        return self._config.to_dict()
+        return self._config.to_dict() if self._config else None
 
     @property
-    def group_name(self) -> Any:
-        return self._config.group
+    def group_name(self):
+        return self._config.group if self._config else None
+
+    @classmethod
+    def from_group(cls, group: Group) -> ConfigurableGroup:
+        """Wrap an existing Group as a ConfigurableGroup (backward compat)."""
+        cg = object.__new__(cls)
+        cg.__dict__.update(group.__dict__)
+        if not cg._config:
+            cg._config = GroupConfig(
+                group=group.name,
+                group_alias=group.alias,
+                aggregate_metric_list=group.aggregate_metric_list,
+                metadata=group.metadata,
+            )
+        return cg
+
+    def __eq__(self, other):
+        if isinstance(other, ConfigurableGroup):
+            return self.group_name == other.group_name
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(self.group_name)
 
     def __repr__(self):
         return f"ConfigurableGroup(group={self.group},group_alias={self.group_alias})"

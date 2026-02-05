@@ -141,14 +141,6 @@ class TaskManager:
             case _:
                 raise TypeError("spec must be str or dict")
 
-    def _load_config(self, config: str | dict[str, Any]) -> Task | Group | list[Task]:
-        """Load a task from an inline config dict."""
-        spec = self._load_spec(config)
-        return spec
-
-    def _load_config_nested(self, config: str | dict[str, Any]):
-        return self._to_nested_dict(self._load_config(config))
-
     def load(
         self,
         task_list: str
@@ -204,58 +196,39 @@ class TaskManager:
 
         return {"tasks": tasks, "groups": groups}
 
-    def _to_nested_dict(self, obj: Task | Group | list) -> dict:
-        """Convert Task | Group | list[Task] to legacy nested dict format.
-
-        This adapter maintains backward compatibility with get_task_dict() and other
-        consumers that expect the old nested dict format with ConfigurableGroup keys.
-        """
-        from lm_eval.api.group import ConfigurableGroup, GroupConfig
-
-        # Handle list of tasks (from tag expansion)
-        if isinstance(obj, list):
-            result: dict[str, Any] = {}
-            for task in obj:
-                task = cast("Task", task)
-                result[task.task_name] = task
-            return result
-
-        if isinstance(obj, Group):
-            # Build nested children dict
-            nested: dict[str, Any] = {}
-            for child in obj:
-                if isinstance(child, Group):
-                    nested.update(self._to_nested_dict(child))
-                else:
-                    # Task
-                    nested[child.task_name] = child
-
-            # Wrap in ConfigurableGroup
-            config = GroupConfig(group=obj.name, group_alias=obj.alias)
-            cg = ConfigurableGroup(config=config)
-            return {cg: nested}
-
-        # Task - return flat dict
-        return {obj.task_name: obj}
-
     @deprecated("load_task_or_group is deprecated, use load() instead")
-    def load_task_or_group(self, task_list: str | list[str]) -> dict:
+    def load_task_or_group(self, task_list: str | list[str | dict]) -> dict:
         """Load tasks/groups and return a merged dictionary.
 
         Args:
-            task_list: Single task name or list of task names
+            task_list: Single task name or list of task names/dicts
         Returns:
             Dictionary of task objects (possibly nested for groups)
         """
         import collections
 
+        from lm_eval.api.group import ConfigurableGroup
+
         if isinstance(task_list, str):
             task_list = [task_list]
 
-        # Each load_spec call returns a dict (possibly nested for groups)
-        # We merge them using ChainMap
+        def _to_nested(obj: Task | Group | list[Task]) -> dict:
+            """Convert Task | Group | list[Task] to legacy nested dict format."""
+            if isinstance(obj, list):
+                return {t.task_name: t for t in obj}  # type:ignore
+            if isinstance(obj, Group):
+                nested: dict[str, Any] = {}
+                for child in obj:
+                    if isinstance(child, Group):
+                        nested.update(_to_nested(child))
+                    else:
+                        nested[child.task_name] = child
+                cg = ConfigurableGroup.from_group(obj)
+                return {cg: nested}
+            return {obj.task_name: obj}
+
         return dict(
-            collections.ChainMap(*[self._load_config_nested(s) for s in task_list])
+            collections.ChainMap(*[_to_nested(self._load_spec(s)) for s in task_list])
         )
 
     # ---------------------------------------------------------------- name checks

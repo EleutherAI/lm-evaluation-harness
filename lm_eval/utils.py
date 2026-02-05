@@ -572,56 +572,6 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
     return function
 
 
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
-    if mode == "simple":
-        constructor_fn = ignore_constructor
-    elif mode == "full":
-        if yaml_path is None:
-            raise ValueError("yaml_path must be provided if mode is 'full'.")
-        # Attach yaml_path to the import function so that it can be used later
-        constructor_fn = functools.partial(import_function, yaml_path=Path(yaml_path))
-
-    loader = yaml.CLoader if yaml.__with_libyaml__ else yaml.FullLoader
-    # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", constructor_fn, Loader=loader)
-    if yaml_config is None:
-        with open(yaml_path, "rb") as file:
-            yaml_config = yaml.load(file, Loader=loader)
-
-    if yaml_dir is None:
-        yaml_dir = os.path.dirname(yaml_path)
-
-    assert yaml_dir is not None
-
-    if "include" in yaml_config:
-        include_path = yaml_config["include"]
-        del yaml_config["include"]
-
-        if isinstance(include_path, str):
-            include_path = [include_path]
-
-        # Load from the last one first
-        include_path.reverse()
-        final_yaml_config = {}
-        for path in include_path:
-            # Assumes that path is a full path.
-            # If not found, assume the included yaml
-            # is in the same dir as the original yaml
-            if not os.path.isfile(path):
-                path = os.path.join(yaml_dir, path)
-
-            try:
-                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
-                final_yaml_config.update(included_yaml_config)
-            except Exception as ex:
-                # If failed to load, ignore
-                raise ex
-
-        final_yaml_config.update(yaml_config)
-        return final_yaml_config
-    return yaml_config
-
-
 def regex_replace(string, pattern, repl, count: int = 0):
     """Implements the `re.sub` function as a custom Jinja filter."""
     return re.sub(pattern, repl, string, count=count)
