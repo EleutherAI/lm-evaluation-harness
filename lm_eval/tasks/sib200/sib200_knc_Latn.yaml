@@ -1,0 +1,5 @@
+"dataset_name": "knc_Latn"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_knc_Latn"
+"test_split": "test"

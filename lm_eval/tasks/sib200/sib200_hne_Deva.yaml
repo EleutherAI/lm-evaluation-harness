@@ -1,0 +1,5 @@
+"dataset_name": "hne_Deva"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_hne_Deva"
+"test_split": "test"
