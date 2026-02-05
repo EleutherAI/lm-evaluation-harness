@@ -1,0 +1,5 @@
+"dataset_name": "General Education Disciplines (Professional & University in rus)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_other"
+"task": "kazmmlu_general_education_disciplines_(professional_&_university_in_rus)"
+"task_alias": "General Education Disciplines (Professional & University in rus)"
