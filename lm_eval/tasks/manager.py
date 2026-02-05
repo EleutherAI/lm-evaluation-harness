@@ -60,7 +60,9 @@ class TaskManager:
         self._factory: TaskFactory = TaskFactory(meta=metadata)
 
         all_paths: list[Path] = []
-        # Process include_path FIRST so user tasks take precedence over defaults
+        # Process defaults FIRST, then include_path (later paths can override earlier)
+        if include_defaults:
+            all_paths.append(Path(__file__).parent)
         if include_path:
             all_paths += [
                 Path(p)
@@ -70,8 +72,6 @@ class TaskManager:
                     else [include_path]
                 )
             ]
-        if include_defaults:
-            all_paths.append(Path(__file__).parent)
 
         self._index = index.build(all_paths)
 
@@ -141,10 +141,13 @@ class TaskManager:
             case _:
                 raise TypeError("spec must be str or dict")
 
-    def load_config(self, config: str | dict[str, Any]) -> dict:
+    def _load_config(self, config: str | dict[str, Any]) -> Task | Group | list[Task]:
         """Load a task from an inline config dict."""
         spec = self._load_spec(config)
-        return self._to_nested_dict(spec)
+        return spec
+
+    def _load_config_nested(self, config: str | dict[str, Any]):
+        return self._to_nested_dict(self._load_config(config))
 
     def load(
         self,
@@ -251,7 +254,9 @@ class TaskManager:
 
         # Each load_spec call returns a dict (possibly nested for groups)
         # We merge them using ChainMap
-        return dict(collections.ChainMap(*[self.load_config(s) for s in task_list]))
+        return dict(
+            collections.ChainMap(*[self._load_config_nested(s) for s in task_list])
+        )
 
     # ---------------------------------------------------------------- name checks
     def _name_is_registered(self, name: str) -> bool:
@@ -334,22 +339,3 @@ class TaskManager:
         if list_subtasks:
             result += subtask_table.dumps() + "\n\n"
         return result
-
-
-@deprecated("load_task_or_group is deprecated, Use TaskManager.load() instead")
-def get_task_dict(
-    task_name_list: str | list[str | dict | Task],
-    task_manager: TaskManager | None = None,
-):
-    """Helper to load multiple tasks into a dict. Creates TaskManager if not provided."""
-    if not task_manager:
-        task_manager = TaskManager()
-    else:
-        assert isinstance(task_manager, TaskManager)
-
-    return {
-        task_name: task_manager.load_config(task_name)
-        if isinstance(task_name, str)
-        else task_name
-        for task_name in task_name_list
-    }

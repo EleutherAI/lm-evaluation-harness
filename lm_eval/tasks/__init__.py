@@ -136,7 +136,7 @@ def get_task_dict(
         if isinstance(task_element, dict):
             task_name_from_config_dict = {
                 **task_name_from_config_dict,
-                **task_manager.load_config(config=task_element),  # type: ignore
+                **task_manager._load_config_nested(config=task_element),  # type: ignore
             }
 
         elif isinstance(task_element, Task):

@@ -49,6 +49,8 @@ class TaskIndex:
         index: dict[str, Entry] = {}
         log.debug("Building task index from %s", paths)
         for root in paths:
+            # Build this path's entries (skip duplicates within same path)
+            path_index: dict[str, Entry] = {}
             for yaml_path in self._iter_yaml_files(root):
                 try:
                     cfg = load_yaml(
@@ -56,10 +58,21 @@ class TaskIndex:
                         resolve_func=False,
                         recursive=resolve_includes,
                     )
-                    self.process_cfg(cfg, yaml_path, index)
+                    self.process_cfg(cfg, yaml_path, path_index)
                 except Exception as err:
                     log.debug("Skip %s (%s)", yaml_path, err)
                     continue
+
+            # Merge: later paths overwrite earlier, with warning
+            for name, entry in path_index.items():
+                if name in index:
+                    log.warning(
+                        "Task '%s' from %s overrides existing task from %s",
+                        name,
+                        entry.yaml_path,
+                        index[name].yaml_path,
+                    )
+                index[name] = entry
 
         log.debug("Built task index with %d entries", len(index))
         return index
