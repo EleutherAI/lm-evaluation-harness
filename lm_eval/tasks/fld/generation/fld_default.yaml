@@ -1,0 +1,5 @@
+include: _base.yaml
+group:
+  - fld
+task: fld_default
+doc_to_text: "Based on the provided facts ($context$), either prove or disprove the hypothesis or state that it is unknown. {{prompt_serial}}"
