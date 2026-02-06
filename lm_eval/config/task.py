@@ -6,6 +6,7 @@ from inspect import getsource
 from typing import TYPE_CHECKING, Any
 
 from lm_eval.defaults import default_gen_kwargs
+from lm_eval.config.presets import PresetConfig
 
 
 if TYPE_CHECKING:
@@ -122,12 +123,14 @@ class TaskConfig(dict):
     filter_list: str | list | None = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
+    presets: PresetConfig | str | dict | None = None
     gen_prefix: str | None = None
     metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
 
     def __post_init__(self) -> None:
+        self._init_preset()
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -166,6 +169,42 @@ class TaskConfig(dict):
             if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
             else self.fewshot_config
         )
+
+    def _init_preset(self):
+        """Resolve and apply preset configuration."""
+        self.presets = PresetConfig.get(self.presets)
+        if self.presets:
+            self._apply_preset_config()
+
+    def _apply_preset_config(self):
+        """Apply preset configuration with merge strategy.
+
+        Preset provides defaults; user config takes precedence.
+        Generates Jinja templates for doc_to_text, doc_to_target, doc_to_choice
+        from the preset configuration.
+        """
+        if not self.presets:
+            return
+
+        # Apply output_type and delimiters from preset
+        self.output_type = self.presets.output_type
+        self.target_delimiter = self.presets.target_delimiter
+        self.fewshot_delimiter = self.presets.fewshot_delimiter
+        self.gen_prefix = self.presets.gen_prefix
+
+        # Generate Jinja templates from preset
+        jinja_config = self.presets.to_jinja_config()
+
+        # Apply generated templates only if user hasn't specified their own
+        ## TODO: currently doc_to_text overloads those from the the preset
+        if self.doc_to_text is None:
+            self.doc_to_text = jinja_config["doc_to_text"]
+
+        if self.doc_to_target is None:
+            self.doc_to_target = jinja_config["doc_to_target"]
+
+        if self.doc_to_choice is None and jinja_config["doc_to_choice"] is not None:
+            self.doc_to_choice = jinja_config["doc_to_choice"]
 
     def __getitem__(self, item):
         return getattr(self, item)
