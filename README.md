@@ -396,9 +396,7 @@ https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/overview
 To use Windows ML, install the required dependencies:
 
 ```bash
-pip install wasdk-Microsoft.Windows.AI.MachineLearning[all] wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap
-# The onnxruntime-winml package is not published to PyPI yet. Please install it from the ort-nightly feed
-pip install --pre --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --extra-index-url https://pypi.org/simple onnxruntime-winml onnxruntime-genai-winml
+pip install wasdk-Microsoft.Windows.AI.MachineLearning[all] wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap onnxruntime-windowsml onnxruntime-genai-winml
 ```
 
 Evaluate a LLM ONNX model on NPU/GPU/CPU on Windows AI PC:
