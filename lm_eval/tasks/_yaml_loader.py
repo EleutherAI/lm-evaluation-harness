@@ -98,15 +98,33 @@ def _import_func_in_yml(qual: str, base_dir: Path):
         base_dir: Directory to search for local modules
     """
     mod_path, _, fn_name = qual.rpartition(".")
+    if not mod_path:
+        raise ValueError(
+            f"Invalid function reference '{qual}': no module path (from YAML in {base_dir})"
+        )
     # 1) relative "utils.py" next to YAML
     rel = (base_dir / f"{mod_path.replace('.', '/')}.py").resolve()
     if rel.exists():
-        module = _load_module_with_cache(rel)
-        return getattr(module, fn_name)
+        try:
+            module = _load_module_with_cache(rel)
+            return getattr(module, fn_name)
+        except AttributeError as e:
+            raise AttributeError(
+                f"Module '{rel}' has no function '{fn_name}' (from YAML in {base_dir})"
+            ) from e
 
     # 2) already-importable module
-    module = __import__(mod_path, fromlist=[fn_name])
-    return getattr(module, fn_name)
+    try:
+        module = __import__(mod_path, fromlist=[fn_name])
+        return getattr(module, fn_name)
+    except ImportError as e:
+        raise ImportError(
+            f"Cannot import module '{mod_path}' for function '{fn_name}' (from YAML in {base_dir})"
+        ) from e
+    except AttributeError as e:
+        raise AttributeError(
+            f"Module '{mod_path}' has no function '{fn_name}' (from YAML in {base_dir})"
+        ) from e
 
 
 def _import_fun_from_str(path_str: str) -> Any:
@@ -164,6 +182,9 @@ def load_yaml(
     loader_cls = _make_loader(path.parent, resolve_funcs=resolve_func)
     with path.open("rb") as fh:
         cfg = yaml.load(fh, Loader=loader_cls)
+
+    if not isinstance(cfg, dict):
+        raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
 
     if not recursive or "include" not in cfg:
         return cfg
