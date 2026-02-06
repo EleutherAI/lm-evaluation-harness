@@ -349,12 +349,12 @@ class EvaluatorConfig:
         from lm_eval.tasks._yaml_loader import load_yaml
 
         # if metadata manually passed use that:
-        self.metadata = metadata if metadata else self.metadata
+        self.metadata = metadata or self.metadata
 
         # Create task manager with metadata
         task_manager = TaskManager(
             include_path=self.include_path,
-            metadata=self.metadata if self.metadata else {},
+            metadata=self.metadata or {},
         )
 
         # Normalize tasks to a list
