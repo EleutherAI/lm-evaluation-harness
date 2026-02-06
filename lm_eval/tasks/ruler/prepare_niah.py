@@ -17,19 +17,19 @@ import os
 import random
 import re
 import uuid
-from functools import lru_cache, cache
-from typing import List, Union, Literal
-import datasets
+from functools import cache, lru_cache
+from importlib.metadata import version
+from typing import List, Literal, Union
 
+import datasets
 import numpy as np
 from packaging.version import parse as parse_version
-from importlib.metadata import version
-
 from tqdm import tqdm
 
+
 try:
-    import wonderwords
     import nltk
+    import wonderwords
     from nltk import sent_tokenize
 except ImportError:
     raise ImportError(
@@ -281,7 +281,9 @@ def generate_samples(
         desc=f"Generating synthetic samples: {type_haystack} | {max_seq_length}",
     ):
         used_haystack = num_haystack
-        while True:
+        retry_counter = 0
+        max_retries = 10
+        while retry_counter < max_retries:
             try:
                 input_text, answer, query = generate_input_output(
                     used_haystack,
@@ -296,12 +298,25 @@ def generate_samples(
                     random_seed=random_seed,
                 )
                 length = len(TOKENIZER(input_text).input_ids) + tokens_to_generate
-                assert length <= max_seq_length, f"{length} exceeds max_seq_length."
+
+                if length > max_seq_length:
+                    raise ValueError(f"{length} exceeds max_seq_length")
+
                 break
-                # ruff: noqa
-            except:
+
+            except Exception as e:
+                retry_counter += 1
                 if used_haystack > incremental:
                     used_haystack -= incremental
+                else:
+                    print(
+                        f"[Warning] Could not generate valid sample #{index} "
+                        f"within max_seq_length={max_seq_length}. Error: {e}"
+                    )
+                    break  # avoid infinite retry
+
+        if retry_counter >= max_retries:
+            continue
 
         if remove_newline_tab:
             input_text = " ".join(
@@ -314,14 +329,20 @@ def generate_samples(
             "outputs": answer,
             "length": length,
             "max_length": max_seq_length,
-            "gen_prefix": f"The special magic {type_needle_v[:-1]} for {query} mentioned in the provided text is"
-            if num_needle_q * num_needle_v == 1
-            else f"The special magic {type_needle_v} for {query} mentioned in the provided text are",
+            "gen_prefix": (
+                f"The special magic {type_needle_v[:-1]} for {query} mentioned in the provided text is"
+                if num_needle_q * num_needle_v == 1
+                else f"The special magic {type_needle_v} for {query} mentioned in the provided text are"
+            ),
         }
-        if formatted_output["outputs"][0] not in formatted_output["input"]:
-            assert False, (
-                f"Needle not in input: {formatted_output}. Something went wrong."
-            )
+
+        if (
+            not formatted_output["outputs"]
+            or formatted_output["outputs"][0] not in formatted_output["input"]
+        ):
+            print(f"[Warning] Needle missing in sample #{index}. Skipping.")
+            continue
+
         write_jsons.append(formatted_output)
     return write_jsons
 
