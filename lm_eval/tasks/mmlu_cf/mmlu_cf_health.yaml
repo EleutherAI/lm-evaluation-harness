@@ -1,0 +1,7 @@
+task: mmlu_cf_health
+task_alias: health
+test_split: Health_val
+fewshot_split: Health_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_other_tasks
+include: _default_template_yaml
