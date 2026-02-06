@@ -8,6 +8,11 @@ on:
     branches:
       - 'main'
   workflow_dispatch:
+
+env:
+  TQDM_DISABLE: "1"
+  HF_HUB_DISABLE_PROGRESS_BARS: "1"
+
 # comment/edit out the above to stop/change the triggers
 jobs:
   changed_files:
@@ -25,7 +30,7 @@ jobs:
       # and prepends the filter name to the standard output names.
       - name: Check task folders
         id: changed-tasks
-        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
         with:
           # tasks checks the tasks folder and api checks the api folder for changes
           files_yaml: |
