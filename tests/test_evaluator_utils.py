@@ -230,16 +230,6 @@ class TestComputeTaskAggregations:
         assert metrics["acc,none"] == pytest.approx(0.5)
         assert metrics["f1,exact"] == pytest.approx(0.7)
 
-    def test_sample_count_from_last_metric(self):
-        task = MockEvalTask("t", agg={"a": mean, "b": mean})
-        raw = {
-            ("a", "none"): [1.0, 2.0],
-            ("b", "none"): [1.0, 2.0, 3.0],
-        }
-        _, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
-        # sample_len is set by last iteration — dict is insertion‐ordered
-        assert count == 3
-
     def test_bleu_metric_bootstrap_cap(self):
         task = MockEvalTask("t", agg={"bleu": mean})
         raw = {("bleu", "none"): [0.5, 0.6, 0.7]}
@@ -808,20 +798,3 @@ class TestCollectResultsNSamples:
         result = _collect_results(accs, bootstrap_iters=0)
         assert result.n_samples["t1"]["original"] == 42
         assert result.n_samples["t1"]["effective"] == 2
-
-    def test_n_samples_multiple_metrics_uses_last_sample_len(self):
-        """sample_len is set by last metric iteration (dict insertion order)."""
-        # TODO: This needs to be fixed and sample_len should be used for each metric separately
-        task = MockEvalTask("t1", agg={"a": mean, "b": mean}, n_eval_docs=50)
-        accs = {
-            "t1": make_result_acc(
-                task,
-                {
-                    ("a", "none"): [1.0, 2.0],
-                    ("b", "none"): [1.0, 2.0, 3.0],
-                },
-            ),
-        }
-        result = _collect_results(accs, bootstrap_iters=0)
-        # sample_len comes from last metric ("b") which has 3 items
-        assert result.n_samples["t1"]["effective"] == 3

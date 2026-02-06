@@ -490,6 +490,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
         ## alias takes care of name, and we don't print sample_len
         dic.pop("name", None)
         dic.pop("sample_len", None)
+        dic.pop("sample_count", None)
 
         # Add indentation based on hierarchy depth
         depth = depth_map.get(k, 0)

@@ -296,11 +296,14 @@ class TestGroupAggregation:
 
         result = group.aggregate(self.task_metrics)
 
-        # Should only have alias and name, no metrics
+        # Should only have alias, name, and sample_len — no metric keys
         assert "alias" in result
         assert "name" in result
         assert "acc_norm,none" not in result
-        assert len([k for k in result.keys() if k not in ("alias", "name")]) == 0
+        assert (
+            len([k for k in result.keys() if k not in ("alias", "name", "sample_len")])
+            == 0
+        )
 
     def test_multiple_metrics_auto_discovery(self):
         """Test auto-discovery with multiple metrics."""
@@ -399,7 +402,10 @@ class TestGroupAggregation:
         assert result["acc_norm_stderr,custom"] == 0.012
 
     def test_sample_len_count_with_auto_discovery(self):
-        """Test that sample counts are correct with auto-discovery."""
+        """
+        Test that sample_len is the total across all leaf tasks, and
+        per-metric sample_count reflects contributing tasks.
+        """
         group = Group(
             name="test_group",
             aggregate_metric_list=[AggMetricConfig(metric="acc_norm")],
@@ -409,13 +415,27 @@ class TestGroupAggregation:
 
         result = group.aggregate(self.task_metrics)
 
-        # Total sample_len should be sum of both tasks (last filter processed sets this)
-        # In this case, the last filter processed will determine the final sample count
-        assert "sample_len" in result
-        # The sample_len count is set per filter during aggregation
-        # For filters present in both tasks, sample_len = 100 + 100 = 200
-        # For filters present in one task, sample_len = 100
-        # The final "sample_len" value will be from the last filter processed
+        # sample_len is total across ALL leaf tasks (100 + 100)
+        assert result["sample_len"] == 200
+        # per-metric sample_count: "none" appears in both tasks
+        assert result["sample_count"]["acc_norm,none"] == 200
+        # "prefix" only in task_a (100), "custom" only in task_b (100)
+        assert result["sample_count"]["acc_norm,prefix"] == 100
+        assert result["sample_count"]["acc_norm,custom"] == 100
+
+    def test_sample_count_per_metric_with_asymmetric_filters(self):
+        """Per-metric sample_count reflects contributing tasks; sample_len is the total."""
+        metrics = {
+            "task_a": {"sample_len": 100, "acc,none": 0.8, "acc,prefix": 0.85},
+            "task_b": {"sample_len": 200, "acc,none": 0.9},  # no prefix
+        }
+        group = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
+        group.add(MockTask("task_a"))
+        group.add(MockTask("task_b"))
+        result = group.aggregate(metrics)
+        assert result["sample_len"] == 300  # total across all leaf tasks
+        assert result["sample_count"]["acc,none"] == 300  # both tasks contribute
+        assert result["sample_count"]["acc,prefix"] == 100  # only task_a contributes
 
 
 class TestGroupWeightedAggregation:

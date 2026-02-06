@@ -186,7 +186,8 @@ class Group:
 
         Args:
             task_metrics: {task_name: {metric_key: value, "sample_len": int, ...}}
-                Results from leaf tasks (EvalAcc.metrics)
+                The full flat metrics dict (all tasks). This group only reads
+                entries for its own leaf tasks (via ``get_all_tasks()``).
 
         Returns:
             Aggregated metrics dict for this group:
@@ -204,6 +205,15 @@ class Group:
 
         # Get leaf task names
         leaf_tasks = [t.task_name for t in self.get_all_tasks()]
+
+        # group-level sample len. Not used for weighting, but useful metadata
+        # Compute total sample_len once (across all leaf tasks), not per-filter
+        group_metrics["sample_len"] = sum(
+            task_metrics[name].get("sample_len", 0)
+            for name in leaf_tasks
+            if name in task_metrics
+        )
+        sample_count: dict[str, int] = {}
 
         for agg_config in self.aggregate_metric_list:
             # Determine filters: auto-discover if None, else use explicit list
@@ -258,12 +268,15 @@ class Group:
                     group_metrics[metric_key] = aggregate_subtask_metrics(
                         values, sizes, agg_config.weight_by_size
                     )
-                    group_metrics["sample_len"] = sum(sizes)
+                    sample_count[metric_key] = sum(sizes)
 
                     if len(stderrs) == len(values) and "N/A" not in stderrs:
                         group_metrics[stderr_key] = pooled_sample_stderr(stderrs, sizes)
                     else:
                         group_metrics[stderr_key] = "N/A"
+
+        if sample_count:
+            group_metrics["sample_count"] = sample_count
 
         return cast("_TaskMetrics", group_metrics)
 
