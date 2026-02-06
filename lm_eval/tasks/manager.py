@@ -13,6 +13,7 @@ from lm_eval.api.group import Group
 from lm_eval.api.task import Task
 from lm_eval.tasks._factory import TaskFactory
 from lm_eval.tasks._index import Entry, Kind, TaskIndex
+from lm_eval.tasks._yaml_loader import load_yaml
 
 
 if TYPE_CHECKING:
@@ -113,31 +114,48 @@ class TaskManager:
         return self._index
 
     # ---------------------------------------------------------------- core API
-    def _entry(self, name: str) -> Entry:
+    def _entry(self, name: str) -> Entry | None:
         """Get the Entry for a given task/group/tag name from the index."""
-        if name not in self._index:
-            raise KeyError(f"Unknown task/group/tag: {name}")
-        return self._index[name]
+        return self._index.get(name)
 
     def _load_spec(self, spec: str | dict[str, Any]) -> Task | Group | list[Task]:
-        """Load a task/group/tag by name or with inline overrides.
+        """Load a task/group/tag by name, file path, or inline config.
 
         Args:
-            spec: Task name (str) or dict with "task" key and overrides
+            spec: Task name (str), YAML file path,
+                  or dict with "task"/"group" key.
 
         Returns:
-            Dict mapping task names to task objects (nested for groups)
+            Task, Group, or list[Task] (for tags)
         """
         match spec:
+            # Registered name
             case str():
+                # First check if it's a registered name (task/group/tag)
                 entry = self._entry(spec)
-                return self._factory.build(entry, overrides=None, registry=self._index)
+                if entry:
+                    return self._factory.build(
+                        entry, overrides=None, registry=self._index
+                    )
+                # check if it's a path
+                entry = TaskIndex.entry_from_path(Path(spec))
+                if entry:
+                    return self._factory.build(
+                        entry, overrides=None, registry=self._index
+                    )
+                raise KeyError(
+                    f"Spec '{spec}' is not a registered task/group/tag name or valid YAML path"
+                )
+
             case dict():
-                name = spec.get("task")
-                if not name:
-                    raise KeyError("Inline config dict must have a 'task' key")
-                entry = self._entry(name)
-                return self._factory.build(entry, overrides=spec, registry=self._index)
+                _entry = TaskIndex.entry_from_config(spec)
+                if _entry:
+                    return self._factory.build(
+                        _entry, overrides=spec, registry=self._index
+                    )
+                raise ValueError(
+                    "Invalid config dict: must contain 'task' or 'group' key"
+                )
             case _:
                 raise TypeError("spec must be str or dict")
 
@@ -291,14 +309,9 @@ class TaskManager:
             output_type = ""
 
             if path is not None:
-                config = utils.load_yaml_config(str(path), mode="simple")
+                config = load_yaml(path, resolve_func=False, recursive=True)
                 if "output_type" in config:
                     output_type = config["output_type"]
-                elif "include" in config:
-                    include_path = str(path.parent / config["include"])
-                    include_config = utils.load_yaml_config(include_path, mode="simple")
-                    if "output_type" in include_config:
-                        output_type = include_config["output_type"]
 
             path = sanitize_path(path)
             st_values.append([t, path, output_type])

@@ -247,6 +247,8 @@ class TaskFactory:
     ) -> dict[str, Any]:
         if entry.yaml_path:
             cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))
+        elif entry.cfg:
+            cfg = deepcopy(entry.cfg)
         else:
             cfg: dict[str, Any] = {
                 "metadata": {"config": "unknown"}
@@ -258,7 +260,7 @@ class TaskFactory:
             m if isinstance(m := cfg.get("metadata", {}), dict) else {"_metadata": m}
         ) | self._meta  # type: ignore
         cfg["metadata"]["config_source"] = str(entry.yaml_path) or "inline"
-        cfg.setdefault("task", entry.name)
+        # cfg.setdefault("task", entry.name)
         return cfg
 
 

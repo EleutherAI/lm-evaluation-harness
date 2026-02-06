@@ -21,6 +21,7 @@ class Kind(Enum):
     PY_TASK = auto()  # Python-defined, via "class"
     GROUP = auto()
     TAG = auto()
+    UNKNOWN = auto()
 
 
 @dataclass
@@ -28,7 +29,7 @@ class Entry:
     name: str
     kind: Kind
     yaml_path: Path | None  # None for generated / py-only entries
-    cfg: dict[str, str] | None = None
+    cfg: dict[str, Any] | None = None
     tags: set[str] = field(default_factory=set)
 
 
@@ -162,6 +163,30 @@ class TaskIndex:
                 return Kind.TASK
             case _:
                 raise ValueError("Unknown config shape")
+
+    @staticmethod
+    def entry_from_path(path: Path) -> Entry | None:
+        """Create an Entry from a YAML file path (not in the index)."""
+        path = path.expanduser().resolve()
+        if not path.is_file():
+            return None
+        cfg = load_yaml(path, resolve_func=False)
+        kind = TaskIndex._kind_of(cfg)
+        name: str | None = cfg.get("task") or cfg.get("group")
+        return Entry(name=name, kind=kind, yaml_path=path) if name else None
+
+    @staticmethod
+    def entry_from_config(cfg: dict[str, Any]) -> Entry | None:
+        """Create an Entry from a raw config dict (not in the index)."""
+        _kind = TaskIndex._kind_of(cfg)
+        match _kind:
+            case Kind.GROUP:
+                if "group" in cfg:
+                    return Entry(name=cfg["group"], kind=_kind, yaml_path=None, cfg=cfg)
+            case Kind.TASK | Kind.PY_TASK:
+                if "task" in cfg:
+                    return Entry(name=cfg["task"], kind=_kind, yaml_path=None, cfg=cfg)
+        return None
 
     @staticmethod
     def _str_to_set(*args) -> set[str]:
