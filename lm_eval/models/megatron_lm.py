@@ -445,6 +445,25 @@ class MegatronLMEval(LM):
                         getattr(args, 'multi_latent_attention', False),
                     )
 
+                # Force SelfAttention's default attn_mask_type to `arbitrary` so TE uses the
+                # provided 4D attention mask (causal + padding) instead of assuming a causal-only
+                # mask internally. Without this, padding tokens can remain visible (especially with
+                # left-padding / batched inference), which leads to incorrect attention and wrong
+                # inference results.
+                from megatron.core.transformer.enums import (  # pylint: disable=import-error
+                    AttnMaskType,
+                )
+
+                try:
+                    transformer_layer_spec.submodules.self_attention.params[
+                        "attn_mask_type"
+                    ] = AttnMaskType.arbitrary
+                except Exception as e:
+                    raise RuntimeError(
+                        "Failed to override attn_mask_type on transformer_layer_spec. "
+                        "Expected transformer_layer_spec.submodules.self_attention.params to exist."
+                    ) from e
+
                 model = GPTModel(
                     config=config,
                     transformer_layer_spec=transformer_layer_spec,
@@ -646,16 +665,16 @@ class MegatronLMEval(LM):
                 device=input_ids.device
             ).triu(diagonal=1)  # True for positions that should be masked (future tokens)
 
-        # Handle position_ids and attention_mask based on whether padding mask is provided
         if attention_mask is not None and attention_mask.dim() == 2:
             # attention_mask: [batch, seq] with 1=real, 0=padding
 
-            # Compute position_ids based on attention_mask
-            # For left-padded inputs: padding gets pos=0, real tokens get 0,1,2,...
-            # E.g., mask=[0,0,1,1,1] -> pos=[0,0,0,1,2]
+            # For RoPE models: use standard position_ids [0, 1, 2, ...] for all samples
+            # This is because RoPE encodes relative positions, and using mask-based
+            # position_ids (where padding positions all have pos=0) can cause issues
+            # with the position encoding computation.
             if position_ids is None:
-                position_ids = attention_mask.long().cumsum(-1) - 1
-                position_ids = position_ids.clamp(min=0)
+                position_ids = torch.arange(seq_len, dtype=torch.long, device=input_ids.device)
+                position_ids = position_ids.unsqueeze(0).expand(batch_size, -1)
 
             # Create padding mask for Megatron format
             # padding_mask: True = padding (should be masked), False = real token
@@ -671,76 +690,15 @@ class MegatronLMEval(LM):
                 position_ids = torch.arange(seq_len, dtype=torch.long, device=input_ids.device)
                 position_ids = position_ids.unsqueeze(0).expand(batch_size, -1)
             attention_mask = causal_mask
-
+        
         with torch.no_grad():
-            if self._pp_size == 1:
-                # No pipeline parallelism - simple forward
-                output = self.model(
-                    input_ids=input_ids,
-                    position_ids=position_ids,
-                    attention_mask=attention_mask,
-                )
-            else:
-                # Pipeline parallelism - need to handle stages
-                output = self._forward_with_pp(
-                    input_ids=input_ids,
-                    position_ids=position_ids,
-                    attention_mask=attention_mask,
-                )
-
-        return output
-
-    def _forward_with_pp(
-        self,
-        input_ids: torch.Tensor,
-        position_ids: torch.Tensor,
-        attention_mask: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        Forward pass with Pipeline Parallelism.
-
-        Handles communication between pipeline stages and broadcasts
-        final logits to all ranks.
-        """
-        from megatron.core import parallel_state
-
-        batch_size, seq_len = input_ids.shape
-
-        # For evaluation, we use a simple approach:
-        # - Run forward on all stages
-        # - Broadcast logits from last stage to all stages
-
-        # Megatron handles pipeline communication internally
-        # All stages can call model with the same interface
-        output = self.model(
-            input_ids=input_ids,
-            position_ids=position_ids,
-            attention_mask=attention_mask,
-        )
-
-        # Only the last stage has valid logits
-        if self._is_pipeline_last_stage:
-            logits = output
-        else:
-            # Create placeholder tensor for logits
-            logits = torch.zeros(
-                batch_size, seq_len, self._args.padded_vocab_size,
-                dtype=torch.bfloat16,
-                device=self.device
+            output = self.model(
+                input_ids=input_ids,
+                position_ids=position_ids,
+                attention_mask=attention_mask,
             )
 
-        # Broadcast logits from last stage to all stages in the pipeline
-        # Get the rank of the last pipeline stage within the pipeline group
-        pp_group = parallel_state.get_pipeline_model_parallel_group()
-        last_stage_rank = parallel_state.get_pipeline_model_parallel_last_rank()
-
-        torch.distributed.broadcast(
-            logits,
-            src=last_stage_rank,
-            group=pp_group,
-        )
-
-        return logits
+        return output
 
     def _distribute_requests(self, requests: List) -> Tuple[List, List[int]]:
         """
@@ -864,14 +822,21 @@ class MegatronLMEval(LM):
             # Pad sequences
             max_len = max(len(inp) for inp in inps)
             padded_inps = []
+            attention_mask_list = []
             for inp in inps:
-                padded = [self.eot_token_id] * (max_len - len(inp)) + inp
+                pad_len = max_len - len(inp)
+                padded = [self.eot_token_id] * pad_len + inp
                 padded_inps.append(padded)
+                # Attention mask: 0 for padding, 1 for real tokens
+                attention_mask_list.append([0] * pad_len + [1] * len(inp))
 
             input_ids = torch.tensor(padded_inps, dtype=torch.long, device=self.device)
+            attention_mask = torch.tensor(
+                attention_mask_list, dtype=torch.long, device=self.device
+            )
 
             # Forward pass (handles TP/PP internally)
-            logits = self._model_forward(input_ids)
+            logits = self._model_forward(input_ids, attention_mask=attention_mask)
 
             # Compute log probabilities
             log_probs = torch.nn.functional.log_softmax(logits.float(), dim=-1)
@@ -981,22 +946,15 @@ class MegatronLMEval(LM):
         results = []
         batch_size = self.batch_size if self.batch_size != "auto" else 1
 
-        # NOTE: Megatron-LM's RoPE implementation does not support per-sample position_ids,
-        # which causes accuracy degradation with batch_size > 1 on generation tasks
-        # (e.g., GSM8K, TriviaQA) due to incorrect positional encoding for left-padded sequences.
-        assert batch_size == 1, (
-            f"generate_until does not support batch_size > 1 (got {batch_size}). "
-            "Megatron-LM's RoPE implementation ignores position_ids, causing significant "
-            "accuracy degradation on generation tasks with batched inference. "
-            "Please use batch_size=1 for accurate results."
-        )
-
-        # Use Collator to sort by context length (negative for descending order)
+        # Use Collator to sort by TOKEN length (negative for descending order)
         # This minimizes padding within each batch, which is critical for RoPE models
+        # NOTE: We need to tokenize first to get the actual token count, not string length!
         def _collate_gen(req):
-            # Sort by negative context length (longest first)
+            # Sort by negative token length (longest first)
             ctx = req.args[0]
-            return -len(ctx), ctx
+            # Tokenize to get actual token count for proper sorting
+            tokens = self.tok_encode(ctx)
+            return -len(tokens), ctx
 
         # group_by="gen_kwargs" ensures each batch has the same generation parameters
         # This is important when running multiple tasks with different gen_kwargs
@@ -1102,7 +1060,6 @@ class MegatronLMEval(LM):
                     attention_mask = attention_mask[:, -self.max_length:]
 
                 # Forward pass - ALL ranks must participate for EP All-to-All sync
-                # Pass attention_mask to prevent attending to padding tokens
                 logits = self._model_forward(input_ids, attention_mask=attention_mask)
 
                 # Only process results if this rank's batch is not finished
