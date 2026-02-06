@@ -382,7 +382,7 @@ class TestEvaluatorConfigTaskLoading:
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
         mock_tm_instance = MagicMock()
-        mock_tm_instance.match_tasks.side_effect = lambda x: [x]
+        mock_tm_instance.match_tasks.side_effect = lambda x: x
         mock_task_manager.return_value = mock_tm_instance
 
         # Simulate CLI input: --tasks hellaswag,arc_easy
@@ -393,8 +393,8 @@ class TestEvaluatorConfigTaskLoading:
 
         # Should have split the comma-separated string
         assert mock_tm_instance.match_tasks.call_count == 2
-        mock_tm_instance.match_tasks.assert_any_call("hellaswag")
-        mock_tm_instance.match_tasks.assert_any_call("arc_easy")
+        mock_tm_instance.match_tasks.assert_any_call(["hellaswag"])
+        mock_tm_instance.match_tasks.assert_any_call(["arc_easy"])
 
     @patch("lm_eval.tasks.TaskManager")
     def test_process_tasks_mixed_comma_and_space_separated(self, mock_task_manager):
@@ -402,7 +402,7 @@ class TestEvaluatorConfigTaskLoading:
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
         mock_tm_instance = MagicMock()
-        mock_tm_instance.match_tasks.side_effect = lambda x: [x]
+        mock_tm_instance.match_tasks.side_effect = lambda x: x
         mock_task_manager.return_value = mock_tm_instance
 
         # Simulate CLI input: --tasks hellaswag,arc_easy winogrande
@@ -413,9 +413,9 @@ class TestEvaluatorConfigTaskLoading:
 
         # Should have split comma-separated and kept space-separated
         assert mock_tm_instance.match_tasks.call_count == 3
-        mock_tm_instance.match_tasks.assert_any_call("hellaswag")
-        mock_tm_instance.match_tasks.assert_any_call("arc_easy")
-        mock_tm_instance.match_tasks.assert_any_call("winogrande")
+        mock_tm_instance.match_tasks.assert_any_call(["hellaswag"])
+        mock_tm_instance.match_tasks.assert_any_call(["arc_easy"])
+        mock_tm_instance.match_tasks.assert_any_call(["winogrande"])
 
     @patch("lm_eval.tasks.TaskManager")
     def test_process_tasks_string_comma_separated(self, mock_task_manager):
@@ -423,7 +423,7 @@ class TestEvaluatorConfigTaskLoading:
         from lm_eval.config.evaluate_config import EvaluatorConfig
 
         mock_tm_instance = MagicMock()
-        mock_tm_instance.match_tasks.side_effect = lambda x: [x]
+        mock_tm_instance.match_tasks.side_effect = lambda x: x
         mock_task_manager.return_value = mock_tm_instance
 
         # Simulate YAML input: tasks: "hellaswag,arc_easy"
@@ -433,8 +433,8 @@ class TestEvaluatorConfigTaskLoading:
 
         # Should have split the comma-separated string
         assert mock_tm_instance.match_tasks.call_count == 2
-        mock_tm_instance.match_tasks.assert_any_call("hellaswag")
-        mock_tm_instance.match_tasks.assert_any_call("arc_easy")
+        mock_tm_instance.match_tasks.assert_any_call(["hellaswag"])
+        mock_tm_instance.match_tasks.assert_any_call(["arc_easy"])
 
     def test_custom_yaml_file_relative_path(self, tmp_path):
         """Test loading custom task config via a relative path (fixes #3425)."""

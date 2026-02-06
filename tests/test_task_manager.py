@@ -37,7 +37,7 @@ tag:
 @pytest.fixture(scope="module")
 def task_code():
     return """
-from lm_eval.tasks import ConfigurableTask
+from lm_eval.api.task import ConfigurableTask
 
 class MockPythonTask(ConfigurableTask):
 
@@ -390,7 +390,10 @@ class TestTaskManagerIntegration:
         groups = shared_task_manager.all_groups
         assert len(groups) > 0
         for g in groups[:5]:  # Check first 5
-            assert shared_task_manager._name_is_group(g)
+            assert (
+                shared_task_manager._entry(g) is not None
+                and shared_task_manager._entry(g).kind == Kind.GROUP
+            )
 
     def test_all_subtasks_property(self, shared_task_manager):
         """all_subtasks returns TASK and PY_TASK kinds"""
@@ -405,7 +408,10 @@ class TestTaskManagerIntegration:
         tags = shared_task_manager.all_tags
         assert len(tags) > 0
         for t in tags[:5]:  # Check first 5
-            assert shared_task_manager._name_is_tag(t)
+            assert (
+                shared_task_manager._entry(t) is not None
+                and shared_task_manager._entry(t).kind == Kind.TAG
+            )
 
     def test_load_task_by_name(self, test_configs_task_manager):
         """Load a single task by name"""
@@ -506,18 +512,16 @@ class TestTaskManagerIntegration:
 
     def test_name_is_registered(self, shared_task_manager):
         """_name_is_registered checks if name exists"""
-        assert shared_task_manager._name_is_registered("arc_easy")
-        assert not shared_task_manager._name_is_registered("nonexistent_task_xyz")
+        assert "arc_easy" in shared_task_manager._index
+        assert "nonexistent_task_xyz" not in shared_task_manager._index
 
-    def test_name_is_task(self, shared_task_manager):
+    def test_name_is_task_tag(self, shared_task_manager):
         """_name_is_task returns True for tasks"""
-        assert shared_task_manager._name_is_task("arc_easy")
-        assert not shared_task_manager._name_is_task("ai2_arc")  # This is a tag
-
-    def test_name_is_tag(self, shared_task_manager):
-        """_name_is_tag returns True for tags"""
-        assert shared_task_manager._name_is_tag("ai2_arc")
-        assert not shared_task_manager._name_is_tag("arc_easy")  # This is a task
+        assert "arc_easy" in shared_task_manager._index
+        assert shared_task_manager._index["arc_easy"].kind == Kind.TASK
+        entry = shared_task_manager._index.get("ai2_arc")
+        assert entry is not None
+        assert entry.kind == Kind.TAG  # ai2_arc is a tag, not a task
 
     def test_include_path_precedence(self, shared_task_manager):
         """Test that user-specified include paths take precedence over default paths when tasks have the same name."""
@@ -771,6 +775,150 @@ metadata:
 
 
 # =============================================================================
+# Same integration tests using load() instead of load_task_or_group()
+# =============================================================================
+
+
+class TestTaskManagerLoad:
+    """Mirror of TestTaskManagerIntegration using the new load() API.
+
+    Verifies that load() returns equivalent data to the deprecated
+    load_task_or_group() for every scenario.
+    """
+
+    def test_load_task_by_name(self, test_configs_task_manager):
+        """Load a single task by name"""
+        result = test_configs_task_manager.load(["simple_task"])
+        assert "simple_task" in result["tasks"]
+
+    def test_load_group_by_name(self, test_configs_task_manager):
+        """Load a group and get tasks + groups dicts"""
+        result = test_configs_task_manager.load(["test_group"])
+        assert "test_group" in result["groups"]
+        tasks = result["tasks"]
+        assert "test_group::group_task_fs0" in tasks
+        assert "test_group::group_task_fs2" in tasks
+
+    def test_load_group_map(self, test_configs_task_manager):
+        """group_map lists direct children of each group"""
+        result = test_configs_task_manager.load(["test_group"])
+        gm = result["group_map"]
+        assert "test_group" in gm
+        assert "test_group::group_task_fs0" in gm["test_group"]
+        assert "test_group::group_task_fs2" in gm["test_group"]
+
+    def test_load_tag_by_name(self, shared_task_manager):
+        """Load all tasks in a tag"""
+        result = shared_task_manager.load(["ai2_arc"])
+        assert "arc_easy" in result["tasks"]
+        assert "arc_challenge" in result["tasks"]
+        # Tags don't create groups
+        assert len(result["groups"]) == 0
+
+    def test_include_inheritance_override(self):
+        """Child config overrides parent values from include"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load(["include_task_fs5"])
+        task_obj = result["tasks"]["include_task_fs5"]
+
+        assert task_obj.config.num_fewshot == 5
+        assert task_obj.config.dataset_path == "json"
+
+    def test_include_custom_metrics(self):
+        """include_task_fs5 has custom metrics (acc + acc_norm)"""
+        test_configs_path = Path(__file__).parent / "test_configs"
+        tm = TaskManager(include_path=str(test_configs_path), include_defaults=False)
+
+        result = tm.load(["include_task_fs5"])
+        task_obj = result["tasks"]["include_task_fs5"]
+
+        assert task_obj.config.metric_list is not None, "metric_list should not be None"
+        metric_names = [m["metric"] for m in task_obj.config.metric_list]
+        assert "acc" in metric_names
+        assert "acc_norm" in metric_names
+
+    def test_tag_expansion_in_group(self, test_configs_task_manager):
+        """TAGs inside groups expand each task individually"""
+        result = test_configs_task_manager.load(["tag_subgroup"])
+        tasks = result["tasks"]
+
+        assert "tag_task_1" in tasks
+        assert "tag_task_2" in tasks
+        assert "tag_task_3" in tasks
+        assert len(tasks) == 3
+
+    def test_nested_group_with_tag(self, test_configs_task_manager):
+        """Nested groups with TAG: parent -> subgroup -> TAG -> tasks"""
+        result = test_configs_task_manager.load(["tag_parent_group"])
+
+        groups = result["groups"]
+        assert "tag_parent_group" in groups
+        assert "tag_subgroup" in groups
+
+        tasks = result["tasks"]
+        assert "tag_task_1" in tasks
+        assert "tag_task_2" in tasks
+        assert "tag_task_3" in tasks
+
+    def test_include_path_precedence(self, shared_task_manager):
+        """User-specified include paths override default tasks"""
+        with tempfile.TemporaryDirectory() as custom_dir:
+            custom_task_content = """task: arc_easy
+dataset_path: allenai/ai2_arc
+dataset_name: ARC-Easy
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Custom Question: {{question}}\\nAnswer:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0
+  custom: true
+"""
+            (Path(custom_dir) / "arc_easy.yaml").write_text(custom_task_content)
+
+            tm = TaskManager(include_defaults=True, include_path=custom_dir)
+            result = tm.load(["arc_easy"])
+            arc_easy = result["tasks"]["arc_easy"]
+
+            assert any(m["metric"] == "f1" for m in arc_easy.config["metric_list"])
+            assert "Custom Question:" in arc_easy.config["doc_to_text"]
+
+            # Default should not have custom metric
+            default_result = shared_task_manager.load(["arc_easy"])
+            default_arc = default_result["tasks"]["arc_easy"]
+            assert not any(
+                m["metric"] == "f1" for m in default_arc.config.get("metric_list", [])
+            )
+
+    def test_load_returns_same_tasks_as_legacy(self, test_configs_task_manager):
+        """load() and load_task_or_group() produce the same leaf tasks"""
+        new = test_configs_task_manager.load(["test_group"])
+        with pytest.warns(DeprecationWarning):
+            old = test_configs_task_manager.load_task_or_group(["test_group"])
+
+        # Flatten legacy nested dict to get leaf task names
+        def _leaf_names(d):
+            names = set()
+            for k, v in d.items():
+                if isinstance(v, dict):
+                    names |= _leaf_names(v)
+                else:
+                    names.add(k)
+            return names
+
+        assert set(new["tasks"].keys()) == _leaf_names(old)
+
+
+# =============================================================================
 # Group Building & Factory Tests
 # =============================================================================
 
@@ -847,7 +995,7 @@ class TestGroupBuilding:
         Caller-supplied overrides should take precedence over
         group-level config values.
         """
-        loaded = tm.load([{"task": "propagation_group", "num_fewshot": 0}])
+        loaded = tm.load([{"group": "propagation_group", "num_fewshot": 0}])
         tasks = loaded["tasks"]
 
         for name, task in tasks.items():

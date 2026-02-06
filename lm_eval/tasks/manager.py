@@ -21,16 +21,33 @@ if TYPE_CHECKING:
 
 
 class TaskDict(TypedDict):
+    """Return type of :meth:`TaskManager.load`.
+
+    Attributes:
+        tasks: Flat mapping of task name to Task for every leaf task.
+        groups: Flat mapping of group name to Group.
+        group_map: Mapping of each group/tag name to its direct child names (not recursive).
+    """
+
     tasks: dict[str, Task]
     groups: dict[str, Group]
+    group_map: dict[str, list[str]]
 
 
 class TaskManager:
-    """Discovers, indexes, and loads evaluation tasks from YAML configs.
+    """Central entry point for discovering and loading evaluation tasks.
 
-    Scans directories for task definitions and provides methods to load them
-    by name, glob pattern, or inline config. Handles groups, tags, and task
-    namespacing (e.g., "mmlu_humanities::formal_logic").
+    On construction, scans one or more directories for YAML task configs and
+    builds an in-memory index of every known task, group, and tag.  Callers
+    then use :meth:`load` to instantiate tasks by name, glob pattern, file
+    path, or inline config dict.
+
+    Example::
+
+        tm = TaskManager(include_path="my_tasks/")
+        result = tm.load(["mmlu", "hellaswag"])
+        result["tasks"]   # {name: Task, ...}
+        result["groups"]  # {name: Group, ...}
     """
 
     def __init__(
@@ -42,7 +59,7 @@ class TaskManager:
     ) -> None:
         """
         Args:
-            verbosity: Logging level (e.g., "INFO", "DEBUG")
+            verbosity: Logging level (e.g., "INFO", "DEBUG") (deprecated, use standard logging configuration instead)
             include_path: Custom paths to scan for task configs (takes precedence)
             include_defaults: Whether to include built-in tasks from lm_eval/tasks/
             metadata: Extra metadata to attach to all loaded tasks
@@ -211,17 +228,29 @@ class TaskManager:
 
         for item in built:
             collect(item)
+        self._check_duplicates(built)
+        return {
+            "tasks": tasks,
+            "groups": groups,
+            "group_map": {g.name: g.child_names for g in groups.values()}
+            if groups
+            else {},
+        }
 
-        return {"tasks": tasks, "groups": groups}
-
-    @deprecated("load_task_or_group is deprecated, use load() instead")
+    @deprecated("Use TaskManager.load(), which returns flat dicts of tasks and groups.")
     def load_task_or_group(self, task_list: str | list[str | dict]) -> dict:
-        """Load tasks/groups and return a merged dictionary.
+        """Legacy loader that returns the old nested-dict format.
+
+        Wraps :meth:`load` but converts the result into ``{ConfigurableGroup: {task_name: Task, ...}, ...}``
+        dicts expected by callers.  New code should use :meth:`load` instead.
 
         Args:
-            task_list: Single task name or list of task names/dicts
+            task_list: Single task name or list of task names/dicts.
+
         Returns:
-            Dictionary of task objects (possibly nested for groups)
+            Nested dict keyed by :class:`ConfigurableGroup` (for groups) or
+            ``task_name`` (for standalone tasks), with leaf values being
+            :class:`Task` instances.
         """
         import collections
 
@@ -249,21 +278,31 @@ class TaskManager:
             collections.ChainMap(*[_to_nested(self._load_spec(s)) for s in task_list])
         )
 
-    # ---------------------------------------------------------------- name checks
-    def _name_is_registered(self, name: str) -> bool:
-        return name in self._index
+    @staticmethod
+    def _check_duplicates(built: list[Task | Group]) -> None:
+        """Check that no task appears in more than one top-level item.
 
-    def _name_is_task(self, name: str) -> bool:
-        return self._name_is_registered(name) and self._index[name].kind == Kind.TASK
+        For each top-level item (Task or Group), collect all leaf task names.
+        If any task name appears in multiple top-level items, raise an error.
+        This catches cases like requesting ["group_a", "group_b"] where both
+        groups contain the same task, or requesting a task both standalone
+        and as part of a group.
+        """
+        seen: dict[str, str] = {}  # task_name -> source name
+        for item in built:
+            if isinstance(item, Group):
+                source = item.name
+                task_names = [t.task_name for t in item.get_all_tasks()]
+            else:
+                source = item.task_name
+                task_names = [item.task_name]
 
-    def _name_is_tag(self, name: str) -> bool:
-        return self._name_is_registered(name) and self._index[name].kind == Kind.TAG
-
-    def _name_is_group(self, name: str) -> bool:
-        return self._name_is_registered(name) and self._index[name].kind == Kind.GROUP
-
-    def _name_is_python_task(self, name: str) -> bool:
-        return self._name_is_registered(name) and self._index[name].kind == Kind.PY_TASK
+            for name in task_names:
+                if name in seen and seen[name] != source:
+                    raise ValueError(
+                        f"Duplicate task '{name}': found in both '{seen[name]}' and '{source}'"
+                    )
+                seen[name] = source
 
     # ---------------------------------------------------------------- utility
     def match_tasks(self, task_list: list[str]) -> list[str]:

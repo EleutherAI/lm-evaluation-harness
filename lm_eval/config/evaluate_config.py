@@ -345,8 +345,8 @@ class EvaluatorConfig:
         import glob
         import itertools
 
-        from lm_eval import utils
         from lm_eval.tasks import TaskManager
+        from lm_eval.tasks._yaml_loader import load_yaml
 
         # if metadata manually passed use that:
         self.metadata = metadata if metadata else self.metadata
@@ -370,7 +370,7 @@ class EvaluatorConfig:
             task_names = []
             yaml_path = Path(task_list[0]) / "*.yaml"
             for yaml_file in glob.glob(str(yaml_path)):
-                config = utils.load_yaml_config(yaml_file)
+                config = load_yaml(yaml_file, resolve_func=False)
                 task_names.append(config)
             self.tasks = task_names
             return task_manager
@@ -386,12 +386,12 @@ class EvaluatorConfig:
         for task in match_dict.keys():
             if not task.endswith(".yaml"):
                 # Standard task name - match via task manager
-                matches = task_manager.match_tasks(task)
+                matches = task_manager.match_tasks([task])
             else:
                 # Custom config file(s) - support glob patterns
                 matches = []
                 for yaml_file in glob.glob(task):
-                    config = utils.load_yaml_config(yaml_file)
+                    config = load_yaml(yaml_file, resolve_func=False)
                     matches.append(config)
             match_dict[task] = matches
 

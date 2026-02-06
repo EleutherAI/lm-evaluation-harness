@@ -1,6 +1,6 @@
 import os
 
-from lm_eval.utils import load_yaml_config
+from lm_eval.tasks._yaml_loader import load_yaml
 
 
 # {{{CI}}}
@@ -25,7 +25,7 @@ def parser(full_path: list[str]) -> list[str]:
     _output = set()
     for x in full_path:
         if x.endswith(".yaml") and os.path.exists(x):
-            config = load_yaml_config(x, mode="simple")
+            config = load_yaml(x, resolve_func=False)
             if isinstance(config["task"], str):
                 _output.add(config["task"])
             elif isinstance(config["task"], list):

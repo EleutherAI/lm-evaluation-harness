@@ -8,19 +8,21 @@ This module provides:
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from typing_extensions import deprecated
-
-from lm_eval.api.task import ConfigurableTask, Task
 
 # Import TaskManager
 from lm_eval.tasks.manager import TaskManager
 
 
+if TYPE_CHECKING:
+    from lm_eval.api.task import Task
+
+
 eval_logger = logging.getLogger(__name__)
 
 __all__ = [
-    "ConfigurableTask",
     "TaskManager",
     "get_task_dict",
     "get_task_name_from_config",
@@ -28,6 +30,9 @@ __all__ = [
 ]
 
 
+@deprecated(
+    "get_task_name_from_config is deprecated, and will be removed in a future version. Task names should be explicitly defined in task configs under the 'task' key."
+)
 def get_task_name_from_config(task_config: dict[str, str]) -> str:
     match task_config:
         case {"task": task_name}:
@@ -93,6 +98,7 @@ def _check_duplicates(task_dict: dict) -> None:
 def _log_task_dict(task_dict: dict, task_manager: "TaskManager") -> None:
     """Log the selected tasks with hierarchy information."""
     from lm_eval.api.group import ConfigurableGroup
+    from lm_eval.api.task import Task
 
     def pretty_print_task(task_name: str, indent: int):
         entry = task_manager.task_index.get(task_name)
@@ -129,9 +135,11 @@ def _log_task_dict(task_dict: dict, task_manager: "TaskManager") -> None:
 
 @deprecated("get_task_dict is deprecated. Use TaskManager.load() instead.")
 def get_task_dict(
-    task_name_list: str | list[str | dict | Task],
+    task_name_list: "str | list[str | dict | Task]",
     task_manager: TaskManager | None = None,
 ):
+    from lm_eval.api.task import Task
+
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
     :param task_name_list: List[Union[str, Dict, Task]]
