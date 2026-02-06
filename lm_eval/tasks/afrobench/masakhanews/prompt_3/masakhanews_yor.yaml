@@ -3,6 +3,6 @@ dataset_name: yor
 doc_to_text: "You are an assistant able to classify topics in texts. \n\nGiven the\
   \ categories technology, religion, politics, sports, health, entertainment, or business;\
   \ what is the topic of the Yoruba statement below? Return only the category. \n\n\
-  text: {{headline_text}} \\category:\n\n"
+  text: {{headline}} \\category:\n\n"
 include: masakhanews
 task: masakhanews_yor_prompt_3
