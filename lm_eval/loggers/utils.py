@@ -129,31 +129,34 @@ def add_env_info(storage: dict[str, Any]):
 
 
 def add_tokenizer_info(storage: dict[str, Any], lm):
-    if getattr(lm, "tokenizer", False):
-        try:
-            tokenizer_info = {
-                "tokenizer_pad_token": [
-                    lm.tokenizer.pad_token,
-                    str(lm.tokenizer.pad_token_id),
-                ],
-                "tokenizer_eos_token": [
-                    lm.tokenizer.eos_token,
-                    str(lm.tokenizer.eos_token_id),
-                ],
-                "tokenizer_bos_token": [
-                    lm.tokenizer.bos_token,
-                    str(lm.tokenizer.bos_token_id),
-                ],
-                "eot_token_id": getattr(lm, "eot_token_id", None),
-                "max_length": getattr(lm, "max_length", None),
-            }
-            storage.update(tokenizer_info)
-        except Exception as err:
+    try:
+        if getattr(lm, "tokenizer", False):
+            try:
+                tokenizer_info = {
+                    "tokenizer_pad_token": [
+                        lm.tokenizer.pad_token,
+                        str(lm.tokenizer.pad_token_id),
+                    ],
+                    "tokenizer_eos_token": [
+                        lm.tokenizer.eos_token,
+                        str(lm.tokenizer.eos_token_id),
+                    ],
+                    "tokenizer_bos_token": [
+                        lm.tokenizer.bos_token,
+                        str(lm.tokenizer.bos_token_id),
+                    ],
+                    "eot_token_id": getattr(lm, "eot_token_id", None),
+                    "max_length": getattr(lm, "max_length", None),
+                }
+                storage.update(tokenizer_info)
+            except Exception as err:
+                logger.debug(
+                    f"Logging detailed tokenizer info failed with {err}, skipping..."
+                )
+            # seems gguf and textsynth do not have a tokenizer
+        else:
             logger.debug(
-                f"Logging detailed tokenizer info failed with {err}, skipping..."
+                "LM does not have a 'tokenizer' attribute, not logging tokenizer metadata to results."
             )
-        # seems gguf and textsynth do not have a tokenizer
-    else:
-        logger.debug(
-            "LM does not have a 'tokenizer' attribute, not logging tokenizer metadata to results."
-        )
+    except Exception:
+        logger.debug("Couldn't save tokenizer info.")

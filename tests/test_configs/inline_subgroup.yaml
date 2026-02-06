@@ -1,0 +1,19 @@
+# Test for old-style inline subgroup syntax
+# This is the format used by mmlu_flan_cot_fewshot
+group: inline_subgroup_parent
+task:
+  - group: subgroup_a
+    task:
+      - simple_task
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: true
+  - group: subgroup_b
+    task:
+      - simple_task_b
+    aggregate_metric_list:
+      - metric: acc
+        weight_by_size: true
+aggregate_metric_list:
+  - metric: acc
+    weight_by_size: true

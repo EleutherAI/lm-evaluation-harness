@@ -409,14 +409,44 @@ class Reorderer:
         return res
 
 
+def _build_hierarchy_info(
+    group_subtasks: dict[str, list[str]], available_keys: set[str]
+) -> tuple[dict[str, int], list[str]]:
+    """Build depth map and hierarchical key ordering from group_subtasks.
+
+    Uses a tree-walk approach over group_subtasks for ordering.
+
+    Returns:
+        (depth_map, ordered_keys) — depths for indentation, keys in display order
+    """
+    depth_map: dict[str, int] = {}
+    ordered: list[str] = []
+
+    def visit(name: str, depth: int):
+        depth_map[name] = depth
+        if name in available_keys:
+            ordered.append(name)
+        for child in sorted(group_subtasks.get(name, [])):
+            visit(child, depth + 1)
+
+    all_children = {c for children in group_subtasks.values() for c in children}
+    for name in sorted(group_subtasks):
+        if name not in all_children:
+            visit(name, 0)
+
+    # Add remaining keys not in any hierarchy (sorted for determinism)
+    for key in sorted(available_keys):
+        if key not in depth_map:
+            ordered.append(key)
+
+    return depth_map, ordered
+
+
 def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
-    if column == "results":
-        column_name = "Tasks"
-    elif column == "groups":
-        column_name = "Groups"
+    column_name = "Groups" if column == "groups" else "Tasks"
 
     all_headers = [
         column_name,
@@ -437,20 +467,37 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
 
     values = []
 
-    keys = result_dict[column].keys()
-    if sort_results:
+    # Build depth map and hierarchical key ordering from group_subtasks
+    group_subtasks = result_dict.get("group_subtasks", {})
+    depth_map, hierarchical_keys = _build_hierarchy_info(
+        group_subtasks, set(result_dict[column].keys())
+    )
+
+    if sort_results:  # noqa: SIM108
         # sort entries alphabetically by task or group name.
         # NOTE: we default here to false, because order matters for multi-level table printing a la mmlu.
         # sorting here would mess that up
-        keys = sorted(keys)
+        keys = sorted(result_dict[column].keys())
+    else:
+        keys = hierarchical_keys
     for k in keys:
-        dic = result_dict[column][k]
+        dic = dict(result_dict[column][k])  # copy — don't mutate original
         version = result_dict["versions"].get(k, "    N/A")
         n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
-        if "alias" in dic:
-            k = dic.pop("alias")
+        display_name = dic.pop("alias", k)
+        ## alias takes care of name, and we don't print sample_len
+        dic.pop("name", None)
+        dic.pop("sample_len", None)
+        dic.pop("sample_count", None)
+
+        # Add indentation based on hierarchy depth
+        depth = depth_map.get(k, 0)
+        if depth > 0:
+            display_name = " " * depth + "- " + display_name
+
+        k = display_name
 
         metric_items = dic.items()
         metric_items = sorted(metric_items)
@@ -524,56 +571,6 @@ def import_function(loader: yaml.Loader, node, yaml_path: Path):
 
     function = getattr(module, function_name)
     return function
-
-
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
-    if mode == "simple":
-        constructor_fn = ignore_constructor
-    elif mode == "full":
-        if yaml_path is None:
-            raise ValueError("yaml_path must be provided if mode is 'full'.")
-        # Attach yaml_path to the import function so that it can be used later
-        constructor_fn = functools.partial(import_function, yaml_path=Path(yaml_path))
-
-    loader = yaml.CLoader if yaml.__with_libyaml__ else yaml.FullLoader
-    # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", constructor_fn, Loader=loader)
-    if yaml_config is None:
-        with open(yaml_path, "rb") as file:
-            yaml_config = yaml.load(file, Loader=loader)
-
-    if yaml_dir is None:
-        yaml_dir = os.path.dirname(yaml_path)
-
-    assert yaml_dir is not None
-
-    if "include" in yaml_config:
-        include_path = yaml_config["include"]
-        del yaml_config["include"]
-
-        if isinstance(include_path, str):
-            include_path = [include_path]
-
-        # Load from the last one first
-        include_path.reverse()
-        final_yaml_config = {}
-        for path in include_path:
-            # Assumes that path is a full path.
-            # If not found, assume the included yaml
-            # is in the same dir as the original yaml
-            if not os.path.isfile(path):
-                path = os.path.join(yaml_dir, path)
-
-            try:
-                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
-                final_yaml_config.update(included_yaml_config)
-            except Exception as ex:
-                # If failed to load, ignore
-                raise ex
-
-        final_yaml_config.update(yaml_config)
-        return final_yaml_config
-    return yaml_config
 
 
 def regex_replace(string, pattern, repl, count: int = 0):
