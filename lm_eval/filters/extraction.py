@@ -10,9 +10,10 @@ from lm_eval.api.registry import register_filter
 class RegexFilter(Filter):
     """A filter that extracts values from text using regex pattern matching.
 
-    This filter applies a regex pattern to each model response and extracts matched values.
-    If no match is found, returns a fallback value. Useful for extracting structured data
-    (like numbers) from unstructured model outputs.
+    This filter applies a primary regex pattern to each model response and extracts matched values.
+    If no match is found, it tries fallback patterns sequentially until one matches.
+    If all patterns fail, returns a fallback value. Useful for extracting structured data
+    (like numbers or letters) from unstructured model outputs.
     """
 
     def __init__(
@@ -20,15 +21,24 @@ class RegexFilter(Filter):
         regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
         group_select: int = 0,
         fallback: str = "[invalid]",
+        secondary_regex_patterns: list[str] | None = None,
     ) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
-        `fallback` defines the output returned if no matches for the regex are located.
+        `group_select` defines which group to extract from the match.
+        `fallback` defines the output returned if the primary or fallback patterns do not match.
+        `secondary_regex_patterns` is an optional list of regex patterns to try sequentially
+        if the primary pattern doesn't match. Returns the first match found.
         """
         self.regex_pattern = regex_pattern
         self.regex = re.compile(regex_pattern)
         self.group_select = group_select
         self.fallback = fallback
+        self.secondary_regex_patterns = (
+            [re.compile(p) for p in secondary_regex_patterns]
+            if secondary_regex_patterns
+            else []
+        )
 
     def apply(self, resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
         # here, we assume we have a list, in which each element is
@@ -40,7 +50,18 @@ class RegexFilter(Filter):
             for resp in inst:
                 if not isinstance(resp, str):
                     resp = ""
+                
+                # Try primary pattern first
                 match = self.regex.findall(resp)
+                
+                # If no match, try fallback patterns sequentially
+                if not match:
+                    for secondary_regex_pattern in self.secondary_regex_patterns:
+                        match = secondary_regex_pattern.findall(resp)
+                        if match:
+                            break
+                
+                # Process the match
                 if match:
                     match = match[self.group_select]
                     if isinstance(match, tuple):
