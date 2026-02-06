@@ -7,13 +7,13 @@ DEFAULT_MAX_GEN_TOKS = 256
 DEFAULT_RANDOM_SEED = 0
 DEFAULT_OTHER_SEED = 1234
 
-"""envars"""
+# Environment variables
 
 
 def _strtobool(val: str) -> bool:
     """Convert a string representation of truth to a bool."""
-    _TRUTHY = {"1", "true", "yes", "on", "TRUE", "True"}
-    _FALSY = {"0", "false", "no", "off", "", "FALSE", "False"}
+    _TRUTHY = {"1", "true", "yes", "on"}
+    _FALSY = {"0", "false", "no", "off", ""}
     val = val.lower()
     if val in _TRUTHY:
         return True

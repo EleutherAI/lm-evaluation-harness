@@ -6,7 +6,7 @@ from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from typing_extensions import TypedDict, deprecated
+from typing_extensions import NotRequired, TypedDict, deprecated
 
 from lm_eval import utils
 from lm_eval.api.group import Group
@@ -26,12 +26,12 @@ class TaskDict(TypedDict):
     Attributes:
         tasks: Flat mapping of task name to Task for every leaf task.
         groups: Flat mapping of group name to Group.
-        group_map: Mapping of each group/tag name to its direct child names (not recursive).
+        group_map: Mapping of each group name to its direct child names (not recursive).
     """
 
     tasks: dict[str, Task]
-    groups: dict[str, Group]
-    group_map: dict[str, list[str]]
+    groups: NotRequired[dict[str, Group]]
+    group_map: NotRequired[dict[str, list[str]]]
 
 
 class TaskManager:
@@ -197,6 +197,7 @@ class TaskManager:
             Dict with:
             - tasks: {task_name: Task} flat dict of all leaf tasks
             - groups: {group_name: Group} flat dict of all groups
+            - group_map: {group_name: [child_names]}
         """
         if not isinstance(task_list, list):
             task_list = [task_list]  # type: ignore

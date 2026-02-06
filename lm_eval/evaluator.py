@@ -6,7 +6,7 @@ import logging
 import random
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
@@ -18,10 +18,11 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
     ResultAcc,
+    _handle_back_comp,
     _log_selected_tasks,
+    _process_results,
     get_sample_size,
     print_writeout,
-    process_results,
     run_task_tests,
 )
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
@@ -39,11 +40,14 @@ from lm_eval.utils import (
 
 
 if TYPE_CHECKING:
+    from lm_eval.api.group import Group
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
     from lm_eval.loggers import EvaluationTracker
     from lm_eval.tasks.manager import TaskDict
     from lm_eval.types import EvalResults
+
+    _NestedDict = dict[Group, dict[str, Task] | Group] | dict[str, Task]
 
 eval_logger = logging.getLogger(__name__)
 
@@ -411,7 +415,7 @@ def simple_evaluate(
 @positional_deprecated
 def evaluate(
     lm: LM,
-    task_dict: TaskDict,
+    task_dict: TaskDict | _NestedDict,
     limit: int | None = None,
     samples: dict[str, list[int]] | None = None,
     cache_requests: bool = False,
@@ -429,8 +433,8 @@ def evaluate(
 
     Args:
         lm (LM): Language Model.
-        task_dict (dict[str, Task]): Dictionary of tasks. Tasks will be taken to
-            have name type(task).config.task.
+        task_dict (TaskDict): Dictionary returned by TaskManager.load() containing
+            'tasks', 'groups', and 'group_map' entries.
         limit (int | None): Limit the number of examples per task (only use this
             for testing).
         samples (dict | None): Dictionary indicating which examples should be
@@ -476,8 +480,13 @@ def evaluate(
     padding_requests = defaultdict(int)
 
     # Initialize groups and tasks
-    groups = task_dict.get("groups", {})
-    eval_tasks = task_dict["tasks"]
+    # handle back_comp. Assume if "tasks" not present, then using old nested.
+    if "tasks" not in task_dict:
+        groups, eval_tasks = _handle_back_comp(cast("_NestedDict", task_dict))
+    else:
+        task_dict = cast("TaskDict", task_dict)
+        groups, eval_tasks = task_dict.get("groups", {}), task_dict.get("tasks", {})
+
     # Initialize accumulators for per-sample metrics and logged samples
     eval_results_acc: dict[str, ResultAcc] = {
         task_name: {
@@ -680,7 +689,7 @@ def evaluate(
                     )
 
     if RANK == 0:
-        res = process_results(eval_results_acc, groups, bootstrap_iters)
+        res = _process_results(eval_results_acc, groups, bootstrap_iters)
 
         samples = None
         if log_samples:

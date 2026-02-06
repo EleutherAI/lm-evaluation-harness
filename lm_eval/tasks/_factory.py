@@ -174,6 +174,10 @@ class TaskFactory:
                         )
                     continue
 
+                if "task" not in item:
+                    raise ValueError(
+                        f"Dict entry in group '{group_name}' must have 'task' or 'group' key, got: {list(item.keys())}"
+                    )
                 base_name = item["task"]
                 item_overrides = {**overrides, **item} if overrides else item
             else:
@@ -238,7 +242,15 @@ class TaskFactory:
         Tags are just a shorthand for multiple tasks, not a container.
         Returns a list of Task objects.
         """
-        return [self._build_task(registry[name], overrides) for name in entry.tags]
+        tasks = []
+        for name in entry.tags:
+            if name not in registry:
+                eval_logger.warning(
+                    f"Tag '{entry.name}' references unknown task '{name}', skipping."
+                )
+                continue
+            tasks.append(self._build_task(registry[name], overrides))
+        return tasks
 
     def _load_full_config(
         self,
@@ -250,6 +262,9 @@ class TaskFactory:
         elif entry.cfg:
             cfg = deepcopy(entry.cfg)
         else:
+            eval_logger.debug(
+                f"Entry '{entry.name}' has no YAML or inline config; using placeholder."
+            )
             cfg: dict[str, Any] = {
                 "metadata": {"config": "unknown"}
             }  # python task without YAML
@@ -259,8 +274,9 @@ class TaskFactory:
         cfg["metadata"] = (
             m if isinstance(m := cfg.get("metadata", {}), dict) else {"_metadata": m}
         ) | self._meta  # type: ignore
-        cfg["metadata"]["config_source"] = str(entry.yaml_path) or "inline"
-        # cfg.setdefault("task", entry.name)
+        cfg["metadata"]["config_source"] = (
+            str(entry.yaml_path) if entry.yaml_path else "inline"
+        )
         return cfg
 
 

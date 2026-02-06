@@ -127,7 +127,7 @@ class TaskIndex:
                     return
                 index_[name] = Entry(
                     name=name,
-                    kind=Kind.TASK,
+                    kind=kind,
                     yaml_path=path,
                     tags=TaskIndex._str_to_set(cfg.get("tag")),
                     cfg=cfg,
@@ -162,7 +162,7 @@ class TaskIndex:
             case {"task": _}:
                 return Kind.TASK
             case _:
-                raise ValueError("Unknown config shape")
+                raise ValueError(f"Unknown config shape: keys={list(cfg.keys())}")
 
     @staticmethod
     def entry_from_path(path: Path) -> Entry | None:

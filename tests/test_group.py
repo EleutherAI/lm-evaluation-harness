@@ -296,10 +296,11 @@ class TestGroupAggregation:
 
         result = group.aggregate(self.task_metrics)
 
-        # Should only have alias, no metrics
+        # Should only have alias and name, no metrics
         assert "alias" in result
+        assert "name" in result
         assert "acc_norm,none" not in result
-        assert len([k for k in result.keys() if k != "alias"]) == 0
+        assert len([k for k in result.keys() if k not in ("alias", "name")]) == 0
 
     def test_multiple_metrics_auto_discovery(self):
         """Test auto-discovery with multiple metrics."""
@@ -477,8 +478,8 @@ class TestGroupEdgeCases:
 
         result = group.aggregate({"task_a": {"acc,none": 0.85}})
 
-        # Should only return alias
-        assert result == {"alias": "test_group"}
+        # Should only return alias and name
+        assert result == {"alias": "test_group", "name": "test_group"}
 
     def test_task_not_in_metrics(self):
         """Test when a task is in the group but not in metrics dict."""

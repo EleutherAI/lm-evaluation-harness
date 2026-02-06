@@ -91,6 +91,8 @@ class GroupConfig:
     metadata: dict[str, Any] | None = None
 
     def __post_init__(self):
+        if isinstance(self.task, str):
+            self.task = [self.task]
         if self.aggregate_metric_list is not None:
             if isinstance(self.aggregate_metric_list, (dict, AggMetricConfig)):
                 self.aggregate_metric_list = [self.aggregate_metric_list]

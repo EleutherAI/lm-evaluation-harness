@@ -194,7 +194,10 @@ class Group:
         """
         from lm_eval.api.metrics import aggregate_subtask_metrics, pooled_sample_stderr
 
-        group_metrics: dict[str, Any] = {"alias": self.alias or self.name}
+        group_metrics: dict[str, Any] = {
+            "alias": self.alias or self.name,
+            "name": self.name,
+        }
 
         if not self.aggregate_metric_list:
             return cast("_TaskMetrics", group_metrics)
@@ -244,6 +247,11 @@ class Group:
                         f"{len(tasks_without_metric)}/{len(leaf_tasks)} tasks. "
                         f"Missing in: {', '.join(tasks_without_metric[:5])}"
                         f"{f' and {len(tasks_without_metric) - 5} more' if len(tasks_without_metric) > 5 else ''}"
+                    )
+
+                if not values:
+                    eval_logger.warning(
+                        f"Group '{self.name}': no values found for metric '{metric_key}' across any tasks."
                     )
 
                 if values:
@@ -334,9 +342,10 @@ class ConfigurableGroup(Group):
         return self.alias
 
     @property
-    def version(self) -> str | None:
+    def version(self) -> str:
         if self._config and self._config.metadata:
-            return self._config.metadata.get("metadata")
+            return str(self._config.metadata.get("version", "N/A"))
+        return "N/A"
 
     @property
     def config(self):

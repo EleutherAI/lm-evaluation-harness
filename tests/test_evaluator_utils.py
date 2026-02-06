@@ -14,12 +14,12 @@ from lm_eval.evaluator_utils import (
     EvalAcc,
     ResultAcc,
     _collect_groups_bottom_up,
+    _collect_results,
     _get_root_groups,
+    _process_results,
     _propagate_higher_is_better,
     aggregate_groups,
-    collect_results,
     get_sample_size,
-    process_results,
 )
 from lm_eval.types import _TaskMetrics
 
@@ -266,7 +266,7 @@ class TestCollectResults:
 
     def test_single_task_basic_collection(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert "my_task" in result.metrics
         m = result.metrics["my_task"]
         assert "acc,none" in m
@@ -275,50 +275,52 @@ class TestCollectResults:
 
     def test_alias_from_task_config(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.metrics["my_task"]["alias"] == "My Task"
 
     def test_alias_defaults_to_task_name(self):
         task = MockEvalTask("fallback_task", agg={"acc": mean})
         raw = {("acc", "none"): [1.0]}
         acc = make_result_acc(task, raw)
-        result = collect_results({"fallback_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"fallback_task": acc}, bootstrap_iters=0)
         assert result.metrics["fallback_task"]["alias"] == "fallback_task"
 
     def test_configs_populated(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.configs["my_task"] == task.dump_config()
 
     def test_versions_populated(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.versions["my_task"] == 1
 
     def test_num_fewshot_populated(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.num_fewshot["my_task"] == 5
 
     def test_higher_is_better_populated(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.higher_is_better["my_task"] == {"acc": True}
 
     def test_samples_populated(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, bootstrap_iters=0)
         assert result.samples["my_task"] == ["s1", "s2"]
 
     def test_groups_stored(self):
         task, acc = self._simple_acc()
         g = Group(name="grp")
-        result = collect_results({"my_task": acc}, groups={"grp": g}, bootstrap_iters=0)
+        result = _collect_results(
+            {"my_task": acc}, groups={"grp": g}, bootstrap_iters=0
+        )
         assert result.groups == {"grp": g}
 
     def test_groups_default_to_empty(self):
         task, acc = self._simple_acc()
-        result = collect_results({"my_task": acc}, groups=None, bootstrap_iters=0)
+        result = _collect_results({"my_task": acc}, groups=None, bootstrap_iters=0)
         assert result.groups == {}
 
     def test_multiple_tasks(self):
@@ -328,7 +330,7 @@ class TestCollectResults:
             "t1": make_result_acc(t1, {("acc", "none"): [1.0]}),
             "t2": make_result_acc(t2, {("acc", "none"): [0.0]}),
         }
-        result = collect_results(accs, bootstrap_iters=0)
+        result = _collect_results(accs, bootstrap_iters=0)
         assert "t1" in result.metrics
         assert "t2" in result.metrics
         assert "t1" in result.configs
@@ -523,7 +525,7 @@ class TestProcessResults:
         return {"t": make_result_acc(task, {("acc", "none"): [1.0, 0.0]})}
 
     def test_returns_eval_results(self):
-        result = process_results(self._basic_acc(), bootstrap_iters=0)
+        result = _process_results(self._basic_acc(), bootstrap_iters=0)
         assert isinstance(result, EvalAcc)
 
     def test_with_groups(self):
@@ -531,11 +533,11 @@ class TestProcessResults:
         g = Group(name="g", aggregate_metric_list=[AggMetricConfig(metric="acc")])
         g.add(task)
         acc = {"t": make_result_acc(task, {("acc", "none"): [0.5, 0.5]})}
-        result = process_results(acc, groups={"g": g}, bootstrap_iters=0)
+        result = _process_results(acc, groups={"g": g}, bootstrap_iters=0)
         assert "g" in result.metrics
 
     def test_without_groups(self):
-        result = process_results(self._basic_acc(), groups=None, bootstrap_iters=0)
+        result = _process_results(self._basic_acc(), groups=None, bootstrap_iters=0)
         assert result.groups == {}
         assert "t" in result.metrics
 
@@ -706,7 +708,7 @@ class TestToEvalResults:
             g.add(task)
             groups = {"grp": g}
 
-        result = process_results(acc_input, groups=groups, bootstrap_iters=0)
+        result = _process_results(acc_input, groups=groups, bootstrap_iters=0)
         return result
 
     def test_output_has_required_keys(self):
@@ -796,14 +798,14 @@ class TestCollectResultsNSamples:
             "t1": make_result_acc(t1, {("acc", "none"): [1.0, 0.0, 1.0]}),
             "t2": make_result_acc(t2, {("acc", "none"): [0.0]}),
         }
-        result = collect_results(accs, bootstrap_iters=0)
+        result = _collect_results(accs, bootstrap_iters=0)
         assert result.n_samples["t1"] == {"original": 100, "effective": 3}
         assert result.n_samples["t2"] == {"original": 200, "effective": 1}
 
     def test_n_samples_original_from_eval_docs(self):
         task = MockEvalTask("t1", agg={"acc": mean}, n_eval_docs=42)
         accs = {"t1": make_result_acc(task, {("acc", "none"): [1.0, 0.5]})}
-        result = collect_results(accs, bootstrap_iters=0)
+        result = _collect_results(accs, bootstrap_iters=0)
         assert result.n_samples["t1"]["original"] == 42
         assert result.n_samples["t1"]["effective"] == 2
 
@@ -820,6 +822,6 @@ class TestCollectResultsNSamples:
                 },
             ),
         }
-        result = collect_results(accs, bootstrap_iters=0)
+        result = _collect_results(accs, bootstrap_iters=0)
         # sample_len comes from last metric ("b") which has 3 items
         assert result.n_samples["t1"]["effective"] == 3

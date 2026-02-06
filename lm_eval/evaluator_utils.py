@@ -37,13 +37,13 @@ class ResultAcc(TypedDict):
 def print_writeout(task: Task) -> None:
     for inst in task.instances:
         # print the prompt for the first few documents
-        if inst.doc_id and inst.doc_id < 1:
+        if inst.doc_id is not None and inst.doc_id < 1:
             eval_logger.info(
                 f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
             )
             eval_logger.info(f"Request: {str(inst)}")
-        break
+            break
 
 
 def get_sample_size(task, limit: int | float | None) -> int | None:
@@ -118,7 +118,11 @@ class EvalAcc:
     groups: dict[str, Group] = field(default_factory=dict)
 
     def collect(self) -> tuple[dict[str, _TaskMetrics], dict[str, _TaskMetrics]]:
-        """Split metrics into task results and group results (groups with aggregation)."""
+        """Collect metrics into task_results and group_results.
+
+        All entries go into task_results. Groups with aggregation also go
+        into group_results.
+        """
         task_results = {}
         group_results = {}
         for name, metrics in self.metrics.items():
@@ -187,14 +191,14 @@ def _compute_task_aggregations(
             agg_fn = task.aggregation()[metric]  # type: ignore[index]
         except KeyError:
             # Arbitrary metric without a defined aggregation function
-            eval_logger.info(
+            eval_logger.warning(
                 f"[{task.task_name}] No aggregation function defined for metric {metric}. Using mean."
             )
             agg_fn = mean
 
         metric_key = f"{metric},{filter_key}"
         agg_metrics[metric_key] = agg_fn(items)
-        sample_len = len(items)
+        sample_len = len(items)  # TODO: reflects only the last metric's count
 
         if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
             stderr_fn = stderr_for_metric(
@@ -212,7 +216,7 @@ def _compute_task_aggregations(
     return agg_metrics, sample_len
 
 
-def collect_results(
+def _collect_results(
     eval_results_acc: dict[str, ResultAcc],
     groups: dict[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
@@ -339,7 +343,7 @@ def _collect_groups_bottom_up(groups: dict[str, Group]) -> list[Group]:
     return result
 
 
-def process_results(
+def _process_results(
     eval_results_acc: dict[str, ResultAcc],
     groups: dict[str, Group] | None = None,
     bootstrap_iters: int | None = 100000,
@@ -365,23 +369,19 @@ def process_results(
         - groups: Groups dict for traversal
 
     Example usage:
-        loaded = task_manager.load_v2(['arc', 'hellaswag'])
+        loaded = task_manager.load(['arc', 'hellaswag'])
 
         # Run evaluation (populates raw_metrics and logged_samples)
         eval_results_acc = {name: {"task": t, "raw_metrics": defaultdict(list), "logged_samples": []}
                            for name, t in loaded['tasks'].items()}
 
-        results = process_results(eval_results_acc, loaded['groups'])
+        results = _process_results(eval_results_acc, loaded['groups'])
 
         # Convert to EvalResults dict
-        eval_results = results.to_eval_results()
+        eval_results = results._to_eval_results()
     """
-    # Normalize groups to dict
-    if groups is None:
-        groups = {}
-
     # Collect task results (includes aggregation)
-    results = collect_results(eval_results_acc, groups, bootstrap_iters)
+    results = _collect_results(eval_results_acc, groups or {}, bootstrap_iters)
 
     # Aggregate group metrics
     results = aggregate_groups(results)
@@ -466,3 +466,37 @@ def _log_selected_tasks(
         if task_name not in logged_tasks:
             path = get_task_path(task_name)
             eval_logger.info(f"Task: {task_name} ({path})")
+
+
+def _handle_back_comp(
+    nested_dict: dict,
+) -> tuple[dict[str, Group], dict[str, Task]]:
+    """Handle backward compatibility for the legacy nested-dict task format.
+
+    The legacy ``load_task_or_group`` returns::
+
+        {ConfigurableGroup: {task_name: Task, ...}, task_name: Task, ...}
+
+    This converts it into the ``(groups, tasks)`` tuple expected by the
+    new evaluator code path.
+    """
+    from lm_eval.api.group import Group
+
+    groups: dict[str, Group] = {}
+    tasks: dict[str, Task] = {}
+
+    for key, value in nested_dict.items():
+        if isinstance(key, Group):
+            # key is a ConfigurableGroup/Group, value is {task_name: Task}
+            groups[key.name] = key
+            if isinstance(value, dict):
+                tasks.update(value)
+        elif isinstance(key, str):
+            # Standalone task
+            if isinstance(value, dict):
+                # Nested dict of tasks (shouldn't normally happen, but be safe)
+                tasks.update(value)
+            else:
+                tasks[key] = value
+
+    return groups, tasks

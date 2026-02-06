@@ -118,7 +118,7 @@ EvalResults = TypedDict(
 
 All keys are optional (``total=False``) because several are conditionally present:
 
-- ``groups`` — only when group_agg is non-empty and show_group_table is True
+- ``groups`` — only present when at least one group defines aggregation metrics
 - ``samples`` — only when log_samples is True
 - ``config``, ``git_hash``, ``date``, env/tokenizer info — only added by
   simple_evaluate()
