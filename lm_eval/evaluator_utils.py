@@ -110,7 +110,13 @@ class TaskOutput:
                 # TODO: Handle this better and allow other aggregate functions other than mean.
                 agg_fn = mean
             metric_key = f"{metric},{filter_key}"
-            self.agg_metrics[metric_key] = agg_fn(items)
+            metric_kwargs = {}
+            if (
+                hasattr(self.task, "_metric_fn_kwargs")
+                and metric in self.task._metric_fn_kwargs
+            ):
+                metric_kwargs = self.task._metric_fn_kwargs[metric]
+            self.agg_metrics[metric_key] = agg_fn(items, **metric_kwargs)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
             if isinstance(bootstrap_iters, int):
                 stderr_fn = stderr_for_metric(
@@ -118,6 +124,7 @@ class TaskOutput:
                     bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
+                    metric_kwargs=metric_kwargs,
                 )
                 self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"

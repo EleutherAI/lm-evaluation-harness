@@ -5,6 +5,7 @@ import random
 import re
 import string
 from collections.abc import Iterable
+from functools import partial
 from typing import Callable, List, Optional, Sequence, TypeVar
 
 import numpy as np
@@ -99,7 +100,7 @@ def bleu(items):
 
 
 @register_aggregation("chrf")
-def chrf(items):
+def chrf(items, char_order=6, word_order=0, **kwargs):
     """chrF++ is a tool for automatic evaluation of machine translation output
     based on character n-gram precision and recall enhanced with word n-grams.
     Source: https://github.com/m-popovic/chrF
@@ -110,7 +111,9 @@ def chrf(items):
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_chrf(preds, refs).score
+    return sacrebleu.corpus_chrf(
+        preds, refs, char_order=char_order, word_order=word_order, **kwargs
+    ).score
 
 
 @register_aggregation("ter")
@@ -502,7 +505,7 @@ def _bootstrap_internal_no_mp(
     chunk_size = min(1000, iters)
     from tqdm import tqdm
 
-    print(f"bootstrapping for stddev: {f.__name__}")
+    print(f"bootstrapping for stddev: {getattr(f, '__name__', repr(f))}")
 
     # A single loop replaces the multiprocessing pool.
     for i in tqdm(range(iters // chunk_size)):
@@ -535,7 +538,7 @@ def bootstrap_stderr(
         chunk_size = min(1000, iters)
         from tqdm import tqdm
 
-        print("bootstrapping for stddev:", f.__name__)
+        print("bootstrapping for stddev:", getattr(f, "__name__", repr(f)))
         with mp.Pool(mp.cpu_count()) as pool:
             for bootstrap in tqdm(
                 pool.imap(
@@ -553,7 +556,9 @@ def bootstrap_stderr(
 
 
 def stderr_for_metric(
-    metric: Callable[[Sequence[T]], float], bootstrap_iters: int
+    metric: Callable[[Sequence[T]], float],
+    bootstrap_iters: int,
+    metric_kwargs: dict = None,
 ) -> Optional[Callable[[Sequence[T]], float]]:
     """
     Return a function that estimates the standard error of `metric(xs)`.
@@ -568,6 +573,9 @@ def stderr_for_metric(
         # return no function (don't compute stderr) if bootstrap iters = 0
         return None
 
+    if metric_kwargs is None:
+        metric_kwargs = {}
+
     bootstrappable = [
         median,
         matthews_corrcoef,
@@ -580,7 +588,10 @@ def stderr_for_metric(
     ]
 
     if metric in bootstrappable:
-        return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
+        metric_with_kwargs = (
+            partial(metric, **metric_kwargs) if metric_kwargs else metric
+        )
+        return lambda x: bootstrap_stderr(metric_with_kwargs, x, iters=bootstrap_iters)
 
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
