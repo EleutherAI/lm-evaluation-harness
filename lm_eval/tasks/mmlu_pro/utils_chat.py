@@ -12,7 +12,10 @@ def doc_to_text(example):
         if i >= len(choices):
             break
         prompt += f"{choices[i]}. {opt.strip()}\n"
-    return prompt + "\n\nThink step by step."
+    return (
+        prompt
+        + '\n\nThink step by step and then finish your answer with "the answer is (X)" where X is the correct letter choice.'
+    )
 
 
 def fewshot_doc_to_target(example):
