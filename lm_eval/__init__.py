@@ -1,6 +1,7 @@
 import importlib.metadata
 import logging
 import os
+from importlib.util import find_spec
 
 
 __version__ = importlib.metadata.version("lm_eval")
@@ -8,7 +9,8 @@ __version__ = importlib.metadata.version("lm_eval")
 
 # Enable high-performance transfers
 os.environ.setdefault("HF_XET_HIGH_PERFORMANCE", "1")  # huggingface_hub >= 0.32.0
-os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")  # legacy hf_transfer
+if find_spec("hf_transfer") is not None:
+    os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")  # legacy hf_transfer
 
 
 # Lazy-load .evaluator module to improve CLI startup
