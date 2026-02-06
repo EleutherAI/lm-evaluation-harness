@@ -411,7 +411,7 @@ lm_eval --model winml \
 ```
 
 > [!Note]
-> The Windows ML backend is ONLY for ONNX Runtime GenAI model format. Models targetting `transformers.js` won't work. You can verify this by finding the `genai_config.json` file in the model folder.
+> The Windows ML backend is ONLY for ONNX Runtime GenAI model format. Models targeting `transformers.js` won't work. You can verify this by finding the `genai_config.json` file in the model folder.
 
 > [!Note]
 > To run an ONNX Runtime GenAI model on the target device, you MUST convert the original model to that vendor and device type. Converted models won't work / work well on other vendor or device types. To learn more on model conversion, please visit [Microsoft AI Tool Kit](https://code.visualstudio.com/docs/intelligentapps/modelconversion)
