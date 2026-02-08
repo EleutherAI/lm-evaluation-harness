@@ -1,0 +1,7 @@
+group: jfinqa
+task:
+  - jfinqa_numerical
+  - jfinqa_consistency
+  - jfinqa_temporal
+metadata:
+  version: 0.1.1
