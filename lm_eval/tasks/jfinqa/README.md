@@ -2,7 +2,7 @@
 
 ## Paper
 
-Title: jfinqa: A Japanese Financial Numerical Reasoning QA Benchmark
+Title: jfinqa: Japanese Financial Numerical Reasoning QA Benchmark
 
 Homepage: https://github.com/ajtgjmdjp/jfinqa
 
@@ -10,10 +10,10 @@ Homepage: https://github.com/ajtgjmdjp/jfinqa
 
 ```bibtex
 @misc{ogawa2025jfinqa,
-  title={jfinqa: A Japanese Financial Numerical Reasoning QA Benchmark},
+  title={jfinqa: Japanese Financial Numerical Reasoning QA Benchmark},
   author={Ogawa, Saichi},
   year={2025},
-  howpublished={\url{https://github.com/ajtgjmdjp/jfinqa}},
+  url={https://github.com/ajtgjmdjp/jfinqa},
 }
 ```
 
