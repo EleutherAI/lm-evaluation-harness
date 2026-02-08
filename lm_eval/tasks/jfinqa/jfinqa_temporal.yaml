@@ -1,5 +1,4 @@
 task: jfinqa_temporal
-group: jfinqa
 dataset_path: ajtgjmdjp/jfinqa
 dataset_name: temporal_reasoning
 output_type: generate_until

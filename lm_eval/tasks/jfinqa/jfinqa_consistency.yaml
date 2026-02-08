@@ -1,5 +1,4 @@
 task: jfinqa_consistency
-group: jfinqa
 dataset_path: ajtgjmdjp/jfinqa
 dataset_name: consistency_checking
 output_type: generate_until

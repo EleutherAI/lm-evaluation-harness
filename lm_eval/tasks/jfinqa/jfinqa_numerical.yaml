@@ -1,5 +1,4 @@
 task: jfinqa_numerical
-group: jfinqa
 dataset_path: ajtgjmdjp/jfinqa
 dataset_name: numerical_reasoning
 output_type: generate_until

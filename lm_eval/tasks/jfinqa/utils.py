@@ -26,10 +26,7 @@ def doc_to_text(doc: dict[str, Any]) -> str:
     if headers:
         header_line = "| " + " | ".join(str(h) for h in headers) + " |"
         sep_line = "| " + " | ".join("---" for _ in headers) + " |"
-        row_lines = [
-            "| " + " | ".join(str(c) for c in row) + " |"
-            for row in rows
-        ]
+        row_lines = ["| " + " | ".join(str(c) for c in row) + " |" for row in rows]
         parts.append("\n".join([header_line, sep_line, *row_lines]))
 
     # Post-text paragraphs
@@ -78,7 +75,17 @@ def _normalize(text: str) -> str:
     return s.lower().strip()
 
 
-_UNIT_SUFFIXES = ("百万円", "千円", "億円", "兆円", "円", "ドル", "ポイント", "pt", "bps")
+_UNIT_SUFFIXES = (
+    "百万円",
+    "千円",
+    "億円",
+    "兆円",
+    "円",
+    "ドル",
+    "ポイント",
+    "pt",
+    "bps",
+)
 
 _KANJI_MULTIPLIERS: dict[str, int] = {
     "千": 1_000,
