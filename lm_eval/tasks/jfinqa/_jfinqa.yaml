@@ -3,5 +3,12 @@ task:
   - jfinqa_numerical
   - jfinqa_consistency
   - jfinqa_temporal
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+  - metric: numerical_match
+    aggregation: mean
+    weight_by_size: true
 metadata:
   version: 0.1.1
