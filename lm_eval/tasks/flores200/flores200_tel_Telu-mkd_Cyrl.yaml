@@ -1,0 +1,7 @@
+"dataset_name": "tel_Telu-mkd_Cyrl"
+"doc_to_target": "{{sentence_mkd_Cyrl}}"
+"doc_to_text": "{{sentence_tel_Telu}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tel_Telu-mkd_Cyrl"
+"test_split": "dev"

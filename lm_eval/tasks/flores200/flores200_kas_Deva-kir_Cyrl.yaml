@@ -1,0 +1,7 @@
+"dataset_name": "kas_Deva-kir_Cyrl"
+"doc_to_target": "{{sentence_kir_Cyrl}}"
+"doc_to_text": "{{sentence_kas_Deva}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kas_Deva-kir_Cyrl"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "kir_Cyrl-kmr_Latn"
+"doc_to_target": "{{sentence_kmr_Latn}}"
+"doc_to_text": "{{sentence_kir_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kir_Cyrl-kmr_Latn"
+"test_split": "dev"

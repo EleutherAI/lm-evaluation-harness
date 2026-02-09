@@ -1,0 +1,7 @@
+"dataset_name": "mni_Beng-lao_Laoo"
+"doc_to_target": "{{sentence_lao_Laoo}}"
+"doc_to_text": "{{sentence_mni_Beng}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mni_Beng-lao_Laoo"
+"test_split": "dev"

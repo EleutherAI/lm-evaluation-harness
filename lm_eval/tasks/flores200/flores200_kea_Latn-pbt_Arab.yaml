@@ -1,0 +1,7 @@
+"dataset_name": "kea_Latn-pbt_Arab"
+"doc_to_target": "{{sentence_pbt_Arab}}"
+"doc_to_text": "{{sentence_kea_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kea_Latn-pbt_Arab"
+"test_split": "dev"

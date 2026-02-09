@@ -1,0 +1,7 @@
+"dataset_name": "mri_Latn-npi_Deva"
+"doc_to_target": "{{sentence_npi_Deva}}"
+"doc_to_text": "{{sentence_mri_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mri_Latn-npi_Deva"
+"test_split": "dev"

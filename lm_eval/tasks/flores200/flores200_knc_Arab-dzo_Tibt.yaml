@@ -1,0 +1,7 @@
+"dataset_name": "knc_Arab-dzo_Tibt"
+"doc_to_target": "{{sentence_dzo_Tibt}}"
+"doc_to_text": "{{sentence_knc_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_knc_Arab-dzo_Tibt"
+"test_split": "dev"

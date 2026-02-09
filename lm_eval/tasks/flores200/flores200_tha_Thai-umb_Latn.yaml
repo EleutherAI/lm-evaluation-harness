@@ -1,0 +1,7 @@
+"dataset_name": "tha_Thai-umb_Latn"
+"doc_to_target": "{{sentence_umb_Latn}}"
+"doc_to_text": "{{sentence_tha_Thai}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tha_Thai-umb_Latn"
+"test_split": "dev"

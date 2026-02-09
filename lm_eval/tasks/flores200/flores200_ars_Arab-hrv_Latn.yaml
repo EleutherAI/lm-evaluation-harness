@@ -1,0 +1,7 @@
+"dataset_name": "ars_Arab-hrv_Latn"
+"doc_to_target": "{{sentence_hrv_Latn}}"
+"doc_to_text": "{{sentence_ars_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ars_Arab-hrv_Latn"
+"test_split": "dev"

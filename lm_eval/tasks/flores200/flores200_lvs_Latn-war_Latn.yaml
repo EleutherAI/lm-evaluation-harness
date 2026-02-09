@@ -1,0 +1,7 @@
+"dataset_name": "lvs_Latn-war_Latn"
+"doc_to_target": "{{sentence_war_Latn}}"
+"doc_to_text": "{{sentence_lvs_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_lvs_Latn-war_Latn"
+"test_split": "dev"

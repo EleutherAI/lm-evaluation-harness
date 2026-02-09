@@ -1,0 +1,7 @@
+"dataset_name": "ceb_Latn-aka_Latn"
+"doc_to_target": "{{sentence_aka_Latn}}"
+"doc_to_text": "{{sentence_ceb_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ceb_Latn-aka_Latn"
+"test_split": "dev"

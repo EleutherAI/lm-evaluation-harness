@@ -1,0 +1,7 @@
+"dataset_name": "wol_Latn-khm_Khmr"
+"doc_to_target": "{{sentence_khm_Khmr}}"
+"doc_to_text": "{{sentence_wol_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_wol_Latn-khm_Khmr"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "ind_Latn-epo_Latn"
+"doc_to_target": "{{sentence_epo_Latn}}"
+"doc_to_text": "{{sentence_ind_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ind_Latn-epo_Latn"
+"test_split": "dev"

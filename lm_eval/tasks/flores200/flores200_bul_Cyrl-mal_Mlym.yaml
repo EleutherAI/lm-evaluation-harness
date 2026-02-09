@@ -1,0 +1,7 @@
+"dataset_name": "bul_Cyrl-mal_Mlym"
+"doc_to_target": "{{sentence_mal_Mlym}}"
+"doc_to_text": "{{sentence_bul_Cyrl}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_bul_Cyrl-mal_Mlym"
+"test_split": "dev"

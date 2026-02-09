@@ -1,0 +1,7 @@
+"dataset_name": "ell_Grek-arb_Arab"
+"doc_to_target": "{{sentence_arb_Arab}}"
+"doc_to_text": "{{sentence_ell_Grek}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ell_Grek-arb_Arab"
+"test_split": "dev"

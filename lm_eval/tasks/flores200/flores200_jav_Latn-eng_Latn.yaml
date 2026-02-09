@@ -1,0 +1,7 @@
+"dataset_name": "jav_Latn-eng_Latn"
+"doc_to_target": "{{sentence_eng_Latn}}"
+"doc_to_text": "{{sentence_jav_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_jav_Latn-eng_Latn"
+"test_split": "dev"

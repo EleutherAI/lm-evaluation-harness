@@ -1,0 +1,7 @@
+"dataset_name": "swh_Latn-guj_Gujr"
+"doc_to_target": "{{sentence_guj_Gujr}}"
+"doc_to_text": "{{sentence_swh_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_swh_Latn-guj_Gujr"
+"test_split": "dev"

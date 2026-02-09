@@ -1,0 +1,7 @@
+"dataset_name": "tum_Latn-uig_Arab"
+"doc_to_target": "{{sentence_uig_Arab}}"
+"doc_to_text": "{{sentence_tum_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_tum_Latn-uig_Arab"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "mag_Deva-kas_Deva"
+"doc_to_target": "{{sentence_kas_Deva}}"
+"doc_to_text": "{{sentence_mag_Deva}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mag_Deva-kas_Deva"
+"test_split": "dev"

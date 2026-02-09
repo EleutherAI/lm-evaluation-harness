@@ -1,0 +1,7 @@
+"dataset_name": "dzo_Tibt-kas_Arab"
+"doc_to_target": "{{sentence_kas_Arab}}"
+"doc_to_text": "{{sentence_dzo_Tibt}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_dzo_Tibt-kas_Arab"
+"test_split": "dev"

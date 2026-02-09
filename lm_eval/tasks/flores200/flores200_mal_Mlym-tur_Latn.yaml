@@ -1,0 +1,7 @@
+"dataset_name": "mal_Mlym-tur_Latn"
+"doc_to_target": "{{sentence_tur_Latn}}"
+"doc_to_text": "{{sentence_mal_Mlym}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_mal_Mlym-tur_Latn"
+"test_split": "dev"
