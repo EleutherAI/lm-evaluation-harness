@@ -1,5 +1,4 @@
 from collections import Counter
-from string import punctuation
 
 import numpy as np
 

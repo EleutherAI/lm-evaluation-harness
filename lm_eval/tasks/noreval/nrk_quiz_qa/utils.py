@@ -64,10 +64,8 @@ class PrecedingWrapSampler(ContextSampler):
     
     def sample(self, n: int, eval_doc=None, df=None, **kwargs):
         total = len(self._ordered_docs)
-        docs = df if df is not None else self.df
 
         if eval_doc is None or "_original_idx" not in eval_doc:
-            print(f">>> Oopsie")
             return list(self.rnd.sample(list(self.df), n))
         
         doc_id = eval_doc["_original_idx"]
