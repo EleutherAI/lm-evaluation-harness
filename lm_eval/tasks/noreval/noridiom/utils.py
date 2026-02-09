@@ -5,8 +5,10 @@ import numpy as np
 
 
 def normalize(text):
-    exclude = set(punctuation)
-    return "".join(ch for ch in text if ch not in exclude).lower().strip()
+    words = "".join(ch for ch in text if ch.isalpha() or ch.isspace()).lower().strip()
+    if len(words) == 0:
+        return ""
+    return words.split()[0].strip()
 
 
 def f1(prediction, completion):
