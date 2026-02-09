@@ -336,12 +336,14 @@ Not supported yet: multi-node evaluation and combinations of data replication wi
 - PyTorch with CUDA support
 
 **Setup:**
+
 ```bash
 # Set environment variable pointing to Megatron-LM installation
 export MEGATRON_PATH=/path/to/Megatron-LM
 ```
 
 **Basic usage (single GPU):**
+
 ```bash
 lm_eval --model megatron_lm \
     --model_args load=/path/to/checkpoint,tokenizer_type=HuggingFaceTokenizer,tokenizer_model=/path/to/tokenizer \
@@ -369,6 +371,7 @@ The Megatron-LM backend supports the following parallelism modes:
 > - Expert Parallelism (EP) cannot be combined with Tensor Parallelism (TP).
 
 **Data Parallelism (4 GPUs, each with full model replica):**
+
 ```bash
 torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
     --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=4 \
@@ -376,6 +379,7 @@ torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
 ```
 
 **Tensor Parallelism (TP=2):**
+
 ```bash
 torchrun --nproc-per-node=2 -m lm_eval --model megatron_lm \
     --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,devices=2,tensor_model_parallel_size=2 \
@@ -383,6 +387,7 @@ torchrun --nproc-per-node=2 -m lm_eval --model megatron_lm \
 ```
 
 **Expert Parallelism for MoE models (EP=4):**
+
 ```bash
 torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
     --model_args load=/path/to/moe_checkpoint,tokenizer_model=/path/to/tokenizer,devices=4,expert_model_parallel_size=4 \
@@ -390,6 +395,7 @@ torchrun --nproc-per-node=4 -m lm_eval --model megatron_lm \
 ```
 
 **Using extra_args for additional Megatron options:**
+
 ```bash
 lm_eval --model megatron_lm \
     --model_args load=/path/to/checkpoint,tokenizer_model=/path/to/tokenizer,extra_args="--no-rope-fusion --trust-remote-code" \
