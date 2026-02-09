@@ -2,4 +2,4 @@ tag: norsumm_nno_nob_translation
 doc_to_target: text_nob
 task: norsumm_nno_nob_translation_p1
 include: ../_norsumm_translation_yaml
-doc_to_text: "Oversett følgende tekst til bokmål: {{text_nno}}\nBokmål:
+doc_to_text: "Oversett følgende tekst til bokmål: {{text_nno}}\nBokmål:"

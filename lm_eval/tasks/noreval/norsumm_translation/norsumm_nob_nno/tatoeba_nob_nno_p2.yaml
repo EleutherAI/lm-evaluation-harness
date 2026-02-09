@@ -2,4 +2,4 @@ tag: norsumm_nob_nno_translation
 doc_to_target: text_nno
 task: norsumm_nob_nno_translation_p2
 include: ../_norsumm_translation_yaml
-doc_to_text: "Gi en samisk oversettelse av denne teksten: {{text_nob}}\nNynorsk:"
+doc_to_text: "Gi en nynorsk oversettelse av denne teksten: {{text_nob}}\nNynorsk:"
