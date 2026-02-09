@@ -1,0 +1,6 @@
+Given the description after "Description:", write a true statement about a box and the contents of this box according to the description after "Statement:".
+
+Format the statement as Box X contains the Y. Y is placeholder for the contents of box X.
+
+Description: {description}
+Statement: Box {boxnum} contains
