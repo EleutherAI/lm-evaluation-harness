@@ -1,0 +1,17 @@
+include: _en_ner_template_yaml
+fewshot_split: validation
+test_split: test
+task_alias: prompt-1
+tag: _en_ner_e3c_p1_task
+task: _en_ner_e3c_p1_task
+
+
+
+#p1
+doc_to_text: "Given a medical document in English, Extract all entities of type CLINENTITY from the following text. Report each entity with the format: Entity$Type, separating each pair with ','. If there are no entities to extract, reply with '&&NOENT&&'. 
+Testo: '{{text}}' 
+Entità:"
+
+#doc_to_text: "Estrai tutte le entità di tipo PER (persona), LOC (luogo) e ORG (organizzazione) dal testo seguente. Riporta ogni entità con il formato: Entità$Tipo, separando ciascuna coppia con ','. Se non ci sono entità da estrarre, rispondi con '&&NOENT&&'.
+#Testo: '{{text}}'
+#Entità:"
