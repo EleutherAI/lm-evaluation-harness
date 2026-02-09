@@ -1,0 +1,3 @@
+dataset_name: Anatomy
+include: _default_template_yaml
+task: Anatomy
