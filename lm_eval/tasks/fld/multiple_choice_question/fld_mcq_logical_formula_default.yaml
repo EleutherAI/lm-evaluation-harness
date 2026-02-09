@@ -1,0 +1,5 @@
+include: _base.yaml
+group:
+  - fld_mcq_logical_formula
+task: fld_mcq_logical_formula_default
+doc_to_text: "Based on the provided facts ($context$), either prove or disprove the hypothesis or state that it is unknown. The facts and the hypothesis are written in logical formulas as follows: capital letters such as \"{A}\", \"{B}\", \"{AB}\" are predicates, small letters such as \"{a}\", \"{b}\", \"{ab}\" are constants, \"&\" is logical conjunction, \"v\" is logical disjunction, \"¬\" is negation, \"->\" is implication, \"(x)\" is \"for all x\", and \"(Ex)\" is \"for some x\". $hypothesis$ = {{hypothesis_formula}} ; $context$ = {{context_formula}} ; $proof$ = "

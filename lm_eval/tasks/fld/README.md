@@ -41,9 +41,14 @@ Homepage: https://github.com/hitachi-nlp/FLD
 This release is the simplified version of FLD where a model is required to predict only an answer.
 This setting is described by "answer accuracy" in the original paper.
 
+
 #### Tasks in Group `fld`
 * `fld_default` is a basic task based on [FLD.v2](https://huggingface.co/datasets/hitachi-nlp/FLD.v2/viewer/star)
 * `fld_star`: is a more challenging version based on [FLD.v2-star](https://huggingface.co/datasets/hitachi-nlp/FLD.v2/viewer/star)
+
+The output format is `generate_until`, which requires a model to generate, rather than choose, a label from the specific set: "PROVED", "DISPROVED", or "UNKNOWN".
+Therefor, if a model fails to follow this format, its answer is evaluated as incorrect.
+
 
 #### Tasks in Group `fld_logical_formula`
 Further, we have "logical formula" versions of the benchmarks, which evaluate LLMs' pure logical reasoning capabilities within the domain of logical formulas, rather than natural language:
@@ -51,15 +56,15 @@ Further, we have "logical formula" versions of the benchmarks, which evaluate LL
 * `fld_logical_formula_fld_star`
 
 
-### Checklist
+#### **(RECOMMENDED)** Tasks in Group `fld_mcq`
+* `fld_mcq_default`
+* `fld_mcq_star`
 
-For adding novel benchmarks/datasets to the library:
-* [x] Is the task an existing benchmark in the literature?
-  * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+The multiple-choice question version of `fld` group.
+We recommend using this variant to avoid the issue of models generating answers in unexpected formats, as stated above.
 
 
-If other tasks on this dataset are already supported:
-* [ ] Is the "Main" variant of this task clearly denoted?
-* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+### **(RECOMMENDED)** Tasks in Group `fld_mcq_logical_formula`
+The multiple-choice question version of `fld_logical_formula` group.
+* `fld_mcq_logical_formula_default`
+* `fld_mcq_logical_formula_star`
