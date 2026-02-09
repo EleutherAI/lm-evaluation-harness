@@ -1,0 +1,16 @@
+"dataset_name": "high_school_chemistry"
+"description": "The following are multiple choice questions (with answers) about high_school_chemistry.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nJawaban:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_id_id_stem"
+"task": "openai_mmmlu_default_id_id_high_school_chemistry"
+"task_alias": "id_id high school chemistry"
+"test_split": "ID_ID"

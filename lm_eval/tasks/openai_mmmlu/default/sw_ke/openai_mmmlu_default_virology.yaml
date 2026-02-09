@@ -1,0 +1,16 @@
+"dataset_name": "virology"
+"description": "The following are multiple choice questions (with answers) about virology.\n\
+  \n"
+"doc_to_choice":
+- "A"
+- "B"
+- "C"
+- "D"
+"doc_to_target": "{{Answer.strip()}}"
+"doc_to_text": "{{Question.strip()}}\nA. {{A.strip()}}\nB. {{B.strip()}}\nC. {{C.strip()}}\n\
+  D. {{D.strip()}}\nJawabu:"
+"include": "../../_default_template_yaml"
+"tag": "openai_mmmlu_default_sw_ke_other"
+"task": "openai_mmmlu_default_sw_ke_virology"
+"task_alias": "sw_ke virology"
+"test_split": "SW_KE"
