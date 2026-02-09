@@ -1,0 +1,17 @@
+group:
+  - m_mmlu_pro
+dataset_path: efederici/MMLU-Pro-ita
+test_split: test
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+output_type: multiple_choice
+doc_to_text: !function utils.doc_to_text
+doc_to_choice: !function utils.doc_to_choice
+doc_to_target: '{{["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].index(answer)}}'
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0
