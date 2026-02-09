@@ -1,0 +1,325 @@
+tag:
+  - group_theory
+  - permutation_composition
+  - nc1
+task: psl2_9_composition
+dataset_path: ""
+dataset_name: ""
+output_type: loglikelihood
+test_split: test
+custom_dataset: !function group_composition_utils.psl2_9_dataset
+doc_to_text: |
+  You are given a sequence of permutations from the group PSL(2,9) (projective special linear group), identified by their integer IDs. Your task is to compute their composed product.
+
+  The composition must be performed sequentially from right to left, following the standard mathematical convention (p_n ∘ ... ∘ p_2 ∘ p_1).
+
+  Sequence: {{input_sequence}}
+
+  Question: What is the single integer ID of the final composed permutation? Your response must be only the integer.
+
+  Answer:
+doc_to_target: "{{target}}"
+process_results: !function group_composition_utils.process_results
+metric_list:
+  - metric: "5"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "10"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "15"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "20"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "25"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "30"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "35"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "40"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "45"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "50"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "55"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "60"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "65"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "70"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "75"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "80"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "85"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "90"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "95"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "100"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "105"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "110"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "115"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "120"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "125"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "130"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "135"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "140"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "145"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "150"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "155"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "160"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "165"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "170"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "175"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "180"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "185"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "190"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "195"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "200"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "205"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "210"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "215"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "220"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "225"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "230"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "235"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "240"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "245"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "250"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "255"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "260"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "265"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "270"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "275"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "280"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "285"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "290"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "295"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "300"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "305"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "310"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "315"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "320"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "325"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "330"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "335"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "340"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "345"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "350"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "355"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "360"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "365"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "370"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "375"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "380"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "385"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "390"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "395"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "400"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "405"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "410"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "415"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "420"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "425"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "430"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "435"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "440"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "445"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "450"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "455"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "460"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "465"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "470"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "475"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "480"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "485"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "490"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "495"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+  - metric: "500"
+    aggregation: !function group_composition_utils.aggregate_metrics
+    higher_is_better: true
+metadata:
+  version: 1.0
