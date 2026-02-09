@@ -1,0 +1,5 @@
+"dataset_name": "Kazakh Language (High School in kaz)"
+"include": "_default_kazmmlu_template_yaml"
+"tag": "kazmmlu_language"
+"task": "kazmmlu_kazakh_language_(high_school_in_kaz)"
+"task_alias": "Kazakh Language (High School in kaz)"
