@@ -1,6 +1,5 @@
 tag: norbelebele
-dataset_path: facebook/belebele
-dataset_name: nob_Latn
+dataset_path: ltg/norbelebele
 test_split: test
 fewshot_split: test
 fewshot_config:

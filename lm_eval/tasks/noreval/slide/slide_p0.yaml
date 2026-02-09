@@ -1,0 +1,4 @@
+task: slide_p0
+include: _slide_yaml
+doc_to_text: "Hvilket språk er det i følgende setning?\n{{text}}\nEr det bokmål, nynorsk, dansk, svensk, eller et annet språk?\nSvar:"
+doc_to_choice: ["bokmål", "nynorsk", "dansk", "svensk", "et annet språk"]
