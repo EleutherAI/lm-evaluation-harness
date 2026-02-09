@@ -15,7 +15,6 @@ import asyncio
 import glob
 import os
 from functools import cache
-from typing import Dict
 
 import html2text
 import httpx
@@ -68,7 +67,7 @@ async def process_text_essay(
 
 
 @cache
-async def get_essays() -> Dict[str, str]:
+async def get_essays() -> dict[str, str]:
     temp_folder_repo = "essay_repo"
     temp_folder_html = "essay_html"
     os.makedirs(temp_folder_repo, exist_ok=True)
@@ -111,13 +110,13 @@ async def get_essays() -> Dict[str, str]:
     # Combine all texts
     text = ""
     for file in files_repo + files_html:
-        with open(file, "r", encoding="utf-8") as f:
+        with open(file, encoding="utf-8") as f:
             text += f.read()
 
     return {"text": text}
 
 
 @cache
-def get_all_essays() -> Dict[str, str]:
+def get_all_essays() -> dict[str, str]:
     """Synchronous wrapper for get_essays()"""
     return asyncio.run(get_essays())

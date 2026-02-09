@@ -1,7 +1,6 @@
 import re
 
 import datasets
-import numpy as np
 
 
 def process_docs(dataset: datasets.Dataset):

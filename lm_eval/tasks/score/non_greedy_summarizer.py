@@ -19,7 +19,6 @@ import os
 from datetime import datetime
 from itertools import combinations
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 
@@ -49,7 +48,7 @@ def load_json_logs(file_paths, subtasks):
     _search_key = None
     for i in range(len(file_paths)):
         file_path = file_paths[i]
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             for line in f:
                 datapoint = json.loads(line)
                 if _search_key is None:
@@ -68,7 +67,7 @@ def load_json_logs(file_paths, subtasks):
     return df
 
 
-def calculate_consistency_rate(responses: List[List[str]]) -> float:
+def calculate_consistency_rate(responses: list[list[str]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 
@@ -91,7 +90,7 @@ def calculate_consistency_rate(responses: List[List[str]]) -> float:
     return total_similarity / total_combinations if total_combinations > 0 else 0.0
 
 
-def calculate_math_consistency_rate(responses: List[List[str]]) -> float:
+def calculate_math_consistency_rate(responses: list[list[str]]) -> float:
     """
     Calculate the Consistency Rate (CR) for a given set of responses.
 

@@ -91,6 +91,10 @@ class TaskConfig(dict):
     dataset_path: str | None = None
     dataset_name: str | None = None
     dataset_kwargs: dict | None = None
+    # context-based flag and funcs
+    context_based: bool | None = None
+    request_updater: Callable | None = None
+    storage_updater: Callable | None = None
     training_split: str | None = None
     validation_split: str | None = None
     test_split: str | None = None

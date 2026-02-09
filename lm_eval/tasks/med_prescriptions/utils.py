@@ -2119,13 +2119,11 @@ def doc_to_text_easy(doc) -> str:
     diagnosis = get_diagnosis(doc)
     choices = doc_to_choice_easy(doc)
     prompt = (
-        "You are a medical doctor. A patient presents the following diagnosis or complains: {}. What would you prescribe in this case? \nChoices: \n"
-        "A. {} \n"
-        "B. {} \n"
-        "C. {} \n"
-        "D. {} \nAnswer:".format(
-            diagnosis, choices[0], choices[1], choices[2], choices[3]
-        )
+        f"You are a medical doctor. A patient presents the following diagnosis or complains: {diagnosis}. What would you prescribe in this case? \nChoices: \n"
+        f"A. {choices[0]} \n"
+        f"B. {choices[1]} \n"
+        f"C. {choices[2]} \n"
+        f"D. {choices[3]} \nAnswer:"
     )
 
     return prompt
@@ -2135,13 +2133,11 @@ def doc_to_text_hard(doc) -> str:
     diagnosis = get_diagnosis(doc)
     choices = doc_to_choice_hard(doc)
     prompt = (
-        "You are a medical doctor. A patient presents the following diagnosis or complains: {}. What would you prescribe in this case? \nChoices: \n"
-        "A. {} \n"
-        "B. {} \n"
-        "C. {} \n"
-        "D. {} \nAnswer:".format(
-            diagnosis, choices[0], choices[1], choices[2], choices[3]
-        )
+        f"You are a medical doctor. A patient presents the following diagnosis or complains: {diagnosis}. What would you prescribe in this case? \nChoices: \n"
+        f"A. {choices[0]} \n"
+        f"B. {choices[1]} \n"
+        f"C. {choices[2]} \n"
+        f"D. {choices[3]} \nAnswer:"
     )
 
     print(prompt)

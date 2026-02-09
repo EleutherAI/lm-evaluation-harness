@@ -1,5 +1,4 @@
 import argparse
-from typing import Dict, List
 
 import yaml
 
@@ -10,7 +9,7 @@ import yaml
 LANGUAGES = ["en", "fr", "jp", "pt", "ru", "zh"]
 
 
-def doc_to_text(doc: Dict) -> int:
+def doc_to_text(doc: dict) -> int:
     """
     Return index of the correct choice.
 
@@ -22,7 +21,7 @@ def doc_to_text(doc: Dict) -> int:
     return answer_to_num[doc["answer"]]
 
 
-def doc_to_target(doc: Dict) -> str:
+def doc_to_target(doc: dict) -> str:
     """
     Return the target completion.
 
@@ -33,7 +32,7 @@ def doc_to_target(doc: Dict) -> str:
     return doc["sentence"][idx:].strip()
 
 
-def doc_to_choice(doc: Dict) -> List[str]:
+def doc_to_choice(doc: dict) -> list[str]:
     """Return the choices that will be used as contexts in "multiple input" mode."""
     idx = doc["sentence"].index("_")
     options = [doc["option1"], doc["option2"]]

@@ -3,8 +3,8 @@ import json
 import logging
 import os
 import warnings
-from functools import lru_cache
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, cast
+from functools import cache
+from typing import Any, NamedTuple, cast
 
 from tqdm import tqdm
 
@@ -69,8 +69,8 @@ def _verify_credentials(creds: dict) -> None:
         raise ValueError(error_msg)
 
 
-@lru_cache(maxsize=None)
-def get_watsonx_credentials() -> Dict[str, str]:
+@cache
+def get_watsonx_credentials() -> dict[str, str]:
     """
     Retrieves Watsonx API credentials from environmental variables.
     Returns:
@@ -121,9 +121,9 @@ class WatsonxLLM(LM):
 
     @classmethod
     def create_from_arg_string(
-        cls: Type["WatsonxLLM"],
+        cls: type["WatsonxLLM"],
         arg_string: str,
-        additional_config: Optional[Dict] = None,
+        additional_config: dict | None = None,
     ) -> "WatsonxLLM":
         """
         Allow the user to specify model parameters (TextGenerationParameters) in CLI arguments.
@@ -185,10 +185,10 @@ class WatsonxLLM(LM):
 
     def __init__(
         self,
-        watsonx_credentials: Dict,
+        watsonx_credentials: dict,
         model_id,
         deployment_id,
-        generate_params: Optional[Dict[Any, Any]] = None,
+        generate_params: dict[Any, Any] | None = None,
     ) -> None:
         try:
             from ibm_watsonx_ai import APIClient
@@ -211,7 +211,7 @@ class WatsonxLLM(LM):
         self._model_id = model_id
 
     @staticmethod
-    def _has_stop_token(response_tokens: List[str], context_tokens: List[str]) -> bool:
+    def _has_stop_token(response_tokens: list[str], context_tokens: list[str]) -> bool:
         """
         Determines whether a stop token has been generated in the `response_tokens` compared to the `context_tokens`.
         If the tokens do not match as expected, the function raises a RuntimeError, indicating a possible
@@ -257,8 +257,8 @@ class WatsonxLLM(LM):
 
     def _get_log_likelihood(
         self,
-        input_tokens: List[Dict[str, float]],
-        context_tokens: List[Dict[str, float]],
+        input_tokens: list[dict[str, float]],
+        context_tokens: list[dict[str, float]],
     ) -> LogLikelihoodResult:
         """
         Calculates the log likelihood of the generated tokens compared to the context tokens.
@@ -287,7 +287,7 @@ class WatsonxLLM(LM):
             ),
         )
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(self, requests: list[Instance]) -> list[str]:
         """
         Generates text responses for a List of requests, with progress tracking and caching.
         Args:
@@ -321,7 +321,7 @@ class WatsonxLLM(LM):
 
         return results
 
-    def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: list[Instance]) -> list[tuple[float, bool]]:
         """
         Args:
             requests: Each request contains Instance.args : Tuple[str, str] containing:
@@ -344,7 +344,7 @@ class WatsonxLLM(LM):
         generate_params[GenParams.MAX_NEW_TOKENS] = 1
 
         requests = [request.args for request in requests]
-        results: List[LogLikelihoodResult] = []
+        results: list[LogLikelihoodResult] = []
 
         # Note: We're not using batching due to (current) indeterminism of loglikelihood values when sending batch of requests
         for request in tqdm(
@@ -383,9 +383,9 @@ class WatsonxLLM(LM):
                 ),
             )
 
-        return cast(List[Tuple[float, bool]], results)
+        return cast(list[tuple[float, bool]], results)
 
-    def loglikelihood_rolling(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood_rolling(self, requests) -> list[tuple[float, bool]]:
         """
         Used to evaluate perplexity on a data distribution.
         Args:
@@ -406,7 +406,7 @@ class WatsonxLLM(LM):
         generate_params[GenParams.MAX_NEW_TOKENS] = 1
 
         requests = [request.args for request in requests]
-        results: List[LogLikelihoodResult] = []
+        results: list[LogLikelihoodResult] = []
 
         # Note: We're not using batching due to (current) indeterminism of loglikelihood values when sending batch of requests
         for request in tqdm(
@@ -432,14 +432,14 @@ class WatsonxLLM(LM):
                 log_likelihood_response.log_likelihood,
             )
 
-        return cast(List[Tuple[float, bool]], results)
+        return cast(list[tuple[float, bool]], results)
 
     @property
     def tokenizer_name(self) -> str:
         return ""
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]]
-    ) -> List[Dict[str, str]]:
+        self, chat_history: list[dict[str, str]]
+    ) -> list[dict[str, str]]:
         # A hack similar from api_model to allow encoding for cache
         return JsonChatStr(json.dumps(chat_history))

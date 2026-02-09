@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     # Load base YAML configuration
     base_yaml_name = os.path.basename(args.base_yaml_path)
-    with open(args.base_yaml_path, "r", encoding="utf-8") as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:

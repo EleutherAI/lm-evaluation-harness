@@ -1,6 +1,3 @@
-from lm_eval.utils import weighted_f1_score
-
-
 def doc_to_text(doc):
     output = """Please identify whether the premise entails or contradicts the hypothesis in the following premise
     and hypothesis. The answer should be exact entailment, contradiction, or neutral.

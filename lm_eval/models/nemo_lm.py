@@ -16,7 +16,7 @@ import importlib
 import logging
 import pathlib
 from copy import deepcopy
-from typing import List, Literal
+from typing import Literal
 
 import filelock
 import numpy as np
@@ -361,8 +361,8 @@ class NeMoLM(LM):
         return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_rolling(
-        self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+        self, requests: list[Instance], disable_tqdm: bool = False
+    ) -> list[float]:
         loglikelihoods = []
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):

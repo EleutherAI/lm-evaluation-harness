@@ -2,7 +2,6 @@ import logging
 import re
 import signal
 from importlib.metadata import version
-from typing import Dict, List, Optional
 
 import datasets
 
@@ -96,7 +95,7 @@ def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     return res
 
 
-def last_boxed_only_string(string: str) -> Optional[str]:
+def last_boxed_only_string(string: str) -> str | None:
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
         return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]

@@ -1,5 +1,4 @@
 import re
-from typing import List, Tuple
 
 import datasets
 
@@ -24,7 +23,7 @@ def load_dataset(**kwargs):
     return {"train": dataset}
 
 
-def extract_answer_list(response: str) -> Tuple[List[str], bool]:
+def extract_answer_list(response: str) -> tuple[list[str], bool]:
     """
     Extract the answer list from a model response.
 
@@ -62,7 +61,7 @@ def extract_answer_list(response: str) -> Tuple[List[str], bool]:
         return [], True
 
 
-def extract_answer_list_flexible(response: str) -> Tuple[List[str], bool]:
+def extract_answer_list_flexible(response: str) -> tuple[list[str], bool]:
     """
     Extract the answer list from a model response (flexible version).
     Searches backwards through all lines to find "Final Answer:" pattern.

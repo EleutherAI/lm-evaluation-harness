@@ -15,7 +15,7 @@
 import logging
 import os
 from functools import partial
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -58,7 +58,7 @@ non_greedy_robustness_process_docs = partial(
 )
 
 
-def non_greedy_robustness_process_results(doc, results) -> Dict[str, float]:
+def non_greedy_robustness_process_results(doc, results) -> dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
     final_answer = utils.translate_model_answer_to_labels(
         final_answer, option_format=doc["options_format"], labels=LABELS
@@ -70,7 +70,7 @@ def non_greedy_robustness_process_results(doc, results) -> Dict[str, float]:
     return {"non_greedy_macro_accuracy": (question_id, final_answer, gt, category)}
 
 
-def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
+def prompt_robustness_process_results(doc, results) -> dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
     final_answer = utils.translate_model_answer_to_labels(
         final_answer, option_format=doc["options_format"], labels=LABELS
@@ -91,7 +91,7 @@ def prompt_robustness_process_results(doc, results) -> Dict[str, float]:
     }
 
 
-def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
+def option_order_robustness_process_results(doc, results) -> dict[str, float]:
     final_answer = utils.__postprocess_pred(results[0])
     final_answer = utils.translate_model_answer_to_labels(
         final_answer, option_format=doc["options_format"], labels=LABELS
@@ -120,7 +120,7 @@ def option_order_robustness_process_results(doc, results) -> Dict[str, float]:
     }
 
 
-def per_prompt_macro_accuracy(results: List[Dict[str, Any]], p_id=0) -> float:
+def per_prompt_macro_accuracy(results: list[dict[str, Any]], p_id=0) -> float:
     accuracies = {}
     for result in results:
         question_id, prompt_id, final_answer, gt, category = result
@@ -151,7 +151,7 @@ per_prompt_accuracy_8 = partial(per_prompt_macro_accuracy, p_id=8)
 per_prompt_accuracy_9 = partial(per_prompt_macro_accuracy, p_id=9)
 
 
-def per_option_macro_accuracy(results: List[Dict[str, Any]], always_opt="a") -> float:
+def per_option_macro_accuracy(results: list[dict[str, Any]], always_opt="a") -> float:
     accuracies = {}
     for result in results:
         question_id, always_same_option, final_answer, gt, category = result
@@ -184,7 +184,7 @@ per_option_macro_accuracy_j = partial(per_option_macro_accuracy, always_opt="J")
 options_consistency_rate = partial(utils.options_consistency_rate, labels=LABELS)
 
 
-def non_greedy_macro_accuracy(results: List[Dict[str, Any]]) -> float:
+def non_greedy_macro_accuracy(results: list[dict[str, Any]]) -> float:
     accuracies = {}
     for result in results:
         question_id, final_answer, gt, category = result

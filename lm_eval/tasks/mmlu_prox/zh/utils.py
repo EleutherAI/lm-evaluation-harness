@@ -37,7 +37,7 @@ def format_cot_example(example, including_answer=True):
     for i in range(max_opt_num):
         opt = example[f"option_{i}"]
         if opt is not None:
-            prompt += "{}. {}\n".format(choices[i], opt)
+            prompt += f"{choices[i]}. {opt}\n"
     if including_answer:
         cot_content = example["cot_content"].replace(lang_dict[4], lang_dict[2])
         prompt += cot_content + "\n\n"

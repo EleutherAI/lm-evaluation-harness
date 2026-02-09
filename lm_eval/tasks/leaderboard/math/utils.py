@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List
 
 import datasets
 
@@ -70,7 +69,7 @@ def list_fewshot_samples() -> list[dict]:
     ]
 
 
-def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
+def process_results(doc: dict, results: list[str]) -> dict[str, int]:
     candidates = results[0]
     parsed_candidate = parse(candidates)
     parsed_answer = parse(doc["solution"], extraction_config=[LatexExtractionConfig()])

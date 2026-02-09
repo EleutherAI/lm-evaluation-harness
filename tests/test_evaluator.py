@@ -1,6 +1,5 @@
 import os
 import re
-from typing import List
 
 import pytest
 
@@ -36,7 +35,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
     ids=lambda d: f"{d}",
 )
 def test_evaluator(
-    task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
+    task_name: list[str], limit: int, model: str, model_args: str, bootstrap_iters: int
 ):
     e1 = evaluator.simple_evaluate(
         model=model,
@@ -110,7 +109,7 @@ def test_evaluator(
     ],
     ids=lambda d: f"{d}",
 )
-def test_printed_results(task_name: List[str], limit: int, model: str, model_args: str):
+def test_printed_results(task_name: list[str], limit: int, model: str, model_args: str):
     results = evaluator.simple_evaluate(
         model=model,
         tasks=task_name,
@@ -132,7 +131,7 @@ def test_printed_results(task_name: List[str], limit: int, model: str, model_arg
         )
     )
     filepath = f"./tests/testdata/{filename}.txt"
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         t1 = f.read().strip()
 
     t2 = make_table(results).strip()

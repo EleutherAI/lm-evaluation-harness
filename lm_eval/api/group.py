@@ -1,16 +1,17 @@
 import abc
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Any, Callable, List, Optional, Union
+from typing import Any
 
 
 @dataclass
 class AggMetricConfig(dict):
-    metric: Optional[str] = None
-    aggregation: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
+    metric: str | None = None
+    aggregation: str | None = "mean"
+    weight_by_size: str | None = False
     # list of filter names which should be incorporated into the aggregated metric.
-    filter_list: Optional[Union[str, list]] = "none"
+    filter_list: str | list | None = "none"
 
     def __post_init__(self):
         if self.aggregation != "mean" and not callable(self.aggregation):
@@ -24,13 +25,11 @@ class AggMetricConfig(dict):
 
 @dataclass
 class GroupConfig(dict):
-    group: Optional[str] = None
-    group_alias: Optional[str] = None
-    task: Optional[Union[str, list]] = None
-    aggregate_metric_list: Optional[
-        Union[List[AggMetricConfig], AggMetricConfig, dict]
-    ] = None
-    metadata: Optional[dict] = (
+    group: str | None = None
+    group_alias: str | None = None
+    task: str | list | None = None
+    aggregate_metric_list: list[AggMetricConfig] | AggMetricConfig | dict | None = None
+    metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )
 
@@ -68,8 +67,8 @@ class GroupConfig(dict):
         return cfg_dict
 
     def serialize_function(
-        self, value: Union[Callable, str], keep_callable=False
-    ) -> Union[Callable, str]:
+        self, value: Callable | str, keep_callable=False
+    ) -> Callable | str:
         """Serializes a given function or string.
 
         If 'keep_callable' is True, the original callable is returned.
@@ -87,7 +86,7 @@ class GroupConfig(dict):
 class ConfigurableGroup(abc.ABC):
     def __init__(
         self,
-        config: Optional[dict] = None,
+        config: dict | None = None,
     ) -> None:
         self._config = GroupConfig(**config)
 
