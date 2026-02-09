@@ -1,0 +1,17 @@
+task: fpb
+dataset_path: financial_phrasebank
+dataset_name: sentences_50agree
+training_split: null
+validation_split: null
+test_split: train
+fewshot_split: train
+num_fewshot: 5
+process_docs: !function utils.process_docs
+output_type: multiple_choice
+doc_to_choice: choices
+doc_to_text: "Sentence: {{sentence}}\nAnswer: "
+doc_to_target: label
+metric_list:
+  - metric: !function utils.f1
+    aggregation: !function utils.agg_f1_weighted
+    higher_is_better: true
