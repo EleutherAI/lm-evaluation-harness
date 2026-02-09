@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from lm_eval.defaults import default_gen_kwargs
 
@@ -29,9 +29,9 @@ class FewshotConfig:
 
     sampler: str = "default"
     split: str | None = None
-    process_docs: Callable[..., list[dict]] | None = None
+    process_docs: Callable[..., list[dict[str, Any]]] | None = None
     fewshot_indices: list[int] | None = None
-    samples: list[dict] | Callable[[], list[dict]] | None = None
+    samples: list[dict[str, Any]] | Callable[[], list[dict[str, Any]]] | None = None
     # Override doc formatting for fewshot examples
     doc_to_text: str | Callable[..., str] | None = None
     doc_to_choice: str | Callable[..., str] | dict | list | None = None
@@ -45,6 +45,21 @@ class FewshotConfig:
             eval_logger.warning(
                 "Both split and samples are configured; split will take precedence"
             )
+
+    def get_docs(self, dataset: dict[str, Any]) -> list[dict[str, Any]] | None:
+        if self.split is not None:
+            if self.process_docs is not None:
+                return self.process_docs(dataset[self.split])
+            return dataset[self.split]
+        elif self.samples is not None:
+            # fmt: off
+            match self.samples:
+                case list(): return cast("list[dict[str, Any]]", self.samples)
+                case fsamples if callable(self.samples): return cast("list[dict[str, Any]]", fsamples())
+                case _: raise Exception(
+                        "`fewshot_config['samples']` was incorrectly defined in the configuration. It should either be `list[dict]`, or callable returning this list."
+                    ) from None
+            # fmt: on
 
     @classmethod
     def from_dict(
@@ -117,12 +132,13 @@ class TaskConfig(dict):
     # scoring options
     metric_list: list | None = None
     output_type: OutputType = "generate_until"
-    generation_kwargs: dict | None = None
+    generation_kwargs: dict[str, Any] | None = None
     repeats: int = 1
     filter_list: str | list | None = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
+    multiple_inputs: bool = False
     metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )

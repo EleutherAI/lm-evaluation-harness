@@ -1,28 +1,25 @@
 from dataclasses import dataclass, field
-from typing import Literal, Optional, Tuple
+from typing import Any
 
-
-OutputType = Literal[
-    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
-]
+from lm_eval.types import OutputType
 
 
 @dataclass
 class Instance:
     request_type: OutputType
     doc: dict
-    arguments: tuple
+    arguments: tuple[str, str] | tuple[str, dict[str, Any]]
     idx: int
-    metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
+    metadata: tuple[str | None, int | None, int | None] = field(
         default_factory=lambda: (None, None, None)
     )
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
     # initialized after init
-    task_name: Optional[str] = None
-    doc_id: Optional[int] = None
-    repeats: Optional[int] = None
+    task_name: str | None = None
+    doc_id: int | None = None
+    repeats: int | None = None
 
     def __post_init__(self) -> None:
         # unpack metadata field

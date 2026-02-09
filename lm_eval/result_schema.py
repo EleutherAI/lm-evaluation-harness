@@ -1,9 +1,14 @@
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
 from typing_extensions import NotRequired, TypedDict
 
 
 T = TypeVar("T", bound=int | float | bool | tuple)
+
+# multiple-choice types send a number of "loglikelihood" instances
+OutputType = Literal[
+    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
+]
 
 
 """Full evaluation results returned by ``simple_evaluate()`` and ``evaluate()``.
