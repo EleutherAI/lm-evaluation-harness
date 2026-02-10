@@ -115,7 +115,7 @@ class VLLM_VLM(VLLM):
         **kwargs,
     ):
         if generate:
-            kwargs = self.modify_gen_kwargs(kwargs)
+            kwargs, _, _ = self.modify_gen_kwargs(kwargs)
             sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
             sampling_params = SamplingParams(
