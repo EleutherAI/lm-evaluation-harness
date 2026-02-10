@@ -24,7 +24,6 @@ from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
     get_aggregation,
     get_metric,
@@ -724,12 +723,12 @@ class ConfigurableTask(Task):
                             "aggregation"
                         ]
                 else:
-                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_metric_aggregation(metric_name)
+                    agg_name = getattr(metric_agg, "__name__", str(metric_agg))
                     eval_logger.warning(
                         f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
-                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
+                        f"aggregation={agg_name}"
                     )
                     self._aggregation_list[metric_name] = metric_agg
 

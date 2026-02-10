@@ -4,8 +4,8 @@ import os
 import random
 import re
 import string
-from collections.abc import Iterable
-from typing import Callable, List, Optional, Sequence, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import TypeVar
 
 import numpy as np
 import sacrebleu
@@ -127,26 +127,6 @@ def ter(items):
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_ter(preds, refs).score
-
-
-@register_aggregation("brier_score")
-def brier_score(items):  # This is a passthrough function
-    gold, predictions = list(zip(*items))
-    bs, num_class = np.array(predictions).shape
-
-    gold = list(gold)
-    gold_one_hot = np.eye(num_class)[gold]
-    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
-
-
-@register_metric(
-    metric="brier_score",
-    higher_is_better=False,
-    output_type=["multiple_choice"],
-    aggregation="brier_score",
-)
-def brier_score_fn(items):  # This is a passthrough function
-    return items
 
 
 @register_metric(
@@ -554,7 +534,7 @@ def bootstrap_stderr(
 
 def stderr_for_metric(
     metric: Callable[[Sequence[T]], float], bootstrap_iters: int
-) -> Optional[Callable[[Sequence[T]], float]]:
+) -> Callable[[Sequence[T]], float] | None:
     """
     Return a function that estimates the standard error of `metric(xs)`.
 
@@ -587,7 +567,7 @@ def stderr_for_metric(
     return stderr.get(metric, None)
 
 
-def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+def pooled_sample_stderr(stderrs: list[float], sizes: list[int]):
     # Used to aggregate bootstrapped stderrs across subtasks in a group,
     # when we are weighting by the size of each subtask.
     #
@@ -605,7 +585,7 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     return np.sqrt(pooled_sample_var / sum(sizes))
 
 
-def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+def combined_sample_stderr(stderrs: list[float], sizes: list[int], metrics=None):
     assert metrics is not None, (
         "Need to pass a list of each subtask's metric for this stderr aggregation"
     )

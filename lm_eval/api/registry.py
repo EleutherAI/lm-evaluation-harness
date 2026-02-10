@@ -39,10 +39,11 @@ import importlib.metadata as md
 import inspect
 import logging
 import threading
-from collections.abc import Callable
 from functools import lru_cache
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, overload
+
+from lm_eval.config.metric import _T, Metric
 
 
 eval_logger = logging.getLogger(__name__)
@@ -418,7 +419,7 @@ class Registry(Generic[T]):
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
 aggregation_registry: Registry[Callable[..., float]] = Registry("aggregation")
-metric_registry: Registry[Callable] = Registry("metric")
+metric_registry: Registry[Metric] = Registry("metric")
 metric_agg_registry: Registry[Callable] = Registry("metric_aggregation")
 higher_is_better_registry: Registry[bool] = Registry("higher_is_better")
 
@@ -572,11 +573,11 @@ FILTER_REGISTRY = filter_registry
 # =============================================================================
 
 
-def register_metric(**args):
+def register_metric(**kw) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
     """Decorator to register a metric function.
 
     Args:
-        **args: Keyword arguments including
+        **kw: Keyword arguments including
             - metric: Name to register the metric under (required)
             - higher_is_better: Whether higher scores are better
             - aggregation: Name of aggregation function to use
@@ -585,23 +586,48 @@ def register_metric(**args):
         Decorator function
     """
 
-    def decorate(fn):
-        assert "metric" in args
-        name = args["metric"]
+    def decorate(fn_or_class: Callable[..., _T]) -> Callable[..., _T]:
+        # Check if this is a class with __call__/aggregate methods (class-based pattern)
+        assert "metric" in kw
+        name = kw["metric"]
+        if inspect.isclass(fn_or_class):
+            init_kwargs = kw.get("kwargs", {})
+            try:
+                instance = fn_or_class(**init_kwargs)
+            except TypeError as e:
+                # Fallback: create without kwargs if __init__ doesn't accept them
+                if init_kwargs:
+                    eval_logger.warning(
+                        f"Metric class {fn_or_class.__name__} does not accept "
+                        f"kwargs {init_kwargs}: {e}. Creating without kwargs."
+                    )
+                instance = fn_or_class()
+            metric_fn = instance  # Instance is directly callable via __call__
+            aggregation_fn = instance.aggregation
+        else:
+            metric_fn = fn_or_class
+            if "aggregation" in kw:
+                aggregation_fn = aggregation_registry.get(kw["aggregation"])
+            else:
+                # Try to get default aggregation for this metric name
+                try:
+                    aggregation_fn = aggregation_registry.get(name)
+                except KeyError:
+                    # Fall back to "mean" as the most common default aggregation
+                    aggregation_fn = aggregation_registry.get("mean")
 
-        # Register the metric function
-        metric_registry.register(name)(fn)
+        config = Metric(
+            name=name,
+            fn=metric_fn,
+            kwargs=kw.get("kwargs", {}),
+            aggregation=aggregation_fn,
+            higher_is_better=kw.get("higher_is_better", True),
+            output_type=kw.get("output_type", "generate_until"),
+        )
 
-        # Register higher_is_better if provided
-        if "higher_is_better" in args:
-            higher_is_better_registry.register(name, target=args["higher_is_better"])
+        metric_registry.register(name)(config)
 
-        # Register aggregation if provided
-        if "aggregation" in args:
-            agg_fn = aggregation_registry.get(args["aggregation"])
-            metric_agg_registry.register(name, target=agg_fn)
-
-        return fn
+        return fn_or_class
 
     return decorate
 
@@ -620,24 +646,8 @@ def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
-    if not hf_evaluate_metric:
-        if name in metric_registry:
-            return metric_registry.get(name)
-        else:
-            eval_logger.warning(
-                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
-            )
-
-    try:
-        import evaluate as hf_evaluate
-
-        metric_object = hf_evaluate.load(name)
-        return metric_object.compute
-    except Exception:
-        eval_logger.error(
-            f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
-        )
-        return None
+    config = metric_registry.get(name)
+    return config.fn
 
 
 def register_aggregation(name: str):
@@ -687,11 +697,12 @@ def get_metric_aggregation(name: str) -> Callable[..., float] | None:
         The aggregation function for that metric, or None if not found
     """
     # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(metric_agg_registry) == 0:
+    if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
     try:
-        return metric_agg_registry.get(name)
+        config = metric_registry.get(name)
+        return config.aggregation
     except KeyError:
         eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
         return None
@@ -707,11 +718,12 @@ def is_higher_better(metric_name: str) -> bool | None:
         True if higher is better, False otherwise, None if not found
     """
     # Auto-import metrics module if registry is empty (lazy initialization)
-    if len(higher_is_better_registry) == 0:
+    if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
     try:
-        return higher_is_better_registry.get(metric_name)
+        config = metric_registry.get(metric_name)
+        return config.higher_is_better
     except KeyError:
         eval_logger.warning(
             f"higher_is_better not specified for metric '{metric_name}'!"
