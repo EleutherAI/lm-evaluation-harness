@@ -1,4 +1,4 @@
-"""
+r"""
 Megatron-LM backend for lm-evaluation-harness.
 
 This module provides support for evaluating Megatron-LM models, including
@@ -33,23 +33,23 @@ Usage Examples:
     export MEGATRON_PATH=/path/to/Megatron-LM
 
     # Single GPU evaluation
-    torchrun --nproc_per_node=1 -m lm_eval --model megatron_lm \\
-        --model_args load=/path/to/ckpt,tokenizer_model=/path/to/tokenizer.model \\
+    torchrun --nproc_per_node=1 -m lm_eval --model megatron_lm \
+        --model_args load=/path/to/ckpt,tokenizer_model=/path/to/tokenizer.model \
         --tasks arc_easy --batch_size 8
 
     # Data Parallelism (4 GPUs, each with full model replica)
-    torchrun --nproc_per_node=4 -m lm_eval --model megatron_lm \\
-        --model_args load=/path/to/ckpt,devices=4,tokenizer_model=/path/to/tokenizer.model \\
+    torchrun --nproc_per_node=4 -m lm_eval --model megatron_lm \
+        --model_args load=/path/to/ckpt,devices=4,tokenizer_model=/path/to/tokenizer.model \
         --tasks arc_easy --batch_size 8
 
     # Tensor Parallelism (2 GPUs for TP)
-    torchrun --nproc_per_node=2 -m lm_eval --model megatron_lm \\
-        --model_args load=/path/to/ckpt,devices=2,tensor_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \\
+    torchrun --nproc_per_node=2 -m lm_eval --model megatron_lm \
+        --model_args load=/path/to/ckpt,devices=2,tensor_model_parallel_size=2,tokenizer_model=/path/to/tokenizer.model \
         --tasks arc_easy --batch_size 8
 
     # Expert Parallelism for MoE models (6 GPUs, EP=6)
-    torchrun --nproc_per_node=6 -m lm_eval --model megatron_lm \\
-        --model_args load=/path/to/moe_ckpt,devices=6,expert_model_parallel_size=6,tokenizer_model=/path/to/tokenizer.model \\
+    torchrun --nproc_per_node=6 -m lm_eval --model megatron_lm \
+        --model_args load=/path/to/moe_ckpt,devices=6,expert_model_parallel_size=6,tokenizer_model=/path/to/tokenizer.model \
         --tasks arc_easy --batch_size 8
 """
 
@@ -99,9 +99,7 @@ def _check_dist_ckpt(load_path: str) -> bool:
         if f.endswith(".distcp"):
             return True
     # Check for metadata.json
-    if os.path.exists(os.path.join(load_path, "metadata.json")):
-        return True
-    return False
+    return os.path.exists(os.path.join(load_path, "metadata.json"))
 
 
 def _parse_extra_args(extra_args: str | None) -> list[str]:
@@ -894,7 +892,7 @@ class MegatronLMEval(LM):
             # Compute log probabilities
             log_probs = torch.nn.functional.log_softmax(logits.float(), dim=-1)
 
-            for i, (ctxlen, contlen) in enumerate(zip(ctxlens, contlens)):
+            for i, (ctxlen, contlen) in enumerate(zip(ctxlens, contlens, strict=True)):
                 # Get padding length
                 pad_len = max_len - len(inps[i])
 
@@ -1100,7 +1098,7 @@ class MegatronLMEval(LM):
 
             # Autoregressive generation loop
             # For EP mode: ALL ranks must execute same number of forward passes
-            for step in range(max_gen_toks):
+            for _step in range(max_gen_toks):
                 # EP synchronization FIRST: check if ALL ranks have ALL samples finished
                 # This MUST be before any early exit to prevent hang
                 if torch.distributed.is_initialized() and self._ep_size > 1:
