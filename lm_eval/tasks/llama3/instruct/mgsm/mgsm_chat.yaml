@@ -1,0 +1,21 @@
+group: mgsm_chat
+group_alias: mgsm (llama)
+task:
+    - mgsm_chat_bn
+    - mgsm_chat_de
+    - mgsm_chat_en
+    - mgsm_chat_es
+    - mgsm_chat_fr
+    - mgsm_chat_ja
+    - mgsm_chat_ru
+    - mgsm_chat_sw
+    - mgsm_chat_te
+    - mgsm_chat_th
+    - mgsm_chat_zh
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: True
+    filter_list: [flexible-extract]
+metadata:
+  version: 0
