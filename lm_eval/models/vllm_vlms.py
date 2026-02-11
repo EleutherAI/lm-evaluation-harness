@@ -22,6 +22,7 @@ from lm_eval.models.vllm_causallms import VLLM
 if TYPE_CHECKING:
     from vllm import RequestOutput
 
+    from lm_eval.api.instance import Instance
 
 eval_logger = logging.getLogger(__name__)
 
@@ -211,7 +212,7 @@ class VLLM_VLM(VLLM):
         )
 
     def generate_until(
-        self, requests: list[Instance], disable_tqdm: bool = False
+        self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[str]:
         if requests and len(requests[0].args) < 3:
             # Fall back to non-multimodal generation.
@@ -306,7 +307,7 @@ class VLLM_VLM(VLLM):
         return res
 
     def loglikelihood_rolling(
-        self, requests: list[Instance], disable_tqdm: bool = False
+        self, requests: list["Instance"], disable_tqdm: bool = False
     ) -> list[float]:
         if requests and len(requests[0].args) < 3:
             # Fall back to non-multimodal generation.
