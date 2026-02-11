@@ -5,6 +5,7 @@ import ast
 import logging
 import random
 import re
+from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from copy import deepcopy
 from functools import partial
@@ -18,6 +19,7 @@ from typing import (
 import datasets
 import numpy as np
 from tqdm import tqdm
+from typing_extensions import NamedTuple
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -57,6 +59,12 @@ eval_logger = logging.getLogger(__name__)
 
 
 TaskConfig = TaskConfig
+
+
+class MetricKey(NamedTuple):
+    metric: str
+    filter: str
+    doc_id: int
 
 
 class Task(abc.ABC):
@@ -547,11 +555,11 @@ class Task(abc.ABC):
         self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
         self._higher_is_better[metric_name] = is_higher_better(metric_name)
         self._metric_fn_kwargs[metric_name] = {}
-        if not isinstance(self, ConfigurableTask):
-            self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
-            self.aggregation = lambda: {
-                metric_name: get_metric_aggregation(metric_name)
-            }
+        # if not isinstance(self, ConfigurableTask):
+        #     self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
+        #     self.aggregation = lambda: {
+        #         metric_name: get_metric_aggregation(metric_name)
+        #     }
         self._config["metric_list"] = [{"metric": metric_name}]
         self._config["process_results"] = "process_results"
 
@@ -603,10 +611,57 @@ class Task(abc.ABC):
             )
         return doc_iterator
 
+    def _process_instances(self):
+        sample_metrics = defaultdict(list)
+        filters: list[str] = [x.name for x in self._filters]
+        self.apply_filters()
+        _instances = self.sort_instances(self._instances)
+        for filter in filters:
+            for i, instance_group in _instances.items():
+                res: dict[str, Any] = self.process_results(
+                    doc=instance_group[0].doc,
+                    results=[req.filtered_resps[filter] for req in instance_group],
+                )
+                if res is None:
+                    break
+                else:
+                    for metric, value in res.items():
+                        sample_metrics[MetricKey(metric, filter, i)].append(value)
+        return sample_metrics
+
     @staticmethod
     def resolve_field(doc: dict[str, Any], field: str | None = None):
         if field:
             return doc[field] if field in doc else utils.apply_template(field, doc)
+
+    @staticmethod
+    def sort_instances(
+        instances: list[Instance] | None = None,
+    ) -> dict[int, list[Instance]]:
+        """Sorts instances by doc_id and then by idx"""
+        if not instances:
+            return {}
+        from collections import defaultdict
+
+        instances_by_doc_id: defaultdict[int, list[Instance]] = defaultdict(list)
+        for instance in instances:
+            instances_by_doc_id[instance.doc_id].append(instance)
+        # Sort instances within each group
+        for instances in instances_by_doc_id.values():
+            instances.sort(key=lambda x: x.idx)
+        return instances_by_doc_id
+
+    def process_instances(self, instances: list[Instance]):
+        """Apply filters and sorting to a list of instances."""
+        filters: list[str] = [x.name for x in self._filters]
+        self.apply_filters()
+        _instances = self.sort_instances(self._instances)
+        for filter in filters:
+            for i, instance_group in _instances.items():
+                res = self.process_results(
+                    doc=instance_group[0].doc,
+                    results=[req.filtered_resps[filter] for req in instance_group],
+                )
 
 
 class ConfigurableTask(Task):
@@ -1446,7 +1501,7 @@ class ConfigurableTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc, results):
+    def process_results(self, doc: dict[str, Any], results):
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
 

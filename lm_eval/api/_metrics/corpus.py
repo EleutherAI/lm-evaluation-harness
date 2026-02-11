@@ -26,7 +26,7 @@ class CorpusMetric(Generic[_T], ABC):
     @abstractmethod
     def aggregation(self, items: list[_T]) -> float: ...
 
-    def reduce(self, results: list[_T], **kwargs) -> _T:
+    def reduce(self, targets: list, results: list[_T], **kwargs) -> _T:
         if len(results) != 1:
             warning_once(
                 eval_logger,

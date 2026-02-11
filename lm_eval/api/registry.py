@@ -75,6 +75,7 @@ __all__ = [
     "register_aggregation",
     "get_aggregation",
     "get_metric_aggregation",
+    "register_reduction",
     "is_higher_better",
     "register_filter",
     "get_filter",
@@ -419,6 +420,7 @@ class Registry(Generic[T]):
 model_registry: Registry[type[LM]] = Registry("model")
 filter_registry: Registry[type[Filter]] = Registry("filter")
 aggregation_registry: Registry[Callable[..., float]] = Registry("aggregation")
+reduce_registry: Registry[Callable[..., float]] = Registry("reduce")
 metric_registry: Registry[Metric] = Registry("metric")
 metric_agg_registry: Registry[Callable] = Registry("metric_aggregation")
 higher_is_better_registry: Registry[bool] = Registry("higher_is_better")
@@ -662,6 +664,23 @@ def register_aggregation(name: str):
 
     def decorate(fn):
         aggregation_registry.register(name)(fn)
+        return fn
+
+    return decorate
+
+
+def register_reduction(name: str):
+    """Decorator to register an aggregation function.
+
+    Args:
+        name: Name to register the aggregation under
+
+    Returns:
+        Decorator function
+    """
+
+    def decorate(fn):
+        reduce_registry.register(name)(fn)
         return fn
 
     return decorate

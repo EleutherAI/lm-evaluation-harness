@@ -68,3 +68,8 @@ class Metric(Generic[_T]):
                 f"Metric {self.name} does not have an aggregation function."
             )
         return self.aggregation(results)
+
+    @staticmethod
+    def to_ll_inputs(*args, **kwargs):
+        """Convert metric inputs to log-likelihood inputs, if possible"""
+        pass
