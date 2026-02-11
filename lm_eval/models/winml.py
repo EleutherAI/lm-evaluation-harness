@@ -70,7 +70,7 @@ class WindowsML(TemplateLM):
         max_length: int | None = 4096,
         batch_size: int = 1,
         max_batch_size: int = 64,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize WindowsML model.
