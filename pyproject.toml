@@ -124,6 +124,8 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
+preview = true
+explicit-preview-rules = true
 extend-select = [
     "B",      # flake8-bugbear
     "C419",   # unnecessary-comprehension-in-call
@@ -137,6 +139,8 @@ extend-select = [
     "SIM",    # flake8-simplify
     "UP",     # pyupgrade
     "W605",   # invalid-escape-sequence
+    "S", # flake8-bandit,
+    "S307", # part of S but exact code to enable preview
 ]
 fixable = [
     "F401",   # unused-import
@@ -163,6 +167,7 @@ ignore = [
     "E731",   # lambda-assignment
     "E741",   # ambiguous-variable-name
     "SIM118", # dict-in-keys
+    "S101",   # assert-used
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
