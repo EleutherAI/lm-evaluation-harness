@@ -8,7 +8,7 @@ output_type: multiple_choice
 validation_split: validation
 test_split: test
 fewshot_split: validation
-doc_to_target: label
+doc_to_target: category
 doc_to_choice:
     - "business"
     - "entertainment"
@@ -18,7 +18,7 @@ doc_to_choice:
     - "sports"
     - "technology"
 should_decontaminate: true
-doc_to_decontamination_query: headline_text
+doc_to_decontamination_query: headline
 metric_list:
   - metric: f1
     aggregation: !function utils.weighted_f1_score
