@@ -167,6 +167,7 @@ ignore = [
     "E731",   # lambda-assignment
     "E741",   # ambiguous-variable-name
     "SIM118", # dict-in-keys
+    "S101",   # assert-used
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
