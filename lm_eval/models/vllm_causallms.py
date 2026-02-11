@@ -9,7 +9,7 @@ from importlib.util import find_spec
 from multiprocessing import Process, Queue
 from queue import Empty
 from time import sleep
-from typing import TYPE_CHECKING, Literal, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import jinja2
 import ray
@@ -222,7 +222,7 @@ class VLLM(TemplateLM):
             pretrained, trust_remote_code=trust_remote_code, revision=revision
         )
         self.tokenizer: PreTrainedTokenizerBase = get_tokenizer(
-            tokenizer if tokenizer else pretrained,
+            tokenizer or pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code or False,
             revision=tokenizer_revision,
@@ -297,7 +297,7 @@ class VLLM(TemplateLM):
         return self.tokenizer.eos_token_id
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         if self._max_length:  # if max length manually set, return it
             return self._max_length
         if self.data_parallel_size <= 1:
@@ -846,7 +846,7 @@ class VLLM(TemplateLM):
         gen_kwargs: GenKwargs,
         eos: str | list[str] | None = None,
         default_max_gen_toks: int = 256,
-    ) -> tuple[dict, list[str], int]:
+    ) -> tuple[dict[str, Any], list[str], int]:
         """Process generation kwargs into vLLM-compatible format.
 
         Args:
