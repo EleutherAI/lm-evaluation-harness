@@ -1,23 +1,26 @@
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import ray
 import transformers
 from more_itertools import distribute
 from tqdm import tqdm
-from vllm import LLM, SamplingParams
+from vllm import LLM, SamplingParams, TextPrompt
 from vllm.lora.request import LoRARequest  # noqa: F401
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
-    normalize_gen_kwargs,
     replace_placeholders,
     resize_image,
     undistribute,
 )
 from lm_eval.models.vllm_causallms import VLLM
+
+
+if TYPE_CHECKING:
+    from vllm import RequestOutput
 
 
 eval_logger = logging.getLogger(__name__)
@@ -75,7 +78,7 @@ class VLLM_VLM(VLLM):
         images,  # TODO: typehint on this
         left_truncate_len: int | None = None,
         truncation: bool = False,
-    ):
+    ) -> list[TextPrompt]:
         images = [img[: self.max_images] for img in images]
         # TODO<baber>: is the default placeholder always <image>?
         if self.chat_applied is False:
@@ -91,21 +94,18 @@ class VLLM_VLM(VLLM):
 
         outputs = []
         for x, i in zip(strings, images, strict=True):
-            inputs = {
-                "prompt": x,
-                "multi_modal_data": {"image": i},
-            }
-            outputs.append(inputs)
+            _input = TextPrompt(prompt=x, multi_modal_data={"image": i})
+            outputs.append(_input)
         return outputs
 
     def _multimodal_model_generate(
         self,
-        requests: list[list[dict]] | None = None,
+        requests: list[TextPrompt] | None = None,
         generate: bool = False,
         max_tokens: int | None = None,
         stop: list[str] | None = None,
         **kwargs,
-    ):
+    ) -> list["RequestOutput"]:
         if requests is None:
             return []
         if generate:
@@ -120,14 +120,16 @@ class VLLM_VLM(VLLM):
             # see https://github.com/vllm-project/vllm/issues/973
             @ray.remote
             def run_inference_one_model(
-                model_args: dict, sampling_params, requests: list[list[dict]]
-            ):
+                model_args: dict, sampling_params, requests: list[TextPrompt]
+            ) -> list["RequestOutput"]:
                 llm = LLM(**model_args)
                 return llm.generate(requests, sampling_params=sampling_params)
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
-            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]  # type:ignore[invalid-assignment]
+            requests: list[TextPrompt] = [
+                list(x) for x in distribute(self.data_parallel_size, requests)
+            ]  # type:ignore[invalid-assignment]
             inputs = ((self.model_args, sampling_params, req) for req in requests)
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
@@ -232,7 +234,6 @@ class VLLM_VLM(VLLM):
             disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests with text+image input",
         )
-        # TODO: port auto-batch sizing into this.
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
@@ -273,9 +274,6 @@ class VLLM_VLM(VLLM):
             assert isinstance(gen_kwargs, dict), (
                 f"Expected `gen_kwargs` to be of type `dict` but got {type(gen_kwargs)}"
             )
-            gen_kwargs = normalize_gen_kwargs(
-                gen_kwargs, default_max_gen_toks=self.max_gen_toks
-            )
             kwargs, until, max_gen_toks = self.modify_gen_kwargs(
                 gen_kwargs, eos=eos, default_max_gen_toks=self.max_gen_toks
             )
@@ -296,7 +294,9 @@ class VLLM_VLM(VLLM):
                 generated_text = output.outputs[0].text
                 res.append(generated_text)
                 self.cache_hook.add_partial(
-                    "generate_until", (context, gen_kwargs), generated_text
+                    "generate_until",
+                    (context, kwargs | {"until": until, "max_gen_toks": max_gen_toks}),
+                    generated_text,
                 )
                 pbar.update(1)
         # reorder this group of results back to original unsorted form

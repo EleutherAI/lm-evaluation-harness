@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import gc
 import logging
 import os
@@ -58,7 +57,6 @@ if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase
 
     from lm_eval.api.instance import Instance
-    from lm_eval.models.utils import GenKwargs
 
 eval_logger = logging.getLogger(__name__)
 
@@ -666,14 +664,12 @@ class VLLM(TemplateLM):
             context, context_encoding = zip(*context_and_encoding, strict=True)
             context_encoding_truncated = []
             sampling_params = []
+            _cache_gen_kwargs = []
             for toks, gen_kwargs in zip(context_encoding, all_gen_kwargs, strict=True):
                 assert isinstance(gen_kwargs, dict), (
                     f"Expected `gen_kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
 
-                gen_kwargs = normalize_gen_kwargs(
-                    gen_kwargs, default_max_gen_toks=self.max_gen_toks
-                )
                 kwargs, until, max_gen_toks = self.modify_gen_kwargs(
                     gen_kwargs, eos=eos, default_max_gen_toks=self.max_gen_toks
                 )
@@ -692,6 +688,9 @@ class VLLM(TemplateLM):
                 sampling_params.append(
                     SamplingParams(max_tokens=max_gen_toks, stop=until, **kwargs)
                 )
+                _cache_gen_kwargs.append(
+                    kwargs | {"until": until, "max_gen_toks": max_gen_toks}
+                )
 
             # perform batched generation
             cont = self._model_generate(
@@ -701,15 +700,17 @@ class VLLM(TemplateLM):
             )
 
             # cache generations
-            for output, _context in zip(cont, context, strict=True):
+            for output, _context, _gen_kwargs in zip(
+                cont, context, _cache_gen_kwargs, strict=True
+            ):
                 generated_text: str = output.outputs[0].text
                 # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
                 generated_text = postprocess_generated_text(
-                    generated_text, until, self.think_end_token
+                    generated_text, _gen_kwargs.get("until"), self.think_end_token
                 )
                 res.append(generated_text)
                 self.cache_hook.add_partial(
-                    "generate_until", (_context, gen_kwargs), generated_text
+                    "generate_until", (_context, _gen_kwargs), generated_text
                 )
                 pbar.update(1)
 
@@ -843,7 +844,7 @@ class VLLM(TemplateLM):
 
     @staticmethod
     def modify_gen_kwargs(
-        gen_kwargs: GenKwargs,
+        gen_kwargs: dict[str, Any],
         eos: str | list[str] | None = None,
         default_max_gen_toks: int = 256,
     ) -> tuple[dict[str, Any], list[str], int]:
@@ -860,22 +861,23 @@ class VLLM(TemplateLM):
             - stop_sequences: List of stop sequences including EOS
             - max_gen_toks: Maximum tokens to generate
         """
-        kwargs = {**copy.deepcopy(gen_kwargs)}
+        _gen_kwargs = normalize_gen_kwargs(
+            gen_kwargs, default_max_gen_toks=default_max_gen_toks
+        )
 
         # Extract and process stop sequences
         until = handle_stop_sequences(
-            kwargs.pop("until", None), eos=eos[0] if isinstance(eos, list) else eos
+            _gen_kwargs.pop("until", None), eos=eos[0] if isinstance(eos, list) else eos
         )
 
         # Extract max_tokens
-        max_gen_toks = int(kwargs.pop("max_gen_toks", default_max_gen_toks))
+        max_gen_toks = int(_gen_kwargs.pop("max_gen_toks", default_max_gen_toks))
 
         # do_sample and temperature normalization is handled by `normalize_gen_kwargs` utility
-        kwargs.pop("do_sample", None)
+        _gen_kwargs.pop("do_sample", None)
         # HF defaults
-        kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
-        kwargs["spaces_between_special_tokens"] = kwargs.get(
-            "spaces_between_special_tokens", False
-        )
-
-        return kwargs, until, max_gen_toks
+        _gen_kwargs = {
+            "skip_special_tokens": False,
+            "spaces_between_special_tokens": False,
+        } | _gen_kwargs
+        return _gen_kwargs, until, max_gen_toks
