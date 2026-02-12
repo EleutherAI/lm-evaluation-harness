@@ -139,29 +139,38 @@ extend-select = [
     "W605",   # invalid-escape-sequence
 ]
 fixable = [
+    "B",
+    "D",      # pydocstyle
+    "E",      # pycodestyle
     "F401",   # unused-import
+    "FURB",   # refurb
     "I001",   # unsorted-imports
-    "UP",     # pyupgrade fixes
+    "RUF",    # ruff-specific
+    "SIM",    # flake8-simplify
+    "TC",     # flake8-type-checking
+    "UP",     # pyupgrade
+    "W605",   # invalid-escape-sequence
 ]
+
 ignore = [
-    # docstrings
-    "D10",    # missing-docstring
-        # docstrings
-    "D212", # start first line
-    "D415", # terminal punctuation
-    "D205", # missing blank line
-    "D417", # docs: undocumented param
+    # pydocstyle
+    "D10",  # missing-docstring (D100-D107)
     "D200", # unnecessary line
     "D202", # blank-line-after-function
-
-    "E111",   # indentation-with-invalid-multiple
-    "E114",   # indentation-with-invalid-multiple-comment
-    "E117",   # over-indented
-    "E402",   # module-import-not-at-top-of-file
-    "E501",   # line-too-long
-    "E701",   # multiple-statements-on-one-line-colon
-    "E731",   # lambda-assignment
-    "E741",   # ambiguous-variable-name
+    "D205", # missing blank line
+    "D212", # start first line
+    "D415", # terminal punctuation
+    "D417", # undocumented param
+    # pycodestyle
+    "E11",  # indentation
+    "E402", # module-import-not-at-top-of-file
+    "E501", # line-too-long
+    "E701", # multiple-statements-on-one-line-colon
+    "E731", # lambda-assignment
+    "E741", # ambiguous-variable-name
+    # flake8-simplify
+    "SIM105", # suppressible-exception
+    "SIM401", # if-else-block-instead-of-dict-get
     "SIM118", # dict-in-keys
 ]
 
