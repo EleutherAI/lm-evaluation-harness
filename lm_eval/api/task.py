@@ -25,12 +25,7 @@ from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
-from lm_eval.api.registry import (
-    DEFAULT_METRIC_REGISTRY,
-    get_metric,
-    get_metric_aggregation,
-    is_higher_better,
-)
+from lm_eval.api.registry import DEFAULT_METRIC_REGISTRY
 from lm_eval.api.utils import (
     Message,
     ends_with_whitespace,
@@ -125,6 +120,8 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+        self._scorers: list[Scorer] = []
+        self._metrics: list = []
         self.fewshot_rnd: random.Random | None = (
             None  # purposely induce errors in case of improper usage
         )
@@ -548,21 +545,10 @@ class Task(abc.ABC):
         Parameters:
         - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
         """
-        (
-            self._metric_fn_list,
-            self._aggregation_list,
-            self._metric_fn_kwargs,
-            self._higher_is_better,
-        ) = ({}, {}, {}, {})
-        self._metric_fn_list[metric_name] = get_metric(metric_name)
-        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
-        self._higher_is_better[metric_name] = is_higher_better(metric_name)
-        self._metric_fn_kwargs[metric_name] = {}
-        # if not isinstance(self, ConfigurableTask):
-        #     self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
-        #     self.aggregation = lambda: {
-        #         metric_name: get_metric_aggregation(metric_name)
-        #     }
+        m = parse_metric({"metric": metric_name})
+        self._metrics = [m]
+        self._scorers = build_scorers_from_config(None, self._metrics)
+        self._filters = [s.filter for s in self._scorers]
         self._config["metric_list"] = [{"metric": metric_name}]
         self._config["process_results"] = "process_results"
 
@@ -738,24 +724,8 @@ class ConfigurableTask(Task):
             self.config.filter_list, _global_metrics
         )
 
-        # --- Step 3: Derive legacy dicts from scorers ---
-        self._metric_fn_list = {}
-        self._metric_fn_kwargs = {}
-        self._aggregation_list = {}
-        self._higher_is_better = {}
-
-        if self.config.process_results is not None:
-            for m in _global_metrics:
-                self._metric_fn_list[m.name] = None
-                self._metric_fn_kwargs[m.name] = {}
-                self._aggregation_list[m.name] = m.aggregation
-                self._higher_is_better[m.name] = m.higher_is_better
-        else:
-            for m in _global_metrics:
-                self._metric_fn_list[m.name] = m.fn
-                self._metric_fn_kwargs[m.name] = dict(m.kwargs)
-                self._aggregation_list[m.name] = m.aggregation
-                self._higher_is_better[m.name] = m.higher_is_better
+        # --- Step 3: Store metrics from scorers ---
+        self._metrics = list(_global_metrics)
 
         # --- Step 4: Derive _filters from scorers ---
         self._filters = [s.filter for s in self._scorers]
@@ -1381,7 +1351,7 @@ class ConfigurableTask(Task):
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in self._metric_fn_list.keys():
+            if any(m.name == "acc_mutual_info" for m in self._metrics):
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
@@ -1448,7 +1418,7 @@ class ConfigurableTask(Task):
             return self.config.process_results(doc, results)
 
         result_dict = {}
-        use_metric = list(self._metric_fn_list.keys())
+        use_metric = {m.name for m in self._metrics}
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
@@ -1485,10 +1455,7 @@ class ConfigurableTask(Task):
             completion_len = np.array([float(len(i)) for i in choices])
             byte_length = np.array([float(len(i.encode("utf-8"))) for i in choices])
 
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 # as we extend the args list with unconditional ("", continuation) pairs
@@ -1579,12 +1546,14 @@ class ConfigurableTask(Task):
                 gold = list(gold)
             # TODO: handle this better
             elif type(gold) is not type(result) and not (
-                "bypass" in self._metric_fn_list.keys() or isinstance(result, list)
+                any(m.name == "bypass" for m in self._metrics)
+                or isinstance(result, list)
             ):
                 # cast gold to the same type as result
                 gold = type(result)(gold)
 
-            for metric in self._metric_fn_list.keys():
+            for m in self._metrics:
+                metric = m.name
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1592,30 +1561,25 @@ class ConfigurableTask(Task):
                     scores = []
                     if not isinstance(gold, list):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        # print(gold)
                         gold = [gold]
                     if metric == "exact_match":
                         result = [result for _ in range(len(gold))]
-                        scores = self._metric_fn_list[metric](
+                        scores = m.compute(
                             references=gold,
                             predictions=result,
-                            **self._metric_fn_kwargs[metric],
                         )[metric]
                         result_score = 1.0 if scores > 0.0 else 0.0
                     else:
                         for gold_option in gold:
                             try:
-                                result_score = self._metric_fn_list[metric](
+                                result_score = m.compute(
                                     references=[gold_option],
                                     predictions=[result],
-                                    **self._metric_fn_kwargs[metric],
                                 )
                             except (
                                 TypeError
                             ):  # TODO: this is hacky and I don't want to do it
-                                result_score = self._metric_fn_list[metric](
-                                    [gold_option, result]
-                                )
+                                result_score = m.fn([gold_option, result])
                             if isinstance(result_score, dict):
                                 # TODO: this handles the case where HF evaluate returns a dict.
                                 result_score = result_score[metric]
@@ -1623,13 +1587,12 @@ class ConfigurableTask(Task):
                         result_score = 1.0 if any(scores) else 0.0
                 else:
                     try:
-                        result_score = self._metric_fn_list[metric](
+                        result_score = m.compute(
                             references=[gold],
                             predictions=[result],
-                            **self._metric_fn_kwargs[metric],
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = self._metric_fn_list[metric]([gold, result])
+                        result_score = m.fn([gold, result])
                 if isinstance(result_score, dict):
                     # TODO: this handles the case where HF evaluate returns a dict.
                     # This allows for multiple metrics to be returned from the same function
@@ -1646,10 +1609,10 @@ class ConfigurableTask(Task):
         return result_dict
 
     def aggregation(self) -> dict:
-        return self._aggregation_list
+        return {m.name: m.aggregation for m in self._metrics}
 
     def higher_is_better(self) -> dict:
-        return self._higher_is_better
+        return {m.name: m.higher_is_better for m in self._metrics}
 
     @property
     def scorers(self) -> list[Scorer]:

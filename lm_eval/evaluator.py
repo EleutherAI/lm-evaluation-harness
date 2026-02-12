@@ -499,7 +499,7 @@ def evaluate(
     # get lists of group hierarchy and each type of request
     eval_tasks = get_task_list(task_dict)
     if not log_samples and not all(
-        "bypass" not in getattr(task_output.task, "_metric_fn_list", {})
+        not any(m.name == "bypass" for m in getattr(task_output.task, "_metrics", []))
         for task_output in eval_tasks
     ):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
