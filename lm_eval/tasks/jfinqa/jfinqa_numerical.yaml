@@ -22,5 +22,5 @@ generation_kwargs:
     - "\n\n"
     - "Question:"
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   description: "Japanese financial numerical reasoning QA — ratio and growth calculations"
