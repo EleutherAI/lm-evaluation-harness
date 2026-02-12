@@ -468,7 +468,7 @@ class Task(abc.ABC):
                     "A `random.Random` generator argument must be provided to `rnd`"
                 )
 
-        description = description if description else ""
+        description = description or ""
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -1134,7 +1134,7 @@ class ConfigurableTask(Task):
         """
         # for multiple inputs, q is list[str]
         res_ = []
-        prev_context = prev_context if prev_context else []
+        prev_context = prev_context or []
         contexts = [
             prev_context
             + self.build_qa_turn(

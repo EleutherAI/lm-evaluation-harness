@@ -181,7 +181,8 @@ def load_yaml(
 
     loader_cls = _make_loader(path.parent, resolve_funcs=resolve_func)
     with path.open("rb") as fh:
-        cfg = yaml.load(fh, Loader=loader_cls)
+        # we don't use yaml.safe_load here because we want to support !function tags
+        cfg = yaml.load(fh, Loader=loader_cls)  # noqa: S506
 
     if not isinstance(cfg, dict):
         raise ValueError(f"Expected YAML dict from {path}, got {type(cfg).__name__}")
