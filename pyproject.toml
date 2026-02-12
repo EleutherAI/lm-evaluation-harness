@@ -124,13 +124,15 @@ plugins.md029.allow_extended_start_values = true # ol-prefix
 plugins.md034.enabled = false # no-bare-urls
 
 [tool.ruff.lint]
+preview = true
+explicit-preview-rules = true
 extend-select = [
     # bugbear, comprehension, docstyle, pycodestyle, pyflakes
     "B", "C419", "D", "E", "F",
     # refurb, isort, typecheck, useless-if-else
     "FURB", "I", "TC", "RUF034",
-     # simplify, pyupgrade, invalid-escape-sequence
-    "SIM", "UP", "W605",
+     # flake8-bandit, simplify, pyupgrade, invalid-escape-sequence
+    "S", "SIM", "S307", "UP", "W605",
 ]
 fixable = [
      # bugbear, pydocstyle, pycodestyle, unused-import
@@ -146,7 +148,7 @@ ignore = [
     "E11", "E402", "E501", "E701",
     "E731", "E741",
     "SIM105", "SIM401", "SIM118", # flake8-simplify
-    "S311", "S701",  # bandit
+    "S311", "S701",  "S101" # bandits, assert-used
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

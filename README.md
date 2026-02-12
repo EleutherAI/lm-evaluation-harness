@@ -396,28 +396,23 @@ https://learn.microsoft.com/en-us/windows/ai/new-windows-ml/overview
 To use Windows ML, install the required dependencies:
 
 ```bash
-pip install wasdk-Microsoft.Windows.AI.MachineLearning[all] wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap
-# The onnxruntime-winml package is not published to PyPI yet. Please install it from the ort-nightly feed
-pip install --pre --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/pypi/simple/ --extra-index-url https://pypi.org/simple onnxruntime-winml onnxruntime-genai-winml
+pip install wasdk-Microsoft.Windows.AI.MachineLearning[all] wasdk-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap onnxruntime-windowsml onnxruntime-genai-winml
 ```
 
-Evaluate a LLM ONNX model on NPU/GPU/CPU on Windows AI PC:
+Evaluate an ONNX Runtime GenAI LLM on NPU/GPU/CPU on Windows:
 
 ```bash
 lm_eval --model winml \
-    --model_args pretrained=/path/to/onnx/model,device=npu \
+    --model_args pretrained=/path/to/onnx/model \
     --tasks mmlu \
     --batch_size 1
 ```
 
-Supported devices: `npu`, `gpu`, `cpu`.
+> [!Note]
+> The Windows ML backend is ONLY for ONNX Runtime GenAI model format. Models targeting `transformers.js` won't work. You can verify this by finding the `genai_config.json` file in the model folder.
 
 > [!Note]
-> The Windows ML backend is optimized for ONNX models in GenAI format. Models must be converted to ONNX format before evaluation. The backend automatically detects and uses available Windows ML execution providers. (Model Conversion Guide, Microsoft AI Took Kit
-https://code.visualstudio.com/docs/intelligentapps/modelconversion)
-
-> [!Tip]
-> For best performance on NPU/GPU-enabled devices (e.g., Intel, Qualcomm, AMD, NVIDIA), use `device=npu or device=gpu`. The backend will automatically configure the appropriate execution provider.
+> To run an ONNX Runtime GenAI model on the target device, you MUST convert the original model to that vendor and device type. Converted models won't work / work well on other vendor or device types. To learn more on model conversion, please visit [Microsoft AI Tool Kit](https://code.visualstudio.com/docs/intelligentapps/modelconversion)
 
 ### Model APIs and Inference Servers
 
