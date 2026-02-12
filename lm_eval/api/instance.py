@@ -77,7 +77,9 @@ class MCInstance(Instance):
 
     arguments: LLArgs = field(kw_only=True)
     target: int = field(kw_only=True)
-    request_type: Literal["loglikelihood"] = field(default="loglikelihood")
+    request_type: Literal["loglikelihood"] = field(
+        default="loglikelihood", kw_only=True
+    )
     resps: list[tuple[float, bool]] = field(default_factory=list)
 
 
@@ -89,6 +91,7 @@ class GenInstance(Instance):
     target: str = field(kw_only=True)
     request_type: Literal["generate_until"] = field(
         default="generate_until",
+        kw_only=True,
     )
     resps: list[str] = field(default_factory=list)
 

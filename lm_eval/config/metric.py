@@ -1,9 +1,13 @@
 import inspect
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Generic
+from typing import TYPE_CHECKING, Any, Generic
 
 from typing_extensions import TypeVar
+
+
+if TYPE_CHECKING:
+    from lm_eval.config.task import _MetricConfig
 
 
 _T = TypeVar("_T")
@@ -43,6 +47,14 @@ class Metric(Generic[_T]):
     output_type: str = "generate_until"
     reduce_fn: Callable[[list[_T]], _T] | None = None
 
+    @property
+    def _agg_fn(self):
+        if self.aggregation is None:
+            raise ValueError(
+                f"Metric {self.name} does not have an aggregation function."
+            )
+        return self.aggregation
+
     def compute(self, *args, **kwargs):
         """Compute the metric for a single instance."""
         return (
@@ -68,6 +80,12 @@ class Metric(Generic[_T]):
                 f"Metric {self.name} does not have an aggregation function."
             )
         return self.aggregation(results)
+
+    @classmethod
+    def from_yaml(cls, cfg: "_MetricConfig") -> "Metric":
+        from lm_eval.config.utils import parse_metric
+
+        return parse_metric(cfg)
 
     @staticmethod
     def to_ll_inputs(*args, **kwargs):

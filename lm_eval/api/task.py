@@ -27,7 +27,6 @@ from lm_eval.api.instance import Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     DEFAULT_METRIC_REGISTRY,
-    get_aggregation,
     get_metric,
     get_metric_aggregation,
     is_higher_better,
@@ -41,8 +40,10 @@ from lm_eval.api.utils import (
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
+from lm_eval.config.utils import parse_metric
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.scorers import Scorer, build_scorers_from_config
 
 
 if TYPE_CHECKING:
@@ -356,6 +357,8 @@ class Task(abc.ABC):
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
+                task_name=self.config["task"],
+                doc_id=doc_id,
                 metadata=(self.config["task"], doc_id, self.config.repeats),
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
@@ -721,108 +724,45 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
+        # --- Step 1: Build global Metric objects from metric_list ---
+        if self.config.metric_list is not None:
+            _global_metrics = [parse_metric(m) for m in self.config.metric_list]
+        else:
+            _global_metrics = [
+                parse_metric({"metric": m})
+                for m in DEFAULT_METRIC_REGISTRY.get(self.config.output_type, [])
+            ]
+
+        # --- Step 2: Build scorers (source of truth) ---
+        self._scorers = build_scorers_from_config(
+            self.config.filter_list, _global_metrics
+        )
+
+        # --- Step 3: Derive legacy dicts from scorers ---
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
         self._aggregation_list = {}
         self._higher_is_better = {}
 
-        if self.config.metric_list is None:
-            # TODO: handle this in TaskConfig.__post_init__ ?
-            _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
-
-            for metric_name in _metric_list:
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._metric_fn_kwargs[metric_name] = {}
-                self._aggregation_list[metric_name] = get_metric_aggregation(
-                    metric_name
-                )
-                self._higher_is_better[metric_name] = is_higher_better(metric_name)
+        if self.config.process_results is not None:
+            for m in _global_metrics:
+                self._metric_fn_list[m.name] = None
+                self._metric_fn_kwargs[m.name] = {}
+                self._aggregation_list[m.name] = m.aggregation
+                self._higher_is_better[m.name] = m.higher_is_better
         else:
-            for metric_config in self.config.metric_list:
-                if "metric" not in metric_config:
-                    raise ValueError(
-                        "'metric' key not provided for an entry in 'metric_list', must be specified!"
-                    )
-                metric_name = metric_config["metric"]
-                kwargs = {
-                    key: metric_config[key]
-                    for key in metric_config
-                    if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
-                }
-                hf_evaluate_metric = (
-                    "hf_evaluate" in metric_config
-                    and metric_config["hf_evaluate"] is True
-                )
+            for m in _global_metrics:
+                self._metric_fn_list[m.name] = m.fn
+                self._metric_fn_kwargs[m.name] = dict(m.kwargs)
+                self._aggregation_list[m.name] = m.aggregation
+                self._higher_is_better[m.name] = m.higher_is_better
 
-                if self.config.process_results is not None:
-                    self._metric_fn_list[metric_name] = None
-                    self._metric_fn_kwargs[metric_name] = {}
-                elif callable(metric_name):
-                    metric_fn = metric_name.__call__
-                    metric_name = metric_name.__name__
-                    self._metric_fn_list[metric_name] = metric_fn
-                    self._metric_fn_kwargs[metric_name] = kwargs
-                else:
-                    self._metric_fn_list[metric_name] = get_metric(
-                        metric_name, hf_evaluate_metric
-                    )
-                    self._metric_fn_kwargs[metric_name] = kwargs
-
-                if "aggregation" in metric_config:
-                    agg_name = metric_config["aggregation"]
-                    if isinstance(agg_name, str):
-                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = metric_config[
-                            "aggregation"
-                        ]
-                else:
-                    metric_agg = get_metric_aggregation(metric_name)
-                    agg_name = getattr(metric_agg, "__name__", str(metric_agg))
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
-                        f"using default "
-                        f"aggregation={agg_name}"
-                    )
-                    self._aggregation_list[metric_name] = metric_agg
-
-                if "higher_is_better" in metric_config:
-                    self._higher_is_better[metric_name] = metric_config[
-                        "higher_is_better"
-                    ]
-                else:
-                    eval_logger.warning(
-                        f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
-                        f"using default "
-                        f"higher_is_better={is_higher_better(metric_name)}"
-                    )
-                    self._higher_is_better[metric_name] = is_higher_better(metric_name)
+        # --- Step 4: Derive _filters from scorers ---
+        self._filters = [s.filter for s in self._scorers]
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
-
-        if self.config.filter_list is not None:
-            self._filters = []
-            for filter_config in self.config.filter_list:
-                filter_name = filter_config["name"]
-                filter_functions = filter_config["filter"]
-                components = []
-                for function in filter_functions:
-                    kwargs = {
-                        key: function[key] for key in function if key != "function"
-                    }
-                    components.append([function["function"], kwargs])
-                filter_pipeline = build_filter_ensemble(filter_name, components)
-                self._filters.append(filter_pipeline)
-        else:
-            # TODO: handle repeats in a more general way rather than just discarding
-            if self.OUTPUT_TYPE == "generate_until":
-                eval_logger.debug(
-                    "No custom filters defined. Using default 'take_first' filter for handling repeats."
-                )
-            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
@@ -1413,6 +1353,8 @@ class ConfigurableTask(Task):
     ) -> list[Instance] | Instance:
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
+        kwargs.setdefault("task_name", self.config.task or "")
+        kwargs.setdefault("doc_id", 0)
 
         aux_arguments = None
 
@@ -1709,6 +1651,10 @@ class ConfigurableTask(Task):
     def higher_is_better(self) -> dict:
         return self._higher_is_better
 
+    @property
+    def scorers(self) -> list[Scorer]:
+        return self._scorers
+
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
@@ -1733,6 +1679,8 @@ class MultipleChoiceTask(Task):
 
     def construct_requests(self, doc: dict, ctx: str, **kwargs) -> list[Instance]:
         # TODO: add mutual info here?
+        kwargs.setdefault("task_name", "")
+        kwargs.setdefault("doc_id", 0)
         return [
             Instance(
                 request_type="loglikelihood",
@@ -1813,6 +1761,8 @@ class PerplexityTask(Task):
         if bool(ctx):
             raise ValueError
 
+        kwargs.setdefault("task_name", "")
+        kwargs.setdefault("doc_id", 0)
         return Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,

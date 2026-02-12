@@ -634,6 +634,24 @@ def register_metric(**kw) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
     return decorate
 
 
+def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
+    """Get a metric function by name.
+
+    Args:
+        name: The metric name
+        hf_evaluate_metric: If True, skip the local registry and use HF evaluate
+
+    Returns:
+        The metric compute function, or None if not found
+    """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(metric_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
+    config = metric_registry.get(name)
+    return config
+
+
 def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:
     """Get a metric function by name.
 

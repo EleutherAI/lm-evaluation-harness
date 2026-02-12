@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import TYPE_CHECKING, Any
 
+from typing_extensions import TypedDict
+
 from lm_eval.defaults import default_gen_kwargs
 
 
@@ -15,6 +17,25 @@ if TYPE_CHECKING:
 
 
 eval_logger = logging.getLogger(__name__)
+
+
+class _MetricConfig(TypedDict, total=False):
+    metric: str | Callable
+    aggregation: str | Callable | None
+    reduction: str | Callable | None
+    higher_is_better: bool | None
+    kwargs: dict[str, Any] | None
+
+
+class FilterConfig(TypedDict, total=False):
+    function: str
+    kwargs: dict[str, str]
+    metric_list: list[_MetricConfig] | None
+
+
+class FilterList(TypedDict, total=False):
+    name: str
+    filters: list[FilterConfig]
 
 
 @dataclass
@@ -120,6 +141,7 @@ class TaskConfig(dict):
     generation_kwargs: dict | None = None
     repeats: int = 1
     filter_list: str | list | None = None
+    scorers: list[dict[str, str]] | None = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
