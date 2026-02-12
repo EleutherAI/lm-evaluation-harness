@@ -33,8 +33,8 @@ class LM(abc.ABC):
         # set rank and world size to a single process, by default.
         self._rank = 0
         self._world_size = 1
+        self._device = None
         self.cache_hook: CacheHook = CacheHook(None)
-        self.device: Any = None
 
     @abc.abstractmethod
     def loglikelihood(self, requests: list["Instance"]) -> list[tuple[float, bool]]:
@@ -171,6 +171,10 @@ class LM(abc.ABC):
     # Distributed communication primitives, used by evaluate() to synchronize across ranks;
     # Override if relying on the evaluator() for data-parallel distribution of requests.
     # Otherwise, model methods receive all requests and can handle distribution internally.
+
+    @property
+    def device(self):
+        return self._device
 
     @property
     def rank(self) -> int:
