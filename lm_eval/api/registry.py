@@ -606,8 +606,10 @@ def register_metric(**kw) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
                 instance = fn_or_class()
             metric_fn = instance  # Instance is directly callable via __call__
             aggregation_fn = instance.aggregation
+            reduce_fn = getattr(instance, "reduce", None)
         else:
             metric_fn = fn_or_class
+            reduce_fn = None
             if "aggregation" in kw:
                 aggregation_fn = aggregation_registry.get(kw["aggregation"])
             else:
@@ -625,6 +627,7 @@ def register_metric(**kw) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
             aggregation=aggregation_fn,
             higher_is_better=kw.get("higher_is_better", True),
             output_type=kw.get("output_type", "generate_until"),
+            reduce_fn=reduce_fn,
         )
 
         metric_registry.register(name)(config)

@@ -86,8 +86,3 @@ class Metric(Generic[_T]):
         from lm_eval.config.utils import parse_metric
 
         return parse_metric(cfg)
-
-    @staticmethod
-    def to_ll_inputs(*args, **kwargs):
-        """Convert metric inputs to log-likelihood inputs, if possible"""
-        pass
