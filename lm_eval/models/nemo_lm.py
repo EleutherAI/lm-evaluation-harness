@@ -16,6 +16,7 @@ import contextlib
 import importlib
 import logging
 import pathlib
+import tempfile
 from copy import deepcopy
 from typing import Literal
 
@@ -114,7 +115,9 @@ def load_model(
     model_class = getattr(importlib.import_module(module_name), class_name)
 
     # monkeypatch _build_tokenizer method to be process-safe
-    tokenizer_lock = filelock.FileLock(f"/tmp/{model_path.name}.tokenizer.lock")
+    tokenizer_lock = filelock.FileLock(
+        pathlib.Path(tempfile.gettempdir()) / f"{model_path.name}.tokenizer.lock"
+    )
 
     def _synced_build_tokenizer(self):
         with tokenizer_lock:
