@@ -355,7 +355,7 @@ class TemplateLM(LM):
         """Tokenize a string and return a list of token IDs.
 
         Must handle strings that already contain the BOS token when
-        ``add_special_tokens`` is None. Otherwise uses the flag as given.
+        ``add_special_tokens`` is None. Otherwise, uses the flag as given.
         """
         pass
 
