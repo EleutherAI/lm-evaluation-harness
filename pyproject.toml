@@ -172,6 +172,7 @@ ignore = [
     "SIM105", # suppressible-exception
     "SIM401", # if-else-block-instead-of-dict-get
     "SIM118", # dict-in-keys
+    "S311", # non-cryptographic-randomness
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
