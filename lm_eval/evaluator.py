@@ -556,10 +556,10 @@ def evaluate(
         if lm.world_size > 1:
             import torch
 
-            instances_rnk = torch.tensor(len(task._instances), device=lm.device)
-            gathered_item = (
-                lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
+            instances_rnk = torch.tensor(
+                len(task._instances) if task._instances else 0, device=lm.device
             )
+            gathered_item = lm.all_gather(instances_rnk).cpu().detach().numpy().tolist()
             # "multiple_choice" task types dispatch (several) "loglikelihood" request types
             reqtype = (
                 "loglikelihood"
@@ -592,7 +592,7 @@ def evaluate(
             req.resps.append(x)
 
         if lm.world_size > 1:
-            lm.accelerator.wait_for_everyone()
+            lm.barrier()
 
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
@@ -657,18 +657,13 @@ def evaluate(
                     acc["raw_metrics"][(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
-        import torch
-
-        # Gather all results in one call per data type, keyed by task name.
+        # Gather all sample metrics across ranks, keyed by task name.
         if log_samples:
             rank_samples = {
                 task_name: acc["logged_samples"]
                 for task_name, acc in eval_results_acc.items()
             }
-            all_samples = [None] * WORLD_SIZE if RANK == 0 else None
-            torch.distributed.gather_object(  # type: ignore
-                obj=rank_samples, object_gather_list=all_samples, dst=0
-            )
+            all_samples = lm.gather_object(rank_samples, dst=0)
             if RANK == 0:
                 for task_name, acc in eval_results_acc.items():
                     acc["logged_samples"] = list(
@@ -682,10 +677,7 @@ def evaluate(
             task_name: dict(acc["raw_metrics"])
             for task_name, acc in eval_results_acc.items()
         }
-        all_metrics = [None] * WORLD_SIZE if RANK == 0 else None
-        torch.distributed.gather_object(  # type: ignore
-            obj=rank_metrics, object_gather_list=all_metrics, dst=0
-        )
+        all_metrics = lm.gather_object(rank_metrics, dst=0)
         if RANK == 0:
             for task_name, acc in eval_results_acc.items():
                 for metric_key in acc["raw_metrics"]:
