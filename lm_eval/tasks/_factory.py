@@ -203,7 +203,7 @@ class TaskFactory:
                     children.append(cast("Group", child_obj))
 
                 case Entry(kind=Kind.TAG):
-                    for task_name in child_entry.tags:
+                    for task_name in sorted(child_entry.tags):
                         # TODO not adding namespaces currently
                         # namespaced = f"{group_name}::{task_name}"
                         namespaced = task_name
@@ -243,7 +243,7 @@ class TaskFactory:
         Returns a list of Task objects.
         """
         tasks = []
-        for name in entry.tags:
+        for name in sorted(entry.tags):
             if name not in registry:
                 eval_logger.warning(
                     f"Tag '{entry.name}' references unknown task '{name}', skipping."

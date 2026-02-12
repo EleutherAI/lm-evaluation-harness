@@ -659,33 +659,41 @@ def evaluate(
     if WORLD_SIZE > 1:
         import torch
 
-        # if multigpu, then gather data across all ranks to rank 0
-        # first gather logged samples across all ranks
-        for _, acc in eval_results_acc.items():
-            if log_samples:
-                full_samples = [None] * WORLD_SIZE if RANK == 0 else None
-                torch.distributed.gather_object(  # type: ignore
-                    obj=acc["logged_samples"],
-                    object_gather_list=full_samples,
-                    dst=0,
-                )
-
-                if RANK == 0:
+        # Gather all results in one call per data type, keyed by task name.
+        if log_samples:
+            rank_samples = {
+                task_name: acc["logged_samples"]
+                for task_name, acc in eval_results_acc.items()
+            }
+            all_samples = [None] * WORLD_SIZE if RANK == 0 else None
+            torch.distributed.gather_object(  # type: ignore
+                obj=rank_samples, object_gather_list=all_samples, dst=0
+            )
+            if RANK == 0:
+                for task_name, acc in eval_results_acc.items():
                     acc["logged_samples"] = list(
-                        itertools.chain.from_iterable(full_samples)  # type: ignore
+                        itertools.chain.from_iterable(
+                            rank_data[task_name]
+                            for rank_data in all_samples  # type: ignore
+                        )
                     )
 
-            # then collect metrics across all ranks
-            for metric_key in acc["raw_metrics"]:
-                metric_list = [None] * WORLD_SIZE if RANK == 0 else None
-                torch.distributed.gather_object(  # type: ignore
-                    obj=acc["raw_metrics"][metric_key],
-                    object_gather_list=metric_list,
-                    dst=0,
-                )
-                if RANK == 0:
+        rank_metrics = {
+            task_name: dict(acc["raw_metrics"])
+            for task_name, acc in eval_results_acc.items()
+        }
+        all_metrics = [None] * WORLD_SIZE if RANK == 0 else None
+        torch.distributed.gather_object(  # type: ignore
+            obj=rank_metrics, object_gather_list=all_metrics, dst=0
+        )
+        if RANK == 0:
+            for task_name, acc in eval_results_acc.items():
+                for metric_key in acc["raw_metrics"]:
                     acc["raw_metrics"][metric_key] = list(
-                        itertools.chain.from_iterable(metric_list)  # type: ignore
+                        itertools.chain.from_iterable(
+                            rank_data[task_name][metric_key]
+                            for rank_data in all_metrics  # type: ignore
+                        )
                     )
 
     if RANK == 0:
