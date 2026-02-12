@@ -1,6 +1,12 @@
 """Utility functions for jfinqa lm-evaluation-harness integration.
 
 Referenced by YAML task configs via ``!function utils.<name>``.
+
+NOTE: The normalization and scoring logic below (_normalize,
+_try_parse_number, _numerical_match) mirrors ``jfinqa._metrics``
+from the canonical jfinqa package (https://github.com/ajtgjmdjp/jfinqa).
+It is duplicated here so the lm-eval task remains self-contained.
+When updating scoring logic, keep both copies in sync.
 """
 
 from __future__ import annotations
