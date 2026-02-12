@@ -10,10 +10,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
-import lm_eval.api.metrics
 import lm_eval.api.model
 import lm_eval.api.registry
-import lm_eval.api.task
 from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
