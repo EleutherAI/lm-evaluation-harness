@@ -3,15 +3,20 @@ from __future__ import annotations
 from functools import partial
 
 from lm_eval.api.filter import FilterEnsemble
-from lm_eval.api.registry import filter_registry, get_filter
 
 from . import custom, extraction, selection, transformation
 
 
+_filter_name = str
+_kwargs = dict[str, str | int | float] | None
+
+
 def build_filter_ensemble(
     filter_name: str,
-    components: list[tuple[str, dict[str, str | int | float] | None]],
+    components: list[tuple[_filter_name, _kwargs]],
 ) -> FilterEnsemble:
+    from lm_eval.api.registry import filter_registry, get_filter
+
     """
     Create a filtering pipeline.
     """
