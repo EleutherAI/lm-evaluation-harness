@@ -151,13 +151,16 @@ class EvalAcc:
         higher_is_better = dict(self.higher_is_better)
         _propagate_higher_is_better(all_groups, higher_is_better)
 
+        num_fewshot = dict(self.num_fewshot)
+        _propagate_num_fewshot(all_groups, num_fewshot)
+
         results_dict: EvalResults = {
             "results": task_data,
             **({"groups": group_data} if group_data else {}),
             "group_subtasks": subtask_list,
             "configs": dict(sorted(self.configs.items())),
             "versions": dict(sorted(self.versions.items())),
-            "n-shot": dict(sorted(self.num_fewshot.items())),
+            "n-shot": dict(sorted(num_fewshot.items())),
             "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": dict(self.n_samples),
         }
@@ -387,6 +390,15 @@ def _process_results(
     results = aggregate_groups(results)
 
     return results
+
+
+def _propagate_num_fewshot(
+    all_groups: list[Group], num_fewshot: dict[str, int]
+) -> None:
+    for group in all_groups:
+        values = {num_fewshot[c] for c in group.child_names if c in num_fewshot}
+        if len(values) == 1:
+            num_fewshot[group.name] = values.pop()
 
 
 def _propagate_higher_is_better(
