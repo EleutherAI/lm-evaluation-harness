@@ -1,0 +1,44 @@
+task: sample_llm_judge_v1
+tag:
+  - winoreferral
+  - llm_judge
+output_type: generate_until
+
+dataset_path: csv
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: lm_eval/tasks/winoreferral/data/Qwen3-8B_samples_stratified100.csv
+
+test_split: test
+
+doc_to_text: !function judge_utils.doc_to_text_judge
+doc_to_target: ""
+
+generation_kwargs:
+  max_gen_toks: 512
+  temperature: 0.7
+  top_p: 0.90
+  do_sample: True
+
+until:
+  - "\n\n"
+  - "</s>"
+
+process_results: !function judge_utils.process_results_judge
+
+metric_list:
+  - metric: aware
+    aggregation: mean
+    higher_is_better: true
+  - metric: pro_help
+    aggregation: mean
+    higher_is_better: true
+  - metric: crisis_help
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
+
+

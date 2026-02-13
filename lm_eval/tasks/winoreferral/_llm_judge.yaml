@@ -1,0 +1,10 @@
+group: winoreferral_llm_judge
+tasks:
+  - sample_llm_judge_v1
+
+tag:
+  - winoreferral
+  - mental_health
+  - llm_judge
+
+
