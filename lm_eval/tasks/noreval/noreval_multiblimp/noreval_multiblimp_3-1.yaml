@@ -1,0 +1,3 @@
+task: noreval_multiblimp_3-1
+include: _template_yaml
+process_docs: !function utils.filter_dataset_3_1
