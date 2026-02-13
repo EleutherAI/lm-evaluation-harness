@@ -321,6 +321,26 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
         return float(matthews_corrcoef(golds, preds))
 
 
+@register_metric(
+    metric="likelihood",
+    higher_is_better=True,
+    output_type="multiple_choice",
+)
+class Likelihood(CorpusMetric["LLResults", tuple[int, tuple]]):
+    """Raw log-likelihoods of all choices paired with the gold index.
+
+    Returns (gold_index, (ll_0, ll_1, ...)) for corpus-level custom aggregation.
+    """
+
+    def __call__(self, targets: Any, results: "LLResults") -> tuple[int, tuple]:
+        return results.target, tuple(results.lls)
+
+    def aggregation(self, items: list[tuple[int, tuple]]) -> float:
+        from lm_eval.api.metrics import mean
+
+        return mean([float(lls[gold]) for gold, lls in items])
+
+
 # ---------------------------------------------------------------------------
 # Loglikelihood: acc_all (BoolQ-style all-correct-per-question)
 # ---------------------------------------------------------------------------

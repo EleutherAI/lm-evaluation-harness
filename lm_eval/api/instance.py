@@ -58,6 +58,7 @@ class Instance:
     resps: list = field(default_factory=list)
     raw_resps: list = field(default_factory=list)
     filtered_resps: dict[str, list[str]] = field(default_factory=dict)
+    scoring_context: dict = field(default_factory=dict)
 
     repeats: int = 1
 

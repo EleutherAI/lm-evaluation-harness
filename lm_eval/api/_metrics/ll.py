@@ -35,7 +35,14 @@ if TYPE_CHECKING:
     aggregation="mean",
 )
 def acc_fn(targets: int | list[int], results: LLResults) -> int:
-    """1 if the highest raw log-likelihood choice matches the gold answer, else 0."""
+    """Accuracy.
+
+    For multiple-choice (multiple lls): 1 if argmax(lls) matches gold.
+    For single loglikelihood (one ll): 1 if the continuation was decoded greedily.
+    """
+    if len(results.lls) == 1:
+        # Plain loglikelihood: acc = greedy decode match
+        return int(results.is_greedy[0])
     pred = int(np.argmax(results.lls))
     if isinstance(targets, list):
         return int(pred in targets)
@@ -95,6 +102,10 @@ def acc_mutual_info_fn(targets: int | list[int], results: LLResults) -> int:
 )
 def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
     """1 if the gold completion was decoded greedily (every token was argmax), else 0."""
+    if isinstance(targets, list):
+        return int(any(results.is_greedy[i] if i != -100 else False for i in targets))
+    if targets == -100:
+        return 0
     return int(results.is_greedy[results.target])
 
 

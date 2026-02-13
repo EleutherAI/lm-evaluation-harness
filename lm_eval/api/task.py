@@ -241,6 +241,10 @@ class Task(abc.ABC):
         """
         return self._instances
 
+    @property
+    def scorers(self) -> list[Scorer]:
+        return self._scorers
+
     def fewshot_examples(self, k, rnd):
         if self._training_docs is None:
             self._training_docs = list(self.training_docs())
@@ -548,7 +552,9 @@ class Task(abc.ABC):
         """
         m = parse_metric({"metric": metric_name})
         self._metrics = [m]
-        self._scorers = build_scorers_from_config(None, self._metrics)
+        self._scorers = build_scorers_from_config(
+            None, self._metrics, output_type=self.OUTPUT_TYPE
+        )
         self._filters = [s.filter for s in self._scorers]
         self._config["metric_list"] = [{"metric": metric_name}]
         self._config["process_results"] = "process_results"
@@ -603,20 +609,10 @@ class Task(abc.ABC):
 
     def _process_instances(self):
         sample_metrics = defaultdict(list)
-        filters: list[str] = [x.name for x in self._filters]
-        self.apply_filters()
-        _instances = self.sort_instances(self._instances)
-        for filter in filters:
-            for i, instance_group in _instances.items():
-                res: dict[str, Any] = self.process_results(
-                    doc=instance_group[0].doc,
-                    results=[req.filtered_resps[filter] for req in instance_group],
-                )
-                if res is None:
-                    break
-                else:
-                    for metric, value in res.items():
-                        sample_metrics[MetricKey(metric, filter, i)].append(value)
+        for scorer in self._scorers:
+            results = scorer.score(self._instances)
+            for key, value in results.items():
+                sample_metrics[MetricKey(*key)].append(value)
         return sample_metrics
 
     @staticmethod
@@ -644,18 +640,6 @@ class Task(abc.ABC):
         for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         return instances_by_doc_id
-
-    def process_instances(self, instances: list[Instance]):
-        """Apply filters and sorting to a list of instances."""
-        filters: list[str] = [x.name for x in self._filters]
-        self.apply_filters()
-        _instances = self.sort_instances(self._instances)
-        for filter in filters:
-            for i, instance_group in _instances.items():
-                res = self.process_results(
-                    doc=instance_group[0].doc,
-                    results=[req.filtered_resps[filter] for req in instance_group],
-                )
 
 
 class ConfigurableTask(Task):
@@ -726,8 +710,23 @@ class ConfigurableTask(Task):
 
         # --- Step 2: Build scorers (source of truth) ---
         self._scorers = build_scorers_from_config(
-            self.config.filter_list, _global_metrics
+            self.config.filter_list, _global_metrics, output_type=self.OUTPUT_TYPE
         )
+
+        # Wrap with CustomScorer if process_results is a callable
+        if callable(self.config.process_results):
+            from lm_eval.scorers import CustomScorer
+
+            self._scorers = [
+                CustomScorer(
+                    name=s.name,
+                    filter=s.filter,
+                    metrics=s.metrics,
+                    output_type=s.output_type,
+                    process_results_fn=self.config.process_results,
+                )
+                for s in self._scorers
+            ]
 
         # --- Step 3: Store metrics from scorers ---
         self._metrics = list(_global_metrics)
@@ -1121,15 +1120,6 @@ class ConfigurableTask(Task):
             res_.append(res)
         return res_
 
-    def apply_filters(self) -> list[Instance] | None:
-        """Iterates over FilterEnsembles and applies them to instances"""
-        if hasattr(self, "_filters"):
-            for f in self._filters:
-                f.apply(self._instances)
-        else:
-            eval_logger.warning("No filter defined, passing through instances")
-            return self._instances
-
     def should_decontaminate(self):
         return self.config.should_decontaminate
 
@@ -1334,9 +1324,16 @@ class ConfigurableTask(Task):
         aux_arguments = None
 
         if self.OUTPUT_TYPE == "loglikelihood":
-            arguments = (ctx, self.doc_to_target(doc))
+            target = self.doc_to_target(doc)
+            arguments = (ctx, target)
+            scoring_ctx: dict = {}
+
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            arguments = (self.doc_to_target(doc),)
+            target_text = self.doc_to_target(doc)
+            arguments = (target_text,)
+            target = target_text
+            scoring_ctx = {}
+
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
@@ -1355,36 +1352,70 @@ class ConfigurableTask(Task):
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
-            # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if any(m.name == "acc_mutual_info" for m in self._metrics):
-                # if we are calculating multiple choice accuracy
-                # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
-
-                # here mutual info refers to calculating
-                # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
-                # in other words normalizing by subtracting the unconditional logprob of each choice.
-                # TODO: should these be strided? will have to modify the processing in process_results if so
+            # acc_mutual_info: check scorers for this metric
+            if any(
+                m.name == "acc_mutual_info" for s in self._scorers for m in s.metrics
+            ):
                 aux_arguments = [
                     ("", f"{target_delimiter}{choice}") for choice in choices
                 ]
-
                 arguments.extend(aux_arguments)
+
+            # Normalize gold index up front (moved from process_results)
+            if self.multiple_input:
+                gold = self.doc_to_text(doc)
+            else:
+                gold = self.doc_to_target(doc)
+
+            if isinstance(gold, list):
+                gold = [i if i < len(choices) else -100 for i in gold]
+                if -100 in gold:
+                    eval_logger.warning(
+                        f"Label index was not in within range of available choices,"
+                        f"Sample:\n\n{doc}\n\n"
+                    )
+            else:
+                if isinstance(gold, int):
+                    gold = gold if gold < len(choices) else -100
+                elif isinstance(gold, str):
+                    gold = choices.index(gold) if gold in choices else -100
+                if gold == -100:
+                    eval_logger.warning(
+                        f"Label index was not in within range of available choices,"
+                        f"Sample:\n\n{doc}\n\n"
+                    )
+
+            target = gold
+            scoring_ctx = {
+                "choices": choices,
+                "multiple_input": bool(self.multiple_input),
+                "multiple_target": bool(self.multiple_target),
+            }
 
         elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
+            # Normalize gold up front (moved from process_results)
+            gold = self.doc_to_target(doc)
+            if self.config.doc_to_choice is not None:
+                choices = self.doc_to_choice(doc)
+                gold = choices[gold]
+            elif self.multiple_target:
+                gold = list(gold)
+
+            target = gold
+            scoring_ctx = {
+                "multiple_target": bool(self.multiple_target),
+            }
+
         multimodal_arg = {}
-        if (
-            self.config.doc_to_image
-        ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
+        if self.config.doc_to_image:
             multimodal_arg = {
                 **multimodal_arg,
                 **{"visual": self.doc_to_image(doc)},
             }
 
-        if (
-            self.config.doc_to_audio
-        ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
+        if self.config.doc_to_audio:
             multimodal_arg = {
                 **multimodal_arg,
                 **{"audio": self.doc_to_audio(doc)},
@@ -1403,6 +1434,8 @@ class ConfigurableTask(Task):
                     doc=doc,
                     arguments=arg,
                     idx=i,
+                    target=target,
+                    scoring_context=scoring_ctx,
                     **kwargs,
                 )
                 for i, arg in enumerate(arguments)
@@ -1415,209 +1448,28 @@ class ConfigurableTask(Task):
             doc=doc,
             arguments=arguments,
             idx=0,
+            target=target,
+            scoring_context=scoring_ctx,
             **kwargs,
         )
 
-    def process_results(self, doc: dict[str, Any], results):
-        if callable(self.config.process_results):
-            return self.config.process_results(doc, results)
-
-        result_dict = {}
-        use_metric = {m.name for m in self._metrics}
-        if self.OUTPUT_TYPE == "loglikelihood":
-            results = results[0]
-            ll, is_greedy = results
-            return {
-                **({"perplexity": ll} if "perplexity" in use_metric else {}),
-                **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
-            }
-        elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            (loglikelihood,) = results
-            _words = self.count_words(self.doc_to_target(doc))
-            _bytes = self.count_bytes(self.doc_to_target(doc))
-            return {
-                **(
-                    {"word_perplexity": (loglikelihood, _words)}
-                    if "word_perplexity" in use_metric
-                    else {}
-                ),
-                **(
-                    {"byte_perplexity": (loglikelihood, _bytes)}
-                    if "byte_perplexity" in use_metric
-                    else {}
-                ),
-                **(
-                    {"bits_per_byte": (loglikelihood, _bytes)}
-                    if "bits_per_byte" in use_metric
-                    else {}
-                ),
-            }
-        elif self.OUTPUT_TYPE == "multiple_choice":
-            lls, is_greedy = zip(*results, strict=True)
-
-            # retrieve choices in List[str] form, to compute choice lengths, etc.
-            choices = self.doc_to_choice(doc)
-            completion_len = np.array([float(len(i)) for i in choices])
-            byte_length = np.array([float(len(i.encode("utf-8"))) for i in choices])
-
-            if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
-                # then we are doing mutual info.
-                # this stores the "dryrun" / unconditional answer loglikelihoods
-                # as we extend the args list with unconditional ("", continuation) pairs
-                lls_unconditional = lls[len(choices) :]
-                if len(lls_unconditional) != len(choices):
-                    raise ValueError
-                # and this stores our "regular" conditional loglikelihoods
-                lls = lls[: len(choices)]
-
-            pred = np.argmax(lls)
-            pred_norm = np.argmax(lls / completion_len)
-            pred_byte = np.argmax(lls / byte_length)
-
-            if self.multiple_input:
-                gold = self.doc_to_text(doc)
-            else:
-                gold = self.doc_to_target(doc)
-
-            gold_index_error = False
-            if isinstance(gold, list):
-                gold = [i if i < len(choices) else -100 for i in gold]
-                if -100 in gold:
-                    gold_index_error = True
-            else:
-                if isinstance(gold, int):
-                    gold = gold if gold < len(choices) else -100
-                elif isinstance(gold, str):
-                    gold = choices.index(gold) if gold in choices else -100
-
-                if gold == -100:
-                    gold_index_error = True
-
-            if gold_index_error:
-                eval_logger.warning(
-                    f"Label index was not in within range of available choices,"
-                    f"Sample:\n\n{doc}\n\n"
-                )
-
-            if self.multiple_target:
-                acc = 1.0 if pred in gold else 0.0
-                acc_norm = 1.0 if pred_norm in gold else 0.0
-                acc_bytes = 1.0 if pred_byte in gold else 0.0
-                exact_match = int(any(is_greedy[i] if i != -100 else 0 for i in gold))
-            else:
-                acc = 1.0 if pred == gold else 0.0
-                acc_norm = 1.0 if pred_norm == gold else 0.0
-                acc_bytes = 1.0 if pred_byte == gold else 0.0
-                # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold]) if gold != -100 else 0
-
-            prob_norm = utils.softmax(lls)
-
-            # TODO use keyword arguments to the metric?
-            # gold, pred, norm stuff, the original lls,
-            result_dict = {
-                **({"acc": acc} if "acc" in use_metric else {}),
-                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
-                **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-                **({"acc_bytes": acc_bytes} if "acc_bytes" in use_metric else {}),
-                **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-                **(
-                    {"brier_score": (gold, prob_norm)}
-                    if "brier_score" in use_metric
-                    else {}
-                ),
-                **({"likelihood": (gold, lls)} if "likelihood" in use_metric else {}),
-            }
-
-            if "acc_mutual_info" in use_metric:
-                lls_mutual_info = [
-                    ll_c - ll_u
-                    for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
-                ]
-                acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
-                result_dict["acc_mutual_info"] = acc_mutual_info
-
-        elif self.OUTPUT_TYPE == "generate_until":
-            gold = self.doc_to_target(doc)
-            result = results[0]
-            if self.config.doc_to_choice is not None:
-                # If you set doc_to_choice,
-                # it assumes that doc_to_target returns a number.
-                choices = self.doc_to_choice(doc)
-                gold = choices[gold]
-            # we expect multiple_targets to be a list.
-            elif self.multiple_target:
-                gold = list(gold)
-            # TODO: handle this better
-            elif type(gold) is not type(result) and not (
-                any(m.name == "bypass" for m in self._metrics)
-                or isinstance(result, list)
-            ):
-                # cast gold to the same type as result
-                gold = type(result)(gold)
-
-            for m in self._metrics:
-                metric = m.name
-                if self.multiple_target:
-                    # in the case where we have multiple targets,
-                    # return true if any are true
-                    # TODO: this may break for multipLe_target, non zero-or-1 metrics
-                    scores = []
-                    if not isinstance(gold, list):
-                        # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        gold = [gold]
-                    if metric == "exact_match":
-                        result = [result for _ in range(len(gold))]
-                        scores = m.compute(
-                            references=gold,
-                            predictions=result,
-                        )[metric]
-                        result_score = 1.0 if scores > 0.0 else 0.0
-                    else:
-                        for gold_option in gold:
-                            try:
-                                result_score = m.compute(
-                                    references=[gold_option],
-                                    predictions=[result],
-                                )
-                            except (
-                                TypeError
-                            ):  # TODO: this is hacky and I don't want to do it
-                                result_score = m.fn([gold_option, result])
-                            if isinstance(result_score, dict):
-                                # TODO: this handles the case where HF evaluate returns a dict.
-                                result_score = result_score[metric]
-                            scores.append(result_score)
-                        result_score = 1.0 if any(scores) else 0.0
-                else:
-                    try:
-                        result_score = m.compute(
-                            references=[gold],
-                            predictions=[result],
-                        )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        result_score = m.fn([gold, result])
-                if isinstance(result_score, dict):
-                    # TODO: this handles the case where HF evaluate returns a dict.
-                    # This allows for multiple metrics to be returned from the same function
-                    for k, v in result_score.items():
-                        result_dict[k] = v
-                else:
-                    result_dict[metric] = result_score
-        else:
-            raise ValueError(
-                f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'generate_until' or 'multiple_choice'",
-            )
-
-        return result_dict
+    def process_results(self, doc, results):
+        raise NotImplementedError(
+            "ConfigurableTask.process_results() has been removed. "
+            "Scoring is now handled by Scorer.score()."
+        )
 
     def aggregation(self) -> dict:
-        return {m.name: m.aggregation for m in self._metrics}
+        agg = {}
+        for s in self._scorers:
+            agg.update(s.aggregation_dict)
+        return agg
 
     def higher_is_better(self) -> dict:
-        return {m.name: m.higher_is_better for m in self._metrics}
+        hib = {}
+        for s in self._scorers:
+            hib.update(s.higher_is_better_dict)
+        return hib
 
     @property
     def scorers(self) -> list[Scorer]:

@@ -598,34 +598,33 @@ def evaluate(
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
         task = acc["task"]
-        task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
-        # # unpack results and sort back in order and return control to Task
-        # TODO: make it possible to use a different metric per filter
-        # Pre-process task.instances to group by doc_id
-        instances_by_doc_id = defaultdict(list)
-        for instance in task.instances:
-            instances_by_doc_id[instance.doc_id].append(instance)
-        # Sort instances within each group
-        for instances in instances_by_doc_id.values():
-            instances.sort(key=lambda x: x.idx)
-        # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps:
-            indices = samples.get(task_name, None) if samples is not None else None
-            doc_iterator = task.doc_iterator(
-                rank=RANK,
-                limit=limit,
-                world_size=WORLD_SIZE,
-                samples=indices,
-            )
-            for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
-                requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
+        # Score via scorers (applies filters + computes metrics)
+        for scorer in task.scorers:
+            scorer_results = scorer.score(task.instances)
+            for (metric, filter_key, doc_id), value in scorer_results.items():
+                acc["raw_metrics"][(metric, filter_key)].append(value)
+
+        # Build log samples separately (filters already applied by scorer.score())
+        if log_samples:
+            instances_by_doc_id = defaultdict(list)
+            for instance in task.instances:
+                instances_by_doc_id[instance.doc_id].append(instance)
+            for doc_id_instances in instances_by_doc_id.values():
+                doc_id_instances.sort(key=lambda x: x.idx)
+
+            for filter_key in task.instances[0].filtered_resps:
+                indices = samples.get(task_name, None) if samples is not None else None
+                doc_iterator = task.doc_iterator(
+                    rank=RANK,
+                    limit=limit,
+                    world_size=WORLD_SIZE,
+                    samples=indices,
                 )
-                if log_samples:
+                for doc_id, doc in doc_iterator:
+                    doc_id_true = indices[doc_id] if indices else doc_id
+                    requests = instances_by_doc_id[doc_id]
                     target = task.doc_to_target(doc)
                     example = {
                         "doc_id": doc_id_true,
@@ -637,7 +636,6 @@ def evaluate(
                             req.filtered_resps[filter_key] for req in requests
                         ],
                         "filter": filter_key,
-                        "metrics": list(metrics.keys()),
                         "doc_hash": hash_string(
                             json.dumps(
                                 requests[0].doc,
@@ -649,10 +647,7 @@ def evaluate(
                         "prompt_hash": hash_string(requests[0].arguments[0]),
                         "target_hash": hash_string(str(target)),
                     }
-                    example.update(metrics)
                     acc["logged_samples"].append(example)
-                for metric, value in metrics.items():
-                    acc["raw_metrics"][(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         # Gather all sample metrics across ranks, keyed by task name.
