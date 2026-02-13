@@ -1,0 +1,32 @@
+# Group configuration demonstrating task collections
+
+group: test_group
+task:
+  - task: group_task_fs0
+    dataset_path: json
+    dataset_kwargs:
+      data_files:
+        test: tests/test_configs/test_data.json
+    output_type: multiple_choice
+    doc_to_text: "{{question}}"
+    doc_to_target: "{{choices[answer]}}"
+    test_split: test
+    num_fewshot: 0
+    metric_list:
+      - metric: acc
+        aggregation: mean
+        higher_is_better: true
+  - task: group_task_fs2
+    dataset_path: json
+    dataset_kwargs:
+      data_files:
+        test: tests/test_configs/test_data.json
+    output_type: multiple_choice
+    doc_to_text: "{{question}}"
+    doc_to_target: "{{choices[answer]}}"
+    test_split: test
+    num_fewshot: 2
+    metric_list:
+      - metric: acc
+        aggregation: mean
+        higher_is_better: true

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.11"
+version = "0.4.12.dev0"
 authors = [
     { name = "EleutherAI", email = "contact@eleuther.ai" }
 ]
@@ -127,47 +127,28 @@ plugins.md034.enabled = false # no-bare-urls
 preview = true
 explicit-preview-rules = true
 extend-select = [
-    "B",      # flake8-bugbear
-    "C419",   # unnecessary-comprehension-in-call
-    "D", # docstyle
-    "E",      # pycodestyle errors
-    "F",      # pyflakes
-    "FURB",   # refurb
-    "I",      # isort
-    "TC", # typecheck
-    "RUF034", # useless-if-else
-    "SIM",    # flake8-simplify
-    "UP",     # pyupgrade
-    "W605",   # invalid-escape-sequence
-    "S", # flake8-bandit,
-    "S307", # part of S but exact code to enable preview
+    # bugbear, comprehension, docstyle, pycodestyle, pyflakes
+    "B", "C419", "D", "E", "F",
+    # refurb, isort, typecheck, useless-if-else
+    "FURB", "I", "TC", "RUF034",
+     # flake8-bandit, simplify, pyupgrade, invalid-escape-sequence
+    "S", "SIM", "S307", "UP", "W605",
 ]
 fixable = [
-    "F401",   # unused-import
-    "I001",   # unsorted-imports
-    "UP",     # pyupgrade fixes
+     # bugbear, pydocstyle, pycodestyle, unused-import
+    "B", "D", "E", "F401",
+    # refurb, unsorted-imports, ruff-specific
+    "FURB", "I001", "RUF",
+    # simplify, type-checking, pyupgrade, invalid-escape
+    "SIM", "TC", "UP", "W605",
 ]
 ignore = [
-    # docstrings
-    "D10",    # missing-docstring
-        # docstrings
-    "D212", # start first line
-    "D415", # terminal punctuation
-    "D205", # missing blank line
-    "D417", # docs: undocumented param
-    "D200", # unnecessary line
-    "D202", # blank-line-after-function
-
-    "E111",   # indentation-with-invalid-multiple
-    "E114",   # indentation-with-invalid-multiple-comment
-    "E117",   # over-indented
-    "E402",   # module-import-not-at-top-of-file
-    "E501",   # line-too-long
-    "E701",   # multiple-statements-on-one-line-colon
-    "E731",   # lambda-assignment
-    "E741",   # ambiguous-variable-name
-    "SIM118", # dict-in-keys
-    "S101",   # assert-used
+    "D10", "D200", "D202", "D205",
+    "D212", "D415", "D417",
+    "E11", "E402", "E501", "E701",
+    "E731", "E741",
+    "SIM105", "SIM401", "SIM118", # flake8-simplify
+    "S311", "S701",  "S101" # bandits, assert-used
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

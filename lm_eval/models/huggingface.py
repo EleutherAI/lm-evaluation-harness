@@ -491,6 +491,22 @@ class HFLM(TemplateLM):
     def world_size(self):
         return self._world_size
 
+    def all_gather(self, tensor):
+        if self.world_size <= 1:
+            return tensor
+        return self.accelerator.gather(tensor)
+
+    def gather_object(self, obj, dst=0):
+        if self.world_size <= 1:
+            return [obj]
+        result = [None] * self.world_size if self.rank == dst else None
+        torch.distributed.gather_object(obj=obj, object_gather_list=result, dst=dst)
+        return result
+
+    def barrier(self):
+        if self.world_size > 1:
+            self.accelerator.wait_for_everyone()
+
     @property
     def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
@@ -845,9 +861,7 @@ class HFLM(TemplateLM):
         if self.world_size > 1:
             # if multi-GPU, always take minimum over all selected batch sizes
             max_rnk_bs = torch.tensor([batch_size], device=self.device)
-            gathered = (
-                self.accelerator.gather(max_rnk_bs).cpu().detach().numpy().tolist()
-            )
+            gathered = self.all_gather(max_rnk_bs).cpu().detach().numpy().tolist()
             batch_size = min(gathered)
             clear_torch_cache()
             return batch_size
@@ -1073,7 +1087,7 @@ class HFLM(TemplateLM):
         pad_amnt = 0
         if self.world_size > 1:
             mytensor = torch.tensor(len(all_windows), device=self.device)
-            gathered = self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
+            gathered = self.all_gather(mytensor).cpu().detach().numpy().tolist()
             pad_amnt = max(gathered) - gathered[self.rank]
             if pad_amnt > 0:
                 all_windows += pad_amnt * [all_windows[0]]
