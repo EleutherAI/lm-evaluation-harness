@@ -90,7 +90,7 @@ class LLResults(Results):
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def target(self):
+    def target(self) -> int:
         return self.targets[0] if isinstance(self.targets, list) else self.targets
 
     @classmethod

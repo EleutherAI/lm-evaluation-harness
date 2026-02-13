@@ -13,6 +13,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+
+NAT_TO_BIT = 1.0 / np.log(2.0)
+
 from lm_eval.api.registry import register_metric
 
 
@@ -32,6 +35,7 @@ if TYPE_CHECKING:
     aggregation="mean",
 )
 def acc_fn(targets: int | list[int], results: LLResults) -> int:
+    """1 if the highest raw log-likelihood choice matches the gold answer, else 0."""
     pred = int(np.argmax(results.lls))
     if isinstance(targets, list):
         return int(pred in targets)
@@ -45,6 +49,7 @@ def acc_fn(targets: int | list[int], results: LLResults) -> int:
     aggregation="mean",
 )
 def acc_norm_fn(targets: int | list[int], results: LLResults) -> int:
+    """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
     pred = int(np.argmax(np.array(results.lls) / np.array(results.char_len)))
     if isinstance(targets, list):
         return int(pred in targets)
@@ -58,6 +63,7 @@ def acc_norm_fn(targets: int | list[int], results: LLResults) -> int:
     aggregation="mean",
 )
 def acc_bytes_fn(targets: int | list[int], results: LLResults) -> int:
+    """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
     pred = int(np.argmax(np.array(results.lls) / np.array(results.byte_len)))
     if isinstance(targets, list):
         return int(pred in targets)
@@ -71,6 +77,7 @@ def acc_bytes_fn(targets: int | list[int], results: LLResults) -> int:
     aggregation="mean",
 )
 def acc_mutual_info_fn(targets: int | list[int], results: LLResults) -> int:
+    """Mutual-information-weighted accuracy: picks the choice with the highest ``ll - ll_unconditional``."""
     pred = int(np.argmax(results.lls_mutual_info))
     return int(pred == results.target)
 
@@ -87,7 +94,93 @@ def acc_mutual_info_fn(targets: int | list[int], results: LLResults) -> int:
     aggregation="mean",
 )
 def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
+    """1 if the gold completion was decoded greedily (every token was argmax), else 0."""
     return int(results.is_greedy[results.target])
+
+
+# ---------------------------------------------------------------------------
+# Log-probability / bits-per-byte metrics
+# ---------------------------------------------------------------------------
+
+
+@register_metric(
+    metric="bpb",
+    higher_is_better=False,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def bpb_fn(targets: int | list[int], results: LLResults) -> float:
+    """Bits-per-byte of the gold completion: ``-ll[gold] / byte_len[gold] * NAT_TO_BIT``.
+
+    Lower is better — measures how many bits the model needs per byte of the
+    correct answer.
+    """
+    gold = results.target
+    return (-results.lls[gold] / results.byte_len[gold]) * NAT_TO_BIT
+
+
+@register_metric(
+    metric="logprob",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def logprob_fn(targets: int | list[int], results: LLResults) -> float:
+    """Raw log-probability of the gold completion (in nats)."""
+    return float(results.lls[results.target])
+
+
+@register_metric(
+    metric="choice_logprob",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def choice_logprob_fn(targets: int | list[int], results: LLResults) -> float:
+    """Log-probability of the gold choice under a softmax over all choices.
+
+    Equals ``ll[gold] - logsumexp(ll)``, i.e. treating the raw log-likelihoods
+    as logits and returning the log-probability assigned to the correct answer.
+    """
+    lls = np.array(results.lls)
+    return float(lls[results.target] - np.logaddexp.reduce(lls))
+
+
+@register_metric(
+    metric="choice_prob_norm",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def choice_prob_norm_fn(targets: int | list[int], results: LLResults) -> float:
+    """Length-normalised probability of the gold choice.
+
+    Each choice is weighted by its nats-per-byte (``ll / byte_len``), then a
+    softmax is applied. Returns the probability mass on the correct answer.
+    This compensates for longer completions receiving lower raw log-likelihoods.
+    """
+    lls = np.array(results.lls)
+    byte_len = np.array(results.byte_len, dtype=float)
+    log_weights = lls / byte_len
+    return float(np.exp(log_weights[results.target] - np.logaddexp.reduce(log_weights)))
+
+
+@register_metric(
+    metric="choice_logprob_norm",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def choice_logprob_norm_fn(targets: int | list[int], results: LLResults) -> float:
+    """Log of the length-normalised probability of the gold choice.
+
+    Equivalent to ``log(choice_prob_norm)`` but computed in log-space for
+    numerical stability.
+    """
+    lls = np.array(results.lls)
+    byte_len = np.array(results.byte_len, dtype=float)
+    log_weights = lls / byte_len
+    return float(log_weights[results.target] - np.logaddexp.reduce(log_weights))
 
 
 # ---------------------------------------------------------------------------
@@ -102,6 +195,7 @@ def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
     aggregation="perplexity",
 )
 def perplexity_fn(targets: int | list[int], results: LLResults) -> float:
+    """Passthrough of the gold log-likelihood for corpus-level perplexity aggregation."""
     return results.lls[results.target]
 
 
