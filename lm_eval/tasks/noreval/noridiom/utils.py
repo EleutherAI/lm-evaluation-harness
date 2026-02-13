@@ -1,13 +1,20 @@
 from collections import Counter
+from string import punctuation
 
 import numpy as np
 
 
-def normalize(text):
+def get_first_word(text):
     words = "".join(ch for ch in text if ch.isalpha() or ch.isspace()).lower().strip()
     if len(words) == 0:
         return ""
-    return words.split()[0].strip()
+    return words.split()[0]
+
+
+def normalize(text):
+    exclude = set(punctuation)
+    text = text.split('\n')[0]  # use only the first line for backwards compatibility
+    return "".join(ch for ch in text if ch not in exclude).lower().strip()
 
 
 def f1(prediction, completion):
@@ -27,14 +34,19 @@ def f1(prediction, completion):
 
 def process_results(doc, results):
     prediction = normalize(results[0])
+    prediction_first_word = get_first_word(results[0])
     completions = [normalize(completion) for completion in doc["accepted_completions"]]
+
+    exact_match_first_word = np.nanmax(
+        [int(prediction_first_word == completion) for completion in completions]
+    )
     exact_match = np.nanmax(
         [int(prediction == completion) for completion in completions]
     )
     fscore = np.nanmax(
         [f1(prediction=prediction, completion=completion) for completion in completions]
     )
-    return {"em": exact_match, "fscore": fscore}
+    return {"em_first": exact_match_first_word, "em": exact_match, "fscore": fscore}
 
 
 def filter_dataset_nb(dataset):

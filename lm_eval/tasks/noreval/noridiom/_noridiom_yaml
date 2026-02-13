@@ -9,6 +9,9 @@ generation_kwargs:
   do_sample: false
   max_new_tokens: 16
 metric_list:
+  - metric: em_first
+    aggregation: mean
+    higher_is_better: true
   - metric: em
     aggregation: mean
     higher_is_better: true
