@@ -1,13 +1,13 @@
 import re
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from typing_extensions import NamedTuple, Protocol, TypedDict
+from typing_extensions import NamedTuple, Protocol, Self, TypedDict
 
 
 if TYPE_CHECKING:
-    from numpy import int64
+    from numpy import float64, int64
     from numpy.typing import NDArray
 
     from lm_eval.api.instance import GenInstance, Instance
@@ -67,7 +67,7 @@ class GenKwargs(TypedDict, total=False):
 
 
 class Results(Protocol):
-    def to_metric_inputs(self): ...
+    def to_metric_inputs(self) -> Any: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,29 +81,51 @@ class LLResults(Results):
     lls: Sequence[float] = field(kw_only=True)
     is_greedy: Sequence[bool] = field(kw_only=True)
     choices: Sequence[str] = field(default_factory=list)
-    char_len: "NDArray[int64]" = field(default_factory=list)
-    byte_len: "NDArray[int64]" = field(default_factory=list)
-    word_len: "NDArray[int64]" = field(default_factory=list)
     # token_lens: Sequence[int] = field(default_factory=list)
     lls_mutual_info: Sequence[float] = field(default_factory=list)
-    scores: dict[Any, float] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def target(self) -> int:
         return self.targets[0] if isinstance(self.targets, list) else self.targets
 
+    @property
+    def char_len(self) -> "NDArray[float64]":
+        import numpy as np
+
+        return (
+            np.array([float(len(i)) for i in self.choices])
+            if self.choices
+            else np.array(1.0 for _ in range(len(self.lls)))
+        )
+
+    @property
+    def byte_len(self) -> "NDArray[int64]":
+        import numpy as np
+
+        return np.array(
+            [_count_bytes(i) for i in self.choices]
+            if self.choices
+            else [1 for _ in range(len(self.lls))]
+        )
+
+    @property
+    def word_len(self) -> "NDArray[int64]":
+        import numpy as np
+
+        return np.array(
+            [_count_words(i) for i in self.choices]
+            if self.choices
+            else [1 for _ in range(len(self.lls))]
+        )
+
     @classmethod
     def from_instances(
         cls,
         results: Sequence["Instance"],
         acc_mutual_info=False,
-        count_bytes: Callable[[str], int] = _count_bytes,
-        count_words: Callable[[str], int] = _count_words,
     ):
         from itertools import chain
-
-        import numpy as np
 
         ## TODO: ADD Choice/Target Verification
         instance = sorted(
@@ -133,23 +155,6 @@ class LLResults(Results):
                 ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
             ]
 
-        # calculate lengths
-        _char = (
-            np.array([float(len(i)) for i in choices])
-            if choices
-            else np.array(1 for _ in range(len(lls)))
-        )
-        _bytes = np.array(
-            [count_bytes(i) for i in choices]
-            if choices
-            else [1 for _ in range(len(lls))]
-        )
-        _words = np.array(
-            [count_words(i) for i in choices]
-            if choices
-            else [1 for _ in range(len(lls))]
-        )
-
         assert len(set(targets)) == 1, (
             "Multiple targets found for same sample; This is unexpected. Please open an issue on github."
         )
@@ -160,13 +165,10 @@ class LLResults(Results):
             ctx=instance[0].args[0],
             targets=targets,
             choices=choices,
-            char_len=_char,
-            byte_len=_bytes,
-            word_len=_words,
             lls_mutual_info=lls_mutual_info,
         )
 
-    def to_metric_inputs(self):
+    def to_metric_inputs(self) -> Self:
         return self
 
 

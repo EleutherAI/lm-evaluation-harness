@@ -275,7 +275,7 @@ class Ter(CorpusMetric[Any, tuple]):
 
 
 # ---------------------------------------------------------------------------
-# multiple_choice corpus metrics (sklearn)
+# multiple_choice corpus metrics
 # ---------------------------------------------------------------------------
 
 
