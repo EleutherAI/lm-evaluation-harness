@@ -13,7 +13,7 @@ from lm_eval.api.metrics import (
     mean,
     stderr_for_metric,
 )
-from lm_eval.types import EvalResults, _SampleCount, _TaskMetrics
+from lm_eval.result_schema import EvalResults, _SampleCount, _TaskMetrics
 from lm_eval.utils import positional_deprecated
 
 

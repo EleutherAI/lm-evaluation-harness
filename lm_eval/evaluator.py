@@ -42,8 +42,8 @@ if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.api.task import Task
     from lm_eval.loggers import EvaluationTracker
+    from lm_eval.result_schema import EvalResults
     from lm_eval.tasks.manager import TaskDict
-    from lm_eval.types import EvalResults
 
     _NestedDict = dict[Group, dict[str, Task] | Group] | dict[str, Task]
 

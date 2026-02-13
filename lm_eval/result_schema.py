@@ -1,6 +1,6 @@
 from typing import Any, Generic, TypeVar
 
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 
 T = TypeVar("T", bound=int | float | bool | tuple)
@@ -22,15 +22,19 @@ class _TaskMetrics(TypedDict, Generic[T], extra_items=T):
     sample_len: int
     """Number of documents evaluated for this task."""
 
+    sample_count: NotRequired[dict[str, int]]
+    """Per-metric sample counts (groups only). Maps metric keys like
+    ``"acc,none"`` to the number of samples used for that metric."""
+
 
 class _SampleCount(TypedDict):
     """Number of evaluation samples for a task."""
 
     original: int
-    """Total number of documents in the evaluation set before any limit is applied."""
+    """Total number of documents in the evaluation split."""
 
     effective: int
-    """Actual number of documents evaluated after applying the limit."""
+    """Actual number of documents actually evaluated (e.g. using limit)."""
 
 
 class _EvalConfig(TypedDict, total=False):
@@ -38,7 +42,11 @@ class _EvalConfig(TypedDict, total=False):
 
     model: str
     model_args: str | dict[str, str | int | float] | None
-    batch_size: int | str | None
+    model_num_parameters: int
+    model_dtype: str
+    model_revision: str
+    model_sha: str
+    batch_size: str | None
     batch_sizes: list[int]
     device: str | None
     use_cache: str | None
@@ -50,6 +58,16 @@ class _EvalConfig(TypedDict, total=False):
     torch_seed: int
     fewshot_seed: int
 
+
+"""Full evaluation results returned by ``simple_evaluate()`` and ``evaluate()``.
+
+All keys are optional (``total=False``) because several are conditionally present:
+
+- ``groups`` — only present when at least one group defines aggregation metrics
+- ``samples`` — only when log_samples is True
+- ``config``, ``git_hash``, ``date``, env/tokenizer info — only added by
+  simple_evaluate()
+"""
 
 EvalResults = TypedDict(
     "EvalResults",
@@ -64,7 +82,7 @@ EvalResults = TypedDict(
         # Maps group/task names to their list of subtask names.
         "group_subtasks": dict[str, list[str]],
         # Full YAML task configs keyed by task name.
-        "configs": dict[str, dict[str, Any]],
+        "configs": dict[str, dict[str, str | bool | None]],
         # Task version from YAML metadata, keyed by task name.
         "versions": dict[str, str | float | None],
         # Number of few-shot examples used per task.
@@ -111,15 +129,32 @@ EvalResults = TypedDict(
         # Maximum sequence length used for evaluation.
         # getattr(lm, "max_length", None) inside add_tokenizer_info()
         "max_length": int | None,
+        # --- Model identity (added by simple_evaluate()) ---
+        #
+        # Model source identifier (e.g. "hf").
+        "model_source": str,
+        # Full model name (e.g. "EleutherAI/pythia-14m").
+        "model_name": str,
+        # Sanitized model name safe for file paths.
+        "model_name_sanitized": str,
+        # --- Chat / instruction fields ---
+        #
+        # System instruction passed to the model, if any.
+        "system_instruction": str | None,
+        # SHA of the system instruction.
+        "system_instruction_sha": str | None,
+        # Whether few-shot examples were formatted as multi-turn.
+        "fewshot_as_multiturn": bool | None,
+        # Chat template string, if applicable.
+        "chat_template": str | None,
+        # SHA of the chat template.
+        "chat_template_sha": str | None,
+        # --- Misc metadata ---
+        #
+        # Per-task hash values for reproducibility verification.
+        "task_hashes": dict[str, str],
+        # Wall-clock evaluation time in seconds (stored as string).
+        "total_evaluation_time_seconds": str,
     },
     total=False,
 )
-"""Full evaluation results returned by ``simple_evaluate()`` and ``evaluate()``.
-
-All keys are optional (``total=False``) because several are conditionally present:
-
-- ``groups`` — only present when at least one group defines aggregation metrics
-- ``samples`` — only when log_samples is True
-- ``config``, ``git_hash``, ``date``, env/tokenizer info — only added by
-  simple_evaluate()
-"""

@@ -20,7 +20,7 @@ from lm_eval.evaluator_utils import (
     ResultAcc,
     _process_results,
 )
-from lm_eval.types import _TaskMetrics
+from lm_eval.result_schema import _TaskMetrics
 
 
 # ---------------------------------------------------------------------------

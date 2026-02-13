@@ -21,7 +21,7 @@ from lm_eval.evaluator_utils import (
     aggregate_groups,
     get_sample_size,
 )
-from lm_eval.types import _TaskMetrics
+from lm_eval.result_schema import _TaskMetrics
 
 
 # ---------------------------------------------------------------------------

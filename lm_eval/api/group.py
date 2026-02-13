@@ -27,7 +27,7 @@ eval_logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from lm_eval.api.task import Task
-    from lm_eval.types import _TaskMetrics
+    from lm_eval.result_schema import _TaskMetrics
 
 
 @dataclass
