@@ -1,8 +1,12 @@
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
+
+
+eval_logger = logging.getLogger(__name__)
 
 
 class Filter(ABC):
@@ -42,13 +46,23 @@ class FilterEnsemble:
     name: str
     filters: List[Callable[[], Filter]]
 
-    def apply(self, instances: List[Instance]) -> None:
+    def apply(self, instances: List[Instance], predict_only=False) -> None:
         resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
         resps, docs = list(resps), list(docs)
 
         for f in self.filters:
             # apply filters in sequence
-            resps = f().apply(resps, docs)
+            function = f()
+            if hasattr(function, "DISABLE_ON_PREDICT_ONLY"):
+                try:
+                    resps = function.apply(resps, docs, predict_only)
+                except Exception:
+                    eval_logger.warning(
+                        "Using filter with `DISABLE_ON_PREDICT_ONLY=True`, but it does not take `predict_only` as input. Passing it without `predict_only` parameter."
+                    )
+                    resps = function.apply(resps, docs)
+            else:
+                resps = function.apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
