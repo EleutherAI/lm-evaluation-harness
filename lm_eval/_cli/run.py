@@ -199,7 +199,6 @@ class Run(SubCommand):
             "--cache_requests",
             type=request_caching_arg_to_dict,
             default=None,
-            choices=["true", "refresh", "delete"],
             help="Cache preprocessed prompts (true|refresh|delete)",
         )
         cache_group.add_argument(
