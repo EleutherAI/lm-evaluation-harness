@@ -64,6 +64,7 @@ ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 # megatron_lm requires separate installation of Megatron-LM
 # megatron_lm = ["torch>=1.8"]
 optimum = ["optimum[openvino]"]
+habana = ["optimum-habana"]
 sparsify = ["sparsify"]
 #sae_lens = ["sae_lens"] #  sae-lens requires datasets < 3.0
 # Task specific dependencies
@@ -76,9 +77,6 @@ longbench = ["jieba", "fuzzywuzzy", "rouge"]
 libra = ["pymorphy2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11", "math_verify[antlr4_11_0]"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
-#promptsource = [
-#  "promptsource>=0.2.3 ; python_version <= '3.12'",
-#]
 ruler = ["nltk", "wonderwords", "scipy"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 discrim_eval = ["statsmodels==0.14.4"]
