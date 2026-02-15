@@ -1,0 +1,3 @@
+kmmlu_redux:
+  - kmmlu_redux_multiple_choice
+  - kmmlu_redux_generate_until
