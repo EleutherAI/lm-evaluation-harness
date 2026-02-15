@@ -1,5 +1,89 @@
-import re
 from typing import Dict, List
+
+
+def pass_at_k(references: list[str], predictions: list[list[str]], k: list[int]):
+    # At least one correct prediction in top k
+    results = {}
+    for kk in k:
+        success = 0
+        for ref, preds in zip(references, predictions):
+            if ref in preds[:kk]:
+                success += 1
+        results[f"pass@{kk}"] = success / len(references)
+    return results
+
+
+def avg_at_k(references: list[str], predictions: list[list[str]], k: list[int]):
+    # Average of correct predictions in top k divided by k
+    results = {}
+    for kk in k:
+        total = 0.0
+        for ref, preds in zip(references, predictions):
+            correct = sum(1 for p in preds[:kk] if p == ref)
+            total += correct / kk
+        results[f"avg@{kk}"] = total / len(references)
+    return results
+
+
+def extract_single_response(response: str) -> str:
+    # Try to extract answer from $...$ format first
+    indices = [pos for pos, char in enumerate(response) if char == "$"]
+    if len(indices) <= 1:
+        answer = response
+    else:
+        answer = response[indices[0] + 1 : indices[-1]]
+
+    # Extract from \\boxed{} if present
+    boxed_answer = last_boxed_only_string(response)
+    if boxed_answer is not None:
+        try:
+            boxed_content = remove_boxed(boxed_answer)
+            if boxed_content is not None:
+                answer = boxed_content
+        except (AssertionError, IndexError):
+            pass
+    return answer
+
+
+def extract_all_responses(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
+    result = []
+    for resp, doc in zip(resps, docs):
+        all_model_answers = []
+        for r in resp:
+            extracted_model_answer = extract_single_response(r)
+            all_model_answers.append(extracted_model_answer)
+        result.append(all_model_answers)
+    return result
+
+
+def process_single_result(doc: dict, results: List[str]) -> int:
+    retval = 0
+    response = results[0]
+
+    # Try to extract answer from $...$ format first
+    indices = [pos for pos, char in enumerate(response) if char == "$"]
+    if len(indices) <= 1:
+        answer = response
+    else:
+        answer = response[indices[0] + 1 : indices[-1]]
+
+    # Extract from \\boxed{} if present
+    boxed_answer = last_boxed_only_string(response)
+    if boxed_answer is not None:
+        try:
+            boxed_content = remove_boxed(boxed_answer)
+            if boxed_content is not None:
+                answer = boxed_content
+        except (AssertionError, IndexError):
+            pass
+
+    # Check if answer matches target
+    answer_key = next(k for k in doc.keys() if k.lower() == "answer")
+    target = str(doc[answer_key])
+    if is_equiv(answer, target):
+        retval = 1
+
+    return retval
 
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:

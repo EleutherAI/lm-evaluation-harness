@@ -36,17 +36,20 @@
 
 #### Tasks
 
-* `aime`: `AIME 1983-2024 problems`
-* `aime24`: `AIME 2024 problems`
-* `aime25`: `AIME 2025 problems`
+* `aime`: AIME 1983-2024 problems
+* `aime24`: AIME 2024 problems
+* `aime25`: AIME 2025 problems
+* `aime_pass_avg_32`: AIME 1983-2024 pass@32 and avg@32 variant
+* `aime24_pass_avg_32`: AIME 2024 pass@32 and avg@32 variant
+* `aime25_pass_avg_32`: AIME 2025 pass@32 and avg@32 variant
 
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
 
 * [x] Is the task an existing benchmark in the literature?
-  * [x] Have you referenced the original paper that introduced the task?
-  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+* [x] Have you referenced the original paper that introduced the task?
+* [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 If other tasks on this dataset are already supported:
 
