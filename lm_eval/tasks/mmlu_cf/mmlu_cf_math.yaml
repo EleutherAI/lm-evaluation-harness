@@ -1,0 +1,7 @@
+task: mmlu_cf_math
+task_alias: math
+test_split: Math_val
+fewshot_split: Math_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_stem_tasks
+include: _default_template_yaml

@@ -1,0 +1,7 @@
+task: mmlu_cf_chemistry
+task_alias: chemistry
+test_split: Chemistry_val
+fewshot_split: Chemistry_dev
+description: "There is a single choice question (with answers). Answer the question by replying A, B, C or D.\n\n"
+tag: mmlu_cf_stem_tasks
+include: _default_template_yaml
