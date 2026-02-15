@@ -3,15 +3,13 @@ output_type: generate_until
 training_split: null
 validation_split: validation
 test_split: null
-num_fewshot: 0
-doc_to_target: " "
+doc_to_target: best_answer
 process_docs: !function utils.process_docs
 process_results: !function utils.process_results
 generation_kwargs:
   until:
     - "\n"
   do_sample: false
-  num_beams: 1
   max_new_tokens: 64
 metric_list:
   - metric: bleu_max

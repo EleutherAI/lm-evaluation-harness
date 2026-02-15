@@ -11,7 +11,6 @@ generation_kwargs:
   until:
     - "\n"
   do_sample: false
-  num_beams: 1
   max_new_tokens: 256
 metadata:
   version: 1.0

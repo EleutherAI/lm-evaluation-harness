@@ -3,8 +3,12 @@ output_type: multiple_choice
 training_split: null
 validation_split: null
 test_split: test
-num_fewshot: 0
+fewshot_split: test
 doc_to_target: "{{choices.label.index(answer)}}"
+process_docs: !function utils.add_original_index
+fewshot_config:
+  sampler: !function utils.PrecedingWrapSampler
+  split: test
 metric_list:
   - metric: acc
     aggregation: mean
