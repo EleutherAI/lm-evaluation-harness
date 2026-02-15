@@ -61,6 +61,8 @@ ipex = ["optimum-intel"]
 ibm_watsonx_ai = ["ibm_watsonx_ai>=1.1.22", "python-dotenv"]
 # mamba requires CUDA (nvcc) - cannot build on macOS/CPU-only systems
 # mamba = ["mamba_ssm", "causal-conv1d==1.0.2", "torch"]
+# megatron_lm requires separate installation of Megatron-LM
+# megatron_lm = ["torch>=1.8"]
 optimum = ["optimum[openvino]"]
 sparsify = ["sparsify"]
 #sae_lens = ["sae_lens"] #  sae-lens requires datasets < 3.0
