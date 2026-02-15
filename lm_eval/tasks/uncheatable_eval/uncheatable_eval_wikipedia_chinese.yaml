@@ -1,0 +1,9 @@
+include: _uncheatable_eval_base.yaml
+task: uncheatable_eval_wikipedia_chinese
+task_alias: UE_wiki_zh
+description: >-
+  Rolling perplexity on Uncheatable Eval Wikipedia dumps (Chinese articles
+  collected after mid-2024).
+custom_dataset: !function uncheatable_eval_utils.load_uncheatable_eval
+dataset_kwargs:
+  dataset: wikipedia_chinese
