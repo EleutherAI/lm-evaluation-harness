@@ -3,6 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from typing_extensions import TypeVar
+
+
+_T = TypeVar("_T")
+
 
 def maybe_delimit(prefix: str | None, suffix: str | None, delimiter: str = " ") -> str:
     """Join prefix and suffix, adding delimiter only if neither has whitespace at the boundary."""
@@ -98,3 +103,8 @@ def random_task_id():
     import string
 
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+
+
+def normalize_to_list(x: dict[str, _T | list[_T]]) -> dict[str, list[_T]]:
+    """Normalize a dict of str to T or list[T] into a dict of str to list[T]."""
+    return {k: v if isinstance(v, list) else [v] for k, v in x.items()}

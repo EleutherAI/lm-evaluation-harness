@@ -17,10 +17,11 @@ from typing import (
 import numpy as np
 from distlib.util import cached_property
 from tqdm import tqdm
+from typing_extensions import TypedDict
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import Instance
+from lm_eval.api.instance import AdditionalArgs, Instance
 from lm_eval.api.registry import (
     get_metric,
     get_metric_aggregation,
@@ -31,6 +32,7 @@ from lm_eval.api.utils import (
     ends_with_whitespace,
     maybe_delimit,
     multiturn_to_singleturn,
+    normalize_to_list,
     random_task_id,
     requires_delimiter,
 )
@@ -44,9 +46,15 @@ if TYPE_CHECKING:
     import datasets
 
     from lm_eval.config.task import FewshotConfig
-    from lm_eval.types import OutputType
+    from lm_eval.types import ChatTemplate, OutputType
 
 eval_logger = logging.getLogger(__name__)
+
+
+class METADATA(TypedDict, total=True, closed=False, extra_items=Any):
+    task: str
+    doc_id: int
+    repeats: int
 
 
 class Task:
@@ -194,17 +202,17 @@ class Task:
         """Returns the TaskConfig associated with this class."""
         return self._config
 
-    def has_training_docs(self) -> bool:
-        return self.config.training_split is not None
-
-    def has_validation_docs(self) -> bool:
-        return self.config.validation_split is not None
-
-    def has_test_docs(self) -> bool:
-        return self.config.test_split is not None
+    # def has_training_docs(self) -> bool:
+    #     return self.config.training_split is not None
+    #
+    # def has_validation_docs(self) -> bool:
+    #     return self.config.validation_split is not None
+    #
+    # def has_test_docs(self) -> bool:
+    #     return self.config.test_split is not None
 
     def training_docs(self) -> datasets.Dataset | None:
-        if self.has_training_docs():
+        if self.config.training_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.training_split]
@@ -212,7 +220,7 @@ class Task:
             return self.dataset[self.config.training_split]
 
     def validation_docs(self) -> datasets.Dataset | None:
-        if self.has_validation_docs():
+        if self.config.training_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.validation_split]
@@ -220,14 +228,15 @@ class Task:
             return self.dataset[self.config.validation_split]
 
     def test_docs(self) -> datasets.Dataset | None:
-        if self.has_test_docs():
+        if self.config.test_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
-        if (df := self._fewshot_cfg.get_docs(self.dataset)) is not None:
-            return df
+        if (_df := self._fewshot_cfg.get_docs(self.dataset)) is not None:
+            self._fewshot_docs = list(_df)
+            return _df
         else:
             if (_shots := self._config.num_fewshot) is not None and (_shots > 0):
                 eval_logger.warning(
@@ -236,18 +245,18 @@ class Task:
                     "using preconfigured rule."
                 )
                 # Try splits in priority order
-                for split_attr in ["training_split", "validation_split"]:
-                    if (result := self.get_docs(split_attr)) is not None:
-                        self._fewshot_docs = list(result)
-                        return self._fewshot_docs
+                _df = self.training_docs() or self.validation_docs()
+                if _df is not None:
+                    self._fewshot_docs = list(_df)
+                    return self._fewshot_docs
 
                 # Fallback to test split
                 eval_logger.warning(
                     f"[Task: {self._config.task}] has_training_docs and has_validation_docs are False"
                     ", using test_docs as fewshot_docs but this is not recommended."
                 )
-                if (result := self.get_docs("test_split")) is not None:
-                    self._fewshot_docs = list(result)
+                if (_df := self.test_docs()) is not None:
+                    self._fewshot_docs = list(_df)
                     return self._fewshot_docs
 
                 self._fewshot_docs = []
@@ -255,14 +264,12 @@ class Task:
 
     @property
     def eval_docs(self) -> datasets.Dataset | list[dict[str, Any]]:
-        if self.has_test_docs():
-            return self.test_docs()
-        elif self.has_validation_docs():
-            return self.validation_docs()
-        else:
+        _df = self.test_docs() or self.validation_docs()
+        if _df is None:
             raise ValueError(
                 f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
             )
+        return _df
 
     def get_docs(self, subset: str) -> list[dict[str, Any]] | None:
         assert self.dataset is not None, "dataset not set!"
@@ -312,7 +319,7 @@ class Task:
         system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Callable[..., str] | None = None,
+        chat_template: ChatTemplate | None = None,
         gen_prefix: str | None = None,
     ) -> str | list[str]:
         """Build the full prompt context including system prompt, few-shot examples, and eval doc.
@@ -534,13 +541,14 @@ class Task:
 
     def construct_requests(
         self,
-        doc: dict,
+        doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
-        apply_chat_template: bool,
-        chat_template: Callable,
+        *,
+        metadata: METADATA,
+        apply_chat_template: bool = False,
+        chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance] | Instance:
-
         aux_arguments = None
 
         if self.OUTPUT_TYPE == "loglikelihood":
@@ -640,7 +648,7 @@ class Task:
         system_instruction: str | None = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Callable | None = None,
+        chat_template: ChatTemplate | None = None,
         tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -713,7 +721,11 @@ class Task:
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
-                metadata=(self.config["task"], doc_id, self.config.repeats),
+                metadata={
+                    "task": self.task_name,
+                    "doc_id": doc_id,
+                    "repeats": self.config.repeats,
+                },
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
             )
@@ -746,7 +758,7 @@ class Task:
         """After calling `task.build_all_requests()`, tasks
         maintain a list of the dataset instances which will be evaluated.
         """
-        return self._instances
+        return self._instances or []
 
     ### Doc to Text/Target/Choice/Multimodal Parsing Methods ##
 
@@ -918,13 +930,16 @@ class Task:
             self.config.doc_to_image is not None or self.config.doc_to_audio is not None
         )
 
-    def _build_multimodadal_kwargs(self, doc, **kwargs) -> dict[str, Any]:
-        multimodal_kwargs = {}
-        if self.config.doc_to_image:
-            multimodal_kwargs["visual"] = self.doc_to_image(doc)
-        if self.config.doc_to_audio:
-            multimodal_kwargs["audio"] = self.doc_to_audio(doc)
-        return multimodal_kwargs
+    def _build_multimodal_kwargs(self, doc, **kwargs) -> AdditionalArgs | None:
+        assert self.MULTIMODAL, (
+            "This method should only be called for multimodal tasks, but this task is not multimodal according to its config."
+        )
+        multimodal_kwargs: AdditionalArgs = {}
+        if self.config.doc_to_image and (images := self.doc_to_image(doc)) is not None:
+            multimodal_kwargs["visual"] = images
+        if self.config.doc_to_audio and (audio := self.doc_to_audio(doc)) is not None:
+            multimodal_kwargs["audio"] = audio
+        return multimodal_kwargs or None
 
     ### Result Instance Processing ###
     def apply_filters(self) -> list[Instance] | None:
@@ -935,6 +950,22 @@ class Task:
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
+
+    def process_instances(self, instances: list[Instance]):
+        _instances = self._sort_instances(instances)
+
+    def _process_results(
+        self,
+        doc: dict[str, Any],
+        results: list[Any],
+    ) -> dict[str, list[Any]] | None:
+        """
+        Process the results and return a dictionary where keys are the names of the metrics and values are the results of each metric.
+        """
+        if callable(process_res := self.config.process_results):
+            return normalize_to_list(process_res(doc, results))
+        else:
+            return None
 
     def process_results(self, doc, results):
         if callable(self.config.process_results):
@@ -1139,15 +1170,15 @@ class Task:
         return result_dict
 
     @staticmethod
-    def sort_instances(
+    def _sort_instances(
         instances: list[Instance] | None = None,
-    ) -> dict[str, list[Instance]]:
+    ) -> dict[int, list[Instance]]:
         """Sorts instances by doc_id and then by idx"""
         if not instances:
             return {}
         from collections import defaultdict
 
-        instances_by_doc_id = defaultdict(list)
+        instances_by_doc_id: dict[int, list[Instance]] = defaultdict(list)
         for instance in instances:
             instances_by_doc_id[instance.doc_id].append(instance)
         # Sort instances within each group
@@ -1242,8 +1273,10 @@ class MultipleChoiceTask(Task):
         self,
         doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
-        apply_chat_template: bool,
-        chat_template: Callable,
+        *,
+        metadata: METADATA,
+        apply_chat_template: bool = False,
+        chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
         choices = self.doc_to_choice(doc)
@@ -1255,7 +1288,8 @@ class MultipleChoiceTask(Task):
                 and not ends_with_whitespace(self.config.gen_prefix)
                 else ""
             )
-        if self.multiple_inputs:
+
+        if self._multiple_inputs:
             # If there are multiple inputs, choices are placed in the ctx
             cont = self.doc_to_target(doc)
             arguments = [(context, f"{target_delimiter}{cont}") for context in ctx]
@@ -1283,6 +1317,7 @@ class MultipleChoiceTask(Task):
                 doc=doc,
                 arguments=arg,
                 idx=i,
+                target=None,
                 **kwargs,
             )
             for i, arg in enumerate(arguments)
@@ -1300,7 +1335,7 @@ class MultipleChoiceTask(Task):
         return [(context, f"{target_delimiter}{choice}") for choice in choices]
 
     @staticmethod
-    def build_multiple_targets(
+    def construct_multiple_input_instances(
         *, context: list[str], choices: str, target_delimiter: str
     ):
         assert isinstance(context, list), (
@@ -1308,6 +1343,16 @@ class MultipleChoiceTask(Task):
         )
         assert isinstance(choices, str), "choices must be a string for multiple targets"
         return [(cxt, f"{target_delimiter}{choices}") for cxt in choices]
+
+    def _normalize_target(self, doc):
+        gold = (
+            self.doc_to_target(doc)
+            if not self._multiple_inputs
+            else self.doc_to_text(doc)
+        )
+        if self._multiple_targets:
+            assert isinstance(gold, list), "gold should be a list for multiple targets"
+        return gold
 
     def process_results(self, doc, results):
         lls, is_greedy = zip(*results, strict=True)
@@ -1403,23 +1448,45 @@ class GenerateTask(Task):
 
     def construct_requests(
         self,
-        doc: dict,
+        doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
-        apply_chat_template: bool,
-        chat_template: Callable,
+        *,
+        metadata: METADATA,
+        apply_chat_template: bool = False,
+        chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> Instance:
+        assert self.OUTPUT_TYPE == "generate_until"
+        name, doc_id, repeats = (
+            metadata.pop("task"),
+            metadata.pop("doc_id"),
+            metadata.pop("repeats"),
+        )  # type:ignore[invalid-argument-type]
+
+        # Filter out chat_template and metadata from kwargs
+        instance_kwargs = {
+            k: v
+            for k, v in kwargs.items()
+            if k not in ("chat_template", "apply_chat_template")
+        }
+
         arguments = (
             ctx,
             cast("dict[str, Any]", deepcopy(self.config.generation_kwargs)),
         )
+        multimodal_arguments = self._build_multimodal_kwargs(doc)
 
         return Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
             arguments=arguments,
+            additional_args=multimodal_arguments,
+            target=None,
             idx=0,
-            **kwargs,
+            task_name=name,
+            doc_id=doc_id,
+            repeats=repeats,
+            **instance_kwargs,
         )
 
     def process_results(self, doc, results):
@@ -1503,8 +1570,10 @@ class LoglikelihoodTask(Task):
 
     def construct_requests(
         self,
-        doc: dict,
+        doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
+        *,
+        metadata: METADATA,
         apply_chat_template: bool,
         chat_template: Callable,
         **kwargs,
@@ -1535,10 +1604,12 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
 
     def construct_requests(
         self,
-        doc: dict,
+        doc: dict[str, Any],
         ctx: str | list[str] | list[dict[str, Any]],
-        apply_chat_template: bool,
-        chat_template: Callable,
+        *,
+        metadata: METADATA,
+        apply_chat_template: bool = False,
+        chat_template: Callable | None = None,
         **kwargs,
     ) -> Instance:
         arguments = (self.doc_to_target(doc),)

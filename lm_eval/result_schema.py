@@ -1,9 +1,22 @@
 from typing import Any, Generic, Literal, TypeVar
 
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import Protocol, NotRequired, TypedDict
 
 
 T = TypeVar("T", bound=int | float | bool | tuple)
+
+
+class ChatTemplate(Protocol):
+    """Protocol for applying chat templates."""
+
+    def __call__(
+        self,
+        chat_history: list[dict[str, Any]],
+        *,
+        add_generation_prompt: bool,
+        **kwargs,
+    ) -> str | list[dict[str, Any]]: ...
+
 
 # multiple-choice types send a number of "loglikelihood" instances
 OutputType = Literal[
