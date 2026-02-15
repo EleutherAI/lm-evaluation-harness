@@ -1,0 +1,5 @@
+tag: norsumm_nob_nno_translation
+doc_to_target: text_nno
+task: norsumm_nob_nno_translation_p0
+include: ../_norsumm_translation_yaml
+doc_to_text: "Bokmål: {{text_nob}}\nNynorsk:"

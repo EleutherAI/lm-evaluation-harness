@@ -1,0 +1,21 @@
+group: noreval_multiblimp
+task:
+  - "noreval_multiblimp_1-2"
+  - "noreval_multiblimp_2-1"
+  - "noreval_multiblimp_1-3"
+  - "noreval_multiblimp_3-1"
+  - "noreval_multiblimp_2-3"
+  - "noreval_multiblimp_3-2"
+  - "noreval_multiblimp_1-23"
+  - "noreval_multiblimp_SG-PL"
+  - "noreval_multiblimp_PL-SG"
+  - "noreval_multiblimp_SG-DU"
+  - "noreval_multiblimp_DU-SG"
+  - "noreval_multiblimp_PL-DU"
+  - "noreval_multiblimp_DU-PL"
+aggregate_metric_list:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: True
+metadata:
+  version: 1.0
