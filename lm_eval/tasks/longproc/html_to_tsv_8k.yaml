@@ -1,0 +1,20 @@
+include: _default_yaml_8k
+task: longproc_html_to_tsv_8k
+dataset_name: html_to_tsv_8k
+process_results: !function metrics.process_results_html_to_tsv
+metric_list:
+  - metric: score
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+  - metric: precision
+    aggregation: mean
+    higher_is_better: true
+  - metric: recall
+    aggregation: mean
+    higher_is_better: true
+  - metric: extraction_rate
+    aggregation: mean
+    higher_is_better: true

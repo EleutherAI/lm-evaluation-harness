@@ -1,0 +1,14 @@
+group: longproc
+task:
+  - longproc_countdown
+  - longproc_path_traversal
+  - longproc_tom_tracking
+  - longproc_html_to_tsv
+  - longproc_pseudo_to_code
+  - longproc_travel_planning
+aggregate_metric_list:
+  - metric: score
+    aggregation: mean
+    weight_by_size: false
+metadata:
+  version: 1.0
