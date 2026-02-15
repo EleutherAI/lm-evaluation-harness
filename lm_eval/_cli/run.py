@@ -198,9 +198,11 @@ class Run(SubCommand):
         cache_group.add_argument(
             "--cache_requests",
             type=request_caching_arg_to_dict,
+            nargs="?",
+            const="true",
             default=None,
-            choices=["true", "refresh", "delete"],
-            help="Cache preprocessed prompts (true|refresh|delete)",
+            metavar="true|refresh|delete",
+            help="Cache preprocessed prompts; bare flag defaults to 'true'",
         )
         cache_group.add_argument(
             "--check_integrity",

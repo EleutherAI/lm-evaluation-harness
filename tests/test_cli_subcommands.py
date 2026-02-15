@@ -723,6 +723,28 @@ class TestCLIUtils:
             "delete_requests_cache": True,
         }
 
+    def test_request_caching_arg_to_dict_invalid(self):
+        """Test request_caching_arg_to_dict rejects invalid values."""
+        with pytest.raises(argparse.ArgumentTypeError):
+            request_caching_arg_to_dict("bogus")
+
+    def test_cache_requests_argparse_integration(self):
+        """Test --cache_requests works end-to-end through argparse.
+
+        Regression test: the `type` function converts the string to a dict
+        before `choices` validation, so `choices` must not be used alongside
+        `type=request_caching_arg_to_dict`.
+        """
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--cache_requests",
+            type=request_caching_arg_to_dict,
+            default=None,
+        )
+        for val in ("true", "refresh", "delete"):
+            args = parser.parse_args(["--cache_requests", val])
+            assert isinstance(args.cache_requests, dict)
+
     def test_check_argument_types_raises_on_untyped(self):
         """Test check_argument_types raises error for untyped arguments."""
         parser = argparse.ArgumentParser()
