@@ -20,6 +20,7 @@ metric_list:
       - "\\$"
       - "(?s).*#### "
       - "\\.$"
+      - "\\.0+$"
 generation_kwargs:
   until:
     - "Q:"
