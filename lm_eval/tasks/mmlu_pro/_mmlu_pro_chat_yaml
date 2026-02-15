@@ -1,0 +1,29 @@
+dataset_path: TIGER-Lab/MMLU-Pro
+test_split: test
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+  doc_to_text: !function utils_chat.doc_to_text
+  doc_to_target: !function utils_chat.fewshot_doc_to_target
+output_type: generate_until
+doc_to_text: !function utils_chat.doc_to_text
+doc_to_target: answer
+filter_list:
+  - name: "custom-extract"
+    filter:
+      - function: "regex"
+        regex_pattern: 'answer is \(?([ABCDEFGHIJ])\)?'
+      - function: "take_first"
+generation_kwargs:
+  until: []
+  max_gen_toks: 4096
+  do_sample: true
+num_fewshot: 5
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

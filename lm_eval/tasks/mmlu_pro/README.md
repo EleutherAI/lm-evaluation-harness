@@ -26,6 +26,7 @@ Homepage: https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
 #### Groups
 
 * `mmlu_pro`: 'All 14 subjects of the mmlu_pro dataset, evaluated following the methodology in mmlu's original implementation'
+* `mmlu_pro_chat`: 'Same as mmlu_pro but with fewshot examples formatted for proper multi-turn chat (user/assistant per example). Use with `--apply_chat_template` and `--fewshot_as_multiturn` for chat models; works as plain-text when those flags are not used.'
 
 #### Tasks
 
@@ -44,6 +45,22 @@ The following tasks evaluate subjects in the mmlu_pro dataset
 - `mmlu_pro_philosophy`
 - `mmlu_pro_physics`
 - `mmlu_pro_psychology`
+
+The following tasks are the multi-turn chat variant (same subjects, fewshot as separate user/assistant turns when using `--apply_chat_template`):
+- `mmlu_pro_chat_biology`
+- `mmlu_pro_chat_business`
+- `mmlu_pro_chat_chemistry`
+- `mmlu_pro_chat_computer_science`
+- `mmlu_pro_chat_economics`
+- `mmlu_pro_chat_engineering`
+- `mmlu_pro_chat_health`
+- `mmlu_pro_chat_history`
+- `mmlu_pro_chat_law`
+- `mmlu_pro_chat_math`
+- `mmlu_pro_chat_other`
+- `mmlu_pro_chat_philosophy`
+- `mmlu_pro_chat_physics`
+- `mmlu_pro_chat_psychology`
 
 ### Checklist
 
