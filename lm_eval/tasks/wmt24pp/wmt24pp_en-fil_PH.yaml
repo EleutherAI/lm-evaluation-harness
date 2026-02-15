@@ -1,0 +1,11 @@
+include: wmt24pp_common.yaml
+
+task: wmt24pp-en-fil_PH
+
+tag:
+  - translation
+  - wmt24pp
+
+metadata:
+  version: 1.0
+  lang_pair: "en-fil_PH"
