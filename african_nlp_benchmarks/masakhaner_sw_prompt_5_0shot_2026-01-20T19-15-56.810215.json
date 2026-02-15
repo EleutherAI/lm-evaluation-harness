@@ -1,0 +1,148 @@
+{
+  "results": {
+    "masakhaner_sw_prompt_5": {
+      "alias": "masakhaner_sw_prompt_5",
+      "f1,flexible-extract": 0.05081734186208594,
+      "f1_stderr,flexible-extract": "N/A"
+    }
+  },
+  "group_subtasks": {
+    "masakhaner_sw_prompt_5": []
+  },
+  "configs": {
+    "masakhaner_sw_prompt_5": {
+      "task": "masakhaner_sw_prompt_5",
+      "tag": [
+        "masakhaner_tasks",
+        "masakhaner_prompt_5"
+      ],
+      "dataset_path": "masakhane/masakhaner-x",
+      "dataset_name": "sw",
+      "dataset_kwargs": {
+        "trust_remote_code": true
+      },
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "train",
+      "doc_to_text": "Provide a concise list of named entities in the text below. Use the following labels: PERSON, LOCATION, ORGANIZATION, and DATE. Ensure the output strictly follows the format: label: entity $$ label: entity, with each unique entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or irrelevant entries like none. Return only the output.  \n\nText: {{text}}",
+      "doc_to_target": "target",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "train",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "Provide a concise list of named entities in the text below. Use the following labels: PERSON, LOCATION, ORGANIZATION, and DATE. Ensure the output strictly follows the format: label: entity $$ label: entity, with each unique entity on a separate label line, avoiding grouped entities (e.g., avoid LOC: entity, entity) or irrelevant entries like none. Return only the output.  \n\nText: {{text}}",
+        "doc_to_choice": null,
+        "doc_to_target": "target",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def span_f1_agg(items):\n    \"\"\"Computes Span based F1 score.\n\n    This function is copied from\n    https://github.com/google-research/multilingual-t5/blob/master/multilingual_t5/evaluation/metrics.py\n\n    Args:\n    targets: list of strings or list of list of strings if multiple references\n      are present.\n    predictions: list of strings\n\n    Returns:\n    span f1 across all targets and predictions (Based on CoNLL script)\n    \"\"\"\n    unzipped_list = list(zip(*items))\n    targets = unzipped_list[0]\n    predictions = unzipped_list[1]\n\n    true_positives = collections.defaultdict(int)\n    false_positives = collections.defaultdict(int)\n    false_negatives = collections.defaultdict(int)\n\n    def normalize_text(strings):\n        def get_blank_spaces_pattern():\n            return re.compile(r\"\\s{3,}|\\t\")\n\n        def remove_blank_spaces(text):\n            text = re.sub(pattern=get_blank_spaces_pattern(), repl=\"\", string=text)\n            text = re.sub(r\"\\s+\", \" \", text)\n            return text\n\n        def remove_punctuation(text):\n            my_punctuation = '!\"$%&\\'()*+,-./:;<=>?[\\\\]^_`{|}~•@.\"\"-,`'\n            text = re.sub(\n                \"[\" + my_punctuation + \"]+\", \" \", str(text)\n            )  # strip punctuation\n            return text\n\n        def remove_articles(text):\n            regex = re.compile(r\"\\b(a|an|the)\\b\", re.UNICODE)\n            return re.sub(regex, \" \", text)\n\n        def lowercase(text):\n            text = text.lower()\n            return text\n\n        strings = remove_punctuation(strings)\n        strings = remove_articles(strings)\n        strings = remove_blank_spaces(strings)\n        strings = lowercase(strings)\n\n        return strings\n\n    def tags_to_spans(tag_sequence, delimiter=\"$$\"):\n        \"\"\"Extract spans from IOB1 or BIO tags.\"\"\"\n        if isinstance(tag_sequence, list):\n            tag_sequence = \" \".join(i.strip() for i in tag_sequence)\n        tag_sequence_split = [\n            item.strip()\n            for sub in tag_sequence.strip().split(delimiter)\n            for item in sub.split(\"$\")\n            if item\n        ]\n        tag_sequence_split = [\n            item.strip()\n            for value in tag_sequence_split\n            for sub in value.split(\". \")\n            for item in sub.split(\", \")\n        ]\n        tags_entities = []\n        for tag_entity in tag_sequence_split:\n            tag_entity_split = tag_entity.split(\": \")\n            if len(tag_entity_split) != 2:\n                continue\n            tag = normalize_text(tag_entity_split[0].strip())\n            entity = normalize_text(tag_entity_split[1].rstrip().lstrip())\n            tags_entities.append((tag, entity))\n        return tags_entities\n\n    def compute_f1_metrics(true_positive, false_positive, false_negative):\n        precision = float(true_positive) / float(true_positive + false_positive + 1e-13)\n        recall = float(true_positive) / float(true_positive + false_negative + 1e-13)\n        f1_measures = 2.0 * ((precision * recall) / (precision + recall + 1e-13))\n        return precision, recall, f1_measures\n\n    for target, pred in zip(targets, predictions):\n        gold_spans = tags_to_spans(target)\n        predicted_spans = tags_to_spans(pred)\n\n        for span in predicted_spans:\n            if span in gold_spans:\n                true_positives[span[0]] += 1\n                gold_spans.remove(span)\n            else:\n                false_positives[span[0]] += 1\n        # These spans weren't predicted.\n        for span in gold_spans:\n            false_negatives[span[0]] += 1\n\n    _, _, f1_measure = compute_f1_metrics(\n        sum(true_positives.values()),\n        sum(false_positives.values()),\n        sum(false_negatives.values()),\n    )\n    return f1_measure\n",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "do_sample": false,
+        "until": [
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "flexible-extract",
+          "filter": [
+            {
+              "function": "format_span"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "google/gemma-2b",
+        "dtype": "bfloat16",
+        "gpu_memory_utilization": 0.7
+      }
+    }
+  },
+  "versions": {
+    "masakhaner_sw_prompt_5": 1.0
+  },
+  "n-shot": {
+    "masakhaner_sw_prompt_5": 0
+  },
+  "higher_is_better": {
+    "masakhaner_sw_prompt_5": {
+      "f1": true
+    }
+  },
+  "n-samples": {
+    "masakhaner_sw_prompt_5": {
+      "original": 1000,
+      "effective": 1000
+    }
+  },
+  "config": {
+    "model": "vllm",
+    "model_args": {
+      "pretrained": "google/gemma-2b",
+      "dtype": "bfloat16",
+      "gpu_memory_utilization": 0.7
+    },
+    "batch_size": "1",
+    "batch_sizes": [],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": {},
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "b97e2b2",
+  "date": 1768932553.6036367,
+  "pretty_env_info": "PyTorch version: 2.9.0+cu128\nIs debug build: False\nCUDA used to build PyTorch: 12.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.5 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04.2) 11.4.0\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.35\n\nPython version: 3.10.12 (main, Jan  8 2026, 06:52:19) [GCC 11.4.0] (64-bit runtime)\nPython platform: Linux-6.8.0-1045-gcp-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: GPU 0: NVIDIA L4\nNvidia driver version: 535.274.02\ncuDNN version: Could not collect\nIs XPU available: False\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        46 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               8\nOn-line CPU(s) list:                  0-7\nVendor ID:                            GenuineIntel\nModel name:                           Intel(R) Xeon(R) CPU @ 2.20GHz\nCPU family:                           6\nModel:                                85\nThread(s) per core:                   2\nCore(s) per socket:                   4\nSocket(s):                            1\nStepping:                             7\nBogoMIPS:                             4400.37\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch ssbd ibrs ibpb stibp ibrs_enhanced fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx avx512f avx512dq rdseed adx smap clflushopt clwb avx512cd avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves arat avx512_vnni md_clear arch_capabilities\nHypervisor vendor:                    KVM\nVirtualization type:                  full\nL1d cache:                            128 KiB (4 instances)\nL1i cache:                            128 KiB (4 instances)\nL2 cache:                             4 MiB (4 instances)\nL3 cache:                             38.5 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-7\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown\nVulnerability Reg file data sampling: Not affected\nVulnerability Retbleed:               Mitigation; Enhanced IBRS\nVulnerability Spec rstack overflow:   Not affected\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS; IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown\nVulnerability Vmscape:                Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==2.2.6\n[pip3] nvidia-cublas-cu12==12.8.4.1\n[pip3] nvidia-cuda-cupti-cu12==12.8.90\n[pip3] nvidia-cuda-nvrtc-cu12==12.8.93\n[pip3] nvidia-cuda-runtime-cu12==12.8.90\n[pip3] nvidia-cudnn-cu12==9.10.2.21\n[pip3] nvidia-cudnn-frontend==1.17.0\n[pip3] nvidia-cufft-cu12==11.3.3.83\n[pip3] nvidia-curand-cu12==10.3.9.90\n[pip3] nvidia-cusolver-cu12==11.7.3.90\n[pip3] nvidia-cusparse-cu12==12.5.8.93\n[pip3] nvidia-cusparselt-cu12==0.7.1\n[pip3] nvidia-nccl-cu12==2.27.5\n[pip3] nvidia-nvjitlink-cu12==12.8.93\n[pip3] nvidia-nvtx-cu12==12.8.90\n[pip3] torch==2.9.0\n[pip3] torchaudio==2.9.0\n[pip3] torchvision==0.24.0\n[pip3] triton==3.5.0\n[conda] Could not collect",
+  "transformers_version": "4.57.5",
+  "lm_eval_version": "0.4.10.dev0",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<pad>",
+    "0"
+  ],
+  "tokenizer_eos_token": [
+    "<eos>",
+    "1"
+  ],
+  "tokenizer_bos_token": [
+    "<bos>",
+    "2"
+  ],
+  "eot_token_id": 1,
+  "max_length": 8192,
+  "task_hashes": {},
+  "model_source": "vllm",
+  "model_name": "google/gemma-2b",
+  "model_name_sanitized": "google__gemma-2b",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": null,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "total_evaluation_time_seconds": "4007.7406721939988"
+}

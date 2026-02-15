@@ -48,3 +48,9 @@ examples/wandb/
 
 #uv
 uv.lock
+
+benchmark_env/
+kenya_nlp_env/
+#african_nlp_benchmarks/
+.ipynb_checkpoints/
+*.ipynb
