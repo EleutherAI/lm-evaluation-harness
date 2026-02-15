@@ -1,10 +1,10 @@
 task: mbpp_instruct
 dataset_path: google-research-datasets/mbpp
-dataset_name: full
+dataset_name: sanitized
 unsafe_code: true
 output_type: generate_until
 test_split: test
-doc_to_text: "You are an expert Python programmer, and here is your task:\n{{text}}\nYour code should pass these tests:\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}"
+doc_to_text: "You are an expert Python programmer, and here is your task:\n{{prompt}}\nYour code should pass these tests:\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}"
 doc_to_target: "{% if is_fewshot is defined %}{{code}}\n```{% else %}{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}{% endif %}"
 gen_prefix: "\n```python\n"
 target_delimiter: ""
