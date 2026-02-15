@@ -67,7 +67,6 @@ def generate_input_output(
         return template.format(context=" ".join(sampled_words), query=""), vocab[1:4]
 
     if num_words > 0:
-        num_words = num_words
         text, answer = gen_text(num_words)
         while len(tokenizer(text).input_ids) > max_len:
             num_words -= incremental
@@ -94,7 +93,6 @@ def sys_kwext(
     remove_newline_tab: bool = False,
 ) -> list[dict]:
     write_jsons = []
-    tokens_to_generate = tokens_to_generate
 
     vocab_size = max_seq_length // 50 if vocab_size == -1 else vocab_size
 
