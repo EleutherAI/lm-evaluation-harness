@@ -64,7 +64,7 @@ def normalize_answer(s, lang):
                 text,
             )
         elif lang == "ar":
-            return re.sub(r"\sال^|ال", " ", text)
+            return re.sub(r"(?:^|\s)ال", " ", text)
         elif lang == "zh":
             return text  # Chinese does not have formal articles
         else:

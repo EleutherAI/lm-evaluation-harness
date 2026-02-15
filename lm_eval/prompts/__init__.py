@@ -98,6 +98,8 @@ def load_prompt_list(
         prompt_list = utils.pattern_match(
             prompt_name, prompt_yaml_file["prompts"].keys()
         )
+    else:
+        raise ValueError(f"Unknown prompt category: {category_name}")
 
     # category_name, *prompt_name = use_prompt.split(":")
     # TODO allow to multiple prompt naming
