@@ -111,7 +111,7 @@ Use `lm-eval -h` to see available options, or `lm-eval run -h` for evaluation op
 List available tasks with:
 
 ```bash
-lm-eval ls tasks
+lm-eval --tasks list
 ```
 
 ### Hugging Face `transformers`
