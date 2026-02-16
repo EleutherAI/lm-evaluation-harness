@@ -1147,13 +1147,15 @@ class MultipleChoiceTask(Task):
 
             arguments.extend(aux_arguments)
 
+        target = self._normalize_target(doc)
+
         request_list = [
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
                 arguments=arg,
                 idx=i,
-                target=None,
+                target=target,
                 **kwargs,
             )
             for i, arg in enumerate(arguments)
