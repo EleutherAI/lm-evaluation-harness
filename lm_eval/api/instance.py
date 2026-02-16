@@ -35,6 +35,7 @@ class Instance:
         # unpack metadata field
         if isinstance(self.metadata, tuple):
             self.task_name, self.doc_id, self.repeats = self.metadata
+            self.metadata = {}
 
     @property
     def args(self):

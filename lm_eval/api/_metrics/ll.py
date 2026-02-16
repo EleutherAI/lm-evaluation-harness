@@ -52,8 +52,10 @@ def acc_fn(targets: int | list[int], results: LLResults, multiple_targets=False)
     pred = int(np.argmax(results.lls))
     if multiple_targets:
         return _multiple_targets(results.targets, pred)
-    assert isinstance(targets, int), "target should be a int"
-    return int(pred == targets)
+    assert not isinstance(targets, list), (
+        "Multiple targets not supported for acc metric without multiple_targets=True"
+    )
+    return int(pred == int(targets))
 
 
 @register_metric(
@@ -69,7 +71,10 @@ def acc_norm_fn(
     pred = int(np.argmax(np.array(results.lls) / np.array(results.char_len())))
     if multiple_targets:
         return _multiple_targets(results.targets, pred)
-    return int(pred == targets)
+    assert not isinstance(targets, list), (
+        "Multiple targets not supported for acc metric without multiple_targets=True"
+    )
+    return int(pred == int(targets))
 
 
 @register_metric(
@@ -84,8 +89,11 @@ def acc_bytes_fn(
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
     pred = int(np.argmax(np.array(results.lls) / np.array(results.byte_len())))
     if multiple_targets:
-        return _multiple_targets(results.targets, pred)
-    return int(pred == targets)
+        return _multiple_targets(targets, pred)
+    assert not isinstance(targets, list), (
+        "Multiple targets not supported for acc metric without multiple_targets=True"
+    )
+    return int(pred == int(targets))
 
 
 @register_metric(
@@ -100,8 +108,11 @@ def acc_mutual_info_fn(
     """Mutual-information-weighted accuracy: picks the choice with the highest ``ll - ll_unconditional``."""
     pred = int(np.argmax(results.lls_mutual_info))
     if multiple_targets:
-        return _multiple_targets(results.targets, pred)
-    return int(pred == results.target)
+        return _multiple_targets(targets, pred)
+    assert not isinstance(targets, list), (
+        "Multiple targets not supported for acc metric without multiple_targets=True"
+    )
+    return int(pred == int(targets))
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +132,7 @@ def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
         return int(any(results.is_greedy[i] if i != -100 else False for i in targets))
     if targets == -100:
         return 0
-    return int(results.is_greedy[results.target])
+    return int(results.is_greedy[int(targets)])
 
 
 # ---------------------------------------------------------------------------
@@ -135,14 +146,13 @@ def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def bpb_fn(targets: int | list[int], results: LLResults) -> float:
+def bpb_fn(targets: int, results: LLResults) -> float:
     """Bits-per-byte of the gold completion: ``-ll[gold] / byte_len[gold] * NAT_TO_BIT``.
 
     Lower is better — measures how many bits the model needs per byte of the
     correct answer.
     """
-    gold = results.target
-    return (-results.lls[gold] / results.byte_len()[gold]) * NAT_TO_BIT
+    return (-results.lls[targets] / results.byte_len()[targets]) * NAT_TO_BIT
 
 
 @register_metric(
@@ -151,9 +161,9 @@ def bpb_fn(targets: int | list[int], results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def logprob_fn(targets: int | list[int], results: LLResults) -> float:
+def logprob_fn(targets: int, results: LLResults) -> float:
     """Raw log-probability of the gold completion (in nats)."""
-    return float(results.lls[results.target])
+    return float(results.lls[targets])
 
 
 @register_metric(
@@ -162,14 +172,14 @@ def logprob_fn(targets: int | list[int], results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def choice_logprob_fn(targets: int | list[int], results: LLResults) -> float:
+def choice_logprob_fn(targets: int, results: LLResults) -> float:
     """Log-probability of the gold choice under a softmax over all choices.
 
     Equals ``ll[gold] - logsumexp(ll)``, i.e. treating the raw log-likelihoods
     as logits and returning the log-probability assigned to the correct answer.
     """
     lls = np.array(results.lls)
-    return float(lls[results.target] - np.logaddexp.reduce(lls))
+    return float(lls[targets] - np.logaddexp.reduce(lls))
 
 
 @register_metric(
@@ -178,7 +188,7 @@ def choice_logprob_fn(targets: int | list[int], results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def choice_prob_norm_fn(targets: int | list[int], results: LLResults) -> float:
+def choice_prob_norm_fn(targets: int, results: LLResults) -> float:
     """Length-normalised probability of the gold choice.
 
     Each choice is weighted by its nats-per-byte (``ll / byte_len``), then a
@@ -188,7 +198,7 @@ def choice_prob_norm_fn(targets: int | list[int], results: LLResults) -> float:
     lls = np.array(results.lls)
     byte_len = np.array(results.byte_len(), dtype=float)
     log_weights = lls / byte_len
-    return float(np.exp(log_weights[results.target] - np.logaddexp.reduce(log_weights)))
+    return float(np.exp(log_weights[targets] - np.logaddexp.reduce(log_weights)))
 
 
 @register_metric(
@@ -197,7 +207,7 @@ def choice_prob_norm_fn(targets: int | list[int], results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def choice_logprob_norm_fn(targets: int | list[int], results: LLResults) -> float:
+def choice_logprob_norm_fn(targets: int, results: LLResults) -> float:
     """Log of the length-normalised probability of the gold choice.
 
     Equivalent to ``log(choice_prob_norm)`` but computed in log-space for
@@ -206,7 +216,7 @@ def choice_logprob_norm_fn(targets: int | list[int], results: LLResults) -> floa
     lls = np.array(results.lls)
     byte_len = np.array(results.byte_len(), dtype=float)
     log_weights = lls / byte_len
-    return float(log_weights[results.target] - np.logaddexp.reduce(log_weights))
+    return float(log_weights[targets] - np.logaddexp.reduce(log_weights))
 
 
 # ---------------------------------------------------------------------------
