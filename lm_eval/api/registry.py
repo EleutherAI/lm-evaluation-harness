@@ -78,6 +78,9 @@ __all__ = [
     "is_higher_better",
     "register_filter",
     "get_filter",
+    "register_reduction",
+    "get_reduction",
+    "reduction_registry",
     # Backward compat aliases (point to Registry instances)
     "MODEL_REGISTRY",
     "FILTER_REGISTRY",
@@ -422,6 +425,7 @@ aggregation_registry: Registry[Callable[..., float]] = Registry("aggregation")
 metric_registry: Registry[Callable] = Registry("metric")
 metric_agg_registry: Registry[Callable] = Registry("metric_aggregation")
 higher_is_better_registry: Registry[bool] = Registry("higher_is_better")
+reduction_registry: Registry[Callable] = Registry("reduction")
 
 
 def freeze_all():
@@ -437,6 +441,7 @@ def freeze_all():
         metric_registry,
         metric_agg_registry,
         higher_is_better_registry,
+        reduction_registry,
     ):
         r.freeze()
 
@@ -608,21 +613,37 @@ def register_metric(**args):
 
 
 def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
-    """Get a metric function by name.
+    """Get a metric function by name, returning a Metric object.
+
+    Unlike `get_metric` (public API, returns raw callable), this internal helper
+    always returns a `Metric` dataclass wrapping the callable plus its
+    companion aggregation/higher_is_better metadata.
 
     Args:
         name: The metric name
         hf_evaluate_metric: If True, skip the local registry and use HF evaluate
 
     Returns:
-        The metric compute function, or None if not found
+        A Metric object, or None if not found
     """
+    from lm_eval.config.metric import Metric
+
     # Auto-import metrics module if registry is empty (lazy initialization)
     if len(metric_registry) == 0:
         import lm_eval.api.metrics  # noqa: F401
 
-    config = metric_registry.get(name)
-    return config
+    try:
+        raw = metric_registry.get(name)
+    except KeyError:
+        return None
+
+    if isinstance(raw, Metric):
+        return raw
+
+    # Wrap raw fn/class in Metric, pulling agg + hib from companion registries
+    agg_fn = metric_agg_registry.get(name, None)
+    hib = higher_is_better_registry.get(name, True)
+    return Metric(name=name, fn=raw, aggregation=agg_fn, higher_is_better=hib)
 
 
 def _get_aggregation(name: str) -> Callable[..., float] | None:
@@ -694,6 +715,42 @@ def register_aggregation(name: str):
         return fn
 
     return decorate
+
+
+def register_reduction(name: str):
+    """Decorator to register a reduction function.
+
+    Args:
+        name: Name to register the reduction under
+
+    Returns:
+        Decorator function
+    """
+
+    def decorate(fn):
+        reduction_registry.register(name)(fn)
+        return fn
+
+    return decorate
+
+
+def get_reduction(name: str) -> Callable | None:
+    """Get a reduction function by name.
+
+    Args:
+        name: The reduction name
+
+    Returns:
+        The reduction function, or None if not found
+    """
+    if len(reduction_registry) == 0:
+        import lm_eval.api._metrics.reduce  # noqa: F401
+
+    try:
+        return reduction_registry.get(name)
+    except KeyError:
+        eval_logger.warning(f"{name} not a registered reduction!")
+        return None
 
 
 def get_aggregation(name: str) -> Callable[..., float] | None:

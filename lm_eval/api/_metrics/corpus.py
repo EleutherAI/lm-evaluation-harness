@@ -117,7 +117,9 @@ class WordPerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     """
 
     def __call__(self, targets: Any, results: "LLResults") -> tuple[float, int]:
-        return float(results.lls[results.target]), int(results.word_len[results.target])
+        return float(results.lls[results.target]), int(
+            results.word_len()[results.target]
+        )
 
     def aggregation(self, items: list[tuple[float, int]]) -> float:
         return math.exp(-_weighted_mean(items))
@@ -138,7 +140,9 @@ class BytePerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     """
 
     def __call__(self, targets: Any, results: "LLResults") -> tuple[float, int]:
-        return float(results.lls[results.target]), int(results.byte_len[results.target])
+        return float(results.lls[results.target]), int(
+            results.byte_len()[results.target]
+        )
 
     def aggregation(self, items: list[tuple[float, int]]) -> float:
         return math.exp(-_weighted_mean(items))
@@ -159,7 +163,9 @@ class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
     """
 
     def __call__(self, targets: Any, results: "LLResults") -> tuple[float, int]:
-        return float(results.lls[results.target]), int(results.byte_len[results.target])
+        return float(results.lls[results.target]), int(
+            results.byte_len()[results.target]
+        )
 
     def aggregation(self, items: list[tuple[float, int]]) -> float:
         return -_weighted_mean(items) / math.log(2)
@@ -216,8 +222,6 @@ class Bleu(CorpusMetric[Any, tuple]):
 
     Higher is better.
     """
-
-    import sacrebleu
 
     def __call__(self, targets: Any, results: Any) -> tuple:
         return targets, results

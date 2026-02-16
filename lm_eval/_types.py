@@ -41,7 +41,7 @@ class GenResults:
 
 
 @dataclass(frozen=True, slots=True)
-class LLResults(Results):
+class LLResults:
     """Result of a multiple-choice task. Instances are grouped by doc_id beforehand"""
 
     doc: dict[str, Any]

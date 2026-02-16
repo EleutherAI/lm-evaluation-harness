@@ -43,6 +43,7 @@ from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.scorers._base import Scorer
 
 
 if TYPE_CHECKING:
@@ -211,7 +212,7 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            if self.config.get("num_fewshot", 0) > 0:
+            if self.config.num_fewshot or 0 > 0:
                 eval_logger.warning(
                     f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
                     ", using test_docs as fewshot_docs but this is not recommended."
@@ -350,7 +351,7 @@ class Task(abc.ABC):
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
-                metadata=(self.config["task"], doc_id, self.config.repeats),
+                metadata=(self.config.task, doc_id, self.config.repeats),
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
             )
@@ -772,6 +773,8 @@ class ConfigurableTask(Task):
                 )
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
+        self._scorers: list[Scorer] | None = self._build_scorers()
+
         if self.config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self.config.use_prompt}")
             self.prompt = get_prompt(
@@ -868,6 +871,47 @@ class ConfigurableTask(Task):
                 name=self.DATASET_NAME,
                 **dataset_kwargs if dataset_kwargs is not None else {},
             )
+
+    def _build_global_metrics(self) -> list:
+        """Convert config.metric_list (or output_type defaults) into list[Metric]."""
+        from lm_eval.config.metric import Metric
+
+        metrics: list[Metric] = []
+        if self.config.metric_list is not None:
+            for m_cfg in self.config.metric_list:
+                metrics.append(Metric.from_dict(m_cfg))
+        else:
+            # Use default metrics for the output_type
+            for metric_name in DEFAULT_METRIC_REGISTRY.get(self.config.output_type, []):
+                metrics.append(Metric.from_dict({"metric": metric_name}))
+        return metrics
+
+    def _build_scorers(self) -> list[Scorer] | None:
+        """Build scorers from filter_list config, or a default scorer."""
+        try:
+            global_metrics = self._build_global_metrics()
+        except Exception as e:
+            eval_logger.debug(f"Could not build global metrics for scorers: {e}")
+            return None
+
+        if not global_metrics:
+            return None
+
+        output_type = self.OUTPUT_TYPE
+
+        if self.config.filter_list is not None:
+            scorers = []
+            for filter_config in self.config.filter_list:
+                scorers.append(
+                    Scorer.from_dict(
+                        filter_config,
+                        global_metrics=global_metrics,
+                        output_type=output_type,
+                    )
+                )
+            return scorers
+
+        return [Scorer.default_scorer(global_metrics, output_type=output_type)]
 
     def has_training_docs(self) -> bool:
         return self.config.training_split is not None
@@ -1155,13 +1199,21 @@ class ConfigurableTask(Task):
         return res_
 
     def apply_filters(self) -> list[Instance] | None:
-        """Iterates over FilterEnsembles and applies them to instances"""
+        """Iterates over FilterEnsembles and applies them to instances.
+
+        When scorers are available, also delegates to each scorer's filter
+        (which populates ``inst.filtered_resps[scorer.name]``).
+        """
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
+
+        if self._scorers:
+            for scorer in self._scorers:
+                scorer.apply_filter(self._instances)
 
     def should_decontaminate(self):
         return self.config.should_decontaminate
@@ -1434,6 +1486,9 @@ class ConfigurableTask(Task):
                     doc=doc,
                     arguments=arg,
                     idx=i,
+                    task_name=self.config.task,
+                    doc_id=doc_id,
+                    repeats=1,
                     **kwargs,
                 )
                 for i, arg in enumerate(arguments)
@@ -1448,6 +1503,47 @@ class ConfigurableTask(Task):
             idx=0,
             **kwargs,
         )
+
+    @staticmethod
+    def _sort_instances(
+        instances: list[Instance] | None = None,
+    ) -> dict[int, list[Instance]]:
+        """Sorts instances by doc_id and then by idx"""
+        if not instances:
+            return {}
+        from collections import defaultdict
+
+        instances_by_doc_id: dict[int, list[Instance]] = defaultdict(list)
+        for instance in instances:
+            instances_by_doc_id[instance.doc_id].append(instance)
+        # Sort instances within each group
+        for instances in instances_by_doc_id.values():
+            instances.sort(key=lambda x: x.idx)
+        return instances_by_doc_id
+
+    def process_instances(self) -> dict[str, dict[str, list]] | None:
+        """Apply filters via scorers, sort instances, then score.
+
+        Returns:
+            ``{scorer_name: {metric_name: [per_doc_values]}}`` or None if
+            no scorers are configured.
+        """
+        if self._scorers is None:
+            return None
+
+        # Apply filters
+        self.apply_filters()
+
+        # Sort instances by doc_id
+        instances = self._sort_instances(self._instances)
+
+        # Score with each scorer
+        results: dict[str, dict[str, list]] = {}
+        for scorer in self._scorers:
+            scorer.score_instances(instances)
+            results[scorer.name] = scorer._metric_results
+
+        return results
 
     def process_results(self, doc, results):
         if callable(self.config.process_results):

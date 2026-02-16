@@ -23,7 +23,7 @@ class Instance:
     idx: int
     task_name: str
     doc_id: int
-    repeats: int
+    repeats: int = 1
     target: str | int | list[str] | list[int] | None = None
     additional_args: AdditionalArgs | None = None
     resps: list = field(default_factory=list)

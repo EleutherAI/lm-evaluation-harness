@@ -62,7 +62,7 @@ def parse_metric(cfg: "_MetricConfig"):
                 fn=metric.fn,
                 aggregation=metric.aggregation,
                 reduction=metric.reduction,
-                **cfg.get("kwargs", {}) or {},
+                kwargs=cfg.get("kwargs") or {},
             )
 
         if metric is None:
@@ -75,6 +75,7 @@ def parse_metric(cfg: "_MetricConfig"):
 
     # look up aggregations
     _agg = cfg.get("aggregation", metric.aggregation)
+    _agg_fn = None
     if isinstance(_agg, str):
         from lm_eval.api.registry import get_aggregation
 
@@ -88,7 +89,8 @@ def parse_metric(cfg: "_MetricConfig"):
         _agg_fn = _agg
 
     # look up reductions
-    _reduce = cfg.get("reduction", metric.reduce_fn)
+    _reduce = cfg.get("reduction", metric.reduction)
+    _reduce_fn = None
     if isinstance(_reduce, str):
         from lm_eval.api.registry import get_reduction
 
@@ -110,5 +112,5 @@ def parse_metric(cfg: "_MetricConfig"):
         aggregation=_agg_fn,
         reduction=_reduce_fn,
         higher_is_better=_higher_is_better,
-        **cfg.get("kwargs", {}) or {},
+        kwargs=cfg.get("kwargs") or {},
     )
