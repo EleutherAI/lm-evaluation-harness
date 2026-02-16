@@ -1408,6 +1408,46 @@ class ConfigurableTask(Task):
                 return utils.apply_template(gen_prefix, doc)
         return None
 
+    # ------------------------------------------------------------------
+    # Target normalization helpers (one per OUTPUT_TYPE)
+    # ------------------------------------------------------------------
+
+    def _normalize_multiple_choice(
+        self, doc: dict, choices: list[str]
+    ) -> int | list[int]:
+        """Return the gold choice index (or list of indices for multiple_target)."""
+        if self.multiple_input:
+            gold = self.doc_to_text(doc)
+        else:
+            gold = self.doc_to_target(doc)
+
+        if isinstance(gold, list):
+            gold = [i if i < len(choices) else -100 for i in gold]
+        elif isinstance(gold, int):
+            gold = gold if gold < len(choices) else -100
+        elif isinstance(gold, str):
+            gold = choices.index(gold) if gold in choices else -100
+
+        return gold
+
+    def _normalize_generate_until(self, doc: dict) -> str | list[str]:
+        """Return the gold target string (or list for multiple_target)."""
+        gold = self.doc_to_target(doc)
+        if self.config.doc_to_choice is not None:
+            choices = self.doc_to_choice(doc)
+            gold = choices[gold]
+        elif self.multiple_target:
+            gold = list(gold)
+        return gold
+
+    def _normalize_loglikelihood(self, doc: dict) -> str:
+        """Return the continuation string used as the target."""
+        return self.doc_to_target(doc)
+
+    def _normalize_loglikelihood_rolling(self, doc: dict) -> str:
+        """Return the full text string used as the target."""
+        return self.doc_to_target(doc)
+
     def construct_requests(
         self, doc: dict, ctx: str | list[str], **kwargs
     ) -> list[Instance] | Instance:
@@ -1426,11 +1466,14 @@ class ConfigurableTask(Task):
         aux_arguments = None
 
         if self.OUTPUT_TYPE == "loglikelihood":
-            arguments = (ctx, self.doc_to_target(doc))
+            target = self._normalize_loglikelihood(doc)
+            arguments = (ctx, target)
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            arguments = (self.doc_to_target(doc),)
+            target = self._normalize_loglikelihood_rolling(doc)
+            arguments = (target,)
         elif self.OUTPUT_TYPE == "multiple_choice":
             choices = self.doc_to_choice(doc)
+            target = self._normalize_multiple_choice(doc, choices)
             target_delimiter = self.config.target_delimiter
             if apply_chat_template:
                 target_delimiter = (
@@ -1463,6 +1506,7 @@ class ConfigurableTask(Task):
                 arguments.extend(aux_arguments)
 
         elif self.OUTPUT_TYPE == "generate_until":
+            target = self._normalize_generate_until(doc)
             arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         multimodal_arg = {}
@@ -1498,6 +1542,7 @@ class ConfigurableTask(Task):
                     task_name=task_name,
                     doc_id=doc_id,
                     repeats=repeats,
+                    target=target,
                     **kwargs,
                 )
                 for i, arg in enumerate(arguments)
@@ -1513,6 +1558,7 @@ class ConfigurableTask(Task):
             task_name=task_name,
             doc_id=doc_id,
             repeats=repeats,
+            target=target,
             **kwargs,
         )
 

@@ -26,6 +26,11 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Accuracy variants
 # ---------------------------------------------------------------------------
+def _multiple_targets(_target: int | list[int], _result: int):
+    _target = [
+        t for t in (_target if isinstance(_target, list) else [_target]) if t != -100
+    ]
+    return int(any(_result == t for t in _target))
 
 
 @register_metric(
@@ -34,18 +39,20 @@ if TYPE_CHECKING:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_fn(targets: int | list[int], results: LLResults) -> int:
+def acc_fn(targets: int | list[int], results: LLResults, multiple_targets=False) -> int:
     """Accuracy.
 
     For multiple-choice (multiple lls): 1 if argmax(lls) matches gold.
     For single loglikelihood (one ll): 1 if the continuation was decoded greedily.
     """
+
     if len(results.lls) == 1:
         # Plain loglikelihood: acc = greedy decode match
         return int(results.is_greedy[0])
     pred = int(np.argmax(results.lls))
-    if isinstance(targets, list):
-        return int(pred in targets)
+    if multiple_targets:
+        return _multiple_targets(results.targets, pred)
+    assert isinstance(targets, int), "target should be a int"
     return int(pred == targets)
 
 
@@ -55,11 +62,13 @@ def acc_fn(targets: int | list[int], results: LLResults) -> int:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_norm_fn(targets: int | list[int], results: LLResults) -> int:
+def acc_norm_fn(
+    targets: int | list[int], results: LLResults, multiple_targets=False
+) -> int:
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
     pred = int(np.argmax(np.array(results.lls) / np.array(results.char_len())))
-    if isinstance(targets, list):
-        return int(pred in targets)
+    if multiple_targets:
+        return _multiple_targets(results.targets, pred)
     return int(pred == targets)
 
 
@@ -69,11 +78,13 @@ def acc_norm_fn(targets: int | list[int], results: LLResults) -> int:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_bytes_fn(targets: int | list[int], results: LLResults) -> int:
+def acc_bytes_fn(
+    targets: int | list[int], results: LLResults, multiple_targets=False
+) -> int:
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
     pred = int(np.argmax(np.array(results.lls) / np.array(results.byte_len())))
-    if isinstance(targets, list):
-        return int(pred in targets)
+    if multiple_targets:
+        return _multiple_targets(results.targets, pred)
     return int(pred == targets)
 
 
@@ -83,9 +94,13 @@ def acc_bytes_fn(targets: int | list[int], results: LLResults) -> int:
     output_type="multiple_choice",
     aggregation="mean",
 )
-def acc_mutual_info_fn(targets: int | list[int], results: LLResults) -> int:
+def acc_mutual_info_fn(
+    targets: int | list[int], results: LLResults, multiple_targets=False
+) -> int:
     """Mutual-information-weighted accuracy: picks the choice with the highest ``ll - ll_unconditional``."""
     pred = int(np.argmax(results.lls_mutual_info))
+    if multiple_targets:
+        return _multiple_targets(results.targets, pred)
     return int(pred == results.target)
 
 
