@@ -701,10 +701,6 @@ class ConfigurableTask(Task):
                     if key
                     not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
                 }
-                hf_evaluate_metric = (
-                    "hf_evaluate" in metric_config
-                    and metric_config["hf_evaluate"] is True
-                )
 
                 if self.config.process_results is not None:
                     self._metric_fn_list[metric_name] = None
@@ -715,8 +711,9 @@ class ConfigurableTask(Task):
                     self._metric_fn_list[metric_name] = metric_fn
                     self._metric_fn_kwargs[metric_name] = kwargs
                 else:
+                    # hf_evaluate_metric is deprecated, and we are in process of removing it
                     self._metric_fn_list[metric_name] = get_metric(
-                        metric_name, hf_evaluate_metric
+                        metric_name, hf_evaluate_metric=False
                     )
                     self._metric_fn_kwargs[metric_name] = kwargs
 

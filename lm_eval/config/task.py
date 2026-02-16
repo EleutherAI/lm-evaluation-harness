@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import TYPE_CHECKING, Any, cast
 
+from typing_extensions import TypedDict
+
 from lm_eval.defaults import default_gen_kwargs
 
 
@@ -15,6 +17,25 @@ if TYPE_CHECKING:
 
 
 eval_logger = logging.getLogger(__name__)
+
+
+class _MetricConfig(TypedDict, total=False):
+    metric: str | Callable
+    aggregation: str | Callable | None
+    reduction: str | Callable | None
+    higher_is_better: bool | None
+    kwargs: dict[str, Any] | None
+
+
+class FilterConfig(TypedDict, total=False):
+    function: str
+    kwargs: dict[str, str]
+    metric_list: list[_MetricConfig] | None
+
+
+class FilterList(TypedDict, total=False):
+    name: str
+    filters: list[FilterConfig]
 
 
 @dataclass
@@ -94,7 +115,7 @@ class FewshotConfig:
 
 
 @dataclass
-class TaskConfig(dict):
+class TaskConfig:
     # task naming/registry
     task: str | None = None
     task_alias: str | None = None
@@ -130,7 +151,7 @@ class TaskConfig(dict):
     # runtime configuration options
     num_fewshot: int | None = None
     # scoring options
-    metric_list: list | None = None
+    metric_list: list[_MetricConfig] | None = None
     output_type: OutputType = "generate_until"
     generation_kwargs: dict[str, Any] | None = None
     repeats: int = 1
@@ -182,12 +203,6 @@ class TaskConfig(dict):
             if (isinstance(self.fewshot_config, dict) or self.fewshot_config is None)
             else self.fewshot_config
         )
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         """Dumps the current config as a dictionary object, as a printable format.

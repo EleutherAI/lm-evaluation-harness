@@ -53,6 +53,7 @@ if TYPE_CHECKING:
 
     from lm_eval.api.filter import Filter
     from lm_eval.api.model import LM
+    from lm_eval.config.metric import Metric
 
 
 __all__ = [
@@ -604,6 +605,44 @@ def register_metric(**args):
         return fn
 
     return decorate
+
+
+def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
+    """Get a metric function by name.
+
+    Args:
+        name: The metric name
+        hf_evaluate_metric: If True, skip the local registry and use HF evaluate
+
+    Returns:
+        The metric compute function, or None if not found
+    """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(metric_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
+    config = metric_registry.get(name)
+    return config
+
+
+def _get_aggregation(name: str) -> Callable[..., float] | None:
+    """Get an aggregation function by name.
+
+    Args:
+        name: The aggregation name
+
+    Returns:
+        The aggregation function, or None if not found
+    """
+    # Auto-import metrics module if registry is empty (lazy initialization)
+    if len(aggregation_registry) == 0:
+        import lm_eval.api.metrics  # noqa: F401
+
+    try:
+        return aggregation_registry.get(name)
+    except KeyError:
+        eval_logger.warning(f"{name} not a registered aggregation metric!")
+        return None
 
 
 def get_metric(name: str, hf_evaluate_metric: bool = False) -> Callable | None:

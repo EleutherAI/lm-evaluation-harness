@@ -1,6 +1,7 @@
 # ruff: noqa: F821, F841
 from __future__ import annotations
 
+import abc
 import ast
 import logging
 import random
@@ -22,11 +23,6 @@ from typing_extensions import TypedDict
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import AdditionalArgs, Instance
-from lm_eval.api.registry import (
-    get_metric,
-    get_metric_aggregation,
-    is_higher_better,
-)
 from lm_eval.api.utils import (
     Message,
     ends_with_whitespace,
@@ -38,10 +34,11 @@ from lm_eval.api.utils import (
 )
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
+from lm_eval.config.utils import process_field
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Mapping
+    from collections.abc import Callable, Iterator
 
     import datasets
 
@@ -539,6 +536,7 @@ class Task:
             res_.append(res)
         return res_
 
+    @abc.abstractmethod
     def construct_requests(
         self,
         doc: dict[str, Any],
@@ -548,93 +546,7 @@ class Task:
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance] | Instance:
-        aux_arguments = None
-
-        if self.OUTPUT_TYPE == "loglikelihood":
-            arguments = (ctx, self.doc_to_target(doc))
-        elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            arguments = (self.doc_to_target(doc),)
-        elif self.OUTPUT_TYPE == "multiple_choice":
-            choices = self.doc_to_choice(doc)
-            target_delimiter = self.config.target_delimiter
-            if apply_chat_template:
-                target_delimiter = (
-                    self.config.target_delimiter
-                    if self.config.gen_prefix
-                    and not ends_with_whitespace(self.config.gen_prefix)
-                    else ""
-                )
-            if self.multiple_inputs:
-                # If there are multiple inputs, choices are placed in the ctx
-                cont = self.doc_to_target(doc)
-                arguments = [(context, f"{target_delimiter}{cont}") for context in ctx]
-            else:
-                # Otherwise they are placed in the continuation
-                arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
-
-            # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in self._metric_fn_list.keys():
-                # if we are calculating multiple choice accuracy
-                # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
-
-                # here mutual info refers to calculating
-                # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
-                # in other words normalizing by subtracting the unconditional logprob of each choice.
-                # TODO: should these be strided? will have to modify the processing in process_results if so
-                aux_arguments = [
-                    ("", f"{target_delimiter}{choice}") for choice in choices
-                ]
-
-                arguments.extend(aux_arguments)
-
-        elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, deepcopy(self.config.generation_kwargs))
-
-        multimodal_arg = {}
-        if (
-            self.config.doc_to_image
-        ):  # TODO: ensure that non-multimodal tasks aren't getting visual args
-            multimodal_arg = {
-                **multimodal_arg,
-                **{"visual": self.doc_to_image(doc)},
-            }
-
-        if (
-            self.config.doc_to_audio
-        ):  # TODO: ensure that non-multimodal tasks aren't getting audio args
-            multimodal_arg = {
-                **multimodal_arg,
-                **{"audio": self.doc_to_audio(doc)},
-            }
-
-        if bool(multimodal_arg):
-            if isinstance(arguments, list):
-                arguments = [arg + (multimodal_arg,) for arg in arguments]
-            else:
-                arguments = arguments + (multimodal_arg,)
-
-        if self.OUTPUT_TYPE == "multiple_choice":
-            request_list = [
-                Instance(
-                    request_type="loglikelihood",
-                    doc=doc,
-                    arguments=arg,
-                    idx=i,
-                    **kwargs,
-                )
-                for i, arg in enumerate(arguments)
-            ]
-
-            return request_list
-
-        return Instance(
-            request_type=self.OUTPUT_TYPE,
-            doc=doc,
-            arguments=arguments,
-            idx=0,
-            **kwargs,
-        )
+    ) -> list[Instance] | Instance: ...
 
     def build_all_requests(
         self,
@@ -650,7 +562,7 @@ class Task:
         fewshot_as_multiturn: bool = False,
         chat_template: ChatTemplate | None = None,
         tokenizer_name: str = "",
-    ) -> None:
+    ) -> list[Instance]:
         """Build a set of Instances for a task, and store them in task.instances"""
 
         # used with caching
@@ -678,7 +590,7 @@ class Task:
             ]
 
             self._instances = flattened_instances
-            return
+            return flattened_instances
 
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
@@ -753,6 +665,8 @@ class Task:
         if cache_requests and (not cached_instances or rewrite_requests_cache):
             save_to_cache(file_name=cache_key, obj=instances)
 
+        return flattened_instances
+
     @property
     def instances(self) -> list[Instance]:
         """After calling `task.build_all_requests()`, tasks
@@ -762,113 +676,26 @@ class Task:
 
     ### Doc to Text/Target/Choice/Multimodal Parsing Methods ##
 
-    def doc_to_text(self, doc, doc_to_text=None):
-        if self.prompt is not None:
-            doc_to_text = self.prompt
-        elif doc_to_text is not None:
-            doc_to_text = doc_to_text
-        else:
-            doc_to_text = self.config.doc_to_text
+    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str]:
+        doc_to_text = (
+            doc_to_text if doc_to_text is not None else self.config.doc_to_text
+        )
+        y = process_field(doc, doc_to_text, digits=True, lists=False, default=None)
+        return y
 
-        if isinstance(doc_to_text, int):
-            return doc_to_text
-        elif isinstance(doc_to_text, str):
-            if doc_to_text in self.features:
-                # if self.config.doc_to_choice is not None:
-                #     return self.doc_to_choice(doc)[doc[doc_to_text]]
-                # else:
-                return doc[doc_to_text]
-            else:
-                text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit() and self._config.doc_to_choice is not None:
-                    return ast.literal_eval(text_string)
-                else:
-                    return text_string
-        elif callable(doc_to_text):
-            return doc_to_text(doc)
-        # Used when applying a Promptsource template
-        elif hasattr(doc_to_text, "apply"):
-            applied_prompt = doc_to_text.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[0]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
-        else:
-            print(type(doc_to_text))
-            raise TypeError
+    def doc_to_choice(self, doc, doc_to_choice=None) -> list[str]:
+        doc_to_choice = (
+            doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
+        )
+        y = process_field(doc, doc_to_choice, digits=True, lists=True, default=[])
+        return y
 
-    def doc_to_target(self, doc: Mapping, doc_to_target=None) -> int | str | list:
-        if self.prompt is not None:
-            doc_to_target = self.prompt
-        elif doc_to_target is not None:
-            doc_to_target = doc_to_target
-        else:
-            doc_to_target = self.config.doc_to_target
-
-        if isinstance(doc_to_target, int):
-            return doc_to_target
-        elif isinstance(doc_to_target, str):
-            if doc_to_target in self.features:
-                # if self.config.doc_to_choice is not None:
-                #     return self.doc_to_choice(doc)[doc[doc_to_target]]
-                # else:
-                return doc[doc_to_target]
-            else:
-                target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit() and self._config.doc_to_choice is not None:
-                    return ast.literal_eval(target_string)
-                elif (
-                    len(target_string) >= 2
-                    and (target_string[0] == "[")
-                    and (target_string[-1] == "]")
-                ):
-                    try:
-                        return ast.literal_eval(target_string)
-                    except (SyntaxError, ValueError):
-                        return target_string
-                else:
-                    return target_string
-        elif isinstance(doc_to_target, list):
-            return doc_to_target
-        elif callable(doc_to_target):
-            return doc_to_target(doc)
-        # Used when applying a Promptsource template
-        elif hasattr(doc_to_target, "apply"):
-            applied_prompt = doc_to_target.apply(doc)
-            if len(applied_prompt) == 2:
-                return applied_prompt[1]
-            else:
-                eval_logger.warning("Applied prompt returns empty string")
-                return self.config.fewshot_delimiter
-        else:
-            raise TypeError
-
-    def doc_to_choice(self, doc: Any, doc_to_choice=None) -> list[str]:
-        if self.prompt is not None:
-            doc_to_choice = self.prompt
-        elif doc_to_choice is not None:
-            doc_to_choice = doc_to_choice
-        elif self.config.doc_to_choice is None:
-            eval_logger.error("doc_to_choice was called but not set in config")
-        else:
-            doc_to_choice = self.config.doc_to_choice
-
-        if isinstance(doc_to_choice, str):
-            if doc_to_choice in self.features:
-                return doc[doc_to_choice]
-            else:
-                return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
-        elif isinstance(doc_to_choice, list):
-            return doc_to_choice
-        elif isinstance(doc_to_choice, dict):
-            return list(doc_to_choice.values())
-        elif callable(doc_to_choice):
-            return doc_to_choice(doc)
-        elif hasattr(doc_to_choice, "get_answer_choices_list"):
-            return doc_to_choice.get_answer_choices_list(doc)
-        else:
-            raise TypeError
+    def doc_to_target(self, doc, doc_to_target=None) -> str | int | list[str] | None:
+        doc_to_target = (
+            doc_to_target if doc_to_target is not None else self.config.doc_to_target
+        )
+        y = process_field(doc, doc_to_target, digits=True, lists=True, default=None)
+        return y
 
     def doc_to_prefix(self, doc):
         if (gen_prefix := self.config.gen_prefix) is not None:
@@ -1217,30 +1044,30 @@ class Task:
         if field:
             return doc[field] if field in doc else utils.apply_template(field, doc)
 
-    def override_metric(self, metric_name: str) -> None:
-        """
-        Override the default metrics used for evaluation with custom metrics.
-
-        Parameters:
-        - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
-        """
-        (
-            self._metric_fn_list,
-            self._aggregation_list,
-            self._metric_fn_kwargs,
-            self._higher_is_better,
-        ) = ({}, {}, {}, {})
-        self._metric_fn_list[metric_name] = get_metric(metric_name)
-        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
-        self._higher_is_better[metric_name] = is_higher_better(metric_name)
-        self._metric_fn_kwargs[metric_name] = {}
-        if not isinstance(self, Task):
-            self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
-            self.aggregation = lambda: {
-                metric_name: get_metric_aggregation(metric_name)
-            }
-        self._config["metric_list"] = [{"metric": metric_name}]
-        self._config["process_results"] = "process_results"
+    # def override_metric(self, metric_name: str) -> None:
+    #     """
+    #     Override the default metrics used for evaluation with custom metrics.
+    #
+    #     Parameters:
+    #     - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
+    #     """
+    #     (
+    #         self._metric_fn_list,
+    #         self._aggregation_list,
+    #         self._metric_fn_kwargs,
+    #         self._higher_is_better,
+    #     ) = ({}, {}, {}, {})
+    #     self._metric_fn_list[metric_name] = get_metric(metric_name)
+    #     self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
+    #     self._higher_is_better[metric_name] = is_higher_better(metric_name)
+    #     self._metric_fn_kwargs[metric_name] = {}
+    #     if not isinstance(self, Task):
+    #         self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
+    #         self.aggregation = lambda: {
+    #             metric_name: get_metric_aggregation(metric_name)
+    #         }
+    #     self._config["metric_list"] = [{"metric": metric_name}]
+    #     self._config["process_results"] = "process_results"
 
     def set_fewshot_seed(self, seed: int | None = None) -> None:
         self.fewshot_rnd = random.Random(seed)
@@ -1291,8 +1118,17 @@ class MultipleChoiceTask(Task):
 
         if self._multiple_inputs:
             # If there are multiple inputs, choices are placed in the ctx
-            cont = self.doc_to_target(doc)
-            arguments = [(context, f"{target_delimiter}{cont}") for context in ctx]
+            assert isinstance(ctx, list) and isinstance(ctx[0], str), (
+                "For multiple input tasks, ctx should be a list of strings"
+            )
+            assert len(choices) == 1, (
+                "For multiple input tasks, there should only be one choice"
+            )
+            arguments = self.construct_multiple_input_instances(
+                context=ctx, choices=choices, target_delimiter=target_delimiter
+            )
+            # cont = self.doc_to_target(doc)
+            # arguments = [(context, f"{target_delimiter}{cont}") for context in ctx]
         else:
             # Otherwise they are placed in the continuation
             arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
@@ -1334,15 +1170,23 @@ class MultipleChoiceTask(Task):
         )
         return [(context, f"{target_delimiter}{choice}") for choice in choices]
 
+    def construct_messages(
+        self,
+        ctx: list[dict[str, Any]],
+        choices: list[str],
+        target_delimiter: str,
+    ) -> list[Instance]:
+        if self.config.gen_prefix:
+            last_message = ctx[-1]
+            _k = "content" if "content" in last_message else "text"
+            last_message[_k] += target_delimiter
+        raise
+
     @staticmethod
     def construct_multiple_input_instances(
-        *, context: list[str], choices: str, target_delimiter: str
+        *, context: list[str], choices: list[str], target_delimiter: str
     ):
-        assert isinstance(context, list), (
-            "context must be a list of strings for multiple targets"
-        )
-        assert isinstance(choices, str), "choices must be a string for multiple targets"
-        return [(cxt, f"{target_delimiter}{choices}") for cxt in choices]
+        return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in choices]
 
     def _normalize_target(self, doc):
         gold = (
@@ -1455,7 +1299,7 @@ class GenerateTask(Task):
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> Instance:
+    ) -> list[Instance]:
         assert self.OUTPUT_TYPE == "generate_until"
         name, doc_id, repeats = (
             metadata.pop("task"),
@@ -1476,18 +1320,32 @@ class GenerateTask(Task):
         )
         multimodal_arguments = self._build_multimodal_kwargs(doc)
 
-        return Instance(
-            request_type=self.OUTPUT_TYPE,
-            doc=doc,
-            arguments=arguments,
-            additional_args=multimodal_arguments,
-            target=None,
-            idx=0,
-            task_name=name,
-            doc_id=doc_id,
-            repeats=repeats,
-            **instance_kwargs,
-        )
+        return [
+            Instance(
+                request_type=self.OUTPUT_TYPE,
+                doc=doc,
+                arguments=arguments,
+                additional_args=multimodal_arguments,
+                target=None,
+                idx=0,
+                task_name=name,
+                doc_id=doc_id,
+                repeats=repeats,
+                **instance_kwargs,
+            )
+        ]
+
+    def construct_requests_messages(
+        self,
+        doc: dict[str, Any],
+        ctx: list[dict[str, Any]],
+        *,
+        metadata: METADATA,
+        apply_chat_template: bool = False,
+        chat_template: ChatTemplate | None = None,
+        **kwargs,
+    ) -> list[Instance]:
+        raise NotImplementedError
 
     def process_results(self, doc, results):
         result_dict = {}
@@ -1574,21 +1432,23 @@ class LoglikelihoodTask(Task):
         ctx: str | list[str] | list[dict[str, Any]],
         *,
         metadata: METADATA,
-        apply_chat_template: bool,
-        chat_template: Callable,
+        apply_chat_template: bool = False,
+        chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> Instance:
+    ) -> list[Instance]:
         # TODO: BACKWARD_COMP
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
 
-        return Instance(
-            request_type=self.OUTPUT_TYPE,
-            doc=doc,
-            arguments=arguments,
-            idx=0,
-            **kwargs,
-        )
+        return [
+            Instance(
+                request_type=self.OUTPUT_TYPE,
+                doc=doc,
+                arguments=arguments,
+                idx=0,
+                **kwargs,
+            )
+        ]
 
     def process_results(self, doc, results):
         results = results[0]
@@ -1609,18 +1469,20 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
         *,
         metadata: METADATA,
         apply_chat_template: bool = False,
-        chat_template: Callable | None = None,
+        chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> Instance:
+    ) -> list[Instance]:
         arguments = (self.doc_to_target(doc),)
 
-        return Instance(
-            request_type=self.OUTPUT_TYPE,
-            doc=doc,
-            arguments=arguments,
-            idx=0,
-            **kwargs,
-        )
+        return [
+            Instance(
+                request_type=self.OUTPUT_TYPE,
+                doc=doc,
+                arguments=arguments,
+                idx=0,
+                **kwargs,
+            )
+        ]
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
