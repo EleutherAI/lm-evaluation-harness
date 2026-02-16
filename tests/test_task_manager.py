@@ -558,13 +558,12 @@ metadata:
 
             # Check that the custom version was loaded (has f1 metric and custom doc_to_text)
             assert any(
-                metric["metric"] == "f1"
-                for metric in arc_easy_task.config["metric_list"]
+                metric["metric"] == "f1" for metric in arc_easy_task.config.metric_list
             ), "Custom task should have f1 metric"
-            assert "Custom Question:" in arc_easy_task.config["doc_to_text"], (
+            assert "Custom Question:" in arc_easy_task.config.doc_to_text, (
                 "Custom task should have custom doc_to_text"
             )
-            assert arc_easy_task.config["metadata"]["version"] == 2.0, (
+            assert arc_easy_task.config.metadata["version"] == 2.0, (
                 "Custom task should have version 2.0"
             )
 
@@ -576,9 +575,9 @@ metadata:
             # Default should not have f1 metric or custom text
             assert not any(
                 metric["metric"] == "f1"
-                for metric in default_arc_easy.config.get("metric_list", [])
+                for metric in (default_arc_easy.config.metric_list or [])
             ), "Default task should not have f1 metric"
-            assert "Custom Question:" not in default_arc_easy.config["doc_to_text"], (
+            assert "Custom Question:" not in default_arc_easy.config.doc_to_text, (
                 "Default task should not have custom doc_to_text"
             )
 
@@ -889,14 +888,14 @@ metadata:
             result = tm.load(["arc_easy"])
             arc_easy = result["tasks"]["arc_easy"]
 
-            assert any(m["metric"] == "f1" for m in arc_easy.config["metric_list"])
-            assert "Custom Question:" in arc_easy.config["doc_to_text"]
+            assert any(m["metric"] == "f1" for m in arc_easy.config.metric_list)
+            assert "Custom Question:" in arc_easy.config.doc_to_text
 
             # Default should not have custom metric
             default_result = shared_task_manager.load(["arc_easy"])
             default_arc = default_result["tasks"]["arc_easy"]
             assert not any(
-                m["metric"] == "f1" for m in default_arc.config.get("metric_list", [])
+                m["metric"] == "f1" for m in (default_arc.config.metric_list or [])
             )
 
     def test_load_returns_same_tasks_as_legacy(self, test_configs_task_manager):

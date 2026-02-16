@@ -1414,6 +1414,15 @@ class ConfigurableTask(Task):
         apply_chat_template = kwargs.pop("apply_chat_template", False)
         chat_template: Callable | None = kwargs.pop("chat_template", None)  # noqa: F841
 
+        # unpack metadata tuple passed from build_all_requests
+        metadata = kwargs.pop("metadata", None)
+        if isinstance(metadata, tuple):
+            task_name, doc_id, repeats = metadata
+        else:
+            task_name = self.config.task
+            doc_id = 0
+            repeats = self.config.repeats or 1
+
         aux_arguments = None
 
         if self.OUTPUT_TYPE == "loglikelihood":
@@ -1486,9 +1495,9 @@ class ConfigurableTask(Task):
                     doc=doc,
                     arguments=arg,
                     idx=i,
-                    task_name=self.config.task,
+                    task_name=task_name,
                     doc_id=doc_id,
-                    repeats=1,
+                    repeats=repeats,
                     **kwargs,
                 )
                 for i, arg in enumerate(arguments)
@@ -1501,6 +1510,9 @@ class ConfigurableTask(Task):
             doc=doc,
             arguments=arguments,
             idx=0,
+            task_name=task_name,
+            doc_id=doc_id,
+            repeats=repeats,
             **kwargs,
         )
 
