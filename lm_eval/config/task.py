@@ -160,6 +160,7 @@ class TaskConfig:
     doc_to_decontamination_query: str | None = None
     gen_prefix: str | None = None
     multiple_inputs: bool = False
+    multiple_targets: bool = False
     metadata: dict | None = (
         None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
     )

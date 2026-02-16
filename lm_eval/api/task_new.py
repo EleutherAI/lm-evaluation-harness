@@ -130,6 +130,7 @@ class Task:
         self._fewshot_cfg: FewshotConfig = self._config.fewshot_config
 
         self._multiple_inputs = self._config.multiple_inputs
+        self._multiple_targets = self.config.multiple_targets
         self._multimodal = self.MULTIMODAL or bool(
             self.config.doc_to_audio or self.config.doc_to_image
         )
@@ -546,7 +547,7 @@ class Task:
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance] | Instance: ...
+    ) -> list[Instance] | Instance | None: ...
 
     def build_all_requests(
         self,
@@ -641,7 +642,9 @@ class Task:
                 apply_chat_template=apply_chat_template,
                 chat_template=chat_template,
             )
-
+            if inst is None:
+                eval_logger.info(f"Skipping {doc_id=}.")
+                continue
             if not isinstance(inst, list):
                 inst = [inst]
 
@@ -676,21 +679,23 @@ class Task:
 
     ### Doc to Text/Target/Choice/Multimodal Parsing Methods ##
 
-    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str]:
+    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str] | None:
         doc_to_text = (
             doc_to_text if doc_to_text is not None else self.config.doc_to_text
         )
         y = process_field(doc, doc_to_text, digits=True, lists=False, default=None)
         return y
 
-    def doc_to_choice(self, doc, doc_to_choice=None) -> list[str]:
+    def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
         doc_to_choice = (
             doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
         )
         y = process_field(doc, doc_to_choice, digits=True, lists=True, default=[])
         return y
 
-    def doc_to_target(self, doc, doc_to_target=None) -> str | int | list[str] | None:
+    def doc_to_target(
+        self, doc, doc_to_target=None
+    ) -> str | int | list[str] | list[int] | None:
         doc_to_target = (
             doc_to_target if doc_to_target is not None else self.config.doc_to_target
         )
@@ -699,7 +704,7 @@ class Task:
 
     def doc_to_prefix(self, doc):
         if (gen_prefix := self.config.gen_prefix) is not None:
-            if gen_prefix in self.features:
+            if gen_prefix in doc:
                 return doc[gen_prefix]
             else:
                 return utils.apply_template(gen_prefix, doc)
@@ -719,7 +724,7 @@ class Task:
             ]
             return [feature for feature in image_feature if feature is not None]
         elif isinstance(doc_to_image, str):
-            if doc_to_image in self.features:
+            if doc_to_image in doc:
                 return doc[doc_to_image]
             else:
                 return ast.literal_eval(utils.apply_template(doc_to_image, doc))
@@ -742,7 +747,7 @@ class Task:
             ]
             return [feature for feature in audio_feature if feature is not None]
         elif isinstance(doc_to_audio, str):
-            if doc_to_audio in self.features:
+            if doc_to_audio in doc:
                 return doc[doc_to_audio]
             else:
                 return ast.literal_eval(utils.apply_template(doc_to_audio, doc))
@@ -1105,8 +1110,13 @@ class MultipleChoiceTask(Task):
         apply_chat_template: bool = False,
         chat_template: ChatTemplate | None = None,
         **kwargs,
-    ) -> list[Instance]:
+    ) -> list[Instance] | None:
         choices = self.doc_to_choice(doc)
+        if not choices:
+            eval_logger.warning(
+                f"No choices found for doc:\n\n{doc}\n\nSkipping this instance."
+            )
+            return None
         target_delimiter = self.config.target_delimiter
         if apply_chat_template:
             target_delimiter = (
@@ -1147,7 +1157,10 @@ class MultipleChoiceTask(Task):
 
             arguments.extend(aux_arguments)
 
-        target = self._normalize_target(doc)
+        target = self.doc_to_target(doc)
+
+        if target is None:
+            return None
 
         request_list = [
             Instance(
@@ -1190,15 +1203,55 @@ class MultipleChoiceTask(Task):
     ):
         return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in choices]
 
-    def _normalize_target(self, doc):
-        gold = (
-            self.doc_to_target(doc)
-            if not self._multiple_inputs
-            else self.doc_to_text(doc)
-        )
-        if self._multiple_targets:
-            assert isinstance(gold, list), "gold should be a list for multiple targets"
-        return gold
+    def doc_to_target(self, doc, doc_to_target=None) -> int | list[int] | None:
+        doc_to_target = super().doc_to_target(doc, doc_to_target)
+        if isinstance(doc_to_target, int):
+            return doc_to_target
+
+        if isinstance(doc_to_target, str):
+            choices = self.doc_to_choice(doc)
+            if doc_to_target in choices:
+                return choices.index(doc_to_target)
+            else:
+                eval_logger.warning(
+                    f"[{self.task}] Target '{doc_to_target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+                )
+                return None  # invalid index to indicate error
+
+        if isinstance(doc_to_target, list):
+            choices = self.doc_to_choice(doc)
+            target_indices = []
+            for target in doc_to_target:
+                if target in choices:
+                    target_indices.append(choices.index(target))
+                else:
+                    eval_logger.warning(
+                        f"Target '{target}' not found in choices {choices} for doc:\n\n{doc}\n\n"
+                    )
+                    target_indices.append(-100)  # invalid index to indicate error
+            return target_indices or None
+
+    def doc_to_text(self, doc, doc_to_text=None) -> str | list[str] | None:
+        doc_to_text = super().doc_to_text(doc, doc_to_text)
+        if isinstance(doc_to_text, str):
+            return doc_to_text
+        elif isinstance(doc_to_text, list):
+            assert self._multiple_inputs, (
+                "doc_to_text should return a single string for non-multiple-input tasks"
+            )
+            return doc_to_text
+
+    def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
+        choices = super().doc_to_choice(doc, doc_to_choice)
+        if choices is not None and not isinstance(choices, list):
+            raise ValueError(
+                "doc_to_choice should return a list of strings representing the answer choices."
+            )
+        if self._multiple_inputs:
+            assert choices is not None and len(choices) == 1, (
+                "For multiple input tasks, doc_to_choice should return a list with a single string representing the answer choice template."
+            )
+        return choices
 
     def process_results(self, doc, results):
         lls, is_greedy = zip(*results, strict=True)
@@ -1428,6 +1481,11 @@ class GenerateTask(Task):
 class LoglikelihoodTask(Task):
     OUTPUT_TYPE: OutputType = "loglikelihood"
 
+    def __init__(self, config: TaskConfig | dict[str, Any], *args, **kwargs):
+        super().__init__(config)
+        assert self._multiple_inputs is False
+        assert self._multiple_targets is False
+
     def construct_requests(
         self,
         doc: dict[str, Any],
@@ -1440,7 +1498,11 @@ class LoglikelihoodTask(Task):
     ) -> list[Instance]:
         # TODO: BACKWARD_COMP
         if self.OUTPUT_TYPE == "loglikelihood":
-            arguments = (ctx, self.doc_to_target(doc))
+            cont = self.doc_to_target(doc)
+            assert isinstance(cont, str), (
+                "For loglikelihood tasks, the argument should be a string representing the continuation to score against the context."
+            )
+            arguments = (ctx, cont)
 
         return [
             Instance(
