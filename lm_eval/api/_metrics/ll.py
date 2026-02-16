@@ -57,7 +57,7 @@ def acc_fn(targets: int | list[int], results: LLResults) -> int:
 )
 def acc_norm_fn(targets: int | list[int], results: LLResults) -> int:
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
-    pred = int(np.argmax(np.array(results.lls) / np.array(results.char_len)))
+    pred = int(np.argmax(np.array(results.lls) / np.array(results.char_len())))
     if isinstance(targets, list):
         return int(pred in targets)
     return int(pred == targets)
@@ -71,7 +71,7 @@ def acc_norm_fn(targets: int | list[int], results: LLResults) -> int:
 )
 def acc_bytes_fn(targets: int | list[int], results: LLResults) -> int:
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
-    pred = int(np.argmax(np.array(results.lls) / np.array(results.byte_len)))
+    pred = int(np.argmax(np.array(results.lls) / np.array(results.byte_len())))
     if isinstance(targets, list):
         return int(pred in targets)
     return int(pred == targets)
@@ -127,7 +127,7 @@ def bpb_fn(targets: int | list[int], results: LLResults) -> float:
     correct answer.
     """
     gold = results.target
-    return (-results.lls[gold] / results.byte_len[gold]) * NAT_TO_BIT
+    return (-results.lls[gold] / results.byte_len()[gold]) * NAT_TO_BIT
 
 
 @register_metric(
@@ -171,7 +171,7 @@ def choice_prob_norm_fn(targets: int | list[int], results: LLResults) -> float:
     This compensates for longer completions receiving lower raw log-likelihoods.
     """
     lls = np.array(results.lls)
-    byte_len = np.array(results.byte_len, dtype=float)
+    byte_len = np.array(results.byte_len(), dtype=float)
     log_weights = lls / byte_len
     return float(np.exp(log_weights[results.target] - np.logaddexp.reduce(log_weights)))
 
@@ -189,7 +189,7 @@ def choice_logprob_norm_fn(targets: int | list[int], results: LLResults) -> floa
     numerical stability.
     """
     lls = np.array(results.lls)
-    byte_len = np.array(results.byte_len, dtype=float)
+    byte_len = np.array(results.byte_len(), dtype=float)
     log_weights = lls / byte_len
     return float(log_weights[results.target] - np.logaddexp.reduce(log_weights))
 
