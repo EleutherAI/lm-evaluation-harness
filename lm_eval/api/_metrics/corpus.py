@@ -42,12 +42,12 @@ class CorpusMetric(Generic[_R, _T], ABC):
 
     Data flow::
 
-        __call__(targets, results: _R) -> _T      # per document intermediate result
+        __call__(references, predictions: _R) -> _T      # per document intermediate result
         aggregation(list[_T])          -> float   # corpus level
     """
 
     @abstractmethod
-    def __call__(self, targets: Any, results: _R) -> _T:
+    def __call__(self, references: Any, predictions: _R) -> _T:
         """Compute the per-item metric value for a single document."""
         ...
 
@@ -56,14 +56,14 @@ class CorpusMetric(Generic[_R, _T], ABC):
         """Aggregate per-item values into a single corpus-level score."""
         ...
 
-    def reduce(self, targets: list, results: list[_T], **kwargs) -> _T:
+    def reduce(self, references: list, predictions: list[_T], **kwargs) -> _T:
         """Collapse multiple repeats of a sample into one value. Corpus metrics only support repeat=1."""
-        if len(results) != 1:
+        if len(predictions) != 1:
             warning_once(
                 eval_logger,
                 f"CorpusMetric {self.__class__.__name__} received multiple results; expected only one. Returning the first result.",
             )
-        return results[0]
+        return predictions[0]
 
 
 @register_metric(
@@ -80,8 +80,10 @@ class BrierScore(CorpusMetric["LLResults", tuple[int, np.ndarray]]):
     Lower scores are better (perfect score = 0.0).
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[int, np.ndarray]:
-        return results.target, softmax(np.array(results.lls))
+    def __call__(
+        self, references: Any, predictions: "LLResults"
+    ) -> tuple[int, np.ndarray]:
+        return references, softmax(np.array(predictions.lls))
 
     def aggregation(self, items: list[tuple[int, np.ndarray]]) -> float:
         gold, predictions = list(zip(*items, strict=True))
@@ -116,9 +118,9 @@ class WordPerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     Lower scores are better.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[float, int]:
-        return float(results.lls[results.target]), int(
-            results.word_len()[results.target]
+    def __call__(self, references: int, predictions: "LLResults") -> tuple[float, int]:
+        return float(predictions.lls[references]), int(
+            predictions.word_len()[references]
         )
 
     def aggregation(self, items: list[tuple[float, int]]) -> float:
@@ -139,9 +141,9 @@ class BytePerplexity(CorpusMetric["LLResults", tuple[float, int]]):
     Lower scores are better.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[float, int]:
-        return float(results.lls[results.target]), int(
-            results.byte_len()[results.target]
+    def __call__(self, references: int, predictions: "LLResults") -> tuple[float, int]:
+        return float(predictions.lls[references]), int(
+            predictions.byte_len()[references]
         )
 
     def aggregation(self, items: list[tuple[float, int]]) -> float:
@@ -162,9 +164,9 @@ class BitsPerByte(CorpusMetric["LLResults", tuple[float, int]]):
     Lower scores are better.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[float, int]:
-        return float(results.lls[results.target]), int(
-            results.byte_len()[results.target]
+    def __call__(self, references: int, predictions: "LLResults") -> tuple[float, int]:
+        return float(predictions.lls[references]), int(
+            predictions.byte_len()[references]
         )
 
     def aggregation(self, items: list[tuple[float, int]]) -> float:
@@ -223,8 +225,8 @@ class Bleu(CorpusMetric[Any, tuple]):
     Higher is better.
     """
 
-    def __call__(self, targets: Any, results: Any) -> tuple:
-        return targets, results
+    def __call__(self, references: Any, predictions: Any) -> tuple:
+        return references, predictions
 
     def aggregation(self, items: list[tuple]) -> float:
         import sacrebleu
@@ -246,8 +248,8 @@ class Chrf(CorpusMetric[Any, tuple]):
 
     import sacrebleu
 
-    def __call__(self, targets: Any, results: Any) -> tuple:
-        return targets, results
+    def __call__(self, references: Any, predictions: Any) -> tuple:
+        return references, predictions
 
     def aggregation(self, items: list[tuple]) -> float:
         import sacrebleu
@@ -267,8 +269,8 @@ class Ter(CorpusMetric[Any, tuple]):
     Lower is better.
     """
 
-    def __call__(self, targets: Any, results: Any) -> tuple:
-        return targets, results
+    def __call__(self, references: Any, predictions: Any) -> tuple:
+        return references, predictions
 
     def aggregation(self, items: list[tuple]) -> float:
         import sacrebleu
@@ -293,9 +295,9 @@ class F1(CorpusMetric["LLResults", tuple[int, int]]):
     Higher is better.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[int, int]:
-        pred = int(np.argmax(results.lls))
-        return results.target, pred
+    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, int]:
+        pred = int(np.argmax(predictions.lls))
+        return references, pred
 
     def aggregation(self, items: list[tuple[int, int]]) -> float:
         from sklearn.metrics import f1_score
@@ -314,9 +316,9 @@ class MCC(CorpusMetric["LLResults", tuple[int, int]]):
     Higher is better.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[int, int]:
-        pred = int(np.argmax(results.lls))
-        return results.target, pred
+    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, int]:
+        pred = int(np.argmax(predictions.lls))
+        return references, pred
 
     def aggregation(self, items: list[tuple[int, int]]) -> float:
         from sklearn.metrics import matthews_corrcoef
@@ -336,8 +338,8 @@ class Likelihood(CorpusMetric["LLResults", tuple[int, tuple]]):
     Returns (gold_index, (ll_0, ll_1, ...)) for corpus-level custom aggregation.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[int, tuple]:
-        return results.target, tuple(results.lls)
+    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, tuple]:
+        return references, tuple(predictions.lls)
 
     def aggregation(self, items: list[tuple[int, tuple]]) -> float:
         from lm_eval.api.metrics import mean
@@ -362,10 +364,10 @@ class AccAll(CorpusMetric["LLResults", tuple[int, dict]]):
     for that question is labeled correctly.
     """
 
-    def __call__(self, targets: Any, results: "LLResults") -> tuple[int, dict]:
-        pred = int(np.argmax(results.lls))
-        gold = results.target
-        return int(pred == gold), results.doc
+    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, dict]:
+        pred = int(np.argmax(predictions.lls))
+        gold = references
+        return int(pred == gold), predictions.doc
 
     def aggregation(self, items: list[tuple[int, dict]]) -> float:
         question_scoring_dict: dict[tuple, list[bool]] = {}

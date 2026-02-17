@@ -6,7 +6,9 @@ from lm_eval.api.registry import register_reduction
 
 
 @register_reduction("pass@k")
-def pass_at_k(targets: Sequence[int], predictions: Sequence[int], k: int = 1) -> float:
+def pass_at_k(
+    references: Sequence[int], predictions: Sequence[int], k: int = 1
+) -> float:
     """
     From Chen et al. 2021: https://arxiv.org/abs/2107.03374
     n: total number of samples
@@ -14,17 +16,17 @@ def pass_at_k(targets: Sequence[int], predictions: Sequence[int], k: int = 1) ->
     :param items: list of 0/1 predictions
     :param k: k in pass@k
     """
-    assert len(targets) == len(predictions), (
-        "Length of predictions and items must match."
+    assert len(references) == len(predictions), (
+        "Length of predictions and references must match."
     )
     n = len(predictions)
-    c = len([1 for x, y in zip(predictions, targets, strict=True) if x == y])
+    c = len([1 for x, y in zip(predictions, references, strict=True) if x == y])
     if n - c < k:
         return 1.0
     return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))
 
 
-def take_first(targets: Sequence[int], predictions: Sequence[int]) -> int:
+def take_first(references: Sequence[int], predictions: Sequence[int]) -> int:
     """
     Simple reduction function that takes the first prediction as the final prediction.
     """

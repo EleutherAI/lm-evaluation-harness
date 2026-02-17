@@ -1,6 +1,6 @@
 """Per-item metric functions for loglikelihood / multiple-choice / generate_until tasks.
 
-Each function receives ``(targets, results)`` and returns a single scalar
+Each function receives ``(references, predictions)`` and returns a single scalar
 that will be collected across documents and fed to the registered aggregation
 function (typically ``mean``).
 """
@@ -39,23 +39,25 @@ def _multiple_targets(_target: int | list[int], _result: int):
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def acc_fn(targets: int | list[int], results: LLResults, multiple_targets=False) -> int:
+def acc_fn(
+    references: int | list[int], predictions: LLResults, multiple_targets=False
+) -> int:
     """Accuracy.
 
     For multiple-choice (multiple lls): 1 if argmax(lls) matches gold.
     For single loglikelihood (one ll): 1 if the continuation was decoded greedily.
     """
 
-    if len(results.lls) == 1:
+    if len(predictions.lls) == 1:
         # Plain loglikelihood: acc = greedy decode match
-        return int(results.is_greedy[0])
-    pred = int(np.argmax(results.lls))
+        return int(predictions.is_greedy[0])
+    pred = int(np.argmax(predictions.lls))
     if multiple_targets:
-        return _multiple_targets(results.targets, pred)
-    assert not isinstance(targets, list), (
+        return _multiple_targets(predictions.targets, pred)
+    assert not isinstance(references, list), (
         "Multiple targets not supported for acc metric without multiple_targets=True"
     )
-    return int(pred == int(targets))
+    return int(pred == int(references))
 
 
 @register_metric(
@@ -65,16 +67,16 @@ def acc_fn(targets: int | list[int], results: LLResults, multiple_targets=False)
     aggregation="mean",
 )
 def acc_norm_fn(
-    targets: int | list[int], results: LLResults, multiple_targets=False
+    references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Character-length-normalised accuracy: picks the choice with the highest ``ll / char_len``."""
-    pred = int(np.argmax(np.array(results.lls) / np.array(results.char_len())))
+    pred = int(np.argmax(np.array(predictions.lls) / np.array(predictions.char_len())))
     if multiple_targets:
-        return _multiple_targets(results.targets, pred)
-    assert not isinstance(targets, list), (
+        return _multiple_targets(predictions.targets, pred)
+    assert not isinstance(references, list), (
         "Multiple targets not supported for acc metric without multiple_targets=True"
     )
-    return int(pred == int(targets))
+    return int(pred == int(references))
 
 
 @register_metric(
@@ -84,16 +86,16 @@ def acc_norm_fn(
     aggregation="mean",
 )
 def acc_bytes_fn(
-    targets: int | list[int], results: LLResults, multiple_targets=False
+    references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Byte-length-normalised accuracy: picks the choice with the highest ``ll / byte_len``."""
-    pred = int(np.argmax(np.array(results.lls) / np.array(results.byte_len())))
+    pred = int(np.argmax(np.array(predictions.lls) / np.array(predictions.byte_len())))
     if multiple_targets:
-        return _multiple_targets(targets, pred)
-    assert not isinstance(targets, list), (
+        return _multiple_targets(references, pred)
+    assert not isinstance(references, list), (
         "Multiple targets not supported for acc metric without multiple_targets=True"
     )
-    return int(pred == int(targets))
+    return int(pred == int(references))
 
 
 @register_metric(
@@ -103,16 +105,16 @@ def acc_bytes_fn(
     aggregation="mean",
 )
 def acc_mutual_info_fn(
-    targets: int | list[int], results: LLResults, multiple_targets=False
+    references: int | list[int], predictions: LLResults, multiple_targets=False
 ) -> int:
     """Mutual-information-weighted accuracy: picks the choice with the highest ``ll - ll_unconditional``."""
-    pred = int(np.argmax(results.lls_mutual_info))
+    pred = int(np.argmax(predictions.lls_mutual_info))
     if multiple_targets:
-        return _multiple_targets(targets, pred)
-    assert not isinstance(targets, list), (
+        return _multiple_targets(references, pred)
+    assert not isinstance(references, list), (
         "Multiple targets not supported for acc metric without multiple_targets=True"
     )
-    return int(pred == int(targets))
+    return int(pred == int(references))
 
 
 # ---------------------------------------------------------------------------
@@ -126,13 +128,15 @@ def acc_mutual_info_fn(
     output_type="multiple_choice",
     aggregation="mean",
 )
-def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
+def exact_match_mc_fn(references: int | list[int], predictions: LLResults) -> int:
     """1 if the gold completion was decoded greedily (every token was argmax), else 0."""
-    if isinstance(targets, list):
-        return int(any(results.is_greedy[i] if i != -100 else False for i in targets))
-    if targets == -100:
+    if isinstance(references, list):
+        return int(
+            any(predictions.is_greedy[i] if i != -100 else False for i in references)
+        )
+    if references == -100:
         return 0
-    return int(results.is_greedy[int(targets)])
+    return int(predictions.is_greedy[int(references)])
 
 
 # ---------------------------------------------------------------------------
@@ -146,13 +150,15 @@ def exact_match_mc_fn(targets: int | list[int], results: LLResults) -> int:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def bpb_fn(targets: int, results: LLResults) -> float:
+def bpb_fn(references: int, predictions: LLResults) -> float:
     """Bits-per-byte of the gold completion: ``-ll[gold] / byte_len[gold] * NAT_TO_BIT``.
 
     Lower is better — measures how many bits the model needs per byte of the
     correct answer.
     """
-    return (-results.lls[targets] / results.byte_len()[targets]) * NAT_TO_BIT
+    return (
+        -predictions.lls[references] / predictions.byte_len()[references]
+    ) * NAT_TO_BIT
 
 
 @register_metric(
@@ -161,9 +167,9 @@ def bpb_fn(targets: int, results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def logprob_fn(targets: int, results: LLResults) -> float:
+def logprob_fn(references: int, predictions: LLResults) -> float:
     """Raw log-probability of the gold completion (in nats)."""
-    return float(results.lls[targets])
+    return float(predictions.lls[references])
 
 
 @register_metric(
@@ -172,14 +178,14 @@ def logprob_fn(targets: int, results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def choice_logprob_fn(targets: int, results: LLResults) -> float:
+def choice_logprob_fn(references: int, predictions: LLResults) -> float:
     """Log-probability of the gold choice under a softmax over all choices.
 
     Equals ``ll[gold] - logsumexp(ll)``, i.e. treating the raw log-likelihoods
     as logits and returning the log-probability assigned to the correct answer.
     """
-    lls = np.array(results.lls)
-    return float(lls[targets] - np.logaddexp.reduce(lls))
+    lls = np.array(predictions.lls)
+    return float(lls[references] - np.logaddexp.reduce(lls))
 
 
 @register_metric(
@@ -188,17 +194,17 @@ def choice_logprob_fn(targets: int, results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def choice_prob_norm_fn(targets: int, results: LLResults) -> float:
+def choice_prob_norm_fn(references: int, predictions: LLResults) -> float:
     """Length-normalised probability of the gold choice.
 
     Each choice is weighted by its nats-per-byte (``ll / byte_len``), then a
     softmax is applied. Returns the probability mass on the correct answer.
     This compensates for longer completions receiving lower raw log-likelihoods.
     """
-    lls = np.array(results.lls)
-    byte_len = np.array(results.byte_len(), dtype=float)
+    lls = np.array(predictions.lls)
+    byte_len = np.array(predictions.byte_len(), dtype=float)
     log_weights = lls / byte_len
-    return float(np.exp(log_weights[targets] - np.logaddexp.reduce(log_weights)))
+    return float(np.exp(log_weights[references] - np.logaddexp.reduce(log_weights)))
 
 
 @register_metric(
@@ -207,16 +213,16 @@ def choice_prob_norm_fn(targets: int, results: LLResults) -> float:
     output_type=["loglikelihood", "multiple_choice"],
     aggregation="mean",
 )
-def choice_logprob_norm_fn(targets: int, results: LLResults) -> float:
+def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:
     """Log of the length-normalised probability of the gold choice.
 
     Equivalent to ``log(choice_prob_norm)`` but computed in log-space for
     numerical stability.
     """
-    lls = np.array(results.lls)
-    byte_len = np.array(results.byte_len(), dtype=float)
+    lls = np.array(predictions.lls)
+    byte_len = np.array(predictions.byte_len(), dtype=float)
     log_weights = lls / byte_len
-    return float(log_weights[targets] - np.logaddexp.reduce(log_weights))
+    return float(log_weights[references] - np.logaddexp.reduce(log_weights))
 
 
 # ---------------------------------------------------------------------------
@@ -230,9 +236,9 @@ def choice_logprob_norm_fn(targets: int, results: LLResults) -> float:
     output_type="loglikelihood",
     aggregation="perplexity",
 )
-def perplexity_fn(targets: int | list[int], results: LLResults) -> float:
+def perplexity_fn(references: int | list[int], predictions: LLResults) -> float:
     """Passthrough of the gold log-likelihood for corpus-level perplexity aggregation."""
-    return results.lls[results.target]
+    return predictions.lls[predictions.target]
 
 
 # ---------------------------------------------------------------------------

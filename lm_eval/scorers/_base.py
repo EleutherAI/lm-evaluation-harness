@@ -146,8 +146,8 @@ class Scorer:
             else:
                 # loglikelihood / multiple_choice — repeats=1
                 results_obj = LLResults.from_instances(doc_instances)
-                target = results_obj.targets
-                per_doc = self._dispatch_metrics(target, results_obj)
+                references = results_obj.targets
+                per_doc = self._dispatch_metrics(references, results_obj)
 
                 for metric_name, value in per_doc.items():
                     self._metric_results[metric_name].append([value])  # wrap: [T]
@@ -164,13 +164,13 @@ class Scorer:
                 result_dict[m.name] = score
         return result_dict
 
-    def _dispatch_metrics(self, targets: Any, results: Any) -> dict[str, Any]:
-        """Call each Metric.compute(targets, results) and collect per-doc results."""
+    def _dispatch_metrics(self, references: Any, predictions: Any) -> dict[str, Any]:
+        """Call each Metric.compute(references, predictions) and collect per-doc results."""
         result_dict: dict[str, Any] = {}
         if not self.metrics:
             return result_dict
         for m in self.metrics:
-            score = m.compute(targets, results)
+            score = m.compute(references, predictions)
             if isinstance(score, dict):
                 result_dict.update(score)
             else:

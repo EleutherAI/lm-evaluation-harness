@@ -52,7 +52,7 @@ class Metric(Generic[_T]):
     reduction: Callable[[list[_T]], _T] = lambda x: x[0] if isinstance(x, list) else x
 
     @classmethod
-    def from_dict(self, cfg: dict[str, Any]) -> Self:
+    def from_dict(cls, cfg: dict[str, Any]) -> Self:
         _cfg = {k: v for k, v in cfg.items() if k in METRIC_KEYS}
         if len(_cfg) < len(cfg):
             _cfg["kwargs"] = {k: v for k, v in cfg.items() if k not in METRIC_KEYS}
