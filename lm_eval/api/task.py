@@ -340,7 +340,7 @@ class Task:
                 f"{self.config.task}: Evaluating on {len(samples)} examples"
             )
             doc_iterator = utils.create_iterator(
-                enumerate(x for i, x in enumerate(self.eval_docs) if i in samples),
+                ((i, x) for i, x in enumerate(self.eval_docs) if i in samples),
                 rank=int(rank),
                 limit=None,  # limit does not matter here since we are selecting samples directly
                 world_size=int(world_size),
@@ -664,7 +664,6 @@ class Task:
             doc_id_docs,
             total=num_docs,
         ):
-            # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
                 doc,
                 num_fewshot=0
