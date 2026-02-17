@@ -186,6 +186,14 @@ class Task:
 
         return [Scorer.default_scorer(global_metrics, output_type=output_type)]
 
+    def _has_metric(self, metric_name: str) -> bool:
+        """Check if any scorer contains a metric with the given name."""
+        return any(
+            m.name == metric_name
+            for scorer in self._scorers
+            for m in (scorer.metrics or [])
+        )
+
     ### Dataset Loading and Doc Access ###
 
     def download(self, dataset_kwargs: dict[str, Any] | None = None, **kwargs) -> None:
@@ -995,25 +1003,23 @@ class MultipleChoiceTask(Task):
             # Otherwise they are placed in the continuation
             arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
-        # TODO: we should raise a warning telling users this will at most ~2x runtime.
-        # if "acc_mutual_info" in self._metric_fn_list.keys():
-        #     # if we are calculating multiple choice accuracy
-        #     # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
-        #
-        #     # here mutual info refers to calculating
-        #     # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
-        #     # in other words normalizing by subtracting the unconditional logprob of each choice.
-        #     aux_arguments = self.build_mutual_info(
-        #         context="", choices=choices, target_delimiter=target_delimiter
-        #     )
-        #
-        #     arguments.extend(aux_arguments)
+        # If any scorer uses acc_mutual_info, we need unconditional loglikelihoods.
+        # This computes log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
+        # by appending ("", continuation) pairs for each choice.
+        # NOTE: this will at most ~2x runtime.
+        if self._has_metric("acc_mutual_info"):
+            aux_arguments = self.build_mutual_info(
+                context="", choices=choices, target_delimiter=target_delimiter
+            )
+            arguments.extend(aux_arguments)
+            metadata.update({"acc_mutual_info": True})
 
         target = self.doc_to_target(doc)
 
         if target is None:
             return None
 
+        num_choices = len(choices)  # noqa: F841
         request_list = [
             Instance(
                 request_type="loglikelihood",
@@ -1024,6 +1030,7 @@ class MultipleChoiceTask(Task):
                 doc_id=doc_id,
                 repeats=repeats,
                 target=target,
+                metadata=metadata,
                 **kwargs,
             )
             for i, arg in enumerate(arguments)
