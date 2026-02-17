@@ -166,25 +166,63 @@ class Scorer:
                 reduced_results[m.name] = m.reduction(self._metric_results[m.name])
         return reduced_results
 
-    def aggregate(self) -> dict[str, float]:
-        """Aggregate metric results using each Metric's aggregation function.
+    def aggregate(
+        self,
+        metric_results: dict[str, list] | None = None,
+        bootstrap_iters: int | None = 100000,
+    ) -> tuple[dict[str, Any], int]:
+        """Aggregate metric results and compute stderr.
 
-        For ``CorpusMetric`` instances, delegates to their ``.aggregation()`` method.
+        For ``CorpusMetric`` instances, delegates to their ``.aggregation()``
+        method and caps bootstrap iterations to 100.
         For regular metrics, calls ``m.aggregate(values)``.
+
+        Returns ``(agg_metrics, sample_len)`` where keys are in
+        ``"metric,{self.name}"`` / ``"metric_stderr,{self.name}"`` format.
         """
         from lm_eval.api._metrics.corpus import CorpusMetric
+        from lm_eval.api.metrics import mean, stderr_for_metric
 
-        agg_results: dict[str, float] = {}
+        results = metric_results if metric_results is not None else self._metric_results
+        agg: dict[str, Any] = {}
+        sample_len = 0
+
         for m in self.metrics or []:
-            if m.name not in self._metric_results:
+            if m.name not in results:
                 continue
-            values = self._metric_results[m.name]
-            # CorpusMetric classes have their own aggregation method
+            values = results[m.name]
+            sample_len = max(sample_len, len(values))
+
+            # Aggregation
+            agg_fn = m.aggregation
             if isinstance(m.fn, CorpusMetric):
-                agg_results[m.name] = m.fn.aggregation(values)
-            elif m.aggregation is not None:
-                agg_results[m.name] = m.aggregate(values)
-        return agg_results
+                agg[f"{m.name},{self.name}"] = m.fn.aggregation(values)
+                agg_fn = m.fn.aggregation
+            elif agg_fn is not None:
+                agg[f"{m.name},{self.name}"] = m.aggregate(values)
+            else:
+                eval_logger.warning(f"No aggregation for {m.name}. Using mean.")
+                agg_fn = mean
+                agg[f"{m.name},{self.name}"] = mean(values)
+
+            # Stderr
+            stderr_key = f"{m.name}_stderr,{self.name}"
+            if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
+                effective_iters = (
+                    min(bootstrap_iters, 100)
+                    if isinstance(m.fn, CorpusMetric)
+                    else bootstrap_iters
+                )
+                stderr_fn = stderr_for_metric(
+                    metric=agg_fn, bootstrap_iters=effective_iters
+                )
+                agg[stderr_key] = (
+                    stderr_fn(values) if (stderr_fn and len(values) > 1) else "N/A"
+                )
+            else:
+                agg[stderr_key] = "N/A"
+
+        return agg, sample_len
 
     # ------------------------------------------------------------------
     # Properties

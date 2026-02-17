@@ -9,10 +9,6 @@ from typing import TYPE_CHECKING, Any
 
 from typing_extensions import TypedDict
 
-from lm_eval.api.metrics import (
-    mean,
-    stderr_for_metric,
-)
 from lm_eval.result_schema import EvalResults, _SampleCount, _TaskMetrics
 from lm_eval.utils import positional_deprecated
 
@@ -178,8 +174,11 @@ def _compute_task_aggregations(
     """
     Compute aggregated metrics from raw per-sample metrics.
 
+    Delegates to each scorer's ``aggregate()`` method, which owns the
+    aggregation functions and stderr computation for its own metrics.
+
     Args:
-        task: Task object (for aggregation functions)
+        task: Task object (provides scorers)
         raw_metrics: {(metric_name, filter_key): [values]}
         bootstrap_iters: Number of bootstrap iterations for stderr
 
@@ -189,32 +188,16 @@ def _compute_task_aggregations(
     agg_metrics: dict[str, Any] = {}
     sample_len = 0
 
-    for (metric, filter_key), items in raw_metrics.items():
-        try:
-            agg_fn = task.aggregation()[metric]  # type: ignore[index]
-        except KeyError:
-            # Arbitrary metric without a defined aggregation function
-            eval_logger.warning(
-                f"[{task.task_name}] No aggregation function defined for metric {metric}. Using mean."
-            )
-            agg_fn = mean
-
-        metric_key = f"{metric},{filter_key}"
-        agg_metrics[metric_key] = agg_fn(items)
-        sample_len = len(items)  # TODO: reflects only the last metric's count
-
-        if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
-            stderr_fn = stderr_for_metric(
-                metric=agg_fn,
-                bootstrap_iters=min(bootstrap_iters, 100)
-                if metric in ["bleu", "chrf", "ter"]
-                else bootstrap_iters,
-            )
-            agg_metrics[f"{metric}_stderr,{filter_key}"] = (
-                stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-            )
-        else:
-            agg_metrics[f"{metric}_stderr,{filter_key}"] = "N/A"
+    for scorer in task._scorers:
+        scorer_metrics = {
+            metric_name: values
+            for (metric_name, filter_key), values in raw_metrics.items()
+            if filter_key == scorer.name
+        }
+        result, count = scorer.aggregate(scorer_metrics, bootstrap_iters)
+        agg_metrics.update(result)
+        # TODO: (we assume all scorers per metric have same sample len), but should make this more robust
+        sample_len = max(sample_len, count)
 
     return agg_metrics, sample_len
 
