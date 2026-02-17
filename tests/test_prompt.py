@@ -212,7 +212,7 @@ def test_mmlu_prompt_rendering(
         # Apply gen_prefix to task config if provided
         if gen_prefix is not None:
             task.config.gen_prefix = gen_prefix
-            task.fewshot_cfg.gen_prefix = gen_prefix
+            task._fewshot_cfg.gen_prefix = gen_prefix
 
         rnd = random.Random()
         rnd.seed(seed)
@@ -249,7 +249,11 @@ def test_mmlu_prompt_rendering(
             assert ctx == expected_prompt
 
             # Test construct_requests
-            requests = task.construct_requests(doc=doc, ctx=ctx)
+            requests = task.construct_requests(
+                doc=doc,
+                ctx=ctx,
+                metadata={"task": task.task_name, "doc_id": 0, "repeats": 1},
+            )
 
             # MMLU is multiple_choice, so we expect a list of Instance objects
             assert isinstance(requests, list), (

@@ -494,8 +494,12 @@ def evaluate(
         }
         for task_name, task_obj in eval_tasks.items()
     }
-    if not log_samples and not all(
-        "bypass" not in getattr(task_obj, "_metric_fn_list", {})
+    if not log_samples and any(
+        any(
+            m.name == "bypass"
+            for scorer in getattr(task_obj, "_scorers", [])
+            for m in (scorer.metrics or [])
+        )
         for task_obj in eval_tasks.values()
     ):
         raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
@@ -598,61 +602,78 @@ def evaluate(
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
         task = acc["task"]
-        task.apply_filters()
 
-        ### Collect values of metrics on all datapoints ###
-        # # unpack results and sort back in order and return control to Task
-        # TODO: make it possible to use a different metric per filter
-        # Pre-process task.instances to group by doc_id
-        instances_by_doc_id = defaultdict(list)
-        for instance in task.instances:
-            instances_by_doc_id[instance.doc_id].append(instance)
-        # Sort instances within each group
-        for instances in instances_by_doc_id.values():
-            instances.sort(key=lambda x: x.idx)
-        # iterate over different filters used
-        for filter_key in task.instances[0].filtered_resps:
-            indices = samples.get(task_name, None) if samples is not None else None
-            doc_iterator = task.doc_iterator(
-                rank=RANK,
-                limit=limit,
-                world_size=WORLD_SIZE,
-                samples=indices,
+        # Use Scorer pipeline: apply filters, sort instances, score metrics
+        scorer_results = task.process_instances()
+        if scorer_results:
+            for scorer_name, metric_dict in scorer_results.items():
+                for metric_name, values in metric_dict.items():
+                    acc["raw_metrics"][(metric_name, scorer_name)] = values
+
+        # Log per-doc samples if requested
+        if log_samples:
+            instances_by_doc_id = defaultdict(list)
+            for instance in task.instances:
+                instances_by_doc_id[instance.doc_id].append(instance)
+            for instances in instances_by_doc_id.values():
+                instances.sort(key=lambda x: x.idx)
+
+            # Map doc_id -> position in scorer results (same order as _sort_instances)
+            doc_id_to_pos = {
+                doc_id: pos for pos, doc_id in enumerate(instances_by_doc_id.keys())
+            }
+
+            # Iterate over each scorer (like old code iterates filter_keys)
+            scorer_names = (
+                [s.name for s in task._scorers] if task._scorers else ["none"]
             )
-            for doc_id, doc in doc_iterator:
-                doc_id_true = indices[doc_id] if indices else doc_id
-                requests = instances_by_doc_id[doc_id]
-                metrics = task.process_results(
-                    doc, [req.filtered_resps[filter_key] for req in requests]
+            for filter_key in scorer_names:
+                indices = samples.get(task_name, None) if samples is not None else None
+                doc_iterator = task.doc_iterator(
+                    rank=RANK,
+                    limit=limit,
+                    world_size=WORLD_SIZE,
+                    samples=indices,
                 )
-                if log_samples:
+                for doc_id, doc in doc_iterator:
+                    doc_id_true = indices[doc_id] if indices else doc_id
+                    reqs = instances_by_doc_id[doc_id]
                     target = task.doc_to_target(doc)
+
+                    # Get per-doc metric values from this scorer
+                    per_doc_metrics = {}
+                    if scorer_results and filter_key in scorer_results:
+                        pos = doc_id_to_pos.get(doc_id)
+                        if pos is not None:
+                            for mn, vals in scorer_results[filter_key].items():
+                                if pos < len(vals):
+                                    per_doc_metrics[mn] = vals[pos]
+
                     example = {
                         "doc_id": doc_id_true,
                         "doc": doc,
                         "target": target,
-                        "arguments": [req.args for req in requests],
-                        "resps": [req.resps for req in requests],
+                        "arguments": [req.args for req in reqs],
+                        "resps": [req.resps for req in reqs],
                         "filtered_resps": [
-                            req.filtered_resps[filter_key] for req in requests
+                            req.filtered_resps.get(filter_key, req.resps[0])
+                            for req in reqs
                         ],
                         "filter": filter_key,
-                        "metrics": list(metrics.keys()),
+                        "metrics": list(per_doc_metrics.keys()),
                         "doc_hash": hash_string(
                             json.dumps(
-                                requests[0].doc,
+                                reqs[0].doc,
                                 indent=2,
                                 default=handle_non_serializable,
                                 ensure_ascii=False,
                             )
                         ),
-                        "prompt_hash": hash_string(requests[0].arguments[0]),
+                        "prompt_hash": hash_string(reqs[0].arguments[0]),
                         "target_hash": hash_string(str(target)),
                     }
-                    example.update(metrics)
+                    example.update(per_doc_metrics)
                     acc["logged_samples"].append(example)
-                for metric, value in metrics.items():
-                    acc["raw_metrics"][(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         # Gather all sample metrics across ranks, keyed by task name.

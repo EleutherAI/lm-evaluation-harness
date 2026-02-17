@@ -41,15 +41,9 @@ from lm_eval.api.task import ConfigurableTask
 
 class MockPythonTask(ConfigurableTask):
 
-    def __init__(
-        self,
-        data_dir=None,
-        cache_dir=None,
-        download_mode=None,
-        config=None,
-    ) -> None:
+    def __init__(self, config=None) -> None:
         config.pop("class")
-        super().__init__(data_dir, cache_dir, download_mode, config)
+        super().__init__(config=config)
 """
 
 

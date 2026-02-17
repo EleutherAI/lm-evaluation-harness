@@ -7,7 +7,7 @@ from dataclasses import fields
 from typing import TYPE_CHECKING, Any, cast
 
 from lm_eval.api.group import Group
-from lm_eval.api.task import ConfigurableTask, Task
+from lm_eval.api.task import Task
 from lm_eval.config.group import GroupConfig
 from lm_eval.tasks._index import Entry, Kind
 from lm_eval.tasks._yaml_loader import load_yaml
@@ -78,7 +78,7 @@ class TaskFactory:
             if hasattr(obj, "config") and hasattr(obj.config, "task"):
                 obj.config.task = task_name
         else:
-            obj = ConfigurableTask(config=cfg)
+            obj = Task.from_config(cfg)
 
         return obj
 
@@ -190,7 +190,7 @@ class TaskFactory:
                 namespaced = f"{group_name}::{base_name}"
                 task_cfg: dict[str, Any] = {**item_overrides, "task": namespaced}
                 task_cfg["metadata"] = task_cfg.get("metadata", {}) | self._meta
-                children.append(ConfigurableTask(config=task_cfg))
+                children.append(Task.from_config(task_cfg))
                 continue
 
             # Build based on entry kind

@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task
 from lm_eval.config.task import FewshotConfig, TaskConfig
 
 
@@ -46,18 +46,18 @@ def task_config():
 
 @pytest.fixture
 def mock_configurable_task(task_config):
-    """Mock ConfigurableTask with real TaskConfig (and FewshotConfig via __post_init__)."""
-    task = Mock(spec=ConfigurableTask)
+    """Mock Task with real TaskConfig (and FewshotConfig via __post_init__)."""
+    task = Mock(spec=Task)
 
     # Use real TaskConfig (initializes fewshot_config in __post_init__)
     task.config = task_config
-    task.fewshot_cfg = task_config.fewshot_config
+    task._fewshot_cfg = task_config.fewshot_config
 
     # Default attributes
-    task.multiple_input = False
+    task._multiple_inputs = False
 
     # Mock methods - use real build_qa_turn
-    task.build_qa_turn = lambda **kwargs: ConfigurableTask.build_qa_turn(task, **kwargs)
+    task.build_qa_turn = lambda **kwargs: Task.build_qa_turn(task, **kwargs)
     task.resolve_field = Mock(return_value=None)
 
     # Mock sampler

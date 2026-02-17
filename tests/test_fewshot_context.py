@@ -557,7 +557,7 @@ class TestFewshotContext:
     def test_with_choices(self, mock_configurable_task):
         """Multiple choice with answer as index."""
         mock_configurable_task.config.doc_to_choice = "choices"
-        mock_configurable_task.fewshot_cfg.doc_to_choice = "choices"
+        mock_configurable_task._fewshot_cfg.doc_to_choice = "choices"
 
         fs_doc = {"q": "Pick:", "a": 0}
         target_doc = {"q": "Pick a fruit:", "a": 1}
@@ -566,9 +566,9 @@ class TestFewshotContext:
         mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
         mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
         mock_configurable_task.doc_to_choice = Mock(
-            side_effect=lambda d, *args: ["A", "B"]
-            if d == fs_doc
-            else ["Apple", "Banana"]
+            side_effect=lambda d, *args: (
+                ["A", "B"] if d == fs_doc else ["Apple", "Banana"]
+            )
         )
 
         result = ConfigurableTask.fewshot_context(
@@ -583,8 +583,8 @@ class TestFewshotContext:
         """Custom delimiters are respected."""
         mock_configurable_task.config.target_delimiter = "->"
         mock_configurable_task.config.fewshot_delimiter = "||"
-        mock_configurable_task.fewshot_cfg.target_delimiter = "->"
-        mock_configurable_task.fewshot_cfg.fewshot_delimiter = "||"
+        mock_configurable_task._fewshot_cfg.target_delimiter = "->"
+        mock_configurable_task._fewshot_cfg.fewshot_delimiter = "||"
 
         fs_doc = {"q": "Q1", "a": "A1"}
         target_doc = {"q": "Q2", "a": "A2"}
@@ -606,7 +606,7 @@ class TestFewshotContext:
         mock_configurable_task.doc_to_text = Mock(side_effect=lambda d, *args: d["q"])
         mock_configurable_task.doc_to_target = Mock(side_effect=lambda d, *args: d["a"])
         # fewshot examples use fewshot_cfg.gen_prefix
-        mock_configurable_task.fewshot_cfg.gen_prefix = "Answer:"
+        mock_configurable_task._fewshot_cfg.gen_prefix = "Answer:"
         # resolve_field returns the gen_prefix value (not a template)
         mock_configurable_task.resolve_field = Mock(side_effect=lambda doc, val: val)
 
@@ -623,7 +623,7 @@ class TestFewshotContext:
         """When fewshot_split == test_split, eval_doc is passed to sampler."""
         mock_configurable_task.config.fewshot_split = "test"
         mock_configurable_task.config.test_split = "test"
-        mock_configurable_task.fewshot_cfg.split = "test"
+        mock_configurable_task._fewshot_cfg.split = "test"
         mock_configurable_task.doc_to_text = Mock(return_value="Q")
         mock_configurable_task.doc_to_target = Mock(return_value="A")
 
@@ -641,7 +641,7 @@ class TestFewshotContext:
         """When fewshot_split != test_split, eval_doc is not passed to sampler."""
         mock_configurable_task.config.fewshot_split = "train"
         mock_configurable_task.config.test_split = "test"
-        mock_configurable_task.fewshot_cfg.split = "train"
+        mock_configurable_task._fewshot_cfg.split = "train"
         mock_configurable_task.doc_to_text = Mock(return_value="Q")
         mock_configurable_task.doc_to_target = Mock(return_value="A")
 

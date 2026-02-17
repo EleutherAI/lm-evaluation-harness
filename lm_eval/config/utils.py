@@ -22,6 +22,7 @@ def process_field(
         case None: return default
         case func if callable(field_spec): return func(doc)
         case int(): return field_spec
+        case list(): return field_spec
         case str() if field_spec in doc: return doc[field_spec]
     # fmt: on
 
