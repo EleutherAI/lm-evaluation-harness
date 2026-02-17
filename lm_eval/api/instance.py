@@ -19,7 +19,11 @@ class AdditionalArgs(TypedDict, total=False, extra_items=Any):
 class Instance:
     request_type: OutputType
     doc: dict
-    arguments: tuple[str, str] | tuple[str, dict[str, Any]]
+    arguments: (
+        tuple[str, str]
+        | tuple[str | dict[str, Any], dict[str, Any]]
+        | tuple[dict[str, Any], dict[str, Any]]
+    )
     task_name: str
     doc_id: int = field(kw_only=True)
     idx: int = 0

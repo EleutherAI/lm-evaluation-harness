@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import re
-from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any
+
+import numpy as np
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from numpy import float64, int64
     from numpy.typing import NDArray
 
@@ -15,10 +20,6 @@ _count_bytes = lambda x: len(x.encode("utf-8"))
 _count_words = lambda x: len(re.split(r"\s+", x))
 
 
-class Results(Protocol):
-    def to_metric_inputs(self) -> Any: ...
-
-
 @dataclass(frozen=True, slots=True)
 class GenResults:
     ctx: str
@@ -27,7 +28,7 @@ class GenResults:
     doc: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_instances(cls, results: Sequence["Instance"]):
+    def from_instances(cls, results: Sequence[Instance]):
         instance: list[Instance] = sorted(results, key=lambda x: x.doc_id)
         targets = [inst.target for inst in instance]
         _results = [i.filtered_resps for i in instance]
@@ -42,21 +43,23 @@ class GenResults:
 class LLResults:
     """Result of a multiple-choice task. Instances are grouped by doc_id beforehand"""
 
-    targets: int | list[int]
-    results: list[str] | None = None
+    results: list[str] | list[list[tuple[float, bool]]]
+    targets: int | list[int] | str | list[str]
     ctx: str = ""
     doc: dict[str, Any] = field(default_factory=dict)
-    lls: Sequence[float] = field(kw_only=True)
-    is_greedy: Sequence[bool] = field(kw_only=True)
     choices: Sequence[str] = field(default_factory=list)
-    lls_mutual_info: Sequence[float] = field(default_factory=list)
+    lls: NDArray[float64] = field(kw_only=True)
+    is_greedy: Sequence[bool] = field(kw_only=True)
+    lls_mutual_info: NDArray[np.float64] = field(
+        default_factory=lambda: np.array([], dtype=np.float64)
+    )
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # @property
     # def target(self) -> int:
     #     return self.targets[0] if isinstance(self.targets, list) else self.targets
 
-    def char_len(self) -> "NDArray[float64]":
+    def char_len(self) -> NDArray[float64]:
         import numpy as np
 
         return (
@@ -65,7 +68,7 @@ class LLResults:
             else np.array(1.0 for _ in range(len(self.lls)))
         )
 
-    def byte_len(self) -> "NDArray[int64]":
+    def byte_len(self) -> NDArray[int64]:
         import numpy as np
 
         return np.array(
@@ -74,7 +77,7 @@ class LLResults:
             else [1 for _ in range(len(self.lls))]
         )
 
-    def word_len(self) -> "NDArray[int64]":
+    def word_len(self) -> NDArray[int64]:
         import numpy as np
 
         return np.array(
@@ -86,7 +89,7 @@ class LLResults:
     @classmethod
     def from_instances(
         cls,
-        results: Sequence["Instance"],
+        results: Sequence[Instance],
     ):
         from itertools import chain
 
@@ -99,8 +102,8 @@ class LLResults:
         )
 
         lls, is_greedy = zip(*chain.from_iterable(resps), strict=True)
+        lls = np.array(lls)
         # Handle mutual information if needed
-        lls_mutual_info = []
         if 2 * len(set(choices)) == len(resps):
             # Then we are doing mutual info.
             # This stores the "dryrun" / unconditional answer loglikelihoods
@@ -110,14 +113,17 @@ class LLResults:
                 raise ValueError("Number of results are not equal for acc mutual info")
             # And this stores our "regular" conditional loglikelihoods
             lls = lls[: len(choices)]
-            lls_mutual_info = [
-                ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional, strict=True)
-            ]
+            lls_mutual_info = lls - lls_unconditional
 
             assert len(set(targets)) == 1, (
                 "Multiple targets found for same sample; This is unexpected. Please open an issue on github."
             )
+
+        else:
+            lls_mutual_info = np.array([], dtype=np.float64)
+
         return cls(
+            results=[inst.resps for inst in instance],
             lls=lls,
             is_greedy=is_greedy,
             ctx=instance[0].args[0],
