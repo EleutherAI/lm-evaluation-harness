@@ -832,6 +832,11 @@ class Task:
     def process_instances(self) -> dict[str, dict[str, list]] | None:
         """Apply filters via scorers, sort instances, then score.
 
+        For each scorer, tries the legacy ``process_results`` path first
+        (YAML ``!function`` or Python subclass override).  Falls through to
+        ``scorer.score_instances()`` only when ``process_results`` returns
+        ``None``.
+
         Returns:
             ``{scorer_name: {metric_name: [per_doc_values]}}`` or None if
             no scorers are configured.
@@ -845,10 +850,41 @@ class Task:
 
         results: dict[str, dict[str, list]] = {}
         for scorer in self._scorers:
-            scorer.score_instances(instances)
-            results[scorer.name] = scorer._metric_results
+            pr_results = self._try_process_results(instances, scorer.name)
+            if pr_results is not None:
+                results[scorer.name] = pr_results
+            else:
+                scorer.score_instances(instances)
+                results[scorer.name] = dict(scorer._metric_results)
 
         return results
+
+    def _try_process_results(
+        self,
+        instances: dict[int, list[Instance]],
+        filter_key: str,
+    ) -> dict[str, list] | None:
+        """Try the legacy process_results path for all docs.
+
+        Returns ``{metric_name: [per_doc_values]}`` if ``process_results``
+        returns a non-None dict for the first document, otherwise ``None``.
+        """
+        from collections import defaultdict
+
+        accumulator: dict[str, list] = defaultdict(list)
+
+        for doc_id, doc_instances in instances.items():
+            filtered_resps = [req.filtered_resps[filter_key] for req in doc_instances]
+            doc = doc_instances[0].doc
+            metrics = self.process_results(doc, filtered_resps)
+
+            if metrics is None:
+                return None
+
+            for metric_name, value in metrics.items():
+                accumulator[metric_name].append(value)
+
+        return dict(accumulator) if accumulator else None
 
     def process_results(self, doc, results):
         if callable(self.config.process_results):
