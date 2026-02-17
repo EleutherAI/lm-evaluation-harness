@@ -26,12 +26,7 @@ class Scorer:
     _metric_results: dict[str, list[Any]] = field(
         default_factory=lambda: defaultdict(list)
     )
-    _reduction_results: dict[str, Any] = field(
-        default_factory=lambda: defaultdict(list)
-    )
-    _aggregate_results: dict[str, Any] = field(
-        default_factory=lambda: defaultdict(list)
-    )
+    _reduced_results: dict[str, list] = field(default_factory=dict)
 
     # ------------------------------------------------------------------
     # Construction helpers
@@ -115,6 +110,7 @@ class Scorer:
     def reset(self) -> None:
         """Clear accumulated per-metric results for a fresh scoring pass."""
         self._metric_results = defaultdict(list)
+        self._reduced_results = {}
 
     def score_instances(self, instances: dict[int, list[Instance]]) -> None:
         """Score all documents' instances, accumulating per-metric results.
@@ -185,8 +181,8 @@ class Scorer:
     # Reduction & Aggregation
     # ------------------------------------------------------------------
 
-    def _reduce(self) -> dict[str, list]:
-        """Reduce per-doc list[T] → T for each document."""
+    def reduce(self) -> dict[str, list]:
+        """Reduce per-doc list[T] → T for each document. Stores result internally."""
         reduced: dict[str, list] = {}
         for m in self.metrics or []:
             if m.name in self._metric_results:
@@ -194,6 +190,7 @@ class Scorer:
                     m.reduction(per_doc_values)
                     for per_doc_values in self._metric_results[m.name]
                 ]
+        self._reduced_results = reduced
         return reduced
 
     def aggregate(
@@ -213,7 +210,9 @@ class Scorer:
         from lm_eval.api._metrics.corpus import CorpusMetric
         from lm_eval.api.metrics import mean, stderr_for_metric
 
-        results = metric_results if metric_results is not None else self._metric_results
+        results = (
+            metric_results if metric_results is not None else self._reduced_results
+        )
         agg: dict[str, Any] = {}
         sample_len = 0
 

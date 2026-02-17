@@ -4,6 +4,7 @@ import logging
 import math
 import pathlib
 import sys
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -26,7 +27,6 @@ class ResultAcc(TypedDict):
     """Accumulator for results of a single task."""
 
     task: Task
-    raw_metrics: dict[tuple[str, str], list[Any]]
     logged_samples: list[Any]
 
 
@@ -168,38 +168,14 @@ class EvalAcc:
 
 def _compute_task_aggregations(
     task: Task,
-    raw_metrics: dict[tuple[str, str], list],
     bootstrap_iters: int | None = 100000,
 ) -> tuple[dict[str, Any], int]:
+    """Compute aggregated metrics from scorer-internal reduced results.
+
+    Delegates to ``task.aggregate()`` which calls each scorer's
+    ``aggregate()`` method.
     """
-    Compute aggregated metrics from raw per-sample metrics.
-
-    Delegates to each scorer's ``aggregate()`` method, which owns the
-    aggregation functions and stderr computation for its own metrics.
-
-    Args:
-        task: Task object (provides scorers)
-        raw_metrics: {(metric_name, filter_key): [values]}
-        bootstrap_iters: Number of bootstrap iterations for stderr
-
-    Returns:
-        (agg_metrics dict, sample_count)
-    """
-    agg_metrics: dict[str, Any] = {}
-    sample_len = 0
-
-    for scorer in task._scorers:
-        scorer_metrics = {
-            metric_name: values
-            for (metric_name, filter_key), values in raw_metrics.items()
-            if filter_key == scorer.name
-        }
-        result, count = scorer.aggregate(scorer_metrics, bootstrap_iters)
-        agg_metrics.update(result)
-        # TODO: (we assume all scorers per metric have same sample len), but should make this more robust
-        sample_len = max(sample_len, count)
-
-    return agg_metrics, sample_len
+    return task.aggregate(bootstrap_iters)
 
 
 def _collect_results(
@@ -212,7 +188,7 @@ def _collect_results(
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
-            Format: {task_name: {"task": Task, "raw_metrics": defaultdict, "logged_samples": []}}
+            Format: {task_name: {"task": Task, "logged_samples": []}}
         groups: Dict of group name -> Group objects
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
@@ -225,11 +201,8 @@ def _collect_results(
     for task_name, acc in eval_results_acc.items():
         task = acc["task"]
 
-        # Compute aggregated metrics
-        # TODO: note: currently assume all metrics are scalar-valued
-        agg_metrics, sample_len = _compute_task_aggregations(
-            task, acc["raw_metrics"], bootstrap_iters
-        )
+        # Compute aggregated metrics from scorer-internal reduced results
+        agg_metrics, sample_len = task.aggregate(bootstrap_iters)
 
         # Get task config
         task_config = dict(task.dump_config())
@@ -339,7 +312,9 @@ def _process_results(
 
     Args:
         eval_results_acc: Accumulated metrics from evaluation.
-            Format: {task_name: {"task": Task, "raw_metrics": defaultdict, "logged_samples": []}}
+            Format: {task_name: {"task": Task, "logged_samples": []}}
+            Task objects must have scorer._reduced_results populated
+            (via task.process_instances() or task.import_raw_metrics()).
         groups: Dict of group name -> Group
         bootstrap_iters: Number of bootstrap iterations for stderr calculation
 
@@ -357,8 +332,8 @@ def _process_results(
     Example usage:
         loaded = task_manager.load(['arc', 'hellaswag'])
 
-        # Run evaluation (populates raw_metrics and logged_samples)
-        eval_results_acc = {name: {"task": t, "raw_metrics": defaultdict(list), "logged_samples": []}
+        # Run evaluation (populates scorer._reduced_results)
+        eval_results_acc = {name: {"task": t, "logged_samples": []}
                            for name, t in loaded['tasks'].items()}
 
         results = _process_results(eval_results_acc, loaded['groups'])
@@ -461,6 +436,96 @@ def _log_selected_tasks(
         if task_name not in logged_tasks:
             path = get_task_path(task_name)
             eval_logger.info(f"Task: {task_name} ({path})")
+
+
+def _merge_rank_metrics(
+    all_rank_data: list[dict], task_name: str
+) -> dict[str, dict[str, list]]:
+    """Merge per-task metrics from all ranks by concatenating value lists."""
+    merged: dict[str, dict[str, list]] = {}
+    for rank_data in all_rank_data:
+        if task_name not in rank_data:
+            continue
+        for scorer_name, metrics in rank_data[task_name].items():
+            if scorer_name not in merged:
+                merged[scorer_name] = {}
+            for metric_name, values in metrics.items():
+                merged[scorer_name].setdefault(metric_name, []).extend(values)
+    return merged
+
+
+def _build_logged_samples(
+    task: Task,
+    samples: dict[str, list[int]] | None,
+    task_name: str,
+) -> list[dict[str, Any]]:
+    """Build per-document sample logs for a task.
+
+    Reads fields directly from Instance objects and per-doc metrics
+    from ``scorer._reduced_results``.  Instances are already filtered
+    by rank/limit/world_size during ``build_all_requests``.
+    """
+    import json
+
+    from lm_eval.utils import handle_non_serializable, hash_string
+
+    logged: list[dict[str, Any]] = []
+
+    instances_by_doc_id: dict[int, list] = defaultdict(list)
+    for instance in task.instances:
+        instances_by_doc_id[instance.doc_id].append(instance)
+    for insts in instances_by_doc_id.values():
+        insts.sort(key=lambda x: x.idx)
+
+    # Map doc_id → position in sorted order (same as _sort_instances)
+    doc_id_to_pos = {
+        doc_id: pos for pos, doc_id in enumerate(instances_by_doc_id.keys())
+    }
+
+    indices = samples.get(task_name, None) if samples is not None else None
+
+    for scorer in task._scorers or []:
+        reduced = scorer._reduced_results
+
+        for doc_id, reqs in instances_by_doc_id.items():
+            first = reqs[0]
+            doc_id_true = indices[doc_id] if indices else doc_id
+            target = first.target
+
+            # Get per-doc metric values from scorer's reduced results
+            per_doc_metrics = {}
+            pos = doc_id_to_pos.get(doc_id)
+            if pos is not None and reduced:
+                for mn, vals in reduced.items():
+                    if pos < len(vals):
+                        per_doc_metrics[mn] = vals[pos]
+
+            example = {
+                "doc_id": doc_id_true,
+                "doc": first.doc,
+                "target": target,
+                "arguments": [req.args for req in reqs],
+                "resps": [req.resps for req in reqs],
+                "filtered_resps": [
+                    req.filtered_resps.get(scorer.name, req.resps[0]) for req in reqs
+                ],
+                "filter": scorer.name,
+                "metrics": list(per_doc_metrics.keys()),
+                "doc_hash": hash_string(
+                    json.dumps(
+                        first.doc,
+                        indent=2,
+                        default=handle_non_serializable,
+                        ensure_ascii=False,
+                    )
+                ),
+                "prompt_hash": hash_string(first.arguments[0]),
+                "target_hash": hash_string(str(target)),
+            }
+            example.update(per_doc_metrics)
+            logged.append(example)
+
+    return logged
 
 
 def _handle_back_comp(

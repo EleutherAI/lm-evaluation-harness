@@ -3,10 +3,12 @@ Tests for evaluator_utils.py — utility functions used by the evaluation pipeli
 """
 
 import logging
+from collections import defaultdict
 from typing import Any
 
 import pytest
 
+from lm_eval.api.filter import FilterEnsemble
 from lm_eval.api.group import AggMetricConfig, Group
 from lm_eval.api.metrics import mean
 from lm_eval.api.task import Task
@@ -15,6 +17,7 @@ from lm_eval.evaluator_utils import (
     ResultAcc,
     _collect_groups_bottom_up,
     _collect_results,
+    _compute_task_aggregations,
     _get_root_groups,
     _process_results,
     _propagate_higher_is_better,
@@ -22,6 +25,7 @@ from lm_eval.evaluator_utils import (
     get_sample_size,
 )
 from lm_eval.result_schema import _TaskMetrics
+from lm_eval.scorers import Scorer
 
 
 # ---------------------------------------------------------------------------
@@ -32,6 +36,75 @@ from lm_eval.result_schema import _TaskMetrics
 def _m(d: dict[str, Any]) -> _TaskMetrics:
     """Cast a plain dict to TaskMetrics for tests (dynamic metric keys)."""
     return d  # type: ignore[return-value]
+
+
+def _build_mock_scorers(
+    agg: dict[str, Any],
+    hib: dict[str, bool] | None = None,
+) -> list[Scorer]:
+    """Build minimal Scorer objects from an {metric_name: agg_fn} dict.
+
+    Returns one Scorer named "none" containing all metrics.
+    """
+    from lm_eval.config.metric import Metric
+
+    hib = hib or {}
+    metrics = []
+    for metric_name, agg_fn in agg.items():
+        metrics.append(
+            Metric(
+                name=metric_name,
+                fn=lambda *a, **kw: 0,  # unused in aggregation tests
+                aggregation=agg_fn,
+                higher_is_better=hib.get(metric_name, True),
+            )
+        )
+    # Use a no-op filter ensemble
+    noop_filter = FilterEnsemble("none", [("identity", None)])
+    return [Scorer(name="none", filter=noop_filter, metrics=metrics)]
+
+
+def _build_multi_scorer_scorers(
+    raw_metrics: dict[tuple[str, str], list],
+    agg: dict[str, Any] | None = None,
+    hib: dict[str, bool] | None = None,
+) -> list[Scorer]:
+    """Build Scorer objects that match the tuple-keyed raw_metrics.
+
+    Groups by scorer name, populates _reduced_results.
+    """
+    from lm_eval.config.metric import Metric
+
+    agg = agg or {}
+    hib = hib or {}
+
+    # Group by scorer name
+    scorers_data: dict[str, dict[str, list]] = defaultdict(dict)
+    for (metric_name, scorer_name), values in raw_metrics.items():
+        scorers_data[scorer_name][metric_name] = values
+
+    scorers = []
+    noop_filter = FilterEnsemble("_unused", [("identity", None)])
+    for scorer_name, metrics_dict in scorers_data.items():
+        metrics = []
+        for metric_name in metrics_dict:
+            agg_fn = agg.get(metric_name, mean)
+            metrics.append(
+                Metric(
+                    name=metric_name,
+                    fn=lambda *a, **kw: 0,
+                    aggregation=agg_fn,
+                    higher_is_better=hib.get(metric_name, True),
+                )
+            )
+        scorer = Scorer(
+            name=scorer_name,
+            filter=noop_filter,
+            metrics=metrics,
+            _reduced_results=metrics_dict,
+        )
+        scorers.append(scorer)
+    return scorers
 
 
 class MockEvalTask(Task):
@@ -52,6 +125,7 @@ class MockEvalTask(Task):
         self._agg = agg or {}
         self._hib = hib or {}
         self._n_eval_docs = n_eval_docs
+        self._scorers = _build_mock_scorers(self._agg, self._hib)
 
     # -- identity ----------------------------------------------------------
     @property
@@ -104,10 +178,15 @@ def make_result_acc(
     raw_metrics: dict[tuple[str, str], list],
     logged_samples: list | None = None,
 ) -> ResultAcc:
-    """Build a ResultAcc dict for use with collect_results."""
+    """Build a ResultAcc dict for use with collect_results.
+
+    Also populates the task's _scorers with _reduced_results.
+    """
+    task._scorers = _build_multi_scorer_scorers(
+        raw_metrics, agg=task._agg, hib=task._hib
+    )
     return {
         "task": task,
-        "raw_metrics": raw_metrics,
         "logged_samples": logged_samples or [],
     }
 
@@ -172,69 +251,75 @@ class TestGetSampleSize:
 # TestComputeTaskAggregations
 # ---------------------------------------------------------------------------
 
-from lm_eval.evaluator_utils import _compute_task_aggregations
-
 
 class TestComputeTaskAggregations:
-    def _task(self, agg=None):
-        return MockEvalTask("t", agg=agg or {"acc": mean})
+    def _task_with_data(self, raw_metrics, agg=None):
+        """Create a task with scorers pre-populated from raw_metrics."""
+        agg = agg or {"acc": mean}
+        task = MockEvalTask("t", agg=agg)
+        task._scorers = _build_multi_scorer_scorers(raw_metrics, agg=agg)
+        return task
 
     def test_single_metric_mean_aggregation(self):
-        task = self._task()
         raw = {("acc", "none"): [0.0, 1.0, 1.0, 0.0]}
-        metrics, count = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        task = self._task_with_data(raw)
+        metrics, count = _compute_task_aggregations(task, bootstrap_iters=0)
         assert metrics["acc,none"] == pytest.approx(0.5)
         assert count == 4
 
     def test_stderr_with_bootstrap_iters_zero(self):
-        task = self._task()
         raw = {("acc", "none"): [0.0, 1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        task = self._task_with_data(raw)
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=0)
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_stderr_with_bootstrap_iters_none(self):
-        task = self._task()
         raw = {("acc", "none"): [0.0, 1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=None)
+        task = self._task_with_data(raw)
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=None)
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_stderr_with_positive_bootstrap_iters(self):
-        task = self._task()
         raw = {("acc", "none"): [0.0, 1.0, 1.0, 0.0, 1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
+        task = self._task_with_data(raw)
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=100)
         assert isinstance(metrics["acc_stderr,none"], float)
 
     def test_stderr_na_for_single_sample(self):
-        task = self._task()
         raw = {("acc", "none"): [1.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=100)
+        task = self._task_with_data(raw)
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=100)
         # len(items) <= 1 → "N/A"
         assert metrics["acc_stderr,none"] == "N/A"
 
     def test_fallback_to_mean_for_unknown_metric(self):
         # Task has no aggregation for "custom_metric"
-        task = MockEvalTask("t", agg={})
         raw = {("custom_metric", "none"): [2.0, 4.0]}
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        task = MockEvalTask("t", agg={})
+        task._scorers = _build_multi_scorer_scorers(raw, agg={})
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=0)
         assert metrics["custom_metric,none"] == pytest.approx(3.0)
 
     def test_multiple_metrics_and_filters(self):
-        task = MockEvalTask("t", agg={"acc": mean, "f1": mean})
+        agg = {"acc": mean, "f1": mean}
         raw = {
             ("acc", "none"): [1.0, 0.0],
             ("f1", "exact"): [0.8, 0.6],
         }
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=0)
+        task = MockEvalTask("t", agg=agg)
+        task._scorers = _build_multi_scorer_scorers(raw, agg=agg)
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=0)
         assert "acc,none" in metrics
         assert "f1,exact" in metrics
         assert metrics["acc,none"] == pytest.approx(0.5)
         assert metrics["f1,exact"] == pytest.approx(0.7)
 
     def test_bleu_metric_bootstrap_cap(self):
-        task = MockEvalTask("t", agg={"bleu": mean})
+        agg = {"bleu": mean}
         raw = {("bleu", "none"): [0.5, 0.6, 0.7]}
+        task = self._task_with_data(raw, agg=agg)
         # Should not raise; bootstrap_iters is capped to 100 internally
-        metrics, _ = _compute_task_aggregations(task, raw, bootstrap_iters=200)
+        metrics, _ = _compute_task_aggregations(task, bootstrap_iters=200)
         assert "bleu,none" in metrics
 
 

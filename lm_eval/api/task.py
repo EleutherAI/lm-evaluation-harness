@@ -829,35 +829,28 @@ class Task:
         for scorer in self._scorers:
             scorer.apply_filter(self._instances)
 
-    def process_instances(self) -> dict[str, dict[str, list]] | None:
-        """Apply filters via scorers, sort instances, then score.
+    def process_instances(self) -> None:
+        """Apply filters, score instances, reduce — all stored on Scorers.
 
         For each scorer, tries the legacy ``process_results`` path first
         (YAML ``!function`` or Python subclass override).  Falls through to
         ``scorer.score_instances()`` only when ``process_results`` returns
         ``None``.
-
-        Returns:
-            ``{scorer_name: {metric_name: [per_doc_values]}}`` or None if
-            no scorers are configured.
         """
         if not self._scorers:
-            return None
+            return
 
         self.apply_filters()
 
         instances = self._sort_instances(self._instances)
 
-        results: dict[str, dict[str, list]] = {}
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)
             if pr_results is not None:
-                results[scorer.name] = pr_results
+                scorer._reduced_results = pr_results  # legacy path
             else:
                 scorer.score_instances(instances)
-                results[scorer.name] = scorer._reduce()
-
-        return results
+                scorer.reduce()  # stores on scorer._reduced_results
 
     def _try_process_results(
         self,
@@ -890,6 +883,39 @@ class Task:
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
         return None
+
+    def aggregate(
+        self, bootstrap_iters: int | None = 100000
+    ) -> tuple[dict[str, Any], int]:
+        """Aggregate all scorers' reduced results.
+
+        Returns (agg_dict, sample_len) where agg_dict has "metric,scorer" string keys.
+        This is the only place where string keys are produced.
+        """
+        agg_metrics: dict[str, Any] = {}
+        sample_len = 0
+        for scorer in self._scorers:
+            result, count = scorer.aggregate(bootstrap_iters=bootstrap_iters)
+            agg_metrics.update(result)
+            sample_len = max(sample_len, count)
+        return agg_metrics, sample_len
+
+    def export_raw_metrics(self) -> dict[str, dict[str, list]]:
+        """Export reduced results from all scorers for distributed gathering.
+
+        Returns {scorer_name: {metric_name: [per_doc_values]}}.
+        """
+        return {
+            scorer.name: dict(scorer._reduced_results)
+            for scorer in self._scorers
+            if scorer._reduced_results
+        }
+
+    def import_raw_metrics(self, data: dict[str, dict[str, list]]) -> None:
+        """Import merged results into scorers (after distributed gather)."""
+        for scorer in self._scorers:
+            if scorer.name in data:
+                scorer._reduced_results = data[scorer.name]
 
     @staticmethod
     def _sort_instances(

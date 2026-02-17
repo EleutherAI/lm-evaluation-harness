@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import itertools
-import json
 import logging
 import random
 import time
@@ -16,8 +15,10 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.defaults import DEFAULT_OTHER_SEED, DEFAULT_RANDOM_SEED, LMEVAL_HASHMM
 from lm_eval.evaluator_utils import (
     ResultAcc,
+    _build_logged_samples,
     _handle_back_comp,
     _log_selected_tasks,
+    _merge_rank_metrics,
     _process_results,
     get_sample_size,
     print_writeout,
@@ -26,9 +27,7 @@ from lm_eval.evaluator_utils import (
 from lm_eval.loggers.utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import (
-    handle_non_serializable,
     hash_dict_images,
-    hash_string,
     positional_deprecated,
     set_torch_seed,
     setup_logging,
@@ -489,7 +488,6 @@ def evaluate(
     eval_results_acc: dict[str, ResultAcc] = {
         task_name: {
             "task": task_obj,
-            "raw_metrics": defaultdict(list),
             "logged_samples": [],
         }
         for task_name, task_obj in eval_tasks.items()
@@ -599,84 +597,14 @@ def evaluate(
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
-    # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for (task_name, acc), limit in zip(eval_results_acc.items(), limits, strict=True):
         task = acc["task"]
+        task.process_instances()  # populates Scorer internals
 
-        # Use Scorer pipeline: apply filters, sort instances, score metrics
-        scorer_results = task.process_instances()
-        if scorer_results:
-            for scorer_name, metric_dict in scorer_results.items():
-                for metric_name, values in metric_dict.items():
-                    acc["raw_metrics"][(metric_name, scorer_name)] = values
-
-        # Log per-doc samples if requested
         if log_samples:
-            instances_by_doc_id = defaultdict(list)
-            for instance in task.instances:
-                instances_by_doc_id[instance.doc_id].append(instance)
-            for instances in instances_by_doc_id.values():
-                instances.sort(key=lambda x: x.idx)
-
-            # Map doc_id -> position in scorer results (same order as _sort_instances)
-            doc_id_to_pos = {
-                doc_id: pos for pos, doc_id in enumerate(instances_by_doc_id.keys())
-            }
-
-            # Iterate over each scorer (like old code iterates filter_keys)
-            scorer_names = (
-                [s.name for s in task._scorers] if task._scorers else ["none"]
-            )
-            for filter_key in scorer_names:
-                indices = samples.get(task_name, None) if samples is not None else None
-                doc_iterator = task.doc_iterator(
-                    rank=RANK,
-                    limit=limit,
-                    world_size=WORLD_SIZE,
-                    samples=indices,
-                )
-                for doc_id, doc in doc_iterator:
-                    doc_id_true = indices[doc_id] if indices else doc_id
-                    reqs = instances_by_doc_id[doc_id]
-                    target = task.doc_to_target(doc)
-
-                    # Get per-doc metric values from this scorer
-                    per_doc_metrics = {}
-                    if scorer_results and filter_key in scorer_results:
-                        pos = doc_id_to_pos.get(doc_id)
-                        if pos is not None:
-                            for mn, vals in scorer_results[filter_key].items():
-                                if pos < len(vals):
-                                    per_doc_metrics[mn] = vals[pos]
-
-                    example = {
-                        "doc_id": doc_id_true,
-                        "doc": doc,
-                        "target": target,
-                        "arguments": [req.args for req in reqs],
-                        "resps": [req.resps for req in reqs],
-                        "filtered_resps": [
-                            req.filtered_resps.get(filter_key, req.resps[0])
-                            for req in reqs
-                        ],
-                        "filter": filter_key,
-                        "metrics": list(per_doc_metrics.keys()),
-                        "doc_hash": hash_string(
-                            json.dumps(
-                                reqs[0].doc,
-                                indent=2,
-                                default=handle_non_serializable,
-                                ensure_ascii=False,
-                            )
-                        ),
-                        "prompt_hash": hash_string(reqs[0].arguments[0]),
-                        "target_hash": hash_string(str(target)),
-                    }
-                    example.update(per_doc_metrics)
-                    acc["logged_samples"].append(example)
+            acc["logged_samples"] = _build_logged_samples(task, samples, task_name)
 
     if WORLD_SIZE > 1:
-        # Gather all sample metrics across ranks, keyed by task name.
         if log_samples:
             rank_samples = {
                 task_name: acc["logged_samples"]
@@ -693,19 +621,14 @@ def evaluate(
                     )
 
         rank_metrics = {
-            task_name: dict(acc["raw_metrics"])
+            task_name: acc["task"].export_raw_metrics()
             for task_name, acc in eval_results_acc.items()
         }
         all_metrics = lm.gather_object(rank_metrics, dst=0)
         if RANK == 0:
             for task_name, acc in eval_results_acc.items():
-                for metric_key in acc["raw_metrics"]:
-                    acc["raw_metrics"][metric_key] = list(
-                        itertools.chain.from_iterable(
-                            rank_data[task_name][metric_key]
-                            for rank_data in all_metrics  # type: ignore
-                        )
-                    )
+                merged = _merge_rank_metrics(all_metrics, task_name)  # type: ignore
+                acc["task"].import_raw_metrics(merged)
 
     if RANK == 0:
         res = _process_results(eval_results_acc, groups, bootstrap_iters)
