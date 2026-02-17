@@ -17,10 +17,8 @@ class TakeFirstFilter(Filter):
         """
 
     def apply(self, resps, docs):
-        """
-        Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
-        """
-        return map(lambda r: r[0], resps)
+        """Noop — preserve all repeats so downstream scoring can handle them."""
+        return resps
 
 
 @register_filter("take_first_k")

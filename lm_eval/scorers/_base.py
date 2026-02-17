@@ -26,6 +26,12 @@ class Scorer:
     _metric_results: dict[str, list[Any]] = field(
         default_factory=lambda: defaultdict(list)
     )
+    _reduction_results: dict[str, Any] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    _aggregate_results: dict[str, Any] = field(
+        default_factory=lambda: defaultdict(list)
+    )
 
     # ------------------------------------------------------------------
     # Construction helpers
@@ -116,30 +122,51 @@ class Scorer:
         For each doc_id group, builds a structured result object
         (``LLResults`` or ``GenResults``) from the instances and dispatches
         metrics against it.
+
+        For ``generate_until`` tasks, each repeat is scored independently,
+        producing ``list[T]`` per doc per metric.  For other output types
+        (repeats always 1), the scalar is wrapped in a single-element list
+        so that the downstream ``_reduce`` step works uniformly.
         """
-        from lm_eval._types import GenResults, LLResults
+        from lm_eval._types import LLResults
 
         self.reset()
 
         for doc_id, doc_instances in instances.items():
-            # Build structured result object based on output_type
-            if self.output_type in (
-                "multiple_choice",
-                "loglikelihood",
-                "loglikelihood_rolling",
-            ):
-                results_obj = LLResults.from_instances(doc_instances)
-            elif self.output_type == "generate_until":
-                results_obj = GenResults.from_instances(doc_instances)
+            if self.output_type == "generate_until":
+                # Per-repeat scoring for generate_until
+                inst = doc_instances[0]  # 1 instance per doc for generate_until
+                resps = inst.filtered_resps[self.name]  # [str * K]
+                target = inst.target
+
+                repeat_scores: dict[str, list] = defaultdict(list)
+                for resp in resps:
+                    per_repeat = self._score_gen_single(target, resp, inst.doc)
+                    for metric_name, value in per_repeat.items():
+                        repeat_scores[metric_name].append(value)
+
+                for metric_name, values in repeat_scores.items():
+                    self._metric_results[metric_name].append(values)  # [T*K]
             else:
+                # loglikelihood / multiple_choice — repeats=1
                 results_obj = LLResults.from_instances(doc_instances)
+                target = results_obj.targets
+                per_doc = self._dispatch_metrics(target, results_obj)
 
-            target = results_obj.targets
-            per_doc = self._dispatch_metrics(target, results_obj)
+                for metric_name, value in per_doc.items():
+                    self._metric_results[metric_name].append([value])  # wrap: [T]
 
-            # Accumulate per-doc results into lists keyed by metric name
-            for metric_name, value in per_doc.items():
-                self._metric_results[metric_name].append(value)
+    def _score_gen_single(self, target, prediction, doc) -> dict[str, Any]:
+        """Score a single generate_until prediction against target."""
+        result_dict: dict[str, Any] = {}
+        for m in self.metrics or []:
+            kwargs = {**m.kwargs, "predictions": [prediction], "references": [target]}
+            score = m.fn(**kwargs)
+            if isinstance(score, dict):
+                result_dict.update(score)
+            else:
+                result_dict[m.name] = score
+        return result_dict
 
     def _dispatch_metrics(self, targets: Any, results: Any) -> dict[str, Any]:
         """Call each Metric.compute(targets, results) and collect per-doc results."""
@@ -158,13 +185,16 @@ class Scorer:
     # Reduction & Aggregation
     # ------------------------------------------------------------------
 
-    def _reduce(self) -> dict[str, Any]:
-        """Reduce metric results if any Metric has a reduce_fn."""
-        reduced_results = {}
+    def _reduce(self) -> dict[str, list]:
+        """Reduce per-doc list[T] → T for each document."""
+        reduced: dict[str, list] = {}
         for m in self.metrics or []:
             if m.name in self._metric_results:
-                reduced_results[m.name] = m.reduction(self._metric_results[m.name])
-        return reduced_results
+                reduced[m.name] = [
+                    m.reduction(per_doc_values)
+                    for per_doc_values in self._metric_results[m.name]
+                ]
+        return reduced
 
     def aggregate(
         self,

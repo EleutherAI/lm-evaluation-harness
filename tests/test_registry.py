@@ -352,6 +352,23 @@ class TestMetricRegistry:
         assert is_higher_better("test_metric_unique") is True
         assert get_metric_aggregation("test_metric_unique") is mean_agg
 
+    def test_register_metric_duplicate_raises(self):
+        """Test that re-registering a built-in metric name with a different function raises."""
+        # Ensure built-in metrics are loaded
+        from lm_eval.api import metrics  # noqa: F401
+
+        assert "exact_match" in metric_registry
+
+        with pytest.raises(ValueError, match="already registered"):
+
+            @register_metric(
+                metric="exact_match",
+                higher_is_better=True,
+                aggregation="mean",
+            )
+            def custom_exact_match(**kwargs):
+                return 0
+
     def test_builtin_metrics_loaded(self):
         """Test that built-in metrics are loaded."""
         # Import metrics module to trigger registration

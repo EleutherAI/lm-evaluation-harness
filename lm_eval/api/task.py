@@ -855,7 +855,7 @@ class Task:
                 results[scorer.name] = pr_results
             else:
                 scorer.score_instances(instances)
-                results[scorer.name] = dict(scorer._metric_results)
+                results[scorer.name] = scorer._reduce()
 
         return results
 
