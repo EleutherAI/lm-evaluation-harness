@@ -3,7 +3,7 @@ from typing import Any
 
 from typing_extensions import TypedDict
 
-from lm_eval.types import OutputType
+from lm_eval.result_schema import OutputType
 
 
 class AdditionalArgs(TypedDict, total=False, extra_items=Any):

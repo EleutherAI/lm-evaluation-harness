@@ -1,6 +1,6 @@
 group: arc_test
-tasks:
+task:
   - arc_easy
   - arc_challenge
-agg_metric_list:
+aggregate_metric_list:
   - metric: acc_norm
