@@ -89,7 +89,7 @@ class Task:
         {"question": ..., "answer": ...}
     """
 
-    VERSION: str = "Yaml"
+    VERSION: str = "Yaml"  # todo fix version
     OUTPUT_TYPE: OutputType | Literal["multiple_choice"] | None = None
     DATASET_PATH: str | None = None
     DATASET_NAME: str | None = None
@@ -1179,11 +1179,13 @@ class MultipleChoiceTask(Task):
                 )
                 return None  # invalid index to indicate error
 
-        if isinstance(doc_to_target, list):
-            choices = self.doc_to_choice(doc)
+        if (
+            isinstance(doc_to_target, list)
+            and (choices := self.doc_to_choice(doc)) is not None
+        ):
             target_indices = []
             for target in doc_to_target:
-                if target in choices:
+                if isinstance(target, str) and target in choices:
                     target_indices.append(choices.index(target))
                 else:
                     eval_logger.warning(
@@ -1332,7 +1334,7 @@ class LoglikelihoodTask(Task):
 
 
 class LoglikelihoodRollingTask(LoglikelihoodTask):
-    OUTPUT_TYPE = "loglikelihood_rolling"
+    OUTPUT_TYPE: OutputType = "loglikelihood_rolling"
 
     def construct_requests(
         self,
