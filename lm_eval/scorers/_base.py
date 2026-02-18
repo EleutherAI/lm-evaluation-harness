@@ -112,6 +112,7 @@ class Scorer:
         """Clear accumulated per-metric results for a fresh scoring pass."""
         self._metric_results = defaultdict(list)
         self._reduced_results = {}
+        self._aggregation_results = {}
 
     def score_instances(self, instances: dict[int, list[Instance]]) -> None:
         """Score all documents' instances, accumulating per-metric results.
@@ -252,6 +253,7 @@ class Scorer:
             else:
                 agg[stderr_key] = "N/A"
 
+        self._aggregation_results = agg
         return agg, sample_len
 
     # ------------------------------------------------------------------

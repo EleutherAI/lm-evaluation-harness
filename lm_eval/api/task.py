@@ -5,6 +5,7 @@ import ast
 import logging
 import random
 import re
+from collections import defaultdict
 from copy import deepcopy
 from functools import partial
 from typing import (
@@ -851,10 +852,13 @@ class Task:
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)
             if pr_results is not None:
-                scorer._reduced_results = pr_results  # legacy path
+                # Legacy path: process_results returns pre-scored values.
+                # normalize_to_list wraps scalars in single-element lists,
+                # giving _metric_results shape: {"acc": [[0], [1], [1]]}
+                scorer._metric_results = defaultdict(list, pr_results)
             else:
                 scorer.score_instances(instances)
-                scorer.reduce()  # stores on scorer._reduced_results
+            scorer.reduce()  # _metric_results → _reduced_results
 
     def _try_process_results(
         self,
