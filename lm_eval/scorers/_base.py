@@ -17,18 +17,54 @@ if TYPE_CHECKING:
 eval_logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True, slots=True)
+class ScoredDoc:
+    """Per-document scoring result produced by a Scorer.
+
+    Bundles the document reference and all metric scores together so that
+    downstream reduction never needs to align parallel lists.
+    """
+
+    doc_id: int
+    reference: Any  # str for gen, int|list[int] for MC
+    scores: dict[str, list[float]]  # {metric_name: [per_repeat_values]}
+
+
+@dataclass(frozen=True, slots=True)
+class MetricKey:
+    """Structured representation of a ``"metric,scorer"`` key.
+
+    Replaces ad-hoc f-string construction and ``startswith`` / ``partition``
+    parsing throughout the codebase.
+    """
+
+    metric: str
+    scorer: str
+    is_stderr: bool = False
+
+    def __str__(self) -> str:
+        name = f"{self.metric}_stderr" if self.is_stderr else self.metric
+        return f"{name},{self.scorer}"
+
+    @classmethod
+    def parse(cls, key: str) -> MetricKey | None:
+        """Parse a ``'metric,scorer'`` string. Returns ``None`` if not a metric key."""
+        if "," not in key:
+            return None
+        left, _, scorer = key.partition(",")
+        if left.endswith("_stderr"):
+            return cls(metric=left[: -len("_stderr")], scorer=scorer, is_stderr=True)
+        return cls(metric=left, scorer=scorer)
+
+
 @dataclass
 class Scorer:
     name: str
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     output_type: str | None = None
-    _metric_results: dict[str, list[list[Any]]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
-    _doc_references: list[Any] = field(default_factory=list)
+    _scored_docs: list[ScoredDoc] = field(default_factory=list)
     _reduced_results: dict[str, list[Any]] = field(default_factory=dict)
-    _aggregation_results: dict[str, Any] = field(default_factory=dict)
 
     # ------------------------------------------------------------------
     # Construction helpers
@@ -109,8 +145,8 @@ class Scorer:
     # Scoring
     # ------------------------------------------------------------------
 
-    def score_instances(self, instances: dict[int, list[Instance]]) -> None:
-        """Score all documents' instances, accumulating per-metric results.
+    def score_instances(self, instances: dict[int, list[Instance]]) -> list[ScoredDoc]:
+        """Score all documents' instances, returning a ``ScoredDoc`` per document.
 
         For each doc_id group, builds a structured result object
         (``LLResults`` or ``GenResults``) from the instances and dispatches
@@ -119,9 +155,11 @@ class Scorer:
         For ``generate_until`` tasks, each repeat is scored independently,
         producing ``list[T]`` per doc per metric.  For other output types
         (repeats always 1), the scalar is wrapped in a single-element list
-        so that the downstream ``_reduce`` step works uniformly.
+        so that the downstream ``reduce`` step works uniformly.
         """
         from lm_eval._types import LLResults
+
+        scored_docs: list[ScoredDoc] = []
 
         for doc_id, doc_instances in instances.items():
             if self.output_type == "generate_until":
@@ -136,18 +174,28 @@ class Scorer:
                     for metric_name, value in per_repeat.items():
                         repeat_scores[metric_name].append(value)
 
-                for metric_name, values in repeat_scores.items():
-                    self._metric_results[metric_name].append(values)  # [T*K]
-                self._doc_references.append(target)
+                scored_docs.append(
+                    ScoredDoc(
+                        doc_id=doc_id,
+                        reference=target,
+                        scores=dict(repeat_scores),
+                    )
+                )
             else:
                 # loglikelihood / multiple_choice — repeats=1
                 results_obj = LLResults.from_instances(doc_instances)
                 references = results_obj.targets
                 per_doc = self._dispatch_metrics(references, results_obj)
 
-                for metric_name, value in per_doc.items():
-                    self._metric_results[metric_name].append([value])  # wrap: [T]
-                self._doc_references.append(references)
+                scored_docs.append(
+                    ScoredDoc(
+                        doc_id=doc_id,
+                        reference=references,
+                        scores={mn: [v] for mn, v in per_doc.items()},
+                    )
+                )
+
+        return scored_docs
 
     def _dispatch_metrics(self, references: Any, predictions: Any) -> dict[str, Any]:
         """Call each Metric.compute(references, predictions) and collect per-doc results."""
@@ -166,24 +214,21 @@ class Scorer:
     # Reduction & Aggregation
     # ------------------------------------------------------------------
 
-    def reduce(self) -> dict[str, list]:
-        """Reduce per-doc list[T] → T for each document. Stores result internally.
+    def reduce(self, scored_docs: list[ScoredDoc]) -> dict[str, list]:
+        """Reduce per-doc list[T] -> T for each document.
 
-        Calls ``m.reduction(references, predictions)`` where *references* is
+        Calls ``m.reduction(reference, predictions)`` where *reference* is
         the raw target for the document and *predictions* is the list of K
         per-repeat scored values.
         """
         reduced: dict[str, list] = {}
         for m in self.metrics or []:
-            if m.name in self._metric_results:
-                reduced[m.name] = [
-                    m.reduction(doc_ref, per_doc_values)
-                    for doc_ref, per_doc_values in zip(
-                        self._doc_references,
-                        self._metric_results[m.name],
-                        strict=True,
-                    )
-                ]
+            values = []
+            for sd in scored_docs:
+                if m.name in sd.scores:
+                    values.append(m.reduction(sd.reference, sd.scores[m.name]))
+            if values:
+                reduced[m.name] = values
         self._reduced_results = reduced
         return reduced
 
@@ -220,14 +265,14 @@ class Scorer:
             # captured at construction time in _get_metric).
             agg_fn = m.aggregation
             if agg_fn is not None:
-                agg[f"{m.name},{self.name}"] = m.aggregate(values)
+                agg[str(MetricKey(m.name, self.name))] = m.aggregate(values)
             else:
                 eval_logger.warning(f"No aggregation for {m.name}. Using mean.")
                 agg_fn = mean
-                agg[f"{m.name},{self.name}"] = mean(values)
+                agg[str(MetricKey(m.name, self.name))] = mean(values)
 
             # Stderr
-            stderr_key = f"{m.name}_stderr,{self.name}"
+            stderr_key = str(MetricKey(m.name, self.name, is_stderr=True))
             if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
                 stderr_fn = stderr_for_metric(
                     metric=agg_fn, bootstrap_iters=bootstrap_iters
@@ -238,7 +283,6 @@ class Scorer:
             else:
                 agg[stderr_key] = "N/A"
 
-        self._aggregation_results = agg
         return agg, sample_len
 
     # ------------------------------------------------------------------

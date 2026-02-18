@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, cast
 from typing_extensions import deprecated
 
 from lm_eval.config.group import AggMetricConfig, GroupConfig
+from lm_eval.scorers import MetricKey
 
 
 eval_logger = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ class Group:
         Returns:
             Sorted list of unique filter names (e.g., ["custom", "none", "prefix"])
         """
-        discovered_filters = set()
+        discovered_filters: set[str] = set()
         leaf_tasks = [t.task_name for t in self.get_all_tasks()]
 
         for task_name in leaf_tasks:
@@ -170,13 +171,11 @@ class Group:
                 continue
 
             task_result = task_metrics[task_name]
-            prefix = f"{metric_name},"
 
             for key in task_result.keys():
-                # Look for "metric,filter" keys (exclude stderr keys)
-                if key.startswith(prefix) and "_stderr" not in key:
-                    filter_name = key[len(prefix) :]  # Extract filter part
-                    discovered_filters.add(filter_name)
+                mk = MetricKey.parse(key)
+                if mk and mk.metric == metric_name and not mk.is_stderr:
+                    discovered_filters.add(mk.scorer)
 
         return sorted(list(discovered_filters))  # Sort for deterministic ordering
 
@@ -225,8 +224,10 @@ class Group:
                 filters_to_aggregate = agg_config.filter_list
 
             for filter_name in filters_to_aggregate:
-                metric_key = f"{agg_config.metric},{filter_name}"
-                stderr_key = f"{agg_config.metric}_stderr,{filter_name}"
+                metric_key = str(MetricKey(agg_config.metric, filter_name))
+                stderr_key = str(
+                    MetricKey(agg_config.metric, filter_name, is_stderr=True)
+                )
 
                 # Gather values from leaf tasks
                 values: list[float] = []

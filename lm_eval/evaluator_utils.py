@@ -501,10 +501,12 @@ def _build_logged_samples(
                     if pos < len(vals):
                         per_doc_metrics[mn] = vals[pos]
             # Get per-repeat metric scores (pre-reduction)
-            if pos is not None and scorer._metric_results:
-                for mn, doc_lists in scorer._metric_results.items():
-                    if pos < len(doc_lists) and len(doc_lists[pos]) > 1:
-                        per_repeat_metrics[mn] = doc_lists[pos]
+            if pos is not None and scorer._scored_docs:
+                if pos < len(scorer._scored_docs):
+                    sd = scorer._scored_docs[pos]
+                    for mn, vals in sd.scores.items():
+                        if len(vals) > 1:
+                            per_repeat_metrics[mn] = vals
 
             example = {
                 "doc_id": doc_id_true,
