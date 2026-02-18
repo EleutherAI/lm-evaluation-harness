@@ -178,7 +178,7 @@ class TaskConfig:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if self.generation_kwargs is not None:
+        if self.generation_kwargs:
             if self.output_type != "generate_until":
                 eval_logger.warning(
                     f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"

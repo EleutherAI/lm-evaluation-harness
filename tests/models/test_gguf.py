@@ -102,6 +102,8 @@ class GGUFLMTest(unittest.TestCase):
                 request_type="loglikelihood",
                 doc=args,
                 arguments=args,
+                task_name="test",
+                doc_id=i,
                 idx=i,
             )
             for i, args in enumerate([("str", "ing"), ("str", "ing")])
@@ -124,6 +126,8 @@ class GGUFLMTest(unittest.TestCase):
                 request_type="generate_until",
                 doc={"input": doc},
                 arguments=(doc, {"until": stop}),
+                task_name="test",
+                doc_id=i,
                 idx=i,
             )
             for i, (doc, stop) in enumerate([("input1", "stop1"), ("input2", "stop2")])

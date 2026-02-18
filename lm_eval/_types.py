@@ -81,7 +81,7 @@ class LLResults:
         return (
             np.array([float(len(i)) for i in self.choices])
             if self.choices
-            else np.array(1.0 for _ in range(len(self.lls)))
+            else np.ones(len(self.lls))
         )
 
     def byte_len(self) -> NDArray[int64]:

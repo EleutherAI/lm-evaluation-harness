@@ -6,7 +6,7 @@ import logging
 import random
 import re
 from copy import deepcopy
-from functools import partial
+from functools import cached_property, partial
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -14,7 +14,6 @@ from typing import (
     cast,
 )
 
-from distlib.util import cached_property
 from tqdm import tqdm
 from typing_extensions import TypedDict
 
@@ -89,7 +88,7 @@ class Task:
         {"question": ..., "answer": ...}
     """
 
-    VERSION: str = "Yaml"
+    VERSION: str = "Yaml"  # todo fix version
     OUTPUT_TYPE: OutputType | Literal["multiple_choice"] | None = None
     DATASET_PATH: str | None = None
     DATASET_NAME: str | None = None
@@ -185,7 +184,7 @@ class Task:
         from lm_eval.config.metric import Metric
 
         metrics: list[Metric] = []
-        if self.config.metric_list is not None:
+        if self.config.metric_list:
             for m_cfg in self.config.metric_list:
                 metrics.append(Metric.from_dict(m_cfg))
         else:
@@ -198,7 +197,7 @@ class Task:
         global_metrics = self._build_global_metrics()
         output_type = self.OUTPUT_TYPE
 
-        if self.config.filter_list is not None:
+        if self.config.filter_list:
             return [
                 Scorer.from_dict(
                     filter_config,
@@ -289,7 +288,7 @@ class Task:
             return self.dataset[self.config.training_split]
 
     def validation_docs(self) -> datasets.Dataset | None:
-        if self.config.training_split is not None:
+        if self.config.validation_split is not None:
             if self.config.process_docs is not None:
                 return self.config.process_docs(
                     self.dataset[self.config.validation_split]
@@ -443,6 +442,12 @@ class Task:
                     else None,
                     self.doc_to_target(fs_doc, self._fewshot_cfg.doc_to_target),
                 )
+                # in most cases we expect q to be a string, except for multiple-input where its list[str]
+                if isinstance(q, list):
+                    assert isinstance(a, int), (
+                        "Multiple-input fewshot examples require integer answer keys to index into the question list"
+                    )
+                    q = q[a]
                 _gen_prefix = self.resolve_field(doc, self._fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
@@ -756,14 +761,14 @@ class Task:
         doc_to_text = (
             doc_to_text if doc_to_text is not None else self.config.doc_to_text
         )
-        y = process_field(doc, doc_to_text, digits=True, lists=False, default=None)
+        y = process_field(doc, doc_to_text, digits=False, lists=False)
         return y
 
     def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
         doc_to_choice = (
             doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
         )
-        y = process_field(doc, doc_to_choice, digits=True, lists=True, default=[])
+        y = process_field(doc, doc_to_choice, digits=False, lists=True)
         return y
 
     def doc_to_target(
@@ -772,7 +777,7 @@ class Task:
         doc_to_target = (
             doc_to_target if doc_to_target is not None else self.config.doc_to_target
         )
-        y = process_field(doc, doc_to_target, digits=True, lists=True, default=None)
+        y = process_field(doc, doc_to_target, digits=True, lists=True)
         return y
 
     def doc_to_prefix(self, doc):
@@ -830,7 +835,7 @@ class Task:
             return None
 
     @cached_property
-    def is_multomodal(self):
+    def is_multimodal(self):
         return (
             self.config.doc_to_image is not None or self.config.doc_to_audio is not None
         )
@@ -929,7 +934,7 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_raw_metrics(self) -> dict[str, dict[str, list]]:
+    def export_raw_metrics(self) -> dict[str, dict[str, list[Any]]]:
         """Export reduced results from all scorers for distributed gathering.
 
         Returns {scorer_name: {metric_name: [per_doc_values]}}.
@@ -1179,11 +1184,13 @@ class MultipleChoiceTask(Task):
                 )
                 return None  # invalid index to indicate error
 
-        if isinstance(doc_to_target, list):
-            choices = self.doc_to_choice(doc)
+        if (
+            isinstance(doc_to_target, list)
+            and (choices := self.doc_to_choice(doc)) is not None
+        ):
             target_indices = []
             for target in doc_to_target:
-                if target in choices:
+                if isinstance(target, str) and target in choices:
                     target_indices.append(choices.index(target))
                 else:
                     eval_logger.warning(
@@ -1203,7 +1210,10 @@ class MultipleChoiceTask(Task):
             return doc_to_text
 
     def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
-        choices = super().doc_to_choice(doc, doc_to_choice)
+        doc_to_choice = (
+            doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
+        )
+        choices = process_field(doc, doc_to_choice, digits=True, lists=True)
         if choices is not None and not isinstance(choices, list):
             raise ValueError(
                 "doc_to_choice should return a list of strings representing the answer choices."
@@ -1329,7 +1339,7 @@ class LoglikelihoodTask(Task):
 
 
 class LoglikelihoodRollingTask(LoglikelihoodTask):
-    OUTPUT_TYPE = "loglikelihood_rolling"
+    OUTPUT_TYPE: OutputType = "loglikelihood_rolling"
 
     def construct_requests(
         self,

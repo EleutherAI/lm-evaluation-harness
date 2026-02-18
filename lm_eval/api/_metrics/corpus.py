@@ -246,8 +246,6 @@ class Chrf(CorpusMetric[Any, tuple]):
     Higher is better.
     """
 
-    import sacrebleu
-
     def __call__(self, references: Any, predictions: Any) -> tuple:
         return references, predictions
 
