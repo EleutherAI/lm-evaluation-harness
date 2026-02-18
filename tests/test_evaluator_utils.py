@@ -25,7 +25,7 @@ from lm_eval.evaluator_utils import (
     get_sample_size,
 )
 from lm_eval.result_schema import _TaskMetrics
-from lm_eval.scorers import Scorer
+from lm_eval.scorers import MetricKey, ScoredDoc, Scorer
 
 
 # ---------------------------------------------------------------------------
@@ -883,3 +883,77 @@ class TestCollectResultsNSamples:
         result = _collect_results(accs, bootstrap_iters=0)
         assert result.n_samples["t1"]["original"] == 42
         assert result.n_samples["t1"]["effective"] == 2
+
+
+# ---------------------------------------------------------------------------
+# TestScoredDoc
+# ---------------------------------------------------------------------------
+
+
+class TestScoredDoc:
+    def test_frozen_immutability(self):
+        sd = ScoredDoc(doc_id=0, reference="hello", scores={"acc": [1.0]})
+        with pytest.raises(AttributeError):
+            sd.doc_id = 1  # type: ignore[misc]
+
+    def test_construction_single_repeat(self):
+        sd = ScoredDoc(doc_id=0, reference="target", scores={"acc": [1.0]})
+        assert sd.doc_id == 0
+        assert sd.reference == "target"
+        assert sd.scores == {"acc": [1.0]}
+
+    def test_construction_multiple_repeats(self):
+        sd = ScoredDoc(doc_id=5, reference="ref", scores={"acc": [1.0, 0.0, 1.0]})
+        assert len(sd.scores["acc"]) == 3
+
+    def test_construction_multiple_metrics(self):
+        sd = ScoredDoc(
+            doc_id=0,
+            reference=[0, 1],
+            scores={"acc": [0.5], "f1": [0.8]},
+        )
+        assert set(sd.scores.keys()) == {"acc", "f1"}
+
+
+# ---------------------------------------------------------------------------
+# TestMetricKey
+# ---------------------------------------------------------------------------
+
+
+class TestMetricKey:
+    def test_str_basic(self):
+        assert str(MetricKey("acc", "none")) == "acc,none"
+
+    def test_str_stderr(self):
+        assert str(MetricKey("acc", "none", is_stderr=True)) == "acc_stderr,none"
+
+    def test_str_custom_scorer(self):
+        assert str(MetricKey("f1", "strict")) == "f1,strict"
+
+    def test_parse_basic(self):
+        mk = MetricKey.parse("acc,none")
+        assert mk is not None
+        assert mk.metric == "acc"
+        assert mk.scorer == "none"
+        assert mk.is_stderr is False
+
+    def test_parse_stderr(self):
+        mk = MetricKey.parse("acc_stderr,none")
+        assert mk is not None
+        assert mk.metric == "acc"
+        assert mk.scorer == "none"
+        assert mk.is_stderr is True
+
+    def test_parse_non_metric_key(self):
+        assert MetricKey.parse("name") is None
+        assert MetricKey.parse("alias") is None
+
+    def test_parse_roundtrip(self):
+        original = MetricKey("acc", "none")
+        parsed = MetricKey.parse(str(original))
+        assert parsed == original
+
+    def test_parse_roundtrip_stderr(self):
+        original = MetricKey("bleu", "exact", is_stderr=True)
+        parsed = MetricKey.parse(str(original))
+        assert parsed == original

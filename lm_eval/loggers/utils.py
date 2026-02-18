@@ -1,12 +1,13 @@
 import logging
 import os
-import re
 import subprocess
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+from lm_eval.scorers import MetricKey
 
 
 logger = logging.getLogger(__name__)
@@ -22,16 +23,11 @@ def remove_none_pattern(input_string: str) -> tuple[str, bool]:
         Tuple[str, bool]: A tuple containing the modified input_string with the ',none' substring removed
                           and a boolean indicating whether the modification was made (True) or not (False).
     """
-    # Define the pattern to match ',none' at the end of the string
-    pattern = re.compile(r",none$")
-
-    # Use sub() to replace ',none' with an empty string
-    result = re.sub(pattern, "", input_string)
-
-    # check if the input_string changed
-    removed = result != input_string
-
-    return result, removed
+    mk = MetricKey.parse(input_string)
+    if mk is not None and mk.scorer == "none":
+        name = f"{mk.metric}_stderr" if mk.is_stderr else mk.metric
+        return name, True
+    return input_string, False
 
 
 def _handle_non_serializable(o: Any) -> int | str | list:

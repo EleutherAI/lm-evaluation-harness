@@ -5,7 +5,6 @@ import ast
 import logging
 import random
 import re
-from collections import defaultdict
 from copy import deepcopy
 from functools import partial
 from typing import (
@@ -34,7 +33,7 @@ from lm_eval.api.utils import (
 from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
 from lm_eval.config.utils import process_field
-from lm_eval.scorers import Scorer
+from lm_eval.scorers import ScoredDoc, Scorer
 from lm_eval.utils import normalize_to_list
 
 
@@ -47,6 +46,32 @@ if TYPE_CHECKING:
     from lm_eval.config.task import FewshotConfig
 
 eval_logger = logging.getLogger(__name__)
+
+
+def _legacy_to_scored_docs(
+    instances: dict[int, list[Instance]],
+    pr_results: dict[str, list[list[Any]]],
+) -> list[ScoredDoc]:
+    """Convert legacy ``process_results`` output to ``ScoredDoc`` objects.
+
+    The legacy path returns ``{metric_name: [[v1], [v2], ...]}``. This
+    converts each positional entry into a ``ScoredDoc``, pulling the
+    reference from the first ``Instance.target`` of each doc group.
+    """
+    doc_ids = list(instances.keys())
+    n_docs = len(doc_ids)
+    scored_docs: list[ScoredDoc] = []
+
+    for pos in range(n_docs):
+        doc_id = doc_ids[pos]
+        reference = instances[doc_id][0].target
+        scores: dict[str, list[float]] = {}
+        for metric_name, doc_values in pr_results.items():
+            if pos < len(doc_values):
+                scores[metric_name] = doc_values[pos]
+        scored_docs.append(ScoredDoc(doc_id=doc_id, reference=reference, scores=scores))
+
+    return scored_docs
 
 
 class METADATA(TypedDict, total=True, extra_items=Any):
@@ -845,17 +870,14 @@ class Task:
 
         instances = self._sort_instances(self._instances)
 
-        # try process results first
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)
             if pr_results is not None:
-                # Legacy path: process_results returns pre-scored values.
-                # normalize_to_list wraps scalars in single-element lists,
-                # giving _metric_results shape: {"acc": [[0], [1], [1]]}
-                scorer._metric_results = defaultdict(list, pr_results)
+                scored_docs = _legacy_to_scored_docs(instances, pr_results)
             else:
-                scorer.score_instances(instances)
-            scorer.reduce()  # _metric_results → _reduced_results
+                scored_docs = scorer.score_instances(instances)
+            scorer._scored_docs = scored_docs
+            scorer._reduced_results = scorer.reduce(scored_docs)
 
     def _try_process_results(
         self,
