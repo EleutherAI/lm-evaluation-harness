@@ -756,14 +756,14 @@ class Task:
         doc_to_text = (
             doc_to_text if doc_to_text is not None else self.config.doc_to_text
         )
-        y = process_field(doc, doc_to_text, digits=True, lists=False, default=None)
+        y = process_field(doc, doc_to_text, digits=False, lists=False)
         return y
 
     def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
         doc_to_choice = (
             doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
         )
-        y = process_field(doc, doc_to_choice, digits=True, lists=True, default=[])
+        y = process_field(doc, doc_to_choice, digits=False, lists=True)
         return y
 
     def doc_to_target(
@@ -772,7 +772,7 @@ class Task:
         doc_to_target = (
             doc_to_target if doc_to_target is not None else self.config.doc_to_target
         )
-        y = process_field(doc, doc_to_target, digits=True, lists=True, default=None)
+        y = process_field(doc, doc_to_target, digits=True, lists=True)
         return y
 
     def doc_to_prefix(self, doc):
@@ -1203,7 +1203,10 @@ class MultipleChoiceTask(Task):
             return doc_to_text
 
     def doc_to_choice(self, doc, doc_to_choice=None) -> list[str] | None:
-        choices = super().doc_to_choice(doc, doc_to_choice)
+        doc_to_choice = (
+            doc_to_choice if doc_to_choice is not None else self.config.doc_to_choice
+        )
+        choices = process_field(doc, doc_to_choice, digits=True, lists=True)
         if choices is not None and not isinstance(choices, list):
             raise ValueError(
                 "doc_to_choice should return a list of strings representing the answer choices."

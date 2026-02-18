@@ -1,4 +1,7 @@
-from typing import TYPE_CHECKING, Any
+import ast
+from typing import TYPE_CHECKING, Any, Literal
+
+from typing_extensions import overload
 
 from lm_eval import utils
 
@@ -7,36 +10,77 @@ if TYPE_CHECKING:
     from lm_eval.config.task import _MetricConfig
 
 
+@overload
+def process_field(
+    doc: Any,
+    field_spec: Any,
+    *,
+    digits: Literal[False] = ...,
+    lists: Literal[False] = ...,
+) -> str | None: ...
+
+
+@overload
+def process_field(
+    doc: Any,
+    field_spec: Any,
+    *,
+    digits: Literal[True],
+    lists: Literal[False] = ...,
+) -> str | int | None: ...
+
+
+@overload
+def process_field(
+    doc: Any,
+    field_spec: Any,
+    *,
+    digits: Literal[False] = ...,
+    lists: Literal[True],
+) -> str | list[str] | None: ...
+
+
+@overload
+def process_field(
+    doc: Any,
+    field_spec: Any,
+    *,
+    digits: Literal[True],
+    lists: Literal[True],
+) -> str | int | list[str] | None: ...
+
+
 def process_field(
     doc: dict[str, str],
     field_spec: Any | None,
     *,
     digits: bool = False,
     lists: bool = False,
-    default: Any | None = None,
-) -> Any:
+) -> str | int | list[str] | None:
     """Processes a field from a document."""
     # fmt: off
     match field_spec:
-        case None: return default
-        case func if callable(field_spec): return func(doc)
+        case None: return None
+        case _ if callable(field_spec): return field_spec(doc)
         case int(): return field_spec
-        case list(): return field_spec
+        case list(): return [utils.apply_template(x, doc) if isinstance(x, str) else x for x in field_spec]
         case str() if field_spec in doc: return doc[field_spec]
     # fmt: on
 
     target_string = utils.apply_template(field_spec, doc)
-    if lists:
-        # TODO: fix sequence
-        if isinstance(target_string, list) and any(
-            x in ["{", "}", "(", ")", "[", "]"] for x in target_string
-        ):
-            return [utils.apply_template(x, doc) for x in target_string]
-        # return ast.literal_eval(target_string)
-    elif digits:
-        return int(target_string) if target_string.isdigit() else target_string
 
-    return target_string or default
+    if digits and isinstance(target_string, str) and target_string.isdigit():
+        return int(target_string)
+
+    if lists and isinstance(target_string, str):
+        try:
+            parsed = ast.literal_eval(target_string)
+            if isinstance(parsed, list):
+                return parsed
+        except (ValueError, SyntaxError):
+            pass
+
+    return target_string
 
 
 def parse_metric(cfg: "_MetricConfig"):

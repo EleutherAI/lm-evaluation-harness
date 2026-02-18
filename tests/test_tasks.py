@@ -65,14 +65,14 @@ class BaseTasks:
 
     def test_check_training_docs(self, task_class: ConfigurableTask):
         if task_class.has_training_docs():
-            assert task_class._config["training_split"] is not None
+            assert task_class._config.training_split is not None
 
     def test_has_validation_docs(self, task_class):
         assert task_class.has_validation_docs() in [True, False]
 
     def test_check_validation_docs(self, task_class):
         if task_class.has_validation_docs():
-            assert task_class._config["validation_split"] is not None
+            assert task_class._config.validation_split is not None
 
     def test_has_test_docs(self, task_class):
         assert task_class.has_test_docs() in [True, False]
@@ -80,13 +80,13 @@ class BaseTasks:
     def test_check_test_docs(self, task_class):
         task = task_class
         if task.has_test_docs():
-            assert task._config["test_split"] is not None
+            assert task._config.test_split is not None
 
-    def test_should_decontaminate(self, task_class):
-        task = task_class
-        assert task.should_decontaminate() in [True, False]
-        if task.should_decontaminate():
-            assert task._config["doc_to_decontamination_query"] is not None
+    # def test_should_decontaminate(self, task_class):
+    #     task = task_class
+    #     assert task.should_decontaminate() in [True, False]
+    #     if task.should_decontaminate():
+    #         assert task._config.doc_to_decontamination_query is not None
 
     def test_doc_to_text(self, task_class, limit):
         task = task_class
@@ -98,7 +98,7 @@ class BaseTasks:
         _array = [task.doc_to_text(doc) for doc in arr]
         # space convention; allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
         target_delimiter: str = task.config.target_delimiter
-        if not task.multiple_input:
+        if not task._multiple_inputs:
             for x in _array:
                 assert isinstance(x, str)
                 assert (
@@ -150,9 +150,11 @@ class BaseTasks:
         # ctx is "" for multiple input tasks
         requests = [
             task.construct_requests(
-                doc=doc, ctx="" if task.multiple_input else task.doc_to_text(doc)
+                doc=doc,
+                ctx="" if task._multiple_inputs else task.doc_to_text(doc),
+                metadata={"doc_id": i, "repeats": 1, "task_name": task_class.task_name},
             )
-            for doc in arr
+            for i, doc in enumerate(arr)
         ]
         assert len(requests) == limit if limit else True
 

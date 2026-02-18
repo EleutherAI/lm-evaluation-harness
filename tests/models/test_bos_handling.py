@@ -501,6 +501,8 @@ class TestLoglikelihoodBosHandling:
                 request_type="loglikelihood",
                 doc={},
                 arguments=("", continuation),
+                task_name="test",
+                doc_id=0,
                 idx=0,
             )
         ]
@@ -549,6 +551,8 @@ class TestLoglikelihoodBosHandling:
                 request_type="loglikelihood",
                 doc={},
                 arguments=("", continuation),
+                task_name="test",
+                doc_id=0,
                 idx=0,
             )
         ]
@@ -587,6 +591,8 @@ class TestLoglikelihoodBosHandling:
                 request_type="loglikelihood",
                 doc={},
                 arguments=(f"{bos_token}System:", "Hello"),
+                task_name="test",
+                doc_id=0,
                 idx=0,
             )
         ]
