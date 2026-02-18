@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from inspect import getsource
 from typing import TYPE_CHECKING, Any, cast
 
@@ -11,9 +11,15 @@ from lm_eval.defaults import default_gen_kwargs
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
+
+    import datasets
 
     from lm_eval.api.instance import OutputType
+
+    TaskDataSet = datasets.Dataset | Iterable[dict[str, Any]]
+
+Doc = dict[str, Any]
 
 
 eval_logger = logging.getLogger(__name__)
@@ -54,9 +60,9 @@ class FewshotConfig:
     fewshot_indices: list[int] | None = None
     samples: list[dict[str, Any]] | Callable[[], list[dict[str, Any]]] | None = None
     # Override doc formatting for fewshot examples
-    doc_to_text: str | Callable[..., str] | None = None
-    doc_to_choice: str | Callable[..., str] | dict | list | None = None
-    doc_to_target: str | Callable[..., str] | None = None
+    doc_to_text: str | Callable[[Doc], str] | None = None
+    doc_to_choice: str | Callable[[Doc], list[str]] | list[str] | None = None
+    doc_to_target: str | Callable[[Doc], str | int] | None = None
     gen_prefix: str | None = None
     fewshot_delimiter: str | None = None
     target_delimiter: str | None = None
@@ -89,13 +95,16 @@ class FewshotConfig:
         *,
         # inherited from TaskConfig if not specified
         fewshot_split: str | None = None,
-        process_docs: Callable[..., list[dict]] | None = None,
+        process_docs: Callable[[Iterable[dict[str, Any]]], list[dict[str, Any]]]
+        | None = None,
         fewshot_delimiter: str | None = None,
         target_delimiter: str | None = None,
         gen_prefix: str | None = None,
-        doc_to_text: str | Callable[..., str] | None = None,
-        doc_to_choice: str | Callable[..., str] | dict | list | None = None,
-        doc_to_target: str | Callable[..., str] | None = None,
+        doc_to_text: str | Callable[[Doc], str | list[str]] | None = None,
+        doc_to_choice: str | Callable[[Doc], list[str]] | list[str] | None = None,
+        doc_to_target: str
+        | Callable[[Doc], str | int | list[int] | list[str]]
+        | None = None,
         **overloads,
     ) -> FewshotConfig:
         cfg_dict = {
@@ -111,22 +120,23 @@ class FewshotConfig:
             **overloads,
         }
         cfg_dict.setdefault("sampler", "default")
-        return cls(**cfg_dict)
+        return cls(**cfg_dict)  # type:ignore[invalid-argument-type]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TaskConfig:
     # task naming/registry
-    task: str | None = None
+    task: str
     task_alias: str | None = None
-    tag: str | list | None = None
+    output_type: OutputType = "generate_until"
+    tag: list[str] = field(default_factory=list)
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
-    custom_dataset: Callable | None = None
+    custom_dataset: Callable[..., dict[str, TaskDataSet]] | None = None
     dataset_path: str | None = None
     dataset_name: str | None = None
-    dataset_kwargs: dict | None = None
+    dataset_kwargs: dict[str, str | int | float] = field(default_factory=dict)
     training_split: str | None = None
     validation_split: str | None = None
     test_split: str | None = None
@@ -135,35 +145,36 @@ class TaskConfig:
     )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    process_docs: Callable | None = None
-    doc_to_text: Callable | str | None = None
-    doc_to_target: Callable | str | None = None
-    doc_to_image: Callable | str | None = None
-    doc_to_audio: Callable | str | None = None
-    unsafe_code: bool = False
-    doc_to_choice: Callable | str | dict | list | None = None
-    process_results: Callable | str | None = None
-    use_prompt: str | None = None
+    process_docs: Callable[..., list[dict[str, Any]]] | None = None
     description: str = ""
+    doc_to_text: Callable[[Doc], str | list[str]] | str | None = None
+    doc_to_choice: Callable[[Doc], list[str]] | str | list[str] | None = None
+    doc_to_target: Callable[[Doc], str | int | list[int] | list[str]] | str | None = (
+        None
+    )
+    gen_prefix: str | None = None
+    doc_to_image: Callable[[Doc], Any] | str | None = None
+    doc_to_audio: Callable[[Doc], Any] | str | None = None
+    process_results: (
+        Callable[[dict[str, Any], list[str]], dict[str, list[Any]]] | str | None
+    ) = None
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
     fewshot_config: dict[str, Any] | FewshotConfig | None = None
     # runtime configuration options
     num_fewshot: int | None = None
+    generation_kwargs: dict[str, Any] = field(default_factory=dict)
     # scoring options
-    metric_list: list[_MetricConfig] | None = None
-    output_type: OutputType = "generate_until"
-    generation_kwargs: dict[str, Any] | None = None
+    metric_list: list[_MetricConfig] = field(default_factory=list)
+    filter_list: FilterList = field(default_factory=list)
     repeats: int = 1
-    filter_list: str | list | None = None
-    should_decontaminate: bool = False
-    doc_to_decontamination_query: str | None = None
-    gen_prefix: str | None = None
+    unsafe_code: bool = False
+    use_prompt: str | None = None
     multiple_inputs: bool = False
     multiple_targets: bool = False
-    metadata: dict | None = (
-        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-    )
+    should_decontaminate: bool = False
+    doc_to_decontamination_query: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:

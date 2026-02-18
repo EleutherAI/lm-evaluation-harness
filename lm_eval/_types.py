@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
+from typing_extensions import Protocol
 
 
 if TYPE_CHECKING:
@@ -15,9 +16,26 @@ if TYPE_CHECKING:
 
     from lm_eval.api.instance import Instance
 
-
 _count_bytes = lambda x: len(x.encode("utf-8"))
 _count_words = lambda x: len(re.split(r"\s+", x))
+
+
+class ChatTemplate(Protocol):
+    """Protocol for applying chat templates."""
+
+    def __call__(
+        self,
+        chat_history: list[dict[str, Any]],
+        *,
+        add_generation_prompt: bool,
+        **kwargs,
+    ) -> str | list[dict[str, Any]]: ...
+
+
+# multiple-choice types send a number of "loglikelihood" instances
+OutputType = Literal[
+    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
+]
 
 
 @dataclass(frozen=True, slots=True)

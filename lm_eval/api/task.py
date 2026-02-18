@@ -33,6 +33,7 @@ from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.config.task import TaskConfig
 from lm_eval.config.utils import process_field
 from lm_eval.scorers import Scorer
+from lm_eval.utils import normalize_to_list
 
 
 if TYPE_CHECKING:
@@ -40,8 +41,8 @@ if TYPE_CHECKING:
 
     import datasets
 
+    from lm_eval._types import ChatTemplate, OutputType
     from lm_eval.config.task import FewshotConfig
-    from lm_eval.types import ChatTemplate, OutputType
 
 eval_logger = logging.getLogger(__name__)
 
@@ -449,6 +450,9 @@ class Task:
                 chat_template=chat_template if apply_chat_template else None,
                 fewshot_as_multiturn=fewshot_as_multiturn,
             )
+        assert isinstance(q, str), (
+            f"Expected doc_to_text to be a string, got {type(q)}: {q}"
+        )
         messages += self.build_qa_turn(
             q=q,
             c=c,
@@ -464,7 +468,7 @@ class Task:
             )
             res = chat_template(res)
         else:
-            res = "".join(m.to_text() for m in messages)
+            res: str = "".join(m.to_text() for m in messages)
 
         return res
 
@@ -843,6 +847,7 @@ class Task:
 
         instances = self._sort_instances(self._instances)
 
+        # try process results first
         for scorer in self._scorers:
             pr_results = self._try_process_results(instances, scorer.name)
             if pr_results is not None:
@@ -873,12 +878,14 @@ class Task:
             if metrics is None:
                 return None
 
+            metrics = normalize_to_list(metrics)
+
             for metric_name, value in metrics.items():
                 accumulator[metric_name].append(value)
 
         return dict(accumulator) if accumulator else None
 
-    def process_results(self, doc, results):
+    def process_results(self, doc, results) -> dict[str, list[Any]] | None:
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
         return None
@@ -952,7 +959,7 @@ class Task:
             if m.aggregation
         }
 
-    def higher_is_better(self) -> dict:
+    def higher_is_better(self) -> dict[str, bool]:
         return {
             k: v for scorer in self._scorers for k, v in scorer.higher_is_better.items()
         }

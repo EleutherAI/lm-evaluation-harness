@@ -23,10 +23,11 @@ class Scorer:
     filter: FilterEnsemble
     metrics: list[Metric] | None = None
     output_type: str | None = None
-    _metric_results: dict[str, list[Any]] = field(
+    _metric_results: dict[str, list[list[Any]]] = field(
         default_factory=lambda: defaultdict(list)
     )
-    _reduced_results: dict[str, list] = field(default_factory=dict)
+    _reduced_results: dict[str, list[Any]] = field(default_factory=dict)
+    _aggregation_results: dict[str, Any] = field(default_factory=dict)
 
     # ------------------------------------------------------------------
     # Construction helpers

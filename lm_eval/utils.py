@@ -890,3 +890,8 @@ def random_name_id() -> str:
     import string
 
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+
+
+def normalize_to_list(x: dict[str, Any] | dict[str, list[Any]]) -> dict[str, list[Any]]:
+    """Normalize a dict of str to T or list[T] into a dict of str to list[T]."""
+    return {k: v if isinstance(v, list) else [v] for k, v in x.items()}
