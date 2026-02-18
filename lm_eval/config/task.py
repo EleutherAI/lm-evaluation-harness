@@ -167,6 +167,7 @@ class TaskConfig:
     # scoring options
     metric_list: list[_MetricConfig] = field(default_factory=list)
     filter_list: FilterList = field(default_factory=list)
+    scorer: str | None = None
     repeats: int = 1
     unsafe_code: bool = False
     use_prompt: str | None = None
