@@ -864,7 +864,7 @@ class Task:
         self,
         instances: dict[int, list[Instance]],
         filter_key: str,
-    ) -> dict[str, list] | None:
+    ) -> dict[str, list[list[Any]]] | None:
         """Try the legacy process_results path for all docs.
 
         Returns ``{metric_name: [per_doc_values]}`` if ``process_results``
@@ -872,7 +872,7 @@ class Task:
         """
         from collections import defaultdict
 
-        accumulator: dict[str, list] = defaultdict(list)
+        accumulator = defaultdict(list)
 
         for doc_id, doc_instances in instances.items():
             filtered_resps = [req.filtered_resps[filter_key] for req in doc_instances]

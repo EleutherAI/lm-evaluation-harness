@@ -108,12 +108,6 @@ class Scorer:
     # Scoring
     # ------------------------------------------------------------------
 
-    def reset(self) -> None:
-        """Clear accumulated per-metric results for a fresh scoring pass."""
-        self._metric_results = defaultdict(list)
-        self._reduced_results = {}
-        self._aggregation_results = {}
-
     def score_instances(self, instances: dict[int, list[Instance]]) -> None:
         """Score all documents' instances, accumulating per-metric results.
 
@@ -127,8 +121,6 @@ class Scorer:
         so that the downstream ``_reduce`` step works uniformly.
         """
         from lm_eval._types import LLResults
-
-        self.reset()
 
         for doc_id, doc_instances in instances.items():
             if self.output_type == "generate_until":
