@@ -185,7 +185,7 @@ class Task:
         from lm_eval.config.metric import Metric
 
         metrics: list[Metric] = []
-        if self.config.metric_list is not None:
+        if self.config.metric_list:
             for m_cfg in self.config.metric_list:
                 metrics.append(Metric.from_dict(m_cfg))
         else:
@@ -198,7 +198,7 @@ class Task:
         global_metrics = self._build_global_metrics()
         output_type = self.OUTPUT_TYPE
 
-        if self.config.filter_list is not None:
+        if self.config.filter_list:
             return [
                 Scorer.from_dict(
                     filter_config,

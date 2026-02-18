@@ -238,7 +238,10 @@ def choice_logprob_norm_fn(references: int, predictions: LLResults) -> float:
 )
 def perplexity_fn(references: int | list[int], predictions: LLResults) -> float:
     """Passthrough of the gold log-likelihood for corpus-level perplexity aggregation."""
-    return predictions.lls[predictions.target]
+    if len(predictions.lls) == 1:
+        # Plain loglikelihood: single continuation
+        return float(predictions.lls[0])
+    return float(predictions.lls[references])
 
 
 # ---------------------------------------------------------------------------
