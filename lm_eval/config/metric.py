@@ -24,6 +24,8 @@ def has_kwargs(fn):
 
 def filter_kwargs(fn, kwargs) -> Mapping[str, Any]:
     params = inspect.signature(fn).parameters
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return kwargs  # function accepts **kwargs, pass everything
     return {
         k: v
         for k, v in kwargs.items()
@@ -49,7 +51,9 @@ class Metric(Generic[_T]):
     aggregation: Callable[[list[_T]], float] | None = None
     higher_is_better: bool = True
     output_type: str = "multiple_choice"
-    reduction: Callable[[list[_T]], _T] = lambda x: x[0] if isinstance(x, list) else x
+    reduction: Callable[..., _T] = lambda references, predictions: (
+        predictions[0] if isinstance(predictions, list) else predictions
+    )
 
     @classmethod
     def from_dict(cls, cfg: dict[str, Any]) -> Self:

@@ -338,7 +338,7 @@ class Likelihood(CorpusMetric["LLResults", tuple[int, tuple]]):
     Returns (gold_index, (ll_0, ll_1, ...)) for corpus-level custom aggregation.
     """
 
-    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, tuple]:
+    def __call__(self, references: int, predictions: "LLResults") -> tuple[int, tuple]:
         return references, tuple(predictions.lls)
 
     def aggregation(self, items: list[tuple[int, tuple]]) -> float:
@@ -364,7 +364,7 @@ class AccAll(CorpusMetric["LLResults", tuple[int, dict]]):
     for that question is labeled correctly.
     """
 
-    def __call__(self, references: Any, predictions: "LLResults") -> tuple[int, dict]:
+    def __call__(self, references: int, predictions: "LLResults") -> tuple[int, dict]:
         pred = int(np.argmax(predictions.lls))
         gold = references
         return int(pred == gold), predictions.doc
