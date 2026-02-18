@@ -51,7 +51,9 @@ class Metric(Generic[_T]):
     aggregation: Callable[[list[_T]], float] | None = None
     higher_is_better: bool = True
     output_type: str = "multiple_choice"
-    reduction: Callable[[list[_T]], _T] = lambda x: x[0] if isinstance(x, list) else x
+    reduction: Callable[..., _T] = lambda references, predictions: (
+        predictions[0] if isinstance(predictions, list) else predictions
+    )
 
     @classmethod
     def from_dict(cls, cfg: dict[str, Any]) -> Self:

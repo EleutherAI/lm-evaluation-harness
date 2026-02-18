@@ -5,20 +5,24 @@ import numpy as np
 from lm_eval.api.registry import register_reduction
 
 
+def _expand_references(references, predictions: Sequence) -> Sequence:
+    """Expand a scalar reference to a parallel array matching predictions length."""
+    if isinstance(references, Sequence) and len(references) == len(predictions):
+        return references
+    return [references] * len(predictions)
+
+
 @register_reduction("pass@k")
-def pass_at_k(
-    references: Sequence[int], predictions: Sequence[int], k: int = 1
-) -> float:
+def pass_at_k(references, predictions: Sequence, k: int = 1) -> float:
+    """Estimate pass@k from Chen et al. 2021 (https://arxiv.org/abs/2107.03374).
+
+    Args:
+        references: The raw target for the document, or a parallel sequence of
+            per-repeat references.  A scalar is broadcast to match *predictions*.
+        predictions: Per-repeat metric scores for this document.
+        k: k in pass@k.
     """
-    From Chen et al. 2021: https://arxiv.org/abs/2107.03374
-    n: total number of samples
-    c: number of correct samples
-    :param items: list of 0/1 predictions
-    :param k: k in pass@k
-    """
-    assert len(references) == len(predictions), (
-        "Length of predictions and references must match."
-    )
+    references = _expand_references(references, predictions)
     n = len(predictions)
     c = len([1 for x, y in zip(predictions, references, strict=True) if x == y])
     if n - c < k:
@@ -26,8 +30,6 @@ def pass_at_k(
     return 1.0 - np.prod(1.0 - k / np.arange(n - c + 1, n + 1))
 
 
-def take_first(references: Sequence[int], predictions: Sequence[int]) -> int:
-    """
-    Simple reduction function that takes the first prediction as the final prediction.
-    """
+def take_first(references, predictions: Sequence):
+    """Return the first repeat's prediction, ignoring all others."""
     return predictions[0]

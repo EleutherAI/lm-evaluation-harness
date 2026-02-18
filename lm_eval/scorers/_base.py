@@ -26,6 +26,7 @@ class Scorer:
     _metric_results: dict[str, list[list[Any]]] = field(
         default_factory=lambda: defaultdict(list)
     )
+    _doc_references: list[Any] = field(default_factory=list)
     _reduced_results: dict[str, list[Any]] = field(default_factory=dict)
     _aggregation_results: dict[str, Any] = field(default_factory=dict)
 
@@ -137,6 +138,7 @@ class Scorer:
 
                 for metric_name, values in repeat_scores.items():
                     self._metric_results[metric_name].append(values)  # [T*K]
+                self._doc_references.append(target)
             else:
                 # loglikelihood / multiple_choice — repeats=1
                 results_obj = LLResults.from_instances(doc_instances)
@@ -145,6 +147,7 @@ class Scorer:
 
                 for metric_name, value in per_doc.items():
                     self._metric_results[metric_name].append([value])  # wrap: [T]
+                self._doc_references.append(references)
 
     def _dispatch_metrics(self, references: Any, predictions: Any) -> dict[str, Any]:
         """Call each Metric.compute(references, predictions) and collect per-doc results."""
@@ -164,13 +167,22 @@ class Scorer:
     # ------------------------------------------------------------------
 
     def reduce(self) -> dict[str, list]:
-        """Reduce per-doc list[T] → T for each document. Stores result internally."""
+        """Reduce per-doc list[T] → T for each document. Stores result internally.
+
+        Calls ``m.reduction(references, predictions)`` where *references* is
+        the raw target for the document and *predictions* is the list of K
+        per-repeat scored values.
+        """
         reduced: dict[str, list] = {}
         for m in self.metrics or []:
             if m.name in self._metric_results:
                 reduced[m.name] = [
-                    m.reduction(per_doc_values)
-                    for per_doc_values in self._metric_results[m.name]
+                    m.reduction(doc_ref, per_doc_values)
+                    for doc_ref, per_doc_values in zip(
+                        self._doc_references,
+                        self._metric_results[m.name],
+                        strict=True,
+                    )
                 ]
         self._reduced_results = reduced
         return reduced
@@ -182,14 +194,13 @@ class Scorer:
     ) -> tuple[dict[str, Any], int]:
         """Aggregate metric results and compute stderr.
 
-        For ``CorpusMetric`` instances, delegates to their ``.aggregation()``
-        method and caps bootstrap iterations to 100.
-        For regular metrics, calls ``m.aggregate(values)``.
+        Calls ``m.aggregate(values)`` uniformly for all metrics — both
+        plain function metrics and corpus metrics have their aggregation
+        captured on the ``Metric`` object at construction time.
 
         Returns ``(agg_metrics, sample_len)`` where keys are in
         ``"metric,{self.name}"`` / ``"metric_stderr,{self.name}"`` format.
         """
-        from lm_eval.api._metrics.corpus import CorpusMetric
         from lm_eval.api.metrics import mean, stderr_for_metric
 
         results = (
@@ -204,12 +215,11 @@ class Scorer:
             values = results[m.name]
             sample_len = max(sample_len, len(values))
 
-            # Aggregation
+            # Aggregation — Metric.aggregate() works uniformly for both
+            # plain function metrics and corpus metrics (aggregation was
+            # captured at construction time in _get_metric).
             agg_fn = m.aggregation
-            if isinstance(m.fn, CorpusMetric):
-                agg[f"{m.name},{self.name}"] = m.fn.aggregation(values)
-                agg_fn = m.fn.aggregation
-            elif agg_fn is not None:
+            if agg_fn is not None:
                 agg[f"{m.name},{self.name}"] = m.aggregate(values)
             else:
                 eval_logger.warning(f"No aggregation for {m.name}. Using mean.")
@@ -219,13 +229,8 @@ class Scorer:
             # Stderr
             stderr_key = f"{m.name}_stderr,{self.name}"
             if isinstance(bootstrap_iters, int) and bootstrap_iters > 0:
-                effective_iters = (
-                    min(bootstrap_iters, 100)
-                    if isinstance(m.fn, CorpusMetric)
-                    else bootstrap_iters
-                )
                 stderr_fn = stderr_for_metric(
-                    metric=agg_fn, bootstrap_iters=effective_iters
+                    metric=agg_fn, bootstrap_iters=bootstrap_iters
                 )
                 agg[stderr_key] = (
                     stderr_fn(values) if (stderr_fn and len(values) > 1) else "N/A"

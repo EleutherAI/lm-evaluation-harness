@@ -637,17 +637,28 @@ def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
     except KeyError:
         return None
 
-    # CorpusMetric subclasses are registered as classes, not instances.
-    # Instantiate so isinstance(m.fn, CorpusMetric) works downstream.
+    if isinstance(raw, Metric):
+        return raw
+
+    # CorpusMetric subclasses are registered as classes — instantiate and
+    # capture their aggregation/reduction so the resulting Metric is
+    # self-contained.  Scorer never needs to know about CorpusMetric.
     from lm_eval.api._metrics.corpus import CorpusMetric
 
     if isinstance(raw, type) and issubclass(raw, CorpusMetric):
         raw = raw()
 
-    if isinstance(raw, Metric):
-        return raw
+    if isinstance(raw, CorpusMetric):
+        hib = higher_is_better_registry.get(name, True)
+        return Metric(
+            name=name,
+            fn=raw,
+            aggregation=raw.aggregation,
+            reduction=raw.reduce,
+            higher_is_better=hib,
+        )
 
-    # Wrap raw fn/class in Metric, pulling agg + hib from companion registries
+    # Plain function metric — pull agg + hib from companion registries
     agg_fn = metric_agg_registry.get(name, None)
     hib = higher_is_better_registry.get(name, True)
     return Metric(name=name, fn=raw, aggregation=agg_fn, higher_is_better=hib)
