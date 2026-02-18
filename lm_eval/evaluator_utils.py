@@ -494,11 +494,17 @@ def _build_logged_samples(
 
             # Get per-doc metric values from scorer's reduced results
             per_doc_metrics = {}
+            per_repeat_metrics = {}
             pos = doc_id_to_pos.get(doc_id)
             if pos is not None and reduced:
                 for mn, vals in reduced.items():
                     if pos < len(vals):
                         per_doc_metrics[mn] = vals[pos]
+            # Get per-repeat metric scores (pre-reduction)
+            if pos is not None and scorer._metric_results:
+                for mn, doc_lists in scorer._metric_results.items():
+                    if pos < len(doc_lists) and len(doc_lists[pos]) > 1:
+                        per_repeat_metrics[mn] = doc_lists[pos]
 
             example = {
                 "doc_id": doc_id_true,
@@ -523,6 +529,8 @@ def _build_logged_samples(
                 "target_hash": hash_string(str(target)),
             }
             example.update(per_doc_metrics)
+            if per_repeat_metrics:
+                example["scores_per_repeat"] = per_repeat_metrics
             logged.append(example)
 
     return logged

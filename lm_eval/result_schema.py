@@ -1,6 +1,6 @@
 from typing import Any, Generic, Literal, TypeVar
 
-from typing_extensions import Protocol, NotRequired, TypedDict
+from typing_extensions import NotRequired, Protocol, TypedDict
 
 
 T = TypeVar("T", bound=int | float | bool | tuple)
@@ -225,3 +225,8 @@ class SampleResult(TypedDict, extra_items=float):
 
     target_hash: str
     """SHA hash of the target string."""
+
+    scores_per_repeat: NotRequired[dict[str, list[float]]]
+    """Per-repeat metric scores before reduction.  Only present when ``repeats > 1``.
+    Maps metric name to a list of scores, one per repeat.
+    E.g. ``{"exact_match": [0.0, 1.0]}`` for 2 repeats."""

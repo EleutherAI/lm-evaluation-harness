@@ -1,4 +1,3 @@
-import ast
 from typing import TYPE_CHECKING, Any
 
 from lm_eval import utils
@@ -33,7 +32,7 @@ def process_field(
             x in ["{", "}", "(", ")", "[", "]"] for x in target_string
         ):
             return [utils.apply_template(x, doc) for x in target_string]
-        return ast.literal_eval(target_string)
+        # return ast.literal_eval(target_string)
     elif digits:
         return int(target_string) if target_string.isdigit() else target_string
 
