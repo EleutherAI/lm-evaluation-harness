@@ -32,11 +32,7 @@ class ScoredDoc:
 
 @dataclass(frozen=True, slots=True)
 class MetricKey:
-    """Structured representation of a ``"metric,scorer"`` key.
-
-    Replaces ad-hoc f-string construction and ``startswith`` / ``partition``
-    parsing throughout the codebase.
-    """
+    """Structured representation of a ``"metric,scorer"`` key."""
 
     metric: str
     scorer: str

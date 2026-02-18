@@ -443,6 +443,12 @@ class Task:
                     else None,
                     self.doc_to_target(fs_doc, self._fewshot_cfg.doc_to_target),
                 )
+                # in most cases we expect q to be a string, except for multiple-input where its list[str]
+                if isinstance(q, list):
+                    assert isinstance(a, int), (
+                        "Multiple-input fewshot examples require integer answer keys to index into the question list"
+                    )
+                    q = q[a]
                 _gen_prefix = self.resolve_field(doc, self._fewshot_cfg.gen_prefix)
                 # for multiple inputs, q: int, c: list[str], target: str
                 # TODO: fix this hacky way of handling multiple inputs
@@ -929,7 +935,7 @@ class Task:
             sample_len = max(sample_len, count)
         return agg_metrics, sample_len
 
-    def export_raw_metrics(self) -> dict[str, dict[str, list]]:
+    def export_raw_metrics(self) -> dict[str, dict[str, list[Any]]]:
         """Export reduced results from all scorers for distributed gathering.
 
         Returns {scorer_name: {metric_name: [per_doc_values]}}.
