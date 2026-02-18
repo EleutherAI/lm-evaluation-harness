@@ -19,9 +19,7 @@ class ChatTemplate(Protocol):
 
 
 # multiple-choice types send a number of "loglikelihood" instances
-OutputType = Literal[
-    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
-]
+OutputType = Literal["loglikelihood", "loglikelihood_rolling", "generate_until"]
 
 
 """Full evaluation results returned by ``simple_evaluate()`` and ``evaluate()``.

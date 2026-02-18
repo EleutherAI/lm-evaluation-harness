@@ -11,6 +11,7 @@ from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
+    Literal,
     cast,
 )
 
@@ -64,11 +65,10 @@ class Task:
     """
 
     VERSION: str = "Yaml"
-    OUTPUT_TYPE: OutputType | None = None
+    OUTPUT_TYPE: OutputType | Literal["multiple_choice"] | None = None
     DATASET_PATH: str | None = None
     DATASET_NAME: str | None = None
     MULTIMODAL: bool = False
-    CONFIG: dict[str, Any] = {}
     _registry = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -116,11 +116,8 @@ class Task:
 
     def __init__(self, config: TaskConfig | dict[str, Any]):
         self._config: TaskConfig = (
-            TaskConfig(**self.CONFIG)
-            if self.CONFIG
-            else (config if isinstance(config, TaskConfig) else TaskConfig(**config))
+            config if isinstance(config, TaskConfig) else TaskConfig(**config)
         )
-        # TODO: make this str rather than str|None
         self.task = self._config.task
         assert self.task is not None
         self.OUTPUT_TYPE = self.OUTPUT_TYPE or self._config.output_type
@@ -1027,7 +1024,15 @@ class Task:
 
 
 class MultipleChoiceTask(Task):
-    OUTPUT_TYPE: OutputType = "multiple_choice"
+    OUTPUT_TYPE = "multiple_choice"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.config.repeats and self.config.repeats > 1:
+            eval_logger.warning(
+                f"MultipleChoiceTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
+            )
+            self.config.repeats = 1
 
     def construct_requests(
         self,
@@ -1259,6 +1264,11 @@ class LoglikelihoodTask(Task):
         super().__init__(config)
         assert self._multiple_inputs is False
         assert self._multiple_targets is False
+        if self.config.repeats and self.config.repeats > 1:
+            eval_logger.warning(
+                f"MultipleChoiceTask does not support repeats > 1, but config has repeats={self.config.repeats}. Setting repeats to 1."
+            )
+            self.config.repeats = 1
 
     def construct_requests(
         self,
@@ -1297,7 +1307,7 @@ class LoglikelihoodTask(Task):
 
 
 class LoglikelihoodRollingTask(LoglikelihoodTask):
-    OUTPUT_TYPE: OutputType = "loglikelihood_rolling"
+    OUTPUT_TYPE = "loglikelihood_rolling"
 
     def construct_requests(
         self,

@@ -32,10 +32,8 @@ class ChatTemplate(Protocol):
     ) -> str | list[dict[str, Any]]: ...
 
 
-# multiple-choice types send a number of "loglikelihood" instances
-OutputType = Literal[
-    "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
-]
+# multiple_choice types send a number of "loglikelihood" instances
+OutputType = Literal["loglikelihood", "loglikelihood_rolling", "generate_until"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,4 +151,4 @@ class LLResults:
         )
 
     def to_metric_inputs(self):
-        return {"targets": self.targets, "results": self}
+        return {"references": self.targets, "predictions": self}
