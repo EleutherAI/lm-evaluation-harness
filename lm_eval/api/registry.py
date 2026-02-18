@@ -637,6 +637,13 @@ def _get_metric(name: str, hf_evaluate_metric: bool = False) -> Metric | None:
     except KeyError:
         return None
 
+    # CorpusMetric subclasses are registered as classes, not instances.
+    # Instantiate so isinstance(m.fn, CorpusMetric) works downstream.
+    from lm_eval.api._metrics.corpus import CorpusMetric
+
+    if isinstance(raw, type) and issubclass(raw, CorpusMetric):
+        raw = raw()
+
     if isinstance(raw, Metric):
         return raw
 

@@ -304,8 +304,10 @@ def exact_match_hf_evaluate(
     output_type="generate_until",
     aggregation="mean",
 )
-def exact_match_fn(**kwargs):
-    return exact_match_hf_evaluate(**kwargs)
+def exact_match_fn(references, predictions, **kwargs):
+    return exact_match_hf_evaluate(
+        predictions=predictions, references=references, **kwargs
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -319,5 +321,5 @@ def exact_match_fn(**kwargs):
     output_type=["loglikelihood", "multiple_choice", "generate_until"],
     aggregation="bypass",
 )
-def bypass(items):
+def bypass(references=None, predictions=None, **kwargs):
     return None

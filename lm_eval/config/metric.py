@@ -24,6 +24,8 @@ def has_kwargs(fn):
 
 def filter_kwargs(fn, kwargs) -> Mapping[str, Any]:
     params = inspect.signature(fn).parameters
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return kwargs  # function accepts **kwargs, pass everything
     return {
         k: v
         for k, v in kwargs.items()

@@ -131,7 +131,7 @@ class Scorer:
 
                 repeat_scores: dict[str, list] = defaultdict(list)
                 for resp in resps:
-                    per_repeat = self._score_gen_single(target, resp, inst.doc)
+                    per_repeat = self._dispatch_metrics([target], [resp])
                     for metric_name, value in per_repeat.items():
                         repeat_scores[metric_name].append(value)
 
@@ -145,18 +145,6 @@ class Scorer:
 
                 for metric_name, value in per_doc.items():
                     self._metric_results[metric_name].append([value])  # wrap: [T]
-
-    def _score_gen_single(self, target, prediction, doc) -> dict[str, Any]:
-        """Score a single generate_until prediction against target."""
-        result_dict: dict[str, Any] = {}
-        for m in self.metrics or []:
-            kwargs = {**m.kwargs, "predictions": [prediction], "references": [target]}
-            score = m.fn(**kwargs)
-            if isinstance(score, dict):
-                result_dict.update(score)
-            else:
-                result_dict[m.name] = score
-        return result_dict
 
     def _dispatch_metrics(self, references: Any, predictions: Any) -> dict[str, Any]:
         """Call each Metric.compute(references, predictions) and collect per-doc results."""
