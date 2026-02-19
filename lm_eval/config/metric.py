@@ -1,5 +1,5 @@
 import inspect
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Generic, cast
 
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 
 _T = TypeVar("_T")
+_K = TypeVar("_K")
 
 METRIC_KEYS = {"metric", "aggregation", "higher_is_better", "reduction", "kwargs"}
 
@@ -38,8 +39,12 @@ def filter_kwargs(fn, kwargs) -> Mapping[str, Any]:
     }
 
 
-@dataclass
-class Metric(Generic[_T]):
+def take_first(references: Any, predictions: Sequence[Any]):
+    return predictions[0] if isinstance(predictions, list) else predictions
+
+
+@dataclass(frozen=True)
+class Metric(Generic[_T, _K]):
     """Encapsulates information about a single metric.
 
     This is the canonical representation for metrics used throughout lm_eval
@@ -48,12 +53,20 @@ class Metric(Generic[_T]):
     name: str
     fn: Callable[..., _T]
     kwargs: Mapping[str, Any] = field(default_factory=dict)
-    aggregation: Callable[[list[_T]], float] | None = None
+    aggregation: Callable[[Sequence[_T] | Sequence[_K]], float] | None = None
     higher_is_better: bool = True
     output_type: str = "multiple_choice"
-    reduction: Callable[..., _T] = lambda references, predictions: (
-        predictions[0] if isinstance(predictions, list) else predictions
-    )
+    reduction: Callable[..., _K] = take_first
+
+    def __post_init__(self):
+        if not self.name:
+            raise ValueError("Metric name must be non-empty.")
+        if not callable(self.fn):
+            raise ValueError(
+                f"Metric '{self.name}' fn must be callable, got {type(self.fn)}."
+            )
+        if self.reduction is None:
+            object.__setattr__(self, "reduction", take_first)
 
     @classmethod
     def from_dict(cls, cfg: dict[str, Any]) -> Self:
@@ -66,7 +79,7 @@ class Metric(Generic[_T]):
         """Compute the metric for a sample."""
         return self.fn(*args, **filter_kwargs(self.fn, {**self.kwargs, **kwargs}))
 
-    def aggregate(self, values: list[_T]) -> float:
+    def aggregate(self, values: Sequence[_K] | Sequence[_T]) -> float:
         """Aggregate a list of metric values into a single score."""
         if self.aggregation is None:
             raise ValueError(
