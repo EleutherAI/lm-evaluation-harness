@@ -95,12 +95,6 @@ class Task:
     MULTIMODAL: bool = False
     _registry = {}
 
-    def __init_subclass__(cls, **kwargs):
-        """Automatically register Task subclasses by their OUTPUT_TYPE."""
-        super().__init_subclass__(**kwargs)
-        if hasattr(cls, "OUTPUT_TYPE") and cls.OUTPUT_TYPE:
-            Task._registry[cls.OUTPUT_TYPE] = cls
-
     @classmethod
     def from_config(cls, config: TaskConfig | dict[str, Any]):
         """
@@ -1368,6 +1362,13 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
             )
         ]
 
+
+Task._registry = {
+    "multiple_choice": MultipleChoiceTask,
+    "generate_until": GenerateTask,
+    "loglikelihood": LoglikelihoodTask,
+    "loglikelihood_rolling": LoglikelihoodRollingTask,
+}
 
 # Backward compatibility alias
 ConfigurableTask = Task
