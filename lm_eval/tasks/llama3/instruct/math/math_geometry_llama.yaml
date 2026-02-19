@@ -1,0 +1,4 @@
+include: _math_llama_template_yaml
+tag: math_llama
+task: math_geometry_llama
+dataset_name: geometry

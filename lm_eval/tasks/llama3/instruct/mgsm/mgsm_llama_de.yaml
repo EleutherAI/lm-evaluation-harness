@@ -1,0 +1,4 @@
+include: _mgsm_llama_template_yaml
+tag: mgsm_llama
+task: mgsm_llama_de
+dataset_name: de

@@ -1,0 +1,16 @@
+group: mgsm_llama
+task:
+  - mgsm_llama_en
+  - mgsm_llama_de
+  - mgsm_llama_fr
+  - mgsm_llama_es
+  - mgsm_llama_it
+  - mgsm_llama_pt
+  - mgsm_llama_hi
+  - mgsm_llama_th
+aggregate_metric_list:
+  - metric: exact_match
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 1.0

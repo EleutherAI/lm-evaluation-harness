@@ -1,0 +1,4 @@
+include: _math_llama_template_yaml
+tag: math_llama
+task: math_prealgebra_llama
+dataset_name: prealgebra
