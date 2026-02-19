@@ -1101,9 +1101,7 @@ class MultipleChoiceTask(Task):
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance] | None:
-        name = metadata.get("task", self.task_name)
-        doc_id = metadata.get("doc_id", 0)
-        repeats = metadata.get("repeats", 1)
+        _metadata = {**metadata}
 
         choices = self.doc_to_choice(doc)
         if not choices:
@@ -1147,7 +1145,7 @@ class MultipleChoiceTask(Task):
                 context="", choices=choices, target_delimiter=target_delimiter
             )
             arguments.extend(aux_arguments)
-            metadata.update({"acc_mutual_info": True})
+            _metadata.update({"acc_mutual_info": True})
 
         target = self.doc_to_target(doc)
 
@@ -1160,12 +1158,12 @@ class MultipleChoiceTask(Task):
                 request_type="loglikelihood",
                 doc=doc,
                 arguments=arg,
-                task_name=name,
+                task_name=_metadata.pop("task", self.task_name),
                 idx=i,
-                doc_id=doc_id,
-                repeats=repeats,
+                doc_id=_metadata.pop("doc_id", 0),
+                repeats=_metadata.pop("repeats", 1),
                 target=target,
-                metadata={**metadata},
+                metadata=_metadata,
                 **kwargs,
             )
             for i, arg in enumerate(arguments)
