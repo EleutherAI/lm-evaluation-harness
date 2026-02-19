@@ -1098,13 +1098,14 @@ class MultipleChoiceTask(Task):
             assert len(choices) == 1, (
                 "For multiple input tasks, there should only be one choice"
             )
-            arguments = self.construct_multiple_input_instances(
+            arguments = self._multiple_input_args(
                 context=ctx, choices=choices, target_delimiter=target_delimiter
             )
-            # cont = self.doc_to_target(doc)
-            # arguments = [(context, f"{target_delimiter}{cont}") for context in ctx]
+        elif isinstance(ctx, list):
+            # Chat template: ctx is a list of message dicts
+            arguments = self._build_chat_arguments(ctx, choices, target_delimiter)
         else:
-            # Otherwise they are placed in the continuation
+            # String context: choices are placed in the continuation
             arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
         # If any scorer uses acc_mutual_info, we need unconditional loglikelihoods.
@@ -1151,23 +1152,20 @@ class MultipleChoiceTask(Task):
         )
         return [(context, f"{target_delimiter}{choice}") for choice in choices]
 
-    def construct_messages(
+    def _build_chat_arguments(
         self,
         ctx: list[dict[str, Any]],
         choices: list[str],
         target_delimiter: str,
-    ) -> list[Instance]:
-        if self.config.gen_prefix:
-            last_message = ctx[-1]
-            _k = "content" if "content" in last_message else "text"
-            last_message[_k] += target_delimiter
-        raise
+    ) -> list[tuple[list[dict[str, Any]], str]]:
+        """Build (messages, continuation) pairs for chat-template contexts."""
+        return [(deepcopy(ctx), f"{target_delimiter}{choice}") for choice in choices]
 
     @staticmethod
-    def construct_multiple_input_instances(
+    def _multiple_input_args(
         *, context: list[str], choices: list[str], target_delimiter: str
-    ):
-        return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in choices]
+    ) -> list[tuple[str, str]]:
+        return [(cxt, f"{target_delimiter}{choices[0]}") for cxt in context]
 
     def doc_to_target(self, doc, doc_to_target=None) -> int | list[int] | None:
         doc_to_target = super().doc_to_target(doc, doc_to_target)
@@ -1226,7 +1224,7 @@ class MultipleChoiceTask(Task):
 
 
 class GenerateTask(Task):
-    OUTPUT_TYPE: OutputType = "generate_until"
+    OUTPUT_TYPE = "generate_until"
 
     def construct_requests(
         self,
@@ -1238,7 +1236,6 @@ class GenerateTask(Task):
         chat_template: ChatTemplate | None = None,
         **kwargs,
     ) -> list[Instance]:
-        assert self.OUTPUT_TYPE == "generate_until"
         name, doc_id, repeats = (
             metadata.pop("task"),
             metadata.pop("doc_id"),
@@ -1263,7 +1260,7 @@ class GenerateTask(Task):
 
         return [
             Instance(
-                request_type=self.OUTPUT_TYPE,
+                request_type=cast("Literal['generate_until']", self.OUTPUT_TYPE),
                 doc=doc,
                 arguments=arguments,
                 additional_args=multimodal_arguments,
@@ -1290,7 +1287,7 @@ class GenerateTask(Task):
 
 
 class LoglikelihoodTask(Task):
-    OUTPUT_TYPE: OutputType = "loglikelihood"
+    OUTPUT_TYPE: Literal["loglikelihood"] = "loglikelihood"
 
     def __init__(self, config: TaskConfig | dict[str, Any], *args, **kwargs):
         super().__init__(config)
@@ -1316,17 +1313,18 @@ class LoglikelihoodTask(Task):
         doc_id = metadata.get("doc_id", 0)
         repeats = metadata.get("repeats", 1)
 
-        # TODO: BACKWARD_COMP
-        if self.OUTPUT_TYPE == "loglikelihood":
-            cont = self.doc_to_target(doc)
-            assert isinstance(cont, str), (
-                "For loglikelihood tasks, the argument should be a string representing the continuation to score against the context."
-            )
-            arguments = (ctx, cont)
+        cont = self.doc_to_target(doc)
+        assert isinstance(ctx, str), (
+            "For loglikelihood tasks, the argument should be a string representing the continuation to score against the context. Got type {type(ctx)} with value {ctx}. Please check your doc_to_text implementation."
+        )
+        assert isinstance(cont, str), (
+            f"For loglikelihood tasks, the target should be a string representing the continuation to score. Got {cont} of type {type(cont)}. Please check your doc_to_target implementation."
+        )
+        arguments = (ctx, cont)
 
         return [
             Instance(
-                request_type=self.OUTPUT_TYPE,
+                request_type=cast("Literal['loglikelihood']", self.OUTPUT_TYPE),
                 doc=doc,
                 arguments=arguments,
                 task_name=name,
@@ -1339,7 +1337,7 @@ class LoglikelihoodTask(Task):
 
 
 class LoglikelihoodRollingTask(LoglikelihoodTask):
-    OUTPUT_TYPE: OutputType = "loglikelihood_rolling"
+    OUTPUT_TYPE = "loglikelihood_rolling"
 
     def construct_requests(
         self,
@@ -1359,7 +1357,7 @@ class LoglikelihoodRollingTask(LoglikelihoodTask):
 
         return [
             Instance(
-                request_type=self.OUTPUT_TYPE,
+                request_type=cast("Literal['loglikelihood_rolling']", self.OUTPUT_TYPE),
                 doc=doc,
                 arguments=arguments,
                 task_name=name,
